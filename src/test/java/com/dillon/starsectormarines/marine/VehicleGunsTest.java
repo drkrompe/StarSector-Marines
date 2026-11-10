@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
@@ -70,5 +71,48 @@ class VehicleGunsTest {
         assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));
         assertEquals(1, bay.installedWeapon(MechWeaponComponent.HC_10.id));
         assertEquals(0, bay.availableWeapon(MechWeaponComponent.HC_10.id));
+    }
+
+    @Test
+    void theOnagersCoaxCardTakesOnlyAOneRowBallisticPart() {
+        assertTrue(CampaignVehicle.takesCoax(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.LIGHT_MACHINE_GUN));
+        assertFalse(CampaignVehicle.takesCoax(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.BL_1),
+                "a one-row energy part is not ballistic");
+        assertFalse(CampaignVehicle.takesCoax(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.CHAINGUN),
+                "two rows do not fit a one-row card");
+        assertFalse(CampaignVehicle.takesCoax(VehicleType.MEDIUM_TANK, MechWeaponComponent.LIGHT_MACHINE_GUN),
+                "no coax card, no coax");
+        assertTrue(CampaignVehicle.takesWeapon(VehicleType.BREAKTHROUGH_TANK, MechMountSlot.RIGHT_ARM,
+                MechWeaponComponent.LIGHT_MACHINE_GUN), "the coax card is the right arm on the doll");
+        assertFalse(CampaignVehicle.takesWeapon(VehicleType.BREAKTHROUGH_TANK, MechMountSlot.LEFT_ARM,
+                MechWeaponComponent.LIGHT_MACHINE_GUN));
+        assertNull(CampaignVehicle.hull("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK).coax(), "sold empty");
+    }
+
+    @Test
+    void aCoaxFitsFromStoresBesideTheGunAndIsKeptAsTheGunIs() {
+        MechBay bay = new MechBay();
+        CampaignVehicle tank = CampaignVehicle.hull("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
+        bay.addWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id, 2);
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_20));
+        assertFalse(bay.fitVehicleWeapon("v1", MechMountSlot.RIGHT_ARM, MechWeaponComponent.HC_20), "too big");
+        assertTrue(bay.fitVehicleWeapon("v1", MechMountSlot.RIGHT_ARM, MechWeaponComponent.LIGHT_MACHINE_GUN));
+
+        assertSame(MechWeaponComponent.HC_20, tank.gun(), "the gun card is untouched");
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN, tank.coax());
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN, tank.freezeForDeployment().coax(), "the drop carries it");
+        assertEquals(1, bay.installedWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id));
+
+        assertTrue(bay.stripVehicleWeapon("v1", MechMountSlot.RIGHT_ARM));
+        assertNull(tank.coax());
+        assertSame(MechWeaponComponent.HC_20, tank.gun(), "stripping the coax leaves the gun");
+        assertEquals(2, bay.availableWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id), "back to stores");
+
+        assertTrue(bay.fitVehicleWeapon("v1", MechMountSlot.RIGHT_ARM, MechWeaponComponent.LIGHT_MACHINE_GUN));
+        assertEquals(1, bay.loseVehicles(List.of("v1")));
+        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id), "a wrecked hull takes its coax");
     }
 }

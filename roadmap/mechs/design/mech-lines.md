@@ -4,7 +4,11 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
-Updated: 2026-11-10 — the midline row is built as three articulated carriers, wheeled hulls (`convoy-nouns.md`, the
+Updated: 2026-11-10 — the low-tech row's flamer rigs are built, the pirate Torch and the Path's Censer, each a fuel
+load over its frame with a machine flamer as its own weapon layer; the owner keeps the Hauler a durable heavy with no
+loot (Order of work, step 2). Also 2026-11-10 — the low-tech row's first faction variants are built: the pirate Hauler,
+and the Luddic Path's Foundry Breaker and Pilgrim, each a body of its own over its frame. Also 2026-11-10 —
+the midline row is built as three articulated carriers, wheeled hulls (`convoy-nouns.md`, the
 articulated carriers). Earlier 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own, and is the
 only mech Tri-Tachyon fields: its heavy-shell stand-ins are off its roster (owner: "they're not good").
 
@@ -80,7 +84,31 @@ purchases, so the low-tech row comes first:
 1. **Low-tech medium and heavy.** Done as the Warden and Bulwark: the Hegemony,
    Independents and pirates walk the low-tech row (pirates in repaired-scrap bodies).
 2. **Low-tech variants** across the row, including the field-rig and salvage
-   variants that pirates and Independents would build.
+   variants that pirates and Independents would build. **Five built** (owner picks from the concept sheets in
+   art-source/mech-modular-topdown/sources/lowtech/variants/sheets; the Runner, Boarder and Cutter were rejected, and
+   the second pass's two flamer rigs were both picked):
+   - the pirate **Hauler** (`MechVariant.HAULER`) on the Bulwark frame: a cargo cage on its back, a folding salvage
+     crane along its left shoulder, scrap slabs hung on chains, its left rack place shipping empty beside the crane;
+     the most durable and slowest heavy a pirate fields. It carries no loot (owner, 2026-11-10: "not now");
+   - the Path's **Foundry Breaker** (`MechVariant.FOUNDRY_BREAKER`) on the Hound frame: a foundry-cast breaching
+     collar round the nose and five shell canisters across its back, stock the Path's Hound issue (DC-5, SRM-5);
+   - the Path's **Pilgrim** (`MechVariant.PILGRIM`) on the Bulwark frame: a mining hauler with a dozer blade across
+     its front (the concept drew it at the back by mistake), ore-hopper ribs and prayer cloths, the slowest walker in
+     the row, and its blade pushes an ordinary wall down fastest of the heavy walkers that crush them
+     (`mechs-nouns.md`, Wall crush);
+   - the pirate **Torch** (`MechVariant.TORCH`) on the Hound frame: mismatched fuel drums and a pressure bottle in a
+     welded cradle across its back, its dorsal rack place shipping empty under the cradle, the FL-1 burner on its nose;
+   - the Path's **Censer** (`MechVariant.CENSER`) on the Warden frame: a promethium tank across its rear, an armoured
+     hose up its right flank and prayer cloths, the FL-2 lance on its right shoulder, a chaingun on its nose and an
+     empty plate on its left rack place.
+   A flamer rig's fuel load is its body; its burner is its own swappable weapon card and layer (law 4), one machine
+   flamer family in two sizes (`mechs-nouns.md`, Machine flamers).
+   A variant keeps its frame's legs, mounts, body plan, footprint and weight class (`MechVariant.frame`) and draws
+   its own body in their place: one ImageGen master per variant over a guide that is its frame's own master,
+   registered as the runtime fits it and shrunk inside a larger canvas so parts can hang past the frame's outline
+   (variants/bodies.py). Its weapons stay layers on its frame's mounts (law 4). Pirates field the Hauler and the
+   Torch; the Path fields its three conversions in place of the Hound. All numbers UNTUNED; the Kit Ladder holds the
+   five patterns and the two flamers at "none".
 3. **Midline.** It completes the row that Independents buy into. It takes the Eagle's material and colour (owner):
    weathered tan and khaki plate with engraved panel lines over grey machinery, round sockets, yellow-green lights,
    but never a ship's outline: the first concepts, built round the Eagle's forked prow and on bird legs, read as the

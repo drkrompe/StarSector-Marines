@@ -123,7 +123,9 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   guard posts from the first tick, out of the garrison's share and never the
   mobile pool, so the machines are held when the raid lands and the garrison
   beside the works answers the alarm (owner pick `raid-works-guard` a;
-  `RaidWorksGuard`). Riflemen hold the posts while any are left; a mech does
+  `RaidWorksGuard`). A post is a guard room or one of the works' gun
+  emplacements, and a squad on an emplacement's post crews that gun (owner:
+  "Yes, we should"). Riflemen hold the posts while any are left; a mech does
   not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
   alarm. Each wave is at most three mobile squads; a bigger garrison has more
@@ -170,17 +172,26 @@ between them.
   keeps the derived map. Every other mission's map is unchanged; the glacis is
   the standard 3 cells for every place but a Raid site's works.
 
+Each industry is a class of its own (`RaidIndustry`, listed in `RaidIndustries`):
+its works program, where its works and district stand, the ground it lays
+beside the works (a mine's pit), and how it dresses the built works
+(`RaidWorksDressingStage`, once the mission layout's roads are down and before
+the landscape pass). `RaidSiteTemplate` is
+the seam they share: the landing, homes, garrison, roads, walls and the seed's
+turn of the map, the same for every industry. The plan names its industry
+(`PrecinctPlan.raidIndustry`).
+
 The sites so far, each the same districts with the industry's own works:
 
 | Industry | Works (its machines first) | Industry round it |
 |---|---|---|
-| Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`FortressProgram.works`) | a dense industrial quarter and yards |
-| Mining (`mining`, `techmining`) | the head works as an ore-processing chain: the receiving house the pit's ore line lands on, the stockpile shed, a mill line per machine, the smelter, the loadout, stores (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
-| Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RaidWorksPrograms.refinery`) | a dense industrial quarter |
-| Light industry (`lightindustry`) | shop floors, a loading shed, stores (`RaidWorksPrograms.shops`) | a dense industrial quarter |
-| Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`RaidWorksPrograms.farmPlant`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
-| Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`RaidWorksPrograms.cargoTerminal`) | a dense industrial quarter |
-| Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`RaidWorksPrograms.motorPool`); the barracks are the garrison beside it | depots |
+| Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`HeavyIndustryWorks`, `FortressProgram.works`) | a dense industrial quarter and yards |
+| Mining (`mining`, `techmining`) | the head works as an ore-processing chain: the receiving house the pit's ore line lands on, the stockpile shed, a mill line per machine, the smelter, the loadout, stores (`MiningWorks`) | sparse ore yards and a railhead |
+| Refining (`refining`, `fuelprod`) | the planet's one cracking plant laid as its process (`RefiningWorks`): the receiving manifold at the rear, where the crude and volatiles pipelines land from the feeders; a unit per machine (its heater and pump house, the charge's place, with its distillation and cracking columns on a pad beside it); the product pump house and control house toward the front; no yards district. Dressed by `RefineryGround`: pipe racks on gantries in from the map's edges beside the feeders, between the units in the order the stock passes, and out over the haul road; the tank farm, held ground before the works (`RefiningWorks.TANK_FARM`), its tanks in bunds with stair gaps and walkways (`TankFarm`), the loading lane and rack with tankers on the haul-road side; a flare stack off the works' deep corner; spills | a dense industrial quarter, set back toward the homes |
+| Light industry (`lightindustry`) | the planet's fabrication works laid as its process (`LightIndustryWorks`): receiving dock and parts stores at the rear by the feeders, a fabrication shop per machine, assembly and a canteen in the yard, finishing and two dispatch sheds at the frontage by the haul road; its yard dressed by `FabricationYard` (an overhead parts line hall to hall in process order, the feeders' trucks at the dock, the work outside each hall's doors (lathes and mills at the shops, a roller line at assembly, racks at the stores, cased pallets at dispatch), stock yards of pallets on the open ground, the shifts' walkways from the canteen kept clear) | a dense industrial quarter |
+| Farming (`farming`, `aquaculture`) | the grain hub as its process (`FarmingWorks`, `GrainHub`): the intake shed and weighbridge office in the rear where the farm roads enter, the dryer, an elevator leg house per machine with its round bins stood round it, and the mill in the yard, the cold store and loadout on the frontage, linked in that order by an overhead grain gallery that runs along the battery; dressed with a beaten-earth yard, fields at harvest on the open ground fronting the roads and places, the wider ones and the open country beyond under centre pivots grown in rings, a few fish ponds behind a dry bund, haulers queued at the intake and grain spilt at the intake and loadout | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
+| Spaceport (`spaceport`, `megaport`) | the planet's only orbital lift, laid as the cargo moves: the customs hall at the gate the town roads come in by (haulers queued outside), a bonded shed per machine, the tower and pump house at the rear; out of a rear gate, the lighter apron held at the deep end as a mine's pit is: container staging under a gantry crane, the fuel main from the farm, three to six pads by market size with blast walls between, scorched, one freighter mid-turnaround on a `PORT_LIGHTER` stand no company lands on (`PortWorks`, `PortApron`) | a dense industrial quarter |
+| Military (`militarybase`, `patrolhq`, `highcommand`) | the patrol base as a process, standing against the garrison's flank so the two read as one base: convoys in by the rear to the supply depot the patrols draw from, the magazine apart behind sandbags, a motor shed per machine and the fuel point round the park of armoured carriers, dispatch by the front gate with its radar; a hedgehog belt round its wall, a watchtower in each corner and a sandbagged checkpoint at each gate; its sheds, depot and fuel house roofed as hangars, dispatch and the garrison's barracks as huts, the garrison's widest yard a marked parade square with a saluting base and flag mast, its next yards an armour park, a firing range and a supply dump (`MilitaryGround`); patrol roads out of two gates to observation posts with radio huts (`MilitaryWorks`). The barracks are the garrison, the prize | sparse depots |
 
 The owner accepted heavy industry's site and asked for the rest in order
 (2026-11-09); every industry a raid can name now has a site, each awaiting the

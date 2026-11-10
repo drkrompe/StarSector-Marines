@@ -24,6 +24,27 @@
       "description": "@gearCatalogSecurityRoundsDescription"
     },
     {
+      "variant": "security_tender",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-12",
+      "role": "@gearCatalogSecurityTenderRole",
+      "description": "@gearCatalogSecurityTenderDescription"
+    },
+    {
+      "variant": "security_stripper",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-18",
+      "role": "@gearCatalogSecurityStripperRole",
+      "description": "@gearCatalogSecurityStripperDescription"
+    },
+    {
+      "variant": "security_hauler",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-30",
+      "role": "@gearCatalogSecurityHaulerRole",
+      "description": "@gearCatalogSecurityHaulerDescription"
+    },
+    {
       "variant": "security_hall",
       "factionLogo": "graphics/factions/domain_explorarium.png",
       "designation": "MG-70",
@@ -36,6 +57,41 @@
       "designation": "TT-C2",
       "role": "@gearCatalogCrawlerRole",
       "description": "@gearCatalogCrawlerDescription"
+    },
+    {
+      "variant": "hauler",
+      "factionLogo": "graphics/factions/pirates.png",
+      "designation": "BLW-9/H",
+      "role": "@gearCatalogHaulerRole",
+      "description": "@gearCatalogHaulerDescription"
+    },
+    {
+      "variant": "foundry_breaker",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "HND-3/FB",
+      "role": "@gearCatalogFoundryBreakerRole",
+      "description": "@gearCatalogFoundryBreakerDescription"
+    },
+    {
+      "variant": "pilgrim",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "BLW-9/P",
+      "role": "@gearCatalogPilgrimRole",
+      "description": "@gearCatalogPilgrimDescription"
+    },
+    {
+      "variant": "torch",
+      "factionLogo": "graphics/factions/pirates.png",
+      "designation": "HND-3/T",
+      "role": "@gearCatalogTorchRole",
+      "description": "@gearCatalogTorchDescription"
+    },
+    {
+      "variant": "censer",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "WRD-5/C",
+      "role": "@gearCatalogCenserRole",
+      "description": "@gearCatalogCenserDescription"
     },
     {
       "variant": "hound",
@@ -167,6 +223,18 @@
       "factionLogo": "graphics/factions/lg.png",
       "designation": "LBT",
       "description": "@gearCatalogComponentMechThermalLanceDescription"
+    },
+    {
+      "component": "component.mech-fl-1",
+      "factionLogo": "graphics/factions/pirates.png",
+      "designation": "FL-1",
+      "description": "@gearCatalogComponentMechFl1Description"
+    },
+    {
+      "component": "component.mech-fl-2",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "FL-2",
+      "description": "@gearCatalogComponentMechFl2Description"
     },
     {
       "component": "component.mech-srm-3-qs",

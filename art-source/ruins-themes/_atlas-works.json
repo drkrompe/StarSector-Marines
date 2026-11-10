@@ -1,0 +1,1496 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "cold-head.png": {
+      "id": "doodad.ruins-cold-head",
+      "name": "Cold head",
+      "description": "A cryo compressor stack on its plinth: four compressor heads round a cold box, frost banded across it, its headers leaving the north edge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1
+    },
+    "heat-exchanger.png": {
+      "id": "doodad.ruins-heat-exchanger",
+      "name": "Heat exchanger",
+      "description": "A shell-and-tube heat exchanger lying north-south on two saddles, its nozzles east and west.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2
+    },
+    "coil-winder.png": {
+      "id": "doodad.ruins-coil-winder",
+      "name": "Coil winder",
+      "description": "A coil winder: a mandrel wound thick with copper between two headstocks, its winding head on the north traverse.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3
+    },
+    "works-conveyor.png": {
+      "id": "doodad.ruins-works-conveyor",
+      "name": "Works conveyor",
+      "description": "The line's roller conveyor bed sunk in the floor plate, every works hall's line. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4
+    },
+    "coolant-drop.png": {
+      "id": "doodad.ruins-coolant-drop",
+      "name": "Coolant drop",
+      "description": "A wall service cabinet, its frosted coolant couplings on top.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5
+    },
+    "nutrient-drop.png": {
+      "id": "doodad.ruins-nutrient-drop",
+      "name": "Nutrient drop",
+      "description": "A wall service cabinet, its sealed nutrient couplings on top.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6
+    },
+    "powder-drop.png": {
+      "id": "doodad.ruins-powder-drop",
+      "name": "Powder drop",
+      "description": "A wall service cabinet with its powder feed chute.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7
+    },
+    "power-drop.png": {
+      "id": "doodad.ruins-power-drop",
+      "name": "Power drop",
+      "description": "A wall service cabinet, its copper busbars under a dead lamp strip.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8
+    },
+    "steam-drop.png": {
+      "id": "doodad.ruins-steam-drop",
+      "name": "Steam drop",
+      "description": "A wall service cabinet, its lagged steam stub through a valve ring.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9
+    },
+    "line-console.png": {
+      "id": "doodad.ruins-line-console",
+      "name": "Line console",
+      "description": "A run of three control desks along the line, their screens dead.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10
+    },
+    "coolant-return.png": {
+      "id": "doodad.ruins-coolant-return",
+      "name": "Coolant return",
+      "description": "The coolant return trench under frosted grated covers. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11
+    },
+    "coolant-loop.png": {
+      "id": "doodad.ruins-coolant-loop",
+      "name": "Coolant loop",
+      "description": "Two insulated coolant pipes clamped in a shallow floor channel. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12
+    },
+    "transfer-pipe.png": {
+      "id": "doodad.ruins-transfer-pipe",
+      "name": "Transfer pipe",
+      "description": "A big pressure pipe in a floor cradle, flanged at intervals. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13
+    },
+    "tensile-bed.png": {
+      "id": "doodad.ruins-tensile-bed",
+      "name": "Tensile bed",
+      "description": "A tensile test bed: guide ways either side of a dark slot. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14
+    },
+    "spoil-conveyor.png": {
+      "id": "doodad.ruins-spoil-conveyor",
+      "name": "Spoil conveyor",
+      "description": "A troughed belt conveyor carrying rock spoil. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15
+    },
+    "coolant-header.png": {
+      "id": "doodad.ruins-coolant-header",
+      "name": "Coolant header",
+      "description": "One lagged coolant header on hangers. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16
+    },
+    "coolant-header-fallen.png": {
+      "id": "doodad.ruins-coolant-header-fallen",
+      "name": "Fallen coolant header",
+      "description": "The coolant header fallen to the floor, broken in two.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17
+    },
+    "feed-manifold.png": {
+      "id": "doodad.ruins-feed-manifold",
+      "name": "Feed manifold",
+      "description": "Two feed pipes on hanger brackets. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18
+    },
+    "feed-manifold-fallen.png": {
+      "id": "doodad.ruins-feed-manifold-fallen",
+      "name": "Fallen feed manifold",
+      "description": "The feed manifold fallen to the floor, broken in two.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 19
+    },
+    "pipe-run.png": {
+      "id": "doodad.ruins-pipe-run",
+      "name": "Pipe run",
+      "description": "Three pipes on a pipe rack. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 20
+    },
+    "pipe-run-fallen.png": {
+      "id": "doodad.ruins-pipe-run-fallen",
+      "name": "Fallen pipe run",
+      "description": "The pipe run fallen to the floor, broken in two.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 21
+    },
+    "powder-line.png": {
+      "id": "doodad.ruins-powder-line",
+      "name": "Powder line",
+      "description": "A square powder duct with stiffener bands. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 22
+    },
+    "powder-line-fallen.png": {
+      "id": "doodad.ruins-powder-line-fallen",
+      "name": "Fallen powder line",
+      "description": "The powder duct fallen to the floor, broken in two.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 23
+    },
+    "waste-skid.png": {
+      "id": "doodad.ruins-waste-skid",
+      "name": "Waste skid",
+      "description": "A hover skid on four lift-fan rings carrying a sealed waste tank.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 24
+    },
+    "reject-skid.png": {
+      "id": "doodad.ruins-reject-skid",
+      "name": "Reject skid",
+      "description": "A hover skid carrying a mesh bin of scrap.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 25
+    },
+    "bed-changer-derailed.png": {
+      "id": "doodad.ruins-bed-changer-derailed",
+      "name": "Crashed bed changer",
+      "description": "The bed changer's hover carriage crashed and slewed, a fan ring torn off.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 26
+    },
+    "unit-carrier.png": {
+      "id": "doodad.ruins-unit-carrier",
+      "name": "Unit carrier",
+      "description": "A mag-rail carrier, a sealed cryo unit in its frosted cradle.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 27
+    },
+    "unit-carrier-derailed.png": {
+      "id": "doodad.ruins-unit-carrier-derailed",
+      "name": "Derailed unit carrier",
+      "description": "The unit carrier thrown askew off its rail.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 28
+    },
+    "shield-block.png": {
+      "id": "doodad.ruins-shield-block",
+      "name": "Shield block",
+      "description": "A radiation shield block, flush to its edges: lay a run of them as a wall.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 29
+    },
+    "shield-rubble.png": {
+      "id": "doodad.ruins-shield-rubble",
+      "name": "Shield rubble",
+      "description": "Shield block chunks blown out of a wall.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 30
+    },
+    "blast-wall.png": {
+      "id": "doodad.ruins-blast-wall",
+      "name": "Blast wall",
+      "description": "A blast wall section, flush to its edges: lay a run of them as a wall.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 31
+    },
+    "blast-baffle.png": {
+      "id": "doodad.ruins-blast-baffle",
+      "name": "Blast baffle",
+      "description": "A blast baffle plate standing east-west, flush to its east and west edges: lay a run of them.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 32
+    },
+    "blast-rubble.png": {
+      "id": "doodad.ruins-blast-rubble",
+      "name": "Blast rubble",
+      "description": "Blast wall chunks.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 33
+    },
+    "cage-fence.png": {
+      "id": "doodad.ruins-cage-fence",
+      "name": "Cage fence",
+      "description": "A flight-test cage's mesh fence running east-west across the cell.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 34
+    },
+    "cage-fence-v.png": {
+      "id": "doodad.ruins-cage-fence-v",
+      "name": "Cage fence (north-south)",
+      "description": "The cage fence running north-south.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 35
+    },
+    "housing-crate.png": {
+      "id": "doodad.ruins-housing-crate",
+      "name": "Housing crate",
+      "description": "A reinforced transit crate for a field housing.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 36
+    },
+    "stack-crate.png": {
+      "id": "doodad.ruins-stack-crate",
+      "name": "Stack crates",
+      "description": "Two tall transit crates side by side.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 37
+    },
+    "hardware-crate.png": {
+      "id": "doodad.ruins-hardware-crate",
+      "name": "Hardware crate",
+      "description": "An armoured hardware crate, its lid latched.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 38
+    },
+    "feedstock-silo.png": {
+      "id": "doodad.ruins-feedstock-silo",
+      "name": "Feedstock silo",
+      "description": "A powder feedstock silo seen from above: its ribbed conical roof, a fill hatch at the apex, a walkway round the rim.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 39
+    },
+    "feedstock-silo-split.png": {
+      "id": "doodad.ruins-feedstock-silo-split",
+      "name": "Split feedstock silo",
+      "description": "The silo split open down its east side, pale feedstock powder spilled out to its east edge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 40
+    },
+    "reactor-column.png": {
+      "id": "doodad.ruins-reactor-column",
+      "name": "Reactor column",
+      "description": "A catalytic reactor column's top head on its square grated platform, a ring of flange bolts round a central nozzle.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 41
+    },
+    "product-tank.png": {
+      "id": "doodad.ruins-product-tank",
+      "name": "Product tank",
+      "description": "A round product tank on a square grated platform.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 42
+    },
+    "lattice-tank.png": {
+      "id": "doodad.ruins-lattice-tank",
+      "name": "Lattice tank",
+      "description": "A square cryogenic lattice tank, frost on its window.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 43
+    },
+    "coating-chamber.png": {
+      "id": "doodad.ruins-coating-chamber",
+      "name": "Coating chamber",
+      "description": "A square vacuum coating chamber, its round sealed door on top, the hinge block east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 44
+    },
+    "nutrient-tank.png": {
+      "id": "doodad.ruins-nutrient-tank",
+      "name": "Nutrient tank",
+      "description": "A round nutrient tank: domed roof, manway, a culture sample port, nozzles west.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 45
+    },
+    "feed-tank.png": {
+      "id": "doodad.ruins-feed-tank",
+      "name": "Feed tank",
+      "description": "A round feed tank: domed roof, manway, nozzles west.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 46
+    },
+    "precursor-tank.png": {
+      "id": "doodad.ruins-precursor-tank",
+      "name": "Precursor tank",
+      "description": "A round precursor tank, heater bands on its roof, chemical crust.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 47
+    },
+    "draw-tower.png": {
+      "id": "doodad.ruins-draw-tower",
+      "name": "Draw tower",
+      "description": "The head of a fibre draw tower: a square frame on four legs round its furnace bore, a dull glow at the bottom.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 48
+    },
+    "lattice-bench.png": {
+      "id": "doodad.ruins-lattice-bench",
+      "name": "Lattice bench",
+      "description": "A lattice assembly station: a frosted bed of lattice plates in its clamp frame, a manipulator turret beside it.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 49
+    },
+    "decanter.png": {
+      "id": "doodad.ruins-decanter",
+      "name": "Decanter",
+      "description": "A culture decanter: a sealed separator bowl on its base.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 50
+    },
+    "powder-hopper.png": {
+      "id": "doodad.ruins-powder-hopper",
+      "name": "Powder hopper",
+      "description": "A powder feed hopper, its funnel dark.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 51
+    },
+    "arming-bench.png": {
+      "id": "doodad.ruins-arming-bench",
+      "name": "Arming station",
+      "description": "An automated arming station: a fixture bed and its robot arm.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 52
+    },
+    "test-pylon.png": {
+      "id": "doodad.ruins-test-pylon",
+      "name": "Test pylon",
+      "description": "A round flight-test field pylon, its emitter dead.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 53
+    },
+    "emitter-bench.png": {
+      "id": "doodad.ruins-emitter-bench",
+      "name": "Emitter bench",
+      "description": "An emitter assembly station, three dim lenses in a row.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 54
+    },
+    "holo-pedestal.png": {
+      "id": "doodad.ruins-holo-pedestal",
+      "name": "Holo pedestal",
+      "description": "A round holographic pedestal, its projector well dark.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 55
+    },
+    "charge-hopper.png": {
+      "id": "doodad.ruins-charge-hopper",
+      "name": "Charge hopper",
+      "description": "An armoured propellant charge hopper, its grated lid cross-braced.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 56
+    },
+    "beam-diagnostics.png": {
+      "id": "doodad.ruins-beam-diagnostics",
+      "name": "Beam diagnostics",
+      "description": "A beam diagnostics station straddling the beam pipe, which runs east-west through it.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 57
+    },
+    "firing-point.png": {
+      "id": "doodad.ruins-firing-point",
+      "name": "Firing point",
+      "description": "A range firing point: a low armoured three-bay rest.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 58
+    },
+    "dancer-tower.png": {
+      "id": "doodad.ruins-dancer-tower",
+      "name": "Dancer tower",
+      "description": "A fibre tension dancer tower: a narrow frame, its pulley at the north end.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 59
+    },
+    "guide-roller.png": {
+      "id": "doodad.ruins-guide-roller",
+      "name": "Guide roller",
+      "description": "A fibre guide roller between two bearing blocks, running east-west.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 60
+    },
+    "guide-roller-fallen.png": {
+      "id": "doodad.ruins-guide-roller-fallen",
+      "name": "Fallen guide roller",
+      "description": "The guide roller knocked flat and askew.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 61
+    },
+    "seal-press.png": {
+      "id": "doodad.ruins-seal-press",
+      "name": "Seal press",
+      "description": "A seal press closing over a frosted cryo unit between its side frames.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 62
+    },
+    "vat-filler.png": {
+      "id": "doodad.ruins-vat-filler",
+      "name": "Vat filler",
+      "description": "A vat filler, its sealed culture fill head over the nest.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 63
+    },
+    "cabinet-sealer.png": {
+      "id": "doodad.ruins-cabinet-sealer",
+      "name": "Cabinet sealer",
+      "description": "A cabinet sealer, a vented core cabinet in its nest.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 64
+    },
+    "filling-press.png": {
+      "id": "doodad.ruins-filling-press",
+      "name": "Filling press",
+      "description": "A shell filling press, its fill nozzle over a shell mouth, its ram head across the north.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 65
+    },
+    "tether-anchor.png": {
+      "id": "doodad.ruins-tether-anchor",
+      "name": "Tether anchor",
+      "description": "A tether test anchor: a massive round bollard bolted down, its tether slot from the north edge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 66
+    },
+    "chiller.png": {
+      "id": "doodad.ruins-chiller",
+      "name": "Chiller",
+      "description": "A big industrial chiller: three fan shrouds across its roof, its condenser coil bank along the south side.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 67
+    },
+    "chiller-burst.png": {
+      "id": "doodad.ruins-chiller-burst",
+      "name": "Burst chiller",
+      "description": "The chiller burst open at its south-east corner, frozen coolant spilled over it as an ice sheet.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 68
+    },
+    "preheat-furnace.png": {
+      "id": "doodad.ruins-preheat-furnace",
+      "name": "Preheat furnace",
+      "description": "A feed preheat furnace: a firebox with four burner ports, its flue stack north-east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 69
+    },
+    "cold-manifold.png": {
+      "id": "doodad.ruins-cold-manifold",
+      "name": "Cold manifold",
+      "description": "A cold distribution manifold: a header block with four frosted couplings, insulated pipes leaving north and south.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 70
+    },
+    "cryostat.png": {
+      "id": "doodad.ruins-cryostat",
+      "name": "Cryostat",
+      "description": "A cryostat lying east-west on its end frames, frosted.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 71
+    },
+    "feed-pumps.png": {
+      "id": "doodad.ruins-feed-pumps",
+      "name": "Feed pumps",
+      "description": "Two nutrient feed pumps on a shared skid.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 72
+    },
+    "ice-ridge.png": {
+      "id": "doodad.ruins-ice-ridge",
+      "name": "Ice ridge",
+      "description": "A ridge of coolant frozen where it poured from a burst header.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 73
+    },
+    "hoist-winder.png": {
+      "id": "doodad.ruins-hoist-winder",
+      "name": "Hoist winder",
+      "description": "A shaft hoist winder: a grooved drum between two pedestals, its two cables leaving the north edge toward the shaft.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 74
+    },
+    "winder.png": {
+      "id": "doodad.ruins-winder",
+      "name": "Spool winder",
+      "description": "A fibre spool winder: a machine bed round a bare turntable (the spool drum is laid over it), its traverse guide east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 75
+    },
+    "beam-dump.png": {
+      "id": "doodad.ruins-beam-dump",
+      "name": "Beam dump",
+      "description": "A particle beam dump: a shielded block, the beam pipe entering its core from the north edge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 76
+    },
+    "ring-segment.png": {
+      "id": "doodad.ruins-ring-segment",
+      "name": "Ring segment",
+      "description": "A storage ring dipole segment, its beam pipe north-south through it, flush to both edges: a straight run of the ring.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 77
+    },
+    "ring-segment-ew.png": {
+      "id": "doodad.ruins-ring-segment-ew",
+      "name": "Ring segment (east-west)",
+      "description": "The ring segment turned east-west.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 78
+    },
+    "rf-cavity.png": {
+      "id": "doodad.ruins-rf-cavity",
+      "name": "RF cavity",
+      "description": "An RF accelerating cavity: two copper-cored cells on the beam pipe north-south, its waveguide stub east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 79
+    },
+    "linac-section.png": {
+      "id": "doodad.ruins-linac-section",
+      "name": "Linac section",
+      "description": "A linac cryomodule on the beam pipe, north-south.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 80
+    },
+    "cutter-rack.png": {
+      "id": "doodad.ruins-cutter-rack",
+      "name": "Cutter rack",
+      "description": "A rack of spare bore cutter discs, four shelves.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 81
+    },
+    "drum-rack.png": {
+      "id": "doodad.ruins-drum-rack",
+      "name": "Drum rack",
+      "description": "A rack of full fibre spool drums, four shelves.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 82
+    },
+    "charge-cell.png": {
+      "id": "doodad.ruins-charge-cell",
+      "name": "Charge cell",
+      "description": "A cryo charge cell open to the east (for a west bay): plated walls north, south and west round a frosted chamber, a sealed unit in its charging cradle.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 83
+    },
+    "charge-cell-west.png": {
+      "id": "doodad.ruins-charge-cell-west",
+      "name": "Charge cell (open west)",
+      "description": "The charge cell open to the west, for an east bay.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 84
+    },
+    "charge-cell-open.png": {
+      "id": "doodad.ruins-charge-cell-open",
+      "name": "Torn charge cell",
+      "description": "The charge cell's door torn off at its open east side, its unit frozen half-charged.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 85
+    },
+    "charge-cell-open-west.png": {
+      "id": "doodad.ruins-charge-cell-open-west",
+      "name": "Torn charge cell (open west)",
+      "description": "The torn charge cell open to the west, for an east bay.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 86
+    },
+    "bore-stand.png": {
+      "id": "doodad.ruins-bore-stand",
+      "name": "Bore stand",
+      "description": "A floor-level bore head assembly stand: two rails, cross ties and corner clamps, open in the middle for the head.",
+      "cover": "none",
+      "footprintCells": [
+        5,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 87
+    },
+    "culture-vat-large.png": {
+      "id": "doodad.ruins-culture-vat-large",
+      "name": "Great vat",
+      "description": "A great round culture vat: a bolted rim, its domed lid, a culture port.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 88
+    },
+    "culture-vat-burst.png": {
+      "id": "doodad.ruins-culture-vat-burst",
+      "name": "Burst great vat",
+      "description": "The great vat split open east, its culture grown out over the floor to the south-east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 89
+    },
+    "print-bed.png": {
+      "id": "doodad.ruins-print-bed",
+      "name": "Print bed",
+      "description": "A drone print bed: a frame round a gridded build plate, flush to the floor.",
+      "cover": "none",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 90
+    },
+    "core-rack-row.png": {
+      "id": "doodad.ruins-core-rack-row",
+      "name": "Core rack row",
+      "description": "A row of eight server racks east-west, containment door frames at both ends.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 91
+    },
+    "launch-rack.png": {
+      "id": "doodad.ruins-launch-rack",
+      "name": "Launch rack",
+      "description": "A drone launch rack of four bays, a frame racked in each.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        6,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 92
+    },
+    "core-racks-toppled.png": {
+      "id": "doodad.ruins-core-racks-toppled",
+      "name": "Toppled core racks",
+      "description": "Six server racks fallen over like dominoes.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        6,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 93
+    },
+    "sorter.png": {
+      "id": "doodad.ruins-sorter",
+      "name": "Sorter",
+      "description": "An automated sorter: its belt east-west, diverters north, outfeed chutes south.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        6,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 94
+    },
+    "stacker-rail.png": {
+      "id": "doodad.ruins-stacker-rail",
+      "name": "Stacker rail",
+      "description": "Overhead: a stacker crane rail east-west, its carriage parked. Drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        6,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 95
+    },
+    "stacker-toppled.png": {
+      "id": "doodad.ruins-stacker-toppled",
+      "name": "Toppled stacker",
+      "description": "A stacker crane's mast fallen across a rack row.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        7,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 96
+    },
+    "reactor-column-fallen.png": {
+      "id": "doodad.ruins-reactor-column-fallen",
+      "name": "Fallen reactor column",
+      "description": "A reactor column fallen on its side east-west, its head torn off at the east end, sludge pooled under it.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        9,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 97
+    },
+    "pipe-rack.png": {
+      "id": "doodad.ruins-pipe-rack",
+      "name": "Pipe rack",
+      "description": "A pipe rack north-south: three pipes on four supports.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 98
+    },
+    "director-booth.png": {
+      "id": "doodad.ruins-director-booth",
+      "name": "Director's booth",
+      "description": "The holosuite director's booth: its roof, its long window along the east side broken.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        5
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 99
+    },
+    "print-gantry-fallen.png": {
+      "id": "doodad.ruins-print-gantry-fallen",
+      "name": "Fallen print gantry",
+      "description": "A print gantry's bridge fallen across a bay, its east end sheared.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        7,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 100
+    },
+    "spoil-heap.png": {
+      "id": "doodad.ruins-spoil-heap",
+      "name": "Spoil heap",
+      "description": "A heap of rock spoil from the bore.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 101
+    },
+    "spoil-slide.png": {
+      "id": "doodad.ruins-spoil-slide",
+      "name": "Spoil slide",
+      "description": "A low slide of rock spoil across the floor.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        4,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 102
+    },
+    "headframe.png": {
+      "id": "doodad.ruins-headframe",
+      "name": "Headframe",
+      "description": "Overhead: the shaft's headframe, a lattice frame round all four sides with corner towers and two sheave wheels; open in the middle so the shaft shows through. Drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        12,
+        12
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 103
+    },
+    "print-gantry.png": {
+      "id": "doodad.ruins-print-gantry",
+      "name": "Print gantry",
+      "description": "Overhead: a print gantry over its bed, rails north and south, its bridge and head across the middle. Drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 104
+    },
+    "proving-torus.png": {
+      "id": "doodad.ruins-proving-torus",
+      "name": "Proving torus",
+      "description": "The great proving torus at the field hall's head: a ring vessel with sixteen field coils, its bore dark.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        10,
+        8
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 105
+    },
+    "precursor-furnace.png": {
+      "id": "doodad.ruins-precursor-furnace",
+      "name": "Precursor furnace",
+      "description": "A fullerene precursor furnace: its firebox west, two flue stacks east.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        5
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 106
+    },
+    "proof-butt.png": {
+      "id": "doodad.ruins-proof-butt",
+      "name": "Proof butt",
+      "description": "A range's proof butt: an earth berm faced on its south side with impact-pocked steel plate.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 107
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "version": 3,
+  "map": "long-survey-fall",
+  "home": "ARID",
+  "entry": {
+    "seed": 38,
+    "note": "The Fall: the Colony Breach's colony (seed 38, its lift, bores and holdouts as the owner placed them) with the Surveyor down in the desert south-east of the town, bow east, its trench ploughed west along the town's southern edge and stopping short of the landing's field of fire; no stakes yet",
+    "patch": {
+      "lift": [
+        164,
+        18
+      ],
+      "bores": [
+        {
+          "x": 307,
+          "y": 103
+        },
+        {
+          "x": 26,
+          "y": 102
+        },
+        {
+          "x": 124,
+          "y": 126
+        },
+        {
+          "x": 379,
+          "y": 133
+        },
+        {
+          "x": 352,
+          "y": 200,
+          "mother": true
+        }
+      ],
+      "holdouts": [
+        [
+          79,
+          86
+        ],
+        [
+          18,
+          200
+        ],
+        [
+          145,
+          199
+        ]
+      ],
+      "hull": {
+        "x": 346,
+        "y": 54,
+        "heading": "east",
+        "trench": 60
+      }
+    }
+  }
+}

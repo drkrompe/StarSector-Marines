@@ -23,7 +23,7 @@ import java.util.List;
  */
 final class ColdHall {
 
-    static final String ICE = "floors.snow";
+    static final String ICE = "ruins-ground.ice-sheet", RIME = "ruins-ground.rime";
 
     private ColdHall() {}
 
@@ -36,7 +36,7 @@ final class ColdHall {
 
         // The floor first: the line's conveyor and the return trench are lanes.
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            p.floor("doodad.ruins-unit-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "charge");
+            p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "charge");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);
         f.feedRail("feed", top - 1);
@@ -49,7 +49,7 @@ final class ColdHall {
         // and the pulpit between them.
         f.stand("doodad.ruins-lattice-bench", "doodad.industrial-machine-tool", f.westL, top - 2, 3, 2, "lattice");
         f.stand("doodad.ruins-lattice-bench", "doodad.industrial-machine-tool", f.westL, top - 6, 3, 2, "lattice");
-        int head = Math.min(6, sw);
+        int head = 6;
         f.stand("doodad.ruins-cold-head", "factory-machines.coolant", f.westR - head + 1, top - 12, head, 6, "charge");
         f.stand("doodad.ruins-cold-head", "factory-machines.coolant", f.eastL, top - 12, head, 6, "charge");
         f.stand("doodad.ruins-cold-manifold", "factory-machines.coolant", f.cx - 1, top - 5, 4, 3, "charge");
@@ -65,7 +65,7 @@ final class ColdHall {
         for (int b = 0; b < bays.size(); b++) {
             int y0 = bays.get(b);
             boolean frozen = b == 1;
-            String cellId = frozen ? "doodad.ruins-charge-cell-open" : "doodad.ruins-charge-cell";
+            String cellId = frozen ? "doodad.ruins-charge-cell-open-west" : "doodad.ruins-charge-cell-west";
             if (f.stand(cellId, "doodad.ruins-cryo-unit-half", f.westR - cell + 1, y0 + 1, cell, 6, "charge")) {
                 cold.add(new int[]{f.westR - 2, y0 + 4});
                 p.zone(f.westR - cell, y0, f.westR + 1, y0 + 7, WorksHallPlan.Zone.BAY);
@@ -117,7 +117,7 @@ final class ColdHall {
 
         // The environment: ice from every source of cold, rime banked on the walls.
         f.spread(ICE, cold, 7, 0x1CE);
-        f.bank(ICE, 0, 3, 0x1C1);
+        f.bank(RIME, 0, 3, 0x1C1);
         return p;
     }
 }

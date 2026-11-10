@@ -90,7 +90,9 @@ Everything in this section is mod direction.
 - **Site security, not an army.** Each ruins site that has it has its own
   network, built for that place and running alone. Networks do not talk to
   each other, do not spread and do not rebuild beyond the repair stock they
-  have.
+  have. The one exception is a **fallen hull**: an Explorarium survey
+  mothership down on a world, whose autoforge prints stakes and walkers from
+  the metal it hauls home (`fallen-hull-nouns.md`, pick `hull-spread-law`).
 - **Two lineages.** Most networks are **Domain security**: Mbaye-Gogol ground
   units, the frontier garrison's kit, in grey and hazard yellow with Explorarium
   and colonial-authority markings. In a system the game generated as Remnant
@@ -144,8 +146,9 @@ the lightly damaged: a slow, heavy anchor that keeps itself running.
 | **Sentry post** | A folded gun emplacement that rises when its zone wakes. Secondary now: a few per zone at doors and courts. | Defence post (`DefensePost`) with a wake gate |
 | **Rounds walker** | The derelict line's medium (MG-25): low, quick and lightly plated, narrow enough for any door. Walks its zone's round while the zone sleeps, and once awake is the zone's first answer anywhere inside its perimeter (`derelict-watch.md`, pick open). | A chassis of the derelict line at its size |
 | **Hall frame** | The derelict line's large (MG-70): twice the heavy's height and the heaviest plate outside the vault, too wide for a corridor. Keeps the plant's largest hall and forces a dead door in its way (`derelict-watch.md`, pick open). | A chassis of the derelict line at its size |
+| **Tender** | The derelict line's small (MG-12): unarmed, a welding arm in place of guns. Follows its zone's most worn walker once awake and welds plate back onto it, under fire or not; reloads its stock at the service bay; never raises a wreck (`derelict-watch.md`). | A chassis of the derelict line at its size |
 | **Repair drone** | An unarmed drone that restores damaged posts, cradles and walkers while its node stands and its stock lasts, and raises a fallen walker or post from its wreck (`derelict-watch.md`); stands down under fire. | The tender's builder drone (`tender-ship.md`) |
-| **Service bay** | A low armoured housing beside a node holding the zone's repair stock; the repair drone reloads there (`derelict-watch.md`). | Structure |
+| **Service bay** | A low armoured housing beside a node holding the zone's repair stock; the repair drone and the tender reload there, and the zone's walkers re-arm their missile racks there, since they carry no loader of their own (`derelict-watch.md`). | Structure |
 | **Reserve bay** | A sealed cradle housing holding a second flock, opened by the facility's wake (`derelict-watch.md`). Destroyed while shut, its flock never rises. | A cradle, sealed |
 | **Drone vent** | A hatch in open-sky paving into the plant's service ducts: flocks go in at one and come up at another (`derelict-watch.md`). A charge collapses it. | Ground |
 | **Control node** | The zone's controller and relay: armoured, unarmed. Destroyed, its zone stops relaying, repairing and rebuilding drones. | Structure |

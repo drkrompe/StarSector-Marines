@@ -98,6 +98,7 @@ com.dillon.starsectormarines.battle.vehicle.SupplyTruckScene
 com.dillon.starsectormarines.battle.vehicle.ScoutCarScene
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierScene
 com.dillon.starsectormarines.battle.vehicle.WallCrushScene
+com.dillon.starsectormarines.battle.mech.PilgrimWallCrushScene
 com.dillon.starsectormarines.battle.vehicle.TankUndergrowthScene
 com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
 com.dillon.starsectormarines.battle.combat.HardTargetTimeToKillScene
@@ -177,3 +178,4 @@ com.dillon.starsectormarines.battle.derelict.DerelictPostScene
 com.dillon.starsectormarines.battle.derelict.DerelictRepairScene
 com.dillon.starsectormarines.battle.derelict.DerelictNetworkScene
 com.dillon.starsectormarines.battle.drone.FlockCountersScene
+com.dillon.starsectormarines.battle.derelict.FallenHullScene

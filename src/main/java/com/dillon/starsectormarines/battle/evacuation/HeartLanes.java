@@ -1675,7 +1675,7 @@ public final class HeartLanes {
     }
 
     /**
-     * Brings an armour pair on for the lane a request names: a breakthrough tank and a technical set down from the
+     * Brings an armour pair on for the lane a request names: an Onager and a technical set down from the
      * depot cell, joining the lane's armour so it is driven with the rest; on the road until both are within
      * {@link #ARRIVED_CELLS} of the lane's aim, or gone.
      */

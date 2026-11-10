@@ -122,6 +122,9 @@ public final class PrecinctSkeletonStage implements GenStage {
         // Measured over four derived maps, three came out whole and one came
         // out in three pieces, which is the kind of intermittent structural
         // fault that has to be solved for rather than hoped about.
+        boolean[][] unwelded = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++)
+            unwelded[x][y] = grown.owner()[x][y] == GrownTrunkPlan.UNOWNED;
         PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
 
         // An open-field landing's country is surveyed, not grown.
@@ -137,6 +140,14 @@ public final class PrecinctSkeletonStage implements GenStage {
             // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
             // piece of road on its own; the map is one network after it as before it.
             PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
+            // A weld laid before them that a layout road now does the work of is taken up, or the two run side by
+            // side as a double road.
+            boolean[][] welded = new boolean[ctx.width][ctx.height];
+            for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++)
+                welded[x][y] = unwelded[x][y] && grown.owner()[x][y] != GrownTrunkPlan.UNOWNED
+                        && !(rural != null && rural.inCountry(x, y));
+            for (Laid road : layoutRoads) for (int[] c : road.cells()) welded[c[0]][c[1]] = false;
+            PrecinctInterconnect.untie(grown.owner(), welded, ctx.width, ctx.height);
         }
 
         // A cantonment's further gates, once every road the map will have is laid, so each meets the town's road.

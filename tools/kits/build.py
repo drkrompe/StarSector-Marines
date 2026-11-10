@@ -532,12 +532,19 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
         items[group].append({"id": item_id, "name": name, "sub": sub, "access": tier,
                              "station": placed.get(item_id), "icon": icon, "tone": tone, "fp": fp})
 
-    variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
+    variant_source = (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8")
+    variants = re.findall(r'^\s+(\w+)\("[a-z_-]+", "(@[^"]+)"', variant_source, re.M)
+    # A hardware variant draws as its frame's doll (MechVariant.frame, DamageDollCanvas.dollPath).
+    frame_body = re.search(r"public MechVariant frame\(\) \{(.*?)\n    \}", variant_source, re.S).group(1)
+    frames = {}
+    for cases, frame in re.findall(r"case ([A-Z_, ]+) -> ([A-Z_]+);", frame_body):
+        for case in cases.split(","):
+            frames[case.strip()] = frame
     for enum, key in variants:
         tier = tiers.get(("CHASSIS", enum))
         if tier:
             item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier,
-                 svg_uri("graphics/ui/dolls/mech-%s.svg" % enum.lower(), True))
+                 svg_uri("graphics/ui/dolls/mech-%s.svg" % frames.get(enum, enum).lower(), True))
     for enum in re.findall(r"^\s+(\w+)\(", (JAVA / "battle/vehicle/VehicleType.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("VEHICLE", enum))
         if tier:

@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-11-09 - Tri-Tachyon's light crawler (`MechVariant.CRAWLER`) is the first high-tech line: one front gun drawn as its own layer, no shoulder mounts, a shield emitter its compartment carries as built (Family and doctrine). Also 2026-11-05 - the dozer breacher is retired (owner, `hegemony-armor-line.md`): the Onager, now a heavy repulsor tank, crushes ordinary walls by its weight, a save or pattern naming the dozer carries to it, and the Luddic Path no longer weights a vehicle. Also 2026-11-05 - every fit, strip and move on any machine settles stores one way (`PartStores.refit`). Also 2026-11-05 - buying and recycling a spare is one rule in every fitting room (`PartShop`). Also 2026-11-05 - stores hold spares only, kept one way in the Mech Lab and on the Shuttle Deck (`PartStores`): a fit takes the incoming part off the shelf and what comes off is stowed; what is fitted is read off the machines (owner: share how equipment works). Also 2026-11-05 - a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05), so a shuttle's hardpoint no longer takes two 2x1 guns as a pod. Also 2026-11-05 - what a machine is fitted without is one rule on a mech, a vehicle and a shuttle (`FittingGap`, read through `Equipped.gaps`): the readiness list and the socket cards both read it, so a shuttle's empty emitter socket now warns yellow as her list does (owner: share how equipment works). Also 2026-11-05 - a mech, a vehicle and a shuttle read their specifications through one path, and a mech and a vehicle share one doll, one stores list and one set of fitting commands; what still differs is a stated rule (owner: why is this different than a mech?). Also 2026-11-05 - the specifications and pattern card read a mech and a vehicle through one path: the same rows on the same scales with the same hover preview, a hull adding only its seats (owner). Also 2026-11-05 — a machine that can carry a weapon and has none anywhere warns in yellow on its empty weapon points, on a mech, a vehicle and a shuttle, and a truly built-in card wears a lock (owner). Also 2026-11-05 — a plate is recommended, not required, on every machine: an empty armor point warns in yellow and the machine goes in with no armor, while a required part left out warns in red and keeps it home (owner). Also 2026-11-05 — a plate lifts off a mech, hull or shuttle to stores as any part does. Also 2026-11-05 — every bought machine stands with nothing fitted, the Wayline Hound the one exception: no gun, plate, engine or compartment part; a weapon point is two columns wide and one to four rows tall and holds one weapon; a part needs its whole footprint at its install point and never turns to fit (owner, Mech Lab). Also 2026-10-31 — a vehicle is bought as a bare hull, as a chassis is a bare frame, for its standard-fit bill less those parts; a previewed vehicle pattern shows its bare doll (Mech Lab). Also 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Pulse), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Pulse)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Also 2026-10-30 � a crippled mech's route owns its hips as on whole legs, so a disarmed one crawls out of contact instead of standing turned to the fight (Section loss). Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-11-10 - every heavy walker (the Bulwark, Hauler and Pilgrim, the derelict MG-40 and MG-70) pushes down ordinary walls and props up to 100 structure, and its route pays eight times a breach cell's length so it goes round where that is short (Wall crush). Also 2026-11-10 - the flamer rigs and the machine flamers: the pirate Torch on the Hound frame and the Path's Censer on the Warden's, each a fuel load over its frame, burning with the FL-1 and FL-2, one family of machine flamer in two sizes (Family and doctrine; Machine flamers). Also 2026-11-10 - the low-tech row's first hardware variants: the pirate Hauler and the Path's Pilgrim on the Bulwark frame, the Path's Foundry Breaker on the Hound's, each a body of its own over its frame's legs and mounts (`MechVariant.frame`); the Pilgrim crushes ordinary walls by its weight (Family and doctrine). Also 2026-11-09 - Tri-Tachyon's light crawler (`MechVariant.CRAWLER`) is the first high-tech line: one front gun drawn as its own layer, no shoulder mounts, a shield emitter its compartment carries as built (Family and doctrine). Also 2026-11-05 - the dozer breacher is retired (owner, `hegemony-armor-line.md`): the Onager, now a heavy repulsor tank, crushes ordinary walls by its weight, a save or pattern naming the dozer carries to it, and the Luddic Path no longer weights a vehicle. Also 2026-11-05 - every fit, strip and move on any machine settles stores one way (`PartStores.refit`). Also 2026-11-05 - buying and recycling a spare is one rule in every fitting room (`PartShop`). Also 2026-11-05 - stores hold spares only, kept one way in the Mech Lab and on the Shuttle Deck (`PartStores`): a fit takes the incoming part off the shelf and what comes off is stowed; what is fitted is read off the machines (owner: share how equipment works). Also 2026-11-05 - a hardpoint holds one gun, as a mech's or a hull's weapon point does (owner, 2026-11-05), so a shuttle's hardpoint no longer takes two 2x1 guns as a pod. Also 2026-11-05 - what a machine is fitted without is one rule on a mech, a vehicle and a shuttle (`FittingGap`, read through `Equipped.gaps`): the readiness list and the socket cards both read it, so a shuttle's empty emitter socket now warns yellow as her list does (owner: share how equipment works). Also 2026-11-05 - a mech, a vehicle and a shuttle read their specifications through one path, and a mech and a vehicle share one doll, one stores list and one set of fitting commands; what still differs is a stated rule (owner: why is this different than a mech?). Also 2026-11-05 - the specifications and pattern card read a mech and a vehicle through one path: the same rows on the same scales with the same hover preview, a hull adding only its seats (owner). Also 2026-11-05 — a machine that can carry a weapon and has none anywhere warns in yellow on its empty weapon points, on a mech, a vehicle and a shuttle, and a truly built-in card wears a lock (owner). Also 2026-11-05 — a plate is recommended, not required, on every machine: an empty armor point warns in yellow and the machine goes in with no armor, while a required part left out warns in red and keeps it home (owner). Also 2026-11-05 — a plate lifts off a mech, hull or shuttle to stores as any part does. Also 2026-11-05 — every bought machine stands with nothing fitted, the Wayline Hound the one exception: no gun, plate, engine or compartment part; a weapon point is two columns wide and one to four rows tall and holds one weapon; a part needs its whole footprint at its install point and never turns to fit (owner, Mech Lab). Also 2026-10-31 — a vehicle is bought as a bare hull, as a chassis is a bare frame, for its standard-fit bill less those parts; a previewed vehicle pattern shows its bare doll (Mech Lab). Also 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Pulse), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Pulse)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Also 2026-10-30 � a crippled mech's route owns its hips as on whole legs, so a disarmed one crawls out of contact instead of standing turned to the fight (Section loss). Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -19,7 +19,11 @@ increasing an encounter's total armored threat.
 
 - A **variant** is persistent hardware identity: chassis body, physical
   dimensions, default loadout, silhouette, and default doctrine. It owns what
-  a live mech is.
+  a live mech is. A **hardware variant of a line** (`mech-lines.md`, law 2) is built on another line's chassis, its
+  **frame** (`MechVariant.frame`): it keeps the frame's legs, mounts and fitting doll, body plan, footprint and
+  weight class, and has its own body, numbers and stock fit. Its body is drawn in place of the frame's chassis
+  (`MechVariantBodies`) in every livery, since its paint is part of what it is; its weapons stay layers on the frame's
+  mounts.
 - A **livery** is appearance-only faction or company surface treatment for a
   known chassis and the authored paintable casing of its installed equipment.
   It may change paint, plate-face material, wear, and non-readable markings,
@@ -273,7 +277,7 @@ increasing an encounter's total armored threat.
   access tier: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige (the three are first stand-ins for a grid of mech lines, tech family by
   weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
-  the APC Common, militia technical Advanced, breakthrough tank
+  the APC Common, militia technical Advanced, Onager
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
   what the drop will need; the two usually agree, and where they do not (the
@@ -303,7 +307,7 @@ increasing an encounter's total armored threat.
   fire-support APC (a 120 mm mortar in a ballistic card where the troop bay was, no seats, spotted indirect fire,
   Medium lift) is Advanced, as is the LRM carrier (an LRM-15 anti-armor rack in a missile card
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (the laser tank)
+  `convoy-nouns.md`, the missile carriers); the Onager's variants (the laser tank)
   is Prestige and Heavy lift; the Parapet, once a variant, is the Onager with the
   active-protection kit (`VehicleStockFit.PARAPET`, owner 2026-10-30: one tank). A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
@@ -396,8 +400,9 @@ increasing an encounter's total armored threat.
   - **The engine budget is a mech's.** A chassis spends mass against its engine's output, so mass, output and a
     refusal for going over them appear only on a mech. A hull has no budget, so its engine only moves it.
   - **A mech has mounts, a hull a gun card.** A mech's mounts take a weapon by hardpoint and size and a weapon can move
-    between them; a hull has one weapon point, which takes the type and size of the gun it was built around
-    (`VehicleGunCard`), and an unarmed hull has none, so it needs no bank and takes none.
+    between them; a hull has its gun card, which takes the type and size of the gun it was built around
+    (`VehicleGunCard`), and the Onager a coax card beside it (below); an unarmed hull has none, so it needs no bank
+    and takes none. A part never moves between a hull's cards.
   - **A hull's bay and systems are its type.** Seats, a supply stock, a drone bay, a mast and secondary mounts
     are what the hull is (`VehicleDoll`), so they are locked cards; a behaviour of its own stays a variant. A chassis
     authors no locked socket. Only a hull carries seats, so only it has a bar for them.
@@ -454,6 +459,14 @@ increasing an encounter's total armored threat.
   The gun tanks' cards are omni too, two rows on the Scorpion and three on the Onager (`VehicleGunCard.MEDIUM`,
   `HEAVY`), so any colour of part goes in; only the APC carriers (the mortar's 2x2 ballistic card, the LRM
   carrier's 3x2 missile card) and the laser tank are locked (`hegemony-armor-line.md`, slice 8).
+  The Onager has a second card, its **coax card** (`VehicleGunCard.COAX`, `VehicleType.coaxMount`; owner,
+  2026-11-10): one row by two, locked ballistic, so it takes the light machine gun or another one-row ballistic part.
+  It stands right of the turret card on the doll (`SocketId.RIGHT_ARM`, `MechMountSlot.RIGHT_ARM`, a socket no hull
+  used before; `CampaignVehicle.weaponAt`). Its part fights as the hull's first secondary mount, on its own ring on
+  the deck at the turret's shoulder, with its own aim and the hull's reservoir and loader (`VehicleMount.withPart`),
+  and goes with the turret: a shot-away turret silences it. A bought hull's coax card is empty and an empty card is no
+  gun; a stock Onager carries the light machine gun there (`VehicleType.standardCoax`). Unlike a carrier's secondary
+  mounts, which are the hull's own guns and stay locked, the coax card takes parts from stores.
   An empty gun card means no gun, as every empty socket does (owner, 2026-11-05): a bought hull stands with a bare turret ring and may still drop unarmed, as a mech with no weapons may. Only a hull from an older save keeps an own gun, no part, until a weapon first replaces it (`CampaignVehicle.hasOwnGun`), so a weapon
   is only ever a part from stores. A stock hull's machine gun is the mech light machine gun itself
   (`VehicleType.ownGun`), set down as if fitted, so there is one machine gun in the game. A fitted weapon is the hull's turret with the weapon's ballistics in it
@@ -991,9 +1004,20 @@ lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
 installed. Hegemony Bulwarks put an AC-6 autocannon (the Bastion) on each
 arm: ten-round magazines of slow, heavy rounds trade saturation for range and
-armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
-DC-5 (the Foundry Breaker), an inaccurate demolition cannon whose contact payload, broad
-blast, and structural damage make every shot consequential. Lion's Guard
+armor penetration. The Luddic Path fields its Hounds as the **Foundry Breaker**
+(`MechVariant.FOUNDRY_BREAKER`), a variant on the Hound frame with a foundry-cast collar round its nose and five shell
+canisters on its back, whose stock nose gun is a five-shell DC-5, an inaccurate demolition cannon whose contact
+payload, broad blast, and structural damage make every shot consequential; a plain Hound the Path still spawns takes
+the same DC-5 as its faction issue.
+The Path's heavy is the **Pilgrim** (`MechVariant.PILGRIM`), a mining hauler on the Bulwark frame with a dozer blade
+across its front. Like every heavy walker it **crushes ordinary walls by its weight**, and its blade makes it the
+fastest at it (Wall crush).
+Pirates field the **Hauler** (`MechVariant.HAULER`), a captured Bulwark rebuilt as a loot carrier: a cargo cage,
+a salvage crane in place of its left rack and chained scrap slabs, more plate and less pace than the Bulwark. It carries
+no loot (owner: "not now"). Pirates also field the **Torch** (`MechVariant.TORCH`), a captured Hound rebuilt as a
+fuel rig, fuel drums in a cradle across its back and the FL-1 burner on its nose, and the Path the **Censer**
+(`MechVariant.CENSER`), a converted Warden with a promethium tank across its rear and the FL-2 lance on its right
+shoulder (Machine flamers). All five are UNTUNED. Lion's Guard
 Wardens replace the right LRM rack with a short-ranged thermal lance whose
 directional contact burn and one-cell impact bloom reward aggressive support.
 These signature fits belong to the exact campaign faction ids `hegemony`,
@@ -1194,6 +1218,35 @@ finished pneumatic strokes. Only nearby, visible events reach the mix, with the
 closest events taking a bounded share of each phase's presentation budget.
 Both battlefield hosts consume the same per-foot gait.
 
+## Wall crush
+
+**A heavy walker pushes down ordinary walls and props in its way** (owner: "heavy large walker like heavy mechs
+should be able to break through medium walls and doodads"; `MechVariant.crushesWalls`, `MechWallCrush`). The
+crushers are every heavy-lift chassis (`MechVariant.liftClass`): the company's Bulwark, Hauler and Pilgrim and the
+derelict MG-40 (every frame, line, siege and vault) and MG-70. Medium and light frames, the derelict MG-25 among
+them, go round.
+
+- **What it breaks** is a crushing hull's: what is built and the ordinary destruction path brings down, at structure
+  of at most the heavy **ceiling**, 100 (`WallCrush.HEAVY_CEILING`; `convoy-nouns.md`, weight crushes walls). That is
+  the medium tier: ordinary city walls (100), gated-housing, factory and yard walls (80), window cells and window bays
+  in them, sandbag, fence and crate barricades, and registered equipment, furniture and drum clusters up to 100.
+  Fortified (150), fortress (240) and fort-building (300) walls, a ruins plant's walls and the doors shut as them
+  (240, `ruins-expedition.md`), heavier equipment (130 and up), hardened walls, a fort's or objective's works,
+  natural obstructions and fixtures with no damage art (a dead door's leaves) hold it, until fire has worn a wall
+  under the ceiling.
+- **How fast**: it stands at the wall and grinds every pushable cell and bay in the strip just ahead of it, toward
+  its next waypoint, as wide as it is, at 50 structure a second (`WallCrush.HEAVY_PER_SECOND`): a city wall in two
+  seconds. The Pilgrim, by its blade, and the MG-70, by its weight, push at 80 (`MechVariant.crushesFast`,
+  `WallCrush.ULTRA_HEAVY_PER_SECOND`). A wider walker bears on a wider strip, so the MG-70 cuts its own width.
+- **What it costs**: time. It stands at the wall while it pushes, guns free, and takes no damage from the push. A
+  walker held by a wall it is pushing keeps its route, where any other walker held by a wall drops it.
+- **Its route** is planned over the walkers' breach view (`WallCrush.planningGrid`), where every pushable cell and
+  bay stands open, while its body moves over the live grid, which holds it at the wall until the wall falls. Each
+  cell the view opens carries `NavigationGrid.CellTag.BREACH`, and the route pays eight times the length its centre
+  crosses inside one (`ClearanceRoutePlanner.BREACH_COST`, a ramming hull's barricade price), so a walker goes
+  through a building only where going round is longer by more than about seven cells. A window bay is opened without
+  a price.
+
 ## Weapon names
 
 Every mech gun and rack is named `<Family>-<N>` and its ids follow the name (owner,
@@ -1243,6 +1296,20 @@ The Thermal Lance is not a laser and keeps its name: its lore, drawing and sound
 make it a thermal projector (Lion's Brand, a fuel-cell heat lance whose impact
 burns, fired with a plasma cannon's report), so it stands outside the laser
 families as the chainguns stand outside the cannons.
+
+**Machine flamers.** A machine flamer is the pack flamer's charge on a machine's pump (`fire-nouns.md`, Starting
+fires): each trigger sends a short stream of burning gel, a burst of flat charges (`MechWeaponComponent.FL_1`,
+`FL_2`), each landing with the pack flamer's blast and `incendiaryHeat`, so it lights what it lands in and the fire
+does the rest. Its fuel is its machine's load, drawn as the machine's body, so it has no ammunition of its own and
+pays in flux like a gun. It is **one family in two sizes**, named FL-*N* by footprint rows as the lasers are: the
+**FL-1**, the pirate Torch's burner, a one-row arm or nose part with a seven-cell reach, and the **FL-2**, the Path
+Censer's lance, a two-row shoulder part with a ten-cell reach and a longer stream. One family can span an arm and a
+shoulder because a part's mount family is its own (`MechWeaponComponent.mountFamily`), as the Thermal Lance is a
+shoulder part. A chassis's fire control **holds a machine flamer's charge where the fire it lights could come back
+to its own side** (`HeavyWeapons`, `MechWeaponComponent.machineFlamer`), by the same reach a pack flamer's throw is
+held by (`FireReach`): a rig on a road, a pad or burnt ground burns brush ahead of it, and one standing in the
+meadow it would light holds. A pilot's own point fire is never held. Both are common-market patterns, held at
+"none" on the Kit Ladder with their rigs. All numbers UNTUNED.
 
 **Every laser a player meets takes the same names** (owner, 2026-10-30: one
 language to reason about). A laser on a hull, a post or a hardpoint carries the

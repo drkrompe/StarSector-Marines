@@ -367,7 +367,8 @@ public final class MechMoveOrderSystem {
                                       BattleSimulation sim) {
         int startX = sim.world().cellX(mech);
         int startY = sim.world().cellY(mech);
-        return ReachableCellResolver.nearest(sim.getGrid(), startX, startY,
+        // A wall-crushing walker reaches through what it can push down, as its route does.
+        return ReachableCellResolver.nearest(sim.mechRouteGrid(mech), startX, startY,
                 requestedX, requestedY);
     }
 

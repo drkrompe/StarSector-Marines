@@ -18,7 +18,7 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
 - A **render system** is a GL-free, per-frame producer. It reads the frame context and appends commands for its one layer without putting render data on simulation entities.
 - A wall's **corners are drawn round** (`WallCorners`; `battle.render.roundedWallCorners` while the owner judges it): where one wall cell meets open ground on two sides and the diagonal, its own tile is bent round a half-cell arc over the ground; where one open cell meets wall on two sides and the diagonal, it lays a fillet of wall cap into its corner with the face trim bent along it, reaching into the walls beside it so the trim runs unbroken. A doorway or a window, on a cell or on an edge, carries its wall on, so a jamb or a stub between windows stays square. Corners are fixed as built, at the battle's first draw (`WallCorners.AsBuilt`): damage takes a corner away when a wall it rests on falls, but never makes one, so a breach's fresh wall ends stay square and read as torn. Art only: the wall is still a whole impassable cell.
 - A **roof** is drawn over every building cell and over the walls that carry it (`RoofCover`, `RoofTiles`). Where nothing outside touches a cell, a floor, a partition, a party wall, it is covered whole, so from outside an interior reads as one roof. Where a cell faces the outside, an exterior wall or doorway, the roof stops at an **eave** in from the building's side that reaches just to what the cell shows (`RoofCover.Edge`): over a wall, to the inner edge of an exterior window's frame; over an exterior door, to its leaf; over a slit window, to its pane; with a trim and a short shadow along its open edge, so every window and the outer face of the wall stay in view before a building is revealed; an outside corner keeps only its inner square, an inside corner all but the square the outside touches. A roof over a wall is presentation only: whether a roof shields is the floor cell's `isRoofIntact`.
-- A roof is drawn in its building's **roof style** (`RoofStyle`): clay tile, poured slab, corrugated sheet or armour plate, from the fort lot's works family, else the wall material, else the building kind. Its courses run along the building's long side, from a seamless two-by-two swatch, so a roof has no cell seams.
+- A roof is drawn in its building's **roof style** (`RoofStyle`): clay tile, poured slab, corrugated sheet, armour plate, a fallen hull's plating, or a military base's olive quonset sheet and khaki barracks sheet, from the roof kind its builder marked on it (`CellTopology.RoofKind`: a hangar or a hut), else the fort lot's works family, else the wall material, else the building kind. Its courses run along the building's long side, from a seamless two-by-two swatch, so a roof has no cell seams.
 - A roof is broken **cell by cell, by what hit it** (`RoofDamage`): a shell or the edge of a bomb **holes** it, a bomb's core, a crash, creep or the wall under it falling **collapses** it, fire, a room's flashover and a wall alight **burn it through**. A second blow keeps the worse. Every broken state is open to the sky, which is all a rule reads; each draws its own frame of the style's sheet, cut to the cell's cover, and an eave keeps no trim once broken. An eave over a wall takes its own damage and has no shield to lose.
 - A **swing door** hangs in every one-cell doorway on a battle map (`SwingDoor`, `SwingDoorRenderSystem`): a leaf hinged on one jamb that swings into the building as someone comes in line with the doorway and falls shut as they leave. Its angle is read each frame from where people stand, never stored, so it needs no home for state and paints the same in every host; it does not lock, block or shade anything. A wide doorway is a gap and has none, rubble removes it, and ship decks draw their own sliding compartment doors instead.
 - A **field-cache marker** reads the battle's optional salvage ledger. Unknown caches emit no commands; discovered caches retain a last-seen marker, while current recovery progress requires current visibility. Its pickup art is a nonblocking interaction cue, not a new scenery or cover authority. Bitmap world labels carry the same text and font metrics into live and headless drains.
@@ -106,6 +106,20 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   review drain draw the same picture. Surface relief stays per cell; the
   feather changes colour, not height. Control switch:
   `-Dbattle.render.groundFeathering=false`.
+  A ruins hall's **coverings** (ice sheet, rime, biofilm, wet floor) are
+  feathering materials that also bleed onto an indoor floor of no material of
+  its own, which takes no other ground's bleed, so ice on a hall's plate ends
+  soft while paving and interiors elsewhere keep their edges
+  (`GroundFeather.COVERINGS`). The world's ground a ruin's weather blows in
+  and banks indoors (sand, snow, basalt, ash, sulphur, crust;
+  `mapgen-nouns.md`, The world takes the ruin back) is a covering too, so a
+  world's drift also frays a quarter-cell across any doorway it meets.
+- A **floor trim** is the step where a built floor panel (a ruins hall's raised
+  floor or stage) meets any other open floor: the panel keeps a clean cell edge
+  and lays its trim strip inside it, half a cell deep and turned to the side it
+  steps down to, with a faint shadow on the floor below. Over the tiles, under
+  everything standing on them; presentation only (`FloorTrimRenderSystem`). A
+  panel whose strip has not shipped draws a plain riser and nosing.
 - A **basin edge** is where a basin's floor meets its rim (`mapgen-nouns.md`,
   basin), drawn as the line `SurfaceField.edge` rather than the cells it was
   cut into. Each cell of either side's open ground (grass and sand on Asharu,

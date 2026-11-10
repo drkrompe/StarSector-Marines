@@ -31,24 +31,24 @@ public final class BuildingVisibilityPass {
     /**
      * Sets each building's roof target from who stands in it and its fog from what the player sees.
      *
-     * @param occupants  cells ({@code x + y * gridWidth}) the player's own units stand on
-     * @param occupantCount how many of {@code occupants} are filled
+     * @param occupants the cells the player's own units stand on
      */
     public static void update(Buildings buildings, boolean[] cellRevealed, int gridWidth, int gridHeight,
-                              int[] occupants, int occupantCount) {
+                              OccupantCells occupants) {
         if (buildings == null || buildings.isEmpty() || cellRevealed == null) return;
 
         for (Building b : buildings.all()) {
             boolean seenInside = anyInteriorCellRevealed(b, cellRevealed, gridWidth, gridHeight);
-            b.targetAlpha = opens(b, occupants, occupantCount, gridWidth) ? 0f : 1f;
+            b.targetAlpha = opens(b, occupants, gridWidth) ? 0f : 1f;
             b.targetFog = seenInside || anyWallCellRevealed(b, cellRevealed, gridWidth, gridHeight) ? 0f : 1f;
         }
     }
 
     /** Whether one of the player's units stands on this building's floor: the only thing that opens it. */
-    static boolean opens(Building b, int[] occupants, int occupantCount, int gridWidth) {
-        for (int k = 0; k < occupantCount; k++) {
-            int x = occupants[k] % gridWidth, y = occupants[k] / gridWidth;
+    static boolean opens(Building b, OccupantCells occupants, int gridWidth) {
+        for (int k = 0, count = occupants.size(); k < count; k++) {
+            int cell = occupants.get(k);
+            int x = cell % gridWidth, y = cell / gridWidth;
             if (x < b.minX || x > b.maxX || y < b.minY || y > b.maxY) continue;
             for (int i = 0, n = b.cellCount(); i < n; i++) {
                 if (b.cellsX[i] == x && b.cellsY[i] == y) return true;

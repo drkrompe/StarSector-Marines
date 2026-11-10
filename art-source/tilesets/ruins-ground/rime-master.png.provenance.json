@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6de-9df6-76a0-8ce2-22addeedc25d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6de-9df6-76a0-8ce2-22addeedc25d\\exec-5ab42930-1e5b-4cbd-88c5-20a96388f66e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\rime-master.png",
+    "sha256": "77dcfd8f83c06d83fdd9ef19d208e50aae9bdee1fa6de07f4756bf28e4779fa7",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\rime-master.prompt.txt",
+  "promptSha256": "430dcb8e04954f77204fa18340acf4ed503a6a8054a7713b0d24309191c07b41",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: hoar frost and rime crust grown over the deck: a fine granular white-grey crystal fur, uneven in thickness so the grey deck shows faintly through the thinnest patches, tiny feathery crystals. Average colour a dull cold grey-white around RGB (170, 176, 182). Low contrast, not glaring white.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one frost-covered floor texture using the reference’s fine scale and flat, low-contrast finish."
+  ],
+  "usage": {
+    "input_tokens": 38090,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 351,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 33.8
+}

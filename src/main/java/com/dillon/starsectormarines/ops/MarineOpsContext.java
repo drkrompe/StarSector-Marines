@@ -86,6 +86,10 @@ public class MarineOpsContext {
 
     private Client selectedClient;
     private Mission selectedMission;
+    /** The one operation the campaign opened this dialog for, or null for an ordinary visit ({@link BoundOperation}). */
+    private Mission boundOperation;
+    /** Set when a bound operation has settled: the panel closes on its next frame. */
+    private boolean leaveRequested;
     private boolean officerInductionRequested;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
@@ -444,6 +448,27 @@ public class MarineOpsContext {
         this.selectedMission = mission;
     }
 
+    /**
+     * Opens this dialog for one operation the campaign handed the company (a raid, a ruins expedition, an
+     * invasion): it is selected, the board's route leads to its briefing, and the panel closes once it settles.
+     */
+    public void bindOperation(Mission mission) {
+        boundOperation = mission;
+        setSelectedMission(mission);
+    }
+
+    /** The operation this dialog was opened for, or null for an ordinary visit. */
+    public Mission boundOperation() {
+        return boundOperation;
+    }
+
+    /** Whether a settled bound operation asks the panel to close; answered once. */
+    boolean takeLeaveRequest() {
+        boolean leave = leaveRequested;
+        leaveRequested = false;
+        return leave;
+    }
+
     public Set<String> getSelectedMarineSquadIds() {
         return Collections.unmodifiableSet(selectedMarineSquadIds);
     }
@@ -591,6 +616,8 @@ public class MarineOpsContext {
         }
         if (screen == ScreenId.BARRACKS && CompanyPreparation.required(roster))
             officerInductionRequested = true;
+        // A dialog opened for one operation has no board: its route is that operation's briefing.
+        screen = BoundOperation.route(screen, boundOperation != null, selectedMission != null);
         // The board is shown greyed while there is nothing on it, and however a route gets there, HQ stands in.
         if (screen == ScreenId.MISSION_SELECT && !boardOpen()) screen = ScreenId.COMPANY_HQ;
         if (screen == ScreenId.MISSION_SELECT) storyRetry.reset();
@@ -849,6 +876,12 @@ public class MarineOpsContext {
         clearResolvedMission();
         prepareAfterSettlement = false;
         refitAfterSettlement = false;
+        if (boundOperation != null) {
+            // The campaign commits the operation when the panel closes, so nothing lingers between them.
+            leaveRequested = true;
+            goTo(ScreenId.COMPANY_HQ);
+            return;
+        }
         ScreenId company = shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ;
         if (refit) openFleetArmoryWorkspaceFrom(company);
         else goTo(prepareCompany ? company : returnScreen);
@@ -891,6 +924,8 @@ public class MarineOpsContext {
             generated = Collections.unmodifiableList(polityDefenceMissions());
         } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
             generated = WellhollowBloomCampaign.offers(planet);
+        } else if (LongSurveyCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
+            generated = LongSurveyCampaign.offers(planet);
         } else if (CompletedReplays.isClient(client)) {
             MarineRosterScript rosterScript = MarineRosterScript.getInstance();
             generated = CompletedReplays.offers(rosterScript == null ? null : rosterScript.roster(), planet);
@@ -990,6 +1025,12 @@ public class MarineOpsContext {
                 && !WellhollowBloomCampaign.offers(planet).isEmpty()) {
             out.add(WellhollowBloomCampaign.client());
             seen.add(WellhollowBloomCampaign.CLIENT_FACTION_ID);
+        }
+
+        // 0b''. The garrison commander's board for The Long Survey: its own contact on the arc's world.
+        if (LongSurveyCampaign.contactAt(planet) && !LongSurveyCampaign.offers(planet).isEmpty()) {
+            out.add(LongSurveyCampaign.client());
+            seen.add(LongSurveyCampaign.CLIENT_FACTION_ID);
         }
 
         // 0c. The player's own colony. Never rep-locked: the polity is the company's

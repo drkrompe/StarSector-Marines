@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6a2-b4d6-7742-b474-b08b4a7aaa57",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6a2-b4d6-7742-b474-b08b4a7aaa57\\exec-cf205d3a-0542-4081-ab12-a1e2b40e1d8c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-works-runs.raw.png",
+    "sha256": "94fbc21ce1971f46609a563fede0b9007b200b1bd54ce93db0b8217be2fdca77",
+    "dimensions": [
+      1646,
+      956
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\works-runs.prompt.txt",
+  "promptSha256": "1953be391201589a129433518651b4c65bceb12de329c91b2cc7935c45c29c22",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same complex's machinery; not layout\nImage 3: Identity and era: the same complex's skids, pods and runs; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the floor and overhead service runs of the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white areas are hoar frost. Every straight piece is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length. The fallen pieces (the tall tilted ones on the bottom row) are the same run broken in two and lying on the floor, with a few bolts and fragments at the break.\nStyle: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, frost) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, top row left to right (floor runs, 2x2 each, sunk flush in the floor):\n1. coolant-return: a coolant return trench under four heavy grated covers, frost rimed on each cover.\n2. coolant-loop: two insulated coolant pipes running in a shallow floor channel, clamped down at intervals.\n3. transfer-pipe: one big pressure pipe lying in a floor cradle, flanged joints with bolts at intervals.\n4. tensile-bed: a tensile test bed: two polished guide ways along its sides, a dark slot down its middle, cross ties at intervals.\n5. spoil-conveyor: a heavy troughed belt conveyor: a dark rubber belt down the middle carrying a little rock spoil, idler rollers at intervals, side frames.\nBottom row left to right (overhead runs, 1x2 each, and each fallen 1x4 beside it):\n6. coolant-header: one thick lagged coolant header pipe on hanger clamps. 7. coolant-header-fallen.\n8. feed-manifold: two parallel feed pipes on hanger brackets. 9. feed-manifold-fallen.\n10. pipe-run: three pipes of different sizes on a pipe rack. 11. pipe-run-fallen.\n12. powder-line: a square powder duct with stiffener bands. 13. powder-line-fallen.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-works-runs-guide.png",
+      "sha256": "7197e44a782a36d0833d582be86d4c0925f0064b8a44bb2dae9fc06f27e3a5f7",
+      "dimensions": [
+        1984,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-kit.raw.png",
+      "sha256": "b3bbc9d846deb6733ae98397748ecc6d1d9ef1fb363033d0609271536a06ccbe",
+      "dimensions": [
+        1654,
+        951
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's machinery; not layout"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-a.raw.png",
+      "sha256": "ec134dcf4b357d96dcc559e57e97c01db367125e5787c9c33944720430662622",
+      "dimensions": [
+        1662,
+        946
+      ],
+      "mode": "RGBA",
+      "role": "Identity and era: the same complex's skids, pods and runs; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1’s exact layout and Images 2–3’s materials and style."
+  ],
+  "usage": {
+    "input_tokens": 52087,
+    "cached_input_tokens": 38912,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 813,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.7
+}

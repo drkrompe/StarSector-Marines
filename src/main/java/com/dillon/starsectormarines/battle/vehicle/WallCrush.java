@@ -59,7 +59,9 @@ import java.util.List;
  * hull's move-order proof and its rolling local planner read that view, laid over the grid it moves over (its
  * tracks' crush view, or a heavy skirt's), so ground it can open counts as reachable for it and for nobody else; its
  * physical sweep still reads the grid it moves over, which is what holds the hull against a wall until it has pushed
- * it down. Pushable cells cost its route {@link #ROUTE_COST}, so it breaches only where going round is dearer.
+ * it down. Pushable cells cost its route {@link #ROUTE_COST}, so it breaches only where going round is dearer. Each
+ * opened cell carries {@link NavigationGrid.CellTag#BREACH}, which a walker's planner prices the same way
+ * ({@code ClearanceRoutePlanner#BREACH_COST}).
  */
 public final class WallCrush {
 
@@ -122,6 +124,8 @@ public final class WallCrush {
     private int pushedSpend;
     /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
     private final List<View> views = new ArrayList<>(2);
+    /** The breach view walkers plan over ({@link #planningGrid(int, NavigationGrid)}). */
+    private View walkerView;
 
     public WallCrush(NavigationService navigation, MapEditor editor, DoodadService doodads) {
         this.navigation = navigation;
@@ -226,8 +230,7 @@ public final class WallCrush {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!canPush(grid, topology, doodads, x, y, most)) continue;
-                copy.setWalkable(x, y, true);
-                copy.openAllEdges(x, y);
+                open(copy, x, y);
             }
         }
         for (int i = 0; i < grid.edgeBarrierCount(); i++) {
@@ -237,6 +240,16 @@ public final class WallCrush {
             }
         }
         return copy;
+    }
+
+    /**
+     * Opens pushable cell ({@code x}, {@code y}) on breach view {@code view}, tagged
+     * {@link NavigationGrid.CellTag#BREACH} so a walker's route prices it ({@code ClearanceRoutePlanner#BREACH_COST}).
+     */
+    private static void open(NavigationGrid view, int x, int y) {
+        view.setWalkable(x, y, true);
+        view.openAllEdges(x, y);
+        view.setTag(x, y, NavigationGrid.CellTag.BREACH, true);
     }
 
     /**
@@ -255,6 +268,17 @@ public final class WallCrush {
         View view = new View(most, hover);
         views.add(view);
         return view.caughtUp(base);
+    }
+
+    /**
+     * The breach view a walker whose ceiling is {@code most} plans over (a wall-crushing walker, every heavy-lift
+     * walker, `mechs-nouns.md`, Wall crush), laid over {@code base}, the live grid: kept and caught up as a hull's is.
+     */
+    public NavigationGrid planningGrid(int most, NavigationGrid base) {
+        // Kept apart from the hulls' views: a hull's base is often its own crush view, and one view over two bases
+        // would rebuild whole every time the other asked.
+        if (walkerView == null || walkerView.most != most) walkerView = new View(most, false);
+        return walkerView.caughtUp(base);
     }
 
     /**
@@ -577,8 +601,7 @@ public final class WallCrush {
                         if (canPushEdge(live, x, y, direction, most)) grid.openSharedEdge(x, y, direction);
                     }
                     if (!canPush(live, topology, doodads, x, y, most)) continue;
-                    grid.setWalkable(x, y, true);
-                    grid.openAllEdges(x, y);
+                    open(grid, x, y);
                 }
             }
             caughtUp = now;

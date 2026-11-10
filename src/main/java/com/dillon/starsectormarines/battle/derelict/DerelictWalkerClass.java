@@ -14,6 +14,8 @@ import java.util.List;
  */
 public enum DerelictWalkerClass {
 
+    /** The MG-12 tender: every way, one-cell doors too. */
+    SMALL(MechVariant.SECURITY_TENDER),
     /** The MG-25 rounds walker: every way, one-cell doors too. */
     MEDIUM(MechVariant.SECURITY_ROUNDS),
     /** The MG-40 (line, siege, vault frames): two-cell ways and wider. */
@@ -30,9 +32,11 @@ public enum DerelictWalkerClass {
         this.chassis = chassis;
     }
 
-    /** The size of a derelict chassis. */
+    /** The size of a derelict chassis: a fallen hull's stripper is a medium, its hauler a heavy. */
     public static DerelictWalkerClass of(MechVariant chassis) {
         for (DerelictWalkerClass size : values()) if (size.chassis == chassis) return size;
+        if (chassis == MechVariant.SECURITY_STRIPPER) return MEDIUM;
+        if (chassis == MechVariant.SECURITY_HAULER) return HEAVY;
         throw new IllegalArgumentException("Not a derelict chassis: " + chassis);
     }
 
@@ -56,6 +60,14 @@ public enum DerelictWalkerClass {
     /** Rounds walkers a site of {@code grade} stands: one at scattered, one a zone above it. UNTUNED. */
     public static int roundsWalkers(RuinsGrade grade, int zones) {
         return grade == RuinsGrade.SCATTERED ? 1 : zones;
+    }
+
+    /**
+     * MG-12 tenders a site of {@code grade} stands (`derelict-watch.md`, Field repair): none at scattered, one for each
+     * zone that holds a heavy above it. UNTUNED.
+     */
+    public static int tenders(RuinsGrade grade, int zonesWithAHeavy) {
+        return grade == RuinsGrade.SCATTERED ? 0 : zonesWithAHeavy;
     }
 
     /** Hall frames a site of {@code grade} stands, in its largest plant halls: one at extensive, two at vast. UNTUNED. */

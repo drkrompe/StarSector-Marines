@@ -91,6 +91,12 @@ public final class PrecinctArtery {
         int[] target = toward != null
                 ? towardWayOut(claim, who, centre, toward, width, height)
                 : nearestWayOut(claim, who, centre, width, height);
+        int shift = alongOwnRoad(owner, claim, who, centre, target, width, height);
+        if (shift != 0) {
+            boolean vertical = centre[0] == target[0];
+            centre = vertical ? new int[]{centre[0] + shift, centre[1]} : new int[]{centre[0], centre[1] + shift};
+            target = vertical ? new int[]{target[0] + shift, target[1]} : new int[]{target[0], target[1] + shift};
+        }
         carve(owner, claim, who, centre, target, width, height);
         return true;
     }
@@ -118,6 +124,36 @@ public final class PrecinctArtery {
             if (claim[x][y] != who) return new int[]{x, y};
         }
         return nearestWayOut(claim, who, centre, width, height);
+    }
+
+    /** Cells across within which an artery runs on down the place's own road rather than beside it. */
+    static final int ALONG = 6;
+
+    /**
+     * How far across to move an axis-straight ray so it runs down a road the place already has, running its way
+     * within {@link #ALONG} cells of its line over at least half of its run inside the claim; 0 for none (the nearest
+     * such road wins). Left where it was, the ray is a second road beside the first a few cells off it, two parallel
+     * carriageways where one carried on out of the claim would do; moved, it lays new road only where the place's
+     * own stops short of its boundary.
+     */
+    static int alongOwnRoad(int[][] owner, int[][] claim, int who, int[] from, int[] to, int width, int height) {
+        int dx = Integer.signum(to[0] - from[0]), dy = Integer.signum(to[1] - from[1]);
+        if (dx != 0 && dy != 0 || dx == 0 && dy == 0) return 0;
+        int inside = 0;
+        for (int x = from[0], y = from[1]; x >= 0 && y >= 0 && x < width && y < height && claim[x][y] == who;
+             x += dx, y += dy) inside++;
+        if (inside == 0) return 0;
+        for (int k = 1; k <= ALONG; k++) {
+            for (int sign : new int[]{-1, 1}) {
+                int off = sign * k, held = 0;
+                for (int i = 0; i < inside; i++) {
+                    int x = from[0] + dx * i + (dx == 0 ? off : 0), y = from[1] + dy * i + (dy == 0 ? off : 0);
+                    if (x >= 0 && y >= 0 && x < width && y < height && owner[x][y] == who) held++;
+                }
+                if (held * 2 >= inside) return off;
+            }
+        }
+        return 0;
     }
 
     /** The middle of the claim, which is where a ray outward has to start. */

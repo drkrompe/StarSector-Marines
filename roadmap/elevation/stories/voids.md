@@ -90,6 +90,7 @@ generation, never a battle rule, as an emplacement style is
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
 | **Foundry melt** | A forge works' foundry in a ruins site's plant (`ruins-expedition.md`): pour channels and casting beds cut in a hall floor, 2 m down | Firebrick walls under a laid cast-steel kerb strip | Molten metal kept hot, no crust | A grate catwalk, the drop's own crossing |
+| **Bore shaft** | A mantle bore's shaft hall in a ruins site's plant (`ruins-expedition.md`): a shaft sunk in the hall floor under its headframe, 30 m down | Bedrock strata under a laid cast collar strip, drawn as the dry gorge's | Rubble | None: the headframe spans it |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
@@ -601,8 +602,15 @@ Laws):
    to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
    the view's centre run to a cap of its cells at that lift, drawn before the
    buildings' faces and re-formed when a breach changes the topology. Fences,
-   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
-   as a staircase of cell blocks.
+   sandbags and barriers are doodads and still lie flat. A run stands as the
+   straight strokes it was built along (`FreestandingWalls.strokes`): a
+   diagonal is one slanted wall exactly as thick as a straight one, from its
+   end cells' centres, with a square pier on each end cell so it meets
+   straight walls on the grid, and a low footing on the ground covering its
+   cells' corners. Each face is dressed by kind (plinth, shaded body, coping,
+   panel joints or masonry courses and piers, weather streaks), each cap
+   coping-edged. The ground shadow still comes from the cells, so a diagonal's
+   shadow steps.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag
@@ -673,7 +681,12 @@ Laws):
      to 400), never a fixed scale. Its lost HP soots its top, blows its
      windows (soot plumes over them) and tears ragged holes through it.
    - A breached cell opens dark to the room behind, its rubble spilled on
-     the ground.
+     the ground. Faces stand on the building's outline as built, settled
+     once per map (`BattleRenderer.builtOutline`); only what stands on each
+     piece is read again as the battle changes (`BattleRenderer.stamp`).
+     Read live, destroyed wall cells moved the roof's edge in behind them
+     and stood fresh walls up inside the building. A rubble cell is a
+     breach, never a doorway.
    - Where a room's roof has fallen in or burnt, the wall over it loses its
      upper storeys to a ragged, charred edge, with rubble at its foot.
    - A roof fallen in or burnt away (a shell, a fire, the creep's weight)
@@ -684,6 +697,13 @@ Laws):
    - Hive creep climbs the faces it holds, veins then crust, living to dying
      (`CreepClimb`; `colony-breach-nouns.md`, Creep). Look suite:
      `createSnapshots -Psnapshot=building-creep-look`.
+   - **Rubble** (`WallRubble`, sheet `graphics/decals/wall-rubble.png` from
+     `art-source/wall-rubble`): a breached or razed wall heaps a long pile
+     against its foot with blocks and scattered fragments beyond it; a wall
+     whose roof fell in heaps a smaller one; a badly hurt wall sheds a slab
+     or a few blocks. Pieces are neutral grey, tinted half toward their
+     wall's finish. Rubble lies on the open ground, so it is laid outside
+     every wall that sheds it, whichever way the wall faces the view.
 
    Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
    worlds, intact, cut away and damaged).
@@ -1008,7 +1028,8 @@ Laws):
      processing facility with burners to refine the ore", the facility "a
      series of buildings that again plausibly make sense"; real buildings,
      dressed). The head works is the chain the ore passes through
-     (`RaidWorksPrograms.mine`): receiving, stockpile, one mill line per
+     (`MiningWorks`): receiving (in the rear, the pit's side, so
+     the pit's line runs straight in), stockpile, one mill line per
      machine (the raid's machines), smelter, loadout, each a real building the
      battle enters. The ore line links them in that order, each link from the
      wall of one hall nearest the next, never through a hall or a link already
@@ -1047,10 +1068,8 @@ Laws):
      approved concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
-   (to the stores, or from the shafts); dust over the working bench; the
-   receiving house on the pit's side of the works, so the pit's line need not
-   wrap round the compound; a shared trunk where one hall feeds several, not a
-   line each.
+   (to the stores, or from the shafts); dust over the working bench; a shared
+   trunk where one hall feeds several, not a line each.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:

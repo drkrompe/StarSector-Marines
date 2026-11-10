@@ -295,6 +295,8 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWallCrush;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.mech.MechSectionFxSystem;
 import com.dillon.starsectormarines.battle.assault.MachineAssaults;
@@ -614,6 +616,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SystemFxSystem systemFxSystem;
     /** Simulation-authoritative mech pivoting, settled before appearance authoring. */
     private final MechLocomotionSystem mechLocomotionSystem;
+    /** Wall-crushing walkers pushing down what they walk into; set with the hulls' wall crush. */
+    private MechWallCrush mechWallCrush;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
     private final MechGaitSystem mechGaitSystem;
     private final RavRunnerRigSystem ravRunnerRigSystem;
@@ -876,13 +880,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public DustLedgerSequence getDustLedger() { return dustLedger; }
     /**
      * Installs the Dust Ledger over an installed Raid whose target is the ledger room ({@code dust-ledger-crossing.md}):
-     * stands the broker in his office and puts the quiet phase over the scans. The reserves spawn at the alarm.
+     * stands the broker in his office and puts the quiet phase over the scans.
      */
-    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid,
-                                                List<EntitySpec> drinkers, List<EntitySpec> salvageTeam) {
+    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid) {
         if (simTickIndex != 0 || dustLedger != null) throw new IllegalStateException("Install the Dust Ledger once at setup");
         if (!getObjectives().contains(raid)) throw new IllegalStateException("Install the ledger room's Raid first");
-        dustLedger = new DustLedgerSequence(sites, raid, drinkers, salvageTeam, storyBeats);
+        dustLedger = new DustLedgerSequence(sites, raid, storyBeats);
         dustLedger.begin(this);
         addObjective(dustLedger);
         return dustLedger;
@@ -2009,6 +2012,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng, mechRun);
+        this.heavy.setFireField(this::fireField);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);
@@ -2063,7 +2067,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             heavy.setLaneDiscipline(true);
             missilePods.setLaneDiscipline(true);
         }
-        groundSystem.setWallCrush(new WallCrush(navigation, mapEditor, doodadService));
+        WallCrush wallCrush = new WallCrush(navigation, mapEditor, doodadService);
+        groundSystem.setWallCrush(wallCrush);
+        // A wall-crushing walker (every heavy-lift walker, mechs-nouns.md) plans over the walkers' breach view and
+        // pushes down what it walks into. Routes are asked for from the parallel unit update, so the view is caught
+        // up under a lock.
+        mechWallCrush = new MechWallCrush(entityWorld, battleComponents, rosterService, navigation, mapEditor,
+                doodadService);
+        navigation.setOwnRouteGrid(id -> {
+            MechVariant variant = rosterService.identity().mechVariant(id);
+            if (variant == null || !variant.crushesWalls()) return null;
+            synchronized (wallCrush) {
+                return wallCrush.planningGrid(WallCrush.HEAVY_CEILING, grid);
+            }
+        });
         // Heavy-lift hulls flatten the undergrowth and lone boulders they drive into (HeavyTracks); its switch is the
         // control, under which every hull stops at them.
         HeavyTracks tracks = null;
@@ -2118,6 +2135,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMedicSystem squadMedics() { return squadMedics; }
 
     public NavigationGrid getGrid() { return grid; }
+
+    /** The grid a mech plans its route over: a wall-crushing walker's breach view, else the live grid. */
+    public NavigationGrid mechRouteGrid(long mech) { return navigation.routeGrid(mech); }
 
     @Override public boolean playerSeesCell(int x, int y) { return fogOfWar.isCellRevealed(x, y); }
 
@@ -4468,6 +4488,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         MachineAssaults.tickVehicles(this);
         MachineGuards.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent(), directControl.triggerPicks());
+        mechWallCrush.tick(TICK_DT);
         // A hull a Brute ran into slides and rocks on top of its own drive (HullSlide).
         for (long hull : convoy().entityIds()) {
             GroundBody body = convoy().body(hull);
@@ -4846,7 +4867,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (identity().type(u).isMech()) {
             MovementService.MotionResult result = movement().advanceAlongPath(
                     world, u, TICK_DT, grid, physicalRadius(u));
-            if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
+            // A wall-crushing walker held by a wall it is pushing down keeps its route: the wall is its way through.
+            if (result == MovementService.MotionResult.BLOCKED && !mechWallCrush.heldByPushableWall(u)) {
+                navigation.clearPath(u);
+            }
         } else {
             if (waitsAtFireEdge(u) || waitsAtHazeEdge(u)) {
                 // Held at an edge long enough, the route is dropped so its order re-plans against the hazard as it

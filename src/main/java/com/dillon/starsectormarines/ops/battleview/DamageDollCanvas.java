@@ -185,13 +185,13 @@ public final class DamageDollCanvas implements CanvasProducer {
 
     /**
      * The doll a mech chassis draws as; the derelict MG-40 and MG-70 share one, and the MG-25 has its own for its two
-     * guns, one in each flank port.
+     * guns, one in each flank port. A hardware variant draws as its frame, whose sections it keeps.
      */
     public static String dollPath(MechVariant variant) {
         String name = switch (variant) {
             case SECURITY_WALKER, SECURITY_HALL -> "derelict";
-            case SECURITY_ROUNDS -> "derelict-rounds";
-            default -> variant.id;
+            case SECURITY_ROUNDS, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> "derelict-rounds";
+            default -> variant.frame().id;
         };
         return DOLL_DIR + "mech-" + name + ".svg";
     }

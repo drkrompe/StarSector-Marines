@@ -1,0 +1,16 @@
+Asset type: production-source master for a top-down game sprite: the Luddic Path FOUNDRY BREAKER, a light demolition walker a Pather cell converted from an industrial machine.
+
+Image 1 is the edit target and the exact geometry authority: a light narrow walking machine seen from above, facing the top. Keep its outline, faceted pilot canopy, round hip bearings, flat dorsal deck and registration exactly where they are, in place and scale. The grey blocks are the Breaker's new parts, each rendered in the same place and at the same size:
+- the two dark blocks at the nose either side of the open channel: a heavy blunt BREACHING COLLAR of rough foundry casting framing the nose. The narrow channel between them stays OPEN and EMPTY (fully transparent), because the demolition cannon runs up it as a separate layer;
+- the five pale bars across the rear: a rack of FIVE FAT SHELL CANISTERS lying crosswise, strapped down with steel bands.
+Add hazard-banded mining plate over the hips.
+
+Image 2 is the owner's chosen concept for this machine: identity and detail reference only. Follow image 1 for where everything goes.
+
+Image 3 is material and colour reference only, surface swatches from the Luddic Path's warships: repaint the whole machine in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, soot round vents, scuffed bare metal on worn edges, hand-welded repairs.
+
+Strict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.
+
+Every weapon mount stays EMPTY: a flat bolted plate or a dark socket ring, with no gun, barrel, launcher or turret anywhere. Guns are separate layers added later.
+
+Avoid: guns or barrels of any kind; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text.

@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.List;
 
 /**
- * Worn plate on a live hull ({@code combat-durability-nouns.md}): four breakthrough tanks side by side on real ground,
+ * Worn plate on a live hull ({@code combat-durability-nouns.md}): four Onagers side by side on real ground,
  * every plate at 100, 66, 33 and 10% of its armour, at play zoom and close. Owner-facing look frames only; there is no
  * verdict.
  */

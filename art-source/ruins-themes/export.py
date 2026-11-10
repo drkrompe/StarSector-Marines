@@ -11,6 +11,7 @@ reads as a halo on the floor) and are capped below opaque so the floor shows thr
 Writes ``mod/graphics/doodads/ruins-themes.png`` and ``mod/data/tilesets/ruins-themes.tileset.json``.
 """
 
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -24,6 +25,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "art-source" / "doodads"))
 
 import make_guide  # noqa: E402
+import rooms_list  # noqa: E402
 from stitch_atlas import BuildOptions, build_atlas  # noqa: E402
 
 # Family -> accepted raw, and the pieces of it that ship (the concept sheets' own patches do not).
@@ -65,10 +67,37 @@ FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "fur
               "forge-wear": ("ruins-forge-wear.raw.png", FORGE_WEAR),
               "forge-era-a": ("ruins-forge-era-a.raw.png", FORGE_ERA_A),
               "forge-era-b": ("ruins-forge-era-b.raw.png", FORGE_ERA_B)}
+# The delve's weather (``RuinsWeather``): flat decals on a sheet of their own, faded as the forge's stains are. The
+# crack network and crack run came back as thorny twigs, not cracks, and do not ship.
+WEATHER = ("fallen-ceiling", "fallen-panel", "seep-stain", "dust-tongue", "sand-tongue", "snow-tongue", "ash-tongue",
+           "sulphur-tongue", "root-mat", "root-run")
+WEATHER_RAWS = {"delve-weather": ("ruins-delve-weather.raw.png", WEATHER)}
+# The mega forge's transfer bridge (``RuinsDelveStage.transferBridge``) on a small sheet of its own: the span and the
+# damaged span join end to end east-west, so they are healed along the span (``SPANS``); the end is mirrored in place.
+BRIDGE = ("transfer-bridge-span", "transfer-bridge-end", "transfer-bridge-span-damaged")
+BRIDGE_RAWS = {"forge-bridge": ("ruins-forge-bridge.raw.png", BRIDGE)}
+SPANS = ("transfer-bridge-span", "transfer-bridge-span-damaged")
+# The ruins rooms' furniture (``ruins-theme-rooms``, the list in ``rooms_list.py``) on one sheet, ``ruins-rooms``,
+# 32 cells wide: every piece cut at its exact frame, its hazard trim muted as the works pieces' is.
+ROOMS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in rooms_list.FAMILIES[f] if e)) for f in rooms_list.FAMILIES}
+ROOMS = tuple(pid for f in ROOMS_RAWS for pid in ROOMS_RAWS[f][1])
+# The theme works halls' pieces (``ruins-theme-halls``) ship on a third sheet, ``ruins-works``: every piece is cut at
+# its exact guide frame, so a run and a wall block keep their edges flush.
+WORKS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in make_guide.FAMILIES[f] if e))
+              for f in ("works-kit", "works-runs", "works-blocks", "works-vessels-a", "works-vessels-b",
+                        "works-stations", "works-plant-a", "works-plant-b", "works-cells-a", "works-cells-b",
+                        "works-rows-a", "works-rows-b", "works-mega-a", "works-mega-b")}
+WORKS = tuple(pid for f in WORKS_RAWS for pid in WORKS_RAWS[f][1])
+# Pieces laid two ways from one drawing: the cage fence and ring segment run north-south too (turned a quarter), and a
+# charge cell, drawn open to the east for the west bays, opens west for the east bays (mirrored).
+TURNED = {"cage-fence": "cage-fence-v", "ring-segment": "ring-segment-ew"}
+MIRRORED = {"charge-cell": "charge-cell-west", "charge-cell-open": "charge-cell-open-west"}
 # The forge floor's runs, laid end to end north-south: each is healed into a seamless repeat along its length as the
 # foundry textures are (``art-source/voids/foundry/derive.py``): a band at each end blended with the piece rolled by
 # half its length. Their guides repeat with a period that divides the length, so the rolled copy meets in step.
-RUNS = ("mag-rail", "trench-cover", "drain-gutter", "crane-runway", "cable-tray")
+RUNS = ("mag-rail", "trench-cover", "drain-gutter", "crane-runway", "cable-tray", "works-conveyor", "coolant-return",
+        "coolant-loop", "transfer-pipe", "tensile-bed", "spoil-conveyor", "coolant-header", "feed-manifold", "pipe-run",
+        "powder-line")
 RUN_BAND = .08
 
 # The ruins' leaf doors ship as single images beside the ship's (``graphics/doors/``), at the leaves' 160 px a cell,
@@ -84,8 +113,8 @@ LEAF_INSET = 0.03
 # Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
 # scale and the wrecked one's fallen fragments stay where they lie.
 TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
-         "great-crucible", "furnace-core", *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
-         "recorder-console"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+         "great-crucible", "furnace-core", *WORKS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
+         "recorder-console", *WEATHER, *BRIDGE, *ROOMS}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -133,7 +162,7 @@ def split_melt(piece, guide_frame):
 # - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
 #   the engine's pulse rides from dull orange to orange rather than from yellow to white.
 # - the forge line came back with the same bright trim, and its melt as bright as the crucible's was.
-MUTE_HAZARD = ("spool-drum", "drone-frame", *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
+MUTE_HAZARD = ("spool-drum", "drone-frame", *WORKS, *ROOMS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
                "recorder-console")
 GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "ladle-lift-melt",
               "ladle-lift-tipped-pour", "slag-skid-melt", "slag-skid-crashed-spill")
@@ -210,7 +239,8 @@ def grade(pid, piece):
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
-CAP = {"frost": 150, "growth": 205, "oil": 225, "coolant": 215, "scorch": 225, "thrust": 200}
+CAP = {"frost": 150, "growth": 205, "oil": 225, "coolant": 215, "scorch": 225, "thrust": 200,
+       "fallen": 245, "seep": 200, "dust": 185, "sand": 215, "snow": 220, "ash": 210, "sulphur": 200, "root": 225}
 # The forge's stains were drawn translucent to their edges, so the halo cut is lower: only the faintest haze goes.
 STAIN_FEATHER = 30
 # A stain drawn fainter than the rest is stretched so its densest part reaches the cap: the thrust wash came back at
@@ -218,22 +248,44 @@ STAIN_FEATHER = 30
 STAIN_TOP = {"thrust-wash": 140}
 
 
+def register(raw, frames):
+    """Scale and offset taking guide pixels to raw pixels: the frames' union onto the raw's drawn (alpha) extent."""
+    a = np.asarray(raw.getchannel("A")) > 64
+    ys, xs = np.nonzero(a)
+    gx0, gy0 = min(f[1] for f in frames), min(f[2] for f in frames)
+    gx1, gy1 = max(f[1] + f[3] for f in frames), max(f[2] + f[4] for f in frames)
+    sx = (xs.max() + 1 - xs.min()) / (gx1 - gx0)
+    sy = (ys.max() + 1 - ys.min()) / (gy1 - gy0)
+    return sx, sy, xs.min() - gx0 * sx, ys.min() - gy0 * sy
+
+
 def cut(family):
-    raw_name, keep = {**RAWS, **FORGE_RAWS}[family]
+    raw_name, keep = {**RAWS, **FORGE_RAWS, **WORKS_RAWS, **WEATHER_RAWS, **BRIDGE_RAWS, **ROOMS_RAWS}[family]
     raw = Image.open(HERE / "raw" / raw_name).convert("RGBA")
     guide = Image.open(ROOT / "art-source" / "templates" / f"ruins-{family}-guide.png")
     sx, sy = raw.width / guide.width, raw.height / guide.height
+    ox = oy = 0
+    if family in ROOMS_RAWS:
+        # ImageGen does not always keep the guide's aspect (the control sheet came back half as wide for its height,
+        # the drawing at the top): register the raw's drawn extent on the guide's frames instead of stretching.
+        sx, sy, ox, oy = register(raw, make_guide.frames(family))
     half = make_guide.GUTTER / 2
     for pid, x, y, w, h, kind in make_guide.frames(family):
         if pid not in keep:
             continue
         m = 0 if pid in TIGHT else half
-        box = (round((x - m) * sx), round((y - m) * sy), round((x + w + m) * sx), round((y + h + m) * sy))
+        box = (round(ox + (x - m) * sx), round(oy + (y - m) * sy), round(ox + (x + w + m) * sx),
+               round(oy + (y + h + m) * sy))
         piece = raw.crop(box)
+        if pid in WORKS or pid in ROOMS:
+            # ImageGen leaves a faint coloured haze (alpha 1 to 3) in the gutters of the works sheets: cleared.
+            piece.putalpha(piece.getchannel("A").point(lambda v: 0 if v < 8 else v))
         if pid in RUNS:
             piece = heal_run(piece)
-        if kind in ("organic", "streak"):
-            f = STAIN_FEATHER if pid in FORGE_WEAR or pid == "thrust-wash" else FEATHER
+        if pid in SPANS:
+            piece = heal_run(piece.rotate(90, expand=True)).rotate(-90, expand=True)
+        if kind in ("organic", "streak") or pid in WEATHER:
+            f = STAIN_FEATHER if pid in FORGE_WEAR or pid in WEATHER or pid == "thrust-wash" else FEATHER
             top = STAIN_TOP.get(pid, 255)
             alpha = piece.getchannel("A").point(
                 lambda v, cap=CAP[pid.split("-")[0]], f=f, top=top:
@@ -247,6 +299,10 @@ def cut(family):
             yield MELT_SPLIT[pid], over
             continue
         yield pid, piece
+        if pid in TURNED:
+            yield TURNED[pid], piece.rotate(90, expand=True)
+        if pid in MIRRORED:
+            yield MIRRORED[pid], piece.transpose(Image.FLIP_LEFT_RIGHT)
 
 
 def export_doors():
@@ -267,19 +323,63 @@ def export_doors():
         print("door", pid, size)
 
 
+# The works pieces are split over four sheets, 32 cells wide, so each pads to a smaller power-of-two texture than one
+# tall sheet would (``texture-fit.md``) and a hall loads only the sheets its pieces are on. They share one metadata file.
+WORKS_SHEETS = {
+    "ruins-works-kit": ("works-kit", "works-runs", "works-blocks", "works-stations"),
+    "ruins-works-plant": ("works-vessels-a", "works-vessels-b", "works-plant-a", "works-plant-b"),
+    "ruins-works-bays": ("works-cells-a", "works-cells-b", "works-rows-a", "works-rows-b"),
+    "ruins-works-giants": ("works-mega-a", "works-mega-b"),
+}
+
+
+def build_works():
+    for sheet, families in WORKS_SHEETS.items():
+        build_sheet(sheet, "_atlas-works.json", {f: WORKS_RAWS[f] for f in families}, columns=32)
+
+
 def build_forge():
+    build_sheet("ruins-forge", "_atlas-forge.json", FORGE_RAWS)
+
+
+def build_rooms():
+    assets = {}
+    for k, (pid, w, h, kind, layer, name, what) in enumerate(rooms_list.pieces()):
+        a = {"id": f"doodad.ruins-{pid}", "name": name, "description": what, "footprintCells": [w, h],
+             "preserveCanvas": True, "padding": 0, "order": k + 1}
+        if layer == "stand":
+            a.update(cover="med", ballisticHalfHeight=0.5)
+        else:
+            a["cover"] = "none"
+        assets[f"{pid}.png"] = a
+    with open(HERE / "_atlas-rooms.json", "w") as f:
+        json.dump({"defaults": {"cover": "heavy", "padding": 4, "scale": 1.0, "offset": [0, 0]}, "assets": assets}, f,
+                  indent=2)
+        f.write("\n")
+    build_sheet("ruins-rooms", "_atlas-rooms.json", ROOMS_RAWS, columns=32)
+
+
+def build_bridge():
+    build_sheet("ruins-forge-bridge", "_atlas-bridge.json", BRIDGE_RAWS, columns=6)
+
+
+def build_weather():
+    build_sheet("ruins-delve-weather", "_atlas-weather.json", WEATHER_RAWS, columns=16)
+
+
+def build_sheet(sheet, metadata, raws, columns=24):
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
-        for family in FORGE_RAWS:
+        for family in raws:
             for pid, piece in cut(family):
                 grade(pid, piece).save(staged / f"{pid}.png")
         image, manifest, count = build_atlas(BuildOptions(
             input_dir=staged,
-            output_image=ROOT / "mod" / "graphics" / "doodads" / "ruins-forge.png",
-            output_manifest=ROOT / "mod" / "data" / "tilesets" / "ruins-forge.tileset.json",
-            sheet_path="graphics/doodads/ruins-forge.png",
-            metadata_path=HERE / "_atlas-forge.json",
-            columns=24,
+            output_image=ROOT / "mod" / "graphics" / "doodads" / f"{sheet}.png",
+            output_manifest=ROOT / "mod" / "data" / "tilesets" / f"{sheet}.tileset.json",
+            sheet_path=f"graphics/doodads/{sheet}.png",
+            metadata_path=HERE / metadata,
+            columns=columns,
             cell_size=CELL_PX,
             padding=4,
             id_prefix="doodad.",
@@ -288,12 +388,16 @@ def build_forge():
             allow_opaque=False,
             only_prefix=None,
         ))
-    print(f"Packed {count} forge assets")
+    print(f"Packed {count} {sheet} assets")
 
 
 def main() -> None:
     export_doors()
     build_forge()
+    build_weather()
+    build_bridge()
+    build_rooms()
+    build_works()
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
         for family in RAWS:

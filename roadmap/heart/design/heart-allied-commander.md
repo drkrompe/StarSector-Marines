@@ -71,7 +71,7 @@ density as restock (`allied-tools.md`). A lane that is uncovered, broken or stal
 calls its next machines, and `heart.armour_called_<lane>_<n>` marks each call.
 - In town and city, where hulls are roadbound, it asks for a **mech lance**
   (two Hounds) first, and an armour pair when no lance is in stock.
-- In rural country it asks for an armour pair (a breakthrough tank and a
+- In rural country it asks for an armour pair (an Onager and a
   technical).
 
 **When to commit the gunship.** Only once the air is open (F3's

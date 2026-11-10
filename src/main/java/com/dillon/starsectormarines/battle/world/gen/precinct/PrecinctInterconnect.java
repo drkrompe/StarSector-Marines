@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.road.BendFlood;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -29,7 +30,10 @@ import java.util.Map;
  * <p><b>The weld follows the flood, not a straight line.</b> Each side's route
  * is walked back along the parent pointers the flood recorded, so it bends
  * around whatever the flood bent around. A straight link would be quicker to
- * write and would drive through buildings.
+ * write and would drive through buildings. The flood pays for every bend
+ * ({@link BendFlood}), so the way back is straight runs and clean bends, as a
+ * planner lays a road, never the staircase a breadth-first flood walks down
+ * toward a road that lies off both axes.
  */
 public final class PrecinctInterconnect {
 
@@ -68,7 +72,7 @@ public final class PrecinctInterconnect {
         int components = count(component, width, height);
         if (components <= 1) return new Result(components, components, 0, 0);
 
-        Flood flood = flood(component, width, height, blocked);
+        BendFlood flood = flood(component, blocked);
         List<Weld> candidates = candidates(flood, width, height);
         candidates.sort((a, b) -> Integer.compare(a.cost, b.cost));
 
@@ -92,6 +96,80 @@ public final class PrecinctInterconnect {
             return new Result(components, rest.componentsAfter(), cut + rest.weldsCut(), cells + rest.cellsCut());
         }
         return new Result(components, components - cut, cut, cells);
+    }
+
+    /**
+     * Takes up each leg of {@code welded} road (cells an earlier weld laid) that a road laid since has made
+     * redundant: one whose removal leaves the map in no more networks than it is in. A weld is laid only where
+     * nothing else joins two networks; left in place once a later road joins them, it is a second road beside
+     * that one, two carriageways where one carries the traffic. A weld is straight legs joined by bends, and a
+     * later road may meet one leg and run beside another, so legs are tried one at a time, the longest first,
+     * until none more can go. Returns the cells taken up.
+     */
+    public static int untie(int[][] owner, boolean[][] welded, int width, int height) {
+        int before = components(owner, width, height), taken = 0;
+        for (boolean changed = true; changed; ) {
+            changed = false;
+            List<List<int[]>> legs = legs(owner, welded, width, height);
+            legs.sort((a, b) -> Integer.compare(b.size(), a.size()));
+            for (List<int[]> leg : legs) {
+                int[] was = new int[leg.size()];
+                for (int i = 0; i < leg.size(); i++) {
+                    int[] c = leg.get(i);
+                    was[i] = owner[c[0]][c[1]];
+                    owner[c[0]][c[1]] = GrownTrunkPlan.UNOWNED;
+                }
+                if (components(owner, width, height) <= before) {
+                    taken += leg.size();
+                    changed = true;
+                    continue;
+                }
+                for (int i = 0; i < leg.size(); i++) owner[leg.get(i)[0]][leg.get(i)[1]] = was[i];
+            }
+        }
+        return taken;
+    }
+
+    /**
+     * The straight legs of the welded road still standing: each cell joins the way its welded run is longer (along
+     * its column or its row), and a leg is the cells of one way joined edge to edge.
+     */
+    private static List<List<int[]>> legs(int[][] owner, boolean[][] welded, int width, int height) {
+        boolean[][] on = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++)
+            on[x][y] = welded[x][y] && owner[x][y] != GrownTrunkPlan.UNOWNED;
+        boolean[][] vertical = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) {
+            if (!on[x][y]) continue;
+            int across = 1, along = 1;
+            for (int i = x - 1; i >= 0 && on[i][y]; i--) across++;
+            for (int i = x + 1; i < width && on[i][y]; i++) across++;
+            for (int j = y - 1; j >= 0 && on[x][j]; j--) along++;
+            for (int j = y + 1; j < height && on[x][j]; j++) along++;
+            vertical[x][y] = along >= across;
+        }
+        boolean[][] seen = new boolean[width][height];
+        List<List<int[]>> legs = new ArrayList<>();
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) {
+            if (!on[x][y] || seen[x][y]) continue;
+            List<int[]> leg = new ArrayList<>();
+            Deque<int[]> open = new ArrayDeque<>();
+            seen[x][y] = true;
+            open.add(new int[]{x, y});
+            while (!open.isEmpty()) {
+                int[] c = open.poll();
+                leg.add(c);
+                for (int[] step : STEPS) {
+                    int nx = c[0] + step[0], ny = c[1] + step[1];
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height || seen[nx][ny] || !on[nx][ny]
+                            || vertical[nx][ny] != vertical[x][y]) continue;
+                    seen[nx][ny] = true;
+                    open.add(new int[]{nx, ny});
+                }
+            }
+            legs.add(leg);
+        }
+        return legs;
     }
 
     /** How many separate road networks a map has. */
@@ -139,62 +217,31 @@ public final class PrecinctInterconnect {
 
     // ---- the flood between them -------------------------------------------
 
-    /** Per-cell nearest component, its distance, and the step back toward it. */
-    private record Flood(int[][] nearest, int[][] distance, int[][] fromX, int[][] fromY) { }
-
-    private static Flood flood(int[][] component, int width, int height, boolean[][] blocked) {
-        int[][] nearest = new int[width][height];
-        int[][] distance = new int[width][height];
-        int[][] fromX = new int[width][height];
-        int[][] fromY = new int[width][height];
-        for (int[] column : nearest) java.util.Arrays.fill(column, -1);
-        for (int[] column : distance) java.util.Arrays.fill(column, Integer.MAX_VALUE);
-
-        Deque<int[]> queue = new ArrayDeque<>();
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (component[x][y] == -1) continue;
-                nearest[x][y] = component[x][y];
-                distance[x][y] = 0;
-                fromX[x][y] = x;
-                fromY[x][y] = y;
-                queue.add(new int[]{x, y});
-            }
-        }
-        while (!queue.isEmpty()) {
-            int[] at = queue.poll();
-            for (int[] step : STEPS) {
-                int nx = at[0] + step[0];
-                int ny = at[1] + step[1];
-                if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
-                if (nearest[nx][ny] != -1) continue;
-                if (blocked != null && blocked[nx][ny]) continue;
-                nearest[nx][ny] = nearest[at[0]][at[1]];
-                distance[nx][ny] = distance[at[0]][at[1]] + 1;
-                fromX[nx][ny] = at[0];
-                fromY[nx][ny] = at[1];
-                queue.add(new int[]{nx, ny});
-            }
-        }
-        return new Flood(nearest, distance, fromX, fromY);
+    /**
+     * The flood from every component at once, paying for each bend ({@link BendFlood}): each cell's nearest
+     * component, its cost, and the way back to it, so a weld walked back down it runs straight and turns cleanly.
+     */
+    private static BendFlood flood(int[][] component, boolean[][] blocked) {
+        return BendFlood.from(component,
+                (x, y) -> blocked != null && blocked[x][y] ? -1 : 1, BendFlood.BEND);
     }
 
     /** One possible link: two adjacent cells whose nearest components differ. */
     private record Weld(int from, int to, int ax, int ay, int bx, int by, int cost) { }
 
-    private static List<Weld> candidates(Flood flood, int width, int height) {
+    private static List<Weld> candidates(BendFlood flood, int width, int height) {
         Map<Long, Weld> best = new HashMap<>();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                int a = flood.nearest()[x][y];
+                int a = flood.label(x, y);
                 if (a == -1) continue;
                 for (int[] step : new int[][]{{1, 0}, {0, 1}}) {
                     int nx = x + step[0];
                     int ny = y + step[1];
                     if (nx >= width || ny >= height) continue;
-                    int b = flood.nearest()[nx][ny];
+                    int b = flood.label(nx, ny);
                     if (b == -1 || b == a) continue;
-                    int cost = flood.distance()[x][y] + flood.distance()[nx][ny] + 1;
+                    int cost = flood.cost(x, y) + flood.cost(nx, ny) + 1;
                     long key = (long) Math.min(a, b) * 100_000L + Math.max(a, b);
                     Weld existing = best.get(key);
                     if (existing == null || cost < existing.cost) {
@@ -209,29 +256,20 @@ public final class PrecinctInterconnect {
     // ---- cutting ----------------------------------------------------------
 
     /** Walks both sides of a weld back to their own road, painting as it goes. */
-    private static int carve(int[][] owner, int[][] component, Flood flood, Weld weld,
+    private static int carve(int[][] owner, int[][] component, BendFlood flood, Weld weld,
                              int width, int height, boolean[][] blocked) {
         int cells = walkBack(owner, component, flood, weld.ax, weld.ay, width, height, blocked);
         return cells + walkBack(owner, component, flood, weld.bx, weld.by, width, height, blocked);
     }
 
-    private static int walkBack(int[][] owner, int[][] component, Flood flood,
+    private static int walkBack(int[][] owner, int[][] component, BendFlood flood,
                                 int x, int y, int width, int height, boolean[][] blocked) {
         int painted = 0;
-        int cx = x;
-        int cy = y;
         // The precinct the road being extended belongs to, so a weld reads as
         // that place's road reaching out rather than as ownerless tarmac.
-        int who = ownerOfComponent(owner, component, flood.nearest()[x][y], width, height);
-        while (true) {
-            painted += paint(owner, who, cx, cy, width, height, blocked);
-            if (component[cx][cy] != -1) return painted;
-            int px = flood.fromX()[cx][cy];
-            int py = flood.fromY()[cx][cy];
-            if (px == cx && py == cy) return painted;
-            cx = px;
-            cy = py;
-        }
+        int who = ownerOfComponent(owner, component, flood.label(x, y), width, height);
+        for (int[] c : flood.back(x, y)) painted += paint(owner, who, c[0], c[1], width, height, blocked);
+        return painted;
     }
 
     private static int ownerOfComponent(int[][] owner, int[][] component, int which,

@@ -172,6 +172,23 @@ class GeneratedRoadsTest {
         for (var r : straight) assertEquals(11.0, r.points().get(0).y(), "every stretch on the street's line: " + straight);
     }
 
+    @Test void aStreetBesideACountryRoadRunningItsWayIsItsVergeNotASecondRoad() {
+        for (int gap : new int[]{0, 1, GeneratedRoads.BESIDE}) {
+            boolean[][] road = new boolean[64][32], laid = new boolean[64][32];
+            fill(laid, 0, 10, 63, 12);                   // the country road, laid outside the network ...
+            fill(road, 4, 13 + gap, 58, 15 + gap);       // ... and the town's edge street beside it, gap cells across
+            var routes = GeneratedRoads.streets(road, road, new boolean[64][32], null, laid, 3, 9,
+                    GeneratedRoads.StreetStyle.ROUND_BARE).routes();
+            assertTrue(routes.isEmpty(), "a second carriageway beside it, gap " + gap + ": " + routes);
+        }
+        boolean[][] road = new boolean[64][32], laid = new boolean[64][32];
+        fill(laid, 0, 10, 63, 12);
+        fill(road, 4, 16, 58, 18);                       // three cells across: a street of its own
+        var raster = RoadRasterizer.rasterize(new RoadPlan(64, 32, GeneratedRoads.streets(road, road,
+                new boolean[64][32], null, laid, 3, 9, GeneratedRoads.StreetStyle.ROUND_BARE).routes()));
+        assertTrue(raster.road(30, 17), "a street further off is swept");
+    }
+
     private static void fill(boolean[][] road, int x0, int y0, int x1, int y1) {
         fill(road, x0, y0, x1, y1, true);
     }
@@ -305,12 +322,58 @@ class GeneratedRoadsTest {
         for (int x = 20; x <= 22; x++) assertFalse(raster.road(x, 10), "nothing runs on into the outer kerb at " + x);
     }
 
-    @Test void aStreetThatWidensBesideAnotherTapersIntoItInsteadOfStepping() {
+    @Test void aStreetThatJogsOntoOneBesideItStepsAcrossSquareAtOneStreetsWidth() {
         boolean[][] road = new boolean[48][40];
         fill(road, 2, 10, 40, 12);    // a street three wide ...
         fill(road, 20, 13, 45, 15);   // ... and a second one beside it from x 20, running on past it
         var style = new GeneratedRoads.StreetStyle(true, false, false);
         var routes = GeneratedRoads.streets(road, road, null, 3, 9, style).routes();
+        assertTrue(routes.stream().allMatch(r -> r.points().size() != 2
+                || r.points().get(0).y() == r.points().get(1).y()), "no diagonal: " + routes);
+        var raster = RoadRasterizer.rasterize(new RoadPlan(48, 40, routes));
+        for (int x = 4; x <= 38; x++) assertTrue(raster.road(x, 11), "the longer street runs on at " + x);
+        for (int x = 22; x <= 36; x++) assertFalse(raster.road(x, 14), "a slab two streets wide at " + x);
+        for (int x = 38; x <= 44; x++) assertTrue(raster.road(x, 14), "the shorter steps across and runs on at " + x);
+    }
+
+    @Test void aStreetRunningOnPastAnotherAKerbCellAwayStopsABreadthIntoIt() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 2, 10, 40, 12);    // a street three wide ...
+        fill(road, 20, 14, 45, 16);   // ... and a second beside it past a kerb cell, from x 20, running on past it
+        var routes = GeneratedRoads.streets(road, road, null, 3, 9, new GeneratedRoads.StreetStyle(true, false, false)).routes();
+        var raster = RoadRasterizer.rasterize(new RoadPlan(48, 40, routes));
+        for (int x = 4; x <= 38; x++) assertTrue(raster.road(x, 11), "the longer street runs on at " + x);
+        for (int x = 22; x <= 36; x++) assertFalse(raster.road(x, 15), "a double road at " + x);
+        for (int x = 38; x <= 44; x++) assertTrue(raster.road(x, 15), "the shorter runs on from a breadth into it at " + x);
+    }
+
+    @Test void aShortStreetAlongsideALongerOneIsNotADoubleRoad() {
+        for (int gap : new int[]{1, GeneratedRoads.BESIDE}) {
+            boolean[][] road = new boolean[64][32];
+            fill(road, 2, 10, 61, 12);                   // a street ...
+            fill(road, 20, 13 + gap, 40, 15 + gap);      // ... and a shorter one beside it, gap cells of kerb across
+            var routes = GeneratedRoads.streets(road, road, new boolean[64][32], 3, 9,
+                    GeneratedRoads.StreetStyle.ROUND_BARE).routes();
+            var raster = RoadRasterizer.rasterize(new RoadPlan(64, 32, routes));
+            assertTrue(raster.road(30, 11), "the street is swept");
+            assertFalse(raster.road(30, 14 + gap), "a second carriageway beside it, gap " + gap + ": " + routes);
+        }
+    }
+
+    @Test void aStreetThatWidensBesideAnotherTapersIntoItUnderTheTaperControl() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 2, 10, 40, 12);    // a street three wide ...
+        fill(road, 20, 13, 45, 15);   // ... and a second one beside it from x 20, running on past it
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        String was = System.getProperty("battle.mapgen.streetJogs");
+        System.setProperty("battle.mapgen.streetJogs", "taper");
+        List<Route> routes;
+        try {
+            routes = GeneratedRoads.streets(road, road, null, 3, 9, style).routes();
+        } finally {
+            if (was == null) System.clearProperty("battle.mapgen.streetJogs");
+            else System.setProperty("battle.mapgen.streetJogs", was);
+        }
         var taper = routes.stream().filter(r -> r.points().size() == 2
                 && r.points().get(0).y() != r.points().get(1).y()).toList();
         assertEquals(1, taper.size(), "one diagonal merge: " + routes);

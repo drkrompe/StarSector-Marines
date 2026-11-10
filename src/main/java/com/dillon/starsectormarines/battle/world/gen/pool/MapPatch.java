@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSitePlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
@@ -27,9 +28,11 @@ import java.util.Set;
  * @param holdouts a cell inside each building the colony holds out in, in redoubt order; empty to let the setup choose
  * @param place    structures put down by hand, by layout name: a deferred layout piece that resolves a structure of
  *                 that name takes it here instead of siting it ({@code MissionLayout.placed})
+ * @param hull     a fallen hull laid over the country ({@code fallen-hull-nouns.md}): its trench, debris, interior, claim
+ *                 lattice and the chapter's starting stakes; {@code null} for none
  */
 public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, List<Bore> bores,
-                       List<Cell> holdouts, List<Structure> place) {
+                       List<Cell> holdouts, List<Structure> place, HullSitePlan hull) {
 
     /** The patch of a seed that needs none. */
     public static final MapPatch NONE = new MapPatch(List.of(), List.of());
@@ -65,6 +68,12 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
         if (!bores.isEmpty() && mothers != 1) throw new IllegalArgumentException("authored bores name one mother, not " + mothers);
     }
 
+    /** A patch with no fallen hull. */
+    public MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, List<Bore> bores,
+                    List<Cell> holdouts, List<Structure> place) {
+        this(pins, ruin, lift, bores, holdouts, place, null);
+    }
+
     /** A patch of pins and ruin alone. */
     public MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
         this(pins, ruin, null, List.of(), List.of(), List.of());
@@ -77,16 +86,17 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
 
     public boolean isEmpty() {
         return pins.isEmpty() && ruin.isEmpty() && lift == null && bores.isEmpty() && holdouts.isEmpty()
-                && place.isEmpty();
+                && place.isEmpty() && hull == null;
     }
 
     /**
-     * The plan with every pinned place moved and the placed structures handed to its layout; a pin naming no place of
-     * the plan is an authoring error.
+     * The plan with every pinned place moved, the placed structures handed to its layout, and its fallen hull laid over
+     * the country; a pin naming no place of the plan is an authoring error.
      */
     public PrecinctPlan pinned(PrecinctPlan plan) {
         PrecinctPlan out = movePins(plan);
-        return place.isEmpty() ? out : out.withLayout(out.layout().withPlaced(place));
+        if (!place.isEmpty()) out = out.withLayout(out.layout().withPlaced(place));
+        return hull == null ? out : out.withLayout(out.layout().withCrash(hull));
     }
 
     private PrecinctPlan movePins(PrecinctPlan plan) {
@@ -107,7 +117,7 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
             if (!used.contains(pin.place())) throw new IllegalArgumentException("the plan has no place " + pin.place());
         }
         return new PrecinctPlan(out, plan.attackerFrom(), plan.standoff(), plan.lanes(), plan.unplacedLanePlaces(),
-                plan.movedLaneWaypoints(), plan.landscape(), plan.layout());
+                plan.movedLaneWaypoints(), plan.landscape(), plan.layout(), plan.raidIndustry());
     }
 
     /** The map carrying the patch's ruin as one more initial-damage layer, applied when the battle is assembled. */
@@ -176,7 +186,7 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
                         s.getInt("x"), s.getInt("y"), s.optInt("turns", 0), true));
             }
         }
-        return new MapPatch(pins, ruin, lift, bores, holdouts, place);
+        return new MapPatch(pins, ruin, lift, bores, holdouts, place, HullSitePlan.read(json.optJSONObject("hull")));
     }
 
     private static Cell cell(JSONArray xy) throws JSONException {

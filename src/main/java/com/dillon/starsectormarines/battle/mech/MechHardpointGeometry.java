@@ -98,6 +98,8 @@ public final class MechHardpointGeometry {
                  LayeredMechAppearance.ARMS_PL_3_SWEEP -> 0.50f;
             case LayeredMechAppearance.ARMS_BL_2,
                  LayeredMechAppearance.ARMS_PL_2 -> 0.41f;
+            // The FL-1 burner is 118 px long: 0.57 hull widths from the rear pivot.
+            case LayeredMechAppearance.ARMS_FL_1 -> 0.42f;
             default -> Float.NaN;
         };
     }
@@ -136,6 +138,8 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_PL_2_AP -> 0.49f;
             case LayeredMechAppearance.ARMS_AC_6 -> 0.59f;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> 0.37f;
+            // Its nozzle just out of the nose channel, past the prongs' tips.
+            case LayeredMechAppearance.ARMS_FL_1 -> 0.52f;
             case LayeredMechAppearance.ARMS_BL_1, LayeredMechAppearance.ARMS_PL_1,
                  LayeredMechAppearance.ARMS_PL_3, LayeredMechAppearance.ARMS_PL_3_SWEEP,
                  LayeredMechAppearance.ARMS_BL_2, LayeredMechAppearance.ARMS_PL_2 ->
@@ -165,6 +169,8 @@ public final class MechHardpointGeometry {
         if (podAppearance == LayeredMechAppearance.POD_LL_3
                 || podAppearance == LayeredMechAppearance.POD_THERMAL_LANCE) return 0.32f;
         if (podAppearance == LayeredMechAppearance.POD_SRM_3_QS) return 0.22f;
+        // The FL-2 lance is 156 px long: 0.75 hull widths from the rear pivot, its cowl well ahead of the shoulder.
+        if (podAppearance == LayeredMechAppearance.POD_FL_2) return 0.45f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 
@@ -195,7 +201,7 @@ public final class MechHardpointGeometry {
             return Float.isNaN(arm) ? 0f : arm - ARM_PIVOT;
         }
         boolean pod = appearance >= LayeredMechAppearance.POD_SMALL_SRM
-                && appearance <= LayeredMechAppearance.POD_SRM_3_QS;
+                && appearance <= LayeredMechAppearance.POD_FL_2;
         return pod ? podForward(appearance) - POD_PIVOT : 0f;
     }
 

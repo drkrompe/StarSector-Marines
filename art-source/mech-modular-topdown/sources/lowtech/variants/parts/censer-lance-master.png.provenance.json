@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6e3-b3b3-7c21-b26d-d4088ec0e84d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6e3-b3b3-7c21-b26d-d4088ec0e84d\\exec-78c3290d-6359-4477-8087-9e20b357dd8a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\parts\\censer-lance-master.png",
+    "sha256": "e399491e551eaab229261932f948cd8d375264dd76efff882675e5393dd4c32f",
+    "dimensions": [
+      724,
+      2172
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\parts\\censer-lance.prompt.txt",
+  "promptSha256": "fdcc658b45351dc6e75b22006c7d180c238b54fc52b1d839c8b5362c178d30be",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, design and detail of the chosen part; copy it, on a transparent background\n\nAsset type: production-source master for a top-down game sprite: the Luddic Path CENSER LANCE, a long heavy industrial fuel lance for a walking machine's shoulder mount, drawn on its own as a loose part.\n\nImage 1 is the owner's chosen concept for this part: copy its design, proportions and detail faithfully: a long straight heavy lance seen from directly above, pointing to the TOP of the canvas, with a flared slotted cowl at its tip, a clamp collar below the cowl, a band of cooling fins, a long scorched steel barrel with a bold red band, a small pilot-light housing on its right side, twin feed pipes running down its right side, and a hose coupling at its base.\n\nDraw ONE lance only, centred, vertical, filling the canvas's height with a little margin, on a TRUE TRANSPARENT BACKGROUND. Dark scorched steel, bronze fittings, a bold red band, soot near the cowl. Crisp painted game-sprite finish with rivets, light from the upper left, not pixel art.\n\nStrict 90-degree zenith orthographic top-down view. No ground, no backdrop, no black or dark background, no shadow, no halo, no glow, no light at the tip, no smoke, no border, no text, no logos.\n\nAvoid: a dark background; any glow or flame; perspective, side view or isometric view; a second lance; a machine; cropping; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\parts\\censer-lance-concept.png",
+      "sha256": "6e833bc6cff14585f45c99d132dbcf322e9170b60644347bdbe867b2a3b43b24",
+      "dimensions": [
+        230,
+        850
+      ],
+      "mode": "RGBA",
+      "role": "Identity, design and detail of the chosen part; copy it, on a transparent background"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent-background lance image, closely matching the reference.\n"
+  ],
+  "usage": {
+    "input_tokens": 38099,
+    "cached_input_tokens": 31744,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 397,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.2
+}

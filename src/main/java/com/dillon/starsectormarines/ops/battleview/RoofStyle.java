@@ -9,10 +9,13 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  * What a building's roof is made of, which is the row of the roof sheet it is drawn from (`battle-render-nouns.md`,
  * Roofs). Presentation only: no rule reads it.
  *
- * <p>A roof follows the building under it. A fort lot's building is roofed in its works' family, so a prepared post
+ * <p>A roof follows the building under it. A building its builder marked with a roof kind
+ * ({@link CellTopology.RoofKind}) wears that kind's roof: a hangar the arched {@link #QUONSET}, a hut the ridged
+ * {@link #BARRACKS}. Otherwise a fort lot's building is roofed in its works' family, so a prepared post
  * pours a slab, a League or high-tech one plates it, and field works throw sheet steel over it. A town building is
- * roofed for its walls: masonry carries clay tile, ceramic panel a flat slab, olive sheet a corrugated roof. A
- * building with neither falls back on its kind.
+ * roofed for its walls: masonry carries clay tile, ceramic panel a flat slab, olive sheet a corrugated roof, and a
+ * fallen hull's own walls (any surface id naming {@code fallen-hull}) its hull plating. A building with neither falls
+ * back on its kind.
  */
 public enum RoofStyle {
     /** Terracotta pantiles in courses over timber battens; burns to charred rafters. */
@@ -22,13 +25,24 @@ public enum RoofStyle {
     /** Ribbed steel sheet on purlins; holes tear and curl, a fire warps the sheets off bare purlins. */
     CORRUGATED,
     /** Riveted armour plate with hatches, for prepared works; holes are punched craters in the plate. */
-    PLATE;
+    PLATE,
+    /**
+     * A fallen starship's dorsal plating over its interior (`fallen-hull-nouns.md`): broad greebled hull plate in the
+     * derelict survey mothership's palette, its eave the hull's buckled armour rim.
+     */
+    HULL,
+    /** A military base's arched hangar of olive-drab ribbed sheet, its ribs along the grain, for hangars and sheds. */
+    QUONSET,
+    /** A military hut's low khaki-olive ridged sheet with a ridge cap and vents, for barracks, dispatch and stores. */
+    BARRACKS;
 
     /** Rows of the roof sheet, in this order. */
     public static final int COUNT = values().length;
 
     /** The style a building's roof is drawn in. */
     public static RoofStyle of(Building building, CellTopology topology) {
+        CellTopology.RoofKind marked = kindOf(building, topology);
+        if (marked != null) return marked == CellTopology.RoofKind.HANGAR ? QUONSET : BARRACKS;
         EmplacementStyle works = worksOf(building, topology);
         if (works != null) return ofWorks(works);
         RoofStyle walls = ofWalls(building, topology);
@@ -58,6 +72,7 @@ public enum RoofStyle {
     /** A town building's roof, for the wall material it is built of; null for walls no style is paired with. */
     static RoofStyle ofWallSurface(String surfaceId) {
         if (surfaceId == null) return null;
+        if (surfaceId.contains("fallen-hull")) return HULL;
         if (surfaceId.endsWith("masonry-wall")) return CLAY;
         if (surfaceId.endsWith("ceramic-wall") || surfaceId.contains("concrete-wall")) return SLAB;
         if (surfaceId.endsWith("olive-wall")) return CORRUGATED;
@@ -70,6 +85,15 @@ public enum RoofStyle {
      */
     public static int grainTurns(Building building) {
         return building.maxY - building.minY > building.maxX - building.minX ? 1 : 0;
+    }
+
+    /** The roof kind its builder marked on the building's cells, the first found; null for none. */
+    private static CellTopology.RoofKind kindOf(Building building, CellTopology topology) {
+        for (int i = 0, n = building.cellCount(); i < n; i++) {
+            CellTopology.RoofKind kind = topology.getRoofKind(building.cellsX[i], building.cellsY[i]);
+            if (kind != null) return kind;
+        }
+        return null;
     }
 
     private static EmplacementStyle worksOf(Building building, CellTopology topology) {

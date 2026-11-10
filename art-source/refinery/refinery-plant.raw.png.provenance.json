@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c756-7579-76e0-99ec-068ba294347d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c756-7579-76e0-99ec-068ba294347d\\exec-c515a11f-4a82-4aef-81ad-07af7f593fbb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\refinery\\refinery-plant.raw.png",
+    "sha256": "2728ec6ae554573a3cccfe27e3d6ba2c5958664e7cb918c7b302c4d20705a82f",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\refinery\\refinery-plant.prompt.txt",
+  "promptSha256": "785a3d53f7777328adea2c991fb8f9a64de3c2c8c998be392c563b2ecdf881dd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six silhouettes, their frames, sizes and shadow directions; paint onto them, never move them\nImage 2: Material/finish only; not layout\nImage 3: Material/finish only; not layout\n\nUse case: style-transfer. Asset type: production transparent prop sheet for a FUEL REFINERY in a gritty science-fiction overhead tactical game, seen from straight above. Someone glancing at any one piece must think \"oil and fuel refinery\" at once.\n\nImage 1 is the authoritative geometry guide and edit target: paint onto these SIX exact silhouettes, keeping the two rows of three square frames and each piece's position, size, outline and shadow direction. Do not move, rotate, enlarge or shrink anything.\nImage 2 and Image 3 are the game's existing painted prop sprites (an ore conveyor and giant industrial works machinery): rendering finish, palette and detail density at game scale only. Not layout.\n\nSix pieces, left to right, top row then bottom row:\n1. A tall refinery distillation column seen from directly above: its domed top head with nozzles and a small davit crane, a grated circular platform ring with a handrail round it, a caged ladder on the ring, an insulated overhead vapour line leaving east; and the column's long cast shadow falling to the lower right on the ground, soft-edged and semi-transparent, so the column reads as very tall.\n2. A smaller stripper column, the same family: head, platform ring, vapour line east, shorter cast shadow to the lower right.\n3. A burning flare stack: a steel lattice derrick seen from above with the stack tip in its middle, a bright roaring orange-yellow flame at the tip leaning slightly with the wind, a soft warm heat glow on the ground round it (semi-transparent), and the stack's thin shadow to the lower right.\n4. A large floating-roof crude oil storage tank filling its cell: the dark shell rim with wind girder, the pale steel floating roof with its pontoon ring, roof drains, gauge hatch, the rolling ladder down to the roof, a rust run and dust; light weathered steel.\n5. A spherical pressurised volatiles tank (a ball tank) on legs: pale steel sphere with an equator walkway and stair, valves on top, and its round cast shadow to the lower right, soft and semi-transparent.\n6. A spill of crude oil and fuel on the ground: a dark, glossy, irregular pool with an iridescent sheen and drip trails, soaked edges; nothing else.\n\nDomain-era spacefaring industry: heavy, worn, repaired; plated steel, rivets, rust streaks, grime, faded hazard striping, small sodium-orange work lights. Weathered grey and off-white steel with rust and ochre accents; no glossy paint.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight DOWN, light from the upper left. Grounded painted Starsector-style sprite aesthetic: no chunky pixel-art outlines, no cartoon style. Keep broad readable forms at small game scale. Cast shadows only where the guide draws them, soft and semi-transparent.\n\nTrue alpha transparency around every piece; no ground, no background, no border, no labels, no text, no watermark. Paint only the six pieces and the shadows and glow the guide draws; nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\refinery\\refinery-plant-guide.png",
+      "sha256": "bb58dd4c03171523af2918c01ebf0d39a376e72d27e20f5c25e264cb708c3587",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six silhouettes, their frames, sizes and shadow directions; paint onto them, never move them"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\ore-conveyor.png",
+      "sha256": "1f628805dbb74d3a2841c9000fa2616dc47c874a02be10e97d7f978f53e688c1",
+      "dimensions": [
+        1280,
+        256
+      ],
+      "mode": "RGBA",
+      "role": "Material/finish only; not layout"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\ruins-works-giants.png",
+      "sha256": "b95fa777b1c9131b0fae1cf346d7e3f7d6e2fc5f8ecd78ac3b05f2d338c3a2eb",
+      "dimensions": [
+        4096,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/finish only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent refinery prop sheet, using Image 1 for geometry and Images 2–3 for the painted material finish."
+  ],
+  "usage": {
+    "input_tokens": 48607,
+    "cached_input_tokens": 39808,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 900,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.7
+}

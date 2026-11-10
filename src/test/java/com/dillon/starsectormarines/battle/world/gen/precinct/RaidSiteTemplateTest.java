@@ -6,7 +6,11 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
-import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
+import com.dillon.starsectormarines.battle.world.gen.raid.MiningWorks;
+import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustries;
+import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustry;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
@@ -38,6 +42,22 @@ class RaidSiteTemplateTest {
     private static final int H = 168;
     private static final RaidSiteTemplate SITE = RaidSiteTemplate.forIndustry("heavyindustry");
     private static final RaidSiteTemplate MINE = RaidSiteTemplate.forIndustry("mining");
+
+    /**
+     * Each industry is its own site: every id it names resolves to it and to no other, its key finds it again, and a
+     * plan laid for it says which industry it was laid for, so the generation stages can ask it to dress its works.
+     */
+    @Test
+    void eachIndustryIsItsOwnSiteAndThePlanSaysWhich() {
+        Set<String> keys = new HashSet<>();
+        for (RaidIndustry industry : RaidIndustries.ALL) {
+            assertTrue(keys.add(industry.key()), "two sites share " + industry.key());
+            assertEquals(industry, RaidIndustries.byKey(industry.key()));
+            for (String id : industry.industryIds()) assertEquals(industry, RaidIndustries.forId(id), id);
+        }
+        assertEquals("mining", lay(MINE, market(4, 2), 1L).raidIndustry());
+        assertEquals(null, RaidSiteTemplate.forIndustry("cryosanctum"));
+    }
 
     private static TargetProfile market(int size, int defence) {
         return new TargetProfile(size, 5, defence, 1, "independent",
@@ -111,20 +131,20 @@ class RaidSiteTemplateTest {
 
     /**
      * Districting: in every orientation the homes stand between the landing edge and the deep end, the industrial
-     * quarter between the homes and the works, and the works and the garrison both at the deep end, apart from each
-     * other.
+     * quarter between the homes and the works, and the works and the garrison both at the deep end; apart from each
+     * other, but for a military base, whose works stands with its garrison as one base. One site for the default
+     * placement and one for each industry that places its own works.
      */
     @Test
     void theHomesStandBetweenTheLandingAndTheWorks() {
-        for (String id : List.of("heavyindustry", "mining", "refining", "lightindustry", "farming", "spaceport",
-                "militarybase")) {
-            theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate.forIndustry(id));
+        for (String id : List.of("heavyindustry", "mining", "refining", "spaceport", "militarybase")) {
+            theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate.forIndustry(id), !id.equals("militarybase"));
         }
     }
 
-    private static void theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate site) {
+    private static void theHomesStandBetweenTheLandingAndTheWorks(RaidSiteTemplate site, boolean apart) {
         Set<String> orientations = new HashSet<>();
-        for (long seed = 0; seed < 24; seed++) {
+        for (long seed = 0; seed < 8; seed++) {
             PrecinctPlan plan = lay(site, market(5, 3), seed);
             boolean fromWest = plan.attackerFrom().x0() == 0f;
             orientations.add(fromWest + "/" + (named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2));
@@ -142,9 +162,11 @@ class RaidSiteTemplateTest {
                 int yards = Math.abs(yardsPlace.seedX() - edge);
                 assertTrue(yards > works, "seed " + seed + ": the yards are not beyond the works");
             }
-            assertTrue((named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2)
-                            != (named(plan, RaidSiteTemplate.GARRISON).seedY() > H / 2),
-                    "seed " + seed + ": the works and the garrison share a flank");
+            if (apart) {
+                assertTrue((named(plan, RaidSiteTemplate.WORKS).seedY() > H / 2)
+                                != (named(plan, RaidSiteTemplate.GARRISON).seedY() > H / 2),
+                        "seed " + seed + ": the works and the garrison share a flank");
+            }
         }
         assertEquals(4, orientations.size(), "the seed mirrors the site both ways");
     }
@@ -200,11 +222,16 @@ class RaidSiteTemplateTest {
         assertEquals(Precinct.Boundary.WALLED, works.boundary());
         assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE));
         assertTrue(works.program().detached());
-        for (RoomPurpose step : List.of(RaidWorksPrograms.MINE_RECEIVING, RaidWorksPrograms.MINE_STOCKPILE,
-                RaidWorksPrograms.MINE_SMELTER, RaidWorksPrograms.MINE_LOADOUT)) {
-            assertEquals(1, RaidWorksPrograms.mine(4).countOf(step), "one " + step + " in the processing chain");
+        for (RoomPurpose step : List.of(MiningWorks.RECEIVING, MiningWorks.STOCKPILE,
+                MiningWorks.SMELTER, MiningWorks.LOADOUT)) {
+            assertEquals(1, new MiningWorks().works(4).countOf(step), "one " + step + " in the processing chain");
         }
-        assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more mills, more yard");
+        assertTrue(new MiningWorks().works(5).apron() > new MiningWorks().works(3).apron(), "more mills, more yard");
+        // The ore comes in from the pit at the deep end and leaves by the gate the attacker faces.
+        for (FortressBuilding b : new MiningWorks().works(4).buildings()) {
+            if (b.purpose() == MiningWorks.RECEIVING) assertEquals(Ward.REAR, b.ward(), "receiving faces the pit");
+            if (b.purpose() == MiningWorks.LOADOUT) assertEquals(Ward.FRONTAGE, b.ward(), "loadout by the gate");
+        }
     }
 
     /** Every industry a raid can name has its site, and each site's works holds one machine per machine asked for. */

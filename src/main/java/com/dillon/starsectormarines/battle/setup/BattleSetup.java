@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
+import com.dillon.starsectormarines.battle.derelict.BuildQueue;
+import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
+import com.dillon.starsectormarines.battle.derelict.FallenHull;
+import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -225,6 +229,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -252,7 +257,6 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -413,7 +417,10 @@ public final class BattleSetup {
         sim.addNatureOverlayCover(TileRegistry.installed());
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
-        sim.setMarineLandingPads(map.landingPads);
+        // A port's lighter stands are the planet's traffic's: no company lands there, so no mech drop or cache counts them.
+        List<LandingPad> marinePads = new ArrayList<>(map.landingPads);
+        marinePads.removeIf(pad -> pad.purpose == LandingPad.Purpose.PORT_LIGHTER);
+        sim.setMarineLandingPads(marinePads);
         sim.setDefensePosts(defensePosts);
         sim.setWallGates(map.wallGates);
         // The map's own statement of where the front is, so the trace can say
@@ -1447,6 +1454,10 @@ public final class BattleSetup {
                 : precinctPlanFor(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl);
         // A landform the map's design places: a drop across it, or walls sheltering its town (voids.md).
         precincts = Landform.apply(landform, precincts, scale.width, scale.height);
+        // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
+        // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
+        if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
@@ -1631,6 +1642,8 @@ public final class BattleSetup {
         } else if (ruinsDefence == null) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
+            // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
+            if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -1995,8 +2008,7 @@ public final class BattleSetup {
     /**
      * The Dust Ledger on Saltwell Cross ({@code dust-ledger-crossing.md}): the company lands openly as Wayline's
      * freight drop, Sable's finite crew holds the pump house, and the Raid on the ledger room runs under the
-     * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
-     * for the alarm.
+     * quiet phase.
      */
     /**
      * Sable's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
@@ -2083,8 +2095,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, air);
         }
         // A Low-quality crew of plain militia: elite clerks in the pump house's rooms cost a two-squad company all 24
-        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm; the
-        // cantina's drinkers spawn then, if at all.
+        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm. The
+        // cantina's posts stand empty: the town keeps out of the fight.
         // The pillboxes are manned from the posts that stand at their slits: each is its own garrison squad, holding
         // its node and firing from the slits, while the rest of that role's posts stay one squad as before.
         Set<Integer> mobile = new TreeSet<>();
@@ -2129,21 +2141,13 @@ public final class BattleSetup {
             squad.originalSize = cells.size();
         }
         claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable crawler crew");
-        List<EntitySpec> drinkers = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.posts().get(DustLedgerCrossing.PostRole.CANTINA))
-            drinkers.add(makeDefender("sable-wake-drinker-" + drinkers.size(), UnitType.MILITIA, cell.x(), cell.y(),
-                    risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(UnitRole.PATROL));
-        List<EntitySpec> salvageTeam = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.salvageTeam())
-            salvageTeam.add(makeOpeningMilitia("harrow-salvager-" + salvageTeam.size(), Faction.ALLY, cell.x(), cell.y(), rng)
-                    .role(UnitRole.PATROL));
         // Townsfolk live in the market, never in the compound's bunkhouse or the south ruins.
         spawnAmbientCivilians(sim, map.grid, layout.homes(), rng);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), layout.warehouses().size(),
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid);
         ledger.defences(sim, nests, pillboxSquads);
         // The road reserve: two plain-militia squads who come with a Hound when the company steps into the ring.
         List<List<EntitySpec>> reserve = new ArrayList<>();
@@ -3345,8 +3349,25 @@ public final class BattleSetup {
         StoryMapPool.Entry pooled = isColonyBreachColony(risk, stressTest) && StoryMapPools.installed()
                 ? StoryMapPools.pool(StoryMap.COLONY_BREACH).entry(surfaceOrRock(profile), seed) : null;
         return civilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest, posture,
-                liftHardpoints, pooled);
+                liftHardpoints, pooled, null);
     }
+
+    /**
+     * The Fall, chapter 1 of *The Long Survey* ({@code long-survey-arc.md}): the Colony Breach rescue on its owned
+     * map, its swarm director replaced by the derelict watch ({@code derelict-security-network.md}). No swarm, no
+     * eruption and no bores: the hull's zones are laid from where the colony's deep bore would stand toward the
+     * shelter, at {@code grade}, its flocks in {@code livery}. Played on {@code map}'s owned seed alone, never re-rolled.
+     */
+    public static BattleSimulation createHullFall(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                  StoryMap map, RuinsGrade grade, FlockLivery livery) {
+        StoryMapPool.Entry pooled = StoryMapPools.installed()
+                ? StoryMapPools.pool(map).entry(surfaceOrRock(profile), seed) : null;
+        return civilianRescue(seed, manifest, false, RiskLevel.HIGH, 0, profile, false, HivePosture.DEFAULT, 0,
+                pooled, new HullWatch(map, grade, livery));
+    }
+
+    /** The derelict watch a rescue fields in place of the swarm: the hull's grade and livery, on its map's pool. */
+    private record HullWatch(StoryMap map, RuinsGrade grade, FlockLivery livery) { }
 
     /**
      * The seed a Colony Breach on a world of {@code biome} plays ({@code story-map-pools.md}): the pool's entry for
@@ -3365,7 +3386,7 @@ public final class BattleSetup {
     public static BattleSimulation createPooledColonyBreach(SurfacePalette biome, StoryMapPool.Entry entry,
                                                             List<ShuttleAssignment> manifest) {
         return civilianRescue(entry.seed(), manifest, false, RiskLevel.HIGH, SwarmDefenseRoster.countFor(RiskLevel.HIGH),
-                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry);
+                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry, null);
     }
 
     private static SurfacePalette surfaceOrRock(TargetProfile profile) {
@@ -3381,7 +3402,7 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
-            StoryMapPool.Entry pooled) {
+            StoryMapPool.Entry pooled, HullWatch hull) {
         boolean colony = isColonyBreachColony(risk, stressTest);
         // A pooled colony's patch places its lift, bores and holdouts; it pins no precinct and ruins nothing yet.
         MapPatch patch = pooled == null ? MapPatch.NONE : pooled.patch();
@@ -3390,7 +3411,8 @@ public final class BattleSetup {
         }
         // A pooled colony is the mission's one map: laid out on its home palette, then skinned for this world.
         SurfacePalette home = pooled != null
-                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile)) : null;
+                ? StoryMapPools.pool(hull != null ? hull.map() : StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile))
+                : null;
         TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(home) : profile;
         if (colony && mapProfile != null) {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
@@ -3404,7 +3426,8 @@ public final class BattleSetup {
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
-            PrecinctPlan colonyPlan = colony ? colonyPlanOn(scale, battleSeed, world) : null;
+            // A chapter's patch may lay a fallen hull over the colony (long-survey-arc.md, The Fall).
+            PrecinctPlan colonyPlan = colony ? patch.pinned(colonyPlanOn(scale, battleSeed, world)) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
             if (home != null) map = PlanetSkin.apply(map, home, world);
@@ -3508,6 +3531,15 @@ public final class BattleSetup {
                     risk, scale.width, scale.height, dugIn);
             // On the colony the pickup's allied line fights from works thrown up round it.
             if (dugIn) sim.fortifyRescuePickup(payload.placement, battleSeed);
+            if (hull != null) {
+                // The hull's watch stands where the deep bore would: its zones from there toward the shelter.
+                why = "the hull's watch does not seat";
+                if (!installHullWatch(sim, map, hull, eruption, payload.placement)) continue;
+                sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                        SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
+                        () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
+                return sim;
+            }
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
                             sim, payload.placement, swarmCount, battleSeed)
@@ -3560,6 +3592,48 @@ public final class BattleSetup {
                 "unable to place civilian rescue payload after 8 map attempts");
     }
 
+    /**
+     * The Fall's forge program (`long-survey-arc.md`, The Fall: the hull only, no stakes): workers and walkers, never a
+     * stake, so the claim does not spread in chapter 1. UNTUNED.
+     */
+    static final BuildQueue FALL_QUEUE = new BuildQueue(List.of(
+            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.HAULER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
+    /** The hull's store when it comes down: enough for its first cycles (UNTUNED). */
+    static final float FALL_FEEDSTOCK = BuildQueue.WORKER_COST * 2;
+    /** The watch already out the night it came down: a line frame and a rounds walker, and two strippers (UNTUNED). */
+    static final List<DerelictWalkerFrame> FALL_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.ROUNDS,
+            DerelictWalkerFrame.STRIPPER, DerelictWalkerFrame.STRIPPER);
+
+    /**
+     * Lays the hull's watch on a rescue. On ground carrying a fallen hull ({@link MapResult#hullSite}) it is the hull's
+     * own claim ({@code FallenHull}): the root zone with the autoforge as its vault, its flock, bay and the walkers
+     * already out at its mouth, printing {@link #FALL_QUEUE}. On ground with none it falls back to a site network
+     * along the walk from the deep bore's place (the eruption plan's mother, else its first site) to the shelter's
+     * approach. False when the watch cannot stand.
+     */
+    private static boolean installHullWatch(BattleSimulation sim, MapResult map, HullWatch hull,
+                                            ColonyEruptionPlan eruption, CivilianEvacuationPlacement placement) {
+        if (map.hullSite != null) {
+            FallenHullSite probe = LongSurveyGround.rulesSite(map.hullSite, List.of(), List.of(), 0f);
+            List<FallenHullSite.Posting> out = new ArrayList<>();
+            for (DerelictWalkerFrame frame : FALL_WALKERS) out.add(new FallenHullSite.Posting(frame, probe.mouthX(), probe.mouthY()));
+            FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, List.of(), out, FALL_FEEDSTOCK),
+                    FALL_QUEUE, hull.livery());
+            return true;
+        }
+        if (eruption == null || eruption.sites().isEmpty()) return false;
+        ColonyEruptionPlan.Site site = eruption.mother() != null ? eruption.mother() : eruption.sites().get(0);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), site.x(), site.y(),
+                placement.shelterApproachX, placement.shelterApproachY);
+        if (route.length < 4) return false;
+        return DerelictSecurity.install(sim, hull.grade(), null, hull.livery(), route, site.x(), site.y()) != null;
+    }
+
     /** Salt for the eruption-site draw, so it is not the battle stream read again. */
     private static final long ERUPTION_SEED_SALT = 0x424F52455349544EL;
 
@@ -3578,8 +3652,7 @@ public final class BattleSetup {
      * rescue's map lays the same one.
      */
     public static PrecinctPlan colonyPlanOn(MapScale scale, long seed, TargetProfile world) {
-        PrecinctPlan plan = colonyPlanFor(scale, seed);
-        return PlanetSkin.sealsTowns(world) ? SealedTown.seal(plan) : plan;
+        return PlanetSkin.sealedFor(colonyPlanFor(scale, seed), world);
     }
 
     /**
@@ -6382,7 +6455,12 @@ public final class BattleSetup {
                                                     Random rng) {
         Set<LandingPad> reservedSet = new HashSet<>(reserved);
         List<LandingPad> candidates = new ArrayList<>();
+        List<LandingPad> lighterStands = new ArrayList<>();
         for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.PORT_LIGHTER) {
+                lighterStands.add(pad);
+                continue;
+            }
             if (pad.purpose != LandingPad.Purpose.CIVILIAN_SPACEPORT) continue;
             if (reservedSet.contains(pad) || !pad.isClear(map.grid, map.topology)) continue;
             candidates.add(pad);
@@ -6403,6 +6481,17 @@ public final class BattleSetup {
         for (int i = 0; i < target; i++) {
             LandingPad pad = candidates.get(i);
             ShuttleType type = civilianTypes[rng.nextInt(civilianTypes.length)];
+            float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
+            stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
+            parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
+        }
+        // A port's lighter stands each hold the freighter standing on them (PortApronDressing), drawn from its own
+        // stream, and only where there are any, so every other map's draws are unchanged.
+        if (lighterStands.isEmpty()) return parked;
+        Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
+        ShuttleType[] lighterTypes = {ShuttleType.BUFFALO, ShuttleType.MULE, ShuttleType.TARSUS};
+        for (LandingPad pad : lighterStands) {
+            ShuttleType type = lighterTypes[lighters.nextInt(lighterTypes.length)];
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));

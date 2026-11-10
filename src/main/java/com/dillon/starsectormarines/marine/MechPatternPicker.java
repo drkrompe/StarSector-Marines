@@ -34,6 +34,7 @@ public final class MechPatternPicker {
     /** The midline factions, which field the midline row's carriers ({@code mech-lines.md}, Midline). */
     static final String PERSEAN_LEAGUE_ID = "persean";
     static final String SINDRIAN_DIKTAT_ID = "sindrian_diktat";
+    static final String PIRATES_ID = "pirates";
 
 
     /** Hardware each faction fields on its own mechs, mirrored from {@link FactionMechLoadouts}. */
@@ -62,8 +63,18 @@ public final class MechPatternPicker {
                     MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.HEAVY_APC),
                     MechPattern.of(VehicleType.LRM_CARRIER)),
+            // The Path fields its conversions of the Board's frames (mech-lines.md, low-tech variants).
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
-                    MechPattern.of(MechWeaponComponent.DC_5)),
+                    MechPattern.of(MechVariant.FOUNDRY_BREAKER),
+                    MechPattern.of(MechVariant.PILGRIM),
+                    MechPattern.of(MechVariant.CENSER),
+                    MechPattern.of(MechWeaponComponent.DC_5),
+                    MechPattern.of(MechWeaponComponent.FL_2)),
+            // Pirates field their own field rigs: a loot carrier on the Bulwark frame, a fuel rig on the Hound's.
+            PIRATES_ID, Set.of(
+                    MechPattern.of(MechVariant.HAULER),
+                    MechPattern.of(MechVariant.TORCH),
+                    MechPattern.of(MechWeaponComponent.FL_1)),
             FactionMechLoadouts.LIONS_GUARD_ID, Set.of(
                     MechPattern.of(MechVariant.WARDEN),
                     MechPattern.of(MechWeaponComponent.THERMAL_LANCE),

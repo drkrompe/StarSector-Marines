@@ -41,6 +41,13 @@ public final class MechPatternCredits {
         chassis(MechVariant.WARDEN, hegemony, HEGEMONY, "patternCreditWarden");
         chassis(MechVariant.BULWARK, hegemony, HEGEMONY, "patternCreditBulwark");
         chassis(MechVariant.CRAWLER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON, "patternCreditCrawler");
+        // The low-tech variants: a pirate field rig and two Pather conversions of the Board's frames.
+        chassis(MechVariant.HAULER, MechPatternPicker.PIRATES_ID, PIRATES, "patternCreditHauler");
+        chassis(MechVariant.FOUNDRY_BREAKER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditFoundryBreaker");
+        chassis(MechVariant.PILGRIM, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditPilgrim");
+        // The flamer rigs: a pirate fuel rig on the Hound frame, a Pather conversion of the Warden.
+        chassis(MechVariant.TORCH, MechPatternPicker.PIRATES_ID, PIRATES, "patternCreditTorch");
+        chassis(MechVariant.CENSER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditCenser");
 
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);

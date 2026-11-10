@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+
+import java.util.Map;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,6 +41,40 @@ public final class LayeredMechAssets {
      * not loaded): bare fittings every livery shares.
      */
     public final ActiveProtection activeProtection;
+
+    /** The hardware variants' own bodies ({@link MechVariantBodies}), the same in every livery. */
+    private Map<MechVariant, LayeredSpriteCache> variantBodies = Map.of();
+
+    /** Gives this set the variants' bodies; returns it. */
+    public LayeredMechAssets withVariantBodies(Map<MechVariant, LayeredSpriteCache> bodies) {
+        variantBodies = bodies != null ? bodies : Map.of();
+        return this;
+    }
+
+    /**
+     * The machine flamers' drawings (`mechs-nouns.md`, Machine flamers): the FL-1 burner and the FL-2 lance, shared by
+     * every livery since each is one faction's own rig. Null until {@link #withFlamers} gives them.
+     */
+    private LayeredSpriteCache fl1;
+    private LayeredSpriteCache fl2;
+
+    /** Gives this set the machine flamers' drawings; returns it. */
+    public LayeredMechAssets withFlamers(LayeredSpriteCache burner, LayeredSpriteCache lance) {
+        fl1 = burner;
+        fl2 = lance;
+        return this;
+    }
+
+    /** The FL-1 burner's drawing, or null when not loaded. */
+    public LayeredSpriteCache fl1() { return fl1; }
+
+    /** The FL-2 lance's drawing, or null when not loaded. */
+    public LayeredSpriteCache fl2() { return fl2; }
+
+    /** A hardware variant's own body, drawn in place of its frame's chassis, or null to draw the frame's. */
+    public LayeredSpriteCache variantBody(MechVariant variant) {
+        return variant == null ? null : variantBodies.get(variant);
+    }
 
     /** Active protection's overlay per chassis; any may be null, and that chassis then draws none. */
     public record ActiveProtection(LayeredSpriteCache bulwark, LayeredSpriteCache hound, LayeredSpriteCache warden) {
@@ -139,6 +177,6 @@ public final class LayeredMechAssets {
                 thermalLance, ac6Qs, dc4Qs, srm3QsPod,
                 lightMachineGun, bl1, pl3, bl2, pl3Sweep, pl2,
                 pl1, muzzleFlash, activeProtection.bulwark(), activeProtection.hound(),
-                activeProtection.warden());
+                activeProtection.warden(), fl1, fl2);
     }
 }

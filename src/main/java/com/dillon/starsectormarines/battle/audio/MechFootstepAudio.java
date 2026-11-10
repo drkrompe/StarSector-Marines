@@ -93,7 +93,8 @@ public final class MechFootstepAudio {
         float distance = (float) Math.sqrt(distanceSquared(
                 event.x(), event.y(), listenerX, listenerY));
         if (distance >= RANGE_CELLS) return;
-        if (chassis == null) chassis = MechVariant.BULWARK;
+        // A variant walks on its frame's legs, so it steps as its frame does.
+        chassis = chassis == null ? MechVariant.BULWARK : chassis.frame();
         boolean impact = event.phase() == FootPhase.LAND;
         int variant = nextVariant(impact ? lastImpact : lastPneumatic, 2);
         if (impact) lastImpact = variant;

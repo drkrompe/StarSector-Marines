@@ -1,0 +1,90 @@
+{
+  "version": 3,
+  "map": "long-survey-surveyor",
+  "home": "ARID",
+  "entry": {
+    "seed": 5,
+    "note": "The Surveyor: Broad Front's country (heart-front seed 5, its airbases placed) with the Surveyor in the heart's place beside the workings, bow north, its trench pointing down the supply road the garrison's columns come up; the full claim standing round it, established nearest the hull, raised beyond, planted at its edge",
+    "patch": {
+      "place": [
+        {
+          "name": "airbase-1",
+          "kind": "AIRFIELD",
+          "x": 96,
+          "y": 8,
+          "turns": 0
+        },
+        {
+          "name": "airbase-2",
+          "kind": "AIRFIELD",
+          "x": 483,
+          "y": 8,
+          "turns": 0
+        }
+      ],
+      "hull": {
+        "x": 280,
+        "y": 268,
+        "heading": "north",
+        "trench": 60,
+        "stakes": [
+          {
+            "x": 240,
+            "y": 268,
+            "stage": "established"
+          },
+          {
+            "x": 320,
+            "y": 268,
+            "stage": "established"
+          },
+          {
+            "x": 240,
+            "y": 228,
+            "stage": "established"
+          },
+          {
+            "x": 320,
+            "y": 228,
+            "stage": "established"
+          },
+          {
+            "x": 200,
+            "y": 228,
+            "stage": "established"
+          },
+          {
+            "x": 360,
+            "y": 228,
+            "stage": "established"
+          },
+          {
+            "x": 240,
+            "y": 188,
+            "stage": "raised"
+          },
+          {
+            "x": 280,
+            "y": 188,
+            "stage": "raised"
+          },
+          {
+            "x": 360,
+            "y": 188,
+            "stage": "raised"
+          },
+          {
+            "x": 160,
+            "y": 188,
+            "stage": "planted"
+          },
+          {
+            "x": 400,
+            "y": 188,
+            "stage": "planted"
+          }
+        ]
+      }
+    }
+  }
+}

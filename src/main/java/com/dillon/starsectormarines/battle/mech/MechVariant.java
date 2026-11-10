@@ -39,6 +39,81 @@ public enum MechVariant {
             MechRole.LR_SUPPORT),
 
     /**
+     * The pirate Hauler (`mech-lines.md`, low-tech variants): a captured Bulwark a pirate crew rebuilt as a loot
+     * carrier, a variant on the Bulwark frame (law 2) with every one of its mounts, drawn as a body of its own: a cargo
+     * cage on its back, a folding salvage crane along its left shoulder and scrap slabs hung on chains off its flanks.
+     * The cage and slabs make it the most durable heavy a pirate fields and the slowest; its left rack place ships
+     * empty beside the crane. The loot it carries has no mechanic yet. All numbers UNTUNED.
+     */
+    HAULER("hauler", "@gearMechVariantHAULER", 600f, 800f, 18f, 0.95f, 0.38f, 55f,
+            1.60f, 1.50f, 0.60f, 0.80f, 2.0f,
+            LayeredMechAppearance.CHASSIS_CLEAN,
+            null, MechWeaponComponent.CHAINGUN, MechWeaponComponent.CHAINGUN,
+            null,
+            MechWeaponComponent.SRM_15_FRAG,
+            MechRole.ARMORED_SUPPORT),
+
+    /**
+     * The Luddic Path's Foundry Breaker (`mech-lines.md`, low-tech variants): an industrial demolition walker on the
+     * Hound frame (law 2), drawn as a body of its own with a foundry-cast breaching collar round the nose and five
+     * shell canisters across its back. Its stock fit is the Path's Hound issue, the DC-5 on the nose and the Hound's
+     * rack; the collar costs it a little pace for a little plate. All numbers UNTUNED.
+     */
+    FOUNDRY_BREAKER("foundry_breaker", "@gearMechVariantFOUNDRY_BREAKER", 370f, 420f, 15f, 1.45f, 0.40f, 50f,
+            1.35f, 1.20f, 0.50f, 0.67f, 0.9f,
+            LayeredMechAppearance.CHASSIS_HOUND,
+            MechWeaponComponent.DC_5, null, null,
+            MechWeaponComponent.SRM_5,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The Luddic Path's Pilgrim (`mech-lines.md`, low-tech variants): an armoured mining hauler on the Bulwark frame
+     * (law 2), drawn as a body of its own with a dozer blade across its front, ore-hopper ribs down its back and
+     * prayer cloths. The heaviest and slowest walker in the row; like every heavy walker it pushes down an ordinary
+     * wall it walks into ({@link #crushesWalls()}), and its blade does it fastest ({@link #crushesFast()}). All
+     * numbers UNTUNED.
+     */
+    PILGRIM("pilgrim", "@gearMechVariantPILGRIM", 620f, 840f, 20f, 0.85f, 0.38f, 52f,
+            1.60f, 1.60f, 0.60f, 0.80f, 2.2f,
+            LayeredMechAppearance.CHASSIS_CLEAN,
+            null, MechWeaponComponent.CHAINGUN, MechWeaponComponent.CHAINGUN,
+            MechWeaponComponent.SRM_5_FRAG,
+            MechWeaponComponent.SRM_5_FRAG,
+            MechRole.ASSAULT),
+
+    /**
+     * The pirate Torch (`mech-lines.md`, low-tech variants): a captured Hound a pirate crew rebuilt as a fuel rig, on the
+     * Hound frame (law 2), drawn as a body of its own with mismatched fuel drums and a pressure bottle in a welded
+     * cradle across its back. Its fuel load is its body; its stock nose gun is the FL-1 burner, a machine flamer and a
+     * weapon layer of its own (law 4; `mechs-nouns.md`, Machine flamers). The cradle takes the dorsal rack's place, so
+     * that ships empty. Its cut-away side plate makes it a little lighter-armoured than the Hound. All numbers UNTUNED.
+     */
+    TORCH("torch", "@gearMechVariantTORCH", 340f, 330f, 12f, 1.50f, 0.40f, 50f,
+            1.35f, 1.20f, 0.50f, 0.67f, 0.9f,
+            LayeredMechAppearance.CHASSIS_HOUND,
+            MechWeaponComponent.FL_1, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The Luddic Path's Censer (`mech-lines.md`, low-tech variants): an industrial Warden a Pather cell converted to
+     * burn out what it calls corruption, on the Warden frame (law 2), drawn as a body of its own with a promethium
+     * tank across its rear, an armoured hose up its right flank and prayer cloths. Its fuel load is its body; its right
+     * shoulder carries the FL-2 lance, the larger machine flamer (`mechs-nouns.md`, Machine flamers), its nose a
+     * chaingun, and its left rack place ships an empty plate. The tank makes it heavier and slower than the Warden.
+     * All numbers UNTUNED.
+     */
+    CENSER("censer", "@gearMechVariantCENSER", 300f, 340f, 11f, 1.22f, 0.42f, 55f,
+            1.35f, 1.20f, 0.48f, 0.65f, 1.4f,
+            LayeredMechAppearance.CHASSIS_WARDEN,
+            MechWeaponComponent.CHAINGUN, null, null,
+            null,
+            MechWeaponComponent.FL_2,
+            MechRole.ASSAULT),
+
+    /**
      * The derelict security walker (`derelict-lore-guide.md`, Units): an unpiloted Mbaye-Gogol heavy built where it
      * stands to guard a site, outside the company's tech-by-weight grid ({@link #automated()}). A derelict chassis of
      * its own, no company mech's: a low armoured torso slung between reaching legs, its guns in torso ports (two side
@@ -96,6 +171,47 @@ public enum MechVariant {
             1.00f, 0.90f, 0.45f, 0.40f, 0.5f,
             LayeredMechAppearance.CHASSIS_CRAWLER,
             MechWeaponComponent.PL_1, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The derelict line's smallest (`derelict-watch.md`, Field repair): the MG-12 tender, the sentinel's chassis built
+     * under half the heavy's size on its own leg rig, unarmed, a welding arm in place of guns. It follows its zone's
+     * walkers and welds their plate back in the fight. Light enough for any door. Automated. All numbers UNTUNED.
+     */
+    SECURITY_TENDER("security_tender", "@gearMechVariantSECURITY_TENDER", 240f, 220f, 10f, 1.30f, 0.45f, 40f,
+            0.90f, 0.60f, 0.32f, 0.35f, 0.6f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The fallen hull's stripper (`fallen-hull-nouns.md`, Stripper): the MG-18, a chassis of the derelict line on its
+     * own leg rig at its size, unarmed, cutting arms in place of guns. It cuts the structures and wrecks on a hull's
+     * claim into feedstock and holds it for a hauler. Narrow enough for a one-cell door. Automated; drawn as the
+     * sentinel at its size until its own look ships. All numbers UNTUNED.
+     */
+    SECURITY_STRIPPER("security_stripper", "@gearMechVariantSECURITY_STRIPPER", 300f, 280f, 12f, 1.10f, 0.45f, 40f,
+            1.05f, 0.70f, 0.40f, 0.42f, 0.8f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The fallen hull's hauler (`fallen-hull-nouns.md`, Hauler): the MG-30, a chassis of the derelict line built broad
+     * and slow under a load bed, unarmed. It carries stripped metal to the nearest store along a haul road, and a
+     * printed stake out at the heart of its train. Narrow enough for a two-cell corridor. Automated; drawn as the
+     * sentinel at its size until its own look ships. All numbers UNTUNED.
+     */
+    SECURITY_HAULER("security_hauler", "@gearMechVariantSECURITY_HAULER", 560f, 640f, 16f, 0.95f, 0.45f, 40f,
+            1.60f, 1.00f, 0.62f, 0.60f, 2.0f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
             null,
             null,
             MechRole.ASSAULT);
@@ -157,13 +273,51 @@ public enum MechVariant {
     }
 
     /**
+     * The line this chassis is built on: a hardware variant's frame (`mech-lines.md`, law 2), whose mounts, body plan,
+     * gait, footprint and weight class it keeps; a line's own chassis is its own frame.
+     */
+    public MechVariant frame() {
+        return switch (this) {
+            case HAULER, PILGRIM -> BULWARK;
+            case FOUNDRY_BREAKER, TORCH -> HOUND;
+            case CENSER -> WARDEN;
+            case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER,
+                 SECURITY_STRIPPER, SECURITY_HAULER, CRAWLER -> this;
+        };
+    }
+
+    /** Whether this chassis is a hardware variant of another line's frame rather than a line's own chassis. */
+    public boolean isVariant() {
+        return frame() != this;
+    }
+
+    /**
+     * Whether this chassis pushes down an ordinary wall or prop it walks into by its weight, as a heavy hull does
+     * ({@code WallCrush}, {@code MechWallCrush}): every heavy-lift walker ({@link #liftClass()}), the company's
+     * Bulwark, Hauler and Pilgrim and the derelict MG-40 and MG-70 (owner: "heavy large walker like heavy mechs
+     * should be able to break through medium walls and doodads"). A medium or light frame goes round.
+     */
+    public boolean crushesWalls() {
+        return liftClass() == LiftClass.HEAVY;
+    }
+
+    /**
+     * Whether this chassis pushes walls down at the faster, ultra-heavy rate: the Pilgrim, by its dozer blade, and
+     * the MG-70 hall frame, by its weight (twice the heavy's height). Every other crusher pushes at a heavy hull's.
+     */
+    public boolean crushesFast() {
+        return this == PILGRIM || this == SECURITY_HALL;
+    }
+
+    /**
      * Whether this chassis can tether a drone wing (a sensor pair's, mechs-nouns.md, one machine, one part catalog):
      * the wing flies off the torso as a hull's does off its deck. Chassis capability data, not a mech/vehicle label.
      */
     public boolean hostsDrones() {
         return switch (this) {
-            case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
+            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER,
+                 CRAWLER -> false;
         };
     }
 
@@ -173,8 +327,9 @@ public enum MechVariant {
      */
     public boolean hostsPointDefence() {
         return switch (this) {
-            case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
+            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER,
+                 CRAWLER -> false;
         };
     }
 
@@ -195,9 +350,10 @@ public enum MechVariant {
      */
     public float plantDissipation() {
         return switch (this) {
-            case BULWARK -> 6f;
+            case BULWARK, HAULER, PILGRIM -> 6f;
             case CRAWLER -> 3f;
-            case HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> 0f;
+            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL,
+                 SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> 0f;
         };
     }
 
@@ -217,7 +373,8 @@ public enum MechVariant {
      * Only an opposition spawns it.
      */
     public boolean automated() {
-        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL;
+        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL || this == SECURITY_TENDER
+                || this == SECURITY_STRIPPER || this == SECURITY_HAULER;
     }
 
     /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
@@ -299,10 +456,10 @@ public enum MechVariant {
     /** How this chassis is taken apart: its height bands and section pools. */
     public MechBodyPlan bodyPlan() {
         return switch (this) {
-            case HOUND -> MechBodyPlan.HOUND;
-            case BULWARK -> MechBodyPlan.BULWARK;
-            case WARDEN -> MechBodyPlan.WARDEN;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> MechBodyPlan.DERELICT;
+            case HOUND, FOUNDRY_BREAKER, TORCH -> MechBodyPlan.HOUND;
+            case BULWARK, HAULER, PILGRIM -> MechBodyPlan.BULWARK;
+            case WARDEN, CENSER -> MechBodyPlan.WARDEN;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> MechBodyPlan.DERELICT;
             case CRAWLER -> MechBodyPlan.CRAWLER;
         };
     }
@@ -313,11 +470,13 @@ public enum MechVariant {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HOUND, CRAWLER -> LiftClass.LIGHT;
-            case WARDEN -> LiftClass.MEDIUM;
-            case BULWARK -> LiftClass.HEAVY;
+            case HOUND, FOUNDRY_BREAKER, TORCH, CRAWLER -> LiftClass.LIGHT;
+            case WARDEN, CENSER -> LiftClass.MEDIUM;
+            case BULWARK, HAULER, PILGRIM -> LiftClass.HEAVY;
             case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
-            case SECURITY_ROUNDS -> LiftClass.MEDIUM;
+            // The hauler is broad, not heavy: it leaves the cutting of walls to the strippers.
+            case SECURITY_ROUNDS, SECURITY_STRIPPER, SECURITY_HAULER -> LiftClass.MEDIUM;
+            case SECURITY_TENDER -> LiftClass.LIGHT;
         };
     }
 }

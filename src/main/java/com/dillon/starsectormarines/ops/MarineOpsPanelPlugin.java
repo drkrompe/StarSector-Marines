@@ -74,8 +74,12 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     /** Over a context of the host's own, which {@code playBattle} keeps its routes inside. */
     MarineOpsPanelPlugin(MarineOpsContext ctx, Consumer<MarineOpsContext> seed) {
         this.ctx = ctx;
-        MarineOpsPageNav.missionsOpen = ctx::boardOpen;
-        MarineOpsPageNav.workHere = ctx::workHere;
+        // A bound operation's route stays open until it settles, and marks no other work here.
+        MarineOpsPageNav.missionsOpen = () -> ctx.boundOperation() != null
+                ? ctx.getSelectedMission() != null : ctx.boardOpen();
+        MarineOpsPageNav.workHere = () -> ctx.boundOperation() == null && ctx.workHere();
+        MarineOpsPageNav.missionsLegendKey = () -> ctx.boundOperation() != null
+                ? BoundOperation.legendKey(ctx.boundOperation().source) : null;
         UiSpriteCache.shared().enter(uiImages);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());
@@ -130,6 +134,11 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     @Override
     public void advance(float amount) {
         if (position == null || dismissDialog == null) return;
+        // A settled bound operation hands straight back to the campaign, which commits it.
+        if (ctx.takeLeaveRequest()) {
+            dismissDialog.run();
+            return;
+        }
 
         // Pick up screen transitions requested via ctx.goTo() during the
         // previous frame's input handling. Attach the new screen before

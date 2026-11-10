@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -26,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Ruins ground over every grade and surface ({@code mapgen-nouns.md}, Ruins ground): each map generates, keeps every
  * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it, its streets
  * end short of every edge, and it has no berth but its own landing's. The vault, every room inside the interior
- * and every chamber is under a roof; every lift point is under open sky. Writes {@code build/reports/ruins-ground/summary.md} with each map's
+ * and every chamber is under a roof; every lift point is under open sky. No machine may be dropped at the vault or in a chamber, and every landing
+ * berth takes one. Writes {@code build/reports/ruins-ground/summary.md} with each map's
  * layers, ways, rooms and route length.
  */
 @Tag("generated-space-evidence")
@@ -100,6 +104,28 @@ class RuinsGroundEvidence {
                             }
                         }
                     }
+                    // A works site lays its works hall wherever it has an interior band: the band's trunk runs through it.
+                    if ((seed & 1) == 1 && layers >= 2 && interior.halls().stream().noneMatch(hall ->
+                            hall.stage() == RuinsDelve.PlantStage.FOUNDRY || hall.stage() == RuinsDelve.PlantStage.WORKS)) {
+                        failures.add(where + "the works site laid no works hall");
+                    }
+                    if ((seed & 1) == 1 && layers >= 2 && interior.worksStand() == null) {
+                        failures.add(where + "the works hall publishes no stand for its zone");
+                    }
+                    // The route from the vault to the landing (the battle's first lift point's) crosses the works hall.
+                    for (RuinsDelve.PlantHall hall : interior.halls()) {
+                        if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY && hall.stage() != RuinsDelve.PlantStage.WORKS) {
+                            continue;
+                        }
+                        var landingBerth = delve.landing().get(0).berth(0);
+                        int[] route = GridPathfinder.findPath(map.grid, delve.vault().source().x(),
+                                delve.vault().source().y(), landingBerth.centerX, landingBerth.centerY);
+                        boolean crosses = false;
+                        for (int k = 0; k + 1 < route.length; k += 2) {
+                            crosses |= hall.footprint().contains(route[k], route[k + 1]);
+                        }
+                        if (!crosses) failures.add(where + "the route to the vault skips the works hall");
+                    }
                     for (RuinsDelve.Area chamber : interior.chambers()) {
                         if (!roofed(map, chamber.centreX(), chamber.centreY())) {
                             failures.add(where + "a chamber at " + chamber + " is not roofed");
@@ -109,6 +135,23 @@ class RuinsGroundEvidence {
                         for (var berth : area.berths()) {
                             if (map.topology.getBuildingId(berth.centerX, berth.centerY) != 0) {
                                 failures.add(where + area.id + " is under a roof");
+                            }
+                        }
+                    }
+                    failures.addAll(crushable(map, delve, where));
+                    var vault = delve.vault().source();
+                    if (!map.grid.hasTag(vault.x(), vault.y(), NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                        failures.add(where + "a machine may be dropped at the vault");
+                    }
+                    for (RuinsDelve.Area chamber : interior.chambers()) {
+                        if (!map.grid.hasTag(chamber.centreX(), chamber.centreY(), NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                            failures.add(where + "a machine may be dropped in the chamber at " + chamber);
+                        }
+                    }
+                    for (var area : delve.landing()) {
+                        for (var berth : area.berths()) {
+                            if (map.grid.hasTag(berth.centerX, berth.centerY, NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                                failures.add(where + "no machine may be dropped on the landing");
                             }
                         }
                     }
@@ -131,6 +174,38 @@ class RuinsGroundEvidence {
         Files.createDirectories(report.getParent());
         Files.writeString(report, out.toString());
         assertTrue(failures.isEmpty(), String.join("\n", failures));
+    }
+
+    /**
+     * The facility holds against every heavy (owner: no heavy drives through the ruin's walls, no walker over a shut
+     * door): no closed cell of an interior chamber's walls (the ring round it) or across a leaf door is pushable at
+     * the heavier crush ceiling, nor opened by a breach view. Props are not read, so they stay the heavies' to push.
+     */
+    static List<String> crushable(MapResult map, RuinsDelve delve, String where) {
+        List<String> out = new ArrayList<>();
+        NavigationGrid view = WallCrush.breachView(map.grid, map.topology, null);
+        List<RuinsDelve.Area> held = new ArrayList<>();
+        for (RuinsDelve.Area c : delve.interior().chambers()) {
+            held.add(new RuinsDelve.Area(c.left() - 1, c.bottom() - 1, c.right() + 1, c.bottom() - 1));
+            held.add(new RuinsDelve.Area(c.left() - 1, c.top() + 1, c.right() + 1, c.top() + 1));
+            held.add(new RuinsDelve.Area(c.left() - 1, c.bottom(), c.left() - 1, c.top()));
+            held.add(new RuinsDelve.Area(c.right() + 1, c.bottom(), c.right() + 1, c.top()));
+        }
+        for (RuinsDelve.LeafDoor door : delve.interior().doors()) held.add(door.span());
+        int found = 0;
+        for (RuinsDelve.Area area : held) {
+            for (int y = area.bottom(); y <= area.top(); y++) {
+                for (int x = area.left(); x <= area.right(); x++) {
+                    if (!map.grid.inBounds(x, y) || map.grid.isWalkable(x, y)) continue;
+                    if (WallCrush.canPush(map.grid, map.topology, null, x, y, WallCrush.ULTRA_HEAVY_CEILING)
+                            || view.hasTag(x, y, NavigationGrid.CellTag.BREACH)) {
+                        if (found++ < 3) out.add(where + "a heavy can push the facility at " + x + "," + y);
+                    }
+                }
+            }
+        }
+        if (found > 3) out.add(where + (found - 3) + " more pushable facility cells");
+        return out;
     }
 
     /** Whether a cell is a building's floor under an intact roof. */

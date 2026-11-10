@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6b2-79f6-7e32-a6e1-0b01475d6384",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6b2-79f6-7e32-a6e1-0b01475d6384\\exec-e16efa20-be88-4ba2-bd40-fb50c3f1eff6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\hauler\\hauler-master.png",
+    "sha256": "de91f6034f103f8004f606a780fbefd8fb5573c2ac6d52c9de34a2d6c0b2dc69",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\hauler\\hauler.prompt.txt",
+  "promptSha256": "bf269ebebdbd79beeab39f0aaab2afc8d8b4613cbc5088de3f24aa7897f738ab",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is\nImage 2: Identity and detail of the chosen concept; not layout\n\nAsset type: production-source master for a top-down game sprite: the pirate HAULER, a captured heavy Hegemony walking machine a pirate crew has rebuilt as a loot carrier.\n\nImage 1 is the edit target and the exact geometry authority. Its painted machine in the middle is the pirate crew's scrap-repaired heavy walker: keep its outline, canopy, round hip bearings, shoulder pads and registration exactly where they are, pixel for pixel in place and scale, and keep its patchwork scrap paint. The flat grey blocks drawn on and around it are the Hauler's new parts, each to be rendered in the same place and at the same size:\n- the light grey grid on its back: a CARGO CAGE of welded steel bars holding lashed wooden crates and one upright gas canister, roped down;\n- the long grey bar along its left flank with two round joints and a small ring at its front: a FOLDING SALVAGE CRANE ARM folded back along the left shoulder, hydraulic rams, a cargo hook hanging at its front end;\n- the grey slabs hanging off both flanks on short black lines: thick SCRAP ARMOUR SLABS hung on chains from the shoulder pads;\n- the dark disc on the right shoulder pad: an EMPTY SOCKET RING, a dark round mounting ring with bolts, nothing in it.\n\nImage 2 is the owner's chosen concept for this machine: identity and detail reference for the cage, crane and slabs, not layout. Follow image 1 for where everything goes.\n\nPaint the new parts to match the body: mismatched salvaged panels (faded tan, grey, olive, blue-grey, red-oxide primer, bare steel), visible weld beads and oversized bolts, crude hand-brushed dark red, worn and grimy but legible.\n\nStrict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.\n\nEvery weapon mount stays EMPTY: a flat bolted plate or a dark socket ring, with no gun, barrel, launcher or turret anywhere. Guns are separate layers added later.\n\nAvoid: guns or barrels of any kind; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\hauler\\guide.png",
+      "sha256": "2a4f66ea4c0eda4a3a1c512db4b8af2e1f5d46e6c37c79a03775991d91a93856",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\hauler\\concept.png",
+      "sha256": "41409ba95064603a16fc64bdc089ff6361d5ab7ccaa197981da982a2b07acfe2",
+      "dimensions": [
+        716,
+        743
+      ],
+      "mode": "RGBA",
+      "role": "Identity and detail of the chosen concept; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using Image 1 for exact placement and Image 2 for the Hauler’s details."
+  ],
+  "usage": {
+    "input_tokens": 43898,
+    "cached_input_tokens": 34688,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 681,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.0
+}

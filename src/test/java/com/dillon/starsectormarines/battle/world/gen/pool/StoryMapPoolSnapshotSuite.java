@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -124,6 +125,11 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                     RAID_MILITARY -> {
                 try (BattleSimulation sim = BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map,
                         StoryMapPools.pool(map).layoutFor(biome)), biome, entry.seed(), map != StoryMap.RAID, List.of())) {
+                    return whole.render(sim, head, ReviewAnnotations.builder().build());
+                }
+            }
+            case LONG_SURVEY_FALL, LONG_SURVEY_STAKES, LONG_SURVEY_LINE, LONG_SURVEY_SURVEYOR -> {
+                try (BattleSimulation sim = LongSurveyGround.stand(LongSurveyGround.ground(map, biome, entry), biome)) {
                     return whole.render(sim, head, ReviewAnnotations.builder().build());
                 }
             }

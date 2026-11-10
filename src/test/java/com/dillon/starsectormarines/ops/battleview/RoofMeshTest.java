@@ -70,20 +70,24 @@ class RoofMeshTest {
         CellTopology topology = new CellTopology(W, H);
         Buildings buildings = town(topology);
         RoofMesh mesh = new RoofMesh();
+        int sheetH = 40 * RoofStyle.COUNT;
         // Frame 1 of row 2, a quarter turn, over the south half of the cell.
-        mesh.catchUp(topology, buildings, SHEET, 300, 200, (b, x, y, sink) ->
+        mesh.catchUp(topology, buildings, SHEET, 300, sheetH, (b, x, y, sink) ->
                 sink.quad(1, 2, 1, 0f, 0f, 1f, 0.5f), 1f);
         float[] uv = mesh.uvAt(mesh.slotOf(2, 2));
-        // Frames are 25x50 px, row 2 spans sheet rows 100..150. A clockwise turn takes the frame's south-east
-        // corner to the cell's south-west, and its north-east to the cell's south-east; the north-east corner of
-        // the cut is half way along the frame's north edge. Each is the whole sheet pixel the streamed roof's
-        // source rectangle names (RoofTiles.framePixel), a texel inside the frame at its edges.
+        // Frames are 25 px wide and a row (40 px) high; row 2 spans sheet rows top..bottom. A
+        // clockwise turn takes the frame's south-east corner to the cell's south-west, and its north-east to the
+        // cell's south-east; the north-east corner of the cut is half way along the frame's north edge. Each is the
+        // whole sheet pixel the streamed roof's source rectangle names (RoofTiles.framePixel), a texel inside the
+        // frame at its edges.
+        float top = 2 * 40f;
+        float bottom = top + 40f;
         assertEquals(49f / 300f, uv[0], 1e-5f);
-        assertEquals(1f - 149f / 200f, uv[1], 1e-5f);
+        assertEquals(1f - (bottom - 1f) / sheetH, uv[1], 1e-5f);
         assertEquals(49f / 300f, uv[2], 1e-5f);
-        assertEquals(1f - 101f / 200f, uv[3], 1e-5f);
+        assertEquals(1f - (top + 1f) / sheetH, uv[3], 1e-5f);
         assertEquals(38f / 300f, uv[4], 1e-5f);
-        assertEquals(1f - 101f / 200f, uv[5], 1e-5f);
+        assertEquals(1f - (top + 1f) / sheetH, uv[5], 1e-5f);
     }
 
     @Test

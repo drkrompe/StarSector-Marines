@@ -419,25 +419,25 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
 
     // ---- staging ----
 
-    private static BattleSimulation settled(JSONObject fixture, int ticks) throws Exception {
+    static BattleSimulation settled(JSONObject fixture, int ticks) throws Exception {
         BattleSimulation sim = HeadlessBattles.fixture(fixture);
         play(sim, ticks);
         if (sim.derelictSecurity() == null) throw new IllegalStateException("the fixture stands no derelict network");
         return sim;
     }
 
-    private static void play(BattleSimulation sim, int ticks) {
+    static void play(BattleSimulation sim, int ticks) {
         for (int i = 0; i < ticks; i++) if (!step(sim)) return;
     }
 
     /** Advances one tick; false once the battle is decided. */
-    private static boolean step(BattleSimulation sim) {
+    static boolean step(BattleSimulation sim) {
         int before = sim.getSimTickIndex();
         sim.advance(BattleSimulation.TICK_DT);
         return sim.getSimTickIndex() != before;
     }
 
-    private static long first(BattleSimulation sim, DerelictSecurityDirector director, DerelictWalkerFrame frame) {
+    static long first(BattleSimulation sim, DerelictSecurityDirector director, DerelictWalkerFrame frame) {
         for (DerelictSecurityDirector.Walker walker : director.walkers()) {
             if (walker.frame() == frame && sim.squadMemberCount(walker.squadId()) > 0) {
                 return sim.squadMemberAt(walker.squadId(), 0);
@@ -446,7 +446,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         return 0L;
     }
 
-    private static void place(BattleSimulation sim, long id, float x, float y) {
+    static void place(BattleSimulation sim, long id, float x, float y) {
         if (id == 0L || sim.resolveUnit(id) == 0L) return;
         sim.world().setPos(id, x, y);
     }
@@ -460,7 +460,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         return new float[] {sim.world().renderX(id), sim.world().renderY(id)};
     }
 
-    private static BufferedImage look(SnapshotContext context, BattleSimulation sim, float x, float y, float cells,
+    static BufferedImage look(SnapshotContext context, BattleSimulation sim, float x, float y, float cells,
                                       boolean roofless, String name) throws Exception {
         BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), W, H, x, y, cells);
         if (roofless) renderer = renderer.withoutRoofs();
@@ -479,7 +479,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         return out;
     }
 
-    private static void add(List<SnapshotArtifact> out, String name, BufferedImage image) {
+    static void add(List<SnapshotArtifact> out, String name, BufferedImage image) {
         if (image != null) out.add(new SnapshotArtifact(name, image));
     }
 

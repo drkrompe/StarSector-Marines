@@ -89,7 +89,6 @@ import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
-import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -254,7 +253,7 @@ public final class CordonSetup {
                                       SurfacePalette layout, long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
         // A world nobody lives on in the open plays the sealed layout: every town walled, with locks.
-        if (PlanetSkin.sealsTowns(country(biome))) plan = SealedTown.seal(plan);
+        plan = PlanetSkin.sealedFor(plan, country(biome));
         Generated whole = generate(variant, density, biome, layout, battleSeed, plan, List.of(), null);
         if (whole.missing() == null) return whole;
         // A layout road moves the ground the places grow round, and a map can come out without the Cordon for it
@@ -286,7 +285,7 @@ public final class CordonSetup {
         if (!drop.isEmpty()) {
             List<Piece> kept = new ArrayList<>();
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
-            plan = plan.withLayout(new MissionLayout(kept));
+            plan = plan.withLayout(new MissionLayout(kept).withCrash(plan.layout().crash()));
         }
         MapResult map = constructed(generated(battleSeed, layout, plan, drop, why), plan, density, battleSeed, true,
                 layout);

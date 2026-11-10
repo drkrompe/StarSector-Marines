@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c71d-adbf-73a2-bf4e-7f3d46ab7e95",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c71d-adbf-73a2-bf4e-7f3d46ab7e95\\exec-2eca6740-a892-4787-a830-30d5a8ca3d2f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\forge.png",
+    "sha256": "c4a49f067efdf6ab6c95525ad6898084242df035f05e46ecf3c4bb4d29f17082",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\forge.prompt.txt",
+  "promptSha256": "970f1e751d745e8ea6d6f49d57f92c9f2a5d58c2d69aa29cf72c566bb37be707",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Family reference: an accepted structure of the same derelict network (material, palette, detail scale only; not layout or subject)\nImage 3: Family reference: the accepted derelict walker (material and detail only; not layout or subject)\nImage 4: Material and weathering style (vanilla derelict_rampart, 4x Lanczos); not layout or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of six finished top-down game sprites: three alternative designs (the columns) of the AUTOFORGE of a crashed Explorarium survey mothership, the self-replicating fabricator in the hull's forge hall that prints survey stakes and walking war machines from scrap metal. About twelve metres across, a heavy industrial machine bolted into the deck. Top row: working, its core glowing with molten metal, heat haze, hot orange light spilling on its housing. Bottom row: the same three put out, cold and dark, its core a dead black pit, a breach blown through its top plate, cracked and scorched, cooled slag. Keep each bottom drawing the same machine as the one above it.\n- column 1, CRUCIBLE: a square press housing, a round crucible mouth under a press head, feed hoppers at two corners, a print bed along the bottom.\n- column 2, GANTRY: a gantry printer, two heavy rails along a long build bed with a half-printed walker frame on it, a bridge carrying the print head across.\n- column 3, RING: a ring of eight forming heads round a deep forge pit, a feed conveyor running in from the south.\nStyle and material: Starsector's own derelict Explorarium and Domain drone ships, as in the material references: kitbashed, densely greebled machinery read from directly above; pale sage-green and khaki armour plates with a few broad diagonal yellow hazard stripes, bone-white and tarnished brass segments, pipework and cable runs, rust-brown machinery and grime in the recesses, small red sensor lamps, mottled weathering on every plate, crisp hard edges, painted as a game sprite lit from the upper left. Never smooth, clean, glossy or toy-like. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. In the guide pale grey is armour plate, mid grey is raised housings, seams and panels, near-black is vents, sockets, recesses and open voids (keep a void a dark open hole into the machine or the hull below), red dots are sensor lamps, orange is molten metal glowing, yellow bars are hazard striping. Strict 90-degree overhead orthographic view, no perspective tilt, no visible side walls, lit from the upper left. Keep each drawing exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between the pieces. True transparent background with genuine alpha outside the silhouettes, including inside holes the guide leaves transparent; no ground, floor, cast-shadow slab, labels, text, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\forge-guide.png",
+      "sha256": "8799cbeff85dd119913ff2eacbcf4cbbe83a96e6d065638a8e6180f69b9b090a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\mod\\graphics\\battle\\derelict\\node-domain.png",
+      "sha256": "5fe492f36e47e9da350460513b07070b0c8a4723a2da07ad6619c22322971f56",
+      "dimensions": [
+        192,
+        122
+      ],
+      "mode": "RGBA",
+      "role": "Family reference: an accepted structure of the same derelict network (material, palette, detail scale only; not layout or subject)"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\derelict-walker\\raw\\walker-sentinel-v3.png",
+      "sha256": "d4d5f89cc8cce3790dbe42618c4c6067251765b72c4806667b762f8e93a55e4a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Family reference: the accepted derelict walker (material and detail only; not layout or subject)"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\build\\fallen-hull-refs\\derelict_rampart.png",
+      "sha256": "b06e2077778ae9b11dc4d2d68ea065d0934e10ac28ede9d964e43f14c62b99d8",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGBA",
+      "role": "Material and weathering style (vanilla derelict_rampart, 4x Lanczos); not layout or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the six sprites, preserving the guide’s geometry and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 71754,
+    "cached_input_tokens": 60288,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 924,
+    "reasoning_output_tokens": 29
+  },
+  "elapsedSeconds": 74.9
+}

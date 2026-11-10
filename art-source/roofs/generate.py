@@ -53,7 +53,31 @@ MATERIAL = {
     'plate': "Material: a fortified post's roof of riveted slate-grey armour plate with welded seams, a heavy hatch, "
              "scuffed olive primer at the edges; the edge a thick riveted armour band; holes punched craters in "
              "the plate with bent petals; the burnt state blackened steel I-beams.",
+    'quonset': "Material: a military base's arched vehicle hangar of olive-drab ribbed steel sheet, sun-bleached and "
+               "dusty, the ribs running straight along the sheet, each rib lit on one flank and shaded on the other "
+               "(no light falloff across the whole field), bolted lap seams with dust caught in them, faded paint "
+               "chips showing grey primer, a few rust freckles; the edge a heavy olive end-arch flashing with bolts; "
+               "holes torn ribbed sheet bent back; the burnt state blackened arched steel ribs. Domain-era frontier "
+               "military, never modern Earth; no markings or insignia.",
+    'barracks': "Material: a military base's low barracks hut roof of faded khaki-olive ridged steel sheet in broad "
+                "standing-seam pans, a darker galvanised ridge cap across the middle of each cell, a couple of "
+                "round mushroom vents, dust drifted against the seams, sun-bleached paint and patched sheets; the "
+                "edge a plain folded khaki flashing with a bolt line; holes torn and curled back; the burnt state "
+                "blackened steel purlins. Domain-era frontier military, never modern Earth; no markings or "
+                "insignia.",
+    'hull': "Material: the dorsal plating of a crashed Domain-era Explorarium survey mothership, now a roof over "
+            "its interior: broad stepped armour slabs of different sizes in pale teal-green and sage with khaki and "
+            "bone segments, exactly where the guide puts their seams; the seams fine and low in contrast, never a "
+            "regular grid; kitbashed greebles, pipework and tarnished brass only in the one narrow machinery "
+            "channel; rust-brown grime in the seams, mottled weathering, crash dust and scorch, a vent block and a "
+            "hatch, no hazard stripes in the field; the edge the hull's heavy armour rim, "
+            "buckled and scorched; holes punched craters in the plate with bent petals and torn structure; the "
+            "burnt state blackened hull frames. Painted like Starsector's own derelict ship sprites.",
 }
+
+
+# The military base's concept art sets the palette for its roofs.
+STYLE_REFS = {s: 'art-source/raid-sites/military/concept-v1.png' for s in ('quonset', 'barracks')}
 
 
 def main():
@@ -69,6 +93,8 @@ def main():
         return
     cmd = [sys.executable, str(ROOT / 'tools/codex_imagegen.py'), '--prompt', str(prompt), '--out', str(raw),
            '--ref', f"{HERE / 'guides' / (style + '-guide.png')}=Geometry/layout authority and edit target"]
+    if style in STYLE_REFS:
+        cmd += ['--ref', f"{ROOT / STYLE_REFS[style]}=Palette and material mood only; not layout, not content"]
     print(' '.join(cmd))
     if not dry:
         subprocess.run(cmd, check=True, cwd=ROOT)

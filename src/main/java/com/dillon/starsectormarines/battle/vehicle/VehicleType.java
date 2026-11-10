@@ -98,6 +98,7 @@ public enum VehicleType {
         @Override public ArmorArcs.Profile armorArcs() { return arcs(TANK_ARCS); }
         @Override public float turretRingShareOfWidth() { return Onager.RING_SHARE_OF_WIDTH; }
         @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
+        @Override public VehicleMount coaxMount() { return Onager.COAX; }
     },
     /**
      * The Scorpion, the Hegemony's medium tank (hegemony-armor-line.md): a lighter tracked hull below the Onager,
@@ -121,12 +122,12 @@ public enum VehicleType {
         @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
-     * Breakthrough hull with a ship's burst laser where the twin cannons were. A ship mounts this emitter as
+     * The Onager's hull with a ship's burst laser where its cannon was. A ship mounts this emitter as
      * point defence because it barely marks proper plate; at ground scale almost nothing is proper plate. It
      * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
      * infantry and drones far quicker than a cannon tank. It carries no blast and no wall damage, so it cannot open a
      * building, and its low penetration leaves it chipping at armor. The power plant takes the shell stowage's
-     * room and weight, so the hull runs a little faster. Its sheet is Tri-Tachyon's: the breakthrough hull in the
+     * room and weight, so the hull runs a little faster. Its sheet is Tri-Tachyon's: the retired tracked hull the Onager first wore, in the
      * company's white livery with a capacitor pack over the rear deck, and for a turret the vanilla PD laser's shape,
      * up-res'd and in the company's white, graphite and cyan, on a ship's turret mount, its shutter opening on the
      * lens while it fires ({@link #turretFiringFrame}; art-source/vehicles/tank-laser). Its lance is the burst PD
@@ -401,6 +402,23 @@ public enum VehicleType {
     public List<VehicleMount> secondaryMounts() { return List.of(); }
 
     /**
+     * Where this hull's coax card's gun stands ({@link VehicleGunCard#COAX}), a second fittable weapon point beside its
+     * turret, or null for a hull with one gun card: the Onager alone (owner, 2026-11-10). The mount's structure is the
+     * carriage the fitted part rides ({@link VehicleGun#fit(VehicleMount, MechWeaponComponent)}); with a part in the
+     * card it fights as a secondary mount ({@link GroundTurret#secondaries}), first among them, and with none there is
+     * no gun there at all. It goes with the turret: a shot-away turret silences it.
+     */
+    public VehicleMount coaxMount() { return null; }
+
+    /**
+     * The part a spawn that names none fits in the coax card, as {@link #standardPart()} is the gun card's: the light
+     * machine gun on a hull with a coax card, null on every other.
+     */
+    public MechWeaponComponent standardCoax() {
+        return coaxMount() != null ? MechWeaponComponent.LIGHT_MACHINE_GUN : null;
+    }
+
+    /**
      * How this hull is cut into a cab and trailing modules that bend at their hinges ({@link Articulation},
      * {@link TrailerKinematic}), or null for a rigid hull: the midline carriers. Drawing only; the hull moves as one
      * body.
@@ -430,8 +448,13 @@ public enum VehicleType {
         static final float SECONDARY_RING_CELLS = .4f;
     }
 
-    /** The diameter of the painted socket a secondary mount stands on, cells; zero for a hull that paints none. */
-    public float secondaryRingCells() { return isMidlineCarrier() ? MidlineCarriers.SECONDARY_RING_CELLS : 0f; }
+    /**
+     * The diameter of the ring a secondary mount's gun stands on, cells: the socket a carrier paints, and the ring the
+     * Onager's coax stands on beside its turret; zero for a hull with neither.
+     */
+    public float secondaryRingCells() {
+        return isMidlineCarrier() || coaxMount() != null ? MidlineCarriers.SECONDARY_RING_CELLS : 0f;
+    }
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
@@ -630,6 +653,12 @@ public enum VehicleType {
         static final float RING_SHARE_OF_WIDTH = .5345f;
         /** The pair of radiator grilles flanking the spine behind the turret ring. */
         static final FluxVents VENTS = new FluxVents(164f, 110f);
+        /**
+         * The coax card's gun: on its own ring on the glacis ahead of the turret's right cheek, clear of the head and
+         * inside the flanks, on the heavy machine gun's carriage. First placement, for the owner's look.
+         */
+        static final VehicleMount COAX = new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
+                .55f, TURRET_MOUNT_Y + .85f, false);
     }
 
     /**
@@ -797,7 +826,7 @@ public enum VehicleType {
      * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
      * burst under way), or -1 for a turret drawn the same whether or not it fires.
      */
-    /** The laser hull's radiator fins across its tail, on the breakthrough master (art-source/vehicles/tank-laser). */
+    /** The laser hull's radiator fins across its tail, on the retired tracked hull's master (art-source/vehicles/tank-laser). */
     private static final FluxVents LASER_VENTS = new FluxVents(321.5f, 98f);
 
     public int turretFiringFrame() { return -1; }

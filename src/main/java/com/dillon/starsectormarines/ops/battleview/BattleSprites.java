@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -97,6 +98,8 @@ public class BattleSprites {
     // ---- asset-path constants -----------------------------------------------
 
     private static final String SPRITE_DECAL_SHEET  = "graphics/decals/decals.png";
+    /** The rubble damaged building walls leave at their foot ({@link WallRubble}). */
+    static final String SPRITE_WALL_RUBBLE = "graphics/decals/wall-rubble.png";
     /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
     static final String WARSHIP_ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
     static final String WARSHIP_ENGINE_GLOW_SPRITE = "graphics/fx/engineglow32.png";
@@ -160,6 +163,13 @@ public class BattleSprites {
     private boolean layeredMechSpritesLoadAttempted;
     private DerelictWalkerAssets derelictWalker;
     private DerelictWalkerAssets crawler;
+    private DerelictWalkerAssets stripper;
+    private DerelictWalkerAssets hauler;
+    /** The hardware variants' own bodies, drawn over their frames' legs and mounts ({@link MechVariantBodies}). */
+    private Map<MechVariant, LayeredSpriteCache> mechVariantBodies = Map.of();
+    /** The machine flamers' drawings, the same in every livery ({@link LayeredMechAssets#withFlamers}). */
+    private LayeredSpriteCache mechFlamerBurner;
+    private LayeredSpriteCache mechFlamerLance;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
@@ -200,6 +210,9 @@ public class BattleSprites {
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
     private boolean decalSheetLoadAttempted;
+    private SpriteAPI rubbleSheet;
+    private SpriteSheetFrames rubbleFrames;
+    private boolean rubbleSheetLoadAttempted;
 
     // ---- drone sprites ------------------------------------------------------
 
@@ -216,6 +229,7 @@ public class BattleSprites {
     private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
     private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
     private final SheetTexture roofTex       = SheetTexture.grid(RoofTiles.SHEET);
+    private final SheetTexture hullRoofTex   = SheetTexture.grid(HullRoof.TEXTURE);
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
@@ -311,8 +325,40 @@ public class BattleSprites {
     /** The Bombard's rig sprites, or null when incomplete (the Bombard then keeps its stand-in art). */
     public RavBombardAssets ravBombardSprites() { return ravBombard; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+
+    /** Every hardware variant's own body that loaded, by variant. */
+    public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() { return mechVariantBodies; }
+
+    /** A hardware variant's own body, or null for a line's own chassis or a body that did not load. */
+    public LayeredSpriteCache mechVariantBody(MechVariant variant) {
+        return variant == null ? null : mechVariantBodies().get(variant);
+    }
     /** The derelict security walker's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
+
+    /**
+     * The parts a derelict chassis is drawn from: the fallen hull's stripper and hauler their own builds where they
+     * loaded, every other size the sentinel's at its scale.
+     */
+    public DerelictWalkerAssets derelictWalkerSprites(MechVariant variant) {
+        DerelictWalkerAssets own = variant == MechVariant.SECURITY_STRIPPER ? stripperSprites()
+                : variant == MechVariant.SECURITY_HAULER ? haulerSprites() : null;
+        return own != null ? own : derelictWalkerSprites();
+    }
+
+    /** The fallen hull's stripper's own parts, or null when incomplete. */
+    public DerelictWalkerAssets stripperSprites() { return stripper; }
+
+    /** The fallen hull's hauler's own parts, or null when incomplete. */
+    public DerelictWalkerAssets haulerSprites() { return hauler; }
+
+    /** The stripper's and hauler's own parts that loaded. */
+    public List<DerelictWalkerAssets> salvageWalkerSprites() {
+        List<DerelictWalkerAssets> out = new ArrayList<>();
+        if (stripperSprites() != null) out.add(stripperSprites());
+        if (haulerSprites() != null) out.add(haulerSprites());
+        return out;
+    }
     /** Tri-Tachyon's light crawler's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets crawlerSprites() { return crawler; }
     /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
@@ -475,6 +521,8 @@ public class BattleSprites {
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
+    public SpriteAPI rubbleSheet()                 { return rubbleSheet; }
+    public SpriteSheetFrames rubbleFrames()        { return rubbleFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
     public ShuttleSpriteCache droneSprite()        { return droneSprite; }
     public SpriteAPI tileSheet()                   { return tileTex.sprite(); }
@@ -489,6 +537,10 @@ public class BattleSprites {
     public SpriteAPI roofSheet()                   { return roofTex.sprite(); }
     public int roofSheetPxW()                      { return roofTex.pxW(); }
     public int roofSheetPxH()                      { return roofTex.pxH(); }
+    /** The fallen hull's roof painting ({@link HullRoof}); null when not loaded. */
+    public SpriteAPI hullRoofSheet()               { return hullRoofTex.sprite(); }
+    public int hullRoofSheetPxW()                  { return hullRoofTex.pxW(); }
+    public int hullRoofSheetPxH()                  { return hullRoofTex.pxH(); }
     public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
     public int waterSheetPxW()                     { return waterTex.pxW(); }
     public int waterSheetPxH()                     { return waterTex.pxH(); }
@@ -563,6 +615,7 @@ public class BattleSprites {
             ensureUrbanTile3Sheet();
             ensureDoodadSheet();
             ensureDecalSheet();
+            ensureRubbleSheet();
         }));
         if (terrainSheets != null) {
             for (String path : terrainSheetPaths()) {
@@ -748,7 +801,10 @@ public class BattleSprites {
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
 
     /** Lazy-loads the roof sheet ({@link RoofTiles}): a row of field, eave trims and damage frames per roof style. */
-    public void ensureRoofSheet()       { roofTex.ensureLoaded(lease); }
+    public void ensureRoofSheet() {
+        roofTex.ensureLoaded(lease);
+        hullRoofTex.ensureLoaded(lease);
+    }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
@@ -1441,6 +1497,11 @@ public class BattleSprites {
         layeredMechSpritesLoadAttempted = true;
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, this::loadLayeredSprite);
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, this::loadLayeredSprite);
+        mechVariantBodies = MechVariantBodies.load(this::loadLayeredSprite);
+        mechFlamerBurner = loadLayeredSprite(MECH_ROOT + "fl-1.png");
+        mechFlamerLance = loadLayeredSprite(MECH_ROOT + "fl-2.png");
         String root = MECH_ROOT;
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
@@ -1500,7 +1561,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection);
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
@@ -1584,7 +1646,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection));
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
@@ -1764,6 +1827,24 @@ public class BattleSprites {
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load unit sheet " + path, e);
             return null;
+        }
+    }
+
+    /**
+     * Lazy-loads the wall rubble sheet: a whole grid of {@link WallRubble#CELL_PX} cells, each piece kept where it lies
+     * in its cell. Failure leaves both null and no rubble is drawn.
+     */
+    public void ensureRubbleSheet() {
+        if (rubbleSheetLoadAttempted) return;
+        rubbleSheetLoadAttempted = true;
+        try {
+            ModTextures.loadTexture(SPRITE_WALL_RUBBLE, lease);
+            rubbleSheet = ModTextures.sprite(SPRITE_WALL_RUBBLE);
+            rubbleFrames = rubbleSheet == null ? null : WallRubble.frames();
+        } catch (Exception e) {
+            LOG.warn("BattleSprites: could not load " + SPRITE_WALL_RUBBLE, e);
+            rubbleSheet = null;
+            rubbleFrames = null;
         }
     }
 

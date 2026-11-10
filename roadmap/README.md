@@ -149,7 +149,7 @@ and end when the mother bore falls (`colony-breach-nouns.md`, Campaign: blooms;
 `gradlew.bat bloomEvidence`). Every Rav mission but Cordon Line is also a replayable story:
 The Khettara Bloom on Asharu unlocks Colony Breach, Cordon Road, The Burn
 and Broad Front in order after A Working Ship, as the alpha's
-end-game challenge (`wellhollow-bloom-arc.md`); its live acceptance remains. Silent Colony now divides its Marine expedition into
+end-game challenge (`wellhollow-bloom-arc.md`); its live acceptance remains. A second authored threat arc is drafted: **The Long Survey**, a crashed Explorarium survey mothership whose derelict watch spreads by survey stakes over four story chapters on owned seeds (`long-survey-arc.md`, `fallen-hull-nouns.md`). Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.
 Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,

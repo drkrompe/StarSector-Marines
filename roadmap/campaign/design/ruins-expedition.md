@@ -329,6 +329,16 @@ every door on the way on stays open, so the haul is never shut in. A store is a
 field cache just inside its door, recovered by holding its room
 (`SalvageCache.heldFromRoom`).
 
+**The facility holds against every heavy** (owner: "You can't just drive through the ruin fortress walls with a
+heavy tank right?"). The delve's own walls, layer lines, every shell it stamps, the interior's hull and every
+closed cell inside it, jambs included, stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`, 240), over
+every wall crush's ceiling (100; `mechs-nouns.md`, Wall crush), so no heavy hull or walker pushes through the plant
+and no heavy's route plans through it, while a satchel (450) still cuts it. A seal door or bulkhead shut as its jamb
+holds the same; a dead door's leaves are fixtures, which nothing crushes. A door opens only by its own rules:
+answering, power, a charge through a forcible one, or a hall frame's ram and tear. Props on the plant's floor keep
+their own structure and stay the heavies' to push, and the dead settlement's ruined lots outside the plant stay
+ordinary walls.
+
 **The vault's door** is its inner door, hardened, as are its suite's walls
 (`HardenedWalls`, from the published `ruins.vault` footprint): no charge and no
 heavy hull gets in. Owner pick `ruins-vault-seal`: a door with a puzzle, so a
@@ -436,6 +446,17 @@ entry's extraction circle, or any other held lift point's, extract unhurt, and
 the rest roll to get home as in any Retreat (`campaign-nouns.md`, Ending an
 operation). The cost of pulling out from deep inside is the soldiers who have
 not got back to the door.
+
+**No machine is dropped inside.** Owner (2026-11-10): "We should also likewise
+prevent dropping mechs inside of the facility." A machine is set down only on
+the open ground outside: the landing, an apron, the ground between. Generation
+marks every cell inside the facility, light wells included, and every way a
+machine reaches the ground refuses those cells: the armor drop's landing zone
+(`LandingZoneScorer.forMachines`) and the boat's unload cell
+(`AirDeliveryContext`). Aimed just inside, the drop falls back to the nearest
+outside cell in reach; aimed deep inside, the order is refused and the marker
+reads NO DROP INSIDE THE FACILITY. Machines go in on their own tracks, through
+the entrances.
 
 ### Where phase B's threats come from
 
@@ -721,6 +742,17 @@ from its process, as the forge's is, in the forge's slot. The halls:
 The prize is unchanged. The model is in `mapgen-nouns.md` (Every other theme has a works hall of its own). The
 designs and the art list are in `ruins-theme-halls.md` in the shared notes. The owner picked a works hall over a chain of halls
 for every theme (`ruins-<theme>-halls` a). Look shots: `createSnapshots -Psnapshot=ruins-works-hall-look`.
+The halls wear the `ruins-ground` floors: ice sheet and rime in the cold and ring halls, biofilm in the culture
+hall, a wet floor under every shallow, a raised floor in the core hall's pods and a stage floor on the holosuite's
+stage. The mantle bore's shaft is a bore-shaft drop (`voids.md`): a cast collar laid round it, a cell inside the
+headframe's legs, and bedrock 30 m down.
+
+**Every room serves the process** (owner: more ruin rooms designed, each with a purpose tied to its theme's process
+and a story of what happened there). The rooms off the service corridors are laid from their role in the plant:
+the control room nearest the works hall, then workshops, labs and crew quarters, and the side rooms inside as its
+stores, each with the theme's own pieces, its spill and its collapse. The model is in `mapgen-nouns.md` (Every room
+serves the process). Look shots and plans: `createSnapshots -Psnapshot=ruins-room-look`. Picks `ruins-rooms-<kind>`
+are open, building on a (rooms laid from their role).
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
@@ -741,9 +773,11 @@ look only, shallows are a wade, melt is a drop.
 | b | The theme deepens with the delve: bare at the entrances, full in the secure store |
 | c | As a, and it spills out of the plant's entrances into the dead town |
 
-What the tools lack indoors is the work: soft edges between skins (outdoor
-ground feathers; a hall floor ends in hard cell steps), ice, rime, biofilm and
-coolant skins, static glow lights and vent emitters. The plan by theme is the
+What the tools lack indoors is the work: soft edges for the skins that are not
+coverings (dust, sand, earth and scorch still end in hard cell steps; the
+coverings feather onto the hall floor, `battle-render-nouns.md`), coolant skins,
+static glow lights and vent emitters. Raised and stage floors keep clean edges
+over a floor trim. The plan by theme is the
 shared note `ruins-themed-environments.md`. Picture options:
 `createSnapshots -Psnapshot=ruins-environment-picks`.
 
@@ -839,6 +873,73 @@ hall frame standing in the first plant hall reaches every other hall's post,
 over ground its body fits and through every hall door, a dead one forced and one
 narrower than the frame torn a jamb wider at each end. A hall door it cannot
 pass is one it tears; a service corridor is somewhere it does not go.
+
+**The works hall is the trunk** (owner pick `ruins-works-trunk` a). A
+works site's showpiece is on the way, not off it. Its works hall, the mega
+forge or a theme's, is laid first in the outer interior band, so it always fits
+at full size, and the band's spine runs through it down its west wall, in at
+the dispatch end and out at the head (`mapgen-nouns.md`, The works hall is the
+trunk). Every other way in the band meets the spine beyond the hall's ends, so
+the hall has two doors, both on the trunk, and the company crossing the band
+crosses the hall:
+
+| Option | Where the works hall stands |
+| --- | --- |
+| a (picked) | On the trunk: the band's spine runs through it, the route crosses it |
+| b | Beside the trunk, joined by a freight way, laid only where it fits (about one site in four before this) |
+| c | As b, and the route is drawn past its door, so the stand is held at its mouth |
+
+**The forge's transfer bridge** (owner: "a real bridge would be cool. Depends
+on the mission we make"; owner pick `ruins-forge-bridge` a). At the mega
+forge's middle the pour line burst its banks round a ladle tipped mid-pour and
+pooled. A transfer bridge four cells wide crosses the pool from bank to bank on
+the transfer aisle. The catwalks over the line are two wide, so infantry cross
+anywhere, but the bridge is the only way a hall frame or the haul crosses the
+line. The frame's post is the hall's middle, on the bridge.
+
+| Option | Shape |
+| --- | --- |
+| a (picked) | The breakout: a pool of melt up to 14x18 round the hall's middle, the bridge across it, the frame's post on the deck |
+| b | A deck bridge over the two-cell pour line on the transfer aisle, no pool |
+| c | No bridge: the transfer aisle crosses the line as floor |
+
+The bridge is its own art (`ruins-forge-bridge`): deck spans on box girders,
+railed both sides, a cast abutment on each bank, and one span split by the
+breakout with the melt glowing through.
+
+**Beats through the facility** (owner pick `ruins-facility-beats` a).
+On a works site the delve's inside has a shape the player can read: the plant's
+own order, intake to works hall to stores to vault, along the trunk.
+
+1. **The entry.** The cargo door the company takes from its apron. Phase B
+   begins, the pull-out point moves to the entry.
+2. **The works hall, the outer band's stand.** The route crosses it on its
+   trunk. On a forge works: the frame on the bridge over the pool, the pour
+   line and the pool as fire lanes nobody stands in, cover in the lanes
+   between the production lines, the catwalks as infantry flanks. Holding the
+   bridge is holding the stand: the close reading of the deeper band comes in
+   there.
+3. **The works off the trunk.** The power hall, the records and the side
+   rooms' stores are reached by service corridors, two wide: infantry go, a hall
+   frame cannot follow. They are where the company works the puzzle, and
+   where it can shake off a frame.
+4. **The deeper band.** Storage halls on freight ways, the stores, then the
+   vault and its frame: the breach.
+5. **The egress, back through the works hall.** The haul comes out the way the
+   company came in, so the counter-push meets it at the stand it took: the
+   haul crosses the bridge under fire, and a frame shut behind a dead hall door
+   tears through it.
+
+| Option | The stand |
+| --- | --- |
+| a (picked) | The works hall is the outer band's stand, derelict security's zone held there (node and frame) |
+| b | The stand stays at the layer's junction; the works hall is ground the route crosses |
+| c | The works hall is the vault's antechamber, the last stand before the breach |
+
+The ground publishes the works hall's stand (`RuinsDelve.Interior.worksStand`):
+by the mega forge's pour pulpit, or at the east end of a works hall's transfer
+aisle. The outer band's zone holds its node there. Where derelict security wakes,
+escalates and repairs in these halls is `derelict-security-network.md`'s.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:

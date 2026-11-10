@@ -1,0 +1,205 @@
+{
+  "blocks": [
+    {
+      "doorBlock": "installation.dark-concrete-door",
+      "id": "installation.dark-concrete-wall@fallen-hull",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        0,
+        0
+      ],
+      "rubbleBlock": "installation.dark-concrete-rubble",
+      "windowBlock": "installation.dark-concrete-window"
+    },
+    {
+      "cells": [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ]
+      ],
+      "id": "fallen-hull.trench",
+      "patternCols": 2
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-0",
+      "description": "solid cap, no exposed faces"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-1",
+      "description": "wall cap exposed on north"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-2",
+      "description": "wall cap exposed on east"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-3",
+      "description": "wall cap exposed on north and east"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-4",
+      "description": "wall cap exposed on south"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-5",
+      "description": "wall cap exposed on north and south"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-6",
+      "description": "wall cap exposed on east and south"
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-7",
+      "description": "wall cap exposed on north and east and south"
+    },
+    {
+      "col": 0,
+      "row": 2,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-8",
+      "description": "wall cap exposed on west"
+    },
+    {
+      "col": 1,
+      "row": 2,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-9",
+      "description": "wall cap exposed on north and west"
+    },
+    {
+      "col": 2,
+      "row": 2,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-10",
+      "description": "wall cap exposed on east and west"
+    },
+    {
+      "col": 3,
+      "row": 2,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-11",
+      "description": "wall cap exposed on north and east and west"
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-12",
+      "description": "wall cap exposed on south and west"
+    },
+    {
+      "col": 1,
+      "row": 3,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-13",
+      "description": "wall cap exposed on north and south and west"
+    },
+    {
+      "col": 2,
+      "row": 3,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-14",
+      "description": "wall cap exposed on east and south and west"
+    },
+    {
+      "col": 3,
+      "row": 3,
+      "name": "installation.dark-concrete-wall@fallen-hull faces-15",
+      "description": "wall cap exposed on north and east and south and west"
+    }
+  ],
+  "doodads": [
+    {
+      "id": "fallen-hull.debris-pod",
+      "col": 6,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.debris-bell",
+      "col": 9,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.debris-plate-shard-b",
+      "col": 4,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.debris-plate-shard-a",
+      "col": 6,
+      "row": 3,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.debris-scrap-heap",
+      "col": 9,
+      "row": 3,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.debris-girder",
+      "col": 0,
+      "row": 5,
+      "cover": "light",
+      "ballisticHalfHeight": 0.25,
+      "footprintCells": [
+        6,
+        1
+      ]
+    }
+  ],
+  "sheet": "graphics/tilesets/fallen-hull.png"
+}

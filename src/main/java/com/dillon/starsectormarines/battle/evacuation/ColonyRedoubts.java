@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.CompoundPreparedGround;
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -20,9 +21,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Random;
 
 /**
@@ -63,6 +62,8 @@ public final class ColonyRedoubts {
     public static final int HEAVY_CORNER_GUNS = 2;
     /** Aprons laid at a holdout: the door toward the lift, and one more if the building has it. */
     static final int APRONS = 2;
+    /** Cells round an authored holdout searched for a held building with room ({@link #authoredHoldout}). */
+    static final int AUTHORED_HOLDOUT_REACH = 16;
     private static final long SEED_SALT = 0x524544554F425453L;
     private static final UnitType[] TRADES = {
             UnitType.CIVILIAN, UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.CIVILIAN, UnitType.SCIENTIST};
@@ -131,6 +132,29 @@ public final class ColonyRedoubts {
         return true;
     }
 
+    /**
+     * Of {@code footprints} (left, top, right, bottom), not yet {@code taken}, the one an authored holdout at
+     * ({@code x}, {@code y}) names: the one it falls inside, or else the one whose edge is nearest it within
+     * {@link #AUTHORED_HOLDOUT_REACH} cells, ties to the earlier; {@code -1} where none is that near. A patch is
+     * read on the open and the sealed layout alike, and the sealed one lays a different street plan from the same
+     * seed, so a cell put down inside a building on one may fall in the street on the other.
+     */
+    public static int authoredHoldout(List<int[]> footprints, boolean[] taken, int x, int y) {
+        int best = -1;
+        int bestDistance = AUTHORED_HOLDOUT_REACH * AUTHORED_HOLDOUT_REACH + 1;
+        for (int i = 0; i < footprints.size(); i++) {
+            if (taken[i]) continue;
+            int[] f = footprints.get(i);
+            int dx = Math.max(0, Math.max(f[0] - x, x - f[2]));
+            int dy = Math.max(0, Math.max(f[1] - y, y - f[3]));
+            int distance = dx * dx + dy * dy;
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            best = i;
+        }
+        return best;
+    }
+
     /** How many holdouts this seed's colony has beside the main redoubt. */
     public static int holdoutsFor(long seed) {
         return MIN_HOLDOUTS + new Random(seed ^ SEED_SALT).nextInt(MAX_HOLDOUTS - MIN_HOLDOUTS + 1);
@@ -139,17 +163,19 @@ public final class ColonyRedoubts {
     /**
      * How many of a map's places could be a holdout: a held place at the
      * place's interior anchor with room indoors for a fireteam and the most
-     * people a holdout holds. A map question, asked before anything spawns.
+     * people a holdout holds. A map question, asked before anything spawns and
+     * before the battle publishes the colony's buildings as held places, so a
+     * place counts as held as it will be once they are
+     * ({@link HeldPlaces#heldOncePublished}), not only where generation already
+     * stood a node (a military base the town happened to roll).
      */
     public static int seatableSites(MapResult map) {
         if (map.tacticalMap == null || map.grid == null || map.topology == null) return 0;
-        Set<Long> held = new HashSet<>();
-        for (TacticalNode node : map.tacticalMap.all()) held.add(((long) node.anchorX << 32) | (node.anchorY & 0xFFFFFFFFL));
+        List<TacticalNode> nodes = map.tacticalMap.all();
         int seats = ColonyMilitia.POST_SIZE + MAX_COHORT;
         int count = 0;
         for (PointOfInterest place : map.pointsOfInterest) {
-            if (place == null || place.kind == PointOfInterest.Kind.LANDING_SITE) continue;
-            if (!held.contains(((long) place.interiorAnchorX << 32) | (place.interiorAnchorY & 0xFFFFFFFFL))) continue;
+            if (place == null || !HeldPlaces.heldOncePublished(place, nodes)) continue;
             int building = map.topology.getBuildingId(place.interiorAnchorX, place.interiorAnchorY);
             int open = 0;
             for (int y = place.top + 1; y < place.bottom && open < seats; y++) {

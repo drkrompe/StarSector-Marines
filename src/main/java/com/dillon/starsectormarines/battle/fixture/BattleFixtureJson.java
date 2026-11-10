@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
@@ -248,6 +250,16 @@ public final class BattleFixtureJson {
             if (!heart.mechDrops().isNone()) root.put("declaredMechDrops", mechDropsToJson(heart.mechDrops()));
             return root;
         }
+        if (fixture instanceof HullFallBattleFixture fall) {
+            root.put("kind", fall.kind());
+            root.put("seed", fall.seed());
+            root.put("shuttles", shuttlesToJson(fall.manifest()));
+            root.put("targetProfile", targetProfileToJson(fall.targetProfile()));
+            root.put("map", fall.map().name());
+            root.put("grade", fall.grade().name());
+            root.put("livery", fall.livery().name());
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -334,6 +346,12 @@ public final class BattleFixtureJson {
             case RaidBattleFixture.KIND -> decodeRaid(root);
             case ExtractionBattleFixture.KIND -> decodeExtraction(root);
             case RuinsBattleFixture.KIND -> decodeRuins(root);
+            case HullFallBattleFixture.KIND -> new HullFallBattleFixture(root.getLong("seed"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")),
+                    targetProfileFromJson(root.getJSONObject("targetProfile")),
+                    enumValue(StoryMap.class, root.getString("map"), "map"),
+                    enumValue(RuinsGrade.class, root.getString("grade"), "grade"),
+                    enumValue(FlockLivery.class, root.getString("livery"), "livery"));
             case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
                     enumValue(Form.class, root.getString("form"), "form"),
                     storyBiome(root), root.has("density")
@@ -886,6 +904,7 @@ public final class BattleFixtureJson {
                     if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     if (vehicle.gun() != null) frozen.put("gun", vehicle.gun().id);
                     if (vehicle.noOwnGun()) frozen.put("noOwnGun", true);
+                    if (vehicle.coax() != null) frozen.put("coax", vehicle.coax().id);
                     JSONArray compartment = new JSONArray();
                     for (MechInternal part : vehicle.compartment()) compartment.put(part.id);
                     frozen.put("compartment", compartment);
@@ -1003,7 +1022,8 @@ public final class BattleFixtureJson {
                                 ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
                                 : VehicleEngine.STOCK,
                         frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null,
-                        compartment, frozen.optBoolean("noOwnGun", false), decodeRefit(frozen.optJSONObject("refit"))));
+                        compartment, frozen.optBoolean("noOwnGun", false), decodeRefit(frozen.optJSONObject("refit")),
+                        frozen.has("coax") ? MechWeaponComponent.findById(frozen.getString("coax")) : null));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(

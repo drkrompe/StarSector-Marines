@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
+import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
+import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -12,7 +14,9 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -28,7 +32,9 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,6 +54,7 @@ public final class StoryMapAcceptance {
     /** The entry's reading on this biome when it passes; throws, naming what it lacks, when it does not. */
     public static String check(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
         Form form = BloomHeartSetup.formOf(map);
+        if (map.longSurvey()) return longSurvey(map, biome, entry);
         if (RaidOwnedMap.isRaid(map)) return raid(map, biome, entry);
         return map == StoryMap.COLONY_BREACH ? colony(biome, entry)
                 : form != null ? heart(map, biome, entry) : cordon(map, biome, entry);
@@ -148,22 +155,83 @@ public final class StoryMapAcceptance {
                 throw new AssertionError("works holds " + works.sites().size() + " of " + ground.machines() + " machines");
             }
             // The works' own guard (raid-works-guard a): a squad posted at each of its guard posts from the start.
-            int posts = 0;
+            int posts = 0, guns = 0;
             for (TacticalNode post : sim.getTacticalMap().ofKind(TacticalNode.Kind.GUARDPOST)) {
                 if (!RaidSiteTemplate.WORKS.equals(post.place())) continue;
                 posts++;
                 boolean held = false;
-                for (Squad squad : sim.getSquads()) held |= squad.assignedNode == post && squad.originalSize > 0;
+                for (Squad squad : sim.getSquads()) {
+                    if (squad.assignedNode != post || squad.originalSize <= 0) continue;
+                    held = true;
+                    if (squad.defensePost != null) guns++;
+                }
                 if (!held) throw new AssertionError("the works' guard post at " + post.anchorX + "," + post.anchorY
                         + " has nobody posted");
             }
             if (map != StoryMap.RAID && posts == 0) throw new AssertionError("the works has no guard post");
-            detail.append(String.format(Locale.ROOT, "; %d works guard posts held", posts));
+            detail.append(String.format(Locale.ROOT, "; %d works guard posts held, %d of them crewing a gun", posts, guns));
             detail.append(String.format(Locale.ROOT, "; works %d machines, egress %d,%d; map %dx%d",
                     works.sites().size(), works.egressCellX(), works.egressCellY(),
                     sim.getTopology().getWidth(), sim.getTopology().getHeight()));
         }
         return detail.toString();
+    }
+
+    /**
+     * A Long Survey chapter's acceptance ({@code long-survey-arc.md}, Seeds): its base mission's ground still carries
+     * what the chapter fights over (The Fall: the colony's rescue stands up, shelter, lift and holdouts; The Line: the
+     * Cordon's line; The Surveyor: its airbases where they were placed), and its fallen hull keeps every law
+     * ({@code HullSiteCheck}) with each starting stake on a lattice point with a haul road home.
+     */
+    static String longSurvey(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        String base = switch (map) {
+            case LONG_SURVEY_FALL -> "colony " + colony(biome, entry);
+            case LONG_SURVEY_LINE -> "cordon " + cordon(StoryMap.CORDON_LINE, biome, entry).split("; layout")[0];
+            default -> "";
+        };
+        LongSurveyGround.Ground ground = LongSurveyGround.ground(map, biome, entry);
+        for (Structure placed : ground.plan().layout().placed()) {
+            Laid piece = ground.map().layout.find(placed.name());
+            if (piece == null || !piece.isLaid() || piece.cells().get(0)[0] != placed.x()
+                    || piece.cells().get(0)[1] != placed.y()) {
+                throw new IllegalStateException(placed.name() + " was placed at " + placed.x() + "," + placed.y()
+                        + " but " + (piece == null ? "not laid" : piece.isLaid() ? "laid elsewhere" : "refused: " + piece.reason()));
+            }
+        }
+        HullSite site = ground.hull();
+        if (site == null) throw new AssertionError("no fallen hull was laid");
+        if (!site.problems().isEmpty()) throw new AssertionError("the hull: " + String.join("; ", site.problems()));
+        if (site.stakes().size() != entry.patch().hull().stakes().size()) {
+            throw new AssertionError(site.stakes().size() + " of " + entry.patch().hull().stakes().size() + " stakes seated");
+        }
+        int rings = 0, roadless = 0;
+        for (HullSite.LatticePoint p : site.lattice()) {
+            rings = Math.max(rings, p.ring());
+            if (site.road(p.index()) == null) roadless++;
+        }
+        // The rules' reading of it: every starting stake chains back to the hull through linked lattice points.
+        FallenHullSite rules = LongSurveyGround.rulesSite(site, List.of(), List.of(), 0f);
+        ClaimLattice links = new ClaimLattice(rules.hull(), rules.lattice(), rules.linkCells());
+        Set<Integer> chained = new HashSet<>();
+        ArrayDeque<ClaimLattice.Point> frontier = new ArrayDeque<>();
+        for (ClaimLattice.Point p : links.points()) if (links.linksToHull(p) && chained.add(p.id())) frontier.add(p);
+        while (!frontier.isEmpty()) {
+            for (ClaimLattice.Point q : links.neighbours(frontier.poll())) if (chained.add(q.id())) frontier.add(q);
+        }
+        for (HullSite.Stake stake : site.stakes()) {
+            if (!chained.contains(stake.point())) throw new AssertionError("the stake on point " + stake.point() + " links to nothing");
+        }
+        StringBuilder stakes = new StringBuilder();
+        for (HullSite.Stake stake : site.stakes()) {
+            HullSite.LatticePoint p = site.point(stake.point());
+            stakes.append(stakes.length() == 0 ? "" : ", ").append(stake.stage().name().toLowerCase(Locale.ROOT))
+                    .append(" at ").append(p.cell().x()).append(',').append(p.cell().y())
+                    .append(" (road ").append(site.road(p.index()).cells().size()).append(')');
+        }
+        return (base.isEmpty() ? "" : base + "; ") + String.format(Locale.ROOT,
+                "hull %d,%d heading %s; lattice %d points over %d rings (%d without a road home, %d chained to the hull); %d haul roads; %d debris; stakes [%s]",
+                site.footprint().centreX(), site.footprint().centreY(), site.heading(), site.lattice().size(), rings,
+                roadless, chained.size(), site.roads().size(), site.debris().size(), stakes);
     }
 
     private static RaidObjective raidObjective(BattleSimulation sim) {

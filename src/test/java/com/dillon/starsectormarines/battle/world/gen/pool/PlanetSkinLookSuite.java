@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +79,7 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
             }
             // A lock is found on bare rock, which is airless and plays the sealed layout.
             try (BattleSimulation probe = sim(map, SurfacePalette.ROCK, pool.owned())) {
-                lock = densestDoodad(probe, PrecinctWardStage.LOCK_MARKING);
+                lock = densestLock(probe);
             }
             for (SurfacePalette world : SurfacePalette.values()) {
                 String tag = world.name().toLowerCase(Locale.ROOT);
@@ -134,6 +136,8 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                         List.of(), CordonSequence.Timetable.STANDARD);
             }
             case COLONY_BREACH -> BattleSetup.createPooledColonyBreach(world, entry, List.of());
+            case LONG_SURVEY_FALL, LONG_SURVEY_STAKES, LONG_SURVEY_LINE, LONG_SURVEY_SURVEYOR ->
+                    LongSurveyGround.stand(LongSurveyGround.ground(map, world, entry), world);
             case RAID, RAID_HEAVY_INDUSTRY, RAID_MINING, RAID_REFINING, RAID_LIGHT_INDUSTRY, RAID_FARMING, RAID_SPACEPORT,
                     RAID_MILITARY -> BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map,
                     StoryMapPools.pool(map).layoutFor(world)), world, entry.seed(), map != StoryMap.RAID, List.of());
@@ -157,6 +161,34 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
         for (Doodad d : sim.getDoodads()) {
             if (d.definitionId() != null && d.definitionId().startsWith(prefix)
                     && d.cellX >= 0 && d.cellY >= 0 && d.cellX < w && d.cellY < h) count[d.cellY][d.cellX]++;
+        }
+        int[][] sum = new int[h + 1][w + 1];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            sum[y + 1][x + 1] = sum[y][x + 1] + sum[y + 1][x] - sum[y][x] + count[y][x];
+        return best(sum, w, h);
+    }
+
+    /**
+     * The densest window of a sealed town's lock floors: the lock marking on a cell beside the envelope's own wall
+     * ({@link SealedTown#ENVELOPE_WALL}), not the same stripes on a compound's or a works' floor.
+     */
+    private static float[] densestLock(BattleSimulation sim) {
+        CellTopology t = sim.getTopology();
+        int w = t.getWidth(), h = t.getHeight();
+        int[][] count = new int[h][w];
+        for (Doodad d : sim.getDoodads()) {
+            if (!PrecinctWardStage.LOCK_MARKING.equals(d.definitionId())) continue;
+            int x = d.cellX, y = d.cellY;
+            if (x < 0 || y < 0 || x >= w || y >= h) continue;
+            boolean byEnvelope = false;
+            for (int dx = -1; dx <= 1 && !byEnvelope; dx++) {
+                for (int dy = -1; dy <= 1 && !byEnvelope; dy++) {
+                    int nx = x + dx, ny = y + dy;
+                    String id = nx < 0 || ny < 0 || nx >= w || ny >= h ? null : t.getSurfaceId(nx, ny);
+                    byEnvelope = id != null && id.startsWith(SealedTown.ENVELOPE_WALL);
+                }
+            }
+            if (byEnvelope) count[y][x]++;
         }
         int[][] sum = new int[h + 1][w + 1];
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)

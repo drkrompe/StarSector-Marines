@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.vehicle.TurretHead;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -126,6 +127,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteAPI road;
     private final SpriteAPI floors;
     private final SpriteAPI roofs;
+    private final SpriteAPI hullRoof;
     private final SpriteAPI water;
     private final SpriteAPI urban3;
     private final SpriteAPI nature;
@@ -137,6 +139,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final DerelictWalkerAssets crawler;
+    private final DerelictWalkerAssets stripper;
+    private final DerelictWalkerAssets hauler;
+    private Map<MechVariant, LayeredSpriteCache> variantBodies;
     private final LayeredSpriteCache derelictPortHead;
     private final LayeredSpriteCache derelictRackHead;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
@@ -151,6 +156,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<String, LayeredSpriteCache> gunDrawings = new LinkedHashMap<>();
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
+    private SpriteAPI rubble;
     private SpriteAPI warshipEngineFlame;
     private SpriteAPI warshipEngineGlow;
     private SpriteAPI engineFlame;
@@ -174,6 +180,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         road = sprite(TileManifest.ROAD_SHEET);
         floors = sprite(TileManifest.FLOORS_SHEET);
         roofs = sprite(RoofTiles.SHEET);
+        hullRoof = sprite(HullRoof.TEXTURE);
         water = sprite(TileManifest.WATER_SHEET);
         urban3 = sprite(TileManifest.STREET3_SHEET);
         nature = sprite(TileManifest.NATURE_SHEET);
@@ -209,6 +216,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadEngineFx();
         ensureObjectiveIcons();
         loadDecals();
+        rubble = spriteOrNull(BattleSprites.SPRITE_WALL_RUBBLE);
         mech = loadMech();
         derelictWalker = DerelictWalkerAssets.load(path -> {
             try {
@@ -218,6 +226,20 @@ final class HeadlessBattleSprites extends BattleSprites {
             }
         });
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, path -> {
             try {
                 return optionalLayer(path);
             } catch (IOException missing) {
@@ -379,6 +401,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI roofSheet() { return roofs; }
     @Override public int roofSheetPxW() { return asset(roofs).width(); }
     @Override public int roofSheetPxH() { return asset(roofs).height(); }
+    @Override public SpriteAPI hullRoofSheet() { return hullRoof; }
+    @Override public int hullRoofSheetPxW() { return asset(hullRoof).width(); }
+    @Override public int hullRoofSheetPxH() { return asset(hullRoof).height(); }
     @Override public SpriteAPI waterSheet() { return water; }
     @Override public int waterSheetPxW() { return asset(water).width(); }
     @Override public int waterSheetPxH() { return asset(water).height(); }
@@ -407,6 +432,21 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
+    @Override public DerelictWalkerAssets stripperSprites() { return stripper; }
+    @Override public DerelictWalkerAssets haulerSprites() { return hauler; }
+
+    @Override public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() {
+        if (variantBodies == null) {
+            variantBodies = MechVariantBodies.load(path -> {
+                try {
+                    return optionalLayer(path);
+                } catch (IOException missing) {
+                    return null;
+                }
+            });
+        }
+        return variantBodies;
+    }
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache derelictTurretHead(boolean rack) {
         return rack ? derelictRackHead : derelictPortHead;
@@ -460,6 +500,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI decalSheet() { return decals; }
     @Override public SpriteSheetFrames decalFrames() { return decalFrames; }
     @Override public void ensureDecalSheet() { }
+    @Override public SpriteAPI rubbleSheet() { return rubble; }
+    @Override public SpriteSheetFrames rubbleFrames() { return rubble == null ? null : WallRubble.frames(); }
+    @Override public void ensureRubbleSheet() { }
 
     @Override public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlame; }
     @Override public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlow; }
@@ -824,7 +867,9 @@ final class HeadlessBattleSprites extends BattleSprites {
                   new LayeredMechAssets.ActiveProtection(
                           optionalLayer(MECH_ROOT + "active-protection-bulwark.png"),
                           optionalLayer(MECH_ROOT + "active-protection-hound.png"),
-                          optionalLayer(MECH_ROOT + "active-protection-warden.png")));
+                          optionalLayer(MECH_ROOT + "active-protection-warden.png")))
+                .withVariantBodies(mechVariantBodies())
+                .withFlamers(optionalLayer(MECH_ROOT + "fl-1.png"), optionalLayer(MECH_ROOT + "fl-2.png"));
     }
 
     private LayeredSpriteCache optionalLayer(String path) throws IOException {

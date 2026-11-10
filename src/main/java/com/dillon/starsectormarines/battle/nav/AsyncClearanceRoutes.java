@@ -122,6 +122,8 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
     private final Map<Long, Entry> entries = new HashMap<>();
     private NavigationGrid snapshot;
     private long snapshotRevision = Long.MIN_VALUE;
+    /** The grid the snapshot was taken of: a routing view rebuilt whole can repeat a revision number. */
+    private NavigationGrid snapshotOf;
     private int tick;
     private boolean closed;
 
@@ -167,7 +169,8 @@ public final class AsyncClearanceRoutes implements AutoCloseable {
             entries.remove(owner);
             long pending = entries.values().stream().filter(row -> !row.task.future.isDone()).count();
             if (pending >= MAX_PENDING_SEARCHES) return new Reply(PathRequestStatus.PENDING, null, revision);
-            if (snapshot == null || snapshotRevision != revision) {
+            if (snapshot == null || snapshotRevision != revision || snapshotOf != grid) {
+                snapshotOf = grid;
                 snapshot = grid.copyVehicleRoutingTopology();
                 snapshotRevision = revision;
             }

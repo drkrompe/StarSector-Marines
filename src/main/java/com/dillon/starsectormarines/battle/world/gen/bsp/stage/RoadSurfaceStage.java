@@ -94,6 +94,9 @@ public final class RoadSurfaceStage implements GenStage {
                     && (claim[x][y] == GrownTrunkPlan.UNOWNED || precincts == null
                     || precincts.precincts().get(claim[x][y]).isProgrammed()
                     || id != null && id.startsWith("pavement.asphalt."));
+            // A road line over the town's own street paving is that street: swept as a road it could not be paved
+            // (only asphalt road takes the sweep) and stood as a strip of paving down the street's middle.
+            if (road[x][y] && city && id == null && carriageway(ctx, x, y)) road[x][y] = false;
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
             footway[x][y] = city && !road[x][y] && footway(ctx, x, y);
             // The country's roads are its own routes, laid below; none of it is a street.
@@ -114,8 +117,15 @@ public final class RoadSurfaceStage implements GenStage {
         for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++)
             paved[x][y] = street[x][y] || swept[x][y] && ctx.topology.getGroundKind(x, y) == GroundKind.STREET
                     && ctx.topology.getSurface(x, y) != 0;
+        // The country's traffic roads, laid below: a town street beside one is its verge, not a second road.
+        boolean[][] laid = null;
+        if (rural != null) {
+            laid = new boolean[ctx.width][ctx.height];
+            for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++)
+                laid[x][y] = rural.inCountry(x, y) && rural.carriesTraffic(x, y);
+        }
         var network = anyStreet
-                ? GeneratedRoads.streets(swept, street, footway, paved, ctx.seed, CITY_MAX_BREADTH, style)
+                ? GeneratedRoads.streets(swept, street, footway, paved, laid, ctx.seed, CITY_MAX_BREADTH, style)
                 : new GeneratedRoads.Network(GeneratedRoads.routes(swept, paved, ctx.seed), List.of());
         List<RoadPlan.Route> routes = new ArrayList<>(network.routes());
         if (rural != null) routes.addAll(RuralGround.routes(rural, network.routes(), ctx.seed));

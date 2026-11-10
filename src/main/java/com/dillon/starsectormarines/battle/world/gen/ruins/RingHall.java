@@ -22,7 +22,7 @@ import java.util.List;
  */
 final class RingHall {
 
-    static final String RIME = "floors.snow";
+    static final String RIME = "ruins-ground.rime";
     /** Each ring segment's size: three cells square. */
     static final int SEG = 3;
 
@@ -61,20 +61,21 @@ final class RingHall {
         for (int x = rl; x + SEG - 1 <= rr + SEG - 1; x += SEG, j++) {
             boolean crossing = Math.abs(x + 1 - f.cx - .5f) <= 2;
             if (!crossing) {
-                f.stand("doodad.ruins-ring-segment", "doodad.ruins-magnet-segment-half", x, rb, SEG, SEG, "ring");
+                f.stand("doodad.ruins-ring-segment-ew", "doodad.ruins-magnet-segment-half", x, rb, SEG, SEG, "ring");
                 coils.add(new int[]{x + 1, rb + 1});
             }
             // The top arc leaves the linac's way in at the line.
             if (!crossing && j % 3 != 1) {
-                f.stand("doodad.ruins-ring-segment", "doodad.ruins-magnet-segment-half", x, rt, SEG, SEG, "ring");
+                f.stand("doodad.ruins-ring-segment-ew", "doodad.ruins-magnet-segment-half", x, rt, SEG, SEG, "ring");
                 coils.add(new int[]{x + 1, rt + 1});
             }
         }
         // Inside the ring: RF cavities on its straights, the beam dump at its foot.
         for (int y = rb + SEG + 4, n = 0; y + 2 < rt - 2; y += 6, n++) {
             boolean west = n % 2 == 0;
-            String id = n % 3 == 0 ? "doodad.ruins-rf-cavity" : "doodad.ruins-beam-diagnostics";
-            f.stand(id, "doodad.industrial-generator", west ? rl + SEG + 1 : rr - 3, y, 2, 3, "ring");
+            boolean cavity = n % 3 == 0;
+            f.stand(cavity ? "doodad.ruins-rf-cavity" : "doodad.ruins-beam-diagnostics", "doodad.industrial-generator",
+                    west ? rl + SEG + 1 : rr - 3, y, 2, cavity ? 3 : 2, "ring");
             if (rr - rl > 24) {
                 f.stand("doodad.ruins-beam-diagnostics", "doodad.industrial-generator", west ? rr - 9 : rl + SEG + 7,
                         y + 3, 2, 2, "ring");
@@ -99,7 +100,7 @@ final class RingHall {
         f.stand("doodad.ruins-magnet-segment-whole", null, f.eastR - 3, 1, 3, 3, "dispatch");
         f.runways();
         f.serviceDrops("doodad.ruins-power-drop", "barracks-bunks.locker-worn", "ring");
-        f.stand("doodad.ruins-fallen-girder", null, 1, quench > 0 ? quench + 6 : f.l / 3, 7, 1,
+        f.stand("doodad.ruins-fallen-girder", null, HallFrame.TRUNK, quench > 0 ? quench + 6 : f.l / 3, 7, 1,
                 WorksHallPlan.COLLAPSE);
         if (quench > 0) p.wear("doodad.ruins-scorch-arc", rr + SEG, quench - 1, 2, 2);
 

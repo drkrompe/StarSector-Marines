@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c71e-f738-71f3-82bc-1ba8bbe8e321",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c71e-f738-71f3-82bc-1ba8bbe8e321\\exec-672f4299-3f38-4b1e-89a0-d4371aa00bfc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\trench.png",
+    "sha256": "04580496ec8aa9ff168f1be12ad59078630488fade9e30a0c2d3e6e359e56984",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\trench.prompt.txt",
+  "promptSha256": "4136e6e0b245247fa9744ecd868f87c54c77ae39324fa54d8c98ed003762d01c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\n\nUse case: sketch-to-render, game ground tiles. Image 1 is the authoritative geometry guide and edit target. Reskin it into finished painted ground, preserving every shape and position and the exact canvas; keep everything outside the pieces transparent. This is the IMPACT TRENCH a crashed starship ploughed through a world's ground, seen from directly overhead. Four pieces. PIECE 1, the field (x 0-383, y 128-511): ONE continuous seamless stretch of the trench floor, ploughed and scorched earth and crushed rock, furrows running left to right exactly where the guide has them, so the left edge continues into the right and the top into the bottom when tiled; even, quiet, no single large feature near an edge. PIECE 2, the lip (x 440-1495, y 40-135): the trench's thrown-up berm as a long straight strip, identical all along: the untouched field at the top edge, a crest of heaped, broken earth and torn sod along the middle, falling away into scorched shadow at the bottom (the trench side). PIECES 3-5, loose ground patches with soft irregular feathered edges that blend into any ground: a scorch splash (black-brown, burnt ash, a darker core); a long gouge furrow (three parallel scored furrows with thrown earth); a glassed patch (fused, cracked dark grey-green glass from re-entry heat in a burnt rim). Restrained earthy palette: dun, umber, ash, soot, a little rust; no vegetation, no metal debris, no objects. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map tile, sun from the upper left. Hand-painted gritty science-fiction game-tile look like Starsector, coarse readable detail that survives being shrunk to 32 to 64 pixels per cell. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. True transparent background outside the pieces; no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\trench-guide.png",
+      "sha256": "abe7aa9e9e767742202a3e4b5eb044a01680cdb9b1eecf85400f0f7ff5c28078",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving the guide’s layout and transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 79544,
+    "cached_input_tokens": 65024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 702,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 66.2
+}

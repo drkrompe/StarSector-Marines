@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.HullFitEffect;
@@ -166,7 +167,7 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
         return spawn(loadout.type(), loadout.plating(), loadout.engine(), loadout.gun(),
-                loadout.compartment(), loadout.noOwnGun(), loadout.refit(), faction, mission);
+                loadout.compartment(), loadout.noOwnGun(), loadout.refit(), loadout.coax(), faction, mission);
     }
 
     /**
@@ -220,6 +221,16 @@ public final class ConvoyService implements BodyCarrier {
     public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, MechRefit refit,
                       Faction faction, VehicleMission mission) {
+        return spawn(type, plating, engine, weapon, compartment, noOwnGun, refit, type.standardCoax(), faction, mission);
+    }
+
+    /**
+     * As above, with {@code coax} in the hull's coax card ({@link VehicleType#coaxMount}): a gun on its own mount,
+     * first of the hull's secondary mounts; null leaves the card empty. The overloads without it fit the stock part.
+     */
+    public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
+                      MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, MechRefit refit,
+                      MechWeaponComponent coax, Faction faction, VehicleMission mission) {
         if (refit == null) refit = MechRefit.NEUTRAL;
         if (weapon == null && !noOwnGun) weapon = type.ownGun();
         HullReservoir.Frame flux = VehicleRack.frame(type, compartment);
@@ -260,6 +271,10 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null) turret.traverseMult = refit.traverseMult();
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
+            VehicleMount coaxMount = type.coaxMount();
+            if (coaxMount != null && coax != null && VehicleGunCard.COAX.accepts(coax)) {
+                turret.secondaries.add(MountedGun.of(coaxMount.withPart(coax), loader));
+            }
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, loader));
             HullReservoir.install(turret, HullReservoir.create(flux));
         }

@@ -132,7 +132,19 @@ public enum MechWeaponComponent {
     SRM_3_QS("component.mech-srm-3-qs", "@gearMechWeaponComponentSRM3QS",
             MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
             WeaponRegistry.MECH_SRM_3_QS_ID, 3, 1,
-            LayeredMechAppearance.POD_SRM_3_QS);
+            LayeredMechAppearance.POD_SRM_3_QS),
+
+    // The machine flamers (mechs-nouns.md, Machine flamers): one family in two sizes, named FL-<N> by footprint rows like
+    // the lasers. Each trigger is a short stream of burning charges, the pack flamer's gel on a machine's fuel load: the
+    // FL-1, the pirate Torch's burner, on an arm or nose mount; the FL-2, the Path Censer's lance, on a shoulder.
+    FL_1("component.mech-fl-1", "@gearMechWeaponComponentFL1",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 1,
+            WeaponRegistry.MECH_FL_1_ID, 6, -1,
+            LayeredMechAppearance.ARMS_FL_1),
+    FL_2("component.mech-fl-2", "@gearMechWeaponComponentFL2",
+            MountFamily.SHOULDER, HardpointType.BALLISTIC, 2, 2,
+            WeaponRegistry.MECH_FL_2_ID, 8, -1,
+            LayeredMechAppearance.POD_FL_2);
 
     /**
      * A missile rack holding more than one salvo: a held trigger chains its salvos (`mechs-nouns.md`,
@@ -140,6 +152,17 @@ public enum MechWeaponComponent {
      */
     public boolean chainsSalvos() {
         return hardpointType == HardpointType.MISSILE && ammoCapacity > 1;
+    }
+
+    /**
+     * A machine flamer (`mechs-nouns.md`, Machine flamers): its charges land burning, so it is held, as the pack flamer's
+     * throw is, wherever the fire it lights could come back to its own side ({@code FireReach}).
+     */
+    public boolean machineFlamer() {
+        return switch (this) {
+            case FL_1, FL_2 -> true;
+            default -> false;
+        };
     }
 
     /** An anti-armor rack: it holds fire at anything that is not a hardened target. */
@@ -324,6 +347,9 @@ public enum MechWeaponComponent {
             case LL_3 -> 5f;
             case SRM_3_QS -> 7f;
             case THERMAL_LANCE -> 7f;
+            // UNTUNED: a stream, then the burner's pilot relights and the pump builds pressure again.
+            case FL_1 -> 2.6f;
+            case FL_2 -> 3.2f;
             case PL_3 -> 1.8f;
             case PL_3_SWEEP -> 1.8f;
             case PL_2 -> 1.6f;
@@ -378,6 +404,9 @@ public enum MechWeaponComponent {
             case LL_3 -> 35f;
             case THERMAL_LANCE -> 32f;
             case SRM_3_QS -> 24f;
+            // UNTUNED: the pump and igniter, light beside a gun's breech; the fuel is the body's load.
+            case FL_1 -> 12f;
+            case FL_2 -> 20f;
             // The PL-3 is a flux hog, as on the tank.
             case PL_3 -> 38f;
             case PL_3_SWEEP -> 28f;

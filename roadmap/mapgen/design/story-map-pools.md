@@ -7,7 +7,7 @@ generic Raid's map, one per Raid site, laid against a reference market
 (`raid-mission.md`, The owned map). Conquest and the other generic contracts
 stay fully random until they own a map too.
 
-Updated: 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
+Updated: 2026-11-10 — every owned map plays the sealed layout, the Raid's included. Earlier, 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
@@ -60,7 +60,8 @@ note is for people: what the map is and why it is the one.
 | `heart-burn` (and its town and city) | 2 | the Wellhollow story map The Burn was tuned on |
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
-| `cordon-line`, `cordon-road`; town; urban | 3, 15; 14, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 1, 3, 5 | the Long Survey's chapters: the colony's, a Sabotage country's, the Cordon line's and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
@@ -103,8 +104,15 @@ through or built on (`PlanetSkinTest`). It swaps:
   Each roof carries two skylights lit by warm amber grow-light (owner, over
   ImageGen's pink: "Warm amber"). On a dark map the sheds are lamps too
   (`PlanetSkin.growLights`): amber pools down each shed's middle, drawn with no
-  fixture, so the roofs glow and spill onto the lanes. The sheds are walk-in
-  and coverless, so pathing, sight and cover are the home map's. Paved
+  fixture, so the roofs glow and spill onto the lanes. Each shed is sunk into
+  the ground, only its lit roof ridge above grade and earth banked up all four
+  sides (owner: "embed them into the earth"); the bank is painted as shading
+  only, so it is snow on a frozen world, crust on a toxic one and scorched soil
+  on an irradiated one. In the sim a shed is an earth mound
+  (`PlanetSkin.BANK`): every cell stays walkable and see-through and vehicles
+  pass, and the bank is light cover (half height 0.18, below a sandbag
+  parapet's 0.4) to whoever lies on or beside it. The pump house stands above
+  grade and is coverless. Pathing and sight are the home map's. Paved
   hydroponic bays were dropped (owner, 2026-11-10: "Do a bunch of paved beds
   make sense? Why would a planet have those?"), and so were polytunnels
   (owner: "They don't read like hydroponics"); sheds were picked over
@@ -125,7 +133,10 @@ world's palette alone.
 
 A world nobody lives on in the open plays the mission's **sealed layout**: the
 same owned seed and patch on the same home palette, generated with every town
-sealed (`SealedTown.seal`), then skinned as any world is. Which worlds is the
+sealed (`SealedTown.seal`), then skinned as any world is. Every owned map plays
+it, the Raid's as well as the story missions', through one rule
+(`PlanetSkin.sealedFor`), decided by the raided or fought-on world and never the
+home or the Raid's reference market. Which worlds is the
 world's alone (`PlanetSkin.sealsTowns`): wherever its habitat is enclosed, so
 irradiated, toxic and airless worlds, and bare rock, which is airless unless its
 profile says otherwise. Every zoned place the mission names (its colony, towns,
@@ -147,7 +158,8 @@ different street plan from the open layout's, from the same seed.
 `createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
 `.worlds=`) frames each mission's map whole under every palette through the
 look preset, with close frames on its fields and woods, and on a world that
-plays the sealed layout a close frame on a lock.
+plays the sealed layout a close frame on a lock (a lock floor beside the
+envelope's own wall, not a compound's striped floor).
 
 **Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
 never on the market behind it, with no re-roll, then skinned for the world the
@@ -246,8 +258,10 @@ instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
 - **`bores`** `[{x, y, mother?}]`: the first wave in eruption order and exactly
   one mother, each on the doorstep of the place nearest it (within 10 cells) or
   else on the open ground nearest it (within 16).
-- **`holdouts`** `[[x, y]]`: in redoubt order, the held building each cell falls
-  inside.
+- **`holdouts`** `[[x, y]]`: in redoubt order, the held building with room that
+  each cell falls inside, or else the nearest one (within 16 cells), none named
+  twice. The sealed layout lays its own street plan from the same seed, so a cell
+  inside a building on the open layout may fall in a street on the sealed one.
 
 They replace the setup's choices and its clearances; a placement that cannot
 seat fails the map like any other acceptance.
@@ -263,6 +277,18 @@ Any entry may also **place** a mission layout's structures by name
   in `storyMapPools`. Broad Front's story map places its two allied airbases
   this way (`heart-nouns.md`, Allied airbase). Asharu's ARID entry is placed
 this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
+
+Any entry may also lay a **fallen hull** over its ground
+(`fallen-hull-nouns.md`, The ground):
+
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}]}`: the hull's
+  middle cell, the way its bow points (`north` is +y), the trench's length
+  behind its stern, and the stakes standing at the start, each `planted`,
+  `raised` or `established` on the lattice point nearest its cell. It rides the
+  plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
+  lays it; a Long Survey chapter's acceptance is its base mission's own (the
+  colony's rescue, the Cordon's line, the placed airbases) and the hull's
+  (`HullSiteCheck`, every stake seated with a haul road home).
 
 Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
 or headless through `map_render` and `map_save`: pins, ruin strokes and
