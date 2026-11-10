@@ -18,10 +18,21 @@ ruin). Geometry-first (`geometry-first-imagegen.md`):
    (ids, cover, footprints) is `_atlas.json`.
 
 Shipped: `frost` (cryo rack, frost heatsink), `vats` (culture vat, grow bed),
-`patches` (two frost, two growth). The frost and vats sheets' own patches are
-concept-only and not exported. `raw/ruins-forge-concept.png` is the forge floor
-and shaft head concept (assembly cradle, shaft head, hoist winch), not yet
-shipped.
+`patches` (two frost, two growth), and the plant kit every theme's halls share:
+`plant-line` (line module 6x3, line end 3x3, empty cradle 3x3) and
+`plant-store` (rack rows 6x2 stripped and with crates, dock door 4x2). The
+plant sheets used the shipped `industrial-machine-tool` source in place of the
+cold store as a material reference.
+
+The line module joins end to end along its long axis (east-west as shipped)
+and the line end's bed leaves by its east edge: `export.py` cuts both at
+roller-gap centres from one shared vertical window, so every seam meets gap to
+gap (its comment records the measured boxes). The empty cradle's middle is
+open: a 2x2 to 3x3 product stands in it.
+
+The frost and vats sheets' own patches are concept-only and not exported.
+`raw/ruins-forge-concept.png` is the forge floor and shaft head concept
+(assembly cradle, shaft head, hoist winch), not yet shipped.
 
 Review: `gradlew.bat createSnapshots -Psnapshot=ruins-themed-site-look`, the
 `inside/` cryoarithmetic-engine and soil-nanites shots.

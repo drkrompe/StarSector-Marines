@@ -85,6 +85,71 @@
         2,
         2
       ]
+    },
+    {
+      "id": "doodad.ruins-line-module",
+      "col": 2,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        6,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-line-end",
+      "col": 0,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-empty-cradle",
+      "col": 3,
+      "row": 7,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-rack-stripped",
+      "col": 0,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-rack-crates",
+      "col": 0,
+      "row": 12,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-dock-door",
+      "col": 0,
+      "row": 14,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ]
     }
   ],
   "cells": [
@@ -135,6 +200,42 @@
       "row": 3,
       "name": "Moss stain",
       "description": "Floor decal: an uneven stain of slime and moss with root threads. Walkable, no cover."
+    },
+    {
+      "col": 2,
+      "row": 4,
+      "name": "Assembly line module",
+      "description": "A straight 6x3 section of a dead assembly line: roller bed flush to both short ends so sections join end to end (long axis east-west), a work station either side."
+    },
+    {
+      "col": 0,
+      "row": 7,
+      "name": "Line intake",
+      "description": "The 3x3 end of an assembly line: a feed hopper housing, the line's bed leaving by its east edge with the module's cross-section."
+    },
+    {
+      "col": 3,
+      "row": 7,
+      "name": "Empty product cradle",
+      "description": "A 3x3 floor cradle, clamps open, its product long pulled; the middle is open floor where a product stands."
+    },
+    {
+      "col": 0,
+      "row": 10,
+      "name": "Stripped rack row",
+      "description": "A 6x2 pallet rack row, every bay empty."
+    },
+    {
+      "col": 0,
+      "row": 12,
+      "name": "Rack row, a few crates",
+      "description": "The same 6x2 rack row with three crates left in it."
+    },
+    {
+      "col": 0,
+      "row": 14,
+      "name": "Dock door",
+      "description": "A 4x2 loading dock: the armoured roll door along the north edge, set in the hall wall, and its leveler plate on the floor south of it."
     }
   ]
 }

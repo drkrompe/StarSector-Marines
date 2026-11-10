@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c308-0ac6-7e20-906b-2f64108b6922",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c308-0ac6-7e20-906b-2f64108b6922\\exec-d6efd39c-ee66-4b90-8346-8b8c434f3e99.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-plant-line.raw.png",
+    "sha256": "e7a8f9777eb66cb3d9649ae29c350ab363e5d26e56e711aa4b96617e09d5f4d7",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\plant-line.prompt.txt",
+  "promptSha256": "4335a128d134b01789ff50631033d4ee6f49c770c8ab00e76ee8c0f1fea968c6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for the production floor of an abandoned Domain-era automated factory, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubjects, left to right:\n1. line-module (wide 6x3 block): a straight section of a heavy automated assembly line: a powered roller conveyor bed running the full length, its rollers, side rails and bed edges running straight off both short ends with no end caps, plates or frame, so identical sections join end to end seamlessly; above and below the bed two robotic work stations (armoured arm bases with folded manipulator arms reaching over the bed, tool heads, cable trunks). The bed is empty.\n2. line-end (3x3 block): the intake end of the same line: the same conveyor bed, the same width and rollers, enters from the right edge flush with no cap, and ends in a squat armoured feed hopper housing with a dark open mouth on the left.\n3. empty-cradle (3x3 square ring): an empty heavy product cradle bolted to the floor: a square gunmetal frame with four hydraulic clamp jaws at the corners, opened and empty, hazard striping on the frame, cable ports. The middle is open, fully transparent: the product it held is gone.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-plant-line-guide.png",
+      "sha256": "904942f831d489e4570cc9520e3fec14fd929f3dafee2fffbf27fe37ed73f299",
+      "dimensions": [
+        4096,
+        1088
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-machine-tool.png",
+      "sha256": "d90c6007d00d0128df21bb3ef8d9385b88dbb77ff705d30413e0a74899e9f292",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
+      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
+      "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’m using the imagegen skill to reskin the layout in place and generate one transparent sprite sheet."
+  ],
+  "usage": {
+    "input_tokens": 79565,
+    "cached_input_tokens": 65152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1101,
+    "reasoning_output_tokens": 25
+  },
+  "elapsedSeconds": 77.7
+}

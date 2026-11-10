@@ -119,6 +119,22 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
     /** An open court in a layer where the boat can set down: a lift point once held. */
     public record Court(String name, Area ground, LandingArea area) {}
 
+    /** The plant's stages a hall serves, in the order its product went through them ({@code ruins-expedition.md}). */
+    public enum PlantStage {
+        /** Receiving docks: where stock came in. */
+        INTAKE,
+        /** Line halls: where the product was made. */
+        PRODUCTION,
+        /** Rack bays: where it waited to ship. */
+        STORAGE
+    }
+
+    /**
+     * One of the plant's halls inside the megastructure: a large interior floor with its stage's furniture. Every hall
+     * is also among the interior's chambers, so the delve laws hold it.
+     */
+    public record PlantHall(String name, PlantStage stage, Area footprint) {}
+
     /**
      * One band of ruined ground the route must get through. {@code ground} is the holdable band, from just in
      * front of its wall line to the next layer's; {@code lineLeft..lineRight} is the column range the wall line
@@ -167,11 +183,18 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * door). A court inside is a light well open to the sky, so every lift point is under open sky.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
-                           List<Area> chambers) {
+                           List<Area> chambers, List<PlantHall> halls) {
         public Interior {
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
+            halls = halls == null ? List.of() : List.copyOf(halls);
+        }
+
+        /** An interior without plant halls. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, List.of());
         }
 
         /** An interior with no aprons published, for a delve built by hand. */
