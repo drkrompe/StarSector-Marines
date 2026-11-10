@@ -308,8 +308,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     width, height);
         } else if (vehicle != null && fittingOverlaysVisible.getAsBoolean()) {
             VehicleGunCard card = VehicleGunCard.of(vehicle);
+            VehicleGunCard coax = VehicleGunCard.coaxOf(vehicle);
             drawSchematic(context, VehicleDoll.sockets(vehicle), vehicle, installedWeapons,
-                    (socket, weapon) -> socket.id() == SocketId.ARMS && card != null && card.accepts(weapon),
+                    (socket, weapon) -> socket.id() == SocketId.ARMS && card != null && card.accepts(weapon)
+                            || socket.id() == SocketId.RIGHT_ARM && coax != null && coax.accepts(weapon),
                     id -> VehicleDoll.tone(vehicle, id), width, height);
         } else {
             lastSocketTargets = List.of();
@@ -984,8 +986,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         place(targets, byId.get(SocketId.CORE), centerX, coreY);
         float armsY = top + armsH * 0.5f;
         place(targets, byId.get(SocketId.ARMS), centerX, armsY);
-        place(targets, leftArm, centerX - gapX * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
-        place(targets, rightArm, centerX + gapX * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
+        // Side arms flank the centreline mount where both stand (a hull's coax card beside its turret), else the centre.
+        float armsW = cardWidth(byId.get(SocketId.ARMS));
+        float sideOffset = armsW > 0f ? armsW * 0.5f + gapX : gapX * 0.5f;
+        place(targets, leftArm, centerX - sideOffset - cardWidth(leftArm) * 0.5f, armsY);
+        place(targets, rightArm, centerX + sideOffset + cardWidth(rightArm) * 0.5f, armsY);
         place(targets, left, centerX - coreW * 0.5f - gapX - cardWidth(left) * 0.5f, coreY);
         place(targets, right, centerX + coreW * 0.5f + gapX + cardWidth(right) * 0.5f, coreY);
         float backY = coreY + coreH * 0.5f + gapY + backH * 0.5f;
@@ -1014,7 +1019,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDef socket : sockets) byId.put(socket.id(), socket);
         float shoulders = cardWidth(byId.get(SocketId.CORE)) + 2f * SCHEMATIC_TIGHT_GAP
                 + 2f * Math.max(cardWidth(byId.get(SocketId.LEFT_SHOULDER)), cardWidth(byId.get(SocketId.RIGHT_SHOULDER)));
-        float arms = SCHEMATIC_TIGHT_GAP + 2f * Math.max(cardWidth(byId.get(SocketId.LEFT_ARM)), cardWidth(byId.get(SocketId.RIGHT_ARM)));
+        float side = Math.max(cardWidth(byId.get(SocketId.LEFT_ARM)), cardWidth(byId.get(SocketId.RIGHT_ARM)));
+        float centre = cardWidth(byId.get(SocketId.ARMS));
+        float arms = centre > 0f && side > 0f ? centre + 2f * (SCHEMATIC_TIGHT_GAP + side)
+                : centre > 0f ? centre : SCHEMATIC_TIGHT_GAP + 2f * side;
         float bays = SCHEMATIC_TIGHT_GAP + 2f * Math.max(cardWidth(byId.get(SocketId.AUXILIARY)), cardWidth(byId.get(SocketId.AUXILIARY_2)));
         return Math.max(shoulders, Math.max(arms, bays));
     }

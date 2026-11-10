@@ -400,8 +400,9 @@ increasing an encounter's total armored threat.
   - **The engine budget is a mech's.** A chassis spends mass against its engine's output, so mass, output and a
     refusal for going over them appear only on a mech. A hull has no budget, so its engine only moves it.
   - **A mech has mounts, a hull a gun card.** A mech's mounts take a weapon by hardpoint and size and a weapon can move
-    between them; a hull has one weapon point, which takes the type and size of the gun it was built around
-    (`VehicleGunCard`), and an unarmed hull has none, so it needs no bank and takes none.
+    between them; a hull has its gun card, which takes the type and size of the gun it was built around
+    (`VehicleGunCard`), and the Onager a coax card beside it (below); an unarmed hull has none, so it needs no bank
+    and takes none. A part never moves between a hull's cards.
   - **A hull's bay and systems are its type.** Seats, a supply stock, a drone bay, a mast and secondary mounts
     are what the hull is (`VehicleDoll`), so they are locked cards; a behaviour of its own stays a variant. A chassis
     authors no locked socket. Only a hull carries seats, so only it has a bar for them.
@@ -458,6 +459,14 @@ increasing an encounter's total armored threat.
   The gun tanks' cards are omni too, two rows on the Scorpion and three on the Onager (`VehicleGunCard.MEDIUM`,
   `HEAVY`), so any colour of part goes in; only the APC carriers (the mortar's 2x2 ballistic card, the LRM
   carrier's 3x2 missile card) and the laser tank are locked (`hegemony-armor-line.md`, slice 8).
+  The Onager has a second card, its **coax card** (`VehicleGunCard.COAX`, `VehicleType.coaxMount`; owner,
+  2026-11-10): one row by two, locked ballistic, so it takes the light machine gun or another one-row ballistic part.
+  It stands right of the turret card on the doll (`SocketId.RIGHT_ARM`, `MechMountSlot.RIGHT_ARM`, a socket no hull
+  used before; `CampaignVehicle.weaponAt`). Its part fights as the hull's first secondary mount, on its own ring on
+  the deck at the turret's shoulder, with its own aim and the hull's reservoir and loader (`VehicleMount.withPart`),
+  and goes with the turret: a shot-away turret silences it. A bought hull's coax card is empty and an empty card is no
+  gun; a stock Onager carries the light machine gun there (`VehicleType.standardCoax`). Unlike a carrier's secondary
+  mounts, which are the hull's own guns and stay locked, the coax card takes parts from stores.
   An empty gun card means no gun, as every empty socket does (owner, 2026-11-05): a bought hull stands with a bare turret ring and may still drop unarmed, as a mech with no weapons may. Only a hull from an older save keeps an own gun, no part, until a weapon first replaces it (`CampaignVehicle.hasOwnGun`), so a weapon
   is only ever a part from stores. A stock hull's machine gun is the mech light machine gun itself
   (`VehicleType.ownGun`), set down as if fitted, so there is one machine gun in the game. A fitted weapon is the hull's turret with the weapon's ballistics in it

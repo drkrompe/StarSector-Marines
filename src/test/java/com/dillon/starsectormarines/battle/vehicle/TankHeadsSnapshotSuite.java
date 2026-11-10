@@ -140,8 +140,10 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
     private static long spawn(BattleSimulation sim, MechWeaponComponent gun, boolean activeProtection, float[] at) {
         List<MechInternal> compartment = new ArrayList<>(VehicleRack.stockFit(VehicleType.BREAKTHROUGH_TANK));
         if (activeProtection) compartment.add(MechInternal.ACTIVE_PROTECTION);
+        // Each wears the stock coax beside its turret, so the shots show the coax card's gun on the deck.
         long tank = sim.convoy().spawn(new VehicleDeploymentSpec(null, null, VehicleType.BREAKTHROUGH_TANK,
-                VehiclePlating.FACTORY, VehicleEngine.STOCK, gun, compartment), Faction.MARINE,
+                VehiclePlating.FACTORY, VehicleEngine.STOCK, gun, compartment)
+                .withCoax(VehicleType.BREAKTHROUGH_TANK.standardCoax()), Faction.MARINE,
                 VehicleMission.deployed(at[0], at[1]));
         GroundTurret turret = sim.convoy().turret(tank);
         if (turret != null) {
@@ -149,6 +151,11 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
             turret.ammo = 0;
             turret.unlimited = false;
             turret.loaderSeconds = Float.POSITIVE_INFINITY;
+            for (MountedGun coax : turret.secondaries) {
+                coax.turret().ammo = 0;
+                coax.turret().unlimited = false;
+                coax.turret().loaderSeconds = Float.POSITIVE_INFINITY;
+            }
         }
         return tank;
     }

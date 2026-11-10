@@ -147,16 +147,30 @@ public final class VehicleGun {
     public static StructureDef fit(VehicleType type, MechWeaponComponent weapon) {
         StructureDef stock = type.turretStructure();
         if (stock == null || weapon == null) return stock;
+        // The weapon brings its own muzzle, at the tip of its drawing out from the ring.
+        float length = lengthCells(type, weapon);
+        return carry(stock, weapon, length > 0f ? (1f - RING_FROM_REAR) * length : stock.mount.muzzleOffsetCells);
+    }
+
+    /**
+     * {@code mount}'s carriage carrying {@code weapon} (a coax card's part, {@link VehicleType#coaxMount}), by the same
+     * rule as a turret's: the part's magazine, flux and effects. Its muzzle is the carriage's own, a short gun on its
+     * ring. The catalog structure itself for a null weapon.
+     */
+    public static StructureDef fit(VehicleMount mount, MechWeaponComponent weapon) {
+        StructureDef stock = mount.carriage();
+        if (weapon == null) return stock;
+        return carry(stock, weapon, stock.mount.muzzleOffsetCells);
+    }
+
+    private static StructureDef carry(StructureDef stock, MechWeaponComponent weapon, float muzzle) {
         TurretMountDef carriage = stock.mount;
         WeaponDef def = weapon.weaponDef();
         // A rack's magazine is its buffer, the number in its name: its salvos of its salvo's missiles.
         int magazine = weapon.readyRounds();
         // A carriage that builds flux charges the fitted weapon's own cost a round, on the hull's reservoir.
         TurretMountDef.Flux flux = carriage.flux == null ? null : new TurretMountDef.Flux(perRound(weapon, def));
-        // The weapon brings its own muzzle, at the tip of its drawing out from the ring, and its own effects: a
-        // ballistic weapon on a ballistic carriage keeps the carriage's casings and scorch, any other has none.
-        float length = lengthCells(type, weapon);
-        float muzzle = length > 0f ? (1f - RING_FROM_REAR) * length : carriage.muzzleOffsetCells;
+        // A ballistic weapon on a ballistic carriage keeps the carriage's casings and scorch, any other has none.
         boolean ballistic = weapon.hardpointType == MechWeaponComponent.HardpointType.BALLISTIC;
         return stock.withMount(carriage.withGun(def, magazine, flux, weapon.antiArmorOnly(), muzzle,
                 ballistic && carriage.ejectsCasings, ballistic ? carriage.scorchCells : 0f,

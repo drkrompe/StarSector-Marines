@@ -2835,6 +2835,8 @@ private static BufferedImage renderBarracks(
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
                 new SnapshotArtifact("mech-vehicle-gun-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-gun")),
+                new SnapshotArtifact("mech-vehicle-coax-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-coax")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -3198,6 +3200,16 @@ private static BufferedImage renderBarracks(
             bay.fitGun(tank.id(), MechWeaponComponent.HC_20);
             viewModel.gantryRows().get().get(3).select().run();
             viewModel.selectSlot(SocketId.ARMS);
+        }
+        // An Onager with its HC-20 and a light machine gun in its coax card, a spare in stores, the coax card selected:
+        // the card beside the turret's, and the stores listing what the one-row ballistic card takes.
+        if ("vehicle-coax".equals(materialHint)) {
+            CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
+            bay.addWeapon(MechWeaponComponent.LIGHT_MACHINE_GUN.id, 2);
+            bay.fitVehicleWeapon(tank.id(), MechMountSlot.RIGHT_ARM, MechWeaponComponent.LIGHT_MACHINE_GUN);
+            viewModel.gantryRows().get().get(3).select().run();
+            viewModel.selectSlot(SocketId.RIGHT_ARM);
         }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
