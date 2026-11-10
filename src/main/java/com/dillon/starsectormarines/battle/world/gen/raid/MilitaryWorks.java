@@ -230,7 +230,8 @@ public final class MilitaryWorks implements RaidIndustry {
         int[] bounds = claimBounds(c, plan.precincts().indexOf(works));
         if (bounds != null) MilitaryGround.watchtowers(c, bounds);
         for (int i = 0; i < plan.precincts().size(); i++) {
-            if (RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) MilitaryGround.paradeSquare(c, i);
+            if (!RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) continue;
+            MilitaryGround.drillYards(c, i, MilitaryGround.paradeSquare(c, i));
         }
         vehiclePark(c, plan, works);
         // The base's buildings and its garrison's are built alike, so the two read as one cantonment: olive sheet
