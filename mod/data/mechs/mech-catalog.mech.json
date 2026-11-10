@@ -17,6 +17,20 @@
       "description": "@gearCatalogSecurityWalkerDescription"
     },
     {
+      "variant": "security_rounds",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-25",
+      "role": "@gearCatalogSecurityRoundsRole",
+      "description": "@gearCatalogSecurityRoundsDescription"
+    },
+    {
+      "variant": "security_hall",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-70",
+      "role": "@gearCatalogSecurityHallRole",
+      "description": "@gearCatalogSecurityHallDescription"
+    },
+    {
       "variant": "crawler",
       "factionLogo": "graphics/factions/tritachyon.png",
       "designation": "TT-C2",

@@ -98,6 +98,11 @@ public final class SecurityNetwork {
         if (zone != null) stir(zone.id, tick);
     }
 
+    /** The facility's hunting alarm ({@link FacilityWake}): every online zone still dormant goes alert where it stands. */
+    public void alertAll() {
+        for (SecurityZone zone : zones.values()) zone.hearRelay();
+    }
+
     /** The vault is breached: every zone with a live node wakes, now and from here on. */
     public void breachVault(int tick) {
         contingency = true;

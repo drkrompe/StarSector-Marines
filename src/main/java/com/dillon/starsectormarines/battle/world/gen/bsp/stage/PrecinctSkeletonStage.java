@@ -59,10 +59,8 @@ public final class PrecinctSkeletonStage implements GenStage {
                         FortReservations.keepClear(ctx, plan), KnollGround.bounds(knolls, plan.precincts().size()),
                         FortReservations.sealed(ctx, plan));
         // The grown streets planned as one network before any place claims its ground (`StreetPlan`).
-        if (StreetPlan.enabled()) {
-            grown = StreetPlan.plan(grown, barredForStreets(FortReservations.keepClear(ctx, plan),
-                    FortReservations.sealed(ctx, plan), ctx.width, ctx.height)).grown();
-        }
+        grown = StreetPlan.plan(grown, barredForStreets(FortReservations.keepClear(ctx, plan),
+                FortReservations.sealed(ctx, plan), ctx.width, ctx.height)).grown();
 
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);

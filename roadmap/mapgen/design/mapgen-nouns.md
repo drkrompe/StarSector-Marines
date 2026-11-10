@@ -868,8 +868,7 @@ meets them square (`StreetPlan.meet`): straight out of its gate onto the
 centre line of the nearest street across its way, as a tee, or a cross where
 a street leaves the far side on its line, never an offset tee within ten
 cells of another; where none qualifies the place keeps its own road. Inside a
-walled place's claim the streets are the place's own. `-Dbattle.mapgen.streetPlan=false`
-is the control.
+walled place's claim the streets are the place's own.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
