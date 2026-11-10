@@ -2013,6 +2013,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng, mechRun);
+        this.heavy.setFireField(this::fireField);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);

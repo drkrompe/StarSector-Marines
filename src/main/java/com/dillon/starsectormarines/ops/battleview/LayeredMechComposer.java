@@ -318,6 +318,7 @@ final class LayeredMechComposer {
                     || gun == LayeredMechAppearance.ARMS_PL_3_SWEEP
                     || gun == LayeredMechAppearance.ARMS_PL_2
                     || gun == LayeredMechAppearance.ARMS_PL_1
+                    || gun == LayeredMechAppearance.ARMS_FL_1
                     || (gun == LayeredMechAppearance.ARMS_CHAINGUN
                     && chassis != LayeredMechAppearance.CHASSIS_CLEAN) ? 1f : 0.5f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
@@ -387,6 +388,7 @@ final class LayeredMechComposer {
             case LayeredMechAppearance.POD_LL_3 -> assets.ll3;
             case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
             case LayeredMechAppearance.POD_SRM_3_QS -> assets.srm3QsPod;
+            case LayeredMechAppearance.POD_FL_2 -> assets.fl2();
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM -> assets.srmPod;
             case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> assets.lrmPod;
             default -> null;
@@ -403,6 +405,7 @@ final class LayeredMechComposer {
             case LayeredMechAppearance.POD_LL_3 -> assets.ll3;
             case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
             case LayeredMechAppearance.POD_SRM_3_QS -> assets.srm3QsPod;
+            case LayeredMechAppearance.POD_FL_2 -> assets.fl2();
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_SMALL_LRM -> assets.srmPod;
             case LayeredMechAppearance.POD_LARGE_SRM, LayeredMechAppearance.POD_LARGE_LRM -> assets.lrmPod;
             default -> null;
@@ -438,6 +441,7 @@ final class LayeredMechComposer {
             case LayeredMechAppearance.ARMS_PL_3_SWEEP -> assets.pl3Sweep;
             case LayeredMechAppearance.ARMS_PL_2 -> assets.pl2;
             case LayeredMechAppearance.ARMS_PL_1 -> assets.pl1;
+            case LayeredMechAppearance.ARMS_FL_1 -> assets.fl1();
             default -> null;
         };
     }
@@ -447,7 +451,8 @@ final class LayeredMechComposer {
         return switch (gun) {
             case LayeredMechAppearance.ARMS_HC_10, LayeredMechAppearance.ARMS_HC_20,
                  LayeredMechAppearance.ARMS_DC_5,
-                 LayeredMechAppearance.ARMS_DC_4_QS -> false;
+                 LayeredMechAppearance.ARMS_DC_4_QS,
+                 LayeredMechAppearance.ARMS_FL_1 -> false;
             default -> true;
         };
     }
@@ -556,6 +561,9 @@ final class LayeredMechComposer {
                     localX, -0.30f, 1f, 0f, alpha);
         } else if (pod == LayeredMechAppearance.POD_THERMAL_LANCE) {
             emitFromRearPivot(out, assets.thermalLance, actorX, actorY, hullWidth, facingDeg,
+                    localX, -0.30f, 1f, 0f, alpha);
+        } else if (pod == LayeredMechAppearance.POD_FL_2) {
+            emitFromRearPivot(out, assets.fl2(), actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f, 1f, 0f, alpha);
         } else if (pod == LayeredMechAppearance.POD_SRM_3_QS) {
             emitFromRearPivot(out, assets.srm3QsPod, actorX, actorY, hullWidth,

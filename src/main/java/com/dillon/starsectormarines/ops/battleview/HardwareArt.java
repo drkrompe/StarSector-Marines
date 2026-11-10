@@ -160,6 +160,8 @@ final class HardwareArt {
             case PL_3_SWEEP -> "pl-3-sweep";
             case PL_2 -> "pl-2";
             case PL_1 -> "pl-1";
+            case FL_1 -> "fl-1";
+            case FL_2 -> "fl-2";
         };
     }
 }

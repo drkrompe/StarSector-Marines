@@ -348,7 +348,10 @@ does not set Conquest alight.
   until the economy decides their price: the **incendiary grenade** (a thrown
   thermite charge with little blast) and the **pack flamer** (a short, flat,
   seven-cell lob of burning gel, whose tank refills itself a charge at a time
-  in the field, `regenSeconds` on the item, rather than from the truck).
+  in the field, `regenSeconds` on the item, rather than from the truck). The
+  **machine flamers** (`mechs-nouns.md`, Machine flamers) send the same charge
+  in a short stream from a machine's mount, the FL-1 seven cells and the FL-2
+  ten, and a chassis's fire control holds one by the throwing rule below.
 - **Lasers.** The large pulse lasers, the PL-3 and the PL-3 (Pulse), carry a
   little heat in every pulse, too little for one pulse to catch grass. Held on
   one patch, pulse after pulse comes faster than the ground cools (it keeps

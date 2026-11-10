@@ -173,7 +173,7 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(MarineOpsDialogSize.requestedWidth(), MarineOpsDialogSize.requestedHeight(),
                 new MarineOpsDialogDelegate(planet, ctx -> {
-                    ctx.setSelectedMission(mission);
+                    ctx.bindOperation(mission);
                     ctx.goTo(ScreenId.BRIEFING);
                 }, () -> {
                     dialog.showTextPanel();

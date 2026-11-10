@@ -82,6 +82,37 @@ public enum MechVariant {
             MechRole.ASSAULT),
 
     /**
+     * The pirate Torch (`mech-lines.md`, low-tech variants): a captured Hound a pirate crew rebuilt as a fuel rig, on the
+     * Hound frame (law 2), drawn as a body of its own with mismatched fuel drums and a pressure bottle in a welded
+     * cradle across its back. Its fuel load is its body; its stock nose gun is the FL-1 burner, a machine flamer and a
+     * weapon layer of its own (law 4; `mechs-nouns.md`, Machine flamers). The cradle takes the dorsal rack's place, so
+     * that ships empty. Its cut-away side plate makes it a little lighter-armoured than the Hound. All numbers UNTUNED.
+     */
+    TORCH("torch", "@gearMechVariantTORCH", 340f, 330f, 12f, 1.50f, 0.40f, 50f,
+            1.35f, 1.20f, 0.50f, 0.67f, 0.9f,
+            LayeredMechAppearance.CHASSIS_HOUND,
+            MechWeaponComponent.FL_1, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The Luddic Path's Censer (`mech-lines.md`, low-tech variants): an industrial Warden a Pather cell converted to
+     * burn out what it calls corruption, on the Warden frame (law 2), drawn as a body of its own with a promethium
+     * tank across its rear, an armoured hose up its right flank and prayer cloths. Its fuel load is its body; its right
+     * shoulder carries the FL-2 lance, the larger machine flamer (`mechs-nouns.md`, Machine flamers), its nose a
+     * chaingun, and its left rack place ships an empty plate. The tank makes it heavier and slower than the Warden.
+     * All numbers UNTUNED.
+     */
+    CENSER("censer", "@gearMechVariantCENSER", 300f, 340f, 11f, 1.22f, 0.42f, 55f,
+            1.35f, 1.20f, 0.48f, 0.65f, 1.4f,
+            LayeredMechAppearance.CHASSIS_WARDEN,
+            MechWeaponComponent.CHAINGUN, null, null,
+            null,
+            MechWeaponComponent.FL_2,
+            MechRole.ASSAULT),
+
+    /**
      * The derelict security walker (`derelict-lore-guide.md`, Units): an unpiloted Mbaye-Gogol heavy built where it
      * stands to guard a site, outside the company's tech-by-weight grid ({@link #automated()}). A derelict chassis of
      * its own, no company mech's: a low armoured torso slung between reaching legs, its guns in torso ports (two side
@@ -206,7 +237,8 @@ public enum MechVariant {
     public MechVariant frame() {
         return switch (this) {
             case HAULER, PILGRIM -> BULWARK;
-            case FOUNDRY_BREAKER -> HOUND;
+            case FOUNDRY_BREAKER, TORCH -> HOUND;
+            case CENSER -> WARDEN;
             case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> this;
         };
     }
@@ -230,7 +262,7 @@ public enum MechVariant {
      */
     public boolean hostsDrones() {
         return switch (this) {
-            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM -> true;
+            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
             case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
         };
     }
@@ -241,7 +273,7 @@ public enum MechVariant {
      */
     public boolean hostsPointDefence() {
         return switch (this) {
-            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM -> true;
+            case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
             case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
         };
     }
@@ -265,7 +297,7 @@ public enum MechVariant {
         return switch (this) {
             case BULWARK, HAULER, PILGRIM -> 6f;
             case CRAWLER -> 3f;
-            case HOUND, WARDEN, FOUNDRY_BREAKER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> 0f;
+            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> 0f;
         };
     }
 
@@ -367,9 +399,9 @@ public enum MechVariant {
     /** How this chassis is taken apart: its height bands and section pools. */
     public MechBodyPlan bodyPlan() {
         return switch (this) {
-            case HOUND, FOUNDRY_BREAKER -> MechBodyPlan.HOUND;
+            case HOUND, FOUNDRY_BREAKER, TORCH -> MechBodyPlan.HOUND;
             case BULWARK, HAULER, PILGRIM -> MechBodyPlan.BULWARK;
-            case WARDEN -> MechBodyPlan.WARDEN;
+            case WARDEN, CENSER -> MechBodyPlan.WARDEN;
             case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> MechBodyPlan.DERELICT;
             case CRAWLER -> MechBodyPlan.CRAWLER;
         };
@@ -381,8 +413,8 @@ public enum MechVariant {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HOUND, FOUNDRY_BREAKER, CRAWLER -> LiftClass.LIGHT;
-            case WARDEN -> LiftClass.MEDIUM;
+            case HOUND, FOUNDRY_BREAKER, TORCH, CRAWLER -> LiftClass.LIGHT;
+            case WARDEN, CENSER -> LiftClass.MEDIUM;
             case BULWARK, HAULER, PILGRIM -> LiftClass.HEAVY;
             case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
             case SECURITY_ROUNDS -> LiftClass.MEDIUM;

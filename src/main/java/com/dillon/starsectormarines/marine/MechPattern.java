@@ -41,8 +41,13 @@ public record MechPattern(Kind kind, String definitionId) {
         CHASSIS_TIERS.put(MechVariant.HAULER, EquipmentAccessTier.ADVANCED);
         CHASSIS_TIERS.put(MechVariant.FOUNDRY_BREAKER, EquipmentAccessTier.ADVANCED);
         CHASSIS_TIERS.put(MechVariant.PILGRIM, EquipmentAccessTier.ADVANCED);
+        CHASSIS_TIERS.put(MechVariant.TORCH, EquipmentAccessTier.ADVANCED);
+        CHASSIS_TIERS.put(MechVariant.CENSER, EquipmentAccessTier.ADVANCED);
 
         WEAPON_TIERS.put(MechWeaponComponent.SRM_5, EquipmentAccessTier.COMMON);
+        // The machine flamers (mechs-nouns.md): industrial burners, common work in either size.
+        WEAPON_TIERS.put(MechWeaponComponent.FL_1, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.FL_2, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.AC_6_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_3_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.DC_4_QS, EquipmentAccessTier.COMMON);
@@ -167,8 +172,8 @@ public record MechPattern(Kind kind, String definitionId) {
         if (kind == Kind.VEHICLE) return weightClass(vehicleType());
         if (kind != Kind.CHASSIS) return null;
         switch (variant()) {
-            case HOUND, FOUNDRY_BREAKER, CRAWLER: return WeightClass.LIGHT;
-            case WARDEN: return WeightClass.MEDIUM;
+            case HOUND, FOUNDRY_BREAKER, TORCH, CRAWLER: return WeightClass.LIGHT;
+            case WARDEN, CENSER: return WeightClass.MEDIUM;
             default: return WeightClass.HEAVY;
         }
     }
