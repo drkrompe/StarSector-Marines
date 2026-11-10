@@ -479,8 +479,7 @@ public final class OwnedMapRecipe {
         if (!c.grid.inBounds(x, y) || !c.grid.isWalkable(x, y) || c.topology.isWall(x, y) || c.topology.isFixture(x, y)
                 || c.topology.getBuildingId(x, y) != 0 || c.topology.hasBuildingKindHint(x, y)) return false;
         GroundKind ground = c.topology.getGroundKind(x, y);
-        if (ground == GroundKind.STREET || ground == GroundKind.STRIPED || ground == GroundKind.INDOOR
-                || ground == GroundKind.VOID) return false;
+        if (ground == GroundKind.STREET || ground == GroundKind.INDOOR || ground == GroundKind.VOID) return false;
         for (int yy = y - 2; yy <= y + 2; yy++) for (int xx = x - 2; xx <= x + 2; xx++)
             if (c.grid.inBounds(xx, yy) && c.grid.isDoorway(xx, yy)) return false;
         for (LandingPad pad : c.landingPads)

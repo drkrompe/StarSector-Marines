@@ -48,7 +48,9 @@ public record BiomeSkin(SurfacePalette palette, LivingWorld living, SurfaceSigna
      * the deep one; on every other world both roles are the palette's one drop ({@link NaturalVoidZoning#forPalette}).
      */
     public NaturalVoidZoning.Drop drop(OwnedMap.DropRole role) {
-        if (palette == SurfacePalette.VOLCANIC && role == OwnedMap.DropRole.RIVER) return NaturalVoidZoning.LAVA_RIVER;
+        if (palette == SurfacePalette.VOLCANIC) {
+            return role == OwnedMap.DropRole.RIVER ? NaturalVoidZoning.LAVA_RIVER : NaturalVoidZoning.LAVA_RIFT;
+        }
         return NaturalVoidZoning.forPalette(palette);
     }
 

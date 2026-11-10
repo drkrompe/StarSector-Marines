@@ -84,7 +84,8 @@ not lay itself out like a colony on a toxic world, where touching the air kills:
 | `INSULATED` | a frozen world | brick and steel shells; its people still walk between buildings |
 | `OPEN` | otherwise: breathable worlds such as jungle, verdant and ocean | the town as the map lays it |
 
-A **sealed perimeter** stands on the lot's edge, never inside it. It yields wherever the ground is not open: a road
+A **sealed perimeter** is one continuous wall with a few locks, as a sealed town is (owner, 2026-11-10: a large town
+sealed within, fewer doors to get wrong; `SealedTown` on generated maps). It stands on the lot's edge, never inside it. It yields wherever the ground is not open: a road
 (which runs through as a lock), a building, a pad and the ground before it, a doorway's step, a drop. It leaves a
 lock two cells either side of every gate, with the floor marked. A side with nothing to yield to and no gate gets a
 lock at its middle, so it never seals what it encloses. Today's wall is the stand-in in `OwnedMapRecipe.perimeter`,
@@ -149,6 +150,9 @@ irradiated worlds the works is sealed. `createSnapshots -Psnapshot=owned-map-loo
 ## Not yet
 
 - The editor's Maps page edits the document (the map-editor session).
-- The sealed-perimeter town and the crevasse terrace replace their stand-ins.
+- The sealed-perimeter town and the crevasse terrace replace their stand-ins. The stand-in perimeter leaves a gap
+  where a building's door stands on the lot's edge rather than wall it shut; until the editor warns of it, keep a
+  lot's edge off doors (Relay Nine's switch house and relay hall still touch theirs).
+- On a volcanic world a `RIFT` stays the deep lava rift though generated maps now default to the lava river.
 - Conversion order for the other missions: the map inventory's list.
 - A story-map pool entry may name an owned map instead of a seed. Once a pooled mission is converted, its pool retires.
