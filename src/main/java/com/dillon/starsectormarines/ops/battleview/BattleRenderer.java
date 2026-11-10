@@ -350,6 +350,8 @@ public class BattleRenderer {
         units.useLights(groundLights);
         nightLighting.useLights(groundLights);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
+        // One shader for every shield; each host's shields drawn in its own layer, over it (ShieldDomeRenderSystem).
+        ShieldDomeRenderSystem shields = new ShieldDomeRenderSystem();
         this.worldSystems = List.of(
                 // The ground far below a map's void cells, under the tiles that cover it everywhere else.
                 voidBackdrop,
@@ -441,7 +443,7 @@ public class BattleRenderer {
                 new SquadRunMarkerRenderSystem(),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
-                new ShieldDomeRenderSystem(),
+                shields,
                 new TenderSiteRenderSystem(),
                 // With the other threat marks: spines breaking out, and the spores a colony lifts.
                 colonyThreat.over(),
@@ -466,6 +468,8 @@ public class BattleRenderer {
                                 .noneMatch(item -> item.id().startsWith("territory-")))
                             compoundMarkers.collect(ctx.sim, ctx.sim.getCompoundService(), ctx.camera, out, ctx.alphaMult); }),
                 new ConvoyRenderSystem(sprites),
+                // A hull's shield stands over the hull it protects, as a boat's over her.
+                shields.hullShields(),
                 // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
                 RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->
                         out.addCustom(RenderLayer.CONVOY, () -> {
@@ -475,6 +479,7 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 aircraft,
+                shields.boatShields(),
                 new ShipLightingRenderSystem(),
                 // Dead air over the shade: it hangs in front of the deck rather than being darkened with it.
                 RenderSystem.of(RenderLayer.DECK_LIGHTING, dressing::collectHaze),
