@@ -280,6 +280,7 @@ public class BattleRenderer {
     /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
     private final CliffArtLayer cliffArt = new CliffArtLayer();
     private final ScorchLayer scorch = new ScorchLayer();
+    private final LavaFlowLayer lavaFlows = new LavaFlowLayer();
     private final FireRenderSystem fire;
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
@@ -357,7 +358,7 @@ public class BattleRenderer {
                 naturalVoid,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // A volcanic world's ash drifts and glowing cracks, vents and embers, over its basalt tiles.
-                new VolcanicGroundRenderSystem(sprites),
+                new VolcanicGroundRenderSystem(sprites, lavaFlows),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
                 eachDrop(drops, NaturalVoidRenderSystem::fray),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
@@ -763,6 +764,7 @@ public class BattleRenderer {
         creep.dispose();
         cliffArt.dispose();
         scorch.dispose();
+        lavaFlows.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
         pagedRun.dispose();

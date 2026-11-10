@@ -159,7 +159,8 @@ class GroundShaderGlEvidence {
                         sourceField(GroundHeightPass.class, "FRAGMENT_SRC")),
                 new Shader("Creep", CreepShader.VERTEX_SRC, CreepShader.FRAGMENT_SRC),
                 new Shader("BackdropPlanet", BackdropPlanetPass.VERTEX_SRC, BackdropPlanetPass.FRAGMENT_SRC),
-                new Shader("Scorch", ScorchShader.VERTEX_SRC, ScorchShader.FRAGMENT_SRC));
+                new Shader("Scorch", ScorchShader.VERTEX_SRC, ScorchShader.FRAGMENT_SRC),
+                new Shader("LavaFlow", LavaFlowShader.VERTEX_SRC, LavaFlowShader.FRAGMENT_SRC));
     }
 
     private static String sourceField(String name) throws Exception {
