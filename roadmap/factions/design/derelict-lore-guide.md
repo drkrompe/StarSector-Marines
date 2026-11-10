@@ -142,7 +142,12 @@ the lightly damaged: a slow, heavy anchor that keeps itself running.
 | **Drone cradle** | A launch housing that keeps one flock docked, puts it up when its zone wakes, takes it back, and slowly rebuilds lost drones while its node stands. | The drone hub (`DroneHub`) with a flock's stock |
 | **Security walker** | An unpiloted heavy walker of the derelict line, in three loadouts: the **line frame** (heavy cannon and plate, holds a layer and crushes cover), the **siege frame** (mortar and missile racks, fires on what the flocks see), and the **vault frame** (the heaviest plate, the vault's last guard, an interior guardian that never leaves it). Sized to stand in an interior's corridors. | A new heavy mech line (`mech-lines.md`): one chassis, variants by loadout (`mechs-nouns.md`) |
 | **Sentry post** | A folded gun emplacement that rises when its zone wakes. Secondary now: a few per zone at doors and courts. | Defence post (`DefensePost`) with a wake gate |
-| **Repair drone** | An unarmed drone that restores damaged posts, cradles and walkers while its node stands and its stock lasts; stands down under fire. | The tender's builder drone (`tender-ship.md`) |
+| **Rounds walker** | The derelict line's medium (MG-25): low, quick and lightly plated, narrow enough for any door. Walks its zone's round while the zone sleeps, and once awake is the zone's first answer anywhere inside its perimeter (`derelict-watch.md`, pick open). | A chassis of the derelict line at its size |
+| **Hall frame** | The derelict line's large (MG-70): twice the heavy's height and the heaviest plate outside the vault, too wide for a corridor. Keeps the plant's largest hall and forces a dead door in its way (`derelict-watch.md`, pick open). | A chassis of the derelict line at its size |
+| **Repair drone** | An unarmed drone that restores damaged posts, cradles and walkers while its node stands and its stock lasts, and raises a fallen walker or post from its wreck (`derelict-watch.md`); stands down under fire. | The tender's builder drone (`tender-ship.md`) |
+| **Service bay** | A low armoured housing beside a node holding the zone's repair stock; the repair drone reloads there (`derelict-watch.md`). | Structure |
+| **Reserve bay** | A sealed cradle housing holding a second flock, opened by the facility's wake (`derelict-watch.md`). Destroyed while shut, its flock never rises. | A cradle, sealed |
+| **Drone vent** | A hatch in open-sky paving into the plant's service ducts: flocks go in at one and come up at another (`derelict-watch.md`). A charge collapses it. | Ground |
 | **Control node** | The zone's controller and relay: armoured, unarmed. Destroyed, its zone stops relaying, repairing and rebuilding drones. | Structure |
 
 **The heavies are a line of their own.** The derelict walker is one new heavy
@@ -234,6 +239,12 @@ and the field finds stay the ordinary bundles (`loot-nouns.md`).
   and its courts, and never leave their perimeter. They come to what the flocks
   have pinned inside it. Siege frames fire on what the flocks see, so a blinded
   or dead flock leaves them firing on old contacts.
+- **Rounds, ducts and the wake** (`derelict-watch.md`, picks open). A sleeping
+  zone is not still: its rounds walker walks a round of its places, and its
+  flocks use the plant's service ducts between drone vents. Over a delve the
+  facility wakes in stages with the site's stir, bringing up what it always had
+  and had shut down: the ducts, then the reserve bays' flocks, then the
+  security bulkheads and an alert across the site. Nothing is built or grown.
 - **The contingency.** Breaching the vault wakes every zone. Every flock that
   can reach the vault or the route out goes for the haul's escort; the line
   frames walk to the egress route through their own ground and hold it, and the

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.RoofDamage;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.model.RoofCover;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
@@ -1015,8 +1016,24 @@ public class BattleRenderer {
                 RoofDamage d = topology.getRoofDamage(at % topology.getWidth(), at / topology.getWidth());
                 if (d == RoofDamage.COLLAPSED || d == RoofDamage.BURNT) ruined++;
             }
-            return BuildingFaces.heightClass(k.cellsX.length, cells.length == 0 ? 0f : ruined / (float) cells.length);
+            return BuildingFaces.heightClass(built(topology, k), cells.length == 0 ? 0f : ruined / (float) cells.length);
         });
+    }
+
+    /** What a building was built as, for its height ({@link BuildingFaces#heightClass}). */
+    private static BuildingFaces.Built built(CellTopology topology, Building b) {
+        boolean sealed = false, tower = false;
+        for (int i = 0; i < b.cellsX.length; i++) {
+            if (topology.getRoomPurpose(b.cellsX[i], b.cellsY[i]) == RoomPurpose.GATE_TOWER) tower = true;
+        }
+        for (int y = b.minY - 1; y <= b.maxY + 1 && !sealed; y++) {
+            for (int x = b.minX - 1; x <= b.maxX + 1; x++) {
+                if (!topology.inBounds(x, y) || !topology.isWall(x, y)) continue;
+                sealed = BuildingFaces.look(topology.getSurfaceId(x, y), false) == BuildingFaces.Look.SEALED;
+                break;
+            }
+        }
+        return new BuildingFaces.Built(b.kind, b.cellsX.length, sealed, tower, BuildingFaces.hash(b.id, 21));
     }
 
     /**
