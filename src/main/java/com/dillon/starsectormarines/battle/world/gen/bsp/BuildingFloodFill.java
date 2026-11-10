@@ -44,11 +44,22 @@ public final class BuildingFloodFill {
 
     public static Buildings populate(CellTopology topology, long seed) {
         Buildings buildings = new Buildings();
+        populate(topology, seed, buildings);
+        return buildings;
+    }
+
+    /**
+     * Adds to {@code buildings} every building stamped since it was filled, numbered on from its highest id, so a
+     * pass that builds after finalizing (a sheltered town's terrace houses) keeps every earlier building's id.
+     * Cells that already carry an id are left as they are.
+     */
+    public static void populate(CellTopology topology, long seed, Buildings buildings) {
         int w = topology.getWidth();
         int h = topology.getHeight();
-        if (w <= 0 || h <= 0) return buildings;
+        if (w <= 0 || h <= 0) return;
 
         int nextId = 1;
+        for (Building b : buildings.all()) nextId = Math.max(nextId, b.id + 1);
 
         // Scratch buffers reused across components.
         int[] queueX = new int[w * h];
@@ -146,8 +157,6 @@ public final class BuildingFloodFill {
                 nextId++;
             }
         }
-
-        return buildings;
     }
 
     /**

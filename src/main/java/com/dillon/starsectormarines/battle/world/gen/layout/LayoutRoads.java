@@ -5,10 +5,12 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.road.BendFlood;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -60,6 +62,7 @@ public final class LayoutRoads {
                 continue;
             }
             int who = index(plan, r.from().place());
+            if (v == null) a = inLine(a, r.from(), bounds[who], b, width, height);
             // A road to a walled square place's gate ends at the place's ground, which the place's wall opens onto
             // or the place's arms reach out to: that is where it joins the network, even where no other road runs
             // near. (Carried on into the place, onto its outline, it gave the wall a gap it could not dress.)
@@ -112,6 +115,24 @@ public final class LayoutRoads {
                     List.of(a, b), List.of()));
         }
         return out;
+    }
+
+    /**
+     * Where a road leaves {@code from}'s side in line with where it is going ({@code b}): a road leaving a place's
+     * side with no gate and no offset across it may leave from anywhere along that side, so it leaves opposite its
+     * other end where that lies within the side's span, and runs to it straight rather than by a dog-leg whose
+     * cross leg is a jog of a few cells. A road off the map's edge to a gate runs straight in from the edge.
+     * Otherwise {@code a} as resolved.
+     */
+    static int[] inLine(int[] a, Endpoint from, int[] bounds, int[] b, int width, int height) {
+        if (from.gate()) return a;
+        Side side = from.side();
+        if (side.dy != 0) {
+            if (from.dx() != 0 || b[0] < bounds[0] || b[0] > bounds[2]) return a;
+            return new int[]{Math.max(1, Math.min(width - 2, b[0])), a[1]};
+        }
+        if (from.dy() != 0 || b[1] < bounds[1] || b[1] > bounds[3]) return a;
+        return new int[]{a[0], Math.max(1, Math.min(height - 2, b[1]))};
     }
 
     /**
@@ -176,34 +197,43 @@ public final class LayoutRoads {
                              int width, int height) {
         List<int[]> cut = new ArrayList<>();
         if (mouth.isEmpty()) return cut;
-        int[][] parent = new int[width * height][];
-        boolean[][] seen = new boolean[width][height];
-        ArrayDeque<int[]> open = new ArrayDeque<>();
+        int[][] start = new int[width][height];
+        for (int[] column : start) Arrays.fill(column, -1);
         for (int[] c : mouth) {
             for (int[] d : STEPS) {
                 int x = c[0] + d[0], y = c[1] + d[1];
-                if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who || seen[x][y]) continue;
+                if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who) continue;
                 if (owner[x][y] != GrownTrunkPlan.UNOWNED) return cut;
-                seen[x][y] = true;
-                open.add(new int[]{x, y});
             }
         }
-        int[] found = null;
-        while (!open.isEmpty() && found == null) {
-            int[] c = open.poll();
-            for (int[] d : STEPS) {
-                int x = c[0] + d[0], y = c[1] + d[1];
-                if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who || seen[x][y]) continue;
-                if (barred != null && barred[x][y] && owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
-                seen[x][y] = true;
-                parent[y * width + x] = c;
-                if (owner[x][y] != GrownTrunkPlan.UNOWNED) { found = new int[]{x, y}; break; }
-                open.add(new int[]{x, y});
+        // From the middle of the mouth, so the way in is centred on the road that reaches the gate; a mouth with no
+        // middle (a road one or two cells wide there) starts from all of it.
+        for (boolean middle : new boolean[]{true, false}) {
+            for (int[] c : mouth) {
+                if (c[0] < 0 || c[1] < 0 || c[0] >= width || c[1] >= height || claim[c[0]][c[1]] == who) continue;
+                if (!middle || inMouth(mouth, c[0] - 1, c[1]) && inMouth(mouth, c[0] + 1, c[1])
+                        || inMouth(mouth, c[0], c[1] - 1) && inMouth(mouth, c[0], c[1] + 1)) start[c[0]][c[1]] = 0;
             }
+            boolean any = false;
+            for (int[] c : mouth) any |= c[0] >= 0 && c[1] >= 0 && c[0] < width && c[1] < height && start[c[0]][c[1]] == 0;
+            if (any) break;
+        }
+        // The way in starts outside the gate and pays for its bends, so it runs straight in through the gate and
+        // turns cleanly onto the place's road, rather than turning along the wall's inside or stepping a staircase
+        // across the yard toward a road that lies off both axes.
+        BendFlood flood = BendFlood.from(start, (x, y) -> claim[x][y] != who
+                || barred != null && barred[x][y] && owner[x][y] == GrownTrunkPlan.UNOWNED ? -1 : 1, BendFlood.BEND);
+        int[] found = null;
+        int best = Integer.MAX_VALUE;
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            if (claim[x][y] != who || owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
+            int c = flood.cost(x, y);
+            if (c < best) { best = c; found = new int[]{x, y}; }
         }
         if (found == null) return cut;
+        List<int[]> way = flood.back(found[0], found[1]);
         int half = PrecinctBoundary.DRIVABLE_GATE_WIDTH / 2;
-        for (int[] c = parent[found[1] * width + found[0]]; c != null; c = parent[c[1] * width + c[0]]) {
+        for (int[] c : way.subList(1, way.size())) {
             for (int dx = -half; dx <= half; dx++) {
                 for (int dy = -half; dy <= half; dy++) {
                     int x = c[0] + dx, y = c[1] + dy;
@@ -216,6 +246,11 @@ public final class LayoutRoads {
             }
         }
         return cut;
+    }
+
+    private static boolean inMouth(List<int[]> mouth, int x, int y) {
+        for (int[] c : mouth) if (c[0] == x && c[1] == y) return true;
+        return false;
     }
 
     /**
