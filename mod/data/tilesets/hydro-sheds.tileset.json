@@ -1,0 +1,59 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Pressurised hydroponic shed: ribbed steel roof split by two lit grow-light skylights over crop racks, roof fans, airlock west, pipes on the south eave. Covered farm on a hostile world; walk-in, no cover.",
+      "name": "doodad.hydro-shed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "The hydroponic shed half as long, to end a row or fill a short plot.",
+      "name": "doodad.hydro-shed-short",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Pump house: water and nutrient tanks, pump and header pipe on a skid, ending a shed row.",
+      "name": "doodad.hydro-pumphouse",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        3
+      ],
+      "id": "doodad.hydro-shed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "doodad.hydro-shed-short",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "doodad.hydro-pumphouse",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/hydro-sheds.png"
+}

@@ -1,0 +1,59 @@
+{
+  "cellPx": 128,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Two sealed geodesic grow domes lit violet inside over ring beds, joined by a pressurised tube. Covered farm on a hostile world; walk-in, no cover.",
+      "name": "doodad.hydro-dome-pair",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "One lit geodesic grow dome with a south airlock, to end a row or fill a short plot.",
+      "name": "doodad.hydro-dome",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "Tank station: two water and nutrient tanks on a skid with a pipe, ending a dome row.",
+      "name": "doodad.hydro-dome-tanks",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        9,
+        4
+      ],
+      "id": "doodad.hydro-dome-pair",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "doodad.hydro-dome",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 13,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "id": "doodad.hydro-dome-tanks",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/hydro-domes.png"
+}
