@@ -409,6 +409,29 @@ store sealed and powered open), `ruins-vault-lock-look` (the vault's door
 locked, its hardened walls tinted, powered, open), `ruins-vault-access-look`
 (one card per access variant on a site that drew it).
 
+### Light: the plant comes back online
+
+Owner: "maybe we should play with light within the ruin as a means of the
+facility coming back online as the exploration is taking place". The plant is
+black under its roof when the company lands (`RuinsLighting`, roofed darkness
+0.86 on the site's `NightLighting`); open ground keeps the world's day, and
+daylight falls through the light wells and the broken roof. Only the residual
+**emergency** strips burn, dim and red, at the section doors, the seal doors,
+the junction boxes and the hall's console, so the way through still reads.
+
+The lights are the works' power made visible. Restarting the hall lights the
+hall; each junction then lights what it feeds: its band of the plant (halls and
+corridors) on its way on, its stores on its store side, and the vault's suite
+with the vault's seal. An overloaded hall browns the plant out, all but the hall
+itself. A lamp's pool stops at its own building's walls, so rooms light as
+rooms. Light is presentation: it draws none of the hall's capacity and changes
+no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
+lit).
+
+Open (owner picks, raised on the parent's picks page): the watch's own lights
+showing its wake stages, a lamp's flicker as its circuit comes up, the company's
+own helmet and vehicle lamps, and whether darkness shortens the company's sight.
+
 ### The entrance and the pull-out point
 
 Owner (2026-11-09, on `ruins-pull-out`): "pull out keeps the banked, also we

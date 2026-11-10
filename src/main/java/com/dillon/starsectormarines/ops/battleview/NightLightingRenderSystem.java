@@ -69,7 +69,7 @@ final class NightLightingRenderSystem implements RenderSystem {
         if (ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
             field.cells(ground, useFog ? fog.cellShownArray() : null, useFog ? fog.revealChanges() : null);
             field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), night.darkness(),
-                    ctx.alphaMult, camera);
+                    night.roofedDarkness(), ctx.alphaMult, camera);
             pass.useField(field, masked, useFog);
             out.addCustom(layer(), pass);
             lamps(ctx, out, night, visible, useFog, fog);
@@ -80,8 +80,11 @@ final class NightLightingRenderSystem implements RenderSystem {
         PolyMesh dimMesh = masked ? pass.fogShade() : shade;
         int gridW = ground.getWidth();
         boolean[] shown = useFog ? fog.cellShownArray() : null;
-        // The shade where no light reaches is one colour; a run of such cells is drawn as one quad.
-        float[] unlitColour = shadeColour(night, 0f, 0f, 0f, 0f, 0f, ctx.alphaMult);
+        // The shade where no light reaches is one colour in the open and one under a roof; a run of such cells is
+        // drawn as one quad.
+        float[] unlitOpen = shadeColour(night.darkness(), 0f, 0f, 0f, 0f, 0f, ctx.alphaMult);
+        float[] unlitRoofed = night.roofedDarkness() == night.darkness() ? unlitOpen
+                : shadeColour(night.roofedDarkness(), 0f, 0f, 0f, 0f, 0f, ctx.alphaMult);
         for (int y = visible.minY(); y <= visible.maxY(); y++) {
             float rowY0 = Math.round(camera.cellToScreenY(y)), rowY1 = Math.round(camera.cellToScreenY(y + 1f));
             dimRun.start(dimMesh, rowY0, rowY1);
@@ -89,6 +92,8 @@ final class NightLightingRenderSystem implements RenderSystem {
             for (int x = visible.minX(); x <= visible.maxX(); x++) {
                 if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) { dimRun.flush(); litRun.flush(); continue; }
                 int cellIndex = y * gridW + x;
+                float darkness = night.darknessAt(night.roofedDarkness() != night.darkness() && NightLighting.roofed(ground, x, y));
+                float[] unlitColour = darkness == night.darkness() ? unlitOpen : unlitRoofed;
                 boolean hidden = shown != null && !shown[cellIndex];
                 boolean lampDark = zero9(pools, (2 * y) * width + 2 * x);
                 boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
@@ -108,9 +113,9 @@ final class NightLightingRenderSystem implements RenderSystem {
                     if (!dimUniform) {
                         float pool=hidden ? 0f : sample(pools,px,py);
                         float firePool=burning ? sample(firePools,px,py) : 0f;
-                        appendShade(dimMesh, night, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
+                        appendShade(dimMesh, darkness, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
                     }
-                    if (masked && !litUniform) appendShade(pass.litShade(), night, sample(pools,px,py),
+                    if (masked && !litUniform) appendShade(pass.litShade(), darkness, sample(pools,px,py),
                             burning ? sample(firePools,px,py) : 0f, px, py,
                             x0, y0, x1, y1, ctx.alphaMult);
                 }
@@ -142,10 +147,10 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
     }
 
-    private void appendShade(PolyMesh mesh, NightLighting night, float pool, float firePool, float px, float py,
+    private void appendShade(PolyMesh mesh, float darkness, float pool, float firePool, float px, float py,
                              float x0, float y0, float x1, float y1, float alphaMult) {
         boolean warmed = pool + firePool > 0f;
-        float[] c = shadeColour(night, pool, firePool,
+        float[] c = shadeColour(darkness, pool, firePool,
                 warmed ? sample(reds,px,py) : 0f, warmed ? sample(greens,px,py) : 0f, warmed ? sample(blues,px,py) : 0f,
                 alphaMult);
         if (c != null) mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,c[0],c[1],c[2],c[3]);
@@ -154,10 +159,10 @@ final class NightLightingRenderSystem implements RenderSystem {
     private final float[] colour = new float[4];
 
     /** The shade over a point lit by {@code pool} of lamp light and {@code firePool} of fire; null where it is clear. */
-    private float[] shadeColour(NightLighting night, float pool, float firePool, float red, float green, float blue,
+    private float[] shadeColour(float darkness, float pool, float firePool, float red, float green, float blue,
                                 float alphaMult) {
         float[] c = pool == 0f && firePool == 0f ? new float[4] : colour;
-        return shade(night.darkness(), pool, firePool, red, green, blue, alphaMult, c) ? c : null;
+        return shade(darkness, pool, firePool, red, green, blue, alphaMult, c) ? c : null;
     }
 
     /**
@@ -378,13 +383,24 @@ final class NightLightingRenderSystem implements RenderSystem {
             int owner=ground.getBuildingId((int)lamp.x(),(int)lamp.y());
             for (int y=Math.max(0,(int)((lamp.y()-lamp.radius())*2));y<=Math.min(height-1,(int)((lamp.y()+lamp.radius())*2));y++)
                 for (int x=Math.max(0,(int)((lamp.x()-lamp.radius())*2));x<=Math.min(width-1,(int)((lamp.x()+lamp.radius())*2));x++) {
-                    // Roofed interiors use their own fixtures; yard spill does not light through a roof.
-                    if (ground.getBuildingId(Math.min(ground.getWidth()-1,x/2),Math.min(ground.getHeight()-1,y/2))!=owner) continue;
+                    // Roofed interiors use their own fixtures; yard spill does not light through a roof. A wall
+                    // catches the light of the room it bounds.
+                    if (!litBy(ground, Math.min(ground.getWidth()-1,x/2), Math.min(ground.getHeight()-1,y/2), owner)) continue;
                     float value=lamp.pool(x*.5f,y*.5f);
                     int i=y*width+x;
-                    pools[i]+=value; reds[i]+=value*lamp.red(); greens[i]+=value*lamp.green(); blues[i]+=value*lamp.blue();
+                    // A lamp's tint weighs its colour against its pool: the shade divides the colour by the pool.
+                    float stain=value*lamp.tint();
+                    pools[i]+=value; reds[i]+=stain*lamp.red(); greens[i]+=stain*lamp.green(); blues[i]+=stain*lamp.blue();
                 }
         }
+    }
+
+    /** Whether a lamp in building {@code owner} lights cell {@code (x, y)}: the building's own, or a wall touching it. */
+    static boolean litBy(CellTopology ground, int x, int y, int owner) {
+        if (ground.getBuildingId(x, y) == owner) return true;
+        if (!ground.isWall(x, y)) return false;
+        return ground.getBuildingId(x - 1, y) == owner || ground.getBuildingId(x + 1, y) == owner
+                || ground.getBuildingId(x, y - 1) == owner || ground.getBuildingId(x, y + 1) == owner;
     }
 
     private float sample(float[] values,float x,float y) {
