@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.PlantStage
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.WallRemnant;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -32,6 +33,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
@@ -54,13 +56,19 @@ import java.util.Random;
 public final class CrashSiteStage implements GenStage {
 
     /**
-     * The hull's walls and deck: the installation wall in the hull's own plate ({@code art-source/fallen-hull/tileset.py}),
-     * whose id roofs the hull in hull plating ({@code RoofStyle.HULL}), over the ruins megastructure's deck.
+     * The hull's outer shell, its armour ({@code art-source/fallen-hull/tileset.py}): {@link #ARMOUR} once the art's own
+     * armour wall is in the tileset, the installation wall in the hull's plate until then. Both name
+     * {@code fallen-hull}, so a debris plate shed off the shell reads as the hull.
      */
+    static final String ARMOUR = "fallen-hull.armour-wall";
     static final String HULL_WALL = "installation.dark-concrete-wall@fallen-hull";
+    /** The bulkheads between the ship's compartments: the ship deck's own ({@code ship-bulkheads}). */
+    static final String BULKHEAD = "ship.neutral-bulkhead";
+    /** Each compartment's deck, from the ship-interior kits; the installation deck where a kit is missing. */
+    static final String SPINE_FLOOR = "ship-floor-trim.passage", HOLD_FLOOR = "ship-hold.plate-worn",
+            BAY_FLOOR = "ship-bay.deck-surface", FORGE_FLOOR = "ship-hold.plate",
+            CREW_FLOOR = "ship.crew-deck", DOOR_FLOOR = "ship-hold.plate";
     static final String HULL_FLOOR = "installation.concrete-floor";
-    /** The forge hall's deck: plate, so the vault reads apart from the holds. */
-    static final String FORGE_FLOOR = "sky-port.deck-plate";
     static final String RUBBLE_BED = "pavement.gravel.cracked";
     static final String TRODDEN = "pavement.dirt.worn";
     static final String SCRAP = "doodad.industrial-scrap-pile";
@@ -86,7 +94,11 @@ public final class CrashSiteStage implements GenStage {
 
     /** What this stage laid, for {@link CrashSiteFinishStage}. */
     record Laid(HullSitePlan plan, Area footprint, BitSet hullCells, Area trench, BitSet trenchCells, BitSet aprons,
-                Interior interior, Area forgeHall, Cell forge, Area bay, List<Area> debris, List<String> problems) { }
+                Interior interior, Area forgeHall, Cell forge, Area bay, List<Area> debris, List<String> problems,
+                int[] compartments, List<String> compartmentNames) {
+        /** The compartment a map cell's deck is in, as an index into {@link #compartmentNames}; -1 for none. */
+        int compartment(int x, int y, int width) { return compartments[y * width + x]; }
+    }
 
     @Override
     public void run(GenContext ctx) {
@@ -224,8 +236,10 @@ public final class CrashSiteStage implements GenStage {
             raiseHull();
             for (Apron apron : aprons) openApron(apron.ground(), roadsBefore);
             List<LeafDoor> doors = doors();
+            tearBreaches();
             finishMasks();
             List<Area> debris = debris(trench, footprint);
+            HullDressing.dress(ctx, hull, frame, compartments);
 
             List<Area> chambers = new ArrayList<>();
             List<PlantHall> halls = new ArrayList<>();
@@ -249,7 +263,7 @@ public final class CrashSiteStage implements GenStage {
             Interior interior = new Interior(HullSite.INTERIOR, footprint, 0, entrances, aprons, chambers, halls, doors);
             Cell forge = new Cell(frame.wx(HullPlan.FORGE_U, HullPlan.FORGE_V), frame.wy(HullPlan.FORGE_U, HullPlan.FORGE_V));
             return new Laid(plan, footprint, hullCells, trench, trenchCells, apronCells, interior, forgeHall, forge, bay,
-                    debris, problems);
+                    debris, problems, compartments, compartmentNames);
         }
 
         // ---- the trench ------------------------------------------------------------------------
@@ -302,24 +316,124 @@ public final class CrashSiteStage implements GenStage {
 
         // ---- the hull ---------------------------------------------------------------------------
 
+        /** The compartment of each map cell's deck (-1 for none), and the compartments' names. */
+        final List<String> compartmentNames = new ArrayList<>();
+        int[] compartments;
+        /** The armour's broken stubs round the breaches. */
+        final BitSet stubs = new BitSet();
+
         void raiseHull() {
-            Hall forge = hull.hall("forge");
+            compartments = new int[w * h];
+            Arrays.fill(compartments, -1);
+            String armour = armour();
             for (int u = 0; u < HullPlan.LENGTH; u++) {
                 for (int v = 0; v < HullPlan.BREADTH; v++) {
                     HullPlan.Kind kind = hull.at(u, v);
                     if (kind == HullPlan.Kind.OUTSIDE) continue;
                     int x = frame.wx(u, v), y = frame.wy(u, v);
                     switch (kind) {
-                        case HULL -> wall(x, y);
-                        case FLOOR -> deck(x, y, forge.floor().contains(u, v) ? FORGE_FLOOR : HULL_FLOOR);
-                        case TORN -> deck(x, y, RUBBLE_BED);
+                        case HULL -> wall(x, y, hull.shell(u, v) ? armour : BULKHEAD);
+                        case FLOOR -> {
+                            String room = hull.compartment(u, v);
+                            deck(x, y, floor(u, v, room));
+                            int at = compartmentNames.indexOf(room);
+                            if (at < 0) {
+                                at = compartmentNames.size();
+                                compartmentNames.add(room);
+                            }
+                            compartments[i(x, y)] = at;
+                        }
+                        case TORN -> torn(x, y);
                         default -> { }
                     }
+                    // The whole ship is roofed as hull plating, whatever its walls are built of; a breach is open sky.
+                    if (kind != HullPlan.Kind.TORN) topology.setRoofKind(x, y, CellTopology.RoofKind.HULL);
                 }
             }
         }
 
-        void wall(int x, int y) {
+        /** The deck a plan cell is laid in: its compartment's kit, a door's threshold plate. */
+        String floor(int u, int v, String room) {
+            boolean door = false;
+            for (Hall hall : hull.halls()) door |= hall.door().contains(u, v);
+            for (Entrance e : hull.entrances()) door |= e.door().contains(u, v);
+            String kit;
+            if (door) kit = DOOR_FLOOR;
+            else if (HullPlan.SPINE_NAME.equals(room)) kit = SPINE_FLOOR;
+            else kit = switch (hull.hall(room).use()) {
+                case HOLD -> HOLD_FLOOR;
+                case BAY -> BAY_FLOOR;
+                case FORGE -> FORGE_FLOOR;
+                case CREW -> CREW_FLOOR;
+            };
+            return has(kit) ? kit : HULL_FLOOR;
+        }
+
+        String armour() { return has(ARMOUR) ? ARMOUR : HULL_WALL; }
+
+        boolean has(String block) {
+            TileRegistry registry = TileRegistry.installed();
+            return registry != null && registry.hasBlock(block);
+        }
+
+        void deck(int x, int y, String surface) {
+            free(x, y);
+            topology.setGroundKind(x, y, GroundKind.INDOOR);
+            topology.setBuildingKindHint(x, y, HULL_KIND);
+            topology.setSurface(x, y, topology.surfaceIndex(surface));
+            drafted.set(i(x, y));
+        }
+
+        /** A breach's floor: open ground under the sky, rubble the crash threw in. */
+        void torn(int x, int y) {
+            free(x, y);
+            ground(x, y, GroundKind.RUBBLE);
+            topology.setSurface(x, y, topology.surfaceIndex(RUBBLE_BED));
+        }
+
+        /**
+         * The shell round each breach torn ragged: a shell cell beside the breach and clear of any deck stands as the
+         * broken stub of the armour in rubble about one time in two, so no breach is a clean rectangle.
+         */
+        void tearBreaches() {
+            String armour = armour();
+            for (int u = 0; u < HullPlan.LENGTH; u++) {
+                for (int v = 0; v < HullPlan.BREADTH; v++) {
+                    if (!hull.shell(u, v) || !besideTorn(u, v) || besideDeck(u, v)) continue;
+                    int x = frame.wx(u, v), y = frame.wy(u, v);
+                    if (Math.floorMod(hash(x, y, 0xB7), 2) != 0) continue;
+                    torn(x, y);
+                    topology.setRoofKind(x, y, null);
+                    stubs.set(i(x, y));
+                }
+            }
+            for (int k = stubs.nextSetBit(0); k >= 0; k = stubs.nextSetBit(k + 1)) {
+                int x = k % w, y = k / w, faces = 0;
+                if (exposed(x, y + 1)) faces |= CellTopology.WALL_DIR_N;
+                if (exposed(x + 1, y)) faces |= CellTopology.WALL_DIR_E;
+                if (exposed(x, y - 1)) faces |= CellTopology.WALL_DIR_S;
+                if (exposed(x - 1, y)) faces |= CellTopology.WALL_DIR_W;
+                topology.setWallRemnant(x, y, new WallRemnant(armour, GroundKind.RUBBLE, RUBBLE_BED, faces));
+            }
+        }
+
+        boolean exposed(int x, int y) {
+            return in(x, y) && grid.isWalkable(x, y) && !stubs.get(i(x, y));
+        }
+
+        boolean besideTorn(int u, int v) {
+            return hull.at(u + 1, v) == HullPlan.Kind.TORN || hull.at(u - 1, v) == HullPlan.Kind.TORN
+                    || hull.at(u, v + 1) == HullPlan.Kind.TORN || hull.at(u, v - 1) == HullPlan.Kind.TORN;
+        }
+
+        boolean besideDeck(int u, int v) {
+            for (int du = -1; du <= 1; du++) {
+                for (int dv = -1; dv <= 1; dv++) if (hull.at(u + du, v + dv) == HullPlan.Kind.FLOOR) return true;
+            }
+            return false;
+        }
+
+        void wall(int x, int y, String surface) {
             removeProps(x, y);
             grid.setWalkable(x, y, false);
             grid.setSeeThrough(x, y, false);
@@ -329,16 +443,8 @@ public final class CrashSiteStage implements GenStage {
             topology.setWallRemnant(x, y, null);
             topology.setGroundKind(x, y, GroundKind.STRIPED);
             topology.setBuildingKindHint(x, y, HULL_KIND);
-            topology.setSurface(x, y, topology.surfaceIndex(HULL_WALL));
-            ctx.markMadeGround(x, y);
-            drafted.set(i(x, y));
-        }
-
-        void deck(int x, int y, String surface) {
-            free(x, y);
-            topology.setGroundKind(x, y, GroundKind.INDOOR);
-            topology.setBuildingKindHint(x, y, HULL_KIND);
             topology.setSurface(x, y, topology.surfaceIndex(surface));
+            ctx.markMadeGround(x, y);
             drafted.set(i(x, y));
         }
 
@@ -350,7 +456,8 @@ public final class CrashSiteStage implements GenStage {
         List<LeafDoor> doors() {
             List<LeafDoor> out = new ArrayList<>();
             for (Hall hall : hull.halls()) out.add(door(hall.door(), hall.door().u0() == hall.door().u1()));
-            for (Entrance e : hull.entrances()) out.add(door(e.door(), e.du() != 0));
+            // A breach is a hole in the shell, not a door.
+            for (Entrance e : hull.entrances()) if (!e.torn()) out.add(door(e.door(), e.du() != 0));
             return out;
         }
 
@@ -512,7 +619,7 @@ public final class CrashSiteStage implements GenStage {
             grid.setDoorway(x, y, false);
             topology.setFixture(x, y, false);
             topology.setWallRemnant(x, y, null);
-            topology.setSurface(x, y, topology.surfaceIndex(HULL_WALL));
+            topology.setSurface(x, y, topology.surfaceIndex(armour()));
             topology.setWallGroundSurface(x, y, RUBBLE_BED);
             ctx.markMadeGround(x, y);
         }
