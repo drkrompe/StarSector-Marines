@@ -139,6 +139,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.creep` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
 | `battle.render.creepPalette` | experiment | 2026-10-21 | Bloom/creep sessions: remove once the creep look is accepted. |
+| `battle.render.cutawayWalls` | experiment | 2026-11-10 | Buildings in depth (`voids.md`): `stub` (default) or `ghost` for a cut-away building's near walls. Remove it with the losing arm once the owner answers picks question voids-cutaway-walls. |
 | `battle.render.deadAirHaze` | control | 2026-10-20 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.domeShader` | control | 2026-10-13 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.doodadAtlas` | experiment | 2026-10-23 | Doodad decoration atlas: remove it with the per-cut bind path once renderEvidence has read the atlas against its control. |
