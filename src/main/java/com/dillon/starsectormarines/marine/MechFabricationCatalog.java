@@ -106,7 +106,12 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 7530),
             vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 12000),
             // The heavy skimmer: the laser tank's emitter and plant on a lift hull, with a shield emitter on top.
-            vehicle(VehicleType.HEAVY_SKIMMER, "@gearFabricationTriTachyonPattern", 21000));
+            vehicle(VehicleType.HEAVY_SKIMMER, "@gearFabricationTriTachyonPattern", 21000),
+            // The midline carriers: standard panels on every module and a swappable mission box, so each sits a little
+            // under the hull of its weight it is measured against (first-pass, UNTUNED).
+            vehicle(VehicleType.LIGHT_CARRIER, "@gearFabricationLightVehicleStandardFit", 6800),
+            vehicle(VehicleType.MEDIUM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 9800),
+            vehicle(VehicleType.HEAVY_CARRIER, "@gearFabricationHeavyVehicleStandardFit", 18000));
 
     private MechFabricationCatalog() {
     }

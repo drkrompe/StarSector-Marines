@@ -28,6 +28,8 @@ public final class MechPatternCredits {
     private static final String PATH = "graphics/factions/crest_luddic_path.png";
     private static final String INDEPENDENT = "graphics/factions/crest_neutral_traders.png";
     private static final String PIRATES = "graphics/factions/crest_pirates.png";
+    private static final String PERSEAN_LEAGUE = "graphics/factions/crest_persean_league.png";
+    private static final String SINDRIAN_DIKTAT = "graphics/factions/crest_sindrian_diktat.png";
 
     private static final Map<MechPattern, Credit> CREDITS = new HashMap<>();
 
@@ -48,6 +50,10 @@ public final class MechPatternCredits {
         vehicle(VehicleType.HOVER_SCOUT, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.DRONE_SKIMMER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.HEAVY_SKIMMER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
+        // The midline carriers: the light and medium are League yard patterns, the heavy the Diktat's line pattern.
+        vehicle(VehicleType.LIGHT_CARRIER, MechPatternPicker.PERSEAN_LEAGUE_ID, PERSEAN_LEAGUE);
+        vehicle(VehicleType.MEDIUM_CARRIER, MechPatternPicker.PERSEAN_LEAGUE_ID, PERSEAN_LEAGUE);
+        vehicle(VehicleType.HEAVY_CARRIER, MechPatternPicker.SINDRIAN_DIKTAT_ID, SINDRIAN_DIKTAT);
         vehicle(VehicleType.LASER_TANK, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.MILITIA_TECHNICAL, "independent", INDEPENDENT);
         vehicle(VehicleType.SUPPLY_TRUCK, "independent", INDEPENDENT);

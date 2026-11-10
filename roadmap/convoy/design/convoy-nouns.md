@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-09 — the hover line is Tri-Tachyon's skimmer line, light, medium and heavy, in the high-tech heavy shell with every gun on its own mount (`mech-lines.md`, law 4); the heavy skimmer carries the laser tank's carriage and a frontal flux shield on its hull's one flux pool (the hover line). Earlier 2026-11-05 — a crushing hull crushes where its whole footprint goes, reversing and turning on the spot as well as ahead (owner; weight crushes walls). Also 2026-11-05 — the Hegemony line (the Onager, the medium tank, the APC and its carriers) shows flux haze off its engine grilles as the laser tank does off its fins. Earlier 2026-11-05 — a crushing hull pushes what is built and the destruction path brings down: a building's window bays with its walls, and registered equipment and furniture with barricades; each piece it brings down plays the Brute's wall break (owner; weight crushes walls). Also 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Pulse); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-10 — the midline row's articulated carriers, light, medium and heavy: wheeled hulls of a drive cab and mission modules on hinges, drawn bending behind the cab while the hull drives as one rigid body (the articulated carriers). Earlier 2026-11-09 — the hover line is Tri-Tachyon's skimmer line, light, medium and heavy, in the high-tech heavy shell with every gun on its own mount (`mech-lines.md`, law 4); the heavy skimmer carries the laser tank's carriage and a frontal flux shield on its hull's one flux pool (the hover line). Earlier 2026-11-05 — a crushing hull crushes where its whole footprint goes, reversing and turning on the spot as well as ahead (owner; weight crushes walls). Also 2026-11-05 — the Hegemony line (the Onager, the medium tank, the APC and its carriers) shows flux haze off its engine grilles as the laser tank does off its fins. Earlier 2026-11-05 — a crushing hull pushes what is built and the destruction path brings down: a building's window bays with its walls, and registered equipment and furniture with barricades; each piece it brings down plays the Brute's wall break (owner; weight crushes walls). Also 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Pulse); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1801,6 +1801,39 @@ lost drive's smoke come off the gear the paint shows. A hover skirt blows a low 
 spray over water, whether or not it moves. The puffs are queued as events that every host
 draws through its particle system, and they draw nothing from the simulation's random
 stream.
+
+### The articulated carriers: the midline row
+
+The midline row's machines are wheeled (`mech-lines.md`, Midline, owner's pick E): **articulated carriers**, a
+blunt drive cab and mission modules behind it on a hinge that bends to steer, in the Eagle's material and colour only,
+weathered tan and khaki plate with engraved panel lines over grey machinery and yellow-green lights, never a ship's
+outline (`art-source/vehicles/midline-carriers/`). Every carrier is modular (`mech-lines.md`, law 4): its sockets are
+painted empty on the mission module, in a line along its spine rather than side by side (the concept's two sockets
+over a hatch read as a face), and every gun is a layer of its own on a mount.
+
+- The **light carrier** (`LIGHT_CARRIER`, Light lift, light weight) is a cab and one mission module on four wheels,
+  one socket carrying the small one-row omni card.
+- The **medium carrier** (`MEDIUM_CARRIER`, Medium lift, medium weight) is a cab and a longer module on six wheels:
+  the two-row omni card on a large socket, and one secondary mount aft of it (`VehicleType.secondaryMounts`).
+- The **heavy carrier** (`HEAVY_CARRIER`, Heavy lift, heavy weight, so it opens ordinary walls) is three modules in a
+  chain, cab, power module and mission module, on eight wheels: the three-row omni card between two secondary mounts.
+
+**The bend is drawn, not driven.** The hull moves as one rigid `BicycleBody`, so planners, route proof and the
+footprint keep their bounded curvature. A carrier's `Articulation` cuts its straight sheet at the hinges, and the
+renderer draws the cab on the body and each module trailing its hinge as a towed trailer does (`TrailerKinematic`):
+going forward a module's axle is dragged along a tractrix behind its hinge, backing up it eases back into line, it
+never swings past the hinge's stop, and a placed hull is laid out straight. The rule reads only the path the hinge took,
+so the bend is the same at any frame rate. Its mounts ride the module they are painted on. What the simulation still
+reads off the rigid hull: its footprint, and where its guns fire from, so on a hard turn a module's muzzle is drawn a
+little off the line its rounds leave on.
+
+Numbers sit between the other rows' hulls of each weight (`machine-budgets.md`), first-pass and UNTUNED: plate between
+the low-tech hull and the skimmer of its weight, no shield, and a stock fit drawing about twice what it sheds (the light
+PL-1 on the factory bank, about 1.7x; the medium's AC-6 and secondary gun and the heavy's HC-20 and two, each on a plant
+beside the bank, `HullReservoir.plantDissipation`). The light and medium are Persean League yard patterns, the heavy
+the Sindrian Diktat's; the League and the Diktat weight up their own, and Independents buy into the row at the base
+weight. The Kit Ladder holds all three at station "none" for the owner to place. The `midline-carriers` snapshot suite
+is the look study.
 
 ## Adjacent domains and extension points
 

@@ -382,6 +382,11 @@ public class GroundSystem {
             effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.drawnLengthCells);
         } else if (type.isPickup()) {
             effects.spawnTechnicalWreck(body.x, body.y, body.facingDegrees);
+        } else if (type.isMidlineCarrier()) {
+            // The engine is in the drive cab, over its axle; the mission module cooks off round its main socket.
+            Articulation joints = type.articulation();
+            effects.spawnCarrierWreck(body.x, body.y, body.facingDegrees, joints.axleY()[0], -type.turretMountY,
+                    type.drawnLengthCells / 4f);
         } else if (type.isHover()) {
             effects.spawnHoverWreck(body.x, body.y, body.facingDegrees, type.drawnLengthCells);
         } else if (type == VehicleType.CARGO_CARRIER) {
