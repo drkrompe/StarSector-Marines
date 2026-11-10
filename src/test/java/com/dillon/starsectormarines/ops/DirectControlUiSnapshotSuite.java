@@ -370,7 +370,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     status.cycleDurationSeconds(), status.burstRemaining(), status.burstSeconds(), status.ammo()));
         }
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
-        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Onager",
                 BattleDirectControlStatus.Carrier.VEHICLE, base.durability(), weapons);
     }
 
@@ -379,7 +379,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             .22f, .35f, false);
 
     /**
-     * A breakthrough tank fitted with a coax heavy MG, its rows built by the production status path from the
+     * An Onager fitted with a coax heavy MG, its rows built by the production status path from the
      * production sorter: the cannon leads the left button and the MG is the right button's, partly spent.
      */
     private static BattleDirectControlStatus.Snapshot twoGunTank() {
@@ -397,7 +397,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 BattleDirectControlStatus.vehicleWeapon(coax.turret(), coax.mount().structure().mount, Float.NaN, 2,
                         "MOUNT", FireGroups.badge(mounts, picks, 1), FireGroups.group(mounts, 1)));
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
-        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
+        return new BattleDirectControlStatus.Snapshot(base.entityId(), "Onager",
                 BattleDirectControlStatus.Carrier.VEHICLE, base.durability(), weapons);
     }
 
@@ -955,7 +955,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return plate;
     }
 
-    /** An unhurt breakthrough tank's doll. */
+    /** An unhurt Onager's doll. */
     private static BattleDamageDollPlate tankPlate(Path modRoot) {
         VehicleType type = VehicleType.BREAKTHROUGH_TANK;
         HullTurretSection turret = HullTurretSection.forHull(type);
@@ -970,7 +970,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private record FlankedTank(BattleDirectControlStatus.Snapshot status, BattleDamageDollPlate plate) { }
 
     /**
-     * A breakthrough tank shot from its left through the production located-damage law: the left plate
+     * An Onager shot from its left through the production located-damage law: the left plate
      * stripped and the hull behind it hit, the drive gone (crippled), and one round that found the
      * turret. Front, right and rear plates stay whole.
      */
@@ -1000,7 +1000,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 ModStrings.fromDisk(modRoot));
         plate.updateVehicle(type, hp, maxHp, turret, locations);
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
-        var status = new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
+        var status = new BattleDirectControlStatus.Snapshot(base.entityId(), "Onager",
                 BattleDirectControlStatus.Carrier.VEHICLE, new BattleDirectControlStatus.Durability(hp,
                 maxHp, armor, maxArmor, rating), base.weapons());
         return new FlankedTank(status, plate);

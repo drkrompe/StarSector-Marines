@@ -53,7 +53,7 @@ class VehicleEngagementFacingTest {
     }
 
     /**
-     * Drives a breakthrough tank's body, set down at the origin facing {@code facing}, with {@code faceDrive} (a
+     * Drives an Onager's body, set down at the origin facing {@code facing}, with {@code faceDrive} (a
      * {@code forward} turn kept forward, as a turn begun with the target well behind is) until
      * its nose is within the stop arc of ({@code tx}, {@code ty}) or twenty seconds pass: {@code {final degrees off
      * the nose, final distance, nearest distance, ground given}}.

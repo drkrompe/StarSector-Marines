@@ -484,6 +484,7 @@ com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMegaForgePicksSuite
 com.dillon.starsectormarines.tools.mapauthoring.MapsEditorSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWorksHallLookSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsRoomLookSuite
 com.dillon.starsectormarines.battle.derelict.WalkerTurnLookSuite
 com.dillon.starsectormarines.battle.derelict.WalkerMotionLookSuite
 com.dillon.starsectormarines.battle.setup.WallMountsLookSuite
