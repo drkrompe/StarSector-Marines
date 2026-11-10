@@ -2239,8 +2239,24 @@ that reads pavement are unchanged, and it crosses a street only on the apron
 against the wall. It is the last skin laid (`StormDriftStage`, after
 `RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
 laid only on street with no surface of its own, so a drift laid earlier stripped
-the asphalt off the street beside a wall. A living world's storms pile up nothing. A storm bank round the town
-rarely has room on maps whose town fills the frame, so it is not built.
+the asphalt off the street beside a wall. A living world's storms pile up nothing.
+
+A desert-like storm world's town banks earth against its weather (`StormBank`,
+owner): on a desert or a rock under storms, a graded berm ten cells through runs
+along the map's windward edge, ramped from the town's side. The wind is the
+planet's (`Climate.wind`, drawn once from the market), so the bank and the
+drifts face the same way. It is planned before anything grows: its bands are
+held from growth (`Landscape.withHeld`) and the strip from the edge to the bank
+is kept (`Landscape.withKept`), so no place grows onto it or round it onto its
+windward side, and a Raid site sets every place leeward of it
+(`StormBank.leeward`) and turns its back to the wind, so the company never lands
+on the windward side. A pass is planned where a road the plan already knows
+leaves the map that way (a works' feeder), and the landscape pass raises the
+rest through `RidgePlanner`, which breaks it again wherever a road, a building or
+an access route crosses and proves the ground on both sides stays one: cover
+and a height to hold, never a seal. It stands past the edge reservation the
+landscape pass keeps, or no segment fits. A mine's pit stops short of it. Snow
+fences and quake hardening are still to come.
 
 **A settlement is built for the world it stands on: its habitat.** An irradiated
 world's town is not a garden world's open town on grey ground (owner). `Habitat`
