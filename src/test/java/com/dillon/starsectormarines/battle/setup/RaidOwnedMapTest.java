@@ -83,14 +83,15 @@ class RaidOwnedMapTest {
     void theGroundIsTheMapsWhateverTheRaidsTier() {
         RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(StoryMap.RAID_FARMING, SurfacePalette.ARID);
         assertSame(RaidOwnedMap.TIER, ground.tier());
+        assertSame(RaidOwnedMap.SCALE, ground.scale());
         assertEquals(RaidOwnedMap.MACHINES, ground.machines());
         for (OperationTier tier : OperationTier.values()) {
             assertEquals(RaidOwnedMap.MACHINES, BattleSetup.raidMachines(tier), tier.name());
         }
         assertThrows(IllegalArgumentException.class,
-                () -> new RaidOwnedMap.Ground(StoryMap.CORDON_LINE, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, 4));
+                () -> new RaidOwnedMap.Ground(StoryMap.CORDON_LINE, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, RaidOwnedMap.SCALE, 4));
         assertThrows(IllegalArgumentException.class,
-                () -> new RaidOwnedMap.Ground(StoryMap.RAID, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, 0));
+                () -> new RaidOwnedMap.Ground(StoryMap.RAID, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, RaidOwnedMap.SCALE, 0));
     }
 
     @Test
