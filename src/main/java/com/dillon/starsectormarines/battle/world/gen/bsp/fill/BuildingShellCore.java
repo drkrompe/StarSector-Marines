@@ -289,7 +289,7 @@ final class BuildingShellCore {
             if (eligible && inRun && purpose == runPurpose) continue;
             if (inRun) {
                 int available = along - runStart;
-                // Small domestic rooms still need two-cell wall support for beds and sofas.
+                // Small domestic rooms keep wall to stand beds and sofas against (DOMESTIC_WALL).
                 boolean domestic = runPurpose == RoomPurpose.BEDROOM || runPurpose == RoomPurpose.APARTMENT_LIVING
                         || runPurpose == RoomPurpose.HOME_KITCHEN;
                 for (int pane : windowBays(available, windowBayWidth(recipe, runPurpose), repeatsBays(recipe),
@@ -329,7 +329,12 @@ final class BuildingShellCore {
     }
 
     /** Cells of wall left standing between two window bays along one room's facade. */
-    static final int WINDOW_PIER = 2;
+    static final int WINDOW_PIER = 1;
+    /**
+     * Cells of a domestic room's facade run left blind for its beds and sofas. Measured on a verdant town's homes,
+     * a bedroom's or kitchen's run is two to four cells, so keeping two blind left most rooms one pane.
+     */
+    static final int DOMESTIC_WALL = 1;
 
     /**
      * Whether a building lays a window bay again and again along each room's facade, its piers between them, rather
@@ -347,12 +352,12 @@ final class BuildingShellCore {
     /**
      * Where a room's window panes go along a run of {@code available} cells that can take one, as offsets from the
      * run's start: bays {@code bay} panes wide, one bay or as many as fit with {@link #WINDOW_PIER} cells of wall
-     * between them, the whole centred on the run. A domestic room keeps at least two cells of the run blind for its
-     * beds and sofas.
+     * between them, the whole centred on the run. A domestic room keeps {@link #DOMESTIC_WALL} cells of the run
+     * blind for its beds and sofas.
      */
     static int[] windowBays(int available, int bay, boolean repeat, boolean domestic) {
         if (available <= 0 || bay <= 0) return new int[0];
-        int glazed = domestic ? Math.max(1, available - 2) : available;
+        int glazed = domestic ? Math.max(1, available - DOMESTIC_WALL) : available;
         int width = Math.min(bay, glazed);
         int count = repeat ? Math.max(1, (available + WINDOW_PIER) / (width + WINDOW_PIER)) : 1;
         while (count > 1 && count * width > glazed) count--;
@@ -370,7 +375,9 @@ final class BuildingShellCore {
         if (recipe == BuildingLayouts.LayoutRecipe.COMMAND_CENTER
                 || recipe == BuildingLayouts.LayoutRecipe.BARRACKS
                 || recipe == BuildingLayouts.LayoutRecipe.VEHICLE_BAY) return 1;
-        if (purpose == RoomPurpose.SHOP_FLOOR || purpose == RoomPurpose.CIVIC_RECEPTION) return 4;
+        // A shop's front is glazed in bays of three, so a seven- to nine-cell front takes two.
+        if (purpose == RoomPurpose.SHOP_FLOOR) return 3;
+        if (purpose == RoomPurpose.CIVIC_RECEPTION) return 4;
         if (purpose == RoomPurpose.APARTMENT_LIVING || purpose == RoomPurpose.CONFERENCE_ROOM) return 3;
         return 2;
     }
