@@ -66,8 +66,8 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   `cordon`, `salvage-rights`, `cold-start`, `working-passage`, each with its
   `:key=value` options; `fixture:<path>`), or the bare name of a fixture in
   `src/test/resources/battle-fixtures`, such as `conquest-launch-v3`.
-- **`-Pbattle=proving-ground`** parks every mech and vehicle in two ranks on a
-  generated colony map, and a third of medium tanks with each rotary gun, the green and red Scorpion
+- **`-Pbattle=proving-ground`** parks every mech and vehicle in ranks of ten on a
+  generated colony map (as many ranks as they fill), then medium tanks with each rotary gun, the green and red Scorpion
   and Onager and a laser tank with the PL-3 (Pulse), beside its buildings and with trees planted ahead, and behind
   them a squad for each Marine primary at service grade whose seats carry every special, with no
   enemy and no end, for feeling how machines drive and firing every weapon (`ProvingGroundSetup`; options

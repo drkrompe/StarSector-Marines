@@ -1,0 +1,519 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "ruins-ground.ice-sheet"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
+        ]
+      ],
+      "id": "ruins-ground.rime"
+    },
+    {
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "id": "ruins-ground.biofilm"
+    },
+    {
+      "cells": [
+        [
+          8,
+          1
+        ],
+        [
+          9,
+          1
+        ],
+        [
+          10,
+          1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          14,
+          1
+        ],
+        [
+          15,
+          1
+        ]
+      ],
+      "id": "ruins-ground.wet-floor"
+    },
+    {
+      "cells": [
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          6,
+          2
+        ],
+        [
+          7,
+          2
+        ]
+      ],
+      "id": "ruins-ground.raised-floor"
+    },
+    {
+      "cells": [
+        [
+          8,
+          2
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          10,
+          2
+        ],
+        [
+          11,
+          2
+        ],
+        [
+          12,
+          2
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          14,
+          2
+        ],
+        [
+          15,
+          2
+        ]
+      ],
+      "id": "ruins-ground.stage-floor"
+    }
+  ],
+  "cellPx": 56,
+  "cells": [
+    {
+      "col": 0,
+      "description": "ice-sheetvar-1",
+      "name": "ruins-ground.ice-sheet v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "ice-sheetvar-2",
+      "name": "ruins-ground.ice-sheet v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "ice-sheetvar-3",
+      "name": "ruins-ground.ice-sheet v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "ice-sheetvar-4",
+      "name": "ruins-ground.ice-sheet v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "ice-sheetvar-5",
+      "name": "ruins-ground.ice-sheet v5",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "ice-sheetvar-6",
+      "name": "ruins-ground.ice-sheet v6",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "ice-sheetvar-7",
+      "name": "ruins-ground.ice-sheet v7",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "ice-sheetvar-8",
+      "name": "ruins-ground.ice-sheet v8",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "rimevar-1",
+      "name": "ruins-ground.rime v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "rimevar-2",
+      "name": "ruins-ground.rime v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "rimevar-3",
+      "name": "ruins-ground.rime v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "rimevar-4",
+      "name": "ruins-ground.rime v4",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "rimevar-5",
+      "name": "ruins-ground.rime v5",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "rimevar-6",
+      "name": "ruins-ground.rime v6",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "rimevar-7",
+      "name": "ruins-ground.rime v7",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "rimevar-8",
+      "name": "ruins-ground.rime v8",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "biofilmvar-1",
+      "name": "ruins-ground.biofilm v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "biofilmvar-2",
+      "name": "ruins-ground.biofilm v2",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "biofilmvar-3",
+      "name": "ruins-ground.biofilm v3",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "biofilmvar-4",
+      "name": "ruins-ground.biofilm v4",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "biofilmvar-5",
+      "name": "ruins-ground.biofilm v5",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "biofilmvar-6",
+      "name": "ruins-ground.biofilm v6",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "biofilmvar-7",
+      "name": "ruins-ground.biofilm v7",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "biofilmvar-8",
+      "name": "ruins-ground.biofilm v8",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "wet-floorvar-1",
+      "name": "ruins-ground.wet-floor v1",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "wet-floorvar-2",
+      "name": "ruins-ground.wet-floor v2",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "wet-floorvar-3",
+      "name": "ruins-ground.wet-floor v3",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "wet-floorvar-4",
+      "name": "ruins-ground.wet-floor v4",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "wet-floorvar-5",
+      "name": "ruins-ground.wet-floor v5",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "wet-floorvar-6",
+      "name": "ruins-ground.wet-floor v6",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "wet-floorvar-7",
+      "name": "ruins-ground.wet-floor v7",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "description": "wet-floorvar-8",
+      "name": "ruins-ground.wet-floor v8",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "raised-floorvar-1",
+      "name": "ruins-ground.raised-floor v1",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "raised-floorvar-2",
+      "name": "ruins-ground.raised-floor v2",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "raised-floorvar-3",
+      "name": "ruins-ground.raised-floor v3",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "raised-floorvar-4",
+      "name": "ruins-ground.raised-floor v4",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "raised-floorvar-5",
+      "name": "ruins-ground.raised-floor v5",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "raised-floorvar-6",
+      "name": "ruins-ground.raised-floor v6",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "raised-floorvar-7",
+      "name": "ruins-ground.raised-floor v7",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "description": "raised-floorvar-8",
+      "name": "ruins-ground.raised-floor v8",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "stage-floorvar-1",
+      "name": "ruins-ground.stage-floor v1",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "stage-floorvar-2",
+      "name": "ruins-ground.stage-floor v2",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "stage-floorvar-3",
+      "name": "ruins-ground.stage-floor v3",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "stage-floorvar-4",
+      "name": "ruins-ground.stage-floor v4",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "stage-floorvar-5",
+      "name": "ruins-ground.stage-floor v5",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "stage-floorvar-6",
+      "name": "ruins-ground.stage-floor v6",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "stage-floorvar-7",
+      "name": "ruins-ground.stage-floor v7",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "description": "stage-floorvar-8",
+      "name": "ruins-ground.stage-floor v8",
+      "row": 2
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/ruins-ground.png"
+}

@@ -748,11 +748,22 @@ public final class PrecinctWardStage implements GenStage {
                 merged[x][y] = c >= 0 && c < places.size() && sealed[c] ? group : c;
             }
         }
+        // Ground the town closes round is the town's, not the world outside: no ring of wall round a pocket of it.
+        boolean[][] enclosed = SealedTown.enclosedGround(merged, group);
+        int[][] held = new int[ctx.width][];
+        for (int x = 0; x < ctx.width; x++) {
+            held[x] = claim[x].clone();
+            for (int y = 0; y < ctx.height; y++) {
+                if (!enclosed[x][y]) continue;
+                merged[x][y] = group;
+                held[x][y] = group;
+            }
+        }
         Fortification wall = places.get(group).fortification();
         List<PrecinctBoundary.Gate> gates = new ArrayList<>(PrecinctBoundary.openGates(merged, road, group,
                 ctx.width, ctx.height, wall.gates(), wall.gateWidth()));
         boolean[] side = SealedTown.sealedSide(plan);
-        boolean[][] band = SealedTown.band(claim, sealed, side);
+        boolean[][] band = SealedTown.band(held, sealed, side);
         boolean[][] streetward = SealedTown.streetward(merged, group, open, band, road);
         gates.addAll(SealedTown.groundLocks(merged, group, open, gates, streetward));
         boolean[][] outline = PrecinctBoundary.wall(merged, road, group, ctx.width, ctx.height,

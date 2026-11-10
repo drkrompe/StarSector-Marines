@@ -32,6 +32,8 @@ public final class WorksHallPlan {
 
     /** The collapse's station: pieces that tell where the work stopped. */
     public static final String COLLAPSE = "collapse";
+    /** A special zone's floor unless the hall names its own ({@link #specialFloor()}); the floor under shallow water. */
+    public static final String RAISED_FLOOR = "ruins-ground.raised-floor", WET_FLOOR = "ruins-ground.wet-floor";
     /** The hall's structure: overheads and the runs they follow. */
     public static final String STRUCTURE = "structure";
     /** The hall's wear: stains, drains and marks along the traffic. */
@@ -97,6 +99,7 @@ public final class WorksHallPlan {
     private final String[] skins;
     private final boolean[] water, drop;
     private Drop dropKind;
+    private String specialFloor = RAISED_FLOOR;
 
     WorksHallPlan(WorksHall kind, int width, int length) {
         if (width < 1 || length < 1) throw new IllegalArgumentException("a hall of " + width + "x" + length);
@@ -123,6 +126,12 @@ public final class WorksHallPlan {
     public List<Station> flow() { return List.copyOf(stations.values()); }
 
     public Zone zone(int x, int y) { return in(x, y) ? zones[at(x, y)] : Zone.DERIVED; }
+
+    /** The surface the hall's {@link Zone#SPECIAL} floor wears. */
+    public String specialFloor() { return specialFloor; }
+
+    /** Lays the hall's {@link Zone#SPECIAL} floor in {@code surface}. */
+    void specialFloor(String surface) { specialFloor = surface; }
 
     /** The environment's skin at a cell, a surface id over the zone's; null for none. */
     public String skin(int x, int y) { return in(x, y) ? skins[at(x, y)] : null; }

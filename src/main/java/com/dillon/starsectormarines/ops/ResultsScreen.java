@@ -123,11 +123,6 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         putStoryDebrief(props, outcome);
         putFirstRefit(props, outcome, CompanyPreparationGuide.roster(), this::refit);
         props.put("rewardPrompt", rewardPrompt.row());
-        boolean preparation = outcome != null && !outcome.missionSource.isDebug();
-        props.put("preparationClasses", preparation ? "console-action" : "hidden");
-        props.put("preparationLabel", Strings.get(manifest != null && !manifest.isEmpty()
-                ? "resultsScreenSalvagePrepare" : "resultsScreenPrepare"));
-        props.put("preparationAction", (Runnable) this::prepareCompany);
         props.put("salvageReplay", (Runnable) () -> debriefNarration.start(
                 MissionDebriefConversation.recordings(outcome, WaylineNarration.builtins())));
         props.put("salvageStop", (Runnable) debriefNarration::stop);
@@ -154,8 +149,6 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         Runnable none = () -> { };
         Map<String, Object> props = baseProps();
         props.put("title", "Debrief");
-        props.put("preparationClasses", "console-action");
-        props.put("preparationLabel", salvage ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
         props.put("outcomeLabel", victory ? "VICTORY" : "DEFEAT");
         props.put("missionName", "SABOTAGE — First Contract");
@@ -179,9 +172,6 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("rewardPrompt", DebriefRewardPrompt.hidden());
         props.put("title", Strings.get("resultsHeader"));
-        props.put("preparationClasses", "hidden");
-        props.put("preparationLabel", Strings.get("resultsScreenPrepare"));
-        props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
         putFirstRefit(props, null, null, () -> { });
         DebriefForce.put(props, List.of(), List.of());
@@ -692,17 +682,6 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     static ScreenId returnDestination(MissionOutcome outcome) {
         return WaylineHoundAward.eligible(outcome) ? ScreenId.MECH_LAB : ScreenId.MISSION_SELECT;
-    }
-
-    void prepareCompany() {
-        LootManifest manifest = context.getLootManifest();
-        if (manifest != null && !manifest.isEmpty()) {
-            context.prepareAfterSettlement(true);
-            context.goTo(ScreenId.LOOT);
-        } else {
-            context.forfeitLoot();
-            context.finishOperation(true);
-        }
     }
 
     /** The equipment lesson, after the operation settles: salvage is reviewed first when there is any. */

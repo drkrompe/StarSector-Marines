@@ -1006,11 +1006,10 @@ of commodity icons and counts, each marked when the stores fall short.
 
 Barracks has no order that moves marines between squads. A squad gets its strength back by filling true vacancies from reserves and cargo.
 
-After an operation, Prepare Company opens Barracks once salvage has been settled.
-When a claim remains, that route first opens the normal salvage picker; it never
-forfeits a claim just to change rooms. A ship still being prepared routes to HQ.
-The ordinary mission-list exit remains available, and a planet-backed Barracks
-visit exposes Missions to resume local work. Campaign-map visits never invent a
+The debrief has one exit: Return to the mission list, or Review Salvage first when a
+claim remains; it never forfeits a claim just to change rooms. The company is reached
+from the mission list (owner: a separate company exit on the debrief was redundant).
+A planet-backed Barracks visit exposes Missions to resume local work. Campaign-map visits never invent a
 market-backed mission route.
 
 The company officer offers a short, dismissible first-use management guide in an

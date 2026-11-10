@@ -2518,7 +2518,12 @@ stay connected, and one onto every stretch of open ground it borders that no roa
 reaches (`SealedTown.groundLocks`), so it never seals a field off. A lock is
 sited where its way in reaches the town's streets (`SealedTown.streetward`), not
 into a yard shut in by buildings, and the defences build nothing across its way
-in or out (`SealedTown.lockWays`). The wall is an
+in or out (`SealedTown.lockWays`). Open ground the town closes round is the
+town's (`SealedTown.enclosedGround`), so the envelope never rings a pocket inside
+it. A map that lays its town with no plan (an extraction, a rescue, a sabotage
+with no sprawl) lays it as a one-place plan on such a world, that town alone and
+sealed (`SealedTown.alone`); a conquest's crossroad city runs past the map's edges
+and has no world outside to wall against. The wall is an
 envelope, not a line (`SealedTown.envelope`): a one-cell outline read as a thin
 line wrapped round the town (owner). It stands three cells through on the town's
 own outermost ground (`SealedTown.band`), which is held back from the town's
@@ -2551,7 +2556,7 @@ which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
 Still to come, in this vocabulary: locks sited onto open country rather than
-the garrison's ground; a sealed town for the maps that lay their town without precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
+the garrison's ground; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.

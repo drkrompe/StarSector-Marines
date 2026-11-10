@@ -27,6 +27,14 @@ class DryVoidLookTest {
     }
 
     @Test
+    void anEngineeredDropLaysItsOwnKerbAndARockDropFraysInstead() {
+        assertSame(DryVoidLook.REGOLITH, DryVoidLook.of(drop(NaturalVoid.Style.SHAFT)));
+        assertEquals(NaturalVoidRenderSystem.SHAFT_LIP, NaturalVoidRenderSystem.kerb(drop(NaturalVoid.Style.SHAFT)));
+        assertEquals(NaturalVoidRenderSystem.FOUNDRY_LIP, NaturalVoidRenderSystem.kerb(drop(NaturalVoid.Style.FOUNDRY)));
+        assertNull(NaturalVoidRenderSystem.kerb(drop(NaturalVoid.Style.DRY_GORGE)));
+    }
+
+    @Test
     void backFromTheDropTheLipIsThePlainUnderTheBattlesOwnSun() {
         float[] rgb = new float[3];
         // In the field's shade, with its noise: back from the edge none of it shows, so no seam meets the tiles.

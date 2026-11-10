@@ -167,3 +167,12 @@ former two-strip packer is retired, so export is the only atlas producer.
 `createSnapshots -Psnapshot=parked-vehicles` checks all four rotations at game
 scale, a closer gallery, and the production Counterattack freight yard.
 
+
+## ruins-ground
+
+The theme works halls' floor coverings (`ruins-theme-halls`), laid as skins by cell: `ruins-ground.ice-sheet`,
+`.rime`, `.biofilm`, `.wet-floor`, `.raised-floor` (half-cell panels) and `.stage-floor` (cell panels). Six ImageGen
+masters in `ruins-ground/` are cut and wrapped into eight 56 px variants each by `ruins-ground/build.py`, which runs
+`normalize_ground_variants.py`, lifts each tile's texture about its own mean (the masters came back too flat to tell
+ice from rime at play scale) and draws the panel seams on the cell grid; then export with
+`echo {"name":"ruins-ground"} | tools/authoring.cmd tileset_export -`.

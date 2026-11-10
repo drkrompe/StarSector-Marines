@@ -1,0 +1,950 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "id": "ruins-ground.ice-sheet",
+      "layout": "variants"
+    },
+    {
+      "id": "ruins-ground.rime",
+      "layout": "variants"
+    },
+    {
+      "id": "ruins-ground.biofilm",
+      "layout": "variants"
+    },
+    {
+      "id": "ruins-ground.wet-floor",
+      "layout": "variants"
+    },
+    {
+      "id": "ruins-ground.raised-floor",
+      "layout": "variants"
+    },
+    {
+      "id": "ruins-ground.stage-floor",
+      "layout": "variants"
+    }
+  ],
+  "cellPx": 56,
+  "entries": [
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-1.png",
+      "note": "ice-sheetvar-1",
+      "rect": [
+        0,
+        0,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-2.png",
+      "note": "ice-sheetvar-2",
+      "rect": [
+        56,
+        0,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-3.png",
+      "note": "ice-sheetvar-3",
+      "rect": [
+        112,
+        0,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-4.png",
+      "note": "ice-sheetvar-4",
+      "rect": [
+        168,
+        0,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-5.png",
+      "note": "ice-sheetvar-5",
+      "rect": [
+        224,
+        0,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-6.png",
+      "note": "ice-sheetvar-6",
+      "rect": [
+        280,
+        0,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-7.png",
+      "note": "ice-sheetvar-7",
+      "rect": [
+        336,
+        0,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.ice-sheet",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-ice-sheet-variants/ice-sheetvar-8.png",
+      "note": "ice-sheetvar-8",
+      "rect": [
+        392,
+        0,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-1.png",
+      "note": "rimevar-1",
+      "rect": [
+        0,
+        56,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-2.png",
+      "note": "rimevar-2",
+      "rect": [
+        56,
+        56,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-3.png",
+      "note": "rimevar-3",
+      "rect": [
+        112,
+        56,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-4.png",
+      "note": "rimevar-4",
+      "rect": [
+        168,
+        56,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-5.png",
+      "note": "rimevar-5",
+      "rect": [
+        224,
+        56,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-6.png",
+      "note": "rimevar-6",
+      "rect": [
+        280,
+        56,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-7.png",
+      "note": "rimevar-7",
+      "rect": [
+        336,
+        56,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.rime",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-rime-variants/rimevar-8.png",
+      "note": "rimevar-8",
+      "rect": [
+        392,
+        56,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-1.png",
+      "note": "biofilmvar-1",
+      "rect": [
+        0,
+        112,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-2.png",
+      "note": "biofilmvar-2",
+      "rect": [
+        56,
+        112,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-3.png",
+      "note": "biofilmvar-3",
+      "rect": [
+        112,
+        112,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-4.png",
+      "note": "biofilmvar-4",
+      "rect": [
+        168,
+        112,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-5.png",
+      "note": "biofilmvar-5",
+      "rect": [
+        224,
+        112,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-6.png",
+      "note": "biofilmvar-6",
+      "rect": [
+        280,
+        112,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-7.png",
+      "note": "biofilmvar-7",
+      "rect": [
+        336,
+        112,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.biofilm",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-biofilm-variants/biofilmvar-8.png",
+      "note": "biofilmvar-8",
+      "rect": [
+        392,
+        112,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-1.png",
+      "note": "wet-floorvar-1",
+      "rect": [
+        0,
+        168,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-2.png",
+      "note": "wet-floorvar-2",
+      "rect": [
+        56,
+        168,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-3.png",
+      "note": "wet-floorvar-3",
+      "rect": [
+        112,
+        168,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-4.png",
+      "note": "wet-floorvar-4",
+      "rect": [
+        168,
+        168,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-5.png",
+      "note": "wet-floorvar-5",
+      "rect": [
+        224,
+        168,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-6.png",
+      "note": "wet-floorvar-6",
+      "rect": [
+        280,
+        168,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-7.png",
+      "note": "wet-floorvar-7",
+      "rect": [
+        336,
+        168,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.wet-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r3",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-wet-floor-variants/wet-floorvar-8.png",
+      "note": "wet-floorvar-8",
+      "rect": [
+        392,
+        168,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-1.png",
+      "note": "raised-floorvar-1",
+      "rect": [
+        0,
+        224,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-2.png",
+      "note": "raised-floorvar-2",
+      "rect": [
+        56,
+        224,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-3.png",
+      "note": "raised-floorvar-3",
+      "rect": [
+        112,
+        224,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-4.png",
+      "note": "raised-floorvar-4",
+      "rect": [
+        168,
+        224,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-5.png",
+      "note": "raised-floorvar-5",
+      "rect": [
+        224,
+        224,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-6.png",
+      "note": "raised-floorvar-6",
+      "rect": [
+        280,
+        224,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-7.png",
+      "note": "raised-floorvar-7",
+      "rect": [
+        336,
+        224,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.raised-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r4",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-raised-floor-variants/raised-floorvar-8.png",
+      "note": "raised-floorvar-8",
+      "rect": [
+        392,
+        224,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c0r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-1.png",
+      "note": "stage-floorvar-1",
+      "rect": [
+        0,
+        280,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c1r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-2.png",
+      "note": "stage-floorvar-2",
+      "rect": [
+        56,
+        280,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c2r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-3.png",
+      "note": "stage-floorvar-3",
+      "rect": [
+        112,
+        280,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c3r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-4.png",
+      "note": "stage-floorvar-4",
+      "rect": [
+        168,
+        280,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c4r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-5.png",
+      "note": "stage-floorvar-5",
+      "rect": [
+        224,
+        280,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c5r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-6.png",
+      "note": "stage-floorvar-6",
+      "rect": [
+        280,
+        280,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c6r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-7.png",
+      "note": "stage-floorvar-7",
+      "rect": [
+        336,
+        280,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "ruins-ground.stage-floor",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.ruins-ground.c7r5",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/ruins-stage-floor-variants/stage-floorvar-8.png",
+      "note": "stage-floorvar-8",
+      "rect": [
+        392,
+        280,
+        56,
+        56
+      ],
+      "slot": "v8"
+    }
+  ],
+  "gridCols": 8,
+  "gridRows": 6,
+  "idPrefix": "doodad.ruins-ground",
+  "note": "The works halls' floor coverings (ruins-theme-halls), laid as skins by cell: ruins-ground.ice-sheet is a thin sheet of frozen coolant over the deck; ruins-ground.rime is hoar frost and rime grown over the deck; ruins-ground.biofilm is a wet culture mat grown over the deck; ruins-ground.wet-floor is the concrete deck standing wet; ruins-ground.raised-floor is a clean-room raised access floor, half-cell panels; ruins-ground.stage-floor is a holographic stage's dark polished deck, cell panels. A contact sheet of the tiles under atlas-material-source/ruins-*-variants, rebuilt by art-source/tilesets/ruins-ground/build.py from the masters beside it.",
+  "sheet": "art-source/tilesets/ruins-ground.raw.png",
+  "sheetName": "ruins-ground"
+}
