@@ -101,6 +101,14 @@ public class CellTopology {
     private float[] signatureMarks = new float[0];
     public float[] signatureMarks() { return signatureMarks; }
     public void setSignatureMarks(float[] value) { signatureMarks = value == null ? new float[0] : value.clone(); }
+    /**
+     * A volcanic world's older lava flows ({@code voids.md}, Lava flows): per cell, 0 where none lies, else how hot
+     * the crust still is, from just above 0 at a cold toe to 1 where it broke from the melt. Empty unless a generator
+     * laid some; presentation only, the cells are walked as the ground they are.
+     */
+    private float[] lavaFlows = new float[0];
+    public float[] lavaFlows() { return lavaFlows; }
+    public void setLavaFlows(float[] value) { lavaFlows = value == null ? new float[0] : value.clone(); }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {

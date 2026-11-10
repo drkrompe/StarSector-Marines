@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.LavaFlows;
 import com.dillon.starsectormarines.battle.world.gen.LivingWorld;
 import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -436,12 +437,21 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
         if (Math.min(c.width, c.height) < CHASM_MIN_SIDE || !chasmWanted(c.seed)) return;
         int w = c.width;
+        String lavaFlow = field.world() == SurfacePalette.VOLCANIC ? lavaFlow() : "rift";
+        if (lavaFlow.equals("field")) {
+            int side = new Random(c.seed ^ 0x4c4146L).nextInt(4);
+            paintFlows(c, LavaFlows.fromEdge(w, c.height, side,
+                    i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                    (int) (c.seed ^ 0x4c46L)), reserved);
+            return;
+        }
         NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height,
                 i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                 i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
         if (cut == null) return;
         cutDrop(c, cut.drop(), reserved);
-        NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
+        NaturalVoidZoning.Drop drop = lavaFlow.equals("rift") ? NaturalVoidZoning.forPalette(field.world())
+                : NaturalVoidZoning.LAVA_RIVER;
         // Each crossing is decked as a timber footbridge. A snow bridge on ice was tried: plain snow over the
         // crevasse read as two pits with ground between them, not as a way across.
         int timber = c.topology.surfaceIndex(DECK_SURFACE);
@@ -455,6 +465,38 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setSurface(x, y, timber);
         }
         c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+        if (lavaFlow.equals("flows")) {
+            paintFlows(c, LavaFlows.offChannel(w, c.height, cut.drop(),
+                    i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                    i -> !decks[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                    (int) (c.seed ^ 0x4c46L)), reserved);
+        }
+    }
+
+    /**
+     * {@code battle.mapgen.lavaFlow}: what a volcanic world's natural drop is while the owner picks
+     * ({@code voids.md}, Lava flows): {@code rift} (the 40 m rift, the default and today's map), {@code river} (the
+     * 4 m lava river), {@code flows} (the river with its older flows on the plain) or {@code field} (the older flows
+     * alone, no drop). Undecided: remove it with the losing arms once the owner picks.
+     */
+    static final String LAVA_FLOW = "battle.mapgen.lavaFlow";
+
+    static String lavaFlow() {
+        String asked = System.getProperty(LAVA_FLOW);
+        return asked == null || asked.isBlank() ? "rift" : asked.trim();
+    }
+
+    /** Lays the older flows ({@link LavaFlows#heat}) and keeps the landscape's later features off them. */
+    private static void paintFlows(GenContext c, boolean[] flows, boolean[] reserved) {
+        int w = c.width;
+        boolean[] lava = new boolean[flows.length];
+        for (int i = 0; i < flows.length; i++) {
+            lava[i] = c.topology.getGroundKind(i % w, i / w) == GroundKind.VOID;
+            if (!flows[i]) continue;
+            reserved[i] = true;
+            c.topology.setNatureOverlayIndex(i % w, i / w, -1);
+        }
+        c.topology.setLavaFlows(LavaFlows.heat(w, c.height, flows, lava));
     }
 
     /**
