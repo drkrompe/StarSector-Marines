@@ -2048,7 +2048,9 @@ intact and strong. It grows with the layer count, 15x11 at scattered, 21x15,
 pads stand along its long walls with an aisle down the middle from the inner
 door. Units were pulled out of most cradles and wrecked in others, and the
 breach is held on the aisle before the far cradle, where the prize still
-stands. The cradles' props are stand-ins until the plant kit's art lands.
+stands. Each pad wears the plant kit's empty cradle frame, which is floor; a
+few hold a wreck, and the far one holds the theme's product
+(`RuinsDressing.product`) or a crate.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
@@ -2069,10 +2071,11 @@ among the chambers so the delve laws hold them):
 - a lone band takes intake and lines;
 - vast ground lays each set twice.
 
-Each hall is furnished by stage, through the same one-floor placement as the
-dressing: line runs with gaps and wrecked modules, rack rows mostly stripped,
-and stock left on the dock floor. Stand-in props are used until the plant kit's
-art lands.
+Each hall is furnished by stage from the plant kit (`ruins-themes` sheet),
+through the same one-floor placement as the dressing: line runs east-west, a
+line end feeding 6x3 modules with a gap after every second and a wreck here and
+there; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
+wall (their levelers are floor) with stock left on the dock floor.
 
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
 and the interior's chambers wear for the site's vault prize

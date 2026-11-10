@@ -66,9 +66,9 @@ public final class RuinsThemeDressing {
             case MANTLE_BORE -> set(List.of(ENGINE_BOARD, CABLE_REEL), List.of(CABLE_REEL, DRUMS, ENGINE_BOARD));
             case CATALYTIC_CORE, FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS));
             case SOIL_NANITES, BIOFACTORY_EMBRYO -> new RuinsDressing(List.of(CULTURE_VAT, GROW_BED),
-                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH);
+                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH).withProduct(CULTURE_VAT);
             case CRYOARITHMETIC_ENGINE -> new RuinsDressing(List.of(CRYO_RACK, CRYO_RACK, FROST_HEATSINK),
-                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST);
+                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST).withProduct(CRYO_RACK);
             case DEALMAKER_HOLOSUITE -> set(List.of(CONFERENCE, WORKSTATIONS), List.of(CONFERENCE, WORKSTATIONS, CONSOLE));
         };
     }

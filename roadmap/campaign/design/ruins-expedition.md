@@ -603,15 +603,16 @@ hall and runs two lines per production hall. The secure store is built: a
 cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
 (`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
 `RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
-vast) and storage bays (18x14), furnished with stand-ins until the plant kit's
-art lands. Slots for that kit, the control room and the substation as plant
-halls, and the outdoor yards are still owed.
+vast) and storage bays (18x14), furnished from the plant kit. The control room
+and the substation as plant halls, the products' half-built and wrecked states,
+and the outdoor yards are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its
-product, whole (only the prize), half-built and wrecked. The ground lays halls
-with slots (line runs, cradle grids, rack rows, dock doors), and the theme's
-`RuinsDressing` names the pieces for each slot role. Placement is a coordinate
+product, whole (only the prize), half-built and wrecked. The ground lays the
+kit itself (line runs, cradle grids, rack rows, dock doors); the theme's
+`RuinsDressing` names its product, which stands whole in the prize's cradle
+(the cryo rack and the culture vat so far; a crate where a theme has none). Placement is a coordinate
 hash, so the layout never changes with the theme. Picture cards:
 `createSnapshots -Psnapshot=ruins-facility-picks`.
 
