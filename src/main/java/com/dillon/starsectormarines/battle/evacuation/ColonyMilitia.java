@@ -273,34 +273,44 @@ public final class ColonyMilitia {
 
     /**
      * The holdouts a person put down ({@code story-map-pools.md}, The patch): for each cell, in order, the held
-     * building it falls inside. None of {@link #choosePosts}'s clearances apply, since the author's placement
-     * stands; each building must still be a held place with room indoors for {@code seats}.
+     * building with room indoors for {@code seats} that it falls inside, or else the nearest one
+     * ({@link ColonyRedoubts#authoredHoldout}), none named twice. None of {@link #choosePosts}'s clearances apply,
+     * since the author's placement stands.
      *
-     * @throws IllegalStateException where a cell names no such building
+     * @throws IllegalStateException where a cell has no such building near it
      */
     private static List<Post> authoredPosts(BattleSimulation sim, MapResult map, List<MapPatch.Cell> holdouts,
                                             int seats) {
         boolean works = ColonyRedoubts.worksEnabled();
         RedoubtWorks.Ground ground = works ? RedoubtWorks.ground(sim) : null;
+        List<PointOfInterest> places = new ArrayList<>();
+        List<TacticalNode> nodes = new ArrayList<>();
+        List<List<int[]>> rooms = new ArrayList<>();
+        List<int[]> footprints = new ArrayList<>();
+        for (PointOfInterest p : map.pointsOfInterest) {
+            if (p == null || p.kind == PointOfInterest.Kind.LANDING_SITE) continue;
+            TacticalNode node = heldPlace(map, p);
+            if (node == null) continue;
+            List<int[]> cells = interiorCells(sim, p);
+            if (cells.size() < seats) continue;
+            places.add(p);
+            nodes.add(node);
+            rooms.add(cells);
+            footprints.add(new int[]{p.left, p.top, p.right, p.bottom});
+        }
+        boolean[] taken = new boolean[footprints.size()];
         List<Post> posts = new ArrayList<>();
         for (MapPatch.Cell cell : holdouts) {
-            PointOfInterest place = null;
-            for (PointOfInterest p : map.pointsOfInterest) {
-                if (p != null && p.kind != PointOfInterest.Kind.LANDING_SITE && p.left <= cell.x()
-                        && cell.x() <= p.right && p.top <= cell.y() && cell.y() <= p.bottom) {
-                    place = p;
-                    break;
-                }
-            }
-            TacticalNode node = place == null ? null : heldPlace(map, place);
-            List<int[]> cells = node == null ? List.of() : interiorCells(sim, place);
-            if (cells.size() < seats) {
+            int i = ColonyRedoubts.authoredHoldout(footprints, taken, cell.x(), cell.y());
+            if (i < 0) {
                 throw new IllegalStateException("the holdout authored at " + cell.x() + "," + cell.y()
-                        + " names no held building with room for " + seats);
+                        + " has no held building with room for " + seats + " within "
+                        + ColonyRedoubts.AUTHORED_HOLDOUT_REACH + " cells");
             }
-            float room = works ? RedoubtWorks.room(ground, place.left, place.top, place.right, place.bottom,
+            taken[i] = true;
+            PointOfInterest place = places.get(i);            float room = works ? RedoubtWorks.room(ground, place.left, place.top, place.right, place.bottom,
                     RedoubtWorks.HOLDOUT_MARGIN) : 1f;
-            posts.add(new Post(place, node, cells, room));
+            posts.add(new Post(place, nodes.get(i), rooms.get(i), room));
         }
         return posts;
     }
