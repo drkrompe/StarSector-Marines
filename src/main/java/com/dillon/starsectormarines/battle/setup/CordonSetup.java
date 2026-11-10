@@ -285,7 +285,7 @@ public final class CordonSetup {
         if (!drop.isEmpty()) {
             List<Piece> kept = new ArrayList<>();
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
-            plan = plan.withLayout(new MissionLayout(kept));
+            plan = plan.withLayout(new MissionLayout(kept).withCrash(plan.layout().crash()));
         }
         MapResult map = constructed(generated(battleSeed, layout, plan, drop, why), plan, density, battleSeed, true,
                 layout);

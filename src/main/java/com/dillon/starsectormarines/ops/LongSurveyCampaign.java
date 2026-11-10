@@ -45,12 +45,15 @@ public final class LongSurveyCampaign {
      */
     static final SurfacePalette SURFACE = SurfacePalette.ARID;
     /**
-     * The Fall's map: the owned Colony Breach seed (`long-survey-arc.md`, Seeds) the ground session patches with the
-     * hull's trench. The pool is read for its seed; this is the seed when no pool is installed.
+     * The Fall's map: the Colony Breach colony's seed with the Surveyor down beside the town (`long-survey-arc.md`,
+     * Seeds; the {@code long-survey-fall} pool). The pool is read for its seed; this is the seed when no pool is installed.
      */
-    static final StoryMap THE_FALL_MAP = StoryMap.COLONY_BREACH;
+    static final StoryMap THE_FALL_MAP = StoryMap.LONG_SURVEY_FALL;
     static final long THE_FALL_SEED = 38L;
-    /** The hull's watch on The Fall: the grade its zones are laid at (UNTUNED) and its lineage's livery. */
+    /**
+     * The hull's livery, and the grade a site network is laid at where the ground carries no hull (no pool installed):
+     * the fallback the battle keeps (UNTUNED).
+     */
     static final RuinsGrade THE_FALL_GRADE = RuinsGrade.EXTENSIVE;
     static final FlockLivery LIVERY = FlockLivery.DOMAIN;
     /** The end-game challenge force, as the Khettara's: seven squads and four machines. */

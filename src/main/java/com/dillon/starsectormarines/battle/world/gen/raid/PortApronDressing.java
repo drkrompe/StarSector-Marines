@@ -71,6 +71,9 @@ public final class PortApronDressing {
         boolean deepEast = apron.deepX() >= apron.paved().x1();
         LandingPad.Approach out = deepEast ? LandingPad.Approach.EAST : LandingPad.Approach.WEST;
         int turnaround = rng.nextInt(apron.pads().size());
+        // A second lighter, loaded and waiting on its slot, wherever the apron has three pads or more.
+        int waiting = apron.pads().size() >= 3 ? (turnaround + 1 + rng.nextInt(apron.pads().size() - 1))
+                % apron.pads().size() : -1;
         int stands = 0;
         for (int i = 0; i < apron.pads().size(); i++) {
             PortApron.Rect pad = apron.pads().get(i);
@@ -90,14 +93,16 @@ public final class PortApronDressing {
             // The burn: the scorch every lift leaves where its exhaust meets the plate, and the lesser marks of the
             // landings round it, some worn off.
             int cx = pad.centerX(), cy = pad.centerY();
-            if (burn != null) c.doodads.add(new Doodad(cx - 2, cy - 2, burn, rng.nextInt(4) % 2 == 0 ? 0 : 2));
-            if (mark != null) {
+            // A pad with its lighter standing on it shows the hull, not the burn under it.
+            boolean occupied = i == turnaround || i == waiting;
+            if (burn != null && !occupied) c.doodads.add(new Doodad(cx - 2, cy - 2, burn, rng.nextInt(4) % 2 == 0 ? 0 : 2));
+            if (mark != null && !occupied) {
                 int[][] ring = {{-4, -4}, {2, -4}, {-4, 2}, {2, 2}, {-1, -5}, {-1, 3}};
                 for (int[] at : ring) {
                     if (rng.nextDouble() < SCORCH_SHARE) c.doodads.add(new Doodad(cx + at[0], cy + at[1], mark));
                 }
             }
-            if (i == turnaround) {
+            if (i == turnaround || i == waiting) {
                 // The freighter's hull reaches past its stand toward its tail: stood a cell in from the pad's
                 // middle, toward the terminal, it stays on its pad.
                 c.landingPads.add(new LandingPad(cx - out.dx, cy, 1, 1, out, LandingPad.Purpose.PORT_LIGHTER));
@@ -108,6 +113,7 @@ public final class PortApronDressing {
         fuel(c, registry, apron);
         turnaround(c, registry, apron, apron.pads().get(turnaround), apron.hydrants().get(turnaround), deepEast);
         staging(c, registry, apron, rng);
+        apronControl(c, registry, apron, deepEast);
         return stands;
     }
 
@@ -215,6 +221,35 @@ public final class PortApronDressing {
             if (freeRect(c, cx, cy, cx, cy + 1)) {
                 fixtures(c, cx, cy, cx, cy + 1, true);
                 c.doodads.add(new Doodad(cx, cy, cart));
+            }
+        }
+    }
+
+    /** The apron control post's radar, and the flood lamps on the blast walls. */
+    static final String RADAR = "doodad.military-radar-dish";
+    static final String FLOOD = "doodad.street-lamp-cap-industrial";
+
+    /**
+     * Apron control: the approach radar at the near end of the fuel main, where the terminal's tower looks down the
+     * pad line, and a flood lamp at each blast wall's ends, lighting the stands either side.
+     */
+    static void apronControl(GenContext c, TileRegistry registry, PortApron apron, boolean deepEast) {
+        DoodadDef radar = registry.doodad(RADAR), flood = registry.doodad(FLOOD);
+        PortApron.Rect main = apron.fuelMain();
+        PortApron.Rect first = apron.pads().get(0);
+        boolean farmHigh = apron.fuelFarm().y0() > first.y1();
+        int ry = farmHigh ? main.y0() - 2 : main.y1() + 2;
+        int rx = main.x0() + (deepEast ? 2 : -2);
+        if (radar != null && free(c, rx, ry)) {
+            fixtures(c, rx, ry, rx, ry, true);
+            c.doodads.add(new Doodad(rx, ry, radar));
+        }
+        if (flood == null) return;
+        for (PortApron.Rect wall : apron.blastWalls()) {
+            for (int x : new int[]{wall.x0() - 1, wall.x1() + 1}) {
+                if (!free(c, x, wall.y0())) continue;
+                fixtures(c, x, wall.y0(), x, wall.y0(), true);
+                c.doodads.add(new Doodad(x, wall.y0(), flood));
             }
         }
     }

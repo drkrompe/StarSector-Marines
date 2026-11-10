@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -83,6 +84,14 @@ public final class AirDeliveryContext {
     }
 
     public int[] findOpenDeboardCell() {
+        return findOpenDeboardCell(false);
+    }
+
+    /**
+     * The nearest walkable, unoccupied cell to the landing point within the deboard scan, for a machine
+     * ({@code machine}) never one marked {@link NavigationGrid.CellTag#NO_MACHINE_DROP}; null when none.
+     */
+    public int[] findOpenDeboardCell(boolean machine) {
         int lzX = (int) Math.floor(mission.lzX);
         int lzY = (int) Math.floor(mission.lzY);
         Set<Long> seen = new HashSet<>();
@@ -96,6 +105,7 @@ public final class AirDeliveryContext {
             if (p[2] > 0
                     && navigation.getGrid().inBounds(p[0], p[1])
                     && navigation.getGrid().isWalkable(p[0], p[1])
+                    && !(machine && navigation.getGrid().hasTag(p[0], p[1], NavigationGrid.CellTag.NO_MACHINE_DROP))
                     && !navigation.isCellOccupied(p[0], p[1])) {
                 return new int[]{p[0], p[1]};
             }
@@ -119,6 +129,7 @@ public final class AirDeliveryContext {
             int cx = (int) Math.floor(x);
             int cy = (int) Math.floor(y);
             return navigation.getGrid().inBounds(cx, cy)
+                    && !navigation.getGrid().hasTag(cx, cy, NavigationGrid.CellTag.NO_MACHINE_DROP)
                     && navigation.getZoneGraph().zoneIdAt(cx, cy) == zone
                     && Math.abs(cx - lzX) + Math.abs(cy - lzY) <= DEBOARD_SCAN_RADIUS;
         };

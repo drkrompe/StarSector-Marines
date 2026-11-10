@@ -78,16 +78,18 @@ adds one fallen-hull mechanic to the shipped watch:
 
 ## Seeds
 
-Each chapter owns one seed from the home pool of its family, with a patch that
-places the hull and its claim (`story-map-pools.md`, The owned seed). The first
-attempt, retries, replays and the debug player all play it. Recommended
-starting points, for the ground session to vet or replace:
+Each chapter owns one seed with a patch that lays the hull, its trench and its
+starting stakes over its family's ground (`story-map-pools.md`, The owned seed;
+`fallen-hull-nouns.md`, The ground), one pool file each, so no shipped map
+moves. The first attempt, retries, replays and the debug player all play it;
+`LongSurveyGround` builds each as its family's setup generates its map.
 
-- The Fall: the owned `colony-breach` seed 38, the hull's trench patched in
-  where its deep bore stands, so the shelter, lift and town are the vetted ones.
-- Stakes: a Sabotage seed whose three sites can be lattice points.
-- The Line: the owned `cordon-line` seed, the claim laid beyond its redoubts.
-- The Surveyor: the owned `heart-front` seed, the hull in the heart's place.
+| Chapter | Map | Ground | The hull |
+| --- | --- | --- | --- |
+| The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, bow east, the trench ploughed west along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
+| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1 | Beside the installation, bow east, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
+| The Line | `long-survey-line` | `cordon-line` seed 3, the line and base built | North-east beyond the redoubts, bow west, the trench run in from the map's east edge; three established stakes in a chain toward redoubts 3 and 4 and one raised |
+| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, bow north, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
 ## Unlocks and replay
 
@@ -122,15 +124,18 @@ chapter (pick through the art session), voiced later as the Khettara is.
   the commander and Castle (`longSurvey*` in `strings.json`), with a retry and a
   replay line; the commander's name and portrait wait on the owner.
 - **The Fall.** `HullFallBattleFixture` builds `BattleSetup.createHullFall`:
-  the Colony Breach rescue on the owned `colony-breach` seed (`THE_FALL_MAP`,
-  its pool's owned seed, 38), with no swarm, eruption or bores. The derelict
-  watch stands in their place: `DerelictSecurity.install` on a route (the
-  route-and-source overload, no ruins vault) from where the colony's deep bore
-  would stand (the eruption plan's mother site) toward the shelter, at
-  `THE_FALL_GRADE` (EXTENSIVE, UNTUNED) in the Domain livery. Every attempt,
-  retry, replay and debug run plays that one seed. When the hull site lands,
-  `THE_FALL_MAP` and the install move to the hull-site seam; the forward-bay
-  bonus objective follows the hull rules.
+  the Colony Breach rescue on the `long-survey-fall` owned seed (38, the
+  colony with the Surveyor down beside the town; `THE_FALL_MAP`), with no
+  swarm, eruption or bores. The hull's own claim stands in their place:
+  `FallenHull.install` on the ground's site (`LongSurveyGround.rulesSite`),
+  printing `BattleSetup.FALL_QUEUE` (workers and walkers, never a stake, so the
+  claim does not spread in chapter 1) from `FALL_FEEDSTOCK`, with
+  `FALL_WALKERS` (a line frame, a rounds walker, two strippers) already out at
+  the bay mouth. All UNTUNED. Ground with no hull site (no pool installed)
+  falls back to a site network laid by `DerelictSecurity.install`'s route
+  overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
+  that one seed. Open: the forward-bay bonus objective, and salvage piles on
+  the town's headframes for the strippers.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Chicomoztoc, each on its chapter's seed with the challenge force (a
   Veteran Company, seven squads, four machines); a chapter is listed once

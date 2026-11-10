@@ -56,6 +56,7 @@ public enum VehicleStockFit {
      * ({@link VehicleType#standardPart}), and the hull's stock flux frame.
      */
     public VehicleDeploymentSpec spec() {
-        return new VehicleDeploymentSpec(null, null, type, plating, engine, type.standardPart(), compartment);
+        return new VehicleDeploymentSpec(null, null, type, plating, engine, type.standardPart(), compartment)
+                .withCoax(type.standardCoax());
     }
 }

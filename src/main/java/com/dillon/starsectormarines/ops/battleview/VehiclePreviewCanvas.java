@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointTyp
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -51,6 +52,8 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     private final VehicleType type;
     /** Read on every draw: fitting a gun to a campaign hull changes what its standing canvas shows. */
     private final Supplier<GunCard> gunCard;
+    /** Read on every draw: the part in the hull's coax card, null with none or no card. */
+    private final Supplier<MechWeaponComponent> coax;
     /** Where a fitted weapon's mech drawing comes from; may yield null where no machine art is loaded. */
     private final Supplier<LayeredMechAssets> assets;
     /** Resolved on the first draw, from whichever host is drawing; NaN until then. */
@@ -58,25 +61,27 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
 
     /** The hull in its stock fit, its own turret on it: a debug loadout's machine. */
     public VehiclePreviewCanvas(VehicleType type) {
-        this(type, () -> GunCard.OWN_TURRET, () -> null);
+        this(type, () -> GunCard.OWN_TURRET, () -> null, () -> null);
     }
 
-    private VehiclePreviewCanvas(VehicleType type, Supplier<GunCard> gunCard, Supplier<LayeredMechAssets> assets) {
+    private VehiclePreviewCanvas(VehicleType type, Supplier<GunCard> gunCard, Supplier<MechWeaponComponent> coax,
+                                 Supplier<LayeredMechAssets> assets) {
         if (type == null) throw new IllegalArgumentException("vehicle type required");
         this.type = type;
         this.gunCard = gunCard;
+        this.coax = coax;
         this.assets = assets;
     }
 
     /** The hull as it is bought, with nothing in its gun card: a pattern on offer. */
     public static VehiclePreviewCanvas asBought(VehicleType type) {
-        return new VehiclePreviewCanvas(type, () -> GunCard.EMPTY, () -> null);
+        return new VehiclePreviewCanvas(type, () -> GunCard.EMPTY, () -> null, () -> null);
     }
 
     /** A campaign hull as it stands now, with whatever is in its gun card. */
     public static VehiclePreviewCanvas of(CampaignVehicle vehicle, Supplier<LayeredMechAssets> assets) {
         if (vehicle == null) throw new IllegalArgumentException("vehicle required");
-        return new VehiclePreviewCanvas(vehicle.type(), () -> gunCardOf(vehicle), assets);
+        return new VehiclePreviewCanvas(vehicle.type(), () -> gunCardOf(vehicle), vehicle::coax, assets);
     }
 
     /** The battle's own reading of a gun card ({@code ConvoyService}): an older save's hull keeps its own gun until replaced. */
@@ -116,6 +121,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                 : new Color(clamp(tint[0]), clamp(tint[1]), clamp(tint[2]), alpha);
         context.sprite(type.spritePath, null, centerX, centerY, hullWidth, hullHeight, angle, hullColor,
                 CanvasSpriteRegion.frame(type.frameCount, 1, type.spriteFrame), CanvasBlend.NORMAL);
+        drawCoax(context, centerX, centerY, cellPx, onPad, alpha);
         if (type.turretFrame >= 0) {
             float turretWidth = type.turretVisualCells * cellPx;
             // The chassis' forward (+Y) runs along the nose and its right (+X) a quarter clockwise of it:
@@ -145,6 +151,30 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                     CanvasSpriteRegion.frame(type.frameCount, 1, type.headFrame(weapon, type.turretFrame)),
                     CanvasBlend.NORMAL);
         }
+    }
+
+    /**
+     * The coax card's part on its own ring beside the turret, pointing down the nose, as {@link ConvoyRenderSystem}
+     * draws a secondary mount; nothing with the card empty.
+     */
+    private void drawCoax(CanvasContext context, float centerX, float centerY, float cellPx, boolean onPad,
+                          float alpha) {
+        VehicleMount mount = type.coaxMount();
+        MechWeaponComponent part = mount == null ? null : coax.get();
+        if (part == null) return;
+        float x = onPad ? centerX - mount.mountX() * cellPx : centerX - mount.mountY() * cellPx;
+        float y = onPad ? centerY + mount.mountY() * cellPx : centerY - mount.mountX() * cellPx;
+        float ringCells = type.secondaryRingCells();
+        Color tint = new Color(1f, 1f, 1f, alpha);
+        context.sprite(ART_ROOT + type.mountStyle().ringTexture, null, x, y, ringCells * cellPx, ringCells * cellPx, 0f,
+                tint);
+        GunArt art = gunArt(context, part);
+        if (art == null) return;
+        float lengthPx = (ringCells / 2f + ConvoyRenderSystem.SECONDARY_PROTRUSION_CELLS)
+                / (1f - VehicleGun.RING_FROM_REAR) * cellPx;
+        float ahead = (.5f - VehicleGun.RING_FROM_REAR) * lengthPx;
+        context.sprite(art.path(), art.live(), onPad ? x : x - ahead, onPad ? y + ahead : y,
+                lengthPx * art.widthOverLength(), lengthPx, (onPad ? ON_PAD_DEGREES : 0f) + GUN_TO_NOSE_DEGREES, tint);
     }
 
     /** The ring in the hull's roof, and the white ring's collar in it, as {@link ConvoyRenderSystem} draws them. */

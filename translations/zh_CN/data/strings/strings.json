@@ -1952,6 +1952,7 @@
 		"openingMechLabVehicleArmor": "{0} 装甲 · 等级 {1}",
 		"openingMechLabVehicleEngineCopy": "引擎核心。更好的引擎提升速度；车体没有质量预算，所以它携带的任何东西都不会消耗引擎的输出。没有引擎的车体无法出击。",
 		"openingMechLabVehicleGunCopy": "炮位。它接受炮塔设计所对应类型和尺寸的武器，与机甲携带的武器相同，无论装在哪里，射程和伤害都一样。",
+		"openingMechLabVehicleCoaxCopy": "同轴机枪位，位于炮塔旁。它接受单行弹道武器，如轻机枪或喷火器，装在甲板上自己的座圈上并独立瞄准。同轴机枪随炮塔一同损毁：炮塔被击毁时它也会沉默。",
 		"openingMechLabVehiclePlatingCopy": "装甲位。更重的装甲板提升装甲值，而车体没有可供它消耗的质量预算。没有装甲板，车体出击时便毫无装甲。",
 		"vehicleLoreBREAKTHROUGH_TANK": "一种比任何记录都古老的形制：一块装甲板、一门重炮，车里的人越少越好，底下是一圈气垫裙，源自 Domain 用悬浮雪橇运矿的年代。AI 战争中的无人机蜂群让每个幸存者都明白，薄的东西都会死，此后几个世纪也没人找到更好的答案。Hegemony 按老图纸建造它：燃气涡轮尖啸着灌进增压风扇，一台简单的自动装弹机完成过去五人车组的工作，八十吨的车身像一块掉落的铁砧般压在气垫裙上。两名车组成员封在一个钢铁箱子里，躲在足以终结争论的大炮后面。装上点防御屏障后，它就是 Parapet，发射器和雷达能把火箭从空中拍下来：这是车上唯一聪明的东西，Hegemony 车组把它当客人看待——有用、昂贵，也是他们预料最先出故障的东西。",
 		"vehicleLoreMEDIUM_TANK": "Hegemony 对一条比其重型清单推进得更快的战线给出的答案：把 Onager 的思路放进更轻的车架。装甲更薄，同一个封闭炮塔头下装一门更小的炮，动力足以跟上与它并肩作战的运输车。它无法在街道上与突破坦克对射，也本不打算如此；它先到，并在重炮找到它之前离开。",
@@ -4553,6 +4554,7 @@
 
 		# --- Battle: vehicle and shuttle dolls ---
 		"vehicleDollTurret": "炮塔",
+		"vehicleDollCoax": "同轴机枪",
 		"vehicleDollSecondary": "副炮",
 		"vehicleDollSightMast": "观瞄桅杆",
 		"vehicleDollSystems": "系统",
