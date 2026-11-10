@@ -568,7 +568,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         // slack has nothing to say about it.
         // A cantonment is as big as the square its rows need, and room for the town's roads through it.
         if (cantonment) {
-            int side = Cantonment.side(this, Cantonment.chosenPlan()) + Cantonment.ROAD_SLACK;
+            int side = Cantonment.side(this) + Cantonment.ROAD_SLACK;
             return side * side;
         }
         return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION) + apron;

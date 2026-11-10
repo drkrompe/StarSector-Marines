@@ -3,12 +3,12 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a1c59d-2494-79d0-9616-c09b084f4807",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c59d-2494-79d0-9616-c09b084f4807\\exec-2b766490-ad11-49b3-9432-6a1c737699a3.png",
+  "thread": "01a1c5af-6f69-7c82-b779-93c90f223ee9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5af-6f69-7c82-b779-93c90f223ee9\\exec-8f2a4ebc-59cc-4d08-bf1a-4ae459e95ad5.png",
   "otherImagesInThread": [],
   "output": {
     "path": "art-source\\ruins-themes\\raw\\ruins-products-c.raw.png",
-    "sha256": "c2bb26e7d9ee347a665ab70e753010d6bf4f04a5e344b1baaac188fa0d66bb5c",
+    "sha256": "618cbdd05590245ed2541aa053fa1a99fde8e3f97b205e0bf322cb4466121385",
     "dimensions": [
       1254,
       1254
@@ -16,13 +16,13 @@
     "mode": "RGBA"
   },
   "promptFile": "art-source\\ruins-themes\\prompts\\products-c.prompt.txt",
-  "promptSha256": "da52fcb64ff65261b74ee77f10364d2993de55b73e6b9978c4d9aad3daaff636",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for an abandoned Domain-era automated factory: the products it built, each in three states, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nEach row is one product, left to right: whole (an intact finished unit, dusty but complete), half-built (the same unit's frame and chassis with only its lower part plated, upper part open showing bare struts, cable looms and empty mounting points, no grey or white fill left in it), wrecked (the same unit smashed and torn open, a part ripped away, its broken fragments lying beside it, scorch and dust). All three must read as the same product model.\n\nRows:\n1. core-cabinet: a Domain-era AI core cabinet: a heavy armoured server cabinet with louvred vent rows down both sides and a recessed round core socket in the middle holding a dark crystalline core under a cracked lens, faint cyan lamps; the half-built one has an empty socket and bare racks above; the wrecked one is split open, its core socket torn out.\n2. field-housing: a fusion lamp field housing: an octagonal armoured reactor housing with four radial magnetic stanchions and a round lens ring in the middle around a dark emitter aperture, heat-blued metal near the lens.\n3. magnet-segment: a synchrotron ring magnet segment: a curved arc section of a particle accelerator ring, a dark beam pipe running along the curve through four copper-wound dipole coil blocks, cryostat jacket plating; the curve's two cut ends are flanged.\n",
+  "promptSha256": "a05f0c8ba0381afadb676aebd8308e1575a4601477b6f4afce97573fdc184e8a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for an abandoned Domain-era automated factory: the products it built, each in three states, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective, never a look into an opening at an angle, never steps or windows seen from the front. Light from the upper left, object-local, as on the references.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nEach row is one product, left to right: whole (an intact finished unit, dusty but complete); half-built (the same unit plated panel by panel: where the guide shows bare frame, show the bare chassis, struts, cable looms and empty panel bays, the missing panels ending at panel seams, never along a straight diagonal cut); wrecked (the same unit at nearly its full size, knocked askew, a jagged piece torn out of one side; that piece and smaller debris lie on the floor against the tear, over the low grey patch in the guide, which is soot, grit and spilled fluid on the floor, nothing floating in the air). All three must read as the same product model.\n\nRows:\n1. core-cabinet: a Domain-era AI core cabinet: a heavy armoured server cabinet with louvred vent rows down both sides and a recessed round core socket in the middle holding a dark crystalline core under a cracked lens, faint cyan lamps; the half-built one has an empty socket and bare racks above; the wrecked one is split open, its core socket torn out.\n2. field-housing: a fusion lamp field housing: an octagonal armoured reactor housing with four radial magnetic stanchions and a round lens ring in the middle around a dark emitter aperture, heat-blued metal near the lens.\n3. magnet-segment: a synchrotron ring magnet segment: a curved arc section of a particle accelerator ring, a dark beam pipe running along the curve through four copper-wound dipole coil blocks, cryostat jacket plating; the curve's two cut ends are flanged.\n",
   "adopted": false,
   "references": [
     {
       "path": "art-source\\templates\\ruins-products-c-guide.png",
-      "sha256": "0039aa1f3fe1916eb2750e4287dc845fc5ce9f56aa85965dc448633f893a0c31",
+      "sha256": "e140bbbf304897d3d5b8586c61c686800e9eee4fb5defd6cfd8b4d04d828c385",
       "dimensions": [
         2176,
         2176
@@ -41,16 +41,6 @@
       "role": "Material/style only; not layout"
     },
     {
-      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
-      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
-      "dimensions": [
-        1024,
-        1536
-      ],
-      "mode": "RGBA",
-      "role": "Material/style only; not layout"
-    },
-    {
       "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
       "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
       "dimensions": [
@@ -59,17 +49,27 @@
       ],
       "mode": "RGBA",
       "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
+      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
     }
   ],
   "agentMessages": [
-    "I’ll generate one transparent sprite sheet using Image 1 for the exact layout and Images 2–4 for the material style."
+    "I’ll generate one transparent sprite sheet, using Image 1 for geometry and Images 2–4 for materials and style."
   ],
   "usage": {
-    "input_tokens": 56304,
-    "cached_input_tokens": 40960,
+    "input_tokens": 56722,
+    "cached_input_tokens": 41344,
     "cache_write_input_tokens": 0,
-    "output_tokens": 828,
+    "output_tokens": 1026,
     "reasoning_output_tokens": 0
   },
-  "elapsedSeconds": 102.4
+  "elapsedSeconds": 107.1
 }

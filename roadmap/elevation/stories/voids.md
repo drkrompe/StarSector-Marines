@@ -89,6 +89,7 @@ generation, never a battle rule, as an emplacement style is
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
+| **Foundry melt** | A forge works' foundry in a ruins site's plant (`ruins-expedition.md`): pour channels and casting beds cut in a hall floor, 2 m down | Firebrick walls under a laid cast-steel kerb strip | Molten metal kept hot, no crust | A grate catwalk, the drop's own crossing |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
@@ -661,10 +662,11 @@ Laws):
      where they leave the melt and cold at the toe. They are walkable ground
      whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
      laid dark, its cracks glowing by the heat, the margin rounded), and they
-     keep the landscape's later features off what they buried. Undecided
-     between the rift, the river, the river with its older flows and the flows
-     alone (`battle.mapgen.lavaFlow`, look suite `lava-flow-look`); the rift
-     stays until the owner picks.
+     keep the landscape's later features off what they buried. The owner picked
+     the river with its older flows (2026-11-10, of the rift, the river, the
+     river with its flows and the flows alone): a volcanic world's drop is the
+     4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
+     it. Look suite `lava-flow-look`.
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -967,7 +969,7 @@ Laws):
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
      glacial crevasse, arid the canyon, rock and irradiated the dry gorge (irradiated
      until a glassed wall of its own exists), and a molten palette the lava
-     rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
+     river (`NaturalVoidZoning.LAVA_RIVER`, the owner's pick over the rift).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it
      has a row.
@@ -1013,8 +1015,9 @@ Laws):
    - A **sea cliff** where a beach map lays its shoreline (`BeachShorelineStage`)
      on a map whose landing is not from the sea: the shore band cut as void
      at the map's edge.
-   - A **lava rift** on molten and volcanic worlds, where a temperate map
-     would lay a gorge river, and as a mission's dividing line.
+   - A **lava river** with its older flows on molten and volcanic worlds,
+     where a temperate map would lay a gorge river (Lava flows, above), and
+     as a mission's dividing line.
    - All of them refuse what a plateau refuses (roads, buildings, doorways,
      fixtures, reserved cells), and `-Dbattle.mapgen.voids=N` asks for them
      on every map for evidence.

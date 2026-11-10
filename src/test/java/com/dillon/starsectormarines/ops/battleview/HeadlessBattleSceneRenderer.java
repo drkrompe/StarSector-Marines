@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.OwnedMapCatalog;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.render2d.texture.TextureUsageCapture;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -814,6 +815,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     private static void installTileCatalogs(Path modRoot) throws Exception {
         if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(modRoot.resolve(path))));
         if (!TerrainCatalog.installed()) TerrainCatalog.loadBuiltins(path -> new JSONObject(Files.readString(modRoot.resolve(path))));
+        if (!OwnedMapCatalog.installed()) OwnedMapCatalog.loadBuiltins(path -> new JSONObject(Files.readString(modRoot.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {

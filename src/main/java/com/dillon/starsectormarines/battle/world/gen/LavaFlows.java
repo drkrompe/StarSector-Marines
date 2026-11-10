@@ -49,6 +49,17 @@ public final class LavaFlows {
         return breakouts(w, h, lava, may, seed);
     }
 
+    /**
+     * One older flow, unsplit, from {@code (x, y)} on the bank along {@code heading} for {@code length} cells, over
+     * what {@code free} allows: the breakout that ran down against a town's berm and ponded at its foot.
+     */
+    public static boolean[] toward(int w, int h, boolean[] lava, IntPredicate free, float x, float y, float heading,
+                                   int length, int seed) {
+        boolean[] out = new boolean[w * h];
+        lobe(w, h, out, lava, free, x, y, heading, length, 1f, new Random(seed), false);
+        return out;
+    }
+
     private static boolean[] breakouts(int w, int h, boolean[] lava, IntPredicate free, int seed) {
         Random rnd = new Random(seed);
         List<int[]> bank = new ArrayList<>();
@@ -84,36 +95,14 @@ public final class LavaFlows {
         return out;
     }
 
-    /** Older flows with no channel: long lobes come in off one edge ({@code side}, 0 east, 1 north, 2 west, 3 south). */
-    public static boolean[] fromEdge(int w, int h, int side, IntPredicate free, int seed) {
-        Random rnd = new Random(seed);
-        boolean[] out = new boolean[w * h];
-        boolean[] none = new boolean[w * h];
-        int along = side % 2 == 0 ? h : w, deep = side % 2 == 0 ? w : h;
-        int count = 3 + rnd.nextInt(2);
-        for (int k = 0; k < count; k++) {
-            float a = along * (k + .5f + (rnd.nextFloat() - .5f) * .5f) / count;
-            float x, y, heading;
-            switch (side) {
-                case 0 -> { x = w - .5f; y = a; heading = (float) Math.PI; }
-                case 1 -> { x = a; y = h - .5f; heading = (float) (-Math.PI / 2); }
-                case 2 -> { x = .5f; y = a; heading = 0f; }
-                default -> { x = a; y = .5f; heading = (float) (Math.PI / 2); }
-            }
-            int length = (int) (deep * (.35f + rnd.nextFloat() * .3f));
-            lobe(w, h, out, none, free, x, y, heading, length, 1.5f, rnd, true);
-        }
-        return out;
-    }
-
     /** Cells along a flow over which its crust cools from the melt's heat to cold. UNTUNED. */
     static final float HEAT_REACH = 9f;
     /** Cells from the melt within which a flow is still at the melt's heat: the drop's lip lies between. */
     static final int ROOT_REACH = 3;
 
     /**
-     * How hot each flow cell's crust still is: 1 where the flow meets the melt ({@code lava}) or comes in off the
-     * map's edge, falling to a little above 0 {@link #HEAT_REACH} cells down the flow; 0 off the flows.
+     * How hot each flow cell's crust still is: 1 within {@link #ROOT_REACH} of the melt ({@code lava}), falling to a
+     * little above 0 {@link #HEAT_REACH} cells down the flow; 0 off the flows.
      */
     public static float[] heat(int w, int h, boolean[] flows, boolean[] lava) {
         int[] dist = new int[w * h];
@@ -123,7 +112,7 @@ public final class LavaFlows {
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
             int i = y * w + x;
             if (!flows[i]) continue;
-            boolean root = x == 0 || y == 0 || x == w - 1 || y == h - 1;
+            boolean root = false;
             for (int dy = -ROOT_REACH; dy <= ROOT_REACH && !root; dy++) {
                 for (int dx = -ROOT_REACH; dx <= ROOT_REACH && !root; dx++) {
                     int nx = x + dx, ny = y + dy;
@@ -167,7 +156,6 @@ public final class LavaFlows {
     private static void lobe(int w, int h, boolean[] out, boolean[] lava, IntPredicate free, float x, float y,
                              float heading, int length, float scale, Random rnd, boolean mayFork) {
         int fork = mayFork && rnd.nextFloat() < SPLIT ? length / 2 : -1;
-        boolean entered = false;
         for (int t = 0; t < length; t++) {
             float grow = Math.min(1f, (t + 1f) / (length * .7f));
             float half = (ROOT_HALF + (TOE_HALF - ROOT_HALF) * grow) * scale;
@@ -175,10 +163,8 @@ public final class LavaFlows {
             int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
             if (cx < 0 || cy < 0 || cx >= w || cy >= h) return;
             int ci = cy * w + cx;
-            boolean open = lava[ci] || free.test(ci);
-            if (!open && entered) return;
-            entered |= open;
-            if (entered) disc(w, h, out, lava, free, x, y, half);
+            if (!lava[ci] && !free.test(ci)) return;
+            disc(w, h, out, lava, free, x, y, half);
             if (t == fork) {
                 float turn = (rnd.nextBoolean() ? 1 : -1) * (.55f + rnd.nextFloat() * .3f);
                 lobe(w, h, out, lava, free, x, y, heading + turn, (int) ((length - t) * .8f), scale * .8f, rnd, false);

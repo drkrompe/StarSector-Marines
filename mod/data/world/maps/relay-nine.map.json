@@ -1,0 +1,679 @@
+{
+  "version": 1,
+  "id": "relay-nine",
+  "width": 208,
+  "height": 128,
+  "roads": "data/world/roads/relay-nine.road.json",
+  "roadGraphFrom": "western-boat-apron",
+  "terrain": "data/world/terrain/relay-nine.terrain.json",
+  "origin": [
+    21,
+    64
+  ],
+  "objective": [
+    174,
+    62
+  ],
+  "grounds": [
+    {
+      "role": "YARD",
+      "box": [
+        72,
+        44,
+        179,
+        100
+      ],
+      "radius": 14
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        100,
+        38,
+        103,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        109,
+        38,
+        112,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        118,
+        38,
+        121,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        127,
+        38,
+        130,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        136,
+        38,
+        139,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        145,
+        38,
+        148,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        154,
+        38,
+        157,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        163,
+        38,
+        166,
+        42
+      ]
+    },
+    {
+      "role": "MARKING",
+      "box": [
+        172,
+        38,
+        175,
+        42
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "at": [
+        18,
+        50
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    },
+    {
+      "at": [
+        32,
+        43
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    },
+    {
+      "at": [
+        18,
+        36
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    },
+    {
+      "at": [
+        32,
+        29
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    },
+    {
+      "at": [
+        18,
+        22
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    },
+    {
+      "at": [
+        32,
+        15
+      ],
+      "halfWidth": 8,
+      "halfHeight": 3,
+      "approach": "WEST",
+      "purpose": "FREIGHT_APRON"
+    }
+  ],
+  "sites": [
+    {
+      "name": "Western apron",
+      "kind": "BEACHHEAD",
+      "at": [
+        21,
+        64
+      ],
+      "area": [
+        10,
+        9,
+        40,
+        65
+      ],
+      "guard": "MARINE",
+      "value": 20,
+      "garrison": 0
+    },
+    {
+      "name": "Power Yard",
+      "kind": "BARRACKS",
+      "building": "Switch house",
+      "guard": "DEFENDER",
+      "value": 50,
+      "garrison": 6
+    },
+    {
+      "name": "Freight Gate",
+      "kind": "ARMORY",
+      "building": "Gate depot",
+      "guard": "DEFENDER",
+      "value": 60,
+      "garrison": 6
+    },
+    {
+      "name": "Relay Hall",
+      "kind": "COMMAND_POST",
+      "building": "Relay hall",
+      "guard": "DEFENDER",
+      "value": 70,
+      "garrison": 8
+    }
+  ],
+  "settlements": [
+    {
+      "name": "Relay Nine works",
+      "program": "power-relay",
+      "role": "WORKS",
+      "lot": [
+        64,
+        43,
+        184,
+        101
+      ],
+      "gates": [
+        [
+          64,
+          65
+        ],
+        [
+          184,
+          69
+        ],
+        [
+          130,
+          101
+        ],
+        [
+          120,
+          43
+        ]
+      ],
+      "buildings": [
+        {
+          "name": "Switch house",
+          "form": "STAMP",
+          "plan": "T_WORKSHOP",
+          "at": [
+            71,
+            42
+          ],
+          "turns": 2
+        },
+        {
+          "name": "Gate depot",
+          "form": "STAMP",
+          "plan": "FREIGHT_L",
+          "at": [
+            109,
+            80
+          ],
+          "turns": 2
+        },
+        {
+          "name": "Relay hall",
+          "form": "FACILITY",
+          "plan": "COMMS",
+          "box": [
+            155,
+            47,
+            178,
+            60
+          ],
+          "frontage": "BOTTOM",
+          "opposed": true
+        },
+        {
+          "name": "Apron screen",
+          "form": "FACILITY",
+          "plan": "DEPOT",
+          "box": [
+            42,
+            30,
+            53,
+            55
+          ],
+          "frontage": "BOTTOM"
+        },
+        {
+          "name": "Northern annex",
+          "form": "STAMP",
+          "plan": "OFFSET_DEPOT",
+          "at": [
+            43,
+            77
+          ],
+          "turns": 1
+        },
+        {
+          "name": "Service shop",
+          "form": "FACILITY",
+          "plan": "DEPOT",
+          "box": [
+            96,
+            47,
+            117,
+            57
+          ],
+          "frontage": "TOP"
+        },
+        {
+          "name": "Relay maintenance shop",
+          "form": "STAMP",
+          "plan": "T_WORKSHOP",
+          "at": [
+            148,
+            82
+          ],
+          "turns": 2
+        },
+        {
+          "name": "Reserve shed",
+          "form": "FACILITY",
+          "plan": "DEPOT",
+          "box": [
+            103,
+            9,
+            130,
+            18
+          ],
+          "frontage": "BOTTOM"
+        }
+      ],
+      "works": [
+        {
+          "op": "GRAVEL",
+          "box": [
+            70,
+            78,
+            99,
+            98
+          ]
+        },
+        {
+          "op": "FENCE",
+          "box": [
+            70,
+            78,
+            99,
+            98
+          ]
+        },
+        {
+          "op": "BAY",
+          "box": [
+            73,
+            81,
+            78,
+            88
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            74,
+            84
+          ],
+          "id": "parked-cargo-truck",
+          "turns": 3
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            73,
+            93
+          ]
+        },
+        {
+          "op": "BAY",
+          "box": [
+            82,
+            81,
+            87,
+            88
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            83,
+            84
+          ],
+          "id": "parked-flatbed-truck"
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            82,
+            93
+          ]
+        },
+        {
+          "op": "BAY",
+          "box": [
+            91,
+            81,
+            96,
+            88
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            92,
+            84
+          ],
+          "id": "parked-cargo-truck",
+          "turns": 3
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            91,
+            93
+          ]
+        },
+        {
+          "op": "BAY",
+          "box": [
+            110,
+            80,
+            119,
+            88
+          ]
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            111,
+            84
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            116,
+            81
+          ],
+          "id": "stores-cargo-loader"
+        },
+        {
+          "op": "BAY",
+          "box": [
+            134,
+            82,
+            142,
+            89
+          ]
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            133,
+            86
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            140,
+            83
+          ],
+          "id": "industrial-cable-reel"
+        },
+        {
+          "op": "BAY",
+          "box": [
+            134,
+            93,
+            142,
+            100
+          ]
+        },
+        {
+          "op": "CARGO",
+          "at": [
+            133,
+            97
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            140,
+            94
+          ],
+          "id": "industrial-cable-reel"
+        },
+        {
+          "op": "TEMPLATE",
+          "at": [
+            165,
+            80
+          ],
+          "id": "MAINTENANCE"
+        },
+        {
+          "op": "TEMPLATE",
+          "at": [
+            124,
+            46
+          ],
+          "id": "POWER_COURT"
+        },
+        {
+          "op": "GRAVEL",
+          "box": [
+            86,
+            41,
+            92,
+            57
+          ]
+        },
+        {
+          "op": "FENCE",
+          "box": [
+            67,
+            39,
+            94,
+            59
+          ]
+        },
+        {
+          "op": "PROP",
+          "at": [
+            87,
+            53
+          ],
+          "id": "industrial-turbine-set"
+        },
+        {
+          "op": "PROP",
+          "at": [
+            87,
+            46
+          ],
+          "id": "industrial-switchboard",
+          "turns": 1
+        },
+        {
+          "op": "PROP",
+          "at": [
+            90,
+            46
+          ],
+          "id": "industrial-cable-reel"
+        }
+      ]
+    }
+  ],
+  "walls": [
+    {
+      "from": [
+        65,
+        28
+      ],
+      "to": [
+        136,
+        28
+      ]
+    }
+  ],
+  "props": [
+    {
+      "at": [
+        101,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        110,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        119,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        128,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        137,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        146,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        155,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        164,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    },
+    {
+      "at": [
+        173,
+        40
+      ],
+      "id": "doodad.industrial-crate-stack"
+    }
+  ],
+  "drops": [
+    {
+      "name": "south-wash",
+      "role": "RIVER",
+      "path": [
+        [
+          75,
+          4
+        ],
+        [
+          86,
+          4
+        ],
+        [
+          104,
+          3
+        ],
+        [
+          122,
+          4
+        ],
+        [
+          133,
+          5
+        ]
+      ],
+      "width": 5
+    }
+  ],
+  "rises": [],
+  "routes": [
+    [
+      85,
+      2
+    ],
+    [
+      130,
+      125
+    ]
+  ]
+}

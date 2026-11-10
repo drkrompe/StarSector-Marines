@@ -125,6 +125,11 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
         INTAKE,
         /** Line halls: where the product was made. */
         PRODUCTION,
+        /**
+         * A forge works' foundry, in the outer band's first line hall's slot: crucibles, pour channels and casting
+         * beds of melt ({@code ruins-expedition.md}, A forge works has a foundry).
+         */
+        FOUNDRY,
         /** Rack bays: where it waited to ship. */
         STORAGE
     }

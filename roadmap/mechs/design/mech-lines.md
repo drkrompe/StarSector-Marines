@@ -58,7 +58,9 @@ noticeably differently, not just look different:
   actuators. This row gives Tri-Tachyon mechs of its own.
 
 These leanings shape each line's authored numbers the way vanilla's hull families shape
-its ships. No rule checks a mech's family (`tech-families.md`, law 4).
+its ships. No rule checks a mech's family (`tech-families.md`, law 4). The bands those
+numbers should land in, mount sizes, power per row, flux, plate and shield, are
+`machine-budgets.md`'s.
 
 ## Factions
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.testsupport;
 
+import com.dillon.starsectormarines.battle.world.gen.OwnedMapCatalog;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -50,6 +51,7 @@ public final class DiskRegistries {
         if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (!StoryMapPools.installed()) StoryMapPools.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (!TerrainCatalog.installed()) TerrainCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
+        if (!OwnedMapCatalog.installed()) OwnedMapCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (!SquadMedicine.installed()) SquadMedicine.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();

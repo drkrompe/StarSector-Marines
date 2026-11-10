@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.battle.world.gen.OwnedMapCatalog;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.marine.VehicleTypeSaveConverter;
 import com.thoughtworks.xstream.XStream;
@@ -129,6 +130,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         RoomLayoutCatalog.loadBuiltins();
         RoadCatalog.loadBuiltins();
         TerrainCatalog.loadBuiltins();
+        OwnedMapCatalog.loadBuiltins();
         DamageCatalog.loadBuiltins();
         StoryMapPools.loadBuiltins();
         WaylineNarration.loadBuiltins();

@@ -43,23 +43,6 @@ class LavaFlowsTest {
     }
 
     @Test
-    void aFlowFromAnEdgeComesInFromThatEdge() {
-        IntPredicate open = i -> true;
-        boolean[] flows = LavaFlows.fromEdge(W, H, 2, open, 3);
-        int west = 0, east = 0;
-        for (int i = 0; i < flows.length; i++) {
-            if (!flows[i]) continue;
-            if (i % W < W / 3) west++;
-            if (i % W >= W * 2 / 3) east++;
-        }
-        assertTrue(west > 0, "flows touch the west edge's third");
-        assertTrue(west > east, "the flows run in from the west: " + west + " vs " + east);
-        boolean edge = false;
-        for (int y = 0; y < H; y++) edge |= flows[y * W];
-        assertTrue(edge, "a flow reaches the edge it comes in off");
-    }
-
-    @Test
     void aFlowCrossesTheLipToTheMeltButNeverACrossing() {
         boolean[] lava = channel();
         // Two cells of lip each side of the channel are kept clear: only the lip predicate lets a flow onto them,

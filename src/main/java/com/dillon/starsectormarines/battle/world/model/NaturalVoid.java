@@ -55,7 +55,13 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */
-        OPEN_PIT
+        OPEN_PIT,
+        /**
+         * A foundry's melt (`ruins-expedition.md`, A forge works has a foundry): pour channels and casting beds cut in
+         * a hall's floor, a cast-steel kerb over firebrick walls down to molten metal a couple of metres below. Drawn
+         * as a lava rift is, its lip a laid strip rather than ragged rock.
+         */
+        FOUNDRY
     }
 
     /**

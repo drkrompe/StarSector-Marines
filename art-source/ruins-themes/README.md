@@ -36,9 +36,16 @@ field housing, synchrotron magnet segment), `products-d` (catalyst bed, fulleren
 (mantle bore head, holosuite projector stack), ids `doodad.ruins-<product>-<state>` with
 states `whole`, `half`, `wrecked`. Each is cut at its guide frame and keeps the whole frame as its canvas on a 3x3
 footprint, so the three states share one scale and stand in a cradle or across a line module. Armory and depot keep their existing props.
+The states' block-outs are seeded per product (`make_guide.product`): half-built plating comes and goes panel by panel
+on a 4x4 grid, never along one straight cut; a wreck keeps nearly its whole size, tipped a little, torn on a seeded
+side, with its torn piece and smaller debris lying against the tear over a low patch of soot. Every brief carries a
+strict top-down clause (no front faces, no oblique look into an opening): the first toppled crucible and pour pulpit
+were drawn from the side because their guides invited it.
 
 The foundry hall (`ruins-forge-area`): `foundry-a` (crucible, toppled crucible, fallen ladle, slag heap, pour
-pulpit) and `foundry-b` (mould grid 8x5, grate catwalk 2x2). Each crucible ships as a body and an overlay on the same
+pulpit) and `foundry-b` (mould grid 8x5, grate catwalk 2x2). The toppled crucible has its own sheet (`foundry-tip`, its vessel identity taken from the
+`foundry-a` raw): lying on its side seen straight down, its spill a thin flat puddle run out of the mouth, still molten
+only in its core. Each crucible ships as a body and an overlay on the same
 footprint, `crucible-melt` and `crucible-tipped-spill`: `export.py` splits the raw by the guide's melt mask
 (`make_guide.MELT`), so the overlay registers exactly and the engine can pulse it. The mould grid's cells are
 transparent, so the drop's melt shows through. The catwalk deck's span runs east-west with both ends flush, and it is
