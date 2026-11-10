@@ -649,11 +649,14 @@ Laws):
      marks nothing.
    - **The floor** is wet ore rubble with a still sump where it lies farthest
      from the walls.
-   - **Conveyors.** `NaturalVoid.belts`: a belt on a gantry from the pit's
-     floor up over the rim and across the ground to the wall of the largest
-     building in the works (the ore mill), drawn after the ground tiles and
-     before every unit, its shadow laid on the ground and ore riding it toward
-     the works. Drawn only: it neither blocks nor covers anyone.
+   - **The spine.** `NaturalVoid.belts`: the covered conveyor gallery that
+     carries the ore from the crushing station on the floor up the benches on
+     its trestles, through a transfer tower on the rim, and over the ground to
+     the wall of the largest building in the works (the ore mill). It leaves the
+     floor where the floor lies nearest the works. Drawn after the ground tiles
+     and before every unit: the gallery's bays end to end at each one's depth,
+     the trestles' cross-beams and the shadow on the ground. Drawn only: it
+     neither blocks nor covers anyone.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -666,18 +669,21 @@ Laws):
      outside it stays connected as before, a pocket wholly inside the site on
      open ground is taken into the pit, and any other stranding refuses the
      pit and the map keeps none. No bridge is ever needed.
-   - **Machines** (owner, 2026-11-09: "mining equipment or other evidence of
-     large scale excavation"). `PitMachines`: a face shovel at the toe of a
-     face on the dry floor loading a haul truck, the next truck queued behind
-     it, a dozer and a wheel loader elsewhere on the floor, two blasthole
-     drills a pattern apart on the first bench with room clear of the road,
-     and two haul trucks on the road, the deeper loaded and climbing, the
-     upper empty and coming down. Each is drawn at its depth's scale, after
-     its bench and before the face above it, so the rock in front hides it.
-     The battle's vehicle scale: a haul truck is three cells by two, and the
-     haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen sheet,
-     `pit-machines.png`, filled in over a geometry guide
-     (`art-source/voids/open-pit/machines-guide.py`). Scenery only.
+   - **Machines** (owner, 2026-11-09: a spacefaring megaproject, not a
+     modern quarry; the conveyor must make plausible sense, `raid-mine-megaworks`
+     option a, crawler and spine). `PitMachines` lays the ore's path: a cutting
+     crawler the size of a building works a dry face on the floor, its back to
+     the crushing station at the spine's foot so its boom swings the ore back
+     into the station's hopper. A hopper beside the spine on a bench takes a
+     loaded ore crawler's tip, where the upper benches' ore joins the spine. Ore
+     crawlers climb the haul road loaded and come down it empty, and a drilling
+     gantry readies the next blast on the first bench with room. Each machine is
+     drawn at its depth's scale, after its bench and before the face above it.
+     At the battle's vehicle scale, an ore crawler is three to four cells long
+     and the haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen
+     sheet, `pit-megaworks.png`, filled in over a geometry guide
+     (`art-source/voids/open-pit/megaworks-guide.py`) after the approved
+     concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
    (to the stores, or from the shafts); dust over the working bench.

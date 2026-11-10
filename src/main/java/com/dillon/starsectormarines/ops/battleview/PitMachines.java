@@ -1,118 +1,175 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The machines working an open pit ({@code voids.md}, the open pit): the evidence that the cut is a working mine on a
- * planet's scale. A face shovel loads a haul truck at the toe of a face on the floor, a dozer and a loader work the
- * floor clear of the sump, drill rigs stand on an upper bench drilling the next blast, and haul trucks climb the
- * spiral road loaded and come down it empty. Scenery: drawn in the drop, never on the battle's ground. GL-free;
- * {@link NaturalVoidRenderSystem} draws them from {@link #SHEET}.
+ * The machines of an open pit worked as a spacefaring colony's megaproject ({@code voids.md}, the open pit): the ore's
+ * path is the read. A cutting crawler the size of a building gnaws a face on the floor and swings its ore back into a
+ * crushing station, and the station feeds the spine, the covered conveyor ({@link NaturalVoid.Belt}) that climbs out
+ * of the pit to the works. Ore crawlers bring ore from the upper benches to a hopper beside the spine, and climb and
+ * descend the haul road; a drilling gantry readies the next blast on a bench. Scenery: drawn in the drop, never on the
+ * battle's ground. GL-free; {@link NaturalVoidRenderSystem} draws them from {@link #SHEET}.
  */
 final class PitMachines {
 
     /**
-     * The machines' sheet: three columns by two rows of frames in {@link Kind} order, each machine front to the east
-     * and centred in its frame (`art-source/voids/open-pit/machines-guide.py`).
+     * The sheet: four columns by two rows of frames in {@link Kind} order, each piece centred in its frame, its front
+     * or its run to the east (`art-source/voids/open-pit/megaworks-guide.py`).
      */
-    static final String SHEET = "graphics/battle/voids/pit-machines.png";
-    /** One frame of the sheet in metres: 640 x 540 guide pixels at 30 pixels a metre. */
-    static final float FRAME_W_METERS = 640f / 30f, FRAME_H_METERS = 540f / 30f;
+    static final String SHEET = "graphics/battle/voids/pit-megaworks.png";
+    /** One frame of the sheet in guide pixels. */
+    static final float FRAME_PX_W = 480f, FRAME_PX_H = 540f;
     /**
-     * Cells a metre of machine spans: a haul truck three cells long and two wide, the battle's own parked trucks'
-     * size, as wide as the haul road it drives. UNTUNED.
+     * Cells a metre of machine spans: an ore crawler is between three and four cells long, the cutter nine, at the
+     * battle's own vehicle scale. UNTUNED.
      */
     static final float CELLS_PER_METER = .2f;
-    /** How far in from the floor's edge the shovel stands, cells: its bucket in the face's toe. */
-    static final float TOE_MIN = 2.2f, TOE_MAX = 3.8f;
+    /** How far in from the floor's edge the cutter stands, cells: its drum in the face. */
+    static final float CUT_MIN = 3f, CUT_MAX = 6.5f;
+    /**
+     * How far from the crushing station the cutter works, cells: clear of it, and near enough to swing its ore back
+     * to it. A small floor gives the cutter its farthest dry face within reach.
+     */
+    static final float FEED_MIN = 5f, FEED_MAX = 16f;
     /** Dry floor: the sump's water at most this much where a machine stands. */
     static final float DRY = .05f;
-    /** How far behind the truck being loaded the next one waits, cells. */
-    static final float QUEUE = 3.8f;
-    /** Floor machines stand at least this far apart, cells. */
-    static final float APART = 8f;
-    /** A drill stands this far out from its bench's face, cells, between the face and the bench's drop. */
-    static final float DRILL_MIN = .8f, DRILL_MAX = 1.4f;
-    /** The second drill of a pattern stands this far along the bench from the first, cells. */
-    static final float DRILL_SPACING = 3.6f;
+    /** A gantry stands this far out from its bench's face, cells, between the face and the bench's drop. */
+    static final float GANTRY_MIN = .8f, GANTRY_MAX = 1.4f;
     /** Nothing works on a bench this near the haul road, cells. */
     static final float ROAD_CLEAR = 3f;
+    /** How far to the side of the spine the bench hopper stands, cells, and its crawler beyond it. */
+    static final float HOPPER_SIDE = 2.2f, TIPPING_SIDE = 4.6f;
 
-    /** The machines, in the sheet's frame order. */
-    enum Kind { HAUL_LOADED, HAUL_EMPTY, SHOVEL, DRILL, DOZER, LOADER }
+    /** The pieces, in the sheet's frame order, each with the scale its frame was drawn at. */
+    enum Kind {
+        CUTTER(9), CRUSHER(18), ORE_LOADED(24), ORE_EMPTY(24), GANTRY(30), TOWER(28), GALLERY(36), HOPPER(36);
+
+        /** Guide pixels a metre in this piece's frame. */
+        final float pxPerMeter;
+
+        Kind(float pxPerMeter) { this.pxPerMeter = pxPerMeter; }
+
+        /** The frame's width on the map, cells. */
+        float frameCellsW() { return FRAME_PX_W / pxPerMeter * CELLS_PER_METER; }
+
+        /** The frame's height on the map, cells. */
+        float frameCellsH() { return FRAME_PX_H / pxPerMeter * CELLS_PER_METER; }
+    }
+
+    /** One gallery module's length and width along the spine, cells: the bay drawn 12 m by 5 m, made bolder. */
+    static final float BAY_CELLS_LONG = 3.2f, BAY_CELLS_WIDE = 1.35f;
+    /** The bay's part of its frame, as shares of the frame: 12 m by 5 m at 36 px a metre round the frame's middle. */
+    static final float BAY_U0 = (240f - 216f) / FRAME_PX_W, BAY_U1 = (240f + 216f) / FRAME_PX_W;
+    static final float BAY_V0 = (270f - 90f) / FRAME_PX_H, BAY_V1 = (270f + 90f) / FRAME_PX_H;
 
     /**
-     * One machine at {@code (x, y)} in the field's cells, {@code depth} metres down, its front toward
-     * {@code (headingX, headingY)}. It rests on band {@code step}; a truck on the haul road rests on the road down
-     * face {@code rampWall} (the road on bench {@code rampWall + 1}), and {@code rampWall} is -1 for the rest.
+     * One piece at {@code (x, y)} in the field's cells, {@code depth} metres down, its front toward
+     * {@code (headingX, headingY)}. It rests on band {@code step}; an ore crawler on the haul road rests on the road
+     * down face {@code rampWall} (the road on bench {@code rampWall + 1}), and {@code rampWall} is -1 for the rest.
      */
     record Machine(Kind kind, float x, float y, float depth, float headingX, float headingY, int step, int rampWall) { }
 
     private PitMachines() { }
 
-    /** The pit's machines, worked out from its field and its haul road; none where the floor has no dry toe. */
-    static List<Machine> place(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, int seed) {
+    /**
+     * The pit's machines, worked out from its field, its haul road and its spine ({@code belt}, in map cells, which
+     * sit {@code margin} cells inside the field's, or null when the pit sends none). Without a spine there is nothing
+     * to crush into, so no cutter, station or hopper.
+     */
+    static List<Machine> place(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, NaturalVoid.Belt belt, int margin,
+                               int seed) {
         List<Machine> out = new ArrayList<>();
         int n = field.steps();
         if (n < 1) return out;
-        floor(field, n, seed, out);
-        benches(field, ramps, n, seed, out);
+        if (belt != null) {
+            spineFoot(field, belt, margin, n, seed, out);
+            benchHopper(field, ramps, belt, margin, n, out);
+        }
+        gantry(field, ramps, n, seed, out);
         road(ramps, seed, out);
         return out;
     }
 
-    /** The shovel and the truck it loads at a face's toe, then a dozer and a loader elsewhere on the dry floor. */
-    private static void floor(NaturalVoidField field, int n, int seed, List<Machine> out) {
-        NaturalVoidField.Band band = field.bands.get(n);
+    /**
+     * The crushing station at the spine's foot, its hopper turned from the spine, and the cutter at the face it can
+     * feed the station from: on the dry floor, its drum in the face and its back to the station.
+     */
+    private static void spineFoot(NaturalVoidField field, NaturalVoid.Belt belt, int margin, int n, int seed,
+                                  List<Machine> out) {
+        float fx = belt.floorX() + margin, fy = belt.floorY() + margin;
+        float dx = belt.rimX() - belt.floorX(), dy = belt.rimY() - belt.floorY();
+        float len = (float) Math.hypot(dx, dy);
+        if (len < 1e-4f) return;
+        dx /= len; dy /= len;
+        // The station's discharge, at the back of its 24 m, is the spine's foot.
+        float half = 12f * CELLS_PER_METER;
+        float cx = fx - dx * half, cy = fy - dy * half;
+        if (!on(field, n, cx, cy)) { cx = fx; cy = fy; }
         float depth = field.depth[n];
-        List<float[]> toes = new ArrayList<>();
+        out.add(new Machine(Kind.CRUSHER, cx, cy, depth, -dx, -dy, n, -1));
+        NaturalVoidField.Band band = field.bands.get(n);
+        float best = -Float.MAX_VALUE;
+        float[] at = null;
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
             float x = band.attrs[o], y = band.attrs[o + 1], edge = band.attrs[o + 3];
-            if (edge < TOE_MIN || edge > TOE_MAX || PitVoidLook.sump(x, y, edge, seed) > DRY) continue;
-            toes.add(new float[]{x, y, NaturalVoidField.Noise.hash(Math.round(x * 4), Math.round(y * 4), seed + 11)});
+            if (edge < CUT_MIN || edge > CUT_MAX || PitVoidLook.sump(x, y, edge, seed) > DRY) continue;
+            float away = (float) Math.hypot(x - cx, y - cy);
+            if (away < FEED_MIN || away > FEED_MAX) continue;
+            float[] face = outward(field, field.reach[n], x, y);
+            if (face == null) continue;
+            // Its back to the station: the face it cuts lies away from the station, so its boom swings back to it.
+            float back = (face[0] * (x - cx) + face[1] * (y - cy)) / away;
+            if (back < 0f || !dryUnder(field, n, x, y, face[0], face[1], seed)) continue;
+            float score = back - away * .02f
+                    + .05f * NaturalVoidField.Noise.hash(Math.round(x * 4), Math.round(y * 4), seed + 11);
+            if (score > best) { best = score; at = new float[]{x, y, face[0], face[1]}; }
         }
-        toes.sort((a, b) -> Float.compare(a[2], b[2]));
-        List<float[]> taken = new ArrayList<>();
-        Kind[] floorKinds = {Kind.SHOVEL, Kind.DOZER, Kind.LOADER};
-        int next = 0;
-        for (float[] toe : toes) {
-            if (next == floorKinds.length) break;
-            if (near(taken, toe[0], toe[1], APART)) continue;
-            float[] out0 = outward(field, field.reach[n], toe[0], toe[1]);
-            if (out0 == null) continue;
-            Kind kind = floorKinds[next];
-            if (kind == Kind.SHOVEL) {
-                // The truck stands beside the shovel, along the face, wherever the floor has room for it.
-                Machine truck = null;
-                for (int sideSign = 1; sideSign >= -1 && truck == null; sideSign -= 2) {
-                    float tx = toe[0] - out0[1] * 2.7f * sideSign - out0[0] * .4f;
-                    float ty = toe[1] + out0[0] * 2.7f * sideSign - out0[1] * .4f;
-                    if (on(field, n, tx, ty)) truck = new Machine(Kind.HAUL_LOADED, tx, ty, depth, -out0[1] * sideSign,
-                            out0[0] * sideSign, n, -1);
-                }
-                if (truck == null) continue;
-                out.add(new Machine(Kind.SHOVEL, toe[0], toe[1], depth, out0[0], out0[1], n, -1));
-                out.add(truck);
-                // The next truck waits its turn behind the one being loaded.
-                float qx = truck.x() - truck.headingX() * QUEUE, qy = truck.y() - truck.headingY() * QUEUE;
-                if (on(field, n, qx, qy) && Math.hypot(qx - toe[0], qy - toe[1]) >= QUEUE) {
-                    out.add(new Machine(Kind.HAUL_EMPTY, qx, qy, depth, truck.headingX(), truck.headingY(), n, -1));
-                }
-            } else {
-                // The dozer pushes toward the face; the loader works along it.
-                float hx = kind == Kind.DOZER ? out0[0] : -out0[1], hy = kind == Kind.DOZER ? out0[1] : out0[0];
-                out.add(new Machine(kind, toe[0], toe[1], depth, hx, hy, n, -1));
-            }
-            taken.add(toe);
-            next++;
+        if (at != null) out.add(new Machine(Kind.CUTTER, at[0], at[1], depth, at[2], at[3], n, -1));
+    }
+
+    /**
+     * A hopper beside the spine on a bench it climbs over, the middle one first, clear of the haul road, with a loaded ore crawler backed up to tip into
+     * it: where the upper benches' ore joins the spine.
+     */
+    private static void benchHopper(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, NaturalVoid.Belt belt,
+                                    int margin, int n, List<Machine> out) {
+        for (int step = 0; step < n - 1; step++) {
+            int k = 1 + Math.floorMod(n / 2 - 1 + step, n - 1);
+            if (hopperOn(field, ramps, belt, margin, k, out)) return;
         }
     }
 
-    /** Two drill rigs a pattern apart on the first bench below the lip that has room, clear of the haul road. */
-    private static void benches(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, int n, int seed,
-                                List<Machine> out) {
+    private static boolean hopperOn(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, NaturalVoid.Belt belt,
+                                    int margin, int k, List<Machine> out) {
+        float fx = belt.floorX() + margin, fy = belt.floorY() + margin;
+        float dx = belt.rimX() - belt.floorX(), dy = belt.rimY() - belt.floorY();
+        float len = (float) Math.hypot(dx, dy);
+        if (len < 1e-4f) return false;
+        float ux = dx / len, uy = dy / len;
+        for (float t = 0f; t <= len; t += .25f) {
+            float x = fx + ux * t, y = fy + uy * t;
+            if (!on(field, k, x, y)) continue;
+            for (int side = 1; side >= -1; side -= 2) {
+                float hx = x - uy * HOPPER_SIDE * side, hy = y + ux * HOPPER_SIDE * side;
+                float cx = x - uy * TIPPING_SIDE * side, cy = y + ux * TIPPING_SIDE * side;
+                if (!on(field, k, hx, hy) || !on(field, k, cx, cy) || nearRoad(ramps, hx, hy)
+                        || nearRoad(ramps, cx, cy)) continue;
+                out.add(new Machine(Kind.HOPPER, hx, hy, field.depth[k], ux, uy, k, -1));
+                // Backed up to the hopper: its front turned away from it.
+                out.add(new Machine(Kind.ORE_LOADED, cx, cy, field.depth[k], -uy * side, ux * side, k, -1));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** A drilling gantry on the first bench below the lip that has room, clear of the haul road, along the bench. */
+    private static void gantry(NaturalVoidField field, List<PitVoidLook.Ramp> ramps, int n, int seed,
+                               List<Machine> out) {
         for (int k = 1; k < n; k++) {
             NaturalVoidField.Band band = field.bands.get(k);
             float best = Float.MAX_VALUE;
@@ -120,26 +177,21 @@ final class PitMachines {
             for (int q = 0; q < band.count; q++) {
                 int o = q * 8;
                 float x = band.attrs[o], y = band.attrs[o + 1], toDrop = band.attrs[o + 3];
-                if (toDrop < DRILL_MIN || toDrop > DRILL_MAX || nearRoad(ramps, x, y)) continue;
+                if (toDrop < GANTRY_MIN || toDrop > GANTRY_MAX || nearRoad(ramps, x, y) || near(out, x, y, 6f)) continue;
                 float score = NaturalVoidField.Noise.hash(Math.round(x * 4), Math.round(y * 4), seed + 23);
                 if (score < best) { best = score; at = new float[]{x, y}; }
             }
             if (at == null) continue;
             float[] o0 = outward(field, field.reach[k + 1], at[0], at[1]);
             if (o0 == null) continue;
-            float tx = -o0[1], ty = o0[0];
-            float bx = at[0] + tx * DRILL_SPACING, by = at[1] + ty * DRILL_SPACING;
-            out.add(new Machine(Kind.DRILL, at[0], at[1], field.depth[k], tx, ty, k, -1));
-            if (on(field, k, bx, by) && !nearRoad(ramps, bx, by)) {
-                out.add(new Machine(Kind.DRILL, bx, by, field.depth[k], tx, ty, k, -1));
-            }
+            out.add(new Machine(Kind.GANTRY, at[0], at[1], field.depth[k], -o0[1], o0[0], k, -1));
             return;
         }
     }
 
     /**
-     * Two haul trucks on the spiral road, on different faces: the deeper one loaded and climbing, the upper one
-     * empty and coming down.
+     * Two ore crawlers on the haul road, on different faces: the deeper one loaded and climbing, the upper one empty
+     * and coming down.
      */
     private static void road(List<PitVoidLook.Ramp> ramps, int seed, List<Machine> out) {
         int walls = -1;
@@ -161,9 +213,25 @@ final class PitMachines {
             boolean falls = p[5] > p[2];
             boolean loaded = wall == up;
             float sign = loaded == falls ? -1f : 1f;
-            out.add(new Machine(loaded ? Kind.HAUL_LOADED : Kind.HAUL_EMPTY, x, y, z, dx * sign, dy * sign,
+            out.add(new Machine(loaded ? Kind.ORE_LOADED : Kind.ORE_EMPTY, x, y, z, dx * sign, dy * sign,
                     wall + 1, wall));
         }
+    }
+
+    /** The cutter's body, from its drum back to its discharge boom and across its tracks, in cells from its centre. */
+    static final float CUTTER_REACH_FORE = 4.4f, CUTTER_REACH_AFT = 4f, CUTTER_REACH_SIDE = 2.8f;
+
+    /** Whether the whole of a cutter at {@code (x, y)} facing {@code (hx, hy)} stands on the floor, out of the sump. */
+    static boolean dryUnder(NaturalVoidField field, int n, float x, float y, float hx, float hy, int seed) {
+        float[][] at = {{0f, 0f}, {CUTTER_REACH_FORE * .7f, 0f}, {-CUTTER_REACH_AFT, 0f},
+                {0f, CUTTER_REACH_SIDE}, {0f, -CUTTER_REACH_SIDE}, {-CUTTER_REACH_AFT * .6f, CUTTER_REACH_SIDE},
+                {-CUTTER_REACH_AFT * .6f, -CUTTER_REACH_SIDE}};
+        for (float[] a : at) {
+            float px = x + hx * a[0] - hy * a[1], py = y + hy * a[0] + hx * a[1];
+            if (!on(field, n, px, py)) return false;
+            if (PitVoidLook.sump(px, py, field.sample(field.reach[n], px, py), seed) > DRY) return false;
+        }
+        return true;
     }
 
     /** The unit direction out of the cut at a point: down the distance-in field {@code reach}, toward its edge. */
@@ -180,8 +248,8 @@ final class PitMachines {
         return field.depthAt(x, y) == field.depth[k];
     }
 
-    private static boolean near(List<float[]> taken, float x, float y, float apart) {
-        for (float[] t : taken) if (Math.hypot(t[0] - x, t[1] - y) < apart) return true;
+    private static boolean near(List<Machine> taken, float x, float y, float apart) {
+        for (Machine m : taken) if (Math.hypot(m.x() - x, m.y() - y) < apart) return true;
         return false;
     }
 
