@@ -158,6 +158,23 @@ public final class StormBank {
         return band.berm();
     }
 
+    /**
+     * The bank's ground on a {@code width} x {@code height} map, indexed {@code [x][y]}: every cell from the windward
+     * edge to {@link #depth} in, its passes included. What reaches the edge across it (a landing pad's approach) stops
+     * here rather than reserving the bank away.
+     */
+    public static boolean[][] ground(StormWind.Side wind, int width, int height) {
+        int depth = depth(wind, width, height);
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int in = wind.alongX() ? (wind.low() ? y : height - 1 - y) : (wind.low() ? x : width - 1 - x);
+                out[x][y] = in < depth;
+            }
+        }
+        return out;
+    }
+
     /** How far in from the windward edge the bank holds ground, cells: {@link #reach} without its open standoff. */
     public static int depth(StormWind.Side wind, int width, int height) {
         return reach(wind, width, height) - STANDOFF;

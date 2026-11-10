@@ -121,6 +121,19 @@ class StormBankTest {
     }
 
     @Test
+    void anApproachStoppedAtTheBanksGroundLeavesEveryCellTheBankHoldsFree() {
+        for (StormWind.Side wind : StormWind.Side.values()) {
+            boolean[][] ground = StormBank.ground(wind, W, H);
+            boolean[][] held = RidgePlanner.heldGround(List.of(StormBank.band(wind, W, H)), W, H, StormBank.HELD_MARGIN);
+            int depth = StormBank.depth(wind, W, H);
+            for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) {
+                if (held[x][y]) assertTrue(ground[x][y], wind + ": held at " + x + "," + y + " is the bank's");
+                assertEquals(in(wind, x, y) < depth, ground[x][y], wind + ": the town's ground at " + x + "," + y);
+            }
+        }
+    }
+
+    @Test
     void onlyADesertLikeStormWorldBanks() {
         Climate storms = new Climate(EnumSet.of(Climate.Hazard.STORMS));
         assertTrue(StormBank.raises(profile(SurfacePalette.ARID, storms)));

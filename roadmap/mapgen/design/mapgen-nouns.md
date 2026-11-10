@@ -2292,7 +2292,9 @@ leaves the map that way (a works' feeder), and the landscape pass raises the
 rest through `RidgePlanner`, which breaks it again wherever a road, a building or
 an access route crosses and proves the ground on both sides stays one: cover
 and a height to hold, never a seal. It stands past the edge reservation the
-landscape pass keeps, or no segment fits. A mine's pit stops short of it.
+landscape pass keeps, or no segment fits. A mine's pit stops short of it, and a
+landing pad's approach stops at its ground (`StormBank.ground`) as it stops at
+sealed ground and knolls, rather than reserving a stretch of it away.
 
 The bank reads as works a colony keeps, not as a ridge (`StormBankDressing`,
 owner), dressed from existing art once the streets are finished: sand on its
