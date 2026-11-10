@@ -22,7 +22,7 @@ import java.util.List;
  */
 final class RingHall {
 
-    static final String RIME = "floors.snow";
+    static final String RIME = "ruins-ground.rime";
     /** Each ring segment's size: three cells square. */
     static final int SEG = 3;
 

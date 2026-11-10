@@ -61,7 +61,12 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          * a hall's floor, a cast-steel kerb over firebrick walls down to molten metal a couple of metres below. Drawn
          * as a lava rift is, its lip a laid strip rather than ragged rock.
          */
-        FOUNDRY
+        FOUNDRY,
+        /**
+         * A bore shaft (`ruins-expedition.md`, Every theme has its works hall): a cast collar round a shaft sunk in a
+         * hall's floor, bedrock strata down to rubble far below. Drawn as a dry gorge is, its lip a laid strip.
+         */
+        SHAFT
     }
 
     /**
@@ -131,7 +136,7 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
      * Whether this drop is cut inside a building (a foundry's melt) rather than across the open country, where a map
      * lays at most one drop of its own.
      */
-    public boolean indoor() { return style == Style.FOUNDRY; }
+    public boolean indoor() { return style == Style.FOUNDRY || style == Style.SHAFT; }
 
     /** How deep the floor lies on the {@code steps}, in metres below the surface: everywhere, without marks. */
     public float floorMeters() { return steps.get(steps.size() - 1).depthMeters(); }
