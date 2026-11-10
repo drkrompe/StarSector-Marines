@@ -1,0 +1,113 @@
+package com.dillon.starsectormarines.campaign;
+
+import java.io.Serializable;
+
+/**
+ * Save-owned ledger for *The Long Survey*, the authored fallen-hull arc ({@code long-survey-arc.md}). Its four chapters
+ * unlock in order, each on the previous chapter's victory; a loss leaves the chapter on offer as a retry with no fee;
+ * a chapter already won stays offered as a replay that pays half its fee and never moves the arc. Every attempt
+ * carries a fresh identity; only the active attempt settles, and only once.
+ */
+public final class LongSurveyProgress implements Serializable {
+    private static final long serialVersionUID = 1L;
+    public static final String PREFIX = "long_survey_v1_";
+    private static final String REPLAY = "replay_";
+
+    /** The arc's chapters in their order. Fees are UNTUNED starting points. */
+    public enum Chapter {
+        THE_FALL("fall", 22_000, true),
+        STAKES("stakes", 30_000, false),
+        THE_LINE("line", 34_000, false),
+        THE_SURVEYOR("surveyor", 42_000, false);
+
+        public final String code;
+        public final int fee;
+        /** Whether the chapter's battle is built yet: an unbuilt chapter is never offered or launched. */
+        public final boolean built;
+        Chapter(String code, int fee, boolean built) { this.code = code; this.fee = fee; this.built = built; }
+        public int replayFee() { return fee / 2; }
+        /** One-based place in the arc. */
+        public int number() { return ordinal() + 1; }
+    }
+
+    private int won;
+    private int attempt = 1;
+    private String activeId;
+    private int replaysWon, losses, paid;
+    /** The story chapter whose last attempt was lost, by name, so its retry briefs as one; null otherwise. */
+    private String lastLost;
+
+    public static boolean owns(String id) { return id != null && id.startsWith(PREFIX); }
+    public static boolean replay(String id) { return owns(id) && id.startsWith(PREFIX + REPLAY); }
+    /** The chapter an identity was issued for, or null for any other identity. */
+    public static Chapter chapterOf(String id) {
+        if (!owns(id)) return null;
+        String rest = id.substring(PREFIX.length() + (replay(id) ? REPLAY.length() : 0));
+        for (Chapter chapter : Chapter.values()) if (rest.startsWith(chapter.code + "_")) return chapter;
+        return null;
+    }
+
+    /** Chapters won in order; also the index of the chapter now on offer. */
+    public int won() { return won; }
+    public int attempt() { return attempt; }
+    public int replaysWon() { return replaysWon; }
+    public int losses() { return losses; }
+    public int paid() { return paid; }
+    public boolean lastLost(Chapter chapter) { return chapter != null && chapter.name().equals(lastLost); }
+    public boolean active() { return activeId != null; }
+    public boolean complete() { return won >= Chapter.values().length; }
+    /** The chapter the story offers next, or null once the arc is complete. */
+    public Chapter current() { return complete() ? null : Chapter.values()[won]; }
+    public boolean replayable(Chapter chapter) { return chapter != null && chapter.ordinal() < won; }
+
+    public String missionId(Chapter chapter, boolean replay) {
+        return PREFIX + (replay ? REPLAY : "") + chapter.code + "_" + attempt;
+    }
+    public static int fee(String id) {
+        Chapter chapter = chapterOf(id);
+        return chapter == null ? -1 : replay(id) ? chapter.replayFee() : chapter.fee;
+    }
+    /**
+     * Whether {@code id} is an attempt this ledger offers now: the current chapter, or a replay of one won, and in
+     * either case a chapter whose battle is built.
+     */
+    public boolean matches(String id) {
+        Chapter chapter = chapterOf(id);
+        if (chapter == null || !chapter.built) return false;
+        boolean replay = replay(id);
+        return id.equals(missionId(chapter, replay)) && (replay ? replayable(chapter) : chapter == current());
+    }
+
+    public boolean begin(String id) {
+        if (!matches(id) || activeId != null) return false;
+        activeId = id;
+        return true;
+    }
+    /** Closes an unsettled launch as if it never happened: the same attempt can launch again. */
+    public boolean abandon(String id) {
+        if (id == null || !id.equals(activeId)) return false;
+        activeId = null;
+        return true;
+    }
+
+    /**
+     * Accepts only the active attempt's receipt. Returns the fee (zero on a defeat), or -1 when the outcome is stale,
+     * duplicate, foreign or pays the wrong amount, writing nothing.
+     */
+    public int settle(String id, boolean victory, int payment) {
+        if (id == null || !id.equals(activeId) || !matches(id) || payment != (victory ? fee(id) : 0)) return -1;
+        boolean replay = replay(id);
+        if (!victory) {
+            losses++;
+            if (!replay) lastLost = chapterOf(id).name();
+        } else if (replay) replaysWon++;
+        else {
+            won++;
+            lastLost = null;
+        }
+        paid += payment;
+        attempt++;
+        activeId = null;
+        return payment;
+    }
+}

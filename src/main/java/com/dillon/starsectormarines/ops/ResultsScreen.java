@@ -260,6 +260,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storyProgress", WellhollowBloomCampaign.progress(outcome));
             props.put("storyMessage", WellhollowBloomCampaign.debrief(outcome));
         }
+        if (outcome != null && LongSurveyCampaign.owns(outcome.missionId) && outcome.missionSource == MissionSource.STORY) {
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", MissionDialogue.speakerPortrait(LongSurveyCampaign.SPEAKER));
+            props.put("storySender", Strings.get("longSurveyContactName"));
+            props.put("storyProgress", LongSurveyCampaign.progress(outcome));
+            props.put("storyMessage", LongSurveyCampaign.debrief(outcome));
+        }
         if(outcome!=null && outcome.workingPassage!=null) {
             var passage=outcome.workingPassage;
             props.put("storyClasses","story-dispatch console-readout");
