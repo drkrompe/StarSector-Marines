@@ -473,8 +473,8 @@ public final class RuinsDelveStage implements GenStage {
                         // Most cradles stand empty where their units were pulled out; a few hold a wreck. The wreck
                         // goes first, since a prop clears what is drawn over its cell; the frame then goes under it.
                         int under = ctx.doodads.size();
-                        if (hash(bx, by, 0xC4A) % 4 == 0) prop(WRECK, bx + 1, by + 1);
                         TileRegistry registry = TileRegistry.installed();
+                        if (hash(bx, by, 0xC4A) % 4 == 0) wreck(registry, bx, by);
                         if (registry != null) lay(registry, EMPTY_CRADLE, bx, by, under);
                     }
                 }
@@ -489,14 +489,14 @@ public final class RuinsDelveStage implements GenStage {
             }
             TileRegistry registry = TileRegistry.installed();
             int under = ctx.doodads.size();
-            String product = plan.dressing().product();
+            String product = plan.dressing().whole();
             DoodadDef def = registry == null || product == null ? null : registry.doodad(product);
             if (def == null) prop(HAUL, px + 1, cy);
             else {
-                // The prize itself, in its own cradle: the theme's product, whole.
-                ctx.doodads.add(new Doodad(px + 1, cy, def));
-                for (int y = cy; y < cy + Math.max(1, def.footprintCellsY); y++) {
-                    for (int x = px + 1; x < px + 1 + Math.max(1, def.footprintCellsX); x++) {
+                // The prize itself, in its own cradle: the theme's product, whole, exactly over the frame.
+                ctx.doodads.add(new Doodad(px, cy - 1, def));
+                for (int y = cy - 1; y < cy - 1 + Math.max(1, def.footprintCellsY); y++) {
+                    for (int x = px; x < px + Math.max(1, def.footprintCellsX); x++) {
                         grid.setWalkable(x, y, false);
                         grid.setSeeThrough(x, y, true);
                         topology.setFixture(x, y, true);
@@ -1400,7 +1400,7 @@ public final class RuinsDelveStage implements GenStage {
                                 continue;
                             }
                             if (hash(x, y, 0x11E) % 7 == 0) piece(registry, WRECK, x + 2, y + 1, 1, 1, hall, centre);
-                            else piece(registry, LINE_MODULE, x, y, 6, 3, hall, centre);
+                            else if (piece(registry, LINE_MODULE, x, y, 6, 3, hall, centre)) onLine(registry, x, y);
                             x += 6;
                             run++;
                         }
@@ -1430,6 +1430,36 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
             }
+        }
+
+        /**
+         * What the line left on a module: the theme's unit half-built on one of its two beds, or wrecked where it
+         * stood, drawn over the module, which already blocks; most modules stand empty.
+         */
+        void onLine(TileRegistry registry, int x, int y) {
+            RuinsDressing dressing = plan.dressing();
+            int roll = hash(x, y, 0xBA1) % 6;
+            String id = roll < 2 ? dressing.half() : roll == 2 ? dressing.wrecked() : null;
+            DoodadDef def = id == null ? null : registry.doodad(id);
+            if (def != null) ctx.doodads.add(new Doodad(x + (roll == 1 ? 3 : 0), y, def));
+        }
+
+        /**
+         * A wrecked unit in the cradle at {@code (bx, by)}: the theme's own, filling the cradle and blocking its middle
+         * cell, else scrap. Laid before the cradle's frame, which goes under it.
+         */
+        void wreck(TileRegistry registry, int bx, int by) {
+            String id = plan.dressing().wrecked();
+            DoodadDef def = registry == null || id == null ? null : registry.doodad(id);
+            if (def == null) {
+                prop(WRECK, bx + 1, by + 1);
+                return;
+            }
+            ctx.doodads.add(new Doodad(bx, by, def));
+            grid.setWalkable(bx + 1, by + 1, false);
+            grid.setSeeThrough(bx + 1, by + 1, true);
+            topology.setFixture(bx + 1, by + 1, true);
+            kept[i(bx + 1, by + 1)] = true;
         }
 
         /** Stands one blocking piece of the plant kit, where the hall stays one floor; whether it stood. */

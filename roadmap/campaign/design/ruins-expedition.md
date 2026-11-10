@@ -577,7 +577,8 @@ industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
 
 **The site is the plant that made the prize** (owner, 2026-11-09: "In theory
 these would be massive facilities with these spoils being common day
-occurrences at the time"; pick `ruins-vault-facility` open, building on a). A
+occurrences at the time"; owner pick `ruins-vault-facility` a, the chain of
+halls, over one great hall and over the plant taking the whole site). A
 ruins site is the wreck of a Domain-era plant whose prize was an ordinary
 product: a cryoarithmetic plant, a nanoforge works, a biofactory complex, an AI
 core datacentre. The ruin's roofed megastructure is that plant, and the delve
@@ -604,17 +605,48 @@ cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
 (`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
 `RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
 vast) and storage bays (18x14), furnished from the plant kit. The control room
-and the substation as plant halls, the products' half-built and wrecked states,
-and the outdoor yards are still owed.
+and the substation as plant halls, and the products of the themes still without
+one, are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its
 product, whole (only the prize), half-built and wrecked. The ground lays the
 kit itself (line runs, cradle grids, rack rows, dock doors); the theme's
-`RuinsDressing` names its product, which stands whole in the prize's cradle
-(the cryo rack and the culture vat so far; a crate where a theme has none). Placement is a coordinate
-hash, so the layout never changes with the theme. Picture cards:
-`createSnapshots -Psnapshot=ruins-facility-picks`.
+`RuinsDressing` names its product, a 3x3 unit in three states
+(`doodad.ruins-<product>-whole`, `-half`, `-wrecked`): whole only in the prize's
+cradle, half-built on some line modules, wrecked on others and in a few cradles.
+So far the cryo unit (cryoarithmetic engine), the vat unit (soil nanites,
+biofactory embryo), the forge core (nanoforges) and the drone frame (drone
+replicator); a theme without one keeps a crate in the prize's cradle and scrap
+in its wrecked cradles. The product's size is the art session's open pick
+`ruins-products-size`, building on 3x3. Placement is a coordinate
+hash, so the layout never changes with the theme.
+
+**Part of the dead town is a port** (owner, with pick `ruins-vault-facility`:
+"We might even devote part of the towns construction outside to be ruins for a
+large port"; pick `ruins-port` open, building on a). A plant shipped what it
+made, so the colony round it kept a large port. Outside the megastructure, part
+of the dead town's ground becomes the port's ruins instead of ruined lots:
+
+- **pad fields**: cracked ship pads and blast pits, open ground with no cover
+  but a wreck or two;
+- **cargo yards**: container stacks in rows with lanes between, cover in lines;
+- **a terminal**: one large broken shell, a hall the company can hold;
+- **gantries**: fallen crane spans across a yard, low cover the length of them.
+
+The options are where the port lies:
+
+| Option | Where | What it changes |
+| --- | --- | --- |
+| a (recommended) | Round the landing: the company lands on the old port's surviving pads | The landing ground becomes the port's pad field, the terminal and yards stand between it and the first layer; the first fight is in the cargo lanes |
+| b | At the plant's outfeed: a freight port against the hull | Yards and gantries run along the hull face beside the entrances; the approach to the plant crosses open yard |
+| c | One whole outside layer | At extensive and vast a middle outside layer is all port: pads, yards and terminal across the map's height |
+
+The port keeps the delve's laws: its ground is outside, under open sky, crossed
+by the layers' boundaries and never a standing line. Its size follows the
+grade, from a pad and a yard at scattered to a full port at vast. It is laid by
+coordinate hash like the rest of the dead town, so the same site has the same
+port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
