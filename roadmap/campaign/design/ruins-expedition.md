@@ -863,6 +863,70 @@ over ground its body fits and through every hall door, a dead one forced and one
 narrower than the frame torn a jamb wider at each end. A hall door it cannot
 pass is one it tears; a service corridor is somewhere it does not go.
 
+**The works hall is the trunk** (pick `ruins-works-trunk`, building on a). A
+works site's showpiece is on the way, not off it. Its works hall, the mega
+forge or a theme's, is laid first in the outer interior band, so it always fits
+at full size, and the band's spine runs through it down its west wall, in at
+the dispatch end and out at the head (`mapgen-nouns.md`, The works hall is the
+trunk). Every other way in the band meets the spine beyond the hall's ends, so
+the hall has two doors, both on the trunk, and the company crossing the band
+crosses the hall:
+
+| Option | Where the works hall stands |
+| --- | --- |
+| a (recommended, built) | On the trunk: the band's spine runs through it, the route crosses it |
+| b | Beside the trunk, joined by a freight way, laid only where it fits (about one site in four before this) |
+| c | As b, and the route is drawn past its door, so the stand is held at its mouth |
+
+**The forge's transfer bridge** (owner: "a real bridge would be cool. Depends
+on the mission we make"; pick `ruins-forge-bridge`, building on a). At the mega
+forge's middle the pour line burst its banks round a ladle tipped mid-pour and
+pooled. A transfer bridge four cells wide crosses the pool from bank to bank on
+the transfer aisle. The catwalks over the line are two wide, so infantry cross
+anywhere, but the bridge is the only way a hall frame or the haul crosses the
+line. The frame's post is the hall's middle, on the bridge.
+
+| Option | Shape |
+| --- | --- |
+| a (recommended, built) | The breakout: a pool of melt up to 14x18 round the hall's middle, the bridge across it, the frame's post on the deck |
+| b | A deck bridge over the two-cell pour line on the transfer aisle, no pool |
+| c | No bridge: the transfer aisle crosses the line as floor |
+
+The deck is grate decking until the bridge's own art ships: a four-wide span with
+girders, kerbs and railings, and an abutment at each bank.
+
+**Beats through the facility** (pick `ruins-facility-beats`, building on a).
+On a works site the delve's inside has a shape the player can read: the plant's
+own order, intake to works hall to stores to vault, along the trunk.
+
+1. **The entry.** The cargo door the company takes from its apron. Phase B
+   begins, the pull-out point moves to the entry.
+2. **The works hall, the outer band's stand.** The route crosses it on its
+   trunk. On a forge works: the frame on the bridge over the pool, the pour
+   line and the pool as fire lanes nobody stands in, cover in the lanes
+   between the production lines, the catwalks as infantry flanks. Holding the
+   bridge is holding the stand: the close reading of the deeper band comes in
+   there.
+3. **The works off the trunk.** The power hall, the records and the side
+   rooms' stores are reached by service corridors, two wide: infantry go, a hall
+   frame cannot follow. They are where the company works the puzzle, and
+   where it can shake off a frame.
+4. **The deeper band.** Storage halls on freight ways, the stores, then the
+   vault and its frame: the breach.
+5. **The egress, back through the works hall.** The haul comes out the way the
+   company came in, so the counter-push meets it at the stand it took: the
+   haul crosses the bridge under fire, and a frame shut behind a dead hall door
+   tears through it.
+
+| Option | The stand |
+| --- | --- |
+| a (recommended) | The works hall is the outer band's stand, derelict security's zone held there (node and frame) |
+| b | The stand stays at the layer's junction; the works hall is ground the route crosses |
+| c | The works hall is the vault's antechamber, the last stand before the breach |
+
+Where derelict security wakes, escalates and repairs in these halls is
+`derelict-security-network.md`'s.
+
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
 

@@ -2188,14 +2188,24 @@ wall (their levelers are floor) with stock left on the dock floor.
 A dressing marked `foundry` lays its halls before its side rooms, and the outer
 band takes one mega forge hall in place of every line hall: about 40x76 (44x92
 at vast). It is shortened to fit, never below 44 long, and a hall narrower than
-32 is laid as the old foundry instead. The hall is laid out from its process,
+32 is laid as the old foundry instead.
+
+**The works hall is the trunk.** A works site's works hall, the mega forge or a
+theme's, is the first piece laid in the outer interior band, while the band is
+whole, so it is always laid at full size. The band's spine then runs down its
+west wall, in at the dispatch end and out at the head, three cells kept clear
+of every piece and melt; the band's court stands across the same column and the
+power hall clear of it. No other way enters the hall: the ways through the
+lines, the other halls and the rooms meet the spine beyond the hall's ends. So
+the route through the band passes through the works hall
+(`ruins-expedition.md`, The works hall is the trunk). The hall is laid out from its process,
 head to the north:
 
 - the great crucible (12x16, `ruins-forge` sheet) west of the line, its
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- the feed: a mag-rail up the west aisle from the dispatch end to a
+- the feed: a mag-rail up the west aisle, beside the trunk, from the dispatch end to a
   decelerator stop at the head, beside the crucible's flank, one sealed feed
   pod waiting on it and another derailed in the aisle. The hall reads as
   automated, spacefaring heavy industry, never a period foundry (owner: "Ore
@@ -2205,6 +2215,12 @@ head to the north:
   it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
+- the breakout: at the hall's middle the line burst its banks round a ladle
+  tipped mid-pour, a ragged pool of melt (up to 14x18, smaller where a larger
+  pool would split the hall), and the **transfer bridge** across it, a deck
+  four cells wide on the transfer aisle from bank to bank. It is the only way
+  a hall frame or the haul crosses the line, and the frame's post stands on it
+  (`ruins-expedition.md`, The forge's transfer bridge);
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
@@ -2215,7 +2231,7 @@ head to the north:
   roof until the roof fades (`ruins-forge-motions`): a crane runway down
   each long wall, a cable tray beside the pour line with a length fallen to
   the floor, a ladle lift hung under the spout, and another tipped over a
-  line junction. A crane girder lies fallen across the west aisle as cover;
+  line junction. A crane girder lies fallen beside the trunk as cover;
 - wear laid under it all: scorch round the spout and the core's flank,
   coolant by the racks, a floor drain in each aisle, oil and a hover
   skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
