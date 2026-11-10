@@ -45,6 +45,17 @@ public enum SurfacePalette {
     FROZEN(false, GroundKind.SNOW),
 
     /**
+     * Cooled lava: dark basalt flow fields, ash drifts and glowing fissures. Rocks scatter; nothing grows.
+     *
+     * <p>The vanilla {@code lava} and {@code lava_minor} worlds. Its ground is {@link GroundKind#STONE} in every
+     * respect but the picture: the mapping draws its stone from the volcanic material
+     * ({@code paletteGroundRender}), and every generation decision that reads the palette treats it as {@link #ROCK},
+     * so a seed makes the same map on either ({@link #layoutOf}). What differs is art: the basalt finish, the basalt
+     * formations and the fissures and ash drawn over the ground.
+     */
+    VOLCANIC(false, GroundKind.STONE),
+
+    /**
      * Scorched, bleached and glassed: cracked hardpan fused to glass in patches, with the dead husks of whatever
      * stood on it. Rocks scatter; nothing grows.
      *
@@ -105,7 +116,17 @@ public enum SurfacePalette {
             case ARID -> RockDamage.Biome.SANDSTONE;
             case ROCK -> RockDamage.Biome.BASALT;
             case FROZEN -> RockDamage.Biome.FROST;
+            case VOLCANIC -> RockDamage.Biome.BASALT;
             case IRRADIATED -> RockDamage.Biome.GLASSED;
         };
+    }
+
+    /**
+     * The palette whose generated layout this one shares: itself, except for a palette that differs from another
+     * only in its art. A story-map pool vets seeds per layout, so a world that only looks different plays the maps
+     * already pooled for the one it is laid out as ({@code story-map-pools.md}).
+     */
+    public SurfacePalette layoutOf() {
+        return this == VOLCANIC ? ROCK : this;
     }
 }

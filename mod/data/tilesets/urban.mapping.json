@@ -15,6 +15,12 @@
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
+  "paletteGroundRender": {
+    "VOLCANIC": {
+      "STONE": "volcanic.basalt",
+      "SAND":  "volcanic.ash"
+    }
+  },
   "groundDamage": {
     "INDOOR": "terrain.blast-paving",
     "STREET": "terrain.blast-paving",

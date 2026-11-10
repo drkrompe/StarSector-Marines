@@ -63,6 +63,8 @@ public final class FormationBrush {
         return switch(surface) {
             case ROCK -> new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
             case FROZEN -> new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES};
+            // Basalt keeps rock's shapes in rock's order, so a volcanic seed draws and blocks exactly as a rock one does.
+            case VOLCANIC -> new MineralFormation[]{MineralFormation.BASALT_BOULDERS,MineralFormation.BASALT_SPIRES};
             case IRRADIATED -> new MineralFormation[]{MineralFormation.HUSKS,MineralFormation.HUSK_SPIRES};
             default -> new MineralFormation[0];
         };

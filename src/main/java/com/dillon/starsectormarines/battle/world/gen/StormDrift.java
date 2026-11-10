@@ -34,6 +34,7 @@ public final class StormDrift {
         return switch (world) {
             case ARID, ROCK, IRRADIATED -> "floors.sand";
             case FROZEN -> "floors.snow";
+            case VOLCANIC -> "volcanic.ash";
             case VERDANT -> null;
         };
     }

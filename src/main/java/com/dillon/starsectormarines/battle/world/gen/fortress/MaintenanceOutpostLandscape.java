@@ -22,6 +22,7 @@ final class MaintenanceOutpostLandscape {
             case VERDANT -> TerrainPlan.Finish.GRASS_TOP;
             case FROZEN -> TerrainPlan.Finish.ICE;
             case IRRADIATED -> TerrainPlan.Finish.GLASSED;
+            case VOLCANIC -> TerrainPlan.Finish.BASALT;
             default -> TerrainPlan.Finish.ROCK;
         };
         // Overlapping lobes and short spurs form broad, varying-width masses.

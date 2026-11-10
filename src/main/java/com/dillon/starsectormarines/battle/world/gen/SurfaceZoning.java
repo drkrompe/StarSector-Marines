@@ -52,12 +52,16 @@ public final class SurfaceZoning {
                 || id.contains("cold")) {
             return SurfacePalette.FROZEN;
         }
+        // Lava worlds: "lava" catches lava_minor.
+        if (id.contains("lava")) {
+            return SurfacePalette.VOLCANIC;
+        }
         // Hard radiation at the surface: scorched, glassed, bleached ground.
         if (id.contains("irradiated")) {
             return SurfacePalette.IRRADIATED;
         }
         // Everything else the Sector actually fights over: barren, rocky,
-        // toxic, lava.
+        // toxic.
         return SurfacePalette.ROCK;
     }
 }

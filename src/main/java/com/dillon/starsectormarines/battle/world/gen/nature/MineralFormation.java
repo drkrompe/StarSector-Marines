@@ -29,7 +29,12 @@ public enum MineralFormation implements NaturalPropShape {
     HUSK_SPIRES("husk-spires", 3, 5, Material.HUSK, List.of(
             new Facet(.4,.35, 1.3,.2, 1.85,1.0, 1.45,2.05, .35,1.7),
             new Facet(1.1,1.6, 2.35,1.2, 2.75,2.1, 2.45,3.15, 1.45,3.55, .75,2.7),
-            new Facet(.5,3.2, 1.4,3.0, 2.15,3.7, 1.8,4.65, .75,4.75, .25,4.0)));
+            new Facet(.5,3.2, 1.4,3.0, 2.15,3.7, 1.8,4.65, .75,4.75, .25,4.0))),
+
+    /** A volcanic world's boulders: {@link #BOULDERS}' body in basalt, so a seed blocks the same cells on either. */
+    BASALT_BOULDERS("basalt-boulders", BOULDERS),
+    /** A volcanic world's spires: {@link #SPIRES}' body in basalt. */
+    BASALT_SPIRES("basalt-spires", SPIRES);
 
     /** What a formation is made of: how it takes damage and which sheet draws it. */
     public enum Material { ROCK, ICE, HUSK }
@@ -62,6 +67,10 @@ public enum MineralFormation implements NaturalPropShape {
     private final int width, height;
     private final Material material;
     private final List<Facet> facets;
+    /** Another formation's body in another material. */
+    MineralFormation(String name,MineralFormation body) {
+        this(name,body.width,body.height,body.material,body.facets);
+    }
     MineralFormation(String name,int width,int height,Material material,List<Facet> facets) {
         id="formation."+name; this.width=width; this.height=height; this.material=material; this.facets=facets;
     }

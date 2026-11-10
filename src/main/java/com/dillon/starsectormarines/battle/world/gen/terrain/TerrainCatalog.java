@@ -40,9 +40,7 @@ public final class TerrainCatalog {
     }
     /** Adapt material without changing a mission's authored obstruction geometry. */
     static TerrainPlan forSurface(TerrainPlan plan, SurfacePalette surface) {
-        TerrainPlan.Finish finish=surface==SurfacePalette.FROZEN?TerrainPlan.Finish.ICE
-                :surface==SurfacePalette.IRRADIATED?TerrainPlan.Finish.GLASSED
-                :surface==SurfacePalette.VERDANT?plan.finish():TerrainPlan.Finish.ROCK;
+        TerrainPlan.Finish finish=surface==SurfacePalette.VERDANT?plan.finish():TerrainPlan.Finish.of(surface);
         if(plan.finish()==finish)return plan;
         return new TerrainPlan(plan.width(), plan.height(), finish,
                 plan.faceDepth(), plan.ruggedness(), plan.seed(), plan.strokes());

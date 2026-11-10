@@ -579,10 +579,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static void hills(GenContext c, SurfaceField palettes, boolean[] reserved, boolean[][] ridgeGround,
                               Random random) {
         SurfacePalette surface = palettes.world();
-        TerrainPlan plan = new TerrainPlan(c.width, c.height,
-                surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
-                        : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE
-                        : surface == SurfacePalette.IRRADIATED ? TerrainPlan.Finish.GLASSED : TerrainPlan.Finish.ROCK,
+        TerrainPlan plan = new TerrainPlan(c.width, c.height, TerrainPlan.Finish.of(surface),
                 1.8, .55, c.seed ^ 0x48494c4cL, List.of());
         boolean[] occupied = new boolean[reserved.length], closed = new boolean[reserved.length];
         int desired = Math.max(1, Math.min(10, c.width * c.height / 6000));
@@ -853,7 +850,9 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
-        if(surface==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED) {
+        // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
+        // An irradiated world's are the same crater rims, glassed.
+        if(surface.layoutOf()==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {

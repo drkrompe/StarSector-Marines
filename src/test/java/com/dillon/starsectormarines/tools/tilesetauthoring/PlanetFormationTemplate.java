@@ -26,7 +26,10 @@ public final class PlanetFormationTemplate {
         var wanted=List.of(materials);
         return Arrays.stream(MineralFormation.values()).filter(f->wanted.contains(f.material())).toList();
     }
-    public static List<MineralFormation> planet() { return sheet(MineralFormation.Material.ROCK,MineralFormation.Material.ICE); }
+    /** The planet sheet's four columns; the basalt formations are its first two regraded (volcanic-formations). */
+    public static List<MineralFormation> planet() {
+        return List.of(MineralFormation.BOULDERS,MineralFormation.SPIRES,MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES);
+    }
 
     public static BufferedImage render() { return render(planet()); }
     public static BufferedImage render(List<MineralFormation> shapes) { return render(shapes,false); }
