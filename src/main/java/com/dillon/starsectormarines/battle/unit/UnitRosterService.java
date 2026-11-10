@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
+import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
@@ -807,6 +808,9 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID, spec.campaignSquadId);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
+        // A chassis whose compartment carries a system as built (a crawler's shield emitter) brings it wherever it
+        // spawns; a deployed frame enrolled later (MechSupportPayload) replaces this with its own.
+        if (spec.mechVariant != null) machineHosts.register(id, MechFrame.stock(spec.mechVariant).systems());
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_AIRFRAME, spec.airframe);
         entityWorld.setObject(id, components.IDENTITY,

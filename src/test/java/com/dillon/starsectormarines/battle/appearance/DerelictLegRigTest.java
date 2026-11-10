@@ -194,4 +194,22 @@ class DerelictLegRigTest {
         assertTrue(limping.bodyHeight() < whole.bodyHeight() - 0.05f, "it sags");
         assertEquals(-DerelictLegRig.DOWNED_CELLS, downed.bodyHeight(), 0.02f, "downed, the torso is on the floor");
     }
+
+    @Test
+    void aCrawlerStandsOnItsOwnShortLegsAndStepsQuicker() {
+        DerelictLegRig crawler = new DerelictLegRig(DerelictLegRig.CRAWLER);
+        crawler.advance(10f, 50.5f, EAST, 0f, OPEN);
+        for (int i = 0; i < crawler.legs(); i++) {
+            float dx = crawler.footX(i) - 10f;
+            float dy = crawler.footY(i) - 50.5f;
+            assertEquals(DerelictLegRig.CRAWLER.restCells(), (float) Math.sqrt(dx * dx + dy * dy), 1e-4f);
+        }
+        assertTrue(DerelictLegRig.CRAWLER.restCells() < DerelictLegRig.REST_CELLS);
+        // At a speed the walker still walks at, the crawler runs.
+        DerelictLegRig walker = new DerelictLegRig();
+        walk(crawler, 1.55f, 120, OPEN, () -> { });
+        walk(walker, 1.55f, 120, OPEN, () -> { });
+        assertEquals(DerelictLegRig.Gait.RUN, crawler.gait());
+        assertEquals(DerelictLegRig.Gait.WALK, walker.gait());
+    }
 }
