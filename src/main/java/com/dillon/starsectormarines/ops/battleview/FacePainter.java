@@ -132,7 +132,9 @@ final class FacePainter {
             }
         }
         float height = cut == null ? top : Math.max(cut[0], Math.max(cut[1], cut[2]));
-        if (detail) course(m, r, g, b, height, storeys);
+        // Too small on screen for trim to read: the shaded material alone, at a piece a cell.
+        if (!detail) return;
+        course(m, r, g, b, height, storeys);
         // The world's weather at the foot, blending up into the wall.
         WallDress.Weather weather = m.weather();
         if (weather != WallDress.Weather.NONE) {
@@ -156,12 +158,10 @@ final class FacePainter {
         quad(0f, 1f, 0f, plinth, tr * .62f, tg * .62f, tb * .62f);
         quad(0f, 1f, plinth, Math.min(height, plinth + .025f), tr * .9f, tg * .9f, tb * .9f);
         // A line at every storey.
-        if (detail) {
-            for (int f = 1; f < storeys; f++) {
-                float z = f * story;
-                if (z + .012f >= height) break;
-                quad(0f, 1f, z - .012f, z + .012f, tr * .85f, tg * .85f, tb * .85f);
-            }
+        for (int f = 1; f < storeys; f++) {
+            float z = f * story;
+            if (z + .012f >= height) break;
+            quad(0f, 1f, z - .012f, z + .012f, tr * .85f, tg * .85f, tb * .85f);
         }
         // Corners picked out in the trim, full height.
         if ((corners & BuildingFaces.CORNER_START) != 0) cornerPost(0f, .09f, height, tr, tg, tb, cut);
@@ -180,7 +180,6 @@ final class FacePainter {
             // Charred and broken along the ragged edge.
             for (int k = 0; k < 3; k++) quad(k / 3f, (k + 1) / 3f, cut[k] - .04f, cut[k], .1f, .09f, .08f);
         }
-        if (!detail) return;
         // Bays storey by storey, clipped to what stands.
         for (int f = 0; f < storeys; f++) {
             float lo = f * story, hi = (f + 1) * story;
