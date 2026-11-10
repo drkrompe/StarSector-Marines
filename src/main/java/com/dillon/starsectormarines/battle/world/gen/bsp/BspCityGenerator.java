@@ -18,6 +18,9 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.DelveCheck;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinedLotsStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelveStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
+import com.dillon.starsectormarines.battle.world.gen.hull.CrashSiteFinishStage;
+import com.dillon.starsectormarines.battle.world.gen.hull.CrashSiteStage;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullKeys;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsKeys;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsLandingStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMeltStage;
@@ -720,6 +723,10 @@ public final class BspCityGenerator implements MapGenerator {
         if (precincts != null && (!precincts.layout().isEmpty() || !precincts.landscape().knolls().isEmpty())) {
             recipe = missionLayoutRecipe(recipe);
         }
+        if (precincts != null && precincts.layout().crash() != null) {
+            ctx.put(HullKeys.PLAN, precincts.layout().crash());
+            recipe = crashSiteRecipe(recipe);
+        }
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
         if (precincts != null && precincts.objective() != null) {
@@ -785,6 +792,27 @@ public final class BspCityGenerator implements MapGenerator {
         if (!inserted || !raised) {
             throw new IllegalStateException("recipe " + base.name() + " has no finalize or landscape stage to lay a layout before");
         }
+        return new GenRecipe(base.name(), stages);
+    }
+
+    /**
+     * The recipe with a fallen hull laid over the country ({@code fallen-hull-nouns.md}): its trench, debris and hull
+     * before the tactical link (so its shells are ordinary buildings, its fragments ordinary walls, and the mission
+     * layout's structures are sited round it), and its roof, claim lattice and haul roads on the finished ground last.
+     * Added only for a plan whose layout carries a crash, so every other map runs exactly the recipe it did.
+     */
+    private static GenRecipe crashSiteRecipe(GenRecipe base) {
+        List<GenStage> stages = new ArrayList<>(base.stages().size() + 2);
+        boolean inserted = false;
+        for (GenStage stage : base.stages()) {
+            if (stage instanceof TacticalLinkStage && !inserted) {
+                stages.add(new CrashSiteStage());
+                inserted = true;
+            }
+            stages.add(stage);
+        }
+        if (!inserted) throw new IllegalStateException("recipe " + base.name() + " has no tactical link to lay a hull before");
+        stages.add(new CrashSiteFinishStage());
         return new GenRecipe(base.name(), stages);
     }
 
@@ -962,6 +990,7 @@ public final class BspCityGenerator implements MapGenerator {
                 .withCordonedFacilities(ctx.cordonedFacilities)
                 .withIndustrialZones(ctx.industrialZones)
                 .withRuinsDelve(ctx.get(RuinsKeys.DELVE))
+                .withHullSite(ctx.get(HullKeys.SITE))
                 .withWallGates(ctx.wallGates)
                 .withFields(ctx.get(BspKeys.WORKED_FIELDS));
 

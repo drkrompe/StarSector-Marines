@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
@@ -135,6 +136,8 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                         List.of(), CordonSequence.Timetable.STANDARD);
             }
             case COLONY_BREACH -> BattleSetup.createPooledColonyBreach(world, entry, List.of());
+            case LONG_SURVEY_FALL, LONG_SURVEY_STAKES, LONG_SURVEY_LINE, LONG_SURVEY_SURVEYOR ->
+                    LongSurveyGround.stand(LongSurveyGround.ground(map, world, entry), world);
             case RAID, RAID_HEAVY_INDUSTRY, RAID_MINING, RAID_REFINING, RAID_LIGHT_INDUSTRY, RAID_FARMING, RAID_SPACEPORT,
                     RAID_MILITARY -> BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map,
                     StoryMapPools.pool(map).layoutFor(world)), world, entry.seed(), map != StoryMap.RAID, List.of());

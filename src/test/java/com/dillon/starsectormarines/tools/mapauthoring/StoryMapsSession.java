@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.tools.mapauthoring;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
@@ -119,6 +120,11 @@ public final class StoryMapsSession implements AutoCloseable {
     /** The map as the campaign builds it for a world of {@code world}: laid out on home, skinned for the world. */
     private static Stood generate(StoryMap map, StoryMapPool.Entry entry, SurfacePalette world) {
         try {
+            if (map.longSurvey()) {
+                LongSurveyGround.Ground ground = LongSurveyGround.ground(map, world, entry);
+                return new Stood(entry, world, LongSurveyGround.stand(ground, world), places(ground.plan()),
+                        structures(ground.map().layout), null);
+            }
             if (RaidOwnedMap.isRaid(map)) {
                 RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(map, StoryMapPools.pool(map).layoutFor(world));
                 return new Stood(entry, world, BattleSetup.createPooledRaid(ground, world, entry.seed(),

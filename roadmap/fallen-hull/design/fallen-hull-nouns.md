@@ -1,7 +1,7 @@
 # Fallen hull — Nouns
 
 Status: DRAFT — the model for a derelict capital ship down on a world and the
-watch it pours out; its battle rules and the stripper and hauler are built on
+watch it pours out; its ground (The ground) and its battle rules and the stripper and hauler are built on
 the recommended picks (What is built). Its first instance is the authored arc
 `long-survey-arc.md`, played on owned seeds before any campaign phenomenon.
 
@@ -131,6 +131,47 @@ stake is fought as a zone: kill its node and it is stranded and blind.
   scrap wrecks before strippers take them (`derelict-watch.md`, Denial); in the
   last chapter, put the autoforge out.
 
+## The ground (built)
+
+The crash site is laid by mapgen over a story map's own ground, from the pool
+entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
+`MapResult.hullSite` (`HullSite`), the seam the rules read:
+
+- **The hull** is one survey mothership plan (`HullPlan`, 88 by 32 cells, its
+  bow tapering), laid on a cardinal heading in the ruins megastructure's
+  materials under one roof (`RuinsRoofStage.roofSolid`), its interior published
+  as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls, leaf doors). A
+  four-cell freight spine runs from the stern's cargo door to the **forge
+  hall** (the interior's vault, the autoforge on its keel line near the bow),
+  with four-cell cargo docks into three holds and the **launch bay** and a
+  two-cell service door to the crew deck (`derelict-watch.md`, section 3). Ways
+  in: the stern door onto the trench, the bay's door on the port flank, and a
+  breach torn through the starboard flank, each with an apron and two berths.
+- **The trench** runs behind the stern for the patch's length, 24 cells wide
+  at the stern narrowing to 8 where the hull first touched down, ploughed earth
+  and rubble with spoil on its lips and scrap on its floor. **Debris** is up to
+  14 short runs of hull plate standing beside the trench and round the hull,
+  never on a road, building or apron and never touching another wall. A road
+  the hull lies across is cut from the road graph; the trench cuts nothing.
+- **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
+  `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
+  meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
+  within a quarter spacing or left a hole. **Haul roads** (`HaulRoads`) are one
+  shortest-path tree from the hull's aprons, so roads merge into trunks; only
+  an established stake's road is worn into the ground.
+- **Starting stakes** are the patch's cells, each taking the nearest lattice
+  point. `HullSiteCheck` holds the laws on the finished grid (every way in
+  open, the forge, halls and aprons reached, a hall frame walking hall to
+  hall), and a story map's acceptance fails on any problem the site reports.
+- **The rules' reading.** `LongSurveyGround.rulesSite` fills `FallenHullSite`
+  from it: the hull and its trench as the root zone's footprint, the forge, the
+  bay's apron berth as the mouth, the lattice with `linkCells` a lattice step
+  and a quarter (so neighbours that moved to their stake ground still link, and
+  a stake's zone, half of it, meets its neighbours'), each haul road from the
+  hull outward, the starting stakes and the ways in as egress. The chapter
+  supplies the salvage, the walkers out and the store. Acceptance holds that
+  every starting stake chains back to the hull.
+
 ## Campaign (later, not work)
 
 A fallen hull is meant to become a sector phenomenon like a bloom, once the
@@ -247,4 +288,4 @@ structure for pylon and node); the briefing and rail reading the build queue
   the derelict line (`mech-lines.md`, law 1).
 - The arc, its world, cast, chapters and seeds: `long-survey-arc.md`.
 - The ground (hull, trench, lattice, haul roads): mapgen, through the owned
-  story maps (`story-map-pools.md`).
+  story maps (`story-map-pools.md`); built as The ground describes.
