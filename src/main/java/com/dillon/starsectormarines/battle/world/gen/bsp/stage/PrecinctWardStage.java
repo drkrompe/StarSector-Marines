@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
-import com.dillon.starsectormarines.battle.world.gen.fortress.SealedComplex;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
@@ -32,9 +31,13 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctFill;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -134,12 +137,8 @@ public final class PrecinctWardStage implements GenStage {
                     shortFields.put(precinct.name(),
                             precinct.program().airfields() - fields.size());
                 }
-                // A sealed complex cuts its own halls from the gates in, rather than standing its rooms along roads.
-                if (precinct.program().sealed()) SealedComplex.gateStubsOnly(masks.buildable(), masks.circulation(), own, i);
                 result =
                         PrecinctFill.pack(ctx, precinct, masks, facing(precinct, ctx));
-                // Its leftover ground is hall under its roof.
-                if (precinct.program().sealed()) SealedComplex.roofHalls(ctx, own, i);
                 if (yard != null) {
                     // Street under the yard's gate and yard, which the dressing below paves as the place's roads.
                     for (List<int[]> cells : List.of(yard.apron(), yard.yard())) {
@@ -173,8 +172,13 @@ public final class PrecinctWardStage implements GenStage {
                 }
             }
             if (walled) {
+                int gateWidth = wall.gateWidth();
                 stampWall(ctx, own, ownRoad, i, wall);
-                if (precinct.isProgrammed() && precinct.program().sealed()) SealedComplex.skin(ctx, own, i);
+                // A sealed town's gates are its locks.
+                if (!precinct.isProgrammed() && SealedTown.on(ctx.get(BspKeys.MARKET_PROFILE))) {
+                    markLocks(ctx, PrecinctBoundary.openGates(own, ownRoad, i, ctx.width, ctx.height,
+                            wall.gates(), gateWidth), own, ownRoad, i);
+                }
                 if (masks != null) {
                     for (int x = 0; x < ctx.width; x++) {
                         for (int y = 0; y < ctx.height; y++) if (masks.circulation()[x][y]) kept[x][y] = true;
@@ -182,7 +186,7 @@ public final class PrecinctWardStage implements GenStage {
                 }
                 if (result != null) PrecinctDefence.hearts(result.placed(), hearts);
                 works.put(i, new PrecinctDefence.Works(PrecinctBoundary.openGates(own, ownRoad, i, ctx.width,
-                        ctx.height, wall.gates(), wall.gateWidth()),
+                        ctx.height, wall.gates(), gateWidth),
                         hearts, kept));
             }
             if (square) {
@@ -713,6 +717,36 @@ public final class PrecinctWardStage implements GenStage {
             }
         }
         InstallationWalls.perimeter(ctx, wall);
+    }
+
+    /** The floor marking a sealed town's locks are laid in. */
+    static final String LOCK_MARKING = "doodad.fl-striped-yellow";
+
+    /**
+     * Marks a sealed town's locks ({@link SealedTown#lockFloors}): a striped floor marking, which has no footprint or
+     * cover, on each open cell of their door lines nothing else stands on.
+     */
+    private static void markLocks(GenContext ctx, List<PrecinctBoundary.Gate> gates, int[][] own, int[][] road,
+                                  int who) {
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef marking = registry == null ? null : registry.doodad(LOCK_MARKING);
+        if (marking == null) return;
+        boolean[][] taken = new boolean[ctx.width][ctx.height];
+        for (Doodad d : ctx.doodads) {
+            for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) {
+                for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++) {
+                    if (ctx.grid.inBounds(x, y)) taken[x][y] = true;
+                }
+            }
+        }
+        for (int[] c : SealedTown.lockFloors(gates, own, road, who)) {
+            int x = c[0], y = c[1];
+            if (taken[x][y] || !ctx.grid.isWalkable(x, y) || ctx.topology.isWall(x, y)
+                    || ctx.topology.isWater(x, y) || ctx.topology.isFixture(x, y)
+                    || ctx.topology.getBuildingId(x, y) != 0) continue;
+            ctx.doodads.add(new Doodad(x, y, marking));
+            taken[x][y] = true;
+        }
     }
 
     /** The claim with the place's outermost {@code g} cells, its {@link Fortification#glacis()}, given up. */
