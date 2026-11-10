@@ -1,0 +1,28 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: work stations, benches and presses seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated and robot-handled, as the same complex's machinery (references 2 and 3). No workbenches with vices, no hand tools, no grinding wheels, nothing of a 20th-century factory: every bench is an automated station.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white areas are frost; the dull green areas are sealed culture; the pale gold dots are small dim lenses or emitters.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. lattice-bench (3x2): a lattice assembly station: a frosted bed of thin crystal lattice plates in a clamp frame, a round manipulator turret beside it.
+2. decanter (2x2): a culture decanter: a round sealed separator bowl on a square base, a culture port in its lid.
+3. powder-hopper (2x2): a powder feed hopper: a square funnel seen from above, dark inside, its outlet valve.
+4. arming-bench (2x2): an automated arming station: a fixture bed with a robot arm reaching across it.
+5. test-pylon (2x2): a round flight-test field pylon: a dark ring base, a raised emitter head with a dim lens.
+6. emitter-bench (2x2): an emitter assembly station: three dim lens emitters in a row on a plate, a dark slot below.
+Middle row left to right:
+7. holo-pedestal (2x2): a round holographic pedestal: a dark projector well with a dim lens at its centre.
+8. charge-hopper (2x2): an armoured propellant charge hopper with a cross-braced grated lid.
+9. beam-diagnostics (2x2): a beam diagnostics station straddling the beam pipe, which runs east-west through it.
+10. firing-point (3x1): a range firing point: an armoured three-bay rest, low.
+11. dancer-tower (1x2): a fibre tension dancer tower: a tall narrow frame with a pulley wheel at its north end and a slotted track.
+12. guide-roller (2x1): a fibre guide roller: a polished roller between two bearing blocks, a fine fibre running east-west over it.
+13. guide-roller-fallen (2x1): the same roller knocked flat and askew, its fibre snapped.
+Bottom row left to right (heavy 3x3 stations, each with two heavy side frames and its work nest between them):
+14. seal-press: a seal press closing over a frosted cryo unit.
+15. vat-filler: a vat filler, a sealed culture fill head over its nest.
+16. cabinet-sealer: a cabinet sealer, a vented core cabinet in its nest.
+17. filling-press: a shell filling press, a fill nozzle over a dark shell mouth, its ram head across the north.
+18. tether-anchor: a tether test anchor: a massive round bollard block bolted down, a dark tether slot from its north edge to its centre.

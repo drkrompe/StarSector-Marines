@@ -1,0 +1,18 @@
+Asset: a sheet of separate top-down tactical-game pieces for the floor and overhead service runs of the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white areas are hoar frost. Every straight piece is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length. The fallen pieces (the tall tilted ones on the bottom row) are the same run broken in two and lying on the floor, with a few bolts and fragments at the break.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, frost) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right (floor runs, 2x2 each, sunk flush in the floor):
+1. coolant-return: a coolant return trench under four heavy grated covers, frost rimed on each cover.
+2. coolant-loop: two insulated coolant pipes running in a shallow floor channel, clamped down at intervals.
+3. transfer-pipe: one big pressure pipe lying in a floor cradle, flanged joints with bolts at intervals.
+4. tensile-bed: a tensile test bed: two polished guide ways along its sides, a dark slot down its middle, cross ties at intervals.
+5. spoil-conveyor: a heavy troughed belt conveyor: a dark rubber belt down the middle carrying a little rock spoil, idler rollers at intervals, side frames.
+Bottom row left to right (overhead runs, 1x2 each, and each fallen 1x4 beside it):
+6. coolant-header: one thick lagged coolant header pipe on hanger clamps. 7. coolant-header-fallen.
+8. feed-manifold: two parallel feed pipes on hanger brackets. 9. feed-manifold-fallen.
+10. pipe-run: three pipes of different sizes on a pipe rack. 11. pipe-run-fallen.
+12. powder-line: a square powder duct with stiffener bands. 13. powder-line-fallen.

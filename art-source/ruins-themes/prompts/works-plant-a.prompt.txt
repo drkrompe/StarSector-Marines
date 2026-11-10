@@ -1,0 +1,16 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: mid-size process plant seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white areas are frost and ice.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper, frost) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. chiller (5x4): a big industrial chiller unit: three large round fan shrouds with still blades across its roof, a long condenser coil bank grille along its south side.
+2. chiller-burst (5x4): the same chiller burst: its south-east roof blown open in a black torn hole, frozen coolant spilled out over the south-east corner as an ice sheet.
+3. preheat-furnace (5x4): a feed preheat furnace: a heavy refractory-lined firebox on its west side with four burner ports in a row, a round flue stack on its north-east, a control box on its south-east.
+Bottom row left to right:
+4. cold-manifold (4x3): a cold distribution manifold: a heavy plated header block with four frosted coupling flanges in a row, four insulated pipes leaving it north and four south.
+5. cryostat (4x3): a cryostat lying east-west on two end frames: a long rounded frosted vessel, stiffener rings round it.
+6. feed-pumps (4x2): two nutrient feed pumps on a shared skid: two motor housings, each with its round pump volute.
+7. ice-ridge (3x2): a ridge of coolant frozen where it poured from a burst header: rough clear-blue and white ice, ridged and fractured, lying on the floor.

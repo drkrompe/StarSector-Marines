@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6a6-dfab-7343-8dea-d9cc2b746e20",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6a6-dfab-7343-8dea-d9cc2b746e20\\exec-f66a090a-0f64-4f4e-b809-e6d80cad86cf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+    "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\works-stations.prompt.txt",
+  "promptSha256": "147c8fcc47a0eb330eaaa59c763dec05da1e4b2145f5f7f1751597489e37a497",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same complex's machinery; not layout\nImage 3: Era: the same complex's robot cell and automated plant; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: work stations, benches and presses seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated and robot-handled, as the same complex's machinery (references 2 and 3). No workbenches with vices, no hand tools, no grinding wheels, nothing of a 20th-century factory: every bench is an automated station.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white areas are frost; the dull green areas are sealed culture; the pale gold dots are small dim lenses or emitters.\nStyle: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. lattice-bench (3x2): a lattice assembly station: a frosted bed of thin crystal lattice plates in a clamp frame, a round manipulator turret beside it.\n2. decanter (2x2): a culture decanter: a round sealed separator bowl on a square base, a culture port in its lid.\n3. powder-hopper (2x2): a powder feed hopper: a square funnel seen from above, dark inside, its outlet valve.\n4. arming-bench (2x2): an automated arming station: a fixture bed with a robot arm reaching across it.\n5. test-pylon (2x2): a round flight-test field pylon: a dark ring base, a raised emitter head with a dim lens.\n6. emitter-bench (2x2): an emitter assembly station: three dim lens emitters in a row on a plate, a dark slot below.\nMiddle row left to right:\n7. holo-pedestal (2x2): a round holographic pedestal: a dark projector well with a dim lens at its centre.\n8. charge-hopper (2x2): an armoured propellant charge hopper with a cross-braced grated lid.\n9. beam-diagnostics (2x2): a beam diagnostics station straddling the beam pipe, which runs east-west through it.\n10. firing-point (3x1): a range firing point: an armoured three-bay rest, low.\n11. dancer-tower (1x2): a fibre tension dancer tower: a tall narrow frame with a pulley wheel at its north end and a slotted track.\n12. guide-roller (2x1): a fibre guide roller: a polished roller between two bearing blocks, a fine fibre running east-west over it.\n13. guide-roller-fallen (2x1): the same roller knocked flat and askew, its fibre snapped.\nBottom row left to right (heavy 3x3 stations, each with two heavy side frames and its work nest between them):\n14. seal-press: a seal press closing over a frosted cryo unit.\n15. vat-filler: a vat filler, a sealed culture fill head over its nest.\n16. cabinet-sealer: a cabinet sealer, a vented core cabinet in its nest.\n17. filling-press: a shell filling press, a fill nozzle over a dark shell mouth, its ram head across the north.\n18. tether-anchor: a tether test anchor: a massive round bollard block bolted down, a dark tether slot from its north edge to its centre.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-works-stations-guide.png",
+      "sha256": "a69c678ad6b817937d73674094c4707b22fabb812c7601ea0228787f522b2f9c",
+      "dimensions": [
+        2784,
+        1376
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-kit.raw.png",
+      "sha256": "b3bbc9d846deb6733ae98397748ecc6d1d9ef1fb363033d0609271536a06ccbe",
+      "dimensions": [
+        1654,
+        951
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's machinery; not layout"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-b.raw.png",
+      "sha256": "08d98b3bbfb84e77f0b045ab2ed72c8538d234d8f76d7fa79e972bc5236f0c7a",
+      "dimensions": [
+        1639,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "Era: the same complex's robot cell and automated plant; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sheet using Image 1 for the exact layout and Images 2–3 for the machinery’s materials and era."
+  ],
+  "usage": {
+    "input_tokens": 52483,
+    "cached_input_tokens": 13568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1176,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.1
+}
