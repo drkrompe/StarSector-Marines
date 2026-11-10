@@ -39,7 +39,9 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
@@ -57,6 +59,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
+import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.awt.Color;
 import java.util.EnumSet;
@@ -282,6 +285,11 @@ public class BattleRenderer {
     /** Whether this frame draws the fog: what is drawn above it carries the fog itself only then. */
     private boolean fogDrawn = true;
     private final IdentityHashMap<Building, float[]> buildingEdges = new IdentityHashMap<>();
+    /**
+     * Cells beside a window the map was built with, kept across topology changes for this map: a window shot out
+     * leaves no barrier behind, and its cell still shows the empty frame rather than a door.
+     */
+    private final BitSet windowCells = new BitSet();
     private Buildings edgesOf;
     private CellTopology edgesAt;
 
@@ -1073,6 +1081,14 @@ public class BattleRenderer {
         NavigationGrid grid = sim.getGrid();
         if (edgesOf != buildings || edgesAt != topology) {
             buildingEdges.clear();
+            // Every window the map was built with, on both cells beside its edge, before any is shot out.
+            windowCells.clear();
+            for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
+                if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+                Direction d = barrier.direction();
+                windowCells.set(barrier.cellX() + barrier.cellY() * topology.getWidth());
+                windowCells.set(barrier.cellX() + d.dx + (barrier.cellY() + d.dy) * topology.getWidth());
+            }
             buildingClass.clear();
             buildingDress.clear();
             fullWallHp = null;
@@ -1100,7 +1116,7 @@ public class BattleRenderer {
             float roofAlpha = alphaMult;
             if (roofAlpha <= 0.01f) continue;
             int heightClass = buildingClass(topology, buildings, b);
-            float[] segs = buildingEdges.computeIfAbsent(b, k -> faceSegments(topology, buildings, k, frozen));
+            float[] segs = buildingEdges.computeIfAbsent(b, k -> faceSegments(topology, grid, buildings, k, frozen));
             if (segs.length == 0) continue;
             float fog = FogField.roofShade(b.currentFog);
             BuildingFaces.Look look = LOOKS[((int) segs[7] >> 2) / SEGMENTS.length];
@@ -1132,9 +1148,8 @@ public class BattleRenderer {
             float lift = ROOF_LIFTS[heightClass];
             boolean industrial = b.kind == BuildingKind.INDUSTRIAL || b.kind == BuildingKind.FORTIFIED;
             int storeys = BuildingFaces.storeys(meters);
-            boolean ghost = BuildingFaces.ghostCutaway();
-            float upright = ghost ? 1f : BuildingFaces.standing(meters, cut);
-            if (ghost) roofAlpha = alphaMult * (1f - (1f - BuildingFaces.GHOST_ALPHA) * Math.min(1f, Math.max(0f, cut)));
+            float upright = BuildingFaces.standing(meters, cut);
+            boolean upper = BuildingFaces.upperWindows(b.kind, look);
             WallDress.Material m = dress.material();
             for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
                 float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
@@ -1162,6 +1177,13 @@ public class BattleRenderer {
                 int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
                 BuildingFaces.Segment kind = SEGMENTS[(code >> 2) % SEGMENTS.length];
                 if (kind == BuildingFaces.Segment.LOADING && !industrial) kind = BuildingFaces.Segment.DOOR;
+                // An edge window is read live: its frame takes fire without the topology changing, and once shot out
+                // the edge opens to a body, so it shows as the empty frame it now is.
+                float glassHurt = 0f;
+                if (kind == BuildingFaces.Segment.WINDOW) {
+                    SharedEdgeBarrier pane = windowEdge(grid, cx, cy, nx, ny);
+                    glassHurt = pane == null ? 1f : BuildingFaces.windowHurt(pane.structure(), pane.maxStructure());
+                }
                 float shade = BuildingFaces.shade(nx, ny) * fog;
                 int along = ny != 0f ? cx : cy;
                 // What has fallen in over the wall: the roof over the building's room just inside it. (A doorway's
@@ -1177,7 +1199,7 @@ public class BattleRenderer {
                     float top = broken ? Math.min(upright, WallDress.brokenTop(cell, storeys, .5f)) : upright;
                     if (top > ground) {
                         paint.paint(m, dress.rhythm(), b.kind, look, BuildingFaces.Segment.BLIND, corners, along, cell,
-                                meters, storeys, top, broken, 1f, shade, detail);
+                                meters, storeys, top, broken, 1f, 0f, upper, shade, detail);
                     }
                     float head = Math.min(top, ground * .85f);
                     paint.quad(0f, 1f, 0f, head, .07f * fog, .06f * fog, .06f * fog);
@@ -1198,7 +1220,7 @@ public class BattleRenderer {
                 if (roof == RoofDamage.HOLED) hurt = Math.max(hurt, .35f);
                 else if (broken) hurt = Math.max(hurt, .5f);
                 paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
-                        broken, hurt, shade, detail);
+                        broken, hurt, glassHurt, upper, shade, detail);
             }
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
@@ -1220,7 +1242,8 @@ public class BattleRenderer {
      * segment kinds' count. Settled once per topology change,
      * so a frame reads it rather than the cells.
      */
-    private float[] faceSegments(CellTopology topology, Buildings buildings, Building b, boolean frozen) {
+    private float[] faceSegments(CellTopology topology, NavigationGrid grid, Buildings buildings, Building b,
+                                 boolean frozen) {
         int gridW = topology.getWidth();
         float[] segs = BuildingFaces.segments(BuildingFaces.outline(roofPlans.of(topology, buildings, b).cells, gridW,
                 at -> RoofCover.rects(RoofCover.of(topology, at % gridW, at / gridW))), gridW);
@@ -1228,21 +1251,31 @@ public class BattleRenderer {
         for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
             int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
             int cover = RoofCover.of(topology, cx, cy);
-            boolean window = topology.isWindow(cx, cy);
+            boolean pane = topology.isWindow(cx, cy);
+            boolean window = pane || windowCells.get(cell) && !topology.isWall(cx, cy);
             boolean wall = window || topology.isWall(cx, cy);
             // A short piece is the reveal where the eave steps in at a doorway, over the floor beside it: wall, never
             // a breach. An opening in the wall's line is a doorway the map laid, unless it is the rubble a breach
             // leaves.
             float length = Math.abs(segs[e + 2] - segs[e]) + Math.abs(segs[e + 3] - segs[e + 1]);
             boolean reveal = length < .5f;
-            boolean door = RoofCover.edge(cover) == RoofCover.Edge.DOOR
-                    || !wall && !reveal && !topology.isRubble(cx, cy);
+            boolean door = !window && (RoofCover.edge(cover) == RoofCover.Edge.DOOR
+                    || !wall && !reveal && !topology.isRubble(cx, cy));
             boolean standing = door || wall || reveal;
-            BuildingFaces.Segment kind = BuildingFaces.segment(standing, door, window,
-                    RoofCover.edge(cover) == RoofCover.Edge.PANE, true);
+            BuildingFaces.Segment kind = BuildingFaces.segment(standing, door, window, pane, true);
             segs[e + 7] = ((int) segs[e + 7] & 3) | (kind.ordinal() + look * SEGMENTS.length) << 2;
         }
         return segs;
+    }
+
+    /**
+     * The window on a wall cell's outer edge, the side its face looks out of ({@code nx, ny}), or null: the
+     * simulation's own window ({@link SharedEdgeBarrier.Kind#WINDOW}), which sight and fire pass and a body does not.
+     */
+    private static SharedEdgeBarrier windowEdge(NavigationGrid grid, int cx, int cy, float nx, float ny) {
+        Direction out = nx > .5f ? Direction.E : nx < -.5f ? Direction.W : ny > .5f ? Direction.N : Direction.S;
+        SharedEdgeBarrier barrier = grid.getEdgeBarrier(cx, cy, out);
+        return barrier != null && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW ? barrier : null;
     }
 
     private static final Faction[] FACTIONS = Faction.values();
@@ -1388,10 +1421,11 @@ public class BattleRenderer {
             float u1 = Math.max(ua, ub);
             float v0 = Math.min(va, vb);
             float v1 = Math.max(va, vb);
-            int srcX = Math.round((column + u0) * frameW);
-            int srcY = Math.round((row + 1f - v1) * frameH);
-            int srcW = Math.max(1, Math.round((column + u1) * frameW) - srcX);
-            int srcH = Math.max(1, Math.round((row + 1f - v0) * frameH) - srcY);
+            // The sheet pixels RoofMesh addresses too, so the resident roof draws what this draws.
+            int srcX = RoofTiles.framePixel(column, u0, frameW);
+            int srcY = RoofTiles.framePixel(row, 1f - v1, frameH);
+            int srcW = Math.max(1, RoofTiles.framePixel(column, u1, frameW) - srcX);
+            int srcH = Math.max(1, RoofTiles.framePixel(row, 1f - v0, frameH) - srcY);
             float cellPx = rc.camera.cellPxSize();
             float cx = rc.camera.cellToScreenX(cellX + (x0 + x1) * 0.5f);
             float cy = rc.camera.cellToScreenY(cellY + (y0 + y1) * 0.5f);

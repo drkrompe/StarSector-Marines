@@ -436,6 +436,7 @@ com.dillon.starsectormarines.ops.RaidLightIndustrySiteLookSuite
 com.dillon.starsectormarines.ops.RaidFarmSiteLookSuite
 com.dillon.starsectormarines.ops.RaidPortSiteLookSuite
 com.dillon.starsectormarines.ops.RaidMilitarySiteLookSuite
+com.dillon.starsectormarines.battle.derelict.DerelictGunsLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite
 com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
@@ -477,3 +478,4 @@ com.dillon.starsectormarines.ops.OwnedMapLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMegaForgePicksSuite
 com.dillon.starsectormarines.tools.mapauthoring.MapsEditorSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorLookSuite
+com.dillon.starsectormarines.battle.derelict.WalkerTurnLookSuite

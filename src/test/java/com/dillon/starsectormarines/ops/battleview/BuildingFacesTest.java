@@ -135,6 +135,27 @@ class BuildingFacesTest {
     }
 
     @Test
+    void anUpperStoreysWindowStandsOnlyOverARealOne() {
+        BuildingFaces.Segment w = BuildingFaces.Segment.WINDOW, p = BuildingFaces.Segment.PANE;
+        BuildingFaces.Segment blind = BuildingFaces.Segment.BLIND;
+        assertEquals(w, BuildingFaces.storeyFeature(w, 0, false), "the ground storey is what stands there");
+        assertEquals(BuildingFaces.Segment.DOOR, BuildingFaces.storeyFeature(BuildingFaces.Segment.DOOR, 0, true));
+        assertEquals(w, BuildingFaces.storeyFeature(w, 2, true), "stacked over a window");
+        assertEquals(p, BuildingFaces.storeyFeature(p, 1, true), "a slit over a slit");
+        assertEquals(blind, BuildingFaces.storeyFeature(BuildingFaces.Segment.DOOR, 1, true), "nothing over a door");
+        assertEquals(blind, BuildingFaces.storeyFeature(blind, 1, true), "nothing over a blind wall");
+        assertEquals(blind, BuildingFaces.storeyFeature(w, 1, false), "works show no upper windows");
+    }
+
+    @Test
+    void aWindowsHurtFollowsItsFrameAndAGoneOneIsShotOut() {
+        assertEquals(0f, BuildingFaces.windowHurt(40, 40), 1e-6f);
+        assertEquals(.5f, BuildingFaces.windowHurt(20, 40), 1e-6f);
+        assertEquals(1f, BuildingFaces.windowHurt(0, 40), 1e-6f);
+        assertEquals(1f, BuildingFaces.windowHurt(0, 0), 1e-6f, "no frame stands");
+    }
+
+    @Test
     void aRunIsCutAtEachCellAndEachPieceReadsTheCellUnderIt() {
         // The roof's south edge, from 3.3 to 4.7 along y = 3.3, facing south: two pieces over cells (3,3) and (4,3).
         float[] segs = BuildingFaces.segments(new float[]{3.3f, 3.3f, 4.7f, 3.3f, 0f, -1f}, GRID_W);

@@ -62,12 +62,12 @@ final class WallDress {
                     float eaveMeters, Weather weather, float stain, boolean hazard) { }
 
     /**
-     * A building's facade rhythm along each wall: windows in a cycle of {@code period} cells starting at
-     * {@code phase}, the cycle's {@code blindAt}th cell blind ({@code -1} none); a window's width and height as shares
-     * of its cell and storey; whether windows carry shutters; a downpipe every {@code pipeEvery} cells (0 none).
+     * How a building's windows and fittings are cut: a window's width and height as shares of its cell and storey,
+     * whether windows carry shutters, and a downpipe every {@code pipeEvery} cells from {@code phase} (0 none). Where
+     * the windows stand is the battle's own ({@link BuildingFaces#storeyFeature}): every pane on a face is over an
+     * opening sight and fire pass.
      */
-    record Rhythm(int period, int phase, int blindAt, float windowWidth, float windowHeight, boolean shutters,
-                  int pipeEvery) { }
+    record Rhythm(int phase, float windowWidth, float windowHeight, boolean shutters, int pipeEvery) { }
 
     /** The weather a world leaves at a wall's foot. */
     static Weather weather(SurfacePalette palette) {
@@ -210,72 +210,72 @@ final class WallDress {
     }
 
     /**
-     * A building's facade rhythm from what it was built as and its own number {@code v} in [0, 1): homes in
-     * singles, pairs or a window-blind beat, some shuttered in an open town; shops and offices even; works and
-     * forts sparse; a sealed town's blocks piped every few cells. UNTUNED.
+     * How a building's windows are cut, from what it was built as and its own number {@code v} in [0, 1): homes'
+     * windows narrow to broad and some shuttered in an open town, shops' broad, civic halls' tall, forts' slits;
+     * works and a sealed town's blocks piped every few cells. UNTUNED.
      */
     static Rhythm rhythm(BuildingKind kind, BuildingFaces.Look look, float v) {
         int phase = (int) (v * 997f) % 3;
         boolean sealed = look == BuildingFaces.Look.SEALED;
         int pipes = sealed ? 3 + phase : 0;
         BuildingKind k = kind == null ? BuildingKind.OTHER : kind;
+        float w = v * 13f % 1f;
         switch (k) {
-            case INDUSTRIAL: return new Rhythm(2, phase, -1, .8f, .5f, false, sealed ? 3 : 5);
-            case FORTIFIED: return new Rhythm(2, phase, 1, .5f, .14f, false, pipes);
-            case CIVIC: return new Rhythm(1, 0, -1, .4f, .72f, false, pipes);
-            case COMMERCIAL: return new Rhythm(v < .5f ? 1 : 2, phase, -1, v < .5f ? .5f : .6f, .5f, false, pipes);
-            case MEDICAL: return new Rhythm(1, 0, -1, .6f, .45f, false, pipes);
+            case INDUSTRIAL: return new Rhythm(phase, .8f, .5f, false, sealed ? 3 : 5);
+            case FORTIFIED: return new Rhythm(phase, .5f, .14f, false, pipes);
+            case CIVIC: return new Rhythm(phase, .4f, .72f, false, pipes);
+            case COMMERCIAL: return new Rhythm(phase, .5f + .14f * w, .5f, false, pipes);
+            case MEDICAL: return new Rhythm(phase, .6f, .45f, false, pipes);
             default: {
-                float w = v * 13f % 1f;
                 boolean shutters = look == BuildingFaces.Look.OPEN && v * 31f % 1f < .45f;
-                if (v < .35f) return new Rhythm(1, 0, -1, .34f + .12f * w, .5f, shutters, pipes);
-                if (v < .7f) return new Rhythm(3, phase, 2, .38f + .1f * w, .52f, shutters, pipes);
-                return new Rhythm(2, phase, 1, .44f + .14f * w, .46f, shutters, pipes);
+                return new Rhythm(phase, .34f + .24f * w, .44f + .1f * (v * 7f % 1f), shutters, pipes);
             }
         }
     }
 
     /**
-     * What one storey of one cell's length of wall shows above its ground storey: a window in its building's
-     * rhythm, or wall, in its kind's and habitat's way. A works is blind but for a glazed band under its eave; a fort
-     * and a shielded town have slits; a civic hall tall windows; a sealed town ports, its works vents.
+     * What one storey of one cell's length of wall shows above its ground storey. A window stands over a window, on
+     * a building whose upper storeys have them ({@link BuildingFaces#storeyFeature}), cut in its kind's and
+     * habitat's way: a sealed town's port, a civic hall's tall window, a slit over a slit. A works is blind but for a
+     * glazed band under its eave, high over any fire; a sealed town's blind wall carries a vent every few cells.
      *
-     * @param along   the cell's place along its wall, cells (its x along a wall running east, its y north)
-     * @param storey  the storey, 1 the first above the ground
-     * @param storeys the wall's storeys
+     * @param ground       what stands at the cell's foot
+     * @param upperWindows whether the building's upper storeys have windows ({@link BuildingFaces#upperWindows})
+     * @param along        the cell's place along its wall, cells (its x along a wall running east, its y north)
+     * @param storey       the storey, 1 the first above the ground
+     * @param storeys      the wall's storeys
      */
-    static Bay upper(Rhythm rhythm, BuildingKind kind, BuildingFaces.Look look, int along, int storey,
-                     int storeys) {
+    static Bay upper(Rhythm rhythm, BuildingKind kind, BuildingFaces.Look look, BuildingFaces.Segment ground,
+                     boolean upperWindows, int along, int storey, int storeys) {
         BuildingKind k = kind == null ? BuildingKind.OTHER : kind;
-        boolean beat = rhythm.blindAt() < 0 || Math.floorMod(along + rhythm.phase(), rhythm.period())
-                != rhythm.blindAt();
-        if (k == BuildingKind.INDUSTRIAL) {
-            if (storey == storeys - 1) return Bay.CLERESTORY;
-            return look == BuildingFaces.Look.SEALED && Math.floorMod(along, 4) == 1 ? Bay.VENT : Bay.BLIND;
-        }
-        if (k == BuildingKind.FORTIFIED || look == BuildingFaces.Look.SHIELDED) return beat ? Bay.SLIT : Bay.BLIND;
-        if (!beat) return look == BuildingFaces.Look.SEALED && Math.floorMod(along, 5) == 0 ? Bay.VENT : Bay.BLIND;
-        if (look == BuildingFaces.Look.SEALED) return Bay.PORT;
-        if (k == BuildingKind.CIVIC) return Bay.TALL;
-        return Bay.WINDOW;
+        if (k == BuildingKind.INDUSTRIAL && storey == storeys - 1) return Bay.CLERESTORY;
+        BuildingFaces.Segment above = BuildingFaces.storeyFeature(ground, storey, upperWindows);
+        if (above == BuildingFaces.Segment.PANE) return Bay.SLIT;
+        if (above == BuildingFaces.Segment.WINDOW) return style(k, look, false);
+        boolean vent = look == BuildingFaces.Look.SEALED && Math.floorMod(along + rhythm.phase() + storey, 4) == 0;
+        return vent ? Bay.VENT : Bay.BLIND;
     }
 
     /**
-     * What the ground storey shows where the map has no door: a shop's front; a sealed town's port or a works'
-     * vent; a fort's or a shielded town's slit; a window where the map laid one; otherwise wall.
-     *
-     * @param window whether the map laid a window in the cell
+     * What the ground storey shows where the map has no door: a window where the battle has one, cut in its kind's
+     * and habitat's way (an open town's shop has its front), a slit pane as a slit, and otherwise wall, a sealed
+     * town's with a vent every few cells.
      */
-    static Bay ground(Rhythm rhythm, BuildingKind kind, BuildingFaces.Look look, int along, boolean window) {
+    static Bay ground(Rhythm rhythm, BuildingKind kind, BuildingFaces.Look look, BuildingFaces.Segment ground,
+                      int along) {
         BuildingKind k = kind == null ? BuildingKind.OTHER : kind;
-        if (k == BuildingKind.COMMERCIAL && look == BuildingFaces.Look.OPEN) return Bay.SHOP;
-        if (!window) {
-            if (look == BuildingFaces.Look.SEALED && Math.floorMod(along + rhythm.phase(), 4) == 0) return Bay.VENT;
-            return Bay.BLIND;
-        }
+        if (ground == BuildingFaces.Segment.PANE) return Bay.SLIT;
+        if (ground == BuildingFaces.Segment.WINDOW) return style(k, look, true);
+        boolean vent = look == BuildingFaces.Look.SEALED && Math.floorMod(along + rhythm.phase(), 4) == 0;
+        return vent ? Bay.VENT : Bay.BLIND;
+    }
+
+    /** A window cut in its building's way. */
+    private static Bay style(BuildingKind k, BuildingFaces.Look look, boolean groundStorey) {
         if (k == BuildingKind.FORTIFIED || look == BuildingFaces.Look.SHIELDED) return Bay.SLIT;
         if (look == BuildingFaces.Look.SEALED) return Bay.PORT;
         if (k == BuildingKind.CIVIC) return Bay.TALL;
+        if (groundStorey && k == BuildingKind.COMMERCIAL && look == BuildingFaces.Look.OPEN) return Bay.SHOP;
         return Bay.WINDOW;
     }
 

@@ -103,12 +103,15 @@ final class FacePainter {
      * @param ground   what the map laid at its foot
      * @param corners  {@link BuildingFaces#CORNER_START} and {@link BuildingFaces#CORNER_END}
      * @param along    its place along its wall, cells
+     * @param glassHurt    how far gone the battle's window at its foot is: 0 whole, 1 shot out to an empty frame
+     * @param upperWindows whether its building's upper storeys have windows ({@link BuildingFaces#upperWindows})
      * @param light    its side's light and its fog, multiplied
      * @param detail   whether a cell is big enough on screen for bays and course
      */
     void paint(WallDress.Material m, WallDress.Rhythm rhythm, BuildingKind kind, BuildingFaces.Look look,
                BuildingFaces.Segment ground, int corners, int along, int cell, float meters, int storeys,
-               float top, boolean broken, float hurt, float light, boolean detail) {
+               float top, boolean broken, float hurt, float glassHurt, boolean upperWindows, float light,
+               boolean detail) {
         float j = 1f + (BuildingFaces.hash(cell, 31) - .5f) * .07f;
         float r = m.wall()[0] * light * j, g = m.wall()[1] * light * j, b = m.wall()[2] * light * j;
         float soot = 1f - .55f * Math.max(0f, hurt - .2f) / .8f;
@@ -189,11 +192,11 @@ final class FacePainter {
             if (f == 0 && (ground == BuildingFaces.Segment.DOOR || ground == BuildingFaces.Segment.LOADING)) {
                 door(m, look, ground == BuildingFaces.Segment.LOADING, lo, limit, story, light, seed, hurt);
             } else {
-                WallDress.Bay bay = f == 0
-                        ? WallDress.ground(rhythm, kind, look, along, ground == BuildingFaces.Segment.WINDOW
-                        || ground == BuildingFaces.Segment.PANE)
-                        : WallDress.upper(rhythm, kind, look, along, f, storeys);
-                bay(m, rhythm, look, bay, lo, limit, story, light, seed, hurt, r, g, b);
+                WallDress.Bay bay = f == 0 ? WallDress.ground(rhythm, kind, look, ground, along)
+                        : WallDress.upper(rhythm, kind, look, ground, upperWindows, along, f, storeys);
+                boolean shotOut = f == 0 && glassHurt >= 1f && bay != WallDress.Bay.BLIND;
+                bay(m, rhythm, look, bay, lo, limit, story, light, seed, f == 0 ? Math.max(hurt, glassHurt) : hurt,
+                        shotOut, r, g, b);
             }
         }
         if (WallDress.pipe(rhythm, along)) {
@@ -305,9 +308,20 @@ final class FacePainter {
 
     /** One storey's bay: windows framed and silled, slits, ports, a shopfront, a glazed band or a vent. */
     private void bay(WallDress.Material m, WallDress.Rhythm rhythm, BuildingFaces.Look look, WallDress.Bay bay,
-                     float lo, float hi, float story, float light, int seed, float hurt, float r, float g, float b) {
+                     float lo, float hi, float story, float light, int seed, float hurt, boolean shotOut, float r,
+                     float g, float b) {
         if (bay == WallDress.Bay.BLIND) return;
         float tr = m.trim()[0] * light, tg = m.trim()[1] * light, tb = m.trim()[2] * light;
+        if (shotOut) {
+            // The battle's window shot out: its frame's dark opening, low enough to climb through, as the simulation
+            // now has it, the wall above it sooted.
+            float z0 = lo + story * .12f, z1 = Math.min(hi, lo + story * .72f);
+            quad(.14f, .86f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .55f, tg * .55f, tb * .55f);
+            quad(.18f, .82f, z0, z1, .05f, .045f, .045f);
+            shaded(.22f, .78f, z1, Math.min(hi + story * .35f, z1 + story * .5f), .06f, .055f, .05f, r * .9f,
+                    g * .9f, b * .9f);
+            return;
+        }
         boolean blown = hurt > .3f && BuildingFaces.hash(seed, 11) < hurt;
         float gl = blown ? .05f : 1f;
         float gr = m.glass()[0] * light * gl, gg = m.glass()[1] * light * gl, gb = m.glass()[2] * light * gl;

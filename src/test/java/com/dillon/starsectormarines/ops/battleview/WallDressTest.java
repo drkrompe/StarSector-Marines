@@ -29,8 +29,10 @@ class WallDressTest {
     @Test
     void aWorksIsBlindButForTheGlazedBandUnderItsEave() {
         WallDress.Rhythm r = WallDress.rhythm(BuildingKind.INDUSTRIAL, BuildingFaces.Look.OPEN, .3f);
-        assertEquals(WallDress.Bay.BLIND, WallDress.upper(r, BuildingKind.INDUSTRIAL, BuildingFaces.Look.OPEN, 4, 1, 3));
+        assertEquals(WallDress.Bay.BLIND, WallDress.upper(r, BuildingKind.INDUSTRIAL, BuildingFaces.Look.OPEN,
+                BuildingFaces.Segment.WINDOW, false, 4, 1, 3));
         assertEquals(WallDress.Bay.CLERESTORY,
-                WallDress.upper(r, BuildingKind.INDUSTRIAL, BuildingFaces.Look.OPEN, 4, 2, 3));
+                WallDress.upper(r, BuildingKind.INDUSTRIAL, BuildingFaces.Look.OPEN,
+                        BuildingFaces.Segment.WINDOW, false, 4, 2, 3));
     }
 }

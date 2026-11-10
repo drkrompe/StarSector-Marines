@@ -205,7 +205,7 @@ public final class VehicleControlSystem {
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
         advance(id, mission, body, type, s, xs, ys, dt, leg, goalFacingDeg);
-        if (type.hasAnimatedTreads()) {
+        if (type.recordsVisualTravel()) {
             body.recordVisualTravel(previousX, previousY, previousFacing);
         }
     }
@@ -237,7 +237,7 @@ public final class VehicleControlSystem {
         boolean pushing = travel != 0 && bladeWorks(body, type, convoy.control(id), dt, travel);
         if (travel != 0 && bladeGrinds(body, type, convoy.control(id), dt)) pushing = true;
         boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false) && !pushing;
-        if (type.hasAnimatedTreads()) {
+        if (type.recordsVisualTravel()) {
             body.recordVisualTravel(prevX, prevY, prevFacing);
         }
         VehicleControlComponent s = convoy.control(id);

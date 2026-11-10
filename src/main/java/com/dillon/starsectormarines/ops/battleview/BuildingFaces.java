@@ -31,20 +31,6 @@ final class BuildingFaces {
     static final float[] HEIGHTS = {3.2f, 4.5f, 8f, 11.5f, 15f, 0f};
     /** Height classes by name ({@link #HEIGHTS}). */
     static final int SHED = 0, ONE = 1, TWO = 2, THREE = 3, TALL = 4, RAZED = 5;
-    /**
-     * How a cut-away building's near walls read while the owner picks ({@code voids.md}, buildings in depth; picks
-     * question voids-cutaway-walls): {@code stub} (default), dropped to knee height, or {@code ghost}, standing whole
-     * and faded. A temporary A/B switch: remove it, and the losing arm, once the owner picks.
-     */
-    static final String CUTAWAY_SWITCH = "battle.render.cutawayWalls";
-    /** How much of a ghosted near wall still shows with its building cut away ({@link #CUTAWAY_SWITCH}). UNTUNED. */
-    static final float GHOST_ALPHA = .28f;
-
-    /** Whether cut-away near walls stand whole and faded rather than drop to a stub ({@link #CUTAWAY_SWITCH}). */
-    static boolean ghostCutaway() {
-        return "ghost".equals(System.getProperty(CUTAWAY_SWITCH));
-    }
-
     /** How high a cut-away building's near walls still stand, metres: about knee height. UNTUNED. */
     static final float KNEE_METERS = .6f;
     /** The share of a building's roof fallen in or burnt away past which it is destroyed. UNTUNED. */
@@ -128,7 +114,7 @@ final class BuildingFaces {
      *
      * @param standing   whether a wall, window or doorway still stands there; false where it has been breached
      * @param door       whether the cell is an outside doorway
-     * @param window     whether the cell is a window
+     * @param window     whether the cell holds a window: a slit pane in its wall, or a window on its outer edge
      * @param pane       whether the window is a slit pane
      * @param industrial whether the building is works or a warehouse, whose doors are loading doors
      */
@@ -137,6 +123,26 @@ final class BuildingFaces {
         if (door) return industrial ? Segment.LOADING : Segment.DOOR;
         if (window) return pane ? Segment.PANE : Segment.WINDOW;
         return Segment.BLIND;
+    }
+
+    /**
+     * What a storey of a wall's cell shows, from what stands at its foot ({@link #segment}). The ground storey is the
+     * feature itself. An upper storey has a window only over a real window, stacked the way the ground one is, on a
+     * building whose upper storeys have windows ({@link #upperWindows}); over a door or a blind wall it is blind. So
+     * every pane on a face stands over an opening that sight and fire really pass.
+     */
+    static Segment storeyFeature(Segment ground, int storey, boolean upperWindows) {
+        if (storey == 0) return ground;
+        return upperWindows && (ground == Segment.WINDOW || ground == Segment.PANE) ? ground : Segment.BLIND;
+    }
+
+    /**
+     * How far gone a window is, from its frame's structure: 0 whole, 1 shot out. A window whose frame is gone
+     * ({@code maxStructure} 0 means none stands) is shot out.
+     */
+    static float windowHurt(int structure, int maxStructure) {
+        if (maxStructure <= 0 || structure <= 0) return 1f;
+        return Math.max(0f, Math.min(1f, 1f - structure / (float) maxStructure));
     }
 
     /** Whether a building's upper storeys have windows: homes, shops, offices and clinics, never works or a shield. */

@@ -46,9 +46,63 @@ public final class SealedTown {
      */
     public static final int GROUND_WORTH_A_LOCK = 100;
 
+    /**
+     * The envelope's own wall, its body: a habitat wall standing taller than any compound's, drawn as itself
+     * ({@code FreestandingWalls}). Never an installation's perimeter ({@code InstallationWalls.PERIMETER}), which the
+     * Cordon reads as a compound's wall.
+     */
+    public static final String ENVELOPE_WALL = "habitat.envelope-wall";
+
+    /**
+     * The envelope's outer course, where it faces the world ({@link #outerCourse}): a lower plinth along its outer
+     * face, the body's buttresses ({@link #BUTTRESS_BAY}) standing out of it.
+     */
+    public static final String ENVELOPE_PLINTH = ENVELOPE_WALL + "@plinth";
+
+    /** A buttress: the body standing out through the plinth to the envelope's outer face ({@link #buttress}). */
+    public static final String ENVELOPE_BUTTRESS = ENVELOPE_WALL + "@buttress";
+
+    /** Cells between the buttresses along the envelope's outer course. UNTUNED. */
+    public static final int BUTTRESS_BAY = 4;
+
     private static final int[][] SIDES = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     private SealedTown() { }
+
+    /**
+     * The envelope's outer course: its cells beside the world outside across a side (what no sealed town or walled place
+     * holds, {@link #sealedSide}), not across a lock's chamber or the map's edge.
+     *
+     * @param wall  the envelope's cells
+     * @param claim the place claim with the sealed towns as one place, {@code who}
+     * @param side  which places are on the sealed side, by index
+     */
+    public static boolean[][] outerCourse(boolean[][] wall, int[][] claim, int who, boolean[] side) {
+        int width = wall.length, height = wall[0].length;
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!wall[x][y]) continue;
+                for (int[] s : SIDES) {
+                    int nx = x + s[0], ny = y + s[1];
+                    if (nx >= 0 && ny >= 0 && nx < width && ny < height && !wall[nx][ny]
+                            && claim[nx][ny] != who && !onSealedSide(claim[nx][ny], side)) {
+                        out[x][y] = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Whether an outer-course cell is a buttress, the body standing out through the plinth: one in every
+     * {@link #BUTTRESS_BAY} cells along a straight course.
+     */
+    public static boolean buttress(int x, int y) {
+        return Math.floorMod(x + y, BUTTRESS_BAY) == 0;
+    }
 
     /** Whether the town on this world is sealed: wherever its habitat is enclosed (toxic, airless, irradiated). */
     public static boolean on(TargetProfile profile) {
