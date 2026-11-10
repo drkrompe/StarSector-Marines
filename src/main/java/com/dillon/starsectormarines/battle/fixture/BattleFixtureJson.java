@@ -856,14 +856,7 @@ public final class BattleFixtureJson {
                     if (deployment.frame().systems().shieldEmitter()) frame.put("shieldEmitter", true);
                 }
                 mech.put("frame", frame);
-                if (!deployment.refit().neutral()) {
-                    JSONObject refit = new JSONObject();
-                    refit.put("accuracyMult", deployment.refit().accuracyMult());
-                    refit.put("dissipationMult", deployment.refit().dissipationMult());
-                    refit.put("armorMult", deployment.refit().armorMult());
-                    refit.put("traverseMult", deployment.refit().traverseMult());
-                    mech.put("refit", refit);
-                }
+                if (!deployment.refit().neutral()) mech.put("refit", encodeRefit(deployment.refit()));
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -896,6 +889,7 @@ public final class BattleFixtureJson {
                     JSONArray compartment = new JSONArray();
                     for (MechInternal part : vehicle.compartment()) compartment.put(part.id);
                     frozen.put("compartment", compartment);
+                    if (!vehicle.refit().neutral()) frozen.put("refit", encodeRefit(vehicle.refit()));
                     vehicles.put(frozen);
                 }
                 encoded.put("vehicleDeployments", vehicles);
@@ -944,15 +938,7 @@ public final class BattleFixtureJson {
                                     (float) encodedFrame.optDouble("ammoFactor", 1d), 1f, List.of(), false,
                                     encodedFrame.optBoolean("shieldEmitter", false)));
                 }
-                MechRefit refit = MechRefit.NEUTRAL;
-                JSONObject encodedRefit = mech.optJSONObject("refit");
-                if (encodedRefit != null) {
-                    refit = new MechRefit(
-                            (float) encodedRefit.getDouble("accuracyMult"),
-                            (float) encodedRefit.getDouble("dissipationMult"),
-                            (float) encodedRefit.getDouble("armorMult"),
-                            (float) encodedRefit.getDouble("traverseMult"));
-                }
+                MechRefit refit = decodeRefit(mech.optJSONObject("refit"));
                 deployments.add(new MechDeploymentSpec(
                         variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
@@ -1017,7 +1003,7 @@ public final class BattleFixtureJson {
                                 ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
                                 : VehicleEngine.STOCK,
                         frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null,
-                        compartment, frozen.optBoolean("noOwnGun", false)));
+                        compartment, frozen.optBoolean("noOwnGun", false), decodeRefit(frozen.optJSONObject("refit"))));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
@@ -1569,5 +1555,22 @@ public final class BattleFixtureJson {
         for (MechInternal part : retiredKits) if (part.role == MechInternal.Role.LOADER) loader = part;
         if (!parts.isEmpty() || type.hasTurretWeapon()) parts.add(loader);
         return parts;
+    }
+
+    /** The Mech Lab's upgrades on one deployed machine, mech or vehicle. */
+    private static JSONObject encodeRefit(MechRefit refit) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("accuracyMult", refit.accuracyMult());
+        encoded.put("dissipationMult", refit.dissipationMult());
+        encoded.put("armorMult", refit.armorMult());
+        encoded.put("traverseMult", refit.traverseMult());
+        return encoded;
+    }
+
+    /** Neutral when the machine was frozen without upgrades. */
+    private static MechRefit decodeRefit(JSONObject encoded) throws Exception {
+        if (encoded == null) return MechRefit.NEUTRAL;
+        return new MechRefit((float) encoded.getDouble("accuracyMult"), (float) encoded.getDouble("dissipationMult"),
+                (float) encoded.getDouble("armorMult"), (float) encoded.getDouble("traverseMult"));
     }
 }

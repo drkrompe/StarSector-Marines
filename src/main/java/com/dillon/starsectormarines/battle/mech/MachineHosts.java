@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * The mechs on the field whose compartment brings a system of its own ({@link MachineSystems}: a sensor pair's drone
- * wing, active protection's point-defence mount), by entity id in the order they landed. The drone bays and the
+ * wing, active protection's point-defence mount, a shield emitter's shield), by entity id in the order they landed. The drone bays and the
  * point-defence service host these mechs exactly as they host a hull whose compartment carries the same part
  * (mechs-nouns.md, one machine, one part catalog), so a part does the same thing on every machine. A mech whose
  * compartment brings no system is not here.
@@ -18,7 +18,7 @@ public final class MachineHosts {
     /** Enrols mech {@code id} with what its compartment brings; ignored for none or a compartment with no system. */
     public void register(long id, MachineSystems systems) {
         if (id == 0L || systems == null) return;
-        if (systems.droneBay().isEmpty() && !systems.activeProtection()) return;
+        if (systems.droneBay().isEmpty() && !systems.activeProtection() && !systems.shieldEmitter()) return;
         hosts.put(id, systems);
     }
 

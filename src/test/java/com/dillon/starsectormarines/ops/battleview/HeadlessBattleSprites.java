@@ -135,6 +135,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredMechAssets mech;
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
+    private final DerelictWalkerAssets crawler;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private final LayeredSpriteCache turretCollar;
@@ -207,6 +208,13 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadDecals();
         mech = loadMech();
         derelictWalker = DerelictWalkerAssets.load(path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, path -> {
             try {
                 return optionalLayer(path);
             } catch (IOException missing) {
@@ -393,6 +401,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public RavBombardAssets ravBombardSprites() { return ravBombard; }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
+    @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
