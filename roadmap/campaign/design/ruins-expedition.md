@@ -575,6 +575,79 @@ industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
 `ruins-prize-forced` a and `ruins-theme-defences` a. What is still owed is in
 `ruins-vault-prize.md`.
 
+**The site is the plant that made the prize** (owner, 2026-11-09: "In theory
+these would be massive facilities with these spoils being common day
+occurrences at the time"; owner pick `ruins-vault-facility` a, the chain of
+halls, over one great hall and over the plant taking the whole site). A
+ruins site is the wreck of a Domain-era plant whose prize was an ordinary
+product: a cryoarithmetic plant, a nanoforge works, a biofactory complex, an AI
+core datacentre. The ruin's roofed megastructure is that plant, and the delve
+runs through its own logic, from the entrances to the far end:
+
+| Stage | Hall | Tells |
+| --- | --- | --- |
+| Intake | Receiving docks on the hull face | Dock doors, empty pallet lanes |
+| Production | Line halls, two or three line runs with aisles | Units on the line, half-built, wrecked |
+| Storage | Rack bays, mostly stripped | The sealed stores are caged bays here |
+| Secure store | The vault: a cradle hall | Rows of cradles, empty where units were pulled out; one still sealed holds the prize |
+
+The works are the plant's own: the power hall is its substation, the records
+office its control room. **The prize is the one surviving unit** of something
+that used to roll off the line; everything else is wreckage, half-built units
+and empty cradles.
+
+**Size follows the grade.** Scattered ground keeps only a satellite depot
+(storage and a small secure store in its bunker). Widespread has intake, one
+production hall and the secure store in its one interior band. Extensive adds
+storage bays and a second production hall across two bands. Vast widens every
+hall and runs two lines per production hall. The secure store is built: a
+cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
+(`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
+`RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
+vast) and storage bays (18x14), furnished from the plant kit. The control room
+and the substation as plant halls, and the products of the themes still without
+one, are still owed.
+
+**One plant kit, one product a theme.** The halls wear a generic plant kit:
+line modules, line ends, cradles, rack rows and dock doors. The theme adds its
+product, whole (only the prize), half-built and wrecked. The ground lays the
+kit itself (line runs, cradle grids, rack rows, dock doors); the theme's
+`RuinsDressing` names its product, a 3x3 unit in three states
+(`doodad.ruins-<product>-whole`, `-half`, `-wrecked`): whole only in the prize's
+cradle, half-built on some line modules, wrecked on others and in a few cradles.
+So far the cryo unit (cryoarithmetic engine), the vat unit (soil nanites,
+biofactory embryo), the forge core (nanoforges) and the drone frame (drone
+replicator); a theme without one keeps a crate in the prize's cradle and scrap
+in its wrecked cradles. The product's size is the art session's open pick
+`ruins-products-size`, building on 3x3. Placement is a coordinate
+hash, so the layout never changes with the theme.
+
+**Part of the dead town is a port** (owner, with pick `ruins-vault-facility`:
+"We might even devote part of the towns construction outside to be ruins for a
+large port"; pick `ruins-port` open, building on a). A plant shipped what it
+made, so the colony round it kept a large port. Outside the megastructure, part
+of the dead town's ground becomes the port's ruins instead of ruined lots:
+
+- **pad fields**: cracked ship pads and blast pits, open ground with no cover
+  but a wreck or two;
+- **cargo yards**: container stacks in rows with lanes between, cover in lines;
+- **a terminal**: one large broken shell, a hall the company can hold;
+- **gantries**: fallen crane spans across a yard, low cover the length of them.
+
+The options are where the port lies:
+
+| Option | Where | What it changes |
+| --- | --- | --- |
+| a (recommended) | Round the landing: the company lands on the old port's surviving pads | The landing ground becomes the port's pad field, the terminal and yards stand between it and the first layer; the first fight is in the cargo lanes |
+| b | At the plant's outfeed: a freight port against the hull | Yards and gantries run along the hull face beside the entrances; the approach to the plant crosses open yard |
+| c | One whole outside layer | At extensive and vast a middle outside layer is all port: pads, yards and terminal across the map's height |
+
+The port keeps the delve's laws: its ground is outside, under open sky, crossed
+by the layers' boundaries and never a standing line. Its size follows the
+grade, from a pad and a yard at scattered to a full port at vast. It is laid by
+coordinate hash like the rest of the dead town, so the same site has the same
+port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
+
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
 
@@ -613,9 +686,14 @@ points.
 the company commits. The prize's **theme** shows four ways:
 
 - **The survey's tell** (`RuinsVaultPrizes.tellKeys`): the briefing's last
-  survey line, for example "Cold racks humming below; something keeps a hall
-  lit and its repair drones at work.", then for a core its hinted tier ("The
-  hall draws a steady load: likely a beta core.").
+  survey line names the plant the ruin was and its one surviving unit, for
+  example "The ruin was a datacentre plant: cold racks humming in its halls,
+  one still lit and its repair drones at work.", then for a core its hinted
+  tier ("The hall draws a steady load: likely a beta core."). The theme's line is spoken
+  through the occupant's own instruments (`RuinsVaultPrizes.voiceKey`): an
+  empty site's deep scan, the scavengers' open channel, the Rav's lifesigns,
+  security traffic, or Tri-Tachyon contingency codes. The core line stays
+  plain.
 - **The approach**: what the company sees outside.
 - **The interior's art.**
 - **The works' twist.**
@@ -639,10 +717,15 @@ the company commits. The prize's **theme** shows four ways:
   `RuinsDressing`). The vault room and the interior's chambers are furnished
   from the game's own props: server racks for a server hall, rifle racks and
   ammunition lockers for an armory, reactor housings and pumps for reactor
-  halls, crates for a depot, and so on. Each prop stands against a room's wall,
-  never in a doorway, and only where the room stays one floor. The dressing
-  draws nothing from the layout's random stream, so a site's ground is the
-  same whatever its prize.
+  halls, crates for a depot, and so on. Where those fall short a theme has
+  props of its own (the `ruins-themes` sheet): frozen cryo racks and frosted
+  heatsink banks for a cryoarithmetic engine, culture vats and overgrown grow
+  beds for soil nanites and a biofactory embryo. Each prop stands against a
+  room's wall, never in a doorway, and only where the room stays one floor.
+  Those themes also lay **floor patches** (frost sheets, biofilm mats): flat,
+  walkable, no cover, on open floor clear of every doorway and standing piece.
+  The dressing draws nothing from the layout's random stream, so a site's
+  ground is the same whatever its prize.
 - **A close reading.** At the stand before the vault's layer, the Delve row's
   close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
   the occupant's sign: the survey's tell, seen up close.
@@ -718,17 +801,20 @@ stand on the approach outside, wired to the power hall:
 - Dark while the hall is cold, so dark when the company lands.
 - Restarting the hall, which powers the vault, wakes them too, unless a junction
   cuts their branch: power for the prize against guns on the way out.
-- The occupant never commands them.
+- They answer to nobody: they fire on the company, its allies and the occupant
+  alike, and all of them fight back.
 
 In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
 emplacement, standing 9 cells out from an entrance's apron toward the landing,
-on open ground outside the aprons and the interior. They hang on the first
+on open ground outside the aprons and the interior, in the old colony's own
+rusted steel (`EmplacementStyle.DERELICT`). They hang on the first
 junction's way on, beside the first layer's gate. Throwing that junction to its
 store cuts the guns, but it also cuts the gate's power. The count comes from
-the prize. They stand on the
-defenders' side, so they fire on the company and its allies. Firing on the
-occupant too needs a side hostile to everyone, which the battle does not have
-yet. Dark and awake still look the same; a powered-down look is owed.
+the prize. They stand on the hazard side (`Faction.HAZARD`), hostile to every
+fighting side and never to civilians. A dark or cut battery is dormant
+(`UnitSpatialIndex.setDormant`): nobody fires on dead machinery in passing, so
+the guns are only fought once they wake. A powered-down hazard gun draws cold
+and dark, so dark and awake read apart.
 The batteries are a works hazard, not a guardian (`ruins-guardians.md`). An
 occupied site with batteries keeps its vault guardian, and a layer guardian
 from extensive up. On an empty site the batteries count as the vault's own

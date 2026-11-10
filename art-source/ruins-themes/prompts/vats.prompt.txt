@@ -1,0 +1,9 @@
+Asset: a sheet of separate top-down tactical-game props for a sci-fi colony ruin, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every prop exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add props. The transparent space between blocks stays fully transparent.
+Style: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Grounded, industrial, weathered, adult military sci-fi; detail that still reads when shrunk to 64 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.
+Background: true transparent background with clean alpha, including between props; no floor, base tile, cast shadow slab, border, labels or text.
+
+Subjects, left to right:
+1. culture-vat (2x2 round block): a large round bio-culture vat seen from above: armoured gunmetal ring with clamps and hose ports, a thick clouded glass dome showing murky green-amber nutrient fluid and a dark pale organic mass inside, one cracked glass sector, olive service panel.
+2. grow-bed (wide 2x1 block): a long hydroponic grow trough in a gunmetal frame, dark wet substrate filled with pale, overgrown, slightly mutated stalks and fungal tufts spilling over the rims, thin irrigation pipe along one side.
+3. growth-patch (2x2 irregular blot): a floor decal only, no object: a flat spreading mat of dark-green and ochre biofilm, lichen and creeping tendrils over the floor in the blot shape, feathered translucent edges fading to transparent. No raised geometry.

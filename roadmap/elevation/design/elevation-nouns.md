@@ -289,7 +289,12 @@ Generators place plateaus where a mission wants them:
   The ground round each place's seed is never held, so a place always has
   somewhere to start. Held ground is a reservation, not a stamp: elevation
   still goes down last, and whatever generation laid across the band anyway
-  (a weld road, an access route) is a pass like any other. A landscape may
+  (a weld road, an access route) is a pass like any other. An access route
+  crosses held ground rather than following it: each step onto the band (and
+  the two cells a route's width reserves beside it) costs it several, so it
+  takes a planned pass, or failing one the straight way across, and a bank
+  is never broken lengthwise by a route that happened to run along it
+  (`LandscapeAccess.reserveRoutes`). A landscape may
   hold the ground from the fields alone (`Landscape.withUnploughed`): the
   places grow exactly as they would have and only ploughing yields, for a
   mission whose places must not move.

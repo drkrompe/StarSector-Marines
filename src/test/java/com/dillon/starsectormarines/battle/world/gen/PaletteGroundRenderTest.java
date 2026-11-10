@@ -5,6 +5,8 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /** A world's own material for a ground kind, and a palette laid out as another taking that one's fillers. */
@@ -28,6 +30,14 @@ class PaletteGroundRenderTest {
         assertEquals("floors.sand", registry.groundBlockId(GroundKind.SAND, SurfacePalette.VOLCANIC));
         assertEquals("floors.stone", registry.groundBlockId(GroundKind.STONE, SurfacePalette.ROCK));
         assertEquals("floors.stone", registry.groundBlockId(GroundKind.STONE, null));
+    }
+
+    /** A world's own material is earth, as the floors it replaces are: what a ridge may rise over. */
+    @Test
+    void aWorldsOwnMaterialIsKnownAsGround() throws Exception {
+        GenMappingRegistry registry = mapping();
+        assertTrue(registry.isPaletteGroundBlock("volcanic.basalt"));
+        assertFalse(registry.isPaletteGroundBlock("colony.masonry-wall"));
     }
 
     @Test

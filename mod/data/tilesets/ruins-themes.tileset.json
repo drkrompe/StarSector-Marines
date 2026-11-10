@@ -1,0 +1,445 @@
+{
+  "sheet": "graphics/doodads/ruins-themes.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-cryo-rack",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-heatsink",
+      "col": 1,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-culture-vat",
+      "col": 3,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-grow-bed",
+      "col": 5,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-patch-a",
+      "col": 7,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-patch-b",
+      "col": 9,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-growth-patch-a",
+      "col": 11,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-growth-patch-b",
+      "col": 13,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-line-module",
+      "col": 0,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        6,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-line-end",
+      "col": 6,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-empty-cradle",
+      "col": 9,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-rack-stripped",
+      "col": 0,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-rack-crates",
+      "col": 6,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-dock-door",
+      "col": 12,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-cryo-unit-whole",
+      "col": 12,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cryo-unit-half",
+      "col": 0,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cryo-unit-wrecked",
+      "col": 3,
+      "row": 7,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-vat-unit-whole",
+      "col": 6,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-vat-unit-half",
+      "col": 9,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-vat-unit-wrecked",
+      "col": 12,
+      "row": 7,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-drone-frame-whole",
+      "col": 0,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-drone-frame-half",
+      "col": 3,
+      "row": 10,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-drone-frame-wrecked",
+      "col": 6,
+      "row": 10,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-forge-core-whole",
+      "col": 9,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-forge-core-half",
+      "col": 12,
+      "row": 10,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-forge-core-wrecked",
+      "col": 0,
+      "row": 13,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Frozen cryo rack",
+      "description": "A cryoarithmetic engine's computing cabinet, rimed over and still leaking cold light."
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "Frosted heatsink bank",
+      "description": "Upright heat-exchanger fins on a manifold, furred with hoar frost."
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "Culture vat",
+      "description": "An armoured bio-culture vat under a clouded, cracked dome, something pale still in the fluid."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "Overgrown grow bed",
+      "description": "A hydroponic trough gone wild, pale stalks and fungus spilling over its rims."
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "Frost patch",
+      "description": "Floor decal: a thin sheet of hoar frost and cracked ice. Walkable, no cover."
+    },
+    {
+      "col": 9,
+      "row": 0,
+      "name": "Frozen spill",
+      "description": "Floor decal: a frozen coolant puddle crusted with rime. Walkable, no cover."
+    },
+    {
+      "col": 11,
+      "row": 0,
+      "name": "Biofilm patch",
+      "description": "Floor decal: a mat of biofilm, lichen and creeping tendrils. Walkable, no cover."
+    },
+    {
+      "col": 13,
+      "row": 0,
+      "name": "Moss stain",
+      "description": "Floor decal: an uneven stain of slime and moss with root threads. Walkable, no cover."
+    },
+    {
+      "col": 0,
+      "row": 2,
+      "name": "Assembly line module",
+      "description": "A straight 6x3 section of a dead assembly line: roller bed flush to both short ends so sections join end to end (long axis east-west), a work station either side."
+    },
+    {
+      "col": 6,
+      "row": 2,
+      "name": "Line intake",
+      "description": "The 3x3 end of an assembly line: a feed hopper housing, the line's bed leaving by its east edge with the module's cross-section."
+    },
+    {
+      "col": 9,
+      "row": 2,
+      "name": "Empty product cradle",
+      "description": "A 3x3 floor cradle, clamps open, its product long pulled; the middle is open floor where a product stands."
+    },
+    {
+      "col": 0,
+      "row": 5,
+      "name": "Stripped rack row",
+      "description": "A 6x2 pallet rack row, every bay empty."
+    },
+    {
+      "col": 6,
+      "row": 5,
+      "name": "Rack row, a few crates",
+      "description": "The same 6x2 rack row with three crates left in it."
+    },
+    {
+      "col": 12,
+      "row": 2,
+      "name": "Dock door",
+      "description": "A 4x2 loading dock: the armoured roll door along the north edge, set in the hall wall, and its leveler plate on the floor south of it."
+    },
+    {
+      "col": 12,
+      "row": 4,
+      "name": "Sealed cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, finished and sealed, the one the plant never shipped."
+    },
+    {
+      "col": 0,
+      "row": 7,
+      "name": "Half-built cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, left half-built on the line: bare frame above, plating below."
+    },
+    {
+      "col": 3,
+      "row": 7,
+      "name": "Wrecked cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, smashed and torn open, its pieces on the floor."
+    },
+    {
+      "col": 6,
+      "row": 7,
+      "name": "Sealed culture vat module",
+      "description": "A sealed bio-culture vat module, finished and sealed, the one the plant never shipped."
+    },
+    {
+      "col": 9,
+      "row": 7,
+      "name": "Half-built culture vat module",
+      "description": "A sealed bio-culture vat module, left half-built on the line: bare frame above, plating below."
+    },
+    {
+      "col": 12,
+      "row": 7,
+      "name": "Wrecked culture vat module",
+      "description": "A sealed bio-culture vat module, smashed and torn open, its pieces on the floor."
+    },
+    {
+      "col": 0,
+      "row": 10,
+      "name": "Sealed drone frame",
+      "description": "A quad-rotor combat drone airframe, finished and sealed, the one the plant never shipped."
+    },
+    {
+      "col": 3,
+      "row": 10,
+      "name": "Half-built drone frame",
+      "description": "A quad-rotor combat drone airframe, left half-built on the line: bare frame above, plating below."
+    },
+    {
+      "col": 6,
+      "row": 10,
+      "name": "Wrecked drone frame",
+      "description": "A quad-rotor combat drone airframe, smashed and torn open, its pieces on the floor."
+    },
+    {
+      "col": 9,
+      "row": 10,
+      "name": "Sealed forge cradle core",
+      "description": "A nanoforge cradle core, finished and sealed, the one the plant never shipped."
+    },
+    {
+      "col": 12,
+      "row": 10,
+      "name": "Half-built forge cradle core",
+      "description": "A nanoforge cradle core, left half-built on the line: bare frame above, plating below."
+    },
+    {
+      "col": 0,
+      "row": 13,
+      "name": "Wrecked forge cradle core",
+      "description": "A nanoforge cradle core, smashed and torn open, its pieces on the floor."
+    }
+  ]
+}

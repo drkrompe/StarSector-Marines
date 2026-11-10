@@ -58,6 +58,44 @@ class LandscapeAccessTest {
         assertFalse(reserved[0], "reservations should not consume all available countryside");
     }
 
+    @Test void aRouteCrossesHeldGroundThroughItsPassNotAlongIt() {
+        // Held ground across rows 6..13, with a pass at x 30..34; the anchors stand either side of it at x 20.
+        NavigationGrid grid = floor(40, 20);
+        boolean[] dear = held(40, 20, 30, 34);
+        boolean[] reserved = new boolean[40 * 20];
+        LandscapeAccess.reserveRoutes(grid, List.of(new int[]{20, 2}, new int[]{20, 17}), reserved, null, dear);
+        assertTrue(reserved[2 * 40 + 20]);
+        assertTrue(reserved[17 * 40 + 20]);
+        for (int y = 6; y <= 13; y++) for (int x = 0; x < 40; x++)
+            if (reserved[y * 40 + x]) assertTrue(x >= 28 && x <= 36, "a route ran on held ground at " + x + "," + y);
+    }
+
+    @Test void heldGroundWithNoPassIsCrossedStraight() {
+        NavigationGrid grid = floor(40, 20);
+        boolean[] dear = held(40, 20, -1, -1);
+        boolean[] reserved = new boolean[40 * 20];
+        LandscapeAccess.reserveRoutes(grid, List.of(new int[]{30, 2}, new int[]{5, 17}), reserved, null, dear);
+        assertTrue(reserved[2 * 40 + 30], "the anchor beyond the held ground keeps its route");
+        int x0 = -1;
+        for (int y = 6; y <= 13; y++) {
+            int lo = 99, hi = -1;
+            for (int x = 0; x < 40; x++) if (reserved[y * 40 + x]) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+            assertEquals(4, hi - lo, "the crossing on row " + y + " is one route wide");
+            if (x0 < 0) x0 = lo;
+            assertEquals(x0, lo, "the crossing turned on held ground at row " + y);
+        }
+    }
+
+    /**
+     * Held ground across rows 6..13 of a {@code w} x {@code h} map, open from {@code passFrom} to {@code passTo}, and
+     * the two rows either side a route's width keeps off it.
+     */
+    private static boolean[] held(int w, int h, int passFrom, int passTo) {
+        boolean[] out = new boolean[w * h];
+        for (int y = 4; y <= 15; y++) for (int x = 0; x < w; x++) out[y * w + x] = x < passFrom || x > passTo;
+        return out;
+    }
+
     private static NavigationGrid floor(int w, int h) {
         NavigationGrid grid = new NavigationGrid(w, h);
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) grid.setWalkableFloor(x, y);

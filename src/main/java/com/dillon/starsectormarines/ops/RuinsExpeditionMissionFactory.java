@@ -42,12 +42,25 @@ public final class RuinsExpeditionMissionFactory {
 
     /** The briefing with the vault's tell after the readings, one turn per tell key. */
     static List<MissionDialogue.Turn> briefing(String planetName, RuinsSurvey.Reading survey, List<String> tellKeys) {
+        return briefing(planetName, survey, tellKeys, null);
+    }
+
+    /**
+     * The briefing with the vault's tell after the readings, one turn per tell key, the first spoken through the
+     * occupant's instruments ({@link RuinsVaultPrizes#voiceKey}); a null voice speaks it plain.
+     */
+    static List<MissionDialogue.Turn> briefing(String planetName, RuinsSurvey.Reading survey, List<String> tellKeys,
+                                               String voiceKey) {
         List<MissionDialogue.Turn> turns = new ArrayList<>();
         turns.add(MissionDialogue.prose(Strings.format("ruinsExpeditionFlavor", planetName)));
         turns.add(MissionDialogue.say(SURVEY_SPEAKER, Strings.get(survey.assessmentKey()) + " "
                 + Strings.format(survey.bandKey(), Strings.get(survey.band().nameKey))));
         for (String reading : survey.readingKeys()) turns.add(MissionDialogue.say(SURVEY_SPEAKER, Strings.get(reading)));
-        for (String tell : tellKeys) turns.add(MissionDialogue.say(SURVEY_SPEAKER, Strings.get(tell)));
+        for (int i = 0; i < tellKeys.size(); i++) {
+            String tell = Strings.get(tellKeys.get(i));
+            turns.add(MissionDialogue.say(SURVEY_SPEAKER, i == 0 && voiceKey != null
+                    ? Strings.format(voiceKey, tell) : tell));
+        }
         return List.copyOf(turns);
     }
 
@@ -93,7 +106,8 @@ public final class RuinsExpeditionMissionFactory {
                 .risk(RiskLevel.MEDIUM)
                 .tier(tier)
                 .requirements(Strings.get("ruinsExpeditionRequirements"))
-                .dialogue(briefing(planetName, RuinsSurvey.read(surveyPool(occupant), marketId, grade), tells))
+                .dialogue(briefing(planetName, RuinsSurvey.read(surveyPool(occupant), marketId, grade), tells,
+                        RuinsVaultPrizes.voiceKey(occupant)))
                 .mapPosition(0.5f, 0.5f)
                 .requiredDrops(tier.drops)
                 // Nobody else's boats come into the ruins.

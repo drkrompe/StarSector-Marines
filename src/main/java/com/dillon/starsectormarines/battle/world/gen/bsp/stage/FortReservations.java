@@ -315,8 +315,8 @@ public final class FortReservations {
 
     /**
      * The boxes the plan's landscape keeps open round places that will stand high ({@link Landscape#kept}), or
-     * {@code null} when it keeps none. A place's own claim is never released over one; only the zoned places'
-     * claims, the road arms and the fields keep off.
+     * {@code null} when it keeps none. A place's claim is never released over a box round its own seed (its own
+     * terrace); every other claim, the road arms and the fields keep off ({@link #releaseKept}).
      */
     static boolean[][] kept(GenContext ctx, PrecinctPlan plan) {
         List<Landscape.Track> boxes = plan.landscape().kept();
@@ -358,17 +358,34 @@ public final class FortReservations {
                 }
             }
         }
+        releaseKept(claim, plan.landscape().kept(), plan.precincts());
         boolean[][] held = held(ctx, plan);
-        if (held != null && !plan.landscape().heldFromGrowth()) held = null;
-        boolean[][] kept = kept(ctx, plan);
-        if (held == null && kept == null) return;
+        if (held == null || !plan.landscape().heldFromGrowth()) return;
         for (int x = 0; x < Math.min(claim.length, ctx.width); x++) {
             for (int y = 0; y < Math.min(claim[x].length, ctx.height); y++) {
                 int owner = claim[x][y];
-                boolean off = (held != null && held[x][y]) || (kept != null && kept[x][y]);
-                if (!off || owner == GrownTrunkPlan.UNOWNED) continue;
+                if (!held[x][y] || owner == GrownTrunkPlan.UNOWNED) continue;
                 if (plan.precincts().get(owner).isProgrammed()) continue;
                 claim[x][y] = GrownTrunkPlan.UNOWNED;
+            }
+        }
+    }
+
+    /**
+     * Releases every claim on a kept box ({@link Landscape#kept}) but a place's own, on the box round its seed: the
+     * strip a storm bank keeps open to the edge is no programmed place's either, or its streets and their margins
+     * take the row the bank's ridges need.
+     */
+    static void releaseKept(int[][] claim, List<Landscape.Track> boxes, List<Precinct> precincts) {
+        for (Landscape.Track box : boxes) {
+            for (int x = Math.max(0, box.x0()); x <= Math.min(claim.length - 1, box.x1()); x++) {
+                for (int y = Math.max(0, box.y0()); y <= Math.min(claim[x].length - 1, box.y1()); y++) {
+                    int owner = claim[x][y];
+                    if (owner == GrownTrunkPlan.UNOWNED) continue;
+                    Precinct place = precincts.get(owner);
+                    if (place.isProgrammed() && box.contains(place.seedX(), place.seedY())) continue;
+                    claim[x][y] = GrownTrunkPlan.UNOWNED;
+                }
             }
         }
     }

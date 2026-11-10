@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge; a toxic gorge waits for the toxic palette; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge, and a toxic world its toxic gorge; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -734,8 +734,10 @@ Laws):
      ledges, shade toward near-black. The floor is dust and rubble with the
      plain's basalt field stones lying thick on it (a palette's
      `stoneShare`); no haze, an airless world's gorge.
-   First pass: three ledges to a floor 40 m down, a gorge 9 to 21 cells
-   across. Left: the owner's pick of depth; dust sifting off the lip;
+   First pass: three ledges, a gorge 9 to 21 cells across. **No one
+   depth** (owner, 2026-11-10: "Should we just vary instead of having a
+   hard floor?"): the floor lies 28 to 55 m down, varying along the cut
+   (Depth along a void, below). Left: dust sifting off the lip;
    impact-shattered blocks bigger than the field stones.
 
    **Toxic gorge** (owner, 2026-11-09: a drop for every ground palette,
@@ -755,11 +757,11 @@ Laws):
      where the sludge laps it; bubbles swelling and bursting out in the
      sludge, never in the crust. Two decks of yellow-green fumes lie over it,
      drifting different ways.
+   - **Placement.** Toxic worlds (`SurfacePalette.TOXIC`) are cut by it
+     (`NaturalVoidZoning.TOXIC_GORGE`).
    - **Battle.** Unchanged: no hazard (as the lava rift's heat, undecided).
-   First pass: three ledges to sludge 34 m down, a gorge 10 to 22 cells
-   across. Left: the owner's look against the real toxic ground, once it is
-   on main; the zoning row (`NaturalVoidZoning`) when the TOXIC palette lands;
-   fumes rising off the lip; a faint glow off the sludge at dusk.
+   First pass: three ledges, a gorge 10 to 22 cells across, the sludge 22
+   to 48 m down varying along it as the dry gorge's floor does. Left: fumes rising off the lip; a faint glow off the sludge at dusk.
 
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
@@ -791,7 +793,7 @@ Laws):
    - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
      and also built onto the grid system", its legs giving cover). From the
      first ground cell past the tower, `OreLine` finds a course on the grid to
-     the ore mill's wall: straight runs turning only at right angles, over open
+     the receiving house's wall: straight runs turning only at right angles, over open
      ground, roads and walls but never a building or the pit, a turn costing
      eight cells of run. Its pieces (`ore-conveyor` sheet: straight, corner,
      drive) are overhead props drawn in the roof pass above the people walking
@@ -800,6 +802,18 @@ Laws):
      straight run, where a solid prop blocks no road, doorway, route or ground
      (the landscape pass's reservations and `PlacementGuards`): a fixture
      giving medium cover.
+   - **The processing chain** (owner, 2026-11-09: the belt "pulling ore to a
+     processing facility with burners to refine the ore", the facility "a
+     series of buildings that again plausibly make sense"; real buildings,
+     dressed). The head works is the chain the ore passes through
+     (`RaidWorksPrograms.mine`): receiving, stockpile, one mill line per
+     machine (the raid's machines), smelter, loadout, each a real building the
+     battle enters. The ore line links them in that order, each link from the
+     wall of one hall nearest the next, never through a hall or a link already
+     laid; a link that would wander more than twice its straight distance plus
+     twelve cells is left out. Inside the works its legs keep off roads and
+     doorways. Next: roof dressing by role (stacker and heaps, mill drums,
+     furnace grilles and stacks), the smelter's burner glow and stack smoke.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -829,7 +843,10 @@ Laws):
      concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
-   (to the stores, or from the shafts); dust over the working bench.
+   (to the stores, or from the shafts); dust over the working bench; the
+   receiving house on the pit's side of the works, so the pit's line need not
+   wrap round the compound; a shared trunk where one hall feeds several, not a
+   line each.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
@@ -894,9 +911,15 @@ Laws):
    are; the wall image's strata thin where the face is shorter; a crevasse's
    floor takes less of its deep blue where it shallows. Look suites:
    `-Dsnapshot.gorge.vary`, `-Dsnapshot.ice.vary`, `-Dsnapshot.ravine.vary`
-   and the lava rift's `vary` setup. Left: a generator laying marks (a gorge
-   river deepest where its brook's valley is, shallowing to its fords); a
-   falls where a floor steps rather than slopes.
+   and the lava rift's `vary` setup. **On a generated map**
+   (`NaturalVoidZoning`): a zoning row may carry a depth band instead of one
+   depth, and the cut is then marked every 30 cells along its longer run, at
+   its middle, the depths drawn spread over the band so every cut reaches
+   near both ends of it (`NaturalVoidZoning.marks`). The dry and toxic gorges
+   carry one; the dry and toxic look suites shoot it as `varied` unless
+   `.depth` fixes one. Left: the other natural rows (each still an owner's
+   depth); a gorge river deepest where its brook's valley is, shallowing to
+   its fords; a falls where a floor steps rather than slopes.
 
    **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
    generated maps lay natural voids by planet type, not only debug maps). Look

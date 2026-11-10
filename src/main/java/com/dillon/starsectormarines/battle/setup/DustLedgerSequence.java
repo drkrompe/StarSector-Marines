@@ -217,7 +217,7 @@ public final class DustLedgerSequence implements Objective {
         return switch (faction) {
             case DEFENDER -> true;
             case MARINE, ALLY -> !ring.contains((int) Math.floor(x), (int) Math.floor(y));
-            case CIVILIAN -> false;
+            case CIVILIAN, HAZARD -> false;
         };
     }
 

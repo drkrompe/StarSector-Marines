@@ -35,7 +35,6 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren-bombarded"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren_castiron"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("toxic"));
         assertEquals(SurfacePalette.VOLCANIC, SurfaceZoning.forPlanetType("lava_minor"));
     }
 
@@ -70,6 +69,14 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren"));
     }
 
+    /** Toxic worlds draw their own stained ground; the cold one keeps its ice, where nothing pools as liquid. */
+    @Test
+    void toxicWorldsAreToxicButTheColdOneIsIce() {
+        assertEquals(SurfacePalette.TOXIC, SurfaceZoning.forPlanetType("toxic"));
+        assertEquals(SurfacePalette.TOXIC, SurfaceZoning.forPlanetType("US_toxic"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("toxic_cold"));
+    }
+
     /**
      * Cold is a climate, not a verdict on life. {@code tundra} carries
      * vegetation and is matched by the living check first; {@code toxic_cold}
@@ -79,7 +86,7 @@ class SurfaceZoningTest {
     @Test
     void climateDoesNotOverruleHabitability() {
         assertEquals(SurfacePalette.VERDANT, SurfaceZoning.forPlanetType("tundra"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("toxic"));
+        assertEquals(SurfacePalette.TOXIC, SurfaceZoning.forPlanetType("toxic"));
     }
 
     /**

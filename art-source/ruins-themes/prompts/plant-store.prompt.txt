@@ -1,0 +1,9 @@
+Asset: a sheet of separate top-down tactical-game props for the production floor of an abandoned Domain-era automated factory, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.
+Style: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.
+Background: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.
+
+Subjects:
+1. rack-stripped (top left, wide 6x2 block): a long heavy-duty pallet storage rack seen from above, six bays divided by upright steel frames and cross beams, every bay empty, bare dark deck grating, dust, one bent beam.
+2. dock-door (top right, 4x2 block): a loading dock: along the top edge a heavy armoured roll-up dock door seen from above as a thick slab in its frame (it sits in a wall), below it a steel dock leveler plate with hazard striped edges and a hinge line, scuffed.
+3. rack-crates (bottom left, wide 6x2 block): the same storage rack, mostly stripped, with a few sealed gunmetal and olive cargo crates left in three bays as in the block-out, the other bays empty.

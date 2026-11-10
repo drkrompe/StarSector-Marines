@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -68,6 +69,24 @@ class RuinsExpeditionMissionFactoryTest {
         assertEquals(5, turns.size());
         assertEquals(Strings.get("ruinsTellServerHall"), turns.get(3).text());
         assertEquals(Strings.get("ruinsTellLikelyBetaCore"), turns.get(4).text());
+    }
+
+    @Test
+    void theTellIsSpokenThroughTheOccupantsInstrumentsAndTheCoreLinePlain() {
+        RuinsSurvey.Reading survey = new RuinsSurvey.Reading("ruinsSurveyScavengersAssessment",
+                RuinsSurvey.Band.HEAVY, "ruinsSurveyScavengersBand", List.of("ruinsSurveyScavengersComms"));
+
+        List<MissionDialogue.Turn> turns = RuinsExpeditionMissionFactory.briefing("Ossuary", survey,
+                List.of("ruinsTellServerHall", "ruinsTellLikelyBetaCore"),
+                RuinsVaultPrizes.voiceKey(RuinsOccupant.SCAVENGERS));
+
+        assertEquals(Strings.format("ruinsTellVoiceScavengers", Strings.get("ruinsTellServerHall")),
+                turns.get(3).text());
+        assertEquals(Strings.get("ruinsTellLikelyBetaCore"), turns.get(4).text());
+        for (RuinsOccupant occupant : RuinsOccupant.values()) {
+            String voice = RuinsVaultPrizes.voiceKey(occupant);
+            assertNotEquals(voice, Strings.get(voice), occupant + " has a voice");
+        }
     }
 
     @Test

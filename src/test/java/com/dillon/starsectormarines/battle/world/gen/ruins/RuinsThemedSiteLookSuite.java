@@ -20,16 +20,18 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * A ruins site built round a colony item ({@code ruins-expedition.md}, The vault and its prize): an extensive site
  * held by scavengers whose vault keeps a cryoarithmetic engine, so it keeps the old colony's batteries
  * ({@code RuinsBatteries}) on its approach. Built through {@link RuinsBattleFixture} as a launched expedition is, then
  * through the look preset at 1920x1080: the whole map, the approach at twice play zoom, and the middle battery close,
- * dark at landfall ({@code 01-dark}) and awake once the hall is restarted ({@code 02-awake}). Its ground is today's ruins ground: the
- * theme's own interior set is still owed. Prints each battery's cell and state. {@code -Dsnapshot.ruinsBattle.seed}
+ * dark at landfall ({@code 01-dark}) and awake once the hall is restarted ({@code 02-awake}). Then {@code inside/}: each shown theme's vault
+ * room and a chamber, roofs off, wearing its {@code RuinsThemeDressing}. Prints each battery's cell and state. {@code -Dsnapshot.ruinsBattle.seed}
  * (default 7) and {@code -Dsnapshot.ruinsBattle.surface} (ARID).
  */
 public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
@@ -70,9 +72,19 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact("01-approach.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     W, H, frame[0] - 20f, height / 2f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 2f)
                     .render(sim, "")));
+            // The plant's halls, one of each stage, roofs off: the plant that made the prize.
+            Set<RuinsDelve.PlantStage> shown = EnumSet.noneOf(RuinsDelve.PlantStage.class);
+            for (RuinsDelve.PlantHall plantHall : sim.getRuinsWorks().delve().interior().halls()) {
+                if (!shown.add(plantHall.stage())) continue;
+                RuinsDelve.Area f = plantHall.footprint();
+                out.add(new SnapshotArtifact("plant/" + plantHall.stage().name().toLowerCase(Locale.ROOT) + ".png",
+                        BattleReviewFrameRenderer.look(context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f,
+                                Math.max(f.width(), f.height() * 16f / 9f) * 1.3f).withoutRoofs().render(sim, "")));
+            }
             // The company restarts the hall: the vault's power, and the guns' with it.
             sim.getRuinsWorks().graph().restart();
-            advance(sim, 3f);
+            // A breath after waking: the guns are on the hazard side, so the crew soon fights them.
+            advance(sim, 0.25f);
             report(sim, batteries);
             out.add(new SnapshotArtifact("02-awake.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     W, H, frame[0], frame[1], frame[2]).render(sim, "")));
@@ -104,8 +116,8 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
         return out;
     }
 
-    /** The themes shown inside: one of each kind of prize, and a reactor site. */
-    private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE,
+    /** The themes shown inside: one of each kind of prize, a growth theme, and a reactor site. */
+    private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE, RuinsVaultTheme.SOIL_NANITES,
             RuinsVaultTheme.SERVER_HALL, RuinsVaultTheme.ARMORY, RuinsVaultTheme.FUSION_LAMP, RuinsVaultTheme.DEPOT);
 
     private static void advance(BattleSimulation sim, float seconds) {

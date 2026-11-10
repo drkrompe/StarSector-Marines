@@ -22,7 +22,8 @@ import java.util.Locale;
  * The storm bank on Raid sites ({@code mapgen-nouns.md}, Climate; {@link StormBank}): the size-4 heavy-industry site
  * (seed 7, as {@code planet-ground-look}) on a desert and a dust-blown rock under storms, the wind from each side the
  * bank can face. Each is framed whole ({@code <world>-<wind>-whole.png}) and close on the bank's middle
- * ({@code <world>-<wind>-bank.png}), look preset, and reports how many cells the bank raised. Nothing is played.
+ * ({@code <world>-<wind>-bank.png}) and on its widest pass with the town behind ({@code <world>-<wind>-pass.png}),
+ * look preset, and reports how many cells the bank raised. Nothing is played.
  */
 public final class StormBankLookSuite implements SnapshotSuite {
 
@@ -87,9 +88,43 @@ public final class StormBankLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(name + "-bank.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, cx, cy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS)
                             .render(sim, "")));
+                    float[] pass = pass(elevation, wind, w, h);
+                    if (pass != null) {
+                        // The pass with the town behind it: the bank across the top of the frame, the streets below.
+                        float span = 110f, in = span * 9f / 16f / 2f - 6f;
+                        float px = wind.alongX() ? pass[0] : wind.low() ? in : w - in;
+                        float py = wind.alongX() ? (wind.low() ? in : h - in) : pass[0];
+                        System.out.println("[storm-bank-look] " + name + " pass at " + pass[0] + " width " + pass[1]);
+                        out.add(new SnapshotArtifact(name + "-pass.png", BattleReviewFrameRenderer.look(
+                                context.modRoot(), 1920, 1080, px, py, span).render(sim, "")));
+                    }
                 }
             }
             return out;
         }
+    }
+
+    /** The middle and width of the widest gap between raised stretches of the bank, or null for an unbroken bank. */
+    private static float[] pass(ElevationMap elevation, StormWind.Side wind, int w, int h) {
+        if (elevation == null) return null;
+        int length = wind.alongX() ? w : h;
+        boolean[] banked = new boolean[length];
+        int first = -1, last = -1;
+        for (int a = 0; a < length; a++) {
+            for (int d = StormBank.OFFSET - 2; d < StormBank.OFFSET + StormBank.THICKNESS + 2; d++) {
+                int x = wind.alongX() ? a : wind.low() ? d : w - 1 - d;
+                int y = wind.alongX() ? (wind.low() ? d : h - 1 - d) : a;
+                if (elevation.sightHeightAt(y * w + x) > 0) banked[a] = true;
+            }
+            if (banked[a]) { if (first < 0) first = a; last = a; }
+        }
+        float[] best = null;
+        for (int a = first; a >= 0 && a <= last; a++) {
+            if (banked[a]) continue;
+            int start = a;
+            while (a <= last && !banked[a]) a++;
+            if (best == null || a - start > best[1]) best = new float[]{(start + a - 1) / 2f, a - start};
+        }
+        return best;
     }
 }
