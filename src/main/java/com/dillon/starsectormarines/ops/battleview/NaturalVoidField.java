@@ -27,6 +27,13 @@ import java.util.List;
  * lit once here: the sun, and how much sky the walls around leave them; a wall's light is worked out by
  * depth along it.
  *
+ * <p><b>Depth along the shape.</b> A shape with {@link Shape#marks} deepens and shallows along its length: each
+ * step's depth is scaled at every point by a {@link #gain} blended from the marks, so the ledges keep their share
+ * of the floor's depth wherever it lies. The marks change depth only: where the lip, the ledges and the floor lie
+ * across the drop is the insets' alone. A band's pieces then stand at the depth of their own corners
+ * ({@link Band#z}), and a wall's at the depth of its two ends ({@link Wall#g0}). A shape with no marks is as
+ * deep everywhere as its steps, worked out exactly as before they were added.
+ *
  * <p><b>Bridges.</b> Ground the walkable surface carries across the void too narrow to stand on rock of its
  * own (opened away by {@link #BRIDGE_CELLS}), joining wider ground at two ends, is a built span: the drop
  * runs on under it, and it is a thin
@@ -54,6 +61,8 @@ final class NaturalVoidField {
     static final int SHADE_RES = 4;
     /** Metres of wall lit as one, top to bottom. */
     static final float WALL_LIGHT_METERS = 1.5f;
+    /** How far from a depth mark, in cells, its weight starts to fall away: the blend between marks is this soft. */
+    static final float MARK_SOFT_CELLS = 6f;
 
     final int w, h;
     final Shape shape;
@@ -80,6 +89,15 @@ final class NaturalVoidField {
      * h[k] >= h[k+1]}. {@code h[0]} is the distance itself: the lip runs from the cells' edge to step 1.
      */
     final float[][] reach;
+    /**
+     * Per corner sample, the share of the steps' depth the shape stands at there ({@link Shape#marks}); null where
+     * it has none and stands at its steps' depth everywhere.
+     */
+    final float[] gain;
+    /** The most of its steps' depth the shape stands at anywhere: 1 without marks. */
+    final float mostGain;
+    /** How the drop's floor runs along it ({@link ChannelFlow}); null for a rise, whose floor is the battle's ground. */
+    final ChannelFlow flow;
 
     /** Flat pieces of one depth, step {@code k}: the lip ({@code 0}), each ledge, and the floor last. */
     final List<Band> bands = new ArrayList<>();
@@ -102,12 +120,27 @@ final class NaturalVoidField {
     /** The pieces at one depth: quads {@code {x0, y0, .. x3, y3}} in cells, with their light and look. */
     static final class Band {
         final int step;
+        /** The step's depth on the shape's steps, metres; each piece's own where the shape has marks, in {@link #z}. */
         final float depth;
         /** Eight floats a quad (a triangle repeats its last corner). */
         float[] quads = new float[0];
         /** Per quad: {@code {centreX, centreY, light, reachToNext, flowX, flowY, sky, spare}}. */
         float[] attrs = new float[0];
+        /**
+         * Per quad, the depth of its four corners and its centre, metres, five floats; null where the shape has no
+         * marks and every piece stands at {@link #depth}.
+         */
+        float[] z;
         int count;
+
+        /**
+         * The floor's pieces only: per quad, the flow at its centre, {@code {along, across, dirX, dirY, speed}} as
+         * {@link ChannelFlow#at} gives it; null on every other band.
+         */
+        float[] flow;
+
+        /** Corner {@code v} of quad {@code q}'s depth ({@code v == 4} its centre). */
+        float z(int q, int v) { return z == null ? depth : z[q * 5 + v]; }
 
         Band(int step, float depth) { this.step = step; this.depth = depth; }
 
@@ -137,17 +170,35 @@ final class NaturalVoidField {
      * (into the drop, or out of a rise toward the lower ground), the depths of its top and foot, and its light
      * down its height, one value each {@link #WALL_LIGHT_METERS} from its top.
      */
-    record Wall(float x0, float y0, float x1, float y1, float nx, float ny, float zTop, float zFoot, float[] light) { }
+    record Wall(float x0, float y0, float x1, float y1, float nx, float ny, float zTop, float zFoot, float[] light,
+                float g0, float g1) {
+        /** A wall as deep at both ends as its steps. */
+        Wall(float x0, float y0, float x1, float y1, float nx, float ny, float zTop, float zFoot, float[] light) {
+            this(x0, y0, x1, y1, nx, ny, zTop, zFoot, light, 1f, 1f);
+        }
+    }
 
     /**
      * The steps as the field reads them: {@code depths} and {@code insets} for steps {@code 1..n}, depth signed
      * downward; {@code spans} when narrow ground across the shape is a bridge; {@code wander} how far the edge
      * and ledges swing about their insets, as a share of the natural styles' ({@link #WANDER_SLOW}): an open pit's
-     * benches are cut, not eroded, so they wander much less.
+     * benches are cut, not eroded, so they wander much less; {@code marks} {@code {x, y, gain}} in the field's cells,
+     * each a place where the shape stands at {@code gain} of its steps' depth, empty for none.
      */
-    record Shape(float[] depths, float[] insets, int seed, boolean spans, float wander) {
+    record Shape(float[] depths, float[] insets, int seed, boolean spans, float wander, float[] marks) {
         /** How little an open pit's benches wander, as a share of a natural drop's ledges. */
         static final float CUT_WANDER = .22f;
+
+        Shape(float[] depths, float[] insets, int seed, boolean spans, float wander) {
+            this(depths, insets, seed, spans, wander, new float[0]);
+        }
+
+        /** This shape on a field whose cells are the map's moved by {@code (dx, dy)}. */
+        Shape shifted(float dx, float dy) {
+            float[] m = marks.clone();
+            for (int i = 0; i < m.length; i += 3) { m[i] += dx; m[i + 1] += dy; }
+            return new Shape(depths, insets, seed, spans, wander, m);
+        }
 
         static Shape of(NaturalVoid look) {
             int n = look.steps().size();
@@ -156,8 +207,16 @@ final class NaturalVoidField {
                 d[k] = look.steps().get(k).depthMeters();
                 in[k] = look.steps().get(k).insetCells();
             }
-            float wander = look.style() == NaturalVoid.Style.OPEN_PIT ? CUT_WANDER : 1f;
-            return new Shape(d, in, look.seed(), true, wander);
+            boolean pit = look.style() == NaturalVoid.Style.OPEN_PIT;
+            float wander = pit ? CUT_WANDER : 1f;
+            // An open pit's benches are cut level: its haul road is laid from their depths.
+            List<NaturalVoid.DepthMark> marks = pit || look.marks() == null ? List.of() : look.marks();
+            float[] m = new float[marks.size() * 3];
+            for (int i = 0; i < marks.size(); i++) {
+                NaturalVoid.DepthMark mark = marks.get(i);
+                m[i * 3] = mark.x(); m[i * 3 + 1] = mark.y(); m[i * 3 + 2] = mark.floorMeters() / look.floorMeters();
+            }
+            return new Shape(d, in, look.seed(), true, wander, m);
         }
 
         static Shape of(NaturalRise look) {
@@ -167,8 +226,14 @@ final class NaturalVoidField {
                 d[k] = -look.steps().get(k).heightMeters();
                 in[k] = look.steps().get(k).insetCells();
             }
+            List<NaturalRise.HeightMark> marks = look.marks() == null ? List.of() : look.marks();
+            float[] m = new float[marks.size() * 3];
+            for (int i = 0; i < marks.size(); i++) {
+                NaturalRise.HeightMark mark = marks.get(i);
+                m[i * 3] = mark.x(); m[i * 3 + 1] = mark.y(); m[i * 3 + 2] = mark.topMeters() / look.topMeters();
+            }
             // Narrow ground between two rises is a pass along the ravine floor, not a span over anything.
-            return new Shape(d, in, look.seed(), false, 1f);
+            return new Shape(d, in, look.seed(), false, 1f, m);
         }
     }
 
@@ -184,14 +249,18 @@ final class NaturalVoidField {
         depth = new float[n + 1];
         for (int k = 0; k < n; k++) depth[k + 1] = shape.depths()[k];
         rising = n > 0 && depth[n] < 0f;
+        sw = w * RES + 1;
+        sh = h * RES + 1;
+        gain = shape.marks().length == 0 ? null : gains(shape.marks());
+        float most = 1f;
+        if (gain != null) { most = 0f; for (float g : gain) most = Math.max(most, g); }
+        mostGain = most;
         float highest = 0f;
-        for (float d : depth) highest = Math.min(highest, d);
+        for (float d : depth) highest = Math.min(highest, d * most);
         top = highest;
         bridge = shape.spans() ? bridges(w, h, voidCell) : new boolean[w * h];
         open = new boolean[w * h];
         for (int i = 0; i < w * h; i++) open[i] = voidCell[i] || bridge[i];
-        sw = w * RES + 1;
-        sh = h * RES + 1;
         dist = distanceIn();
         edge = smoothEdge();
         reach = new float[n + 1][];
@@ -214,12 +283,75 @@ final class NaturalVoidField {
         for (int k = 0; k <= n; k++) bands.add(new Band(k, depth[k]));
         for (int k = 1; k <= n; k++) walls.add(new ArrayList<>());
         cut(sunX, sunY, risePerCell);
+        if (gain != null) for (Band band : bands) cornerDepths(band);
+        flow = rising ? null : flow(n);
         fray();
         sides();
         if (rising) floorShade(sunX, sunY, risePerCell);
     }
 
     int steps() { return depth.length - 1; }
+
+    /**
+     * {@link #gain}: at each sample, the marks' gains blended by weights falling away with the square of the
+     * distance past {@link #MARK_SOFT_CELLS}, so a place near one mark takes its depth and the drop runs smoothly
+     * from one to the next.
+     */
+    private float[] gains(float[] marks) {
+        float[] g = new float[sw * sh];
+        float soft = MARK_SOFT_CELLS * MARK_SOFT_CELLS;
+        for (int j = 0; j < sh; j++) {
+            for (int i = 0; i < sw; i++) {
+                float x = i / (float) RES, y = j / (float) RES;
+                double sum = 0, weight = 0;
+                for (int m = 0; m < marks.length; m += 3) {
+                    float dx = x - marks[m], dy = y - marks[m + 1];
+                    double d2 = dx * dx + dy * dy + soft;
+                    double wgt = 1.0 / (d2 * d2);
+                    sum += wgt * marks[m + 2];
+                    weight += wgt;
+                }
+                g[j * sw + i] = (float) (sum / weight);
+            }
+        }
+        return g;
+    }
+
+    /** The share of its steps' depth the shape stands at, at a point in cells: exactly 1 without marks. */
+    float gainAt(float x, float y) {
+        return gain == null ? 1f : sample(gain, x, y);
+    }
+
+    /** How deep step {@code k} lies at a point, metres: its depth on the steps, scaled by the {@link #gainAt}. */
+    float stepDepth(int k, float x, float y) {
+        return gain == null ? depth[k] : depth[k] * sample(gain, x, y);
+    }
+
+    /** The floor's flow, worked out over the open cells at the floor's depth there, and laid on its pieces. */
+    private ChannelFlow flow(int n) {
+        float[] floorDepth = new float[w * h];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) floorDepth[y * w + x] = stepDepth(n, x + .5f, y + .5f);
+        ChannelFlow f = new ChannelFlow(w, h, open, floorDepth);
+        Band floor = bands.get(n);
+        float[] at = new float[5];
+        floor.flow = new float[floor.count * 5];
+        for (int q = 0; q < floor.count; q++) {
+            f.at(floor.attrs[q * 8], floor.attrs[q * 8 + 1], at);
+            System.arraycopy(at, 0, floor.flow, q * 5, 5);
+        }
+        return f;
+    }
+
+    /** Each piece's corners and centre at their own depth along the shape. */
+    private void cornerDepths(Band band) {
+        float[] z = new float[band.count * 5];
+        for (int q = 0; q < band.count; q++) {
+            int o = q * 8;
+            for (int v = 0; v < 4; v++) z[q * 5 + v] = stepDepth(band.step, band.quads[o + v * 2], band.quads[o + v * 2 + 1]);
+            z[q * 5 + 4] = stepDepth(band.step, band.attrs[o], band.attrs[o + 1]);
+        }
+        band.z = z;
+    }
 
     // ----- shape -----
 
@@ -432,7 +564,7 @@ final class NaturalVoidField {
     /** How far below the surface the rock stands at a point, metres: {@code 0} on the ground and the lip. */
     float depthAt(float x, float y) {
         if (x < 0 || y < 0 || x >= w || y >= h) return 0f;
-        for (int k = steps(); k >= 1; k--) if (sample(reach[k], x, y) > 0f) return depth[k];
+        for (int k = steps(); k >= 1; k--) if (sample(reach[k], x, y) > 0f) return stepDepth(k, x, y);
         return 0f;
     }
 
@@ -501,7 +633,7 @@ final class NaturalVoidField {
                                 float mx = 0f, my = 0f;
                                 for (int v = 0; v < m; v++) { mx += poly[v * 2]; my += poly[v * 2 + 1]; }
                                 mx /= m; my /= m;
-                                float z = depth[k];
+                                float z = stepDepth(k, mx, my);
                                 float sky = sky(mx, my, z);
                                 float sun = sunlit(mx, my, z, sunX, sunY, rise);
                                 attr[0] = mx; attr[1] = my;
@@ -604,11 +736,15 @@ final class NaturalVoidField {
         if (len < 1e-6f) return;
         // A drop's face looks into it, up the field; a rise's looks out of it, down toward the lower ground.
         float nx = (rising ? -gx : gx) / len, ny = (rising ? -gy : gy) / len;
+        float g0 = gainAt(pts[0], pts[1]), g1 = gainAt(pts[2], pts[3]);
+        float gm = gainAt((pts[0] + pts[2]) / 2f, (pts[1] + pts[3]) / 2f);
         if (rising) {
-            riseWall(pts, nx, ny, k, sunX, sunY, rise);
+            riseWall(pts, nx, ny, k, sunX, sunY, rise, g0, g1, gm);
             return;
         }
-        float top = depth[k - 1], bottom = depth[k];
+        // The face's light is worked out at its own depth here; it is drawn between its steps' depths, scaled at
+        // each end by the gain there.
+        float top = depth[k - 1] * gm, bottom = depth[k] * gm;
         int rows = Math.max(1, (int) Math.ceil((bottom - top) / WALL_LIGHT_METERS));
         float[] light = new float[rows];
         float mx = (pts[0] + pts[2]) / 2f + nx * .05f, my = (pts[1] + pts[3]) / 2f + ny * .05f;
@@ -622,15 +758,16 @@ final class NaturalVoidField {
             float sun = facing > 0f ? sunlit(mx, my, z, sunX, sunY, rise) : 0f;
             light[r] = .4f + .32f * open + .8f * sun * facing;
         }
-        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, top, bottom, light));
+        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, depth[k - 1], depth[k], light, g0, g1));
     }
 
     /**
      * A rise's face, from step {@code k}'s top down to the step below: lit by the sun where its march clears
      * the rock, and by the sky a point just out from the face at each height sees.
      */
-    private void riseWall(float[] pts, float nx, float ny, int k, float sunX, float sunY, float rise) {
-        float zTop = depth[k], zFoot = depth[k - 1];
+    private void riseWall(float[] pts, float nx, float ny, int k, float sunX, float sunY, float rise,
+                          float g0, float g1, float gm) {
+        float zTop = depth[k] * gm, zFoot = depth[k - 1] * gm;
         int rows = Math.max(1, (int) Math.ceil((zFoot - zTop) / WALL_LIGHT_METERS));
         float[] light = new float[rows];
         float mx = (pts[0] + pts[2]) / 2f + nx * .05f, my = (pts[1] + pts[3]) / 2f + ny * .05f;
@@ -642,7 +779,7 @@ final class NaturalVoidField {
             float sun = facing > 0f ? sunlit(mx, my, z, sunX, sunY, rise) : 0f;
             light[r] = .48f + .4f * open + .7f * sun * facing;
         }
-        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, zTop, zFoot, light));
+        walls.get(k - 1).add(new Wall(pts[0], pts[1], pts[2], pts[3], nx, ny, depth[k], depth[k - 1], light, g0, g1));
     }
 
     /**

@@ -1,0 +1,134 @@
+{
+  "alphaMin": 40,
+  "cellPx": 64,
+  "gridCols": 2,
+  "gridRows": 3,
+  "idPrefix": "formation",
+  "note": "Derived by art-source/tilesets/volcanic-formations/derive.py from columns 0-1 of planet-formations.raw.png (regraded, alpha untouched), so the cuts are the planet formations' measured boulders and spires frames. MineralFormation owns collision and fog; no ground backing.",
+  "sheet": "art-source/tilesets/volcanic-formations.raw.png",
+  "sheetName": "volcanic-formations",
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders",
+      "included": true,
+      "rect": [
+        17,
+        55,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders-damaged",
+      "included": true,
+      "rect": [
+        17,
+        417,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders-destroyed",
+      "included": true,
+      "rect": [
+        17,
+        779,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires",
+      "included": true,
+      "rect": [
+        459,
+        15,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires-damaged",
+      "included": true,
+      "rect": [
+        459,
+        377,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires-destroyed",
+      "included": true,
+      "rect": [
+        459,
+        739,
+        199,
+        332
+      ]
+    }
+  ]
+}

@@ -81,7 +81,8 @@ purchases, so the low-tech row comes first:
    of the low-tech frames (owner), against law 1, so the row needs frames of its own.
    Direction (owner, from the frame concepts in `sources/hightech/frames/`): Tri-Tachyon
    puts its weight into skimmers, a light, medium and heavy hover vehicle line built out
-   from the hover scout and drone skimmer (`convoy-nouns.md`), and into light crawlers,
+   from the hover scout and drone skimmer, now built (`convoy-nouns.md`, the hover line:
+   the heavy skimmer carries the shield rule on its hull's pool), and into light crawlers,
    small four-legged machines read as a drone concept. It fields no heavy walker of its
    own. The concept sheets paint their guns in to show the silhouettes; every production
    hull is drawn bare, with empty mount sockets, and every weapon stays a separate,

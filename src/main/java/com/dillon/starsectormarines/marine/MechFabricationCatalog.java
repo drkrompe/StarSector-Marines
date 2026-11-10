@@ -104,7 +104,9 @@ public final class MechFabricationCatalog {
             // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
             // control are transplutonics, and the composite skirt is light on plate.
             vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 7530),
-            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 12000));
+            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 12000),
+            // The heavy skimmer: the laser tank's emitter and plant on a lift hull, with a shield emitter on top.
+            vehicle(VehicleType.HEAVY_SKIMMER, "@gearFabricationTriTachyonPattern", 21000));
 
     private MechFabricationCatalog() {
     }

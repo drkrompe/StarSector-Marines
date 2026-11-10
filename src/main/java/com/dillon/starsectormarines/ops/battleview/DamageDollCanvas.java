@@ -196,7 +196,8 @@ public final class DamageDollCanvas implements CanvasProducer {
             case SRM_TECHNICAL -> "technical-srm";
             case SUPPLY_TRUCK -> "truck";
             case SCOUT_CAR -> "scout-car";
-            case HOVER_SCOUT -> "hover-scout";
+            // The heavy skimmer is the scout's line, one turret on a hover hull: it shares the scout's doll.
+            case HOVER_SCOUT, HEAVY_SKIMMER -> "hover-scout";
             case DRONE_SKIMMER -> "drone-skimmer";
             case LRM_CARRIER -> "lrm-carrier";
             case CARGO_CARRIER -> "hauler";

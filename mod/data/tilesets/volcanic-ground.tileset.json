@@ -1,0 +1,179 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "volcanic.basalt"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
+        ]
+      ],
+      "id": "volcanic.ash"
+    }
+  ],
+  "cellPx": 56,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "volcanic.basalt v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "volcanic.basalt v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 3 of the pool",
+      "name": "volcanic.basalt v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 4 of the pool",
+      "name": "volcanic.basalt v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 5 of the pool",
+      "name": "volcanic.basalt v5",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 6 of the pool",
+      "name": "volcanic.basalt v6",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 7 of the pool",
+      "name": "volcanic.basalt v7",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 8 of the pool",
+      "name": "volcanic.basalt v8",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "volcanic.ash v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "variant 2 of the pool",
+      "name": "volcanic.ash v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "variant 3 of the pool",
+      "name": "volcanic.ash v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "variant 4 of the pool",
+      "name": "volcanic.ash v4",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "variant 5 of the pool",
+      "name": "volcanic.ash v5",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "variant 6 of the pool",
+      "name": "volcanic.ash v6",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "variant 7 of the pool",
+      "name": "volcanic.ash v7",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "variant 8 of the pool",
+      "name": "volcanic.ash v8",
+      "row": 0
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/volcanic-ground.png"
+}

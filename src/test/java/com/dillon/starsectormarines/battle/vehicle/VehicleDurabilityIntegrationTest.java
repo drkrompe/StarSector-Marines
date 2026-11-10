@@ -48,7 +48,7 @@ class VehicleDurabilityIntegrationTest {
                 case BREAKTHROUGH_TANK, LASER_TANK, MEDIUM_TANK -> 1.1f;
                 case MILITIA_TECHNICAL, SUPPLY_TRUCK, SCOUT_CAR, SRM_TECHNICAL -> .9875f;
                 case CARGO_CARRIER -> .75f;
-                case HOVER_SCOUT, DRONE_SKIMMER -> EffectsService.hoverFanAftCells(type.drawnLengthCells);
+                case HOVER_SCOUT, DRONE_SKIMMER, HEAVY_SKIMMER -> EffectsService.hoverFanAftCells(type.drawnLengthCells);
             };
             assertEquals(12 + rearOffset, engine.x, .001f);
             assertEquals(7f, engine.y, .001f);
