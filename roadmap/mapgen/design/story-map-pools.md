@@ -9,6 +9,10 @@ Written: 2026-10-23
 
 Updated: 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
 
+Owned maps (`owned-maps.md`) are replacing pools: a mission owns one layout and a
+biome skin dresses it, where a seed names a different map on every biome. A pool
+retires when its mission is converted.
+
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
 vetted list of seeds the team has looked at and owns, each optionally carrying

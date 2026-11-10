@@ -60,6 +60,12 @@ A story map does not take any seed: it plays from a **pool** of vetted seeds,
 each with an optional patch, regenerated every time so generator changes still
 arrive, and checked by `storyMapPools` (`story-map-pools.md`).
 
+A mission may instead **own** its map: one layout authored once as a data
+document, its settlements by program and role and its drops by role, which a
+**biome skin** dresses for whatever world the mission is fought on, the layout
+never moving under it (`owned-maps.md`). Relay Nine is the first; owned maps are
+replacing seeded story maps, which name a different layout on every biome.
+
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
 defense posts, landing pads, decorative placements, and the authored road,

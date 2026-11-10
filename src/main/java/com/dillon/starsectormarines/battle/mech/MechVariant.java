@@ -159,6 +159,25 @@ public enum MechVariant {
         return this == CRAWLER;
     }
 
+    /**
+     * What this chassis's own plant sheds a second beside its capacitor bank and vent arrays, so its stock fit runs at
+     * its family's heat (`machine-budgets.md`, flux): the Bulwark's twin guns at about 2.5 times what it sheds, the
+     * crawler's gun and shield at about 1.25. A chassis meets its band here because the bank is a part every machine
+     * shares. UNTUNED.
+     */
+    public float plantDissipation() {
+        return switch (this) {
+            case BULWARK -> 6f;
+            case CRAWLER -> 3f;
+            case HOUND, WARDEN, SECURITY_WALKER -> 0f;
+        };
+    }
+
+    /** What this chassis's own plant adds to its bank's reservoir: high-tech's larger reserve. UNTUNED. */
+    public float plantCapacity() {
+        return this == CRAWLER ? 50f : 0f;
+    }
+
     /** Whether this chassis has shoulder mounts: the crawler carries its one gun in a front socket and nothing else. */
     public boolean hasShoulders() {
         return this != CRAWLER;

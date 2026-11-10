@@ -33,7 +33,8 @@ class MechInternalsTest {
         CampaignMech mech = new CampaignMech("m", "M", variant, null,
                 MissileReplenisherComponent.STANDARD.id());
         MechFrame frame = mech.freezeForDeployment().frame();
-        assertEquals(new MechFrame(armor, speed, 100f, 6f), frame, variant.name());
+        assertEquals(new MechFrame(armor, speed, 100f + variant.plantCapacity(), 6f + variant.plantDissipation()), frame,
+                variant.name());
         assertEquals(MechFrame.stock(variant), frame);
         assertFalse(mech.fit().overBudget(), variant + " stock fit must fit its industrial engine");
     }
@@ -53,7 +54,7 @@ class MechInternalsTest {
         assertEquals(950f, fit.armorCapacity(), 1e-4f);
         assertEquals(1.15f, fit.moveSpeed(), 1e-4f);
         assertEquals(120f, fit.fluxCapacity(), 1e-4f);
-        assertEquals(8.5f, fit.dissipationPerSecond(), 1e-4f);
+        assertEquals(8.5f + MechVariant.BULWARK.plantDissipation(), fit.dissipationPerSecond(), 1e-4f);
         assertFalse(fit.overBudget());
         assertEquals(fit.frame(), bay.mechById(id).freezeForDeployment().frame());
     }
