@@ -267,8 +267,14 @@ public class BattleRenderer {
     /** Each building's roof style and the cells it covers, shared by the mesh and the stream. */
     private final RoofPlans roofPlans = new RoofPlans();
     private final RoofStream roofStream = new RoofStream();
-    /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces, and each building's outline. */
-    private final PolyMesh buildingFaces = new PolyMesh(256);
+    /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces in their dress, and their rubble. */
+    private final FacePainter facePainter = new FacePainter();
+    /** Razed buildings' broken shells, drawn over the roofs' remnants. */
+    private final PolyMesh ruinShells = new PolyMesh(64);
+    /** Each building's wall dress ({@link WallDress}), settled with its outline. */
+    private final IdentityHashMap<Building, Dress> buildingDress = new IdentityHashMap<>();
+    /** The most hit points each wall cell has been seen to hold, so its hurt reads against its own ({@link WallDress#hurt}). */
+    private int[] fullWallHp;
     /** Marks over the roofs where a unit outside stands hidden behind a stood-up building ({@link #occludedUnits}). */
     private final PolyMesh occludedMarks = new PolyMesh(16);
     /** Walls that are no building's, stood up at their own heights ({@link FreestandingWalls}). */
@@ -997,9 +1003,12 @@ public class BattleRenderer {
                         b -> buildingClass(topology, buildings, b));
                 if (drawable && serving) roofMesh.draw(rc.camera, ROOF_LIFTS);
             });
-            if (serving) return;
+            if (!serving) streamRoofs(sim, out, alphaMult, topology);
+        } else {
+            streamRoofs(sim, out, alphaMult, topology);
         }
-        streamRoofs(sim, out, alphaMult, topology);
+        // A razed building's broken shell stands over its roof's remnants.
+        if (!ruinShells.isEmpty()) out.addPoly(RenderLayer.ROOFS, ruinShells);
     }
 
     /** Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre. */
@@ -1047,13 +1056,17 @@ public class BattleRenderer {
         return new BuildingFaces.Built(b.kind, b.cellsX.length, sealed, tower, BuildingFaces.hash(b.id, 21));
     }
 
+    /** A building's wall dress: its material and its facade's rhythm ({@link WallDress}). */
+    private record Dress(WallDress.Material material, WallDress.Rhythm rhythm) { }
+
     /**
      * Buildings stood up ({@link BuildingFaces}): each building's walls turned to the camera, as faces from the foot
      * of its roof's outline on the ground to the same outline at its eave, the roof's own lift about the view's
-     * centre. Each cell's length of wall is drawn as what stands under it (a window, a door, a loading door, a blind
-     * wall, or a breach open to the room behind), in its town's habitat, scorched and holed as its wall is hurt; a
-     * destroyed building lies flat with its rubble. Emitted before the roofs, so every roof stands
-     * over the faces behind it.
+     * centre, dressed in its kind's and world's material ({@link WallDress}) and painted cell by cell
+     * ({@link FacePainter}): what stands under each (a window, a door, a loading door, a blind wall, or a breach open
+     * to the room behind), its storeys' bays in the building's rhythm, and what the battle has done to it. A building
+     * whose roof has fallen in over a wall loses that wall's upper storeys; a destroyed building stands as a broken
+     * shell over its rubble. Emitted before the roofs, so every roof stands over the faces behind it; the shells after.
      */
     private void buildingFaces(BattleSimulation sim, DrawList out, float alphaMult, CellTopology topology) {
         Buildings buildings = sim.getBuildings();
@@ -1061,108 +1074,139 @@ public class BattleRenderer {
         if (edgesOf != buildings || edgesAt != topology) {
             buildingEdges.clear();
             buildingClass.clear();
+            buildingDress.clear();
+            fullWallHp = null;
             edgesOf = buildings;
             edgesAt = topology;
         }
         int gridW = topology.getWidth();
-        boolean frozen = topology.groundPalette() == SurfacePalette.FROZEN;
+        if (fullWallHp == null || fullWallHp.length != gridW * topology.getHeight()) {
+            fullWallHp = new int[gridW * topology.getHeight()];
+        }
+        SurfacePalette palette = topology.groundPalette();
+        boolean frozen = palette == SurfacePalette.FROZEN;
         float viewX = rc.camera.panCellX(), viewY = rc.camera.panCellY();
         float sx = rc.camera.cellToScreenX(viewX), sy = rc.camera.cellToScreenY(viewY);
+        float cellX = rc.camera.cellToScreenX(1f) - rc.camera.cellToScreenX(0f);
+        float cellY = rc.camera.cellToScreenY(1f) - rc.camera.cellToScreenY(0f);
         VisibleCellRect view = rc.camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6,
                 grid.getWidth(), grid.getHeight());
-        boolean detail = Math.abs(rc.camera.cellToScreenX(1f) - rc.camera.cellToScreenX(0f)) >= FACE_DETAIL_PX;
-        buildingFaces.reset();
+        boolean detail = Math.abs(cellX) >= FACE_DETAIL_PX;
+        FacePainter paint = facePainter;
+        paint.reset();
+        ruinShells.reset();
         for (Building b : buildings.all()) {
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
+            float roofAlpha = alphaMult;
+            if (roofAlpha <= 0.01f) continue;
             int heightClass = buildingClass(topology, buildings, b);
-            if (heightClass == BuildingFaces.RAZED) continue;
+            float[] segs = buildingEdges.computeIfAbsent(b, k -> faceSegments(topology, buildings, k, frozen));
+            if (segs.length == 0) continue;
+            float fog = FogField.roofShade(b.currentFog);
+            BuildingFaces.Look look = LOOKS[((int) segs[7] >> 2) / SEGMENTS.length];
+            Dress dress = buildingDress.computeIfAbsent(b, k -> new Dress(
+                    WallDress.material(k.kind, look, palette, BuildingFaces.hash(k.id, 23)),
+                    WallDress.rhythm(k.kind, look, BuildingFaces.hash(k.id, 24))));
+            if (heightClass == BuildingFaces.RAZED) {
+                // Destroyed: a broken shell a storey high at most, its corners standing tallest, rubble at its foot.
+                float lift = BuildingFaces.lift(SHELL_METERS);
+                paint.into(ruinShells);
+                for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
+                    float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
+                    float nx = segs[e + 4], ny = segs[e + 5];
+                    boolean facing = BuildingFaces.facing(nx, ny, (x0 + x1) / 2f, (y0 + y1) / 2f, viewX, viewY);
+                    paint.wall(rc.camera.cellToScreenX(x0), rc.camera.cellToScreenY(y0), rc.camera.cellToScreenX(x1),
+                            rc.camera.cellToScreenY(y1), rc.camera.cellToScreenX(segs[e + 8]),
+                            rc.camera.cellToScreenY(segs[e + 9]), rc.camera.cellToScreenX(segs[e + 10]),
+                            rc.camera.cellToScreenY(segs[e + 11]), sx, sy, lift, nx * cellX, ny * cellY, roofAlpha);
+                    float light = (facing ? BuildingFaces.shade(nx, ny) : BuildingFaces.shade(-nx, -ny)) * fog;
+                    paint.shell(dress.material(), (int) segs[e + 6], ((int) segs[e + 7] & 3) != 0, light, !facing);
+                }
+                paint.into(paint.faces);
+                continue;
+            }
             // Cut away (its roof faded to show the rooms): the near walls drop to a knee-high stub with the roof's
             // fade and the far walls' inner sides come up to frame the rooms. The walls stay opaque throughout.
             float cut = 1f - b.currentAlpha;
-            float roofAlpha = alphaMult;
-            if (roofAlpha <= 0.01f) continue;
-            float[] segs = buildingEdges.computeIfAbsent(b, k -> faceSegments(topology, buildings, k, frozen));
-            if (segs.length == 0) continue;
+            float meters = BuildingFaces.HEIGHTS[heightClass];
             float lift = ROOF_LIFTS[heightClass];
-            float fog = FogField.roofShade(b.currentFog);
-            BuildingFaces.Look look = LOOKS[(int) segs[7] / SEGMENTS.length];
-            float wallR, wallG, wallB;
-            switch (look) {
-                case SEALED: wallR = .80f; wallG = .82f; wallB = .83f; break;
-                case SHIELDED: wallR = .60f; wallG = .60f; wallB = .58f; break;
-                case INSULATED: wallR = .5f + .2f * RoofTiles.tint(b.tintR); wallG = .38f + .12f * RoofTiles.tint(b.tintG);
-                    wallB = .32f + .1f * RoofTiles.tint(b.tintB); break;
-                default: wallR = .5f + .32f * RoofTiles.tint(b.tintR); wallG = .48f + .3f * RoofTiles.tint(b.tintG);
-                    wallB = .46f + .28f * RoofTiles.tint(b.tintB);
-            }
             boolean industrial = b.kind == BuildingKind.INDUSTRIAL || b.kind == BuildingKind.FORTIFIED;
-            boolean upper = BuildingFaces.upperWindows(b.kind, look);
-            int storeys = BuildingFaces.storeys(BuildingFaces.HEIGHTS[heightClass]);
+            int storeys = BuildingFaces.storeys(meters);
             boolean ghost = BuildingFaces.ghostCutaway();
-            float upright = ghost ? 1f : BuildingFaces.standing(BuildingFaces.HEIGHTS[heightClass], cut);
+            float upright = ghost ? 1f : BuildingFaces.standing(meters, cut);
             if (ghost) roofAlpha = alphaMult * (1f - (1f - BuildingFaces.GHOST_ALPHA) * Math.min(1f, Math.max(0f, cut)));
+            WallDress.Material m = dress.material();
             for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
                 float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
                 float nx = segs[e + 4], ny = segs[e + 5];
+                float ax = rc.camera.cellToScreenX(x0), ay = rc.camera.cellToScreenY(y0);
+                float bx = rc.camera.cellToScreenX(x1), by = rc.camera.cellToScreenY(y1);
+                float fax = rc.camera.cellToScreenX(segs[e + 8]), fay = rc.camera.cellToScreenY(segs[e + 9]);
+                float fbx = rc.camera.cellToScreenX(segs[e + 10]), fby = rc.camera.cellToScreenY(segs[e + 11]);
+                paint.wall(ax, ay, bx, by, fax, fay, fbx, fby, sx, sy, lift, nx * cellX, ny * cellY, roofAlpha);
                 if (!BuildingFaces.facing(nx, ny, (x0 + x1) / 2f, (y0 + y1) / 2f, viewX, viewY)) {
                     if (cut > .01f) {
-                        // A far wall's inner side, seen over the cut-away room: plain plaster, a little in shadow.
+                        // A far wall's inner side, seen over the cut-away room: plaster over a darker dado.
                         float in = (.62f + .1f * BuildingFaces.shade(-nx, -ny)) * fog;
-                        face(rc.camera.cellToScreenX(x0), rc.camera.cellToScreenY(y0), rc.camera.cellToScreenX(x1),
-                                rc.camera.cellToScreenY(y1), sx, sy, 0f, 1f, 0f, 1f, lift, (wallR * .4f + .45f) * in,
-                                (wallG * .4f + .44f) * in, (wallB * .4f + .42f) * in, alphaMult * Math.min(1f, cut));
+                        float ir = (m.wall()[0] * .4f + .45f) * in, ig = (m.wall()[1] * .4f + .44f) * in;
+                        float ib = (m.wall()[2] * .4f + .42f) * in;
+                        paint.wall(ax, ay, bx, by, fax, fay, fbx, fby, sx, sy, lift, nx * cellX, ny * cellY,
+                                alphaMult * Math.min(1f, cut));
+                        paint.shaded(0f, 1f, 0f, 1f, ir * .8f, ig * .8f, ib * .8f, ir, ig, ib);
+                        paint.quad(0f, 1f, 0f, .9f / meters, ir * .72f, ig * .72f, ib * .72f);
                     }
                     continue;
                 }
+                int code = (int) segs[e + 7];
+                int corners = code & 3;
                 int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
-                BuildingFaces.Segment kind = SEGMENTS[(int) segs[e + 7] % SEGMENTS.length];
+                BuildingFaces.Segment kind = SEGMENTS[(code >> 2) % SEGMENTS.length];
                 if (kind == BuildingFaces.Segment.LOADING && !industrial) kind = BuildingFaces.Segment.DOOR;
-                boolean standing = kind != BuildingFaces.Segment.BREACH;
-                float hurt = standing ? Math.max(0f, Math.min(1f, 1f - grid.getWallHp(cx, cy) / 100f)) : 1f;
-                if (topology.getRoofDamage(cx, cy) != RoofDamage.INTACT) hurt = Math.max(hurt, .5f);
-                float ax = rc.camera.cellToScreenX(x0), ay = rc.camera.cellToScreenY(y0);
-                float bx = rc.camera.cellToScreenX(x1), by = rc.camera.cellToScreenY(y1);
                 float shade = BuildingFaces.shade(nx, ny) * fog;
-                // Soot: a hurt wall darkens toward its top, where the fire and the blast went.
-                float soot = 1f - .5f * hurt;
-                float r = wallR * shade * soot, g = wallG * shade * soot, bl = wallB * shade * soot;
-                float top = upright;
-                float ground = 1f / storeys;
+                int along = ny != 0f ? cx : cy;
+                // What has fallen in over the wall: the roof over the building's room just inside it. (A doorway's
+                // own cell is open to the sky by design, so it says nothing.)
+                int ix = cx - Math.round(nx), iy = cy - Math.round(ny);
+                RoofDamage roof = topology.inBounds(ix, iy) && topology.getBuildingId(ix, iy) == b.id
+                        ? topology.getRoofDamage(ix, iy) : RoofDamage.INTACT;
+                boolean broken = roof == RoofDamage.COLLAPSED || roof == RoofDamage.BURNT;
                 if (kind == BuildingFaces.Segment.BREACH) {
-                    // Open to the room behind: dark to the first storey's head, wall standing above it if any does.
-                    face(ax, ay, bx, by, sx, sy, 0f, 1f, 0f, Math.min(top, ground * .8f), lift, .07f * fog, .06f * fog,
-                            .06f * fog, roofAlpha);
-                    if (top > ground) face(ax, ay, bx, by, sx, sy, 0f, 1f, ground, top, lift, r, g, bl, roofAlpha);
+                    // Open to the room behind: dark to the first storey's head, ragged; wall standing above it if any
+                    // does; the wall's rubble spilled out across the ground.
+                    float ground = 1f / storeys;
+                    float top = broken ? Math.min(upright, WallDress.brokenTop(cell, storeys, .5f)) : upright;
+                    if (top > ground) {
+                        paint.paint(m, dress.rhythm(), b.kind, look, BuildingFaces.Segment.BLIND, corners, along, cell,
+                                meters, storeys, top, broken, 1f, shade, detail);
+                    }
+                    float head = Math.min(top, ground * .85f);
+                    paint.quad(0f, 1f, 0f, head, .07f * fog, .06f * fog, .06f * fog);
+                    paint.quad(.15f, .55f, head, Math.min(top, head + ground * .18f), .07f * fog, .06f * fog,
+                            .06f * fog);
+                    for (int k = 0; k < 5; k++) {
+                        float s = .5f + .5f * BuildingFaces.hash(cell, 170 + k);
+                        paint.chunk(BuildingFaces.hash(cell, 180 + k), .05f + .6f * BuildingFaces.hash(cell, 190 + k),
+                                .22f + .3f * BuildingFaces.hash(cell, 200 + k), m.wall()[0] * s * shade,
+                                m.wall()[1] * s * shade, m.wall()[2] * s * shade);
+                    }
                     continue;
                 }
-                face(ax, ay, bx, by, sx, sy, 0f, 1f, 0f, top, lift, r, g, bl, roofAlpha);
-                if (hurt > .25f) {
-                    // The scorch: the wall's upper part blackened, ragged along its lower edge.
-                    float from = top * (.35f + .3f * BuildingFaces.hash(cell, 9)), burn = 1f - .6f * hurt;
-                    face(ax, ay, bx, by, sx, sy, 0f, 1f, from, top, lift, r * burn, g * burn, bl * burn, roofAlpha);
-                }
-                // Windows and doors are drawn only where a cell is big enough to show them.
-                float length = Math.abs(x1 - x0) + Math.abs(y1 - y0);
-                if (length < .45f || !detail) continue;
-                for (int f = 0; f < storeys; f++) {
-                    float lo = f * ground, hi = (f + 1) * ground;
-                    if (lo >= top) break;
-                    BuildingFaces.Segment feature = f == 0 ? kind
-                            : upper && look != BuildingFaces.Look.SHIELDED ? BuildingFaces.Segment.WINDOW
-                            : BuildingFaces.Segment.BLIND;
-                    feature(ax, ay, bx, by, sx, sy, lo, Math.min(hi, top), hi - lo, lift, feature, look, hurt, cell + f,
-                            r, g, bl, fog, roofAlpha);
-                }
-                // A hole torn through a badly hurt wall.
-                if (hurt > .4f && BuildingFaces.hash(cell, 3) < hurt) {
-                    float t = .15f + .45f * BuildingFaces.hash(cell, 4), z = top * (.2f + .5f * BuildingFaces.hash(cell, 5));
-                    face(ax, ay, bx, by, sx, sy, t, t + .36f, z, Math.min(top, z + .3f), lift, .05f * fog, .045f * fog,
-                            .045f * fog, roofAlpha);
-                }
+                int hp = grid.getWallHp(cx, cy);
+                int full = Math.max(fullWallHp[cell], hp);
+                fullWallHp[cell] = full;
+                float hurt = WallDress.hurt(hp, full);
+                if (roof == RoofDamage.HOLED) hurt = Math.max(hurt, .35f);
+                else if (broken) hurt = Math.max(hurt, .5f);
+                paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
+                        broken, hurt, shade, detail);
             }
         }
-        if (!buildingFaces.isEmpty()) out.addPoly(RenderLayer.ROOFS, buildingFaces);
+        if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
+        if (!paint.rubble.isEmpty()) out.addPoly(RenderLayer.DECALS, paint.rubble);
     }
+
+    /** How high a razed building's shell would stand whole, metres: one storey. */
+    private static final float SHELL_METERS = 3.6f;
 
     private static final BuildingFaces.Segment[] SEGMENTS = BuildingFaces.Segment.values();
     private static final BuildingFaces.Look[] LOOKS = BuildingFaces.Look.values();
@@ -1170,9 +1214,10 @@ public class BattleRenderer {
     private static final float FACE_DETAIL_PX = 10f;
 
     /**
-     * A building's faces cut by cell ({@link BuildingFaces#segments}), each segment's spare slot holding what stands
-     * under it ({@link BuildingFaces.Segment}, a door taken as a loading door; the caller narrows it by kind) plus the
-     * building's habitat ({@link BuildingFaces.Look}) times the segment kinds' count. Settled once per topology change,
+     * A building's faces cut by cell ({@link BuildingFaces#segments}), each segment's spare slot holding its corners
+     * in its low two bits and, above them, what stands under it ({@link BuildingFaces.Segment}, a door taken as a
+     * loading door; the caller narrows it by kind) plus the building's habitat ({@link BuildingFaces.Look}) times the
+     * segment kinds' count. Settled once per topology change,
      * so a frame reads it rather than the cells.
      */
     private float[] faceSegments(CellTopology topology, Buildings buildings, Building b, boolean frozen) {
@@ -1183,12 +1228,19 @@ public class BattleRenderer {
         for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
             int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
             int cover = RoofCover.of(topology, cx, cy);
-            boolean door = RoofCover.edge(cover) == RoofCover.Edge.DOOR;
             boolean window = topology.isWindow(cx, cy);
-            boolean standing = door || window || topology.isWall(cx, cy);
+            boolean wall = window || topology.isWall(cx, cy);
+            // A short piece is the reveal where the eave steps in at a doorway, over the floor beside it: wall, never
+            // a breach. An opening in the wall's line is a doorway the map laid, unless it is the rubble a breach
+            // leaves.
+            float length = Math.abs(segs[e + 2] - segs[e]) + Math.abs(segs[e + 3] - segs[e + 1]);
+            boolean reveal = length < .5f;
+            boolean door = RoofCover.edge(cover) == RoofCover.Edge.DOOR
+                    || !wall && !reveal && !topology.isRubble(cx, cy);
+            boolean standing = door || wall || reveal;
             BuildingFaces.Segment kind = BuildingFaces.segment(standing, door, window,
                     RoofCover.edge(cover) == RoofCover.Edge.PANE, true);
-            segs[e + 7] = kind.ordinal() + look * SEGMENTS.length;
+            segs[e + 7] = ((int) segs[e + 7] & 3) | (kind.ordinal() + look * SEGMENTS.length) << 2;
         }
         return segs;
     }
@@ -1261,89 +1313,6 @@ public class BattleRenderer {
             if (topology.isWall(x, y)) return topology.getSurfaceId(x, y);
         }
         return null;
-    }
-
-    /**
-     * One storey's feature on a cell's length of wall, from {@code lo} to {@code hi} of the way up the face: a window
-     * in its habitat's way (a clear pane, a deep-set insulated one, a sealed town's small port), a door (an airlock
-     * in a sealed or shielded town), a works' loading door, or nothing on a blind wall. A hurt wall's windows are
-     * blown dark.
-     */
-    private void feature(float ax, float ay, float bx, float by, float sx, float sy, float lo, float hi,
-                         float storey, float lift, BuildingFaces.Segment feature, BuildingFaces.Look look, float hurt,
-                         int cell, float r, float g, float b, float fog, float a) {
-        boolean blown = hurt > .3f && BuildingFaces.hash(cell, 11) < hurt;
-        float glassR = blown ? .04f : .15f, glassG = blown ? .035f : .18f, glassB = blown ? .035f : .23f;
-        switch (feature) {
-            case WINDOW:
-            case PANE: {
-                boolean pane = feature == BuildingFaces.Segment.PANE;
-                if (look == BuildingFaces.Look.SEALED) {
-                    face(ax, ay, bx, by, sx, sy, .38f, .62f, lo + storey * .36f, Math.min(hi, lo + storey * .62f), lift,
-                            r * .7f, g * .7f, b * .7f, a);
-                    face(ax, ay, bx, by, sx, sy, .42f, .58f, lo + storey * .4f, Math.min(hi, lo + storey * .58f), lift,
-                            glassR * fog, glassG * fog, glassB * fog, a);
-                } else if (look == BuildingFaces.Look.SHIELDED) {
-                    face(ax, ay, bx, by, sx, sy, .2f, .8f, lo + storey * .55f, Math.min(hi, lo + storey * .62f), lift,
-                            glassR * fog, glassG * fog, glassB * fog, a);
-                } else if (look == BuildingFaces.Look.INSULATED) {
-                    // Deep-set: a recess in the wall's shade, a small pane at its back.
-                    face(ax, ay, bx, by, sx, sy, .26f, .74f, lo + storey * .3f, Math.min(hi, lo + storey * .7f), lift,
-                            r * .45f, g * .45f, b * .45f, a);
-                    face(ax, ay, bx, by, sx, sy, .36f, .64f, lo + storey * .38f, Math.min(hi, lo + storey * .62f), lift,
-                            glassR * fog, glassG * fog, glassB * fog, a);
-                } else {
-                    float w = pane ? .14f : .22f;
-                    face(ax, ay, bx, by, sx, sy, .5f - w, .5f + w, lo + storey * .32f, Math.min(hi, lo + storey * .68f),
-                            lift, glassR * fog, glassG * fog, glassB * fog, a);
-                }
-                break;
-            }
-            case DOOR: {
-                boolean lock = look == BuildingFaces.Look.SEALED || look == BuildingFaces.Look.SHIELDED;
-                if (lock) {
-                    face(ax, ay, bx, by, sx, sy, .14f, .86f, lo, Math.min(hi, lo + storey * .74f), lift,
-                            .42f * fog, .43f * fog, .44f * fog, a);
-                    face(ax, ay, bx, by, sx, sy, .26f, .74f, lo, Math.min(hi, lo + storey * .64f), lift,
-                            .16f * fog, .17f * fog, .18f * fog, a);
-                    face(ax, ay, bx, by, sx, sy, .26f, .74f, lo + storey * .64f, Math.min(hi, lo + storey * .68f), lift,
-                            .78f * fog, .62f * fog, .12f * fog, a);
-                } else {
-                    face(ax, ay, bx, by, sx, sy, .22f, .78f, lo, Math.min(hi, lo + storey * .66f), lift,
-                            .24f * fog, .17f * fog, .11f * fog, a);
-                }
-                break;
-            }
-            case LOADING: {
-                face(ax, ay, bx, by, sx, sy, .06f, .94f, lo, Math.min(hi, lo + storey * .78f), lift,
-                        .30f * fog, .31f * fog, .30f * fog, a);
-                for (int k = 1; k < 5; k++) {
-                    float z = lo + storey * .78f * k / 5f;
-                    face(ax, ay, bx, by, sx, sy, .06f, .94f, z, Math.min(hi, z + storey * .02f), lift,
-                            .2f * fog, .21f * fog, .2f * fog, a);
-                }
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    /**
-     * One part of a wall face: from {@code t0} to {@code t1} along the wall from a to b, and from {@code z0} to
-     * {@code z1} of the way up it, its foot on the ground and its eave at {@code lift} about the view's centre.
-     */
-    private void face(float ax, float ay, float bx, float by, float sx, float sy, float t0, float t1, float z0,
-                      float z1, float lift, float r, float g, float b, float a) {
-        float px = ax + (bx - ax) * t0, py = ay + (by - ay) * t0;
-        float qx = ax + (bx - ax) * t1, qy = ay + (by - ay) * t1;
-        float s0 = 1f + (lift - 1f) * z0, s1 = 1f + (lift - 1f) * z1;
-        buildingFaces.appendQuad(
-                sx + (px - sx) * s0, sy + (py - sy) * s0,
-                sx + (qx - sx) * s0, sy + (qy - sy) * s0,
-                sx + (qx - sx) * s1, sy + (qy - sy) * s1,
-                sx + (px - sx) * s1, sy + (py - sy) * s1,
-                r, g, b, a);
     }
 
     /** Every visible roof cell's pieces as commands of their own — the path residency replaces. */

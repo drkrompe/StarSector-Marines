@@ -158,7 +158,8 @@ final class FreestandingWalls {
 
     /**
      * The outline of a run's cells as full cells: every side of a cell whose neighbour across it is no cell of the
-     * run, as one segment of {@link BuildingFaces#SEG} floats ({@code x0, y0, x1, y1, nx, ny}, the cell, a spare 0).
+     * run, as one segment of {@link BuildingFaces#SEG} floats ({@code x0, y0, x1, y1, nx, ny}, the cell, a spare 0,
+     * and its foot, the same line).
      */
     private static float[] outline(int[] cells, int gridW, byte[] mark, int k) {
         float[] out = new float[cells.length * 2 * BuildingFaces.SEG];
@@ -181,6 +182,8 @@ final class FreestandingWalls {
                 }
                 out[n] = x0; out[n + 1] = y0; out[n + 2] = x1; out[n + 3] = y1;
                 out[n + 4] = DX[s]; out[n + 5] = DY[s]; out[n + 6] = at; out[n + 7] = 0f;
+                // A full cell's side: its foot is the same line.
+                out[n + 8] = x0; out[n + 9] = y0; out[n + 10] = x1; out[n + 11] = y1;
                 n += BuildingFaces.SEG;
             }
         }
