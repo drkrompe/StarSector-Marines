@@ -2476,7 +2476,10 @@ pairing makes: streets, blocks and courts inside, ordinary doors on its building
 and a wall drawn on the outline of what grew, like a garrison's. Its wall keeps two
 locks, where its widest roads meet it, any more the map's road network needs to
 stay connected, and one onto every stretch of open ground it borders that no road
-reaches (`SealedTown.groundLocks`), so it never seals a field off. The wall is an
+reaches (`SealedTown.groundLocks`), so it never seals a field off. A lock is
+sited where its way in reaches the town's streets (`SealedTown.streetward`), not
+into a yard shut in by buildings, and the defences build nothing across its way
+in or out (`SealedTown.lockWays`). The wall is an
 envelope, not a line (`SealedTown.envelope`): a one-cell outline read as a thin
 line wrapped round the town (owner). It stands three cells through on the town's
 own outermost ground (`SealedTown.band`), which is held back from the town's

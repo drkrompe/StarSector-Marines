@@ -186,6 +186,35 @@ class SealedTownTest {
         }
     }
 
+    @Test
+    void aLockOpensOntoGroundThatReachesTheStreetsNotAYardShutInByBuildings() {
+        int[][] claim = eastTown(), road = noRoad();
+        boolean[][] open = allOpen();
+        for (int y = 0; y < 12; y++) road[19][y] = 1; // a street behind the wall
+        // A yard at the south end, as deep as any ground but shut in by a building's walls.
+        for (int y = 0; y <= 6; y++) open[17][y] = false;
+        for (int x = 13; x <= 17; x++) open[x][6] = false;
+        boolean[] sealed = {false, true}, side = {false, true};
+        boolean[][] band = SealedTown.band(claim, sealed, side);
+        boolean[][] streetward = SealedTown.streetward(claim, 1, open, band, road);
+        assertTrue(streetward[15][9], "the ground beside the street");
+        assertFalse(streetward[15][3], "not the shut-in yard");
+        List<PrecinctBoundary.Gate> locks = SealedTown.groundLocks(claim, 1, open, List.of(), streetward);
+        assertEquals(1, locks.size());
+        double middle = locks.get(0).cells().stream().mapToInt(c -> c[1]).average().orElseThrow();
+        assertTrue(middle > 6, "the lock opens toward the street, not the yard: " + middle);
+    }
+
+    @Test
+    void nothingIsBuiltAcrossALocksWayIn() {
+        SealedTown.Lock lock = new SealedTown.Lock(List.of(new int[]{12, 5}), List.of(),
+                List.of(new int[]{12, 5}, new int[]{13, 5}, new int[]{14, 5}), -1, 0);
+        boolean[][] kept = SealedTown.lockWays(new SealedTown.Envelope(new boolean[24][12], List.of(lock)), 24, 12);
+        assertTrue(kept[12 - SealedTown.LOCK_APRON][5], "the apron before it");
+        assertTrue(kept[14 + SealedTown.LOCK_APRON][5], "the way in behind it");
+        assertFalse(kept[13][7], "and nothing beside it");
+    }
+
     private static boolean has(List<int[]> cells, int x, int y) {
         return cells.stream().anyMatch(c -> c[0] == x && c[1] == y);
     }
