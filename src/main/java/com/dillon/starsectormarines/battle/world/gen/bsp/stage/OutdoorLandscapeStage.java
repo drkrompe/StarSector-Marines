@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
@@ -39,6 +40,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
+import com.dillon.starsectormarines.battle.world.gen.nature.SignatureGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -53,6 +55,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.SurfaceSignature;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -80,6 +83,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         // Every lawn and lot has been laid by now; the planet decides whether it is lawn or bare earth. Before the landscape, so a hill
         // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
         CultivatedGround.settle(c.topology, field, c::isMadeGround);
+        // The planet type's own detail over its palette, for the renderer whether or not the landscape below runs.
+        TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
+        c.topology.setSignature(profile == null ? SurfaceSignature.NONE : profile.signature());
         landscape(c, field);
     }
 
@@ -104,7 +110,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
         // No stock hill grows where the mission named high ground: it would be all the ridge found there.
         boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
-        if (c.topology.terrainSurface() == null) hills(c, field, reserved, ridgeGround, random);
+        SurfaceSignature signature = c.topology.signature();
+        List<TerrainPlan.Stroke> signed = c.topology.terrainSurface() == null
+                ? hills(c, field, reserved, ridgeGround, random, signature) : List.of();
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
         if (!ridges.isEmpty() && c.grid.elevation() == null) {
@@ -115,6 +123,11 @@ public final class OutdoorLandscapeStage implements GenStage {
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
+        // The planet type's own detail over its palette: craters and ejecta, fissure rubble, vents.
+        int w = c.width;
+        SignatureGround.dress(c.topology, c.width, c.height, c.seed, signature, signed,
+                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                field.world().stones());
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
         // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
         if (c.get(BspKeys.TACTICAL_REGIONS) != null) {
@@ -661,12 +674,10 @@ public final class OutdoorLandscapeStage implements GenStage {
      * Stock hills. The finish is the map's, and is the world's own where a basin greens the middle: a rock outcrop
      * reads in green country, a grass-topped hill does not on desert. Each hill's shape is its own cell's palette.
      */
-    private static void hills(GenContext c, SurfaceField palettes, boolean[] reserved, boolean[][] ridgeGround,
-                              Random random) {
+    private static List<TerrainPlan.Stroke> hills(GenContext c, SurfaceField palettes, boolean[] reserved,
+                                                  boolean[][] ridgeGround, Random random, SurfaceSignature signature) {
         SurfacePalette surface = palettes.world();
-        TerrainPlan plan = new TerrainPlan(c.width, c.height,
-                surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
-                        : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
+        TerrainPlan plan = new TerrainPlan(c.width, c.height, TerrainPlan.Finish.of(surface),
                 1.8, .55, c.seed ^ 0x48494c4cL, List.of());
         boolean[] occupied = new boolean[reserved.length], closed = new boolean[reserved.length];
         int desired = Math.max(1, Math.min(10, c.width * c.height / 6000));
@@ -695,7 +706,44 @@ public final class OutdoorLandscapeStage implements GenStage {
                 if (field.blocked(xx, yy)) closed[yy * c.width + xx] = true;
             }
         }
+        // The planet type's crater rims or fissures, under the same fit and detour proof as the hills.
+        List<TerrainPlan.Stroke> signed = new ArrayList<>();
+        for (TerrainPlan.Stroke stroke : SignatureGround.strokes(signature, c.width, c.height, c.seed)) {
+            if (signedFits(c, plan, stroke, reserved, occupied, closed, ridgeGround)) {
+                plan = plan.append(stroke);
+                signed.add(stroke);
+            }
+        }
         if (!plan.strokes().isEmpty()) TerrainBrush.stamp(plan, c.grid, c.topology, reserved);
+        return signed;
+    }
+
+    /**
+     * Whether a signature stroke fits as a stock hill does: its whole visible footprint, raised or cut, on open
+     * ground clear of every reservation, earlier hill and named ridge, and closing nothing a route needs.
+     */
+    private static boolean signedFits(GenContext c, TerrainPlan plan, TerrainPlan.Stroke stroke, boolean[] reserved,
+                                      boolean[] occupied, boolean[] closed, boolean[][] ridgeGround) {
+        TerrainField field = TerrainField.build(new TerrainPlan(c.width, c.height, plan.finish(),
+                plan.faceDepth(), plan.ruggedness(), plan.seed(), List.of(stroke)));
+        double pad = stroke.radius() + 4;
+        int l = Math.max(0, (int) Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).min().orElseThrow() - pad));
+        int b = Math.max(0, (int) Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::y).min().orElseThrow() - pad));
+        int r = Math.min(c.width - 1, (int) Math.ceil(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).max().orElseThrow() + pad));
+        int t = Math.min(c.height - 1, (int) Math.ceil(stroke.points().stream().mapToDouble(TerrainPlan.Point::y).max().orElseThrow() + pad));
+        for (int yy = b; yy <= t; yy++) for (int xx = l; xx <= r; xx++) {
+            if (Math.max(field.maximum(xx, yy), field.excavationMaximum(xx, yy)) < -.65) continue;
+            int i = yy * c.width + xx;
+            if (reserved[i] || occupied[i] || !openGround(c, xx, yy) || (ridgeGround != null && ridgeGround[xx][yy]))
+                return false;
+        }
+        if (!LandscapeAccess.canClose(c.grid, closed, l, b, r, t, field::blocked)) return false;
+        for (int yy = b; yy <= t; yy++) for (int xx = l; xx <= r; xx++) {
+            int i = yy * c.width + xx;
+            if (Math.max(field.maximum(xx, yy), field.excavationMaximum(xx, yy)) >= -.65) occupied[i] = true;
+            if (field.blocked(xx, yy)) closed[i] = true;
+        }
+        return true;
     }
 
     /** How many plateaus the map asks for: the generation key, else the switch, else none. */
@@ -937,7 +985,8 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
-        if(surface==SurfacePalette.ROCK) {
+        // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
+        if(surface.layoutOf()==SurfacePalette.ROCK) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {

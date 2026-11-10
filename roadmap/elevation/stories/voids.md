@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -83,9 +83,9 @@ generation, never a battle rule, as an emplacement style is
 | Style | Where | Edge | Floor | Bridge |
 | --- | --- | --- | --- | --- |
 | **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
+| **Arid canyon** | Desert worlds, where a living world lays a gorge river: a canyon cut through a sand plain | Banded red and ochre sandstone in terraces, sand lying on the ledges | A dry wash: pale sand braided between gravel bars, boulders fallen from the walls, a dust haze | A stone bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
-| **Canyon** | Barren and desert worlds, where a living world lays a gorge river | Bare rock strata, a dusty lip | A dry wash: pale sand down the middle, gravel and fallen blocks by the walls | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
@@ -501,6 +501,18 @@ Laws):
      throws it, and laid over the tiles under the units, so a narrow ravine's
      floor lies in its walls' shade but for where the sun runs along it.
    - Narrow floor between two rises is a pass, never a bridge.
+   - **A bank, not a cliff** (owner, 2026-11-09: "widen out the hills ...
+     to make sure the player has good views of the action at the bottom ...
+     it doesn't need to be a sheer drop"). A rise climbs in a terraced bank
+     (`NaturalRise.bank`): six even terraces to its top, the top standing ten
+     cells back from the foot. Each face is short, so it leans out little,
+     and the high ground stands well back from the floor, so the camera sees
+     the fighting at the foot rather than the lip of a wall leaning over it.
+     The first pass's cliffs (two ledges and the top 1.6 cells back) leaned
+     over much of a narrow floor; `-Dsnapshot.ravine.sheer=true` still draws
+     them for comparison. Drops keep their sheer walls: the player looks
+     down into them, not out of them. Left: the owner's pick of how wide and
+     how many terraces (`BANK_CELLS`, `BANK_TERRACES`, UNTUNED).
    First pass (ravine wall): the gorge's strata wall, two ledges and the top
    36 m up, camera 120 m. Left: the owner's pick of height; a top with real
    art (a canopy image rather than flat colour, which blurs as the top scales
@@ -574,12 +586,10 @@ Laws):
      pools: the crust's drift and the heat's run quicken from a 24 m melt's
      crawl (0.22 cells a second, the rift's) to a 4 m channel's run (1.1)
      (`LavaVoidLook.runShare`, `MoltenVoidRenderSystem.crustSpeed`), so the
-     plates are seen to travel. One pace for a whole melt, from its mean
-     depth, and once it runs at all its crust drifts as one sheet along the
-     melt's mean bearing: a crust carried far along a pace or a bearing that
-     changed cell to cell tore its image apart between them. A crawling
-     rift's crust still follows its bends. The 40 m rift stays the style's
-     standing depth, drawn as before.
+     plates are seen to travel. The pace is the melt's as a whole, from its
+     mean depth; along it the channel's flow quickens it through a narrows
+     or over a shallow (Flow, below). The 40 m rift stays the style's
+     standing depth.
    - **A rift that shallows** (`-Dsnapshot.lava.setup=vary`): 40 m in the
      west, 12 m by the bridge, 4 m in the east, by depth marks.
 
@@ -627,6 +637,42 @@ Laws):
    a tongue of bank with the drop ending either side; snow bridges drawn as a
    sagging arch rather than a straight deck edge; icicles along the lip and
    seracs or fallen blocks on the floor; a dusk or polar-night sky.
+
+   **Arid canyon** (owner, 2026-11-09: "Build everything", a drop for every
+   ground palette): a natural drop through a desert's sand plain. Look suite:
+   `createSnapshots -Psnapshot=canyon-void-look`, a sand plain cut by a canyon
+   with a stone bridge and a plank span (`-Dsnapshot.canyon.depth`, `.eyes`,
+   `.stillsOnly`; the suites of the dry styles share `StyleVoidLookSuite`).
+   - **What it reuses.** All of the drop, with style `CANYON`. Wall image
+     `canyon-wall.png`: cross-bedded sandstone in red, ochre and cream bands,
+     desert varnish streaks, honeycomb pits (`art-source/voids/canyon/`).
+   - **Dry styles share one set of rules** (`DryVoidLook`); each is a
+     `Palette`. Shade in the drop falls toward the rock's own light thrown
+     back across it, not black. The ledges alternate between two strata, with
+     sediment lying back on each and scree where it breaks. The lip gives way
+     to the plain's own tone and the battle's own light within 0.3 cells of
+     the edge, exactly, so the tiles' stepped edge does not show and the fray
+     ends where its cover is whole, as ice's and lava's do.
+   - **The floor** (`DryVoidFloor`, in the drop's order in place of the
+     water): talus along the walls' feet, a bed of pale sand with two
+     meandering channels braided across coarser bars, lit by the open sky. On
+     it lie the plain's own field stones (the nature sheet's sandstone set,
+     the same the plain scatters), fallen from the walls, warmed into the
+     canyon's light, each with a soft shadow away from the sun; none lies in a
+     channel or in the talus. A thin warm dust haze lies low over it
+     (`VoidHaze`, shared with the crevasse's mist).
+   - **Two findings.** Floor pieces are a quarter cell, so anything noisier
+     than that steps: boulders drawn into the floor's colour came out as
+     pixel blocks, and channels that followed each piece's own flow bearing
+     stair-stepped between pieces; the stones are sprites and the channels
+     follow position alone. And a bridge over a wide drop reads as a strip of
+     the plain: its deck edge is 1.2 m (`NaturalVoidField.DECK_METERS`), the
+     same for an arch as for a plank.
+   - **Battle.** Unchanged.
+   First pass: four terraces to a floor 44 m down, a canyon 15 to 27 cells
+   across, camera 120 m, daylight. Left: the owner's pick of depth; a natural
+   arch's thickness, which needs the bridge's kind; mesas or hoodoos standing
+   in the floor (a rise inside the drop); a dry falls where the floor steps.
 
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
@@ -700,9 +746,6 @@ Laws):
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
-   - **Canyon**: the gorge river's dry sister for desert and barren worlds.
-     Wider and deeper, more and wider ledges, a red or ochre sandstone wall;
-     the floor a dry wash of sand and scree with scattered boulders.
    - **Narrow crevasse**: the glacial crevasse closed to a split of two to
      five cells, few or no ledges. Its floor is not drawn: the depth tint
      runs to a near-black blue, "narrowing to nothing". Its bridges are snow
@@ -714,6 +757,35 @@ Laws):
      a few skerries. A causeway is a bridge.
    The field takes these as they are. Each style adds its floor drawing and
    its palette, and a crevasse its "no floor"; none needs a new shape rule.
+
+   **Flow** (owner, 2026-11-09: "a proper flow field that matches the
+   crevasse that we can re-use for lava/water"). A drop's floor runs along
+   it as one channel (`ChannelFlow`, worked out with the field): each run of
+   the drop's cells along the field's border is an **end**, the shallowest
+   end the **source** and every other an **outlet**, so a channel runs toward
+   its deeper end (ends as deep: toward the east and south). Between them the
+   **potential** is the steady flow of a sheet as deep as the floor, nothing
+   crossing the walls, solved once by over-relaxation. So the flow follows
+   every bend, parts round a pier and runs faster where the channel narrows
+   or shallows. A channel with fewer than two ends is **still**: a pool, a
+   lava lake, a closed crevasse. From it every floor piece takes **along**
+   (the potential, about a cell a cell), **across** (the stream function,
+   the same down a whole streamline) and **speed** (about 1 on an even
+   reach). Patterns are laid in along and across, never on the map's axes,
+   so they bend with the channel, and carried down it in two phases fading
+   one into the other, each place as fast as its own speed, so a pace that
+   changes along the channel stretches the pattern smoothly instead of
+   tearing it:
+   - **Gorge water**: streaks along the streamlines; white water where the
+     flow runs past half again its even pace (`RAPIDS`).
+   - **Lava**: the heat's streaks as the water's; the crust drifts by the
+     flow's velocity at each corner of each piece, so the image bends with
+     the channel and never tears between cells.
+   - **Ice**: the glint on the frozen pools drifts along the streamlines.
+   A rise has no flow: its floor is the battle's ground. Left: a flow hint on
+   the look for a generator that knows which way its brook runs; embers,
+   smoke and mist carried by the channel rather than the wind alone; a falls
+   where a floor steps.
 
    **Depth along a void** (owner, 2026-11-09, Model). Every natural drop and
    rise takes depth marks: the field blends a **gain** from them, the share of
@@ -727,9 +799,8 @@ Laws):
    floor takes less of its deep blue where it shallows. Look suites:
    `-Dsnapshot.gorge.vary`, `-Dsnapshot.ice.vary`, `-Dsnapshot.ravine.vary`
    and the lava rift's `vary` setup. Left: a generator laying marks (a gorge
-   river deepest where its brook's valley is, shallowing to its fords);
-   water that runs faster where the gorge shallows; a falls where a floor
-   steps rather than slopes.
+   river deepest where its brook's valley is, shallowing to its fords); a
+   falls where a floor steps rather than slopes.
 
    **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
    generated maps lay natural voids by planet type, not only debug maps). Look
@@ -742,10 +813,10 @@ Laws):
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it
      has a row.
-   - **The canyon** is a style of its own (`NaturalVoid.Style.CANYON`,
-     `CanyonVoidLook`): a dusty lip, bare ledges with scree, a dry wash on the
-     floor and a warm depth tint. It borrows the gorge's strata wall for now;
-     the basalt wall read as holes at a wide zoom.
+   - **The canyon** is the arid canyon above (`NaturalVoid.Style.CANYON`), its
+     row drawing the canyon's own sandstone wall. Barren rock worlds take it
+     too until they have a dry gorge of their own; the basalt wall read as
+     holes at a wide zoom.
    - **Where.** A drop runs edge to edge across a generated outdoor map's
      open country (`NaturalChasm`), wandering, 7 to 12 cells wide. Lines both
      ways across the map are tried, through its middle and through the
@@ -769,8 +840,7 @@ Laws):
      or more, on the map's own random substream
      (`OutdoorLandscapeStage.CHASM_CHANCE`, UNTUNED), unless they already draw
      a drop or a backdrop; `-Dbattle.mapgen.naturalVoids=<share>` sets it.
-   Left: the owner's pick of how often and how wide; a dry wall image of the
-   canyon's own; road bridges (a road crossing is left as ground, not yet
+   Left: the owner's pick of how often and how wide; road bridges (a road crossing is left as ground, not yet
    drawn as a span); the brook's own gorge, the line below; a drop as a
    mission's dividing line.
 
@@ -782,8 +852,9 @@ Laws):
      sides (`elevation-nouns.md`, Ridges) are not raised beside a gorge: the
      gorge is the valley. The same proofs as a brook's: every required place
      stays connected through the bridges.
-   - A **canyon** where a barren or desert map would lay a gorge river, and
-     as a mission's dividing line between two halves of a map.
+   - An **arid canyon** on desert worlds (`SurfacePalette.ARID`), where a
+     temperate map would lay a gorge river, and as a mission's dividing line
+     between two halves of a map.
    - A **glacial crevasse** on frozen worlds (`SurfacePalette.FROZEN`), where
      a temperate map would lay a gorge river, and a short seeded split laid
      across open ground off the mission's lines, never across a road, with a

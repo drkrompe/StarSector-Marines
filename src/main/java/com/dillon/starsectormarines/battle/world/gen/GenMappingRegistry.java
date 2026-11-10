@@ -56,6 +56,12 @@ public final class GenMappingRegistry {
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundRenderSources = new EnumMap<>(GroundKind.class);
+    /**
+     * A world's own material for a ground kind, over {@link #groundRender}: the same ground in every rule, drawn in
+     * what the world is made of (a volcanic world's stone is basalt). Keyed palette, then kind.
+     */
+    private final Map<SurfacePalette, Map<GroundKind, String>> paletteGroundRender = new EnumMap<>(SurfacePalette.class);
+    private final Map<String, CatalogSource> paletteGroundRenderSources = new LinkedHashMap<>();
     private final Map<GroundKind, String> groundDamage = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundDamageSources = new EnumMap<>(GroundKind.class);
     /** {@link SurfaceRole} -> the tileset block/tile id that orthogonal surface renders as. The wall, doorway and roof half of render dispatch; {@code groundRender}'s sibling, separate because the two vocabularies are orthogonal per cell. */
@@ -119,6 +125,23 @@ public final class GenMappingRegistry {
                 requireUnique("ground render mapping", kind, groundRenderSources, source);
                 groundRender.put(kind, ground.getString(kindName));
                 groundRenderSources.put(kind, source);
+            }
+        }
+        JSONObject paletteGround = root.optJSONObject("paletteGroundRender");
+        if (paletteGround != null) {
+            for (Iterator<String> pit = paletteGround.keys(); pit.hasNext(); ) {
+                String paletteName = pit.next();
+                SurfacePalette palette = SurfacePalette.valueOf(paletteName);
+                JSONObject byKind = paletteGround.getJSONObject(paletteName);
+                for (Iterator<String> it = byKind.keys(); it.hasNext(); ) {
+                    String kindName = it.next();
+                    GroundKind kind = GroundKind.valueOf(kindName);
+                    requireUnique("palette ground render mapping", paletteName + "/" + kindName,
+                            paletteGroundRenderSources, source);
+                    paletteGroundRender.computeIfAbsent(palette, x -> new EnumMap<>(GroundKind.class))
+                            .put(kind, byKind.getString(kindName));
+                    paletteGroundRenderSources.put(paletteName + "/" + kindName, source);
+                }
             }
         }
         JSONObject damage = root.optJSONObject("groundDamage");
@@ -238,6 +261,16 @@ public final class GenMappingRegistry {
         return groundRender.get(kind);
     }
 
+    /**
+     * The block {@code kind} renders as on a world whose ground is {@code palette}: the world's own material where
+     * the mapping names one ({@code paletteGroundRender}), else {@link #groundBlockId(GroundKind)}.
+     */
+    public String groundBlockId(GroundKind kind, SurfacePalette palette) {
+        Map<GroundKind, String> own = palette == null ? null : paletteGroundRender.get(palette);
+        String id = own == null ? null : own.get(kind);
+        return id != null ? id : groundRender.get(kind);
+    }
+
     /** Default blast overlay when the actual surface has no authored material pair. */
     public String groundDamageBlockId(GroundKind kind) {
         return groundDamage.get(kind);
@@ -288,13 +321,17 @@ public final class GenMappingRegistry {
      * palette need only declare the kinds it actually changes, and a filler that
      * predates palettes keeps working untouched.
      *
+     * <p>A palette laid out as another ({@link SurfacePalette#layoutOf}) takes that one's entries unless it authors
+     * its own, so its fillers draw exactly what the other's do.
+     *
      * @param palette the world's surface; {@code null} reads as "no world", which
      *                takes the palette-free entry.
      */
     public FillerParams fillerParams(BlockKind kind, SurfacePalette palette) {
         if (palette != null) {
-            Map<BlockKind, FillerParams> byKind = surfaceFillerParams.get(palette);
-            if (byKind != null) {
+            for (SurfacePalette p : new SurfacePalette[]{palette, palette.layoutOf()}) {
+                Map<BlockKind, FillerParams> byKind = surfaceFillerParams.get(p);
+                if (byKind == null) continue;
                 FillerParams params = byKind.get(kind);
                 if (params != null) return params;
             }
@@ -451,6 +488,16 @@ public final class GenMappingRegistry {
                         + entry.getKey() + "' from "
                         + groundRenderSources.get(entry.getKey()).describe()
                         + " references unknown tile or block id '" + id + "'");
+            }
+        }
+        for (Map.Entry<SurfacePalette, Map<GroundKind, String>> palette : paletteGroundRender.entrySet()) {
+            for (Map.Entry<GroundKind, String> entry : palette.getValue().entrySet()) {
+                if (!tiles.hasBlock(entry.getValue())) {
+                    String key = palette.getKey() + "/" + entry.getKey();
+                    throw new IllegalStateException("GenMappingRegistry: palette ground render mapping '" + key
+                            + "' from " + paletteGroundRenderSources.get(key).describe()
+                            + " references unknown block id '" + entry.getValue() + "'");
+                }
             }
         }
         for (Map.Entry<GroundKind, String> entry : groundDamage.entrySet()) {

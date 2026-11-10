@@ -96,6 +96,8 @@ final class NaturalVoidField {
     final float[] gain;
     /** The most of its steps' depth the shape stands at anywhere: 1 without marks. */
     final float mostGain;
+    /** How the drop's floor runs along it ({@link ChannelFlow}); null for a rise, whose floor is the battle's ground. */
+    final ChannelFlow flow;
 
     /** Flat pieces of one depth, step {@code k}: the lip ({@code 0}), each ledge, and the floor last. */
     final List<Band> bands = new ArrayList<>();
@@ -130,6 +132,12 @@ final class NaturalVoidField {
          */
         float[] z;
         int count;
+
+        /**
+         * The floor's pieces only: per quad, the flow at its centre, {@code {along, across, dirX, dirY, speed}} as
+         * {@link ChannelFlow#at} gives it; null on every other band.
+         */
+        float[] flow;
 
         /** Corner {@code v} of quad {@code q}'s depth ({@code v == 4} its centre). */
         float z(int q, int v) { return z == null ? depth : z[q * 5 + v]; }
@@ -276,6 +284,7 @@ final class NaturalVoidField {
         for (int k = 1; k <= n; k++) walls.add(new ArrayList<>());
         cut(sunX, sunY, risePerCell);
         if (gain != null) for (Band band : bands) cornerDepths(band);
+        flow = rising ? null : flow(n);
         fray();
         sides();
         if (rising) floorShade(sunX, sunY, risePerCell);
@@ -316,6 +325,21 @@ final class NaturalVoidField {
     /** How deep step {@code k} lies at a point, metres: its depth on the steps, scaled by the {@link #gainAt}. */
     float stepDepth(int k, float x, float y) {
         return gain == null ? depth[k] : depth[k] * sample(gain, x, y);
+    }
+
+    /** The floor's flow, worked out over the open cells at the floor's depth there, and laid on its pieces. */
+    private ChannelFlow flow(int n) {
+        float[] floorDepth = new float[w * h];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) floorDepth[y * w + x] = stepDepth(n, x + .5f, y + .5f);
+        ChannelFlow f = new ChannelFlow(w, h, open, floorDepth);
+        Band floor = bands.get(n);
+        float[] at = new float[5];
+        floor.flow = new float[floor.count * 5];
+        for (int q = 0; q < floor.count; q++) {
+            f.at(floor.attrs[q * 8], floor.attrs[q * 8 + 1], at);
+            System.arraycopy(at, 0, floor.flow, q * 5, 5);
+        }
+        return f;
     }
 
     /** Each piece's corners and centre at their own depth along the shape. */
