@@ -30,6 +30,19 @@ final class LavaVoidLook {
     static final float PLAIN_R = .27f, PLAIN_G = .25f, PLAIN_B = .2f;
     /** Cells in from the floor's edge where the crust's own edge lies, before it wanders. */
     static final float CRUST_EDGE_CELLS = .95f;
+    /**
+     * A melt this deep or deeper pools in its rift and crawls; one this shallow is a channel and runs: between them
+     * its flow quickens ({@link #runShare}), metres.
+     */
+    static final float POOL_METERS = 24f, CHANNEL_METERS = 4f;
+
+    /**
+     * How far a melt {@code floorMeters} down has gone from a pooled rift's crawl to a channel's run, 0 to 1: a
+     * shallow river of lava runs fast enough that its crust is seen to travel, a deep rift's barely moves.
+     */
+    static float runShare(float floorMeters) {
+        return 1f - smooth(CHANNEL_METERS, POOL_METERS, floorMeters);
+    }
 
     /** How much light the melt throws on rock {@code metresAbove} metres above it, 0 to {@link #WALL_GLOW}. */
     static float wallGlow(float metresAbove) {
@@ -109,16 +122,18 @@ final class LavaVoidLook {
 
     /**
      * A lip, ledge or fray piece of a lava rift's {@code band} ({@code k == 0} the lip), from the piece's own place,
-     * light and edge, under a melt {@code floorMeters} down, into {@code into} at the piece's slot.
+     * light and edge, over the melt at the bottom of {@code field} wherever the piece stands along it, into {@code
+     * into} at the piece's slot.
      */
-    static void rock(NaturalVoidField.Band band, int q, int k, int seed, float floorMeters, float[] into) {
+    static void rock(NaturalVoidField.Band band, int q, int k, int seed, NaturalVoidField field, float[] into) {
         float[] a = band.attrs;
         int o = q * 8;
         float x = a[o], y = a[o + 1];
         float n1 = NaturalVoidField.Noise.fbm(x * .55f, y * .55f, seed * 7 + 11);
         float n2 = NaturalVoidField.Noise.value(x * 3.1f, y * 3.1f, seed * 7 + 13);
         float[] rgb = new float[3];
-        rock(k == 0, n1, n2, a[o + 2], a[o + 3], floorMeters - band.depth, rgb);
+        float above = (field.depth[field.steps()] - band.depth) * field.gainAt(x, y);
+        rock(k == 0, n1, n2, a[o + 2], a[o + 3], above, rgb);
         System.arraycopy(rgb, 0, into, q * 3, 3);
     }
 

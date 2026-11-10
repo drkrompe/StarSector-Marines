@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -261,7 +263,20 @@ public final class DerelictSecurity {
                 (x, y) -> HiveCradle.create("derelict-hive", Faction.DEFENDER, x, y));
         if (flock == null) return null;
         port.add(flock, plans.get(nearestZone(plans, cell[0], cell[1])).id());
+        // The guardian keeps the court's hardware: a tech cache held from the court, out of reach while it stands.
+        sim.addGuardianCache(guardianCache(court.ground(), cell));
         return flock;
+    }
+
+    /** The id of the layer guardian's tech cache, stable so the site remembers it once taken. */
+    static final String GUARDIAN_CACHE_ID = "guardian-hive";
+
+    /** The guardian room's tech cache: beside the hive's cell, held from its court. */
+    static SalvageCache guardianCache(RuinsDelve.Area court, int[] hive) {
+        return new SalvageCache(GUARDIAN_CACHE_ID, hive[0], hive[1], SalvageResource.MACHINERY,
+                SalvageResource.MACHINERY.cacheQuantity)
+                .heldFromRoom(court.left(), court.bottom(), court.right(), court.top(), 1)
+                .asTechCache();
     }
 
     /** The cell of {@code area} nearest {@code (x0, y0)} that {@code ok} accepts, or null. */

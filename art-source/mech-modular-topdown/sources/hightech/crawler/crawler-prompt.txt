@@ -1,0 +1,11 @@
+Game sprite sheet for a top-down tactical game: a Tri-Tachyon HIGH-TECH LIGHT CRAWLER, a small unpiloted-looking combat machine the size of a small car: a low rounded carapace like a beetle or crab shell on four short, thick, jointed legs. No cockpit, no canopy, no pilot.
+
+Image 1 is the GEOMETRY AUTHORITY (a grey block-in). Keep its layout exactly: on the LEFT the whole crawler assembled, the carapace in the middle and four short legs reaching out in an X; on the RIGHT the same machine's parts drawn apart and upright: the carapace alone (top), one thigh segment (bottom left: hip joint at its lower end, knee end at its top) and one shin segment (bottom right: knee joint at its lower end, a rounded clawed foot pad at its top). Keep every part's position, size, outline and orientation as in the guide so the parts can be cut out by their boxes; keep the gaps between parts empty; keep the flat grey ground of the guide as the background. The carapace on the right must be the same design as on the left, and every leg on the left uses the same thigh and shin as the parts on the right.
+
+On the carapace: the dark round disc at the front is an EMPTY recessed weapon socket with a bearing race, no gun in it, because the gun is a separate layer drawn later; the light disc behind it is the SHIELD EMITTER, a round projector bulb with a soft blue core; the dark strip down the spine is exposed machinery between the two shell halves.
+
+Image 2 is the IDENTITY reference: the owner's chosen concept for this crawler (its gun painted in). Copy its design language, the lobed shell halves, the sockets and the chunky segmented legs, but draw no gun or barrel anywhere.
+
+Image 3 is material and style reference only, never layout: Starsector's high-tech hulls (Tempest, Aurora, Medusa, Paragon). Match their finish: pale steel-blue and blue-grey armour shells, rounded and bulging like carapace, over dark busy gunmetal machinery (ribbed conduits, actuators, small blue-lit ports); small blue glow slots; a little wear and grime; light from the upper left.
+
+Strict 90-degree overhead orthographic view of top surfaces, facing the TOP edge. No cast shadows, labels, text or border. Avoid: any gun or barrel, a cockpit, a pilot figure, clean white plastic, long glowing light strips, perspective, side view.

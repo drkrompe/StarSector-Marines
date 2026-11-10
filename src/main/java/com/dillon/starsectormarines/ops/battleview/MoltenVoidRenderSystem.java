@@ -33,6 +33,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     static final float CRUST_SPEED = .22f, CRUST_PERIOD = 14f;
     /** How fast the heat under the crust runs, cells a second. */
     static final float MELT_SPEED = .5f;
+    /** A shallow channel's crust drift and its heat's run, cells a second ({@link LavaVoidLook#runShare}). */
+    static final float CHANNEL_CRUST_SPEED = 1.1f, CHANNEL_MELT_SPEED = 2.4f;
     /** How far the floor ripples in the heat, in cells. */
     static final float SHIMMER_CELLS = .045f;
     /** A soft round light, white, as the city drop's lamps. */
@@ -65,6 +67,14 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     /** The ground's light beside the lip: {@code {x0, y0, x1, y1, strength}} in the field's cells. */
     private float[] lip = new float[0];
     private int lipCount;
+    /** How fast this rift's crust drifts and its heat runs, cells a second, from how deep its melt lies. */
+    private float crustSpeed = CRUST_SPEED, meltSpeed = MELT_SPEED;
+    /**
+     * The melt's mean bearing downstream, and how far the crust drifts along it rather than each cell's own: a crust
+     * drifting a long way along bearings that differ cell to cell tears its image apart between them, so a running
+     * channel's crust travels as one sheet and a crawling rift's follows its bends.
+     */
+    private float meanFlowX = 1f, meanFlowY = 0f, sheet;
 
     private final float[] rgb = new float[3];
 
@@ -79,13 +89,23 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         return look != null && look.style() == NaturalVoid.Style.LAVA;
     }
 
+    /** How fast the crust drifts on a melt {@code floorMeters} down, cells a second: a pooled rift's crawl to a run. */
+    static float crustSpeed(float floorMeters) {
+        return LavaVoidLook.lerp(CRUST_SPEED, CHANNEL_CRUST_SPEED, LavaVoidLook.runShare(floorMeters));
+    }
+
+    /** How fast the heat runs under the crust on a melt {@code floorMeters} down, cells a second. */
+    static float meltSpeed(float floorMeters) {
+        return LavaVoidLook.lerp(MELT_SPEED, CHANNEL_MELT_SPEED, LavaVoidLook.runShare(floorMeters));
+    }
+
     // ----- shape -----
 
     private void build(NaturalVoidField field) {
         builtFrom = field;
         int w = field.w, h = field.h, n = field.steps();
-        float floorMeters = field.depth[n];
         floorCount = 0;
+        double floorSum = 0;
         lipCount = 0;
         overFloor = new boolean[w * h];
         for (int y = 0; y < h; y++) {
@@ -111,6 +131,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                     floor = grow(floor, floorCount * 5 + 5);
                     int o = floorCount++ * 5;
                     floor[o] = x; floor[o + 1] = y; floor[o + 2] = cover; floor[o + 3] = fx; floor[o + 4] = fy;
+                    floorSum += field.stepDepth(n, cx, cy);
                 } else {
                     // A pool of light on each cell of ground at the lip; the pools overlap into one band.
                     float out = -field.sample(field.edge, cx, cy);
@@ -119,10 +140,21 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                     if (field.byBridge(cx, cy)) continue;
                     lip = grow(lip, lipCount * 3 + 3);
                     int o = lipCount++ * 3;
-                    lip[o] = cx; lip[o + 1] = cy; lip[o + 2] = LavaVoidLook.lipGlow(out, floorMeters);
+                    lip[o] = cx; lip[o + 1] = cy; lip[o + 2] = LavaVoidLook.lipGlow(out, field.stepDepth(n, cx, cy));
                 }
             }
         }
+        // One pace for the whole melt, from how deep it lies on the whole: a pace that changed along it would shear
+        // the crust's image between neighbouring cells.
+        float floorMeters = field.gain == null || floorCount == 0 ? field.depth[n] : (float) (floorSum / floorCount);
+        crustSpeed = crustSpeed(floorMeters);
+        // Torn well before a channel's full run: a sheet as soon as the melt runs at all.
+        sheet = LavaVoidLook.clamp01(LavaVoidLook.runShare(floorMeters) * 4f);
+        float sx = 0f, sy = 0f;
+        for (int c = 0; c < floorCount; c++) { sx += floor[c * 5 + 3]; sy += floor[c * 5 + 4]; }
+        float len = (float) Math.hypot(sx, sy);
+        if (len > 1e-3f) { meanFlowX = sx / len; meanFlowY = sy / len; }
+        meltSpeed = meltSpeed(floorMeters);
     }
 
     private static float[] grow(float[] a, int need) {
@@ -138,26 +170,29 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         BattleCamera cam = drop.camera();
         DrawList out = drop.drawList();
         float alpha = drop.alpha();
-        float s = drop.scale(band.depth);
-        float px = cam.cellPxSize() * s;
+        int n = field.steps();
         float margin = cam.cellPxSize() * 2f;
         int seed = drop.seed();
-        // The melt.
+        // The melt, each piece at its own depth along the rift.
         PolyMesh mesh = drop.poly();
         float[] qd = band.quads, at = band.attrs;
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
+            float s = drop.scale(band.z(q, 4));
             if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
+            float px = cam.cellPxSize() * s;
             float x = at[o], y = at[o + 1], in = at[o + 3], fx = at[o + 4], fy = at[o + 5];
             float along = x * fx + y * fy, across = -x * fy + y * fx;
-            float run = NaturalVoidField.Noise.fbm((along - time * MELT_SPEED) * .22f, across * .55f, seed + 21);
+            float run = NaturalVoidField.Noise.fbm((along - time * meltSpeed) * .22f, across * .55f, seed + 21);
             float pulse = NaturalVoidField.Noise.value(x * .15f, y * .15f + time * .12f, seed + 23);
             float heat = .42f + .3f * run + .14f * pulse + .4f * (1f - LavaVoidLook.crustCover(in));
             LavaVoidLook.molten(heat, rgb);
-            mesh.appendQuad(wx(qd[o], qd[o + 1], s, px, time), wy(qd[o], qd[o + 1], s, px, time),
-                    wx(qd[o + 2], qd[o + 3], s, px, time), wy(qd[o + 2], qd[o + 3], s, px, time),
-                    wx(qd[o + 4], qd[o + 5], s, px, time), wy(qd[o + 4], qd[o + 5], s, px, time),
-                    wx(qd[o + 6], qd[o + 7], s, px, time), wy(qd[o + 6], qd[o + 7], s, px, time),
+            float s0 = drop.scale(band.z(q, 0)), s1 = drop.scale(band.z(q, 1));
+            float s2 = drop.scale(band.z(q, 2)), s3 = drop.scale(band.z(q, 3));
+            mesh.appendQuad(wx(qd[o], qd[o + 1], s0, px, time), wy(qd[o], qd[o + 1], s0, px, time),
+                    wx(qd[o + 2], qd[o + 3], s1, px, time), wy(qd[o + 2], qd[o + 3], s1, px, time),
+                    wx(qd[o + 4], qd[o + 5], s2, px, time), wy(qd[o + 4], qd[o + 5], s2, px, time),
+                    wx(qd[o + 6], qd[o + 7], s3, px, time), wy(qd[o + 6], qd[o + 7], s3, px, time),
                     rgb[0], rgb[1], rgb[2], alpha);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
@@ -172,9 +207,12 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             for (int c = 0; c < floorCount; c++) {
                 int o = c * 5;
                 float x = floor[o], y = floor[o + 1], cover = floor[o + 2];
-                if (cover <= 0f || !drop.inView(x + .5f, y + .5f, s, margin)) continue;
+                if (cover <= 0f || !drop.inView(x + .5f, y + .5f, drop.scale(field.stepDepth(n, x + .5f, y + .5f)),
+                        margin)) continue;
+                float s = drop.scale(field.stepDepth(n, x + .5f, y + .5f)), px = cam.cellPxSize() * s;
                 float fx = floor[o + 3], fy = floor[o + 4];
-                float run = CRUST_SPEED * CRUST_PERIOD;
+                if (sheet > 0f) { fx = LavaVoidLook.lerp(fx, meanFlowX, sheet); fy = LavaVoidLook.lerp(fy, meanFlowY, sheet); }
+                float run = crustSpeed * CRUST_PERIOD;
                 crustCell(crust, field, x, y, fx * run * pa + shiftA, fy * run * pa + shiftA * .6f, s, px, time,
                         alpha);
                 if (wb > .01f) {
@@ -190,6 +228,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 int o = c * 5;
                 int x = (int) floor[o], y = (int) floor[o + 1];
                 if (Math.floorMod(x, 4) != 0 || Math.floorMod(y, 4) != 0) continue;
+                float s = drop.scale(field.stepDepth(n, x + .5f, y + .5f)), px = cam.cellPxSize() * s;
                 if (!drop.inView(x + .5f, y + .5f, s, margin * 4f)) continue;
                 float flick = .75f + .25f * NaturalVoidField.Noise.value(x * .3f, y * .3f + time * .8f, seed + 29);
                 float size = 11f * px;
@@ -198,7 +237,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                         .16f * flick * alpha);
             }
         }
-        smoke(field, band.depth - 4f, 2.6f, .38f, .17f, .08f, .34f, true, time, 0);
+        smoke(field, 4f, 2.6f, .38f, .17f, .08f, .34f, true, time, 0);
     }
 
     /** One floor cell of crust, its image shifted by {@code (ox, oy)} cells, cut where the image repeats. */
@@ -273,10 +312,13 @@ final class MoltenVoidRenderSystem implements RenderSystem {
      */
     private void crustPatch(ShuttleSpriteCache crust, float[] qx, float[] qy, float x0, float y0, float x1,
                             float y1, int srcX, int srcY, int srcW, int srcH, float s, float px, float time, float a) {
-        float ax = wx(qx[0], qy[0], s, px, time), ay = wy(qx[0], qy[0], s, px, time);
-        float bx = wx(qx[1], qy[1], s, px, time), by = wy(qx[1], qy[1], s, px, time);
-        float cx = wx(qx[2], qy[2], s, px, time), cy = wy(qx[2], qy[2], s, px, time);
-        float dx = wx(qx[3], qy[3], s, px, time), dy = wy(qx[3], qy[3], s, px, time);
+        NaturalVoidField field = drop.field();
+        float sa = cornerScale(field, qx[0], qy[0], s), sb = cornerScale(field, qx[1], qy[1], s);
+        float sc = cornerScale(field, qx[2], qy[2], s), sd = cornerScale(field, qx[3], qy[3], s);
+        float ax = wx(qx[0], qy[0], sa, px, time), ay = wy(qx[0], qy[0], sa, px, time);
+        float bx = wx(qx[1], qy[1], sb, px, time), by = wy(qx[1], qy[1], sb, px, time);
+        float cx = wx(qx[2], qy[2], sc, px, time), cy = wy(qx[2], qy[2], sc, px, time);
+        float dx = wx(qx[3], qy[3], sd, px, time), dy = wy(qx[3], qy[3], sd, px, time);
         float minX = Math.min(Math.min(ax, bx), Math.min(cx, dx)), maxX = Math.max(Math.max(ax, bx), Math.max(cx, dx));
         float minY = Math.min(Math.min(ay, by), Math.min(cy, dy)), maxY = Math.max(Math.max(ay, by), Math.max(cy, dy));
         float w = maxX - minX, h = maxY - minY;
@@ -288,6 +330,11 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 u(qx[2], x0, x1), v(qy[2], y0, y1), u(qx[3], x0, x1), v(qy[3], y0, y1)};
         drop.drawList().addSheetPatch(RenderLayer.GROUND, crust.sprite, srcX, srcY, srcW, srcH,
                 minX + w / 2f, minY + h / 2f, w, h, a, patch);
+    }
+
+    /** A crust corner's scale at the melt's own depth there; the cell's {@code s} where the rift is one depth. */
+    private float cornerScale(NaturalVoidField field, float x, float y, float s) {
+        return field.gain == null ? s : drop.scale(field.stepDepth(field.steps(), x, y));
     }
 
     /** A corner's place across the piece's image, 0 to 1. */
@@ -359,13 +406,13 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         if (dot == null) return;
         BattleCamera cam = drop.camera();
         DrawList out = drop.drawList();
-        float floorMeters = field.depth[field.steps()];
         float alpha = drop.alpha();
         float cellPx = cam.cellPxSize();
         int seed = drop.seed();
         for (int c = 0; c < floorCount; c++) {
             int o = c * 5;
             int x = (int) floor[o], y = (int) floor[o + 1];
+            float floorMeters = field.stepDepth(field.steps(), x + .5f, y + .5f);
             int hsh = hash(x, y, seed);
             if (Math.floorMod(hsh, EMBER_EVERY) != 0) continue;
             float rise = EMBER_RISE * (.7f + .6f * ((hsh >>> 8) & 255) / 255f);
@@ -394,14 +441,17 @@ final class MoltenVoidRenderSystem implements RenderSystem {
 
     /**
      * A deck of smoke {@code z} metres down (above the surface when negative): soft puffs on a grid drifting with the
-     * wind, thick where a slow noise says so, standing only over the rift. Lit orange from below by {@code under}.
+     * wind, thick where a slow noise says so, standing only over the rift. Lit orange from below. A {@code low}
+     * deck lies over the melt itself, {@code z} metres up from it wherever it lies.
      */
     private void smoke(NaturalVoidField field, float z, float puffCells, float r, float g, float b, float thick,
                        boolean low, float time, int deck) {
         ShuttleSpriteCache sheet = sprites.spriteByPath(SMOKE_SHEET);
         if (sheet == null || sheet.pxW <= 0) return;
         BattleCamera cam = drop.camera();
-        float s = drop.scale(z);
+        int n = field.steps();
+        // The grid reaches as far as the deepest of the deck would show.
+        float s = drop.scale(low ? field.depth[n] * field.mostGain - z : z);
         float cellPx = cam.cellPxSize();
         float step = puffCells * .55f;
         float drift = time * WIND_SPEED * (low ? .35f : 1f);
@@ -422,15 +472,16 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 // Smoke stands over the rift: where it came up from, upwind of here, and thins away from it.
                 float over = overRift(field, x - WIND_X * SMOKE_LAG_CELLS, y - WIND_Y * SMOKE_LAG_CELLS, low);
                 if (over <= 0f || field.nearBridge(x, y, puffCells * .75f)) continue;
-                float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .21f, j * .21f, seed);
-                if (n < .38f) continue;
-                float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
-                float a = thick * over * Math.min(1f, (n - .38f) / .3f) * alpha;
+                float dense = .5f + .5f * NaturalVoidField.Noise.fbm(i * .21f, j * .21f, seed);
+                if (dense < .38f) continue;
+                float ps = low ? drop.scale(field.stepDepth(n, x, y) - z) : s;
+                float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * ps;
+                float a = thick * over * Math.min(1f, (dense - .38f) / .3f) * alpha;
                 // Lit orange from below, the more the nearer the melt.
                 float lit = low ? .65f : .38f / (1f + deck);
                 int cell = (hsh >>> 24) % (cells * cells);
                 drop.drawList().addImageRegion(RenderLayer.GROUND, sheet.sprite, sheet.pxW, sheet.pxH,
-                        cell % cells * cw, cell / cells * ch, cw, ch, drop.sx(x, s), drop.sy(y, s), size, size,
+                        cell % cells * cw, cell / cells * ch, cw, ch, drop.sx(x, ps), drop.sy(y, ps), size, size,
                         (hsh >> 4 & 1023) * .35f + time * (hsh % 2 == 0 ? 2f : -2f),
                         LavaVoidLook.lerp(r, LavaVoidLook.GLOW_R, lit), LavaVoidLook.lerp(g, LavaVoidLook.GLOW_G, lit),
                         LavaVoidLook.lerp(b, LavaVoidLook.GLOW_B, lit), a);

@@ -42,16 +42,33 @@ public record RuinsPrizeGrant(Kind kind, String id, int quantity, long seed) {
             grants.add(new RuinsPrizeGrant(prize.family() == RuinsVaultPrize.Family.COLONY_ITEM
                     ? Kind.SPECIAL_ITEM : Kind.COMMODITY, payout.itemId(), 1, 0L));
         }
-        long site = RuinsOccupants.mix(sectorSeed, marketId.hashCode());
-        for (RuinsTechCache cache : payout.techCaches()) {
-            grants.add(new RuinsPrizeGrant(Kind.TECH_ROLL, cache.dropGroup(), 1,
-                    RuinsOccupants.mix(site, cache.findId().hashCode())));
-        }
+        grants.addAll(techRolls(payout.techCaches(), sectorSeed, marketId));
         SalvageResource[] resources = SalvageResource.values();
         for (int i = 0; i < payout.goodsBundles(); i++) {
             SalvageResource resource = resources[i % resources.length];
             grants.add(new RuinsPrizeGrant(Kind.COMMODITY, resource.commodityId, resource.cacheQuantity, 0L));
         }
         return List.copyOf(grants);
+    }
+
+    /**
+     * The rolls of the tech caches found along the delve ({@link RuinsFindTier.Place}): sealed stores, a guardian's
+     * room, the vault store's deepest layer. Each find's group and seed come from the site and its id alone.
+     */
+    public static List<RuinsPrizeGrant> ofTechFinds(List<String> findIds, long sectorSeed, String marketId) {
+        if (marketId == null) throw new IllegalArgumentException("a tech find needs a site");
+        List<RuinsTechCache> caches = new ArrayList<>();
+        for (String id : findIds) caches.add(RuinsTechCache.of(sectorSeed, marketId, id));
+        return techRolls(caches, sectorSeed, marketId);
+    }
+
+    private static List<RuinsPrizeGrant> techRolls(List<RuinsTechCache> caches, long sectorSeed, String marketId) {
+        long site = RuinsOccupants.mix(sectorSeed, marketId.hashCode());
+        List<RuinsPrizeGrant> rolls = new ArrayList<>();
+        for (RuinsTechCache cache : caches) {
+            rolls.add(new RuinsPrizeGrant(Kind.TECH_ROLL, cache.dropGroup(), 1,
+                    RuinsOccupants.mix(site, cache.findId().hashCode())));
+        }
+        return rolls;
     }
 }
