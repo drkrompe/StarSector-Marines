@@ -24,8 +24,8 @@ import java.util.Set;
  * garrison), their air, mechs and emplacement crews. The reference market decides the ground: the town's size and
  * districts, the works compound's wall and glacis, the map's size and the works' machines.
  *
- * <p>Each value here is a recommended option on the owner's picks page ({@code raid-owned-reference},
- * {@code raid-owned-sites}, {@code raid-owned-scale}); a different pick changes this class and re-screens the seeds.
+ * <p>Each value here is the owner's pick ({@code raid-owned-reference} a, {@code raid-owned-sites} a,
+ * {@code raid-owned-scale} a); a different one changes this class and re-screens the seeds.
  */
 public final class RaidOwnedMap {
 
@@ -42,8 +42,8 @@ public final class RaidOwnedMap {
     /** The tier the owned map's fortification is read at, whatever tier the raid is. */
     public static final OperationTier TIER = OperationTier.ESTABLISHED;
     /**
-     * The owned map's size, whatever tier the raid is: 400x240, larger than the Established Raid's 280x168 after the
-     * owner's "Probably larger than this. How is the player supposed to skirt the base?" ({@code raid-owned-scale}).
+     * The owned map's size, whatever tier the raid is: 400x240, the owner's pick ({@code raid-owned-scale} a) after
+     * finding 280x168 too small to skirt the base.
      */
     public static final MapScale SCALE = MapScale.VAST;
     /** The risk the map's fortification ceiling is read at. */
@@ -72,21 +72,28 @@ public final class RaidOwnedMap {
             StoryMap.RAID_MILITARY, EconomicFunction.MILITARY);
 
     /**
-     * The ground an owned Raid map is laid on: the map, the home palette it is generated on, the reference market, the
-     * tier its fortification is read at, its size and the machines its works holds. {@link #of} is the owned map; the
-     * other values exist so a look suite can lay an alternative for the owner to compare.
+     * The ground an owned Raid map is laid on: the map and the home palette it is generated on, against
+     * {@link RaidOwnedMap#reference} at {@link #TIER}'s fortification, {@link #SCALE} and {@link #MACHINES}.
      */
-    public record Ground(StoryMap map, SurfacePalette home, TargetProfile reference, OperationTier tier, MapScale scale,
-                         int machines) {
+    public record Ground(StoryMap map, SurfacePalette home) {
         public Ground {
             if (!isRaid(map)) throw new IllegalArgumentException(map + " is not a Raid map");
-            if (machines < 1) throw new IllegalArgumentException("a Raid map's works needs a machine");
         }
 
         /** {@code map}'s owned ground on {@code home}. */
-        public static Ground of(StoryMap map, SurfacePalette home) {
-            return new Ground(map, home, RaidOwnedMap.reference(map, home), TIER, SCALE, MACHINES);
-        }
+        public static Ground of(StoryMap map, SurfacePalette home) { return new Ground(map, home); }
+
+        /** The reference market the map is laid against. */
+        public TargetProfile reference() { return RaidOwnedMap.reference(map, home); }
+
+        /** The tier the map's fortification is read at. */
+        public OperationTier tier() { return TIER; }
+
+        /** The map's size. */
+        public MapScale scale() { return SCALE; }
+
+        /** Machines in the works. */
+        public int machines() { return MACHINES; }
 
         /** The site this ground is laid as, or {@code null} for the generic map. */
         public RaidSiteTemplate site() { return RaidOwnedMap.site(map); }
