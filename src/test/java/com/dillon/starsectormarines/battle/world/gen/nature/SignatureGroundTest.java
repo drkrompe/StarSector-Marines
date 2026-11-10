@@ -27,20 +27,38 @@ class SignatureGroundTest {
         }
     }
 
-    /** Fissures are the ordinary trench contract: excavations, never raised ground and never a new kind of cell. */
+    /** Trench fissures (the switch's other arm) are the ordinary trench contract: excavations, never raised ground. */
     @Test
-    void fissuresAreExcavations() {
-        List<TerrainPlan.Stroke> strokes = SignatureGround.strokes(SurfaceSignature.FISSURES, 160, 120, 5L);
-        assertFalse(strokes.isEmpty());
-        for (TerrainPlan.Stroke stroke : strokes) assertEquals(TerrainPlan.Mode.EXCAVATE, stroke.mode());
+    void trenchFissuresAreExcavations() {
+        System.setProperty(SignatureGround.FISSURE_TRENCH_PROPERTY, "true");
+        try {
+            List<TerrainPlan.Stroke> strokes = SignatureGround.strokes(SurfaceSignature.FISSURES, 160, 120, 5L);
+            assertFalse(strokes.isEmpty());
+            for (TerrainPlan.Stroke stroke : strokes) assertEquals(TerrainPlan.Mode.EXCAVATE, stroke.mode());
+        } finally {
+            System.clearProperty(SignatureGround.FISSURE_TRENCH_PROPERTY);
+        }
     }
 
-    /** Only the two terrain signatures touch the terrain plan. */
+    /** Only crater rims touch the terrain plan by default: crack fissures are drawn, never cut. */
     @Test
     void otherSignaturesAddNoTerrain() {
         for (SurfaceSignature s : SurfaceSignature.values()) {
-            if (s == SurfaceSignature.CRATER_FIELD || s == SurfaceSignature.FISSURES) continue;
+            if (s == SurfaceSignature.CRATER_FIELD) continue;
             assertTrue(SignatureGround.strokes(s, 160, 120, 5L).isEmpty(), s.name());
+        }
+    }
+
+    /** A crack lies wholly on open ground and closes to nothing at its far end. */
+    @Test
+    void cracksStayOnOpenGroundAndClose() {
+        int w = 120, h = 90;
+        IntPredicate open = i -> Math.abs(i % w - 60) > 4;
+        List<List<float[]>> cracks = SignatureGround.cracks(w, h, 3L, open);
+        assertFalse(cracks.isEmpty());
+        for (List<float[]> crack : cracks) {
+            for (float[] p : crack) assertTrue(open.test((int) p[1] * w + (int) p[0]), "crack on closed ground");
+            assertEquals(0f, crack.get(crack.size() - 1)[2]);
         }
     }
 
