@@ -2314,12 +2314,15 @@ their banks; venus-like worlds are graded amber under a slow haze; cast-iron and
 metallic worlds are graded darker and cooler, ground, hills and formations alike, with
 metal flecks glinting in the rock.
 
-**A signature is detail, never a rule.** Crater rims and fissures are terrain the stock
-hills' plan takes under the same fit and detour proof: a rim is raised rock, open by at
-least a third of the way round so it seals no island, and a fissure is the excavation
-contract (impassable, seen and shot across). Everything else is presentation: crater
-bowls and vent mounds are marks the renderer draws (`CellTopology.signatureMarks`),
-cracked fissure banks are the ground's cosmetic blast skin, ejecta and rubble are
+**A signature is detail, never a rule.** Crater rims are terrain the stock hills' plan
+takes under the same fit and detour proof: raised rock, open by at least a third of the
+way round so it seals no island. Fissures are cracks drawn in the ground, jagged lines
+opening widest in the middle with hairline branches, walked over like the ground round
+them; the first pass cut them as narrow trench excavations, which read as trenches, and
+that arm stays behind `battle.signature.fissureTrench` until the owner picks. Everything
+else is presentation: crater bowls, vent mounds and cracks are marks the renderer draws
+(`CellTopology.signatureMarks`), cracked fissure banks are the ground's cosmetic blast
+skin, ejecta and rubble are
 passable field stones with no cover, and grade, flecks, haze and vapour are drawn, never
 simulated (`SignatureRenderSystem`, look suite `planet-signature-look`). The haze
 and vapour draw over the props and under the fog and every unit, so they soften the

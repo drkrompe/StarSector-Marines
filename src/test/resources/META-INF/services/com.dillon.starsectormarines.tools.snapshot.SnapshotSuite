@@ -440,7 +440,6 @@ com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
 com.dillon.starsectormarines.battle.derelict.RuinsGuardiansLookSuite
-com.dillon.starsectormarines.battle.ruins.RuinsWorksPicksSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite
 com.dillon.starsectormarines.ops.battleview.LavaVoidLookSuite
