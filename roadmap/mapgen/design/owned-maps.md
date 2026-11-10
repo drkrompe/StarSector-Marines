@@ -1,8 +1,13 @@
 # Owned maps
 
-Status: ACTIVE — the document, its loader and the biome skin are built; Relay Nine plays on its owned map on every
-world. Next: the editor's Maps page edits the document, the sealed perimeter and the crevasse terrace take their
-sessions' builds, and the next missions are converted in the order the map inventory sets.
+Status: PARKED (owner, 2026-11-10: "We should start small. Each mission should have a single seed per biome. Once we
+get that right then we can branch out with more variety."). Owned maps are that later variety step. Until it resumes:
+the document, `OwnedMapJson`, `OwnedMapCatalog`, `BiomeSkin` and `OwnedMapRecipe` stay on main as built, and Relay
+Nine keeps reading `relay-nine.map.json` (its map was code-authored, never seeded, so it already is one map on every
+biome and serves the one-seed stage as it is). Nothing else converts; the map editor builds no Maps page on this
+format; the sealed-town extraction (`SealedTown` for a lot) and a public drop cutter (`NaturalChasm`) offered by
+their sessions were declined. Resuming starts at Not yet, below, with the map inventory's order
+(`G:\My Drive\starsector\review\owned-maps\2026-11-10_mission-inventory_win\inventory.md`).
 
 Written: 2026-11-10
 

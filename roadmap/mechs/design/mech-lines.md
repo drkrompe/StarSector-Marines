@@ -79,7 +79,13 @@ purchases, so the low-tech row comes first:
    Independents and pirates walk the low-tech row (pirates in repaired-scrap bodies).
 2. **Low-tech variants** across the row, including the field-rig and salvage
    variants that pirates and Independents would build.
-3. **Midline light.** It completes the row that Independents buy into.
+3. **Midline.** It completes the row that Independents buy into. The look follows the Eagle (owner) and its
+   midline kin: weathered tan and khaki plate over grey machinery, a forked twin prow, many round sockets and a
+   pale dome. Three concept rows, every mount drawn empty (law 4), are on the picks page
+   (art-source/mech-modular-topdown/sources/midline/frames): A, prong walkers on two digitigrade legs; B,
+   wheel-walkers on four legs that roll on drive wheels; C, wheeled armoured cars as the row's vehicle line. Its
+   numbers sit between the other two rows (`machine-budgets.md`): about 2x flux draw, a shield at 1.0 where it
+   carries one.
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
    hulls, and Tri-Tachyon already wears it on the three frames

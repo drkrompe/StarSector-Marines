@@ -1390,9 +1390,24 @@ the place's growth, artery or road in laid, the road graph's reservation, the
 ward's own streets, parade and motor pool, and each gate's approach, its width
 and a verge from ten cells inside the wall to fourteen beyond it. A site the
 ground refuses moves to the nearest cell that takes it and is otherwise left
-unplaced and recorded, never drawn elsewhere. A cantonment owes two posts per
-gate at least, made up with light posts, so its guns grow with its market
-through its gates and with its grade through its fortification. This is still
+unplaced and recorded, never drawn elsewhere.
+
+**A military base is defended on its approaches and its walls.** A cantonment
+is owed more than its grade's loadout (`PrecinctDefence.owed`): two posts at
+each gate and a tower at each corner, or a post every 16 cells of wall,
+whichever is more, plus one at each thing it guards. What the loadout lacks is
+made up in its heaviest perimeter kind, so an open base's wall is lined with
+light guns and a fortified one's with heavy. Its guns grow with its market
+through its gates and wall, and with its grade through their weight.
+
+**Stated emplacements are static and all stand.** The defender budget
+(`BattleForceScore`, three quarters of the attack's score) prices the
+garrison, its mechs and air against the attack, and once priced only the
+setup-time scatter on a map that stated no posts of its own. Emplacements the
+map stated, a walled place's or a fort's, are not a force sent to meet the
+attack: they stay where they are, and the attack chooses which to fight and
+which to go round (owner). Before this a raid's garrison alone outscored the
+budget, so not one of a base's guns reached the battle. This is still
 the two-band shape the conquest fortress has always had — a kill zone in front
 and a rear battery band behind — derived from the place's own wall and gates.
 

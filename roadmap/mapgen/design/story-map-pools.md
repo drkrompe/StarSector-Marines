@@ -1,17 +1,18 @@
 # Story map pools
 
-Status: ACTIVE — the four Rav Bloom story maps (Cordon Line, Cordon Road, the
-Heart's The Burn and Broad Front) play from pools, three maps for each world
-biome; Colony Breach plays from one map per biome while it is tuned; Conquest
-and skirmish stay fully random.
+Status: ACTIVE — every pooled story map (Colony Breach, the Cordon's and the
+Heart's, at every density) plays exactly one vetted map per world biome, the
+owner picking each from candidates; Conquest and the generic contracts stay
+fully random until they are pooled too.
+
+Updated: 2026-11-10 — one map per biome everywhere (owner: "start small. Each mission should have a single seed per biome. Once we get that right then we can branch out with more variety"); the rest of each biome's entries kept as `candidates` for the owner's pick.
 
 Written: 2026-10-23
 
-Updated: 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
+Earlier, 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
 
-Owned maps (`owned-maps.md`) are replacing pools: a mission owns one layout and a
-biome skin dresses it, where a seed names a different map on every biome. A pool
-retires when its mission is converted.
+Owned maps (`owned-maps.md`, one layout per mission skinned per biome) are the
+later variety step and are parked until one seed per biome is right.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -90,9 +91,21 @@ station airbase were tuned on (owner, 2026-10-31): switching one is moving the
 flag to another entry. The biome's other entries
 stay in the pool for bloom events on other worlds.
 
-**Size.** Three per biome (owner, 2026-10-23), so fifteen per story map over five biomes: few
-enough that each is owned and tuned, and the whole pool plays in one evidence
-run. The pool is a dial, not a constant: add a map when one earns it.
+**Size.** One per biome (owner, 2026-11-10: "start small. Each mission should
+have a single seed per biome"), so every reading of a mission on a biome is the
+same map. It was three (owner, 2026-10-23); the pool is still a dial, not a
+constant, and the reader takes any number, so variety returns by adding entries
+once one map per biome is right.
+
+**Candidates.** The owner picks each biome's map. A pool file's top-level
+`candidates` (by biome, entries as in `biomes`, notes and patches kept) holds the
+seeds put to the owner beside the pooled one; the reader ignores it. The pooled
+entry is the recommendation until the owner picks: the `story` entry where a
+biome had one, else the first of the old three. `createSnapshots
+-Psnapshot=story-map-candidates` (`-Dsnapshot.candidates.maps=`) frames each
+biome's pooled entry and candidates whole through the look preset, pooled first,
+and screens seeds from 1 up for a map with fewer than three (Colony Breach). A
+pick moves the chosen entry into `biomes` and the pooled one into `candidates`.
 
 **Colony Breach.** The colony (`colony-breach`) is pooled too, one map per
 biome while the mission is tuned (owner, 2026-10-26), so every tuning reading
