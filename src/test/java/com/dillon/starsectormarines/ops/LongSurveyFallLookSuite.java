@@ -26,13 +26,17 @@ import java.util.List;
  * 1920x1080: the hull roofed on its trench ({@code 1-hull.png}, closer {@code 1b-hull-close.png}), the forge hall with
  * the roof lifted ({@code 2-forge.png}), and the first stripper and hauler out on the claim, set side by side on open
  * ground clear of the hull for the frame alone ({@code 3-stripper-hauler.png}: stripper west, hauler east). The fallen
- * hull's looks in their places (`art-source/fallen-hull`). Nothing is judged; the battle is not stepped after the
- * walkers are moved.
+ * hull's looks in their places (`art-source/fallen-hull`). Until the ground lays the hull's compartments, the hull
+ * entered is a stand-in ({@link HullEnteredStage}) laid over a slice of the real hull: three compartments behind the
+ * outer armour, roofs off ({@code 4-entered.png}, the bay closer {@code 4b-entered-bay.png}) and the bay boarded under
+ * the roofed ship ({@code 4c-boarded.png}). Nothing is judged; the battle is not stepped after the walkers are moved.
  * Opt-in; {@code -Dsnapshot.longSurveyFall.seconds} sets how long it plays first (default 150).
  */
 public final class LongSurveyFallLookSuite implements SnapshotSuite {
 
     private static final int W = 1920, H = 1080;
+    /** How far west of the forge the hull-entered stand-in is staged, cells. */
+    private static final int STAGE_BACK = 30;
 
     @Override public String id() { return "long-survey-fall-look"; }
 
@@ -84,6 +88,16 @@ public final class LongSurveyFallLookSuite implements SnapshotSuite {
                             W, H, fx - 30f, fy, 48f).render(sim, "")));
                     out.add(new SnapshotArtifact("2-forge.png", BattleReviewFrameRenderer.look(context.modRoot(), W,
                             H, fx - 4f, fy, 34f).withoutRoofs().render(sim, "")));
+                    HullEnteredStage stage = new HullEnteredStage(context.modRoot());
+                    int[] at = HullEnteredStage.origin(sim, fx, fy, STAGE_BACK);
+                    log("hull entered staged at (%d, %d)", at[0], at[1]);
+                    int cols = HullEnteredStage.COLS;
+                    out.add(new SnapshotArtifact("4-entered.png", stage.frame(context.modRoot(), sim, at, 44f, false,
+                            cols, cols / 2f)));
+                    out.add(new SnapshotArtifact("4b-entered-bay.png", stage.frame(context.modRoot(), sim, at, 20f,
+                            false, cols, HullEnteredStage.BAY_COLS / 2f)));
+                    out.add(new SnapshotArtifact("4c-boarded.png", stage.frame(context.modRoot(), sim, at, 44f, true,
+                            HullEnteredStage.BAY_COLS, cols / 2f)));
                 }
                 long stripper = first(sim, director, DerelictWalkerFrame.STRIPPER);
                 long hauler = first(sim, director, DerelictWalkerFrame.HAULER);
