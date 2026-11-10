@@ -1,0 +1,12 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide; these pieces are giant: the torus is ten cells across.
+Era: spacefaring industry, automated and robot- or field-handled, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. Colour keys in the block-out: pale blue-white is frost or glass; dull green is grown culture; brown is earth and rock spoil; copper-brown squares are copper windings; pale gold is a faint dying glow.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. proving-torus (10x8): a great fusion proving torus seen from above: a massive ring-shaped vessel, sixteen copper field coil blocks round it, its central bore dark with a faint dying glow deep inside.
+2. precursor-furnace (6x5): a fullerene precursor furnace: a refractory furnace box on its west side with three dark firing slots, two round flue stacks on its east side.
+Bottom row:
+3. proof-butt (12x4): a firing range proof butt: a long earth berm, its south face armoured with a wall of steel plates pocked with impact holes.

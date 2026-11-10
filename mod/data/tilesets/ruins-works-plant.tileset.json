@@ -1,0 +1,450 @@
+{
+  "sheet": "graphics/doodads/ruins-works-plant.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-feedstock-silo",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-feedstock-silo-split",
+      "col": 5,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-reactor-column",
+      "col": 10,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-product-tank",
+      "col": 15,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-lattice-tank",
+      "col": 18,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-coating-chamber",
+      "col": 20,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-nutrient-tank",
+      "col": 24,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-tank",
+      "col": 28,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-precursor-tank",
+      "col": 15,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-draw-tower",
+      "col": 19,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-chiller",
+      "col": 23,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-chiller-burst",
+      "col": 0,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-preheat-furnace",
+      "col": 5,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-cold-manifold",
+      "col": 28,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cryostat",
+      "col": 10,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-pumps",
+      "col": 14,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-ice-ridge",
+      "col": 28,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-hoist-winder",
+      "col": 10,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-winder",
+      "col": 18,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-beam-dump",
+      "col": 22,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-ring-segment",
+      "col": 0,
+      "row": 9,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ring-segment-ew",
+      "col": 3,
+      "row": 9,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-rf-cavity",
+      "col": 26,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-linac-section",
+      "col": 6,
+      "row": 9,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cutter-rack",
+      "col": 8,
+      "row": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-drum-rack",
+      "col": 14,
+      "row": 9,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        4
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Feedstock silo",
+      "description": "A powder feedstock silo seen from above: its ribbed conical roof, a fill hatch at the apex, a walkway round the rim."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "Split feedstock silo",
+      "description": "The silo split open down its east side, pale feedstock powder spilled out to its east edge."
+    },
+    {
+      "col": 10,
+      "row": 0,
+      "name": "Reactor column",
+      "description": "A catalytic reactor column's top head on its square grated platform, a ring of flange bolts round a central nozzle."
+    },
+    {
+      "col": 15,
+      "row": 0,
+      "name": "Product tank",
+      "description": "A round product tank on a square grated platform."
+    },
+    {
+      "col": 18,
+      "row": 0,
+      "name": "Lattice tank",
+      "description": "A square cryogenic lattice tank, frost on its window."
+    },
+    {
+      "col": 20,
+      "row": 0,
+      "name": "Coating chamber",
+      "description": "A square vacuum coating chamber, its round sealed door on top, the hinge block east."
+    },
+    {
+      "col": 24,
+      "row": 0,
+      "name": "Nutrient tank",
+      "description": "A round nutrient tank: domed roof, manway, a culture sample port, nozzles west."
+    },
+    {
+      "col": 28,
+      "row": 0,
+      "name": "Feed tank",
+      "description": "A round feed tank: domed roof, manway, nozzles west."
+    },
+    {
+      "col": 15,
+      "row": 3,
+      "name": "Precursor tank",
+      "description": "A round precursor tank, heater bands on its roof, chemical crust."
+    },
+    {
+      "col": 19,
+      "row": 4,
+      "name": "Draw tower",
+      "description": "The head of a fibre draw tower: a square frame on four legs round its furnace bore, a dull glow at the bottom."
+    },
+    {
+      "col": 23,
+      "row": 4,
+      "name": "Chiller",
+      "description": "A big industrial chiller: three fan shrouds across its roof, its condenser coil bank along the south side."
+    },
+    {
+      "col": 0,
+      "row": 5,
+      "name": "Burst chiller",
+      "description": "The chiller burst open at its south-east corner, frozen coolant spilled over it as an ice sheet."
+    },
+    {
+      "col": 5,
+      "row": 5,
+      "name": "Preheat furnace",
+      "description": "A feed preheat furnace: a firebox with four burner ports, its flue stack north-east."
+    },
+    {
+      "col": 28,
+      "row": 4,
+      "name": "Cold manifold",
+      "description": "A cold distribution manifold: a header block with four frosted couplings, insulated pipes leaving north and south."
+    },
+    {
+      "col": 10,
+      "row": 5,
+      "name": "Cryostat",
+      "description": "A cryostat lying east-west on its end frames, frosted."
+    },
+    {
+      "col": 14,
+      "row": 7,
+      "name": "Feed pumps",
+      "description": "Two nutrient feed pumps on a shared skid."
+    },
+    {
+      "col": 28,
+      "row": 7,
+      "name": "Ice ridge",
+      "description": "A ridge of coolant frozen where it poured from a burst header."
+    },
+    {
+      "col": 10,
+      "row": 8,
+      "name": "Hoist winder",
+      "description": "A shaft hoist winder: a grooved drum between two pedestals, its two cables leaving the north edge toward the shaft."
+    },
+    {
+      "col": 18,
+      "row": 8,
+      "name": "Spool winder",
+      "description": "A fibre spool winder: a machine bed round a bare turntable (the spool drum is laid over it), its traverse guide east."
+    },
+    {
+      "col": 22,
+      "row": 8,
+      "name": "Beam dump",
+      "description": "A particle beam dump: a shielded block, the beam pipe entering its core from the north edge."
+    },
+    {
+      "col": 0,
+      "row": 9,
+      "name": "Ring segment",
+      "description": "A storage ring dipole segment, its beam pipe north-south through it, flush to both edges: a straight run of the ring."
+    },
+    {
+      "col": 3,
+      "row": 9,
+      "name": "Ring segment (east-west)",
+      "description": "The ring segment turned east-west."
+    },
+    {
+      "col": 26,
+      "row": 8,
+      "name": "RF cavity",
+      "description": "An RF accelerating cavity: two copper-cored cells on the beam pipe north-south, its waveguide stub east."
+    },
+    {
+      "col": 6,
+      "row": 9,
+      "name": "Linac section",
+      "description": "A linac cryomodule on the beam pipe, north-south."
+    },
+    {
+      "col": 8,
+      "row": 9,
+      "name": "Cutter rack",
+      "description": "A rack of spare bore cutter discs, four shelves."
+    },
+    {
+      "col": 14,
+      "row": 9,
+      "name": "Drum rack",
+      "description": "A rack of full fibre spool drums, four shelves."
+    }
+  ]
+}
