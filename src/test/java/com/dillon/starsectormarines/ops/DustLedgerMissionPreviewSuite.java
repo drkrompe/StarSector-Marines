@@ -8,12 +8,9 @@ import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective;
-import com.dillon.starsectormarines.battle.objective.side.SideTrigger;
-import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveMoveOrder;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
@@ -54,8 +51,7 @@ import java.util.function.Function;
 
 /**
  * The whole Dust Ledger as a player would see it, for the owner's preview: the production chapter fixture under
- * autonomous command, with the side jobs done by squads sent there as a player sends them (the feed tap, the warden's
- * nod and the coupling to the Harrow yard), played to the end. Played twice: once undrawn for its timeline, then
+ * autonomous command, played to the end. Played twice: once undrawn for its timeline, then
  * recorded at 1x through a directed camera (the look preset with the mission beacons, the HUD rail and the story
  * subtitles) that cuts to where things happen, with the screen's soundtrack mixed in: the music director, the
  * battle's sounds and the screen's ambient bed. 1920x1080 at 15 frames a second. Opt-in.
@@ -66,8 +62,6 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
     static final String DRY_RUN_PROPERTY = "snapshot.preview.dryRun";
     /** The longest the battle may run, in ticks: past the lift-off clock with room to spare. */
     static final int MAX_TICKS = Math.round(420f / BattleSimulation.TICK_DT);
-    /** Seconds after the landing before the jobs are handed out, as a player would after the company is down. */
-    static final float ORDERS_AT_SECONDS = 6f;
     static final int WIDTH = 1920, HEIGHT = 1080;
     /** A frame every this many ticks: 15 frames a second. */
     static final int EVERY_TICKS = 2;
@@ -105,9 +99,8 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
         try (BattleSimulation sim = fixture()) {
             Script script = new Script();
             var sites = sim.getDustLedger().sites();
-            System.out.println("    [sites] apron " + sites.apron().centre() + " crate " + sites.crate() + " harrow " + sites.harrowYard().centre()
-                    + " well " + sites.wellHouse().centre() + " feed " + sites.feedJunction().centre() + " ledger " + sites.ledgerRoom().centre()
-                    + " ring " + sites.exclusionRing().centre() + " pad " + sites.skimmerPad() + " gate " + sites.eastGate()
+            System.out.println("    [sites] apron " + sites.apron().centre() + " ledger " + sites.ledgerRoom().centre()
+                    + " ring " + sites.exclusionRing().centre() + " pad " + sites.skimmerPad()
                     + " technical " + sim.getDustLedger().technical());
             int lastPrint = -1;
             int tick = 0;
@@ -209,68 +202,15 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
      * squad lifts the crate to the Harrow yard (after its wait if it is the warden's), and the rest staged at the yard,
      * all outside the ring. When the three jobs are settled the orders stop and the company goes in on its own.
      */
+    /** Notes when the company is down; the battle is otherwise left to autonomous command. */
     static final class Script {
-        int feedSquad = -1, wardenSquad = -1, couplingSquad = -1;
         int landedAt = -1;
-        int releasedAt = -1;
 
         void tick(BattleSimulation sim) {
-            DustLedgerSequence ledger = sim.getDustLedger();
-            if (releasedAt >= 0 || !ledger.progress().quiet()) return;
+            if (landedAt >= 0) return;
             List<Squad> squads = infantry(sim);
-            int tick = sim.getSimTickIndex();
-            if (landedAt < 0) {
-                if (squads.isEmpty() || squads.stream().anyMatch(s -> sim.isRiding(s.leaderId))) return;
-                landedAt = tick;
-            }
-            if (tick < landedAt + Math.round(ORDERS_AT_SECONDS / BattleSimulation.TICK_DT)) return;
-            DustLedgerSequence.Sites sites = ledger.sites();
-            if (feedSquad < 0) feedSquad = nearest(sim, squads, sites.feedJunction().centre(), -1, -1);
-            if (wardenSquad < 0) wardenSquad = nearest(sim, squads, sites.wellHouse().centre(), feedSquad, -1);
-            if (couplingSquad < 0) couplingSquad = nearest(sim, squads, sites.crate(), feedSquad, wardenSquad);
-            if (tick % 30 != 0) return;
-            boolean feedDone = settled(sim, "dust-ledger-feed");
-            boolean wardenDone = settled(sim, "dust-ledger-warden");
-            SideObjective coupling = sim.getSideObjectives().job("dust-ledger-coupling");
-            boolean couplingDone = coupling.state().isFinal();
-            if (feedDone && wardenDone && couplingDone) {
-                releasedAt = tick;
-                return;
-            }
-            // The stand-in player presses each job's verb whenever a squad is close enough to have it on offer.
-            sim.getSideObjectives().choose("dust-ledger-feed", "cut");
-            sim.getSideObjectives().choose("dust-ledger-warden", "respects");
-            long carrier = coupling.trigger() instanceof SideTrigger.Carry carry ? carry.carrier() : 0L;
-            int carrierSquad = carrier != 0L ? squadOf(sim, squads, carrier) : -1;
-            Cell yard = sites.harrowYard().centre();
-            for (Squad s : squads) {
-                Cell to;
-                if (s.id == feedSquad) to = sites.feedJunction().centre();
-                else if (s.id == wardenSquad && !wardenDone) to = sites.wellHouse().centre();
-                else if (s.id == carrierSquad) to = yard;
-                else if (s.id == couplingSquad && carrier == 0L && !couplingDone) to = sites.crate();
-                else to = yard;
-                order(sim, s.id, to);
-            }
-        }
-
-        private static boolean settled(BattleSimulation sim, String job) {
-            return sim.getSideObjectives().job(job).state().isFinal();
-        }
-
-        private static int squadOf(BattleSimulation sim, List<Squad> squads, long unit) {
-            for (Squad s : squads)
-                for (int i = 0, n = sim.squadMemberCount(s.id); i < n; i++)
-                    if (sim.squadMemberAt(s.id, i) == unit) return s.id;
-            return -1;
-        }
-
-        private static void order(BattleSimulation sim, int squad, Cell to) {
-            if (squad < 0) return;
-            var active = sim.getSquadMoveOrderService().activeOrder(squad);
-            if (active instanceof ActiveMoveOrder move
-                    && move.requestedX() == to.x() && move.requestedY() == to.y()) return;
-            sim.getSquadMoveOrderService().requestMove(squad, to.x(), to.y());
+            if (squads.isEmpty() || squads.stream().anyMatch(s -> sim.isRiding(s.leaderId))) return;
+            landedAt = sim.getSimTickIndex();
         }
     }
 
@@ -280,17 +220,6 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
             if (s.faction == Faction.MARINE && !s.isMechSquad() && s.aliveMembers > 0) out.add(s);
         out.sort((a, b) -> Integer.compare(a.id, b.id));
         return out;
-    }
-
-    static int nearest(BattleSimulation sim, List<Squad> squads, Cell to, int not1, int not2) {
-        int best = -1;
-        double bestD = Double.MAX_VALUE;
-        for (Squad s : squads) {
-            if (s.id == not1 || s.id == not2 || !sim.world().isAlive(s.leaderId)) continue;
-            double d = Math.hypot(sim.world().cellX(s.leaderId) - to.x(), sim.world().cellY(s.leaderId) - to.y());
-            if (d < bestD) { bestD = d; best = s.id; }
-        }
-        return best;
     }
 
     private static String status(BattleSimulation sim, Script script) {
@@ -306,11 +235,7 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
         if (broker != 0L && sim.world().isAlive(broker))
             out.append(String.format(Locale.ROOT, " broker@%d,%d", sim.world().cellX(broker), sim.world().cellY(broker)));
         for (Squad s : infantry(sim)) {
-            if (s.id == script.couplingSquad && sim.getSideObjectives().job("dust-ledger-coupling").trigger() instanceof SideTrigger.Carry carry
-                    && carry.carrier() != 0L)
-                out.append(String.format(Locale.ROOT, " crate@%d,%d", sim.world().cellX(carry.carrier()), sim.world().cellY(carry.carrier())));
-            String role = s.id == script.feedSquad ? "F" : s.id == script.wardenSquad ? "W" : s.id == script.couplingSquad ? "C" : "-";
-            out.append(String.format(Locale.ROOT, " %s%d@%d,%d", role, s.id,
+            out.append(String.format(Locale.ROOT, " %d@%d,%d", s.id,
                     sim.world().isAlive(s.leaderId) ? sim.world().cellX(s.leaderId) : -1,
                     sim.world().isAlive(s.leaderId) ? sim.world().cellY(s.leaderId) : -1));
         }
@@ -346,12 +271,8 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
             int alarm = t.at("alarm_sighted", t.end());
             int boarded = t.at("broker_boarded", alarm + 30 * s);
             int seized = t.at("ledger_seized", boarded + 15 * s);
-            int wardenIn = t.at("warden_approach", alarm) - 3 * s;
-            int wardenOut = t.at("warden_nod", wardenIn + 8 * s) + 2 * s;
             shots.add(new Shot("landing", 0, sim -> site(sim, "apron", 80f)));
-            shots.add(new Shot("coupling", landed + 4 * s, sim -> crate(sim, 60f)));
-            shots.add(new Shot("well house", wardenIn, sim -> site(sim, "well", 50f)));
-            shots.add(new Shot("feed and yard", wardenOut, sim -> site(sim, "feed and yard", 72f)));
+            shots.add(new Shot("approach", landed + 4 * s, sim -> company(sim, false, 84f)));
             shots.add(new Shot("alarm", alarm, sim -> site(sim, "ring", 110f)));
             shots.add(new Shot("broker runs", alarm + 9 * s, sim -> broker(sim, 64f)));
             shots.add(new Shot("assault", alarm + 19 * s, sim -> company(sim, true, 72f)));
@@ -391,27 +312,11 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
             var sites = sim.getDustLedger().sites();
             Cell at = switch (place) {
                 case "apron" -> sites.apron().centre();
-                case "well" -> sites.wellHouse().centre();
                 case "ring" -> sites.exclusionRing().centre();
                 case "pad" -> sites.skimmerPad();
                 case "ledger" -> sites.ledgerRoom().centre();
-                default -> null;
+                default -> throw new IllegalArgumentException(place);
             };
-            if (at == null) {
-                Cell feed = sites.feedJunction().centre(), yard = sites.harrowYard().centre();
-                return new float[] {(feed.x() + yard.x()) / 2f, (feed.y() + yard.y()) / 2f, cells};
-            }
-            return new float[] {at.x(), at.y(), cells};
-        }
-
-        /** The crate's carrier, else the crate where it waits, else the Harrow yard once it is delivered. */
-        private static float[] crate(BattleSimulation sim, float cells) {
-            SideObjective coupling = sim.getSideObjectives().job("dust-ledger-coupling");
-            if (coupling.trigger() instanceof SideTrigger.Carry carry && carry.carrier() != 0L
-                    && sim.world().isAlive(carry.carrier()))
-                return new float[] {sim.world().cellX(carry.carrier()), sim.world().cellY(carry.carrier()), cells};
-            Cell at = coupling.state().isFinal() ? sim.getDustLedger().sites().harrowYard().centre()
-                    : sim.getDustLedger().sites().crate();
             return new float[] {at.x(), at.y(), cells};
         }
 
