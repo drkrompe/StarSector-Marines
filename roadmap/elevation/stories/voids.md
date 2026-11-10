@@ -751,7 +751,10 @@ Laws):
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
      it. Its scorched lip is laid whole out to the fray's wandering end, and
      the fray lies on the drop's own cells outside the smoothed edge, so the
-     bank shows no cell steps (`NaturalVoidField`). Look suite
+     bank shows no cell steps (`NaturalVoidField`). Its lip, ledges and melt
+     are coloured corner by corner, each corner the mean of the pieces that
+     meet there (`CornerShading`), so the glow and ash run smoothly across
+     the small pieces rather than stepping; the other drops stay flat. Look suite
      `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so
