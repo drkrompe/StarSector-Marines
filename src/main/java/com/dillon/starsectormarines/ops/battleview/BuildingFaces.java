@@ -30,20 +30,6 @@ final class BuildingFaces {
     static final float[] HEIGHTS = {3.2f, 4.5f, 8f, 11.5f, 15f, 0f};
     /** Height classes by name ({@link #HEIGHTS}). */
     static final int SHED = 0, ONE = 1, TWO = 2, THREE = 3, TALL = 4, RAZED = 5;
-    /**
-     * How a cut-away building's near walls read while the owner picks ({@code voids.md}, buildings in depth; picks
-     * question voids-cutaway-walls): {@code stub} (default), dropped to knee height, or {@code ghost}, standing whole
-     * and faded. A temporary A/B switch: remove it, and the losing arm, once the owner picks.
-     */
-    static final String CUTAWAY_SWITCH = "battle.render.cutawayWalls";
-    /** How much of a ghosted near wall still shows with its building cut away ({@link #CUTAWAY_SWITCH}). UNTUNED. */
-    static final float GHOST_ALPHA = .28f;
-
-    /** Whether cut-away near walls stand whole and faded rather than drop to a stub ({@link #CUTAWAY_SWITCH}). */
-    static boolean ghostCutaway() {
-        return "ghost".equals(System.getProperty(CUTAWAY_SWITCH));
-    }
-
     /** How high a cut-away building's near walls still stand, metres: about knee height. UNTUNED. */
     static final float KNEE_METERS = .6f;
     /** The share of a building's roof fallen in or burnt away past which it is destroyed. UNTUNED. */
