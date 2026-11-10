@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.derelict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.RoofStyle;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
@@ -158,8 +159,8 @@ public final class FallenHullLookSuite implements SnapshotSuite {
     private static void roofBlock(Frame f, Art a, float x0, float y0, int cw, int ch) {
         BufferedImage sheet = a.roofs();
         if (sheet == null) return;
-        int fpx = sheet.getHeight() / 5;
-        int row = 4 * fpx;
+        int fpx = sheet.getHeight() / RoofStyle.COUNT;
+        int row = RoofStyle.HULL.ordinal() * fpx;
         for (int i = 0; i < cw; i++) {
             for (int j = 0; j < ch; j++) {
                 int col = (i & 1) + 2 * (j & 1);

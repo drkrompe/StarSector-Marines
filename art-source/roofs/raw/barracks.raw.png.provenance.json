@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c76b-2a61-7993-9004-286970d62650",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c76b-2a61-7993-9004-286970d62650\\exec-8b6eaf54-51ee-43f8-9d83-c492dd5a7aa3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\loving-morse-56b3ad\\art-source\\roofs\\raw\\barracks.raw.png",
+    "sha256": "212edc9238dd324109a2d6dcf82185eb21bc256c7ea4a5b8256eb5de4efac94f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\loving-morse-56b3ad\\art-source\\roofs\\prompts\\barracks.prompt.txt",
+  "promptSha256": "a76df9ba46800193c6bd69df8383ba1c28fad8ce5d83b481ac2c42236ac49847",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target\nImage 2: Palette and material mood only; not layout, not content\n\nUse case: sketch-to-render, game tile sheet. Image 1 is the authoritative geometry guide and edit target. Reskin it into finished painted game art, preserving every shape, band, hole, beam and position, the exact 1536x1024 canvas and all empty white space. Do not move, rescale, rotate, merge or add pieces. Everything is a building's ROOF seen from directly overhead. The sheet holds five separate pieces. PIECE 1, THE FIELD (x 0-767, y 128-895): ONE continuous seamless stretch of roof, two by two cells of 384 px with no gaps, borders or frames. Keep the guide's grain (courses, ribs, seams, plates) exactly where it is and evenly spaced, so the left edge continues into the right edge and the top into the bottom when tiled. Even, quiet weathering, no single large feature near an edge. PIECE 2, THE EAVE EDGE (x 800-1503, y 40-103): the roof's finished outer edge as a long straight strip, its outside at the top: the lit lip along the top, the edge band, a shaded foot along the bottom. Identical all along. PIECE 3, HOLED (x 800-1151, y 136-487): one cell of the same roof punched through by a shell: the near-black middle is an OPEN HOLE onto the dark room below; paint its ragged rim of broken, bent and splintered roofing, cracks and grit, scorching round the rim. PIECE 4, COLLAPSED (x 1168-1519, y 136-487): one cell where the roof has fallen in: the strip along the top is the roof still standing with a torn lower edge, below it a slab of roof sagging and tilted down, and broken joists hanging; the near-black is OPEN onto the dark room below. PIECE 5, BURNT THROUGH (x 800-1151, y 520-871): one cell burnt through by fire: charred, cracked rafters and a broken purlin over the open dark room, with a few blackened scraps of roofing left on them, ash, faint ember glow in the cracks. Keep every near-black void a flat, plain near-black. Material: a military base's low barracks hut roof of faded khaki-olive ridged steel sheet in broad standing-seam pans, a darker galvanised ridge cap across the middle of each cell, a couple of round mushroom vents, dust drifted against the seams, sun-bleached paint and patched sheets; the edge a plain folded khaki flashing with a bolt line; holes torn and curled back; the burnt state blackened steel purlins. Domain-era frontier military, never modern Earth; no markings or insignia. Straight 90-degree overhead orthographic camera, top-down like a strategy-game map tile, no perspective. Sun from the upper left. Hand-painted gritty science-fiction game-tile look like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 32 to 64 pixels per cell. No text, letters, numbers, labels, watermark, UI, people, plants or extra objects; no border; white everywhere outside the five pieces. Change only material, surface detail and subtle shading, never placement, size or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\loving-morse-56b3ad\\art-source\\roofs\\guides\\barracks-guide.png",
+      "sha256": "3814914068626ce320545e9cb3f2db33f060a72506b06b2e87095fc454c59ab8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority and edit target"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\loving-morse-56b3ad\\art-source\\raid-sites\\military\\concept-v1.png",
+      "sha256": "255f88d809ca6025f6c8fefd6480503ea7688979bc6b8340b347a7363ecd2391",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Palette and material mood only; not layout, not content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to reskin the guide, preserving its geometry and white space, with the second image guiding only palette and materials."
+  ],
+  "usage": {
+    "input_tokens": 46491,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 741,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.0
+}

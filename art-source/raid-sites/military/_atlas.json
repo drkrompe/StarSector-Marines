@@ -1,0 +1,105 @@
+{
+  "defaults": {
+    "cover": "none",
+    "padding": 0,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "watchtower.png": {
+      "id": "doodad.watchtower",
+      "name": "Watchtower",
+      "description": "A perimeter lookout tower: a sandbagged platform on legs, cabin, searchlight, ladder.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "saluting-base.png": {
+      "id": "doodad.saluting-base",
+      "name": "Saluting base",
+      "description": "The low reviewing dais at the head of the parade square.",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2,
+      "cover": "light"
+    },
+    "flag-mast.png": {
+      "id": "doodad.flag-mast",
+      "name": "Flag mast",
+      "description": "A tall flag mast and plain pennant, with its long shadow.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3,
+      "cover": "none"
+    },
+    "parade-line.png": {
+      "id": "doodad.parade-line",
+      "name": "Parade line",
+      "description": "A painted line along the middle of its row; runs join end to end.",
+      "footprintCells": [
+        4,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4,
+      "cover": "none"
+    },
+    "parade-corner.png": {
+      "id": "doodad.parade-corner",
+      "name": "Parade corner",
+      "description": "The painted border's corner: lines along the middle of its north row and west column, open to the south and east.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5,
+      "cover": "none"
+    },
+    "parade-ranks.png": {
+      "id": "doodad.parade-ranks",
+      "name": "Parade ranks",
+      "description": "A dashed rank line marking where a file stands; runs join end to end.",
+      "footprintCells": [
+        4,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6,
+      "cover": "none"
+    },
+    "parade-centre.png": {
+      "id": "doodad.parade-centre",
+      "name": "Parade centre",
+      "description": "The square's painted centre mark: a cross in a ring.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7,
+      "cover": "none"
+    }
+  }
+}
