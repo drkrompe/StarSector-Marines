@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.vehicle.Articulation;
+import com.dillon.starsectormarines.battle.vehicle.TrailerKinematic;
 import com.dillon.starsectormarines.battle.vehicle.TurretHead;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -20,6 +23,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -52,6 +58,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
     static final float HOVER_SHADOW_CELLS = .35f;
 
     private final BattleSprites sprites;
+    /**
+     * Each articulated hull's drawn bend ({@link TrailerKinematic}), by unit id: presentation state, followed from the
+     * hull's body every frame it is drawn and dropped once the hull is no longer in the convoy.
+     */
+    private final Map<Long, TrailerKinematic> trains = new HashMap<>();
+    private final float[] point = new float[2];
 
     public ConvoyRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -73,6 +85,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         float frameAlpha = ctx.alphaMult;
         // The convoy layer paints over the fog, so a hull the player cannot see is faded here rather than covered.
         FogOfWarService fog = ctx.hostProfile.fogHidesUnits() ? ctx.sim.getFogOfWar() : null;
+        if (!trains.isEmpty()) pruneTrains(ids);
 
         for (long id : ids) {
             VehicleMission v = convoy.mission(id);
@@ -105,14 +118,25 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         0f, 0f, 0f, alphaMult * .38f);
             }
             float[] tint = type.hullTint();
-            out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
-                    f.x, f.y, f.w, f.h,
-                    cx, cy, drawLong, drawShort, chassisFacingDeg,
-                    tint[0], tint[1], tint[2], alphaMult);
+            Articulation joints = type.articulation();
+            TrailerKinematic train = null;
+            if (joints != null && frames.frames.length > joints.wreckFrame(joints.segments() - 1)) {
+                train = trains.computeIfAbsent(id, k -> new TrailerKinematic(joints));
+                // A wreck lies as it fell: its bend is no longer followed, though one first seen wrecked is laid out.
+                if (!wrecked || !train.placed()) train.update(body.x, body.y, body.facingDegrees);
+                collectSegments(type, joints, train, cache, frames, body, wrecked, cam, drawLong, drawShort, tint,
+                        alphaMult, out);
+            } else {
+                out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                        f.x, f.y, f.w, f.h,
+                        cx, cy, drawLong, drawShort, chassisFacingDeg,
+                        tint[0], tint[1], tint[2], alphaMult);
+            }
 
             if (type.hasAnimatedTreads() && !wrecked) VehicleTreadRender.collect(type, cache, body, cam, alphaMult, out);
             HullLocations locations = wrecked ? null : convoy.locations(id);
-            if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
+            // Worn plate is registered to the straight hull frame, so a bending hull shows none yet.
+            if (locations != null && train == null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
             boolean activeProtection = !wrecked && convoy.carriesActiveProtection(id);
             if (activeProtection) {
                 // The active protection's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
@@ -128,7 +152,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
             // A hull's second guns stand under its main turret, each drawn from its own catalog mount.
             GroundTurret mainTurret = convoy.turret(id);
-            if (mainTurret != null) {
+            if (mainTurret != null && train != null) {
+                // A carrier's secondary sockets ride its mission module; each gun stands on its own bare ring.
+                for (MountedGun gun : mainTurret.secondaries) {
+                    collectCarrierSecondary(type, train, gun, body, paint, wrecked, cam, cellPx, alphaMult, out);
+                }
+            } else if (mainTurret != null) {
                 for (MountedGun gun : mainTurret.secondaries) {
                     collectMountTurret(gun.mount().structure(), gun.turret().facingDeg, gun.mount().mountX(),
                             gun.mount().mountY(), body, wrecked, cam, cellPx, alphaMult, out);
@@ -155,6 +184,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float cs = (float) Math.sin(cRad);
                 float mountWorldX = type.turretMountX * cc - type.turretMountY * cs;
                 float mountWorldY = type.turretMountX * cs + type.turretMountY * cc;
+                if (train != null) {
+                    // The socket rides the module it is painted on, wherever the hinge has swung it.
+                    train.toWorld(body.x, body.y, type.turretMountX, type.turretMountY, point);
+                    mountWorldX = point[0] - body.x;
+                    mountWorldY = point[1] - body.y;
+                }
                 float tRad = (float) Math.toRadians(turretFacingDeg);
                 float tc = (float) Math.cos(tRad);
                 float ts = (float) Math.sin(tRad);
@@ -486,6 +521,63 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     convoy.structure(id), convoy.maxStructure(id),
                     convoy.armor(id), convoy.maxArmor(id), alphaMult * seen);
         }
+    }
+
+    /** Forgets the bend of every articulated hull no longer in the convoy. */
+    private void pruneTrains(long[] ids) {
+        trains.keySet().removeIf(key -> {
+            for (long id : ids) if (id == key) return false;
+            return true;
+        });
+    }
+
+    /**
+     * An articulated hull drawn segment by segment, the rearmost first so each hinge tucks under the segment ahead:
+     * each segment's frame keeps the straight hull's registration, so it is the whole frame turned about that
+     * segment's front hinge ({@link TrailerKinematic#toWorld}).
+     */
+    private void collectSegments(VehicleType type, Articulation joints, TrailerKinematic train, UnitSpriteCache cache,
+                                 SpriteSheetFrames frames, GroundBody body, boolean wrecked, BattleCamera cam,
+                                 float drawLong, float drawShort, float[] tint, float alphaMult, DrawList out) {
+        for (int s = joints.segments() - 1; s >= 0; s--) {
+            SpriteSheetFrames.Frame sf = frames.frames[wrecked ? joints.wreckFrame(s) : joints.liveFrame(s)];
+            train.toWorld(body.x, body.y, s, 0f, 0f, point);
+            out.addSheetQuad(RenderLayer.CONVOY, cache.sheet, sf.x, sf.y, sf.w, sf.h,
+                    cam.cellToScreenX(point[0]), cam.cellToScreenY(point[1]), drawLong, drawShort,
+                    train.headingDeg(s) + type.spriteFacingOffsetDeg, tint[0], tint[1], tint[2], alphaMult);
+        }
+    }
+
+    /** The gun a carrier's secondary socket carries, drawn as the light machine gun part. */
+    private static final MechWeaponComponent CARRIER_SECONDARY_GUN = MechWeaponComponent.LIGHT_MACHINE_GUN;
+    /** How far a secondary gun's muzzle stands past its ring, cells. */
+    private static final float SECONDARY_PROTRUSION_CELLS = .14f;
+
+    /**
+     * A carrier's secondary mount: the bare ring on its socket, and its gun turning on it as a layer of its own
+     * (mech-lines.md, law 4), both riding the module the socket is painted on.
+     */
+    private void collectCarrierSecondary(VehicleType type, TrailerKinematic train, MountedGun gun, GroundBody body,
+                                         VehiclePaint paint, boolean wrecked, BattleCamera cam, float cellPx,
+                                         float alphaMult, DrawList out) {
+        train.toWorld(body.x, body.y, gun.mount().mountX(), gun.mount().mountY(), point);
+        float ringX = point[0], ringY = point[1];
+        float shade = wrecked ? WRECK_SHADE : 1f;
+        float ringCells = type.secondaryRingCells();
+        LayeredSpriteCache ring = sprites.vehicleGunMount(type.mountStyle());
+        if (ring != null) {
+            out.addSprite(RenderLayer.CONVOY, ring.sprite, cam.cellToScreenX(ringX), cam.cellToScreenY(ringY),
+                    ringCells * cellPx, ringCells * cellPx, 0f, shade, shade, shade, alphaMult);
+        }
+        LayeredSpriteCache art = VehicleGunArt.sprite(sprites, type, CARRIER_SECONDARY_GUN, paint);
+        if (art == null) return;
+        float length = (ringCells / 2f + SECONDARY_PROTRUSION_CELLS) / (1f - VehicleGun.RING_FROM_REAR);
+        float facing = gun.turret().facingDeg;
+        float bearing = (float) Math.toRadians(facing);
+        float ahead = (.5f - VehicleGun.RING_FROM_REAR) * length;
+        VehicleGunArt.draw(out, art, cam.cellToScreenX(ringX - (float) Math.sin(bearing) * ahead),
+                cam.cellToScreenY(ringY + (float) Math.cos(bearing) * ahead), length * cellPx,
+                facing, 1f, 1f, shade, alphaMult);
     }
 
     /** A catalog mount's sprite standing {@code localX, localY} cells from the hull's centre, facing {@code facing}. */

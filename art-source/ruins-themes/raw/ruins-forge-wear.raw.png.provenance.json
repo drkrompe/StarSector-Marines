@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c601-ea0e-71f0-8b07-a93139e96890",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c601-ea0e-71f0-8b07-a93139e96890\\exec-46e74a0b-22d8-49ee-af24-7c02300c0d49.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-forge-wear.raw.png",
+    "sha256": "aacd38bfdd3352bf22dc3f1f60c98536b7144fe168b6c7a595aa53f4d6cce3aa",
+    "dimensions": [
+      1736,
+      906
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\forge-wear.prompt.txt",
+  "promptSha256": "ff7be22eb6bf6543dbaadd72a1d0759a22c7ec3ba61cdb6941a62d49e6d7f50b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same foundry; not layout\nImage 3: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game floor stains and two consoles for a vast abandoned Domain-era nanoforge foundry hall, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale grey blots and streaks in the top row are stains: keep each stain's outline close to its blot, soft-edged, irregular.\nStyle: match reference 2 (the same foundry's floor pieces: same steel, rivets, worn ochre trim) and reference 3 for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, small amber lamps, soft upper-left object-local light. Long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nStains: they are only the stain itself, semi-transparent where thin, on a true transparent background: no floor texture, no plate, no tile under them. Dark, desaturated, realistic, flat on the floor with no height.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. oil-stain (2x2): an old dark oil stain, near black in the middle, thinning to a brown translucent edge, a faint rainbow sheen.\n2. oil-trail (1x3): a trail of dark oil drips and smears along a traffic lane.\n3. coolant-stain (2x2): a dried coolant spill: a pale blue-green crusted residue ring with a darker translucent middle.\n4. scorch-mark (2x2): a heat scorch on the floor: sooty black centre, brown and blued burnt-steel fringe.\n5. scorch-arc (2x2): an electrical arc burn: a black blast star with thin forked burn lines and spatter.\n6. skid-marks (2x3): two dark rubber and grit skid tracks from a heavy vehicle, faded and broken.\nBottom row left to right:\n7. line-pulpit (3x3): the line's control pulpit seen straight down: its armoured roof with two vent grilles, a dead beacon, a roof hatch housing, a long heat-shield visor strip along its lower edge, and a narrow step plate along the bottom.\n8. recorder-console (1x2): a line recorder console seen from above: a steel cabinet top with a dark dead screen at its upper end, a round recessed data-core socket in the middle, and a lit amber status bar at its lower end.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-forge-wear-guide.png",
+      "sha256": "86d4846a78340deed775eb2e7b6141c3cfff46272eb7dba1e09aa6195daada41",
+      "dimensions": [
+        2208,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-floor.raw.png",
+      "sha256": "90f781e5eda8b6225a566f294cdff16427c983f2f5ed65c32b48553668954d7d",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same foundry; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-machine-tool.png",
+      "sha256": "d90c6007d00d0128df21bb3ef8d9385b88dbb77ff705d30413e0a74899e9f292",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1’s exact layout and the foundry materials from Images 2 and 3."
+  ],
+  "usage": {
+    "input_tokens": 52103,
+    "cached_input_tokens": 39040,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1037,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 75.2
+}

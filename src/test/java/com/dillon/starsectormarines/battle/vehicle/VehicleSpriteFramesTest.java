@@ -11,6 +11,8 @@ class VehicleSpriteFramesTest {
                 new SpriteSheetFrames.Frame[]{new SpriteSheetFrames.Frame(50, 90, 670, 390),
                         new SpriteSheetFrames.Frame(830, 170, 440, 230)});
         for (VehicleType type : VehicleType.values()) {
+            // An articulated hull's sheet holds its segments in rows below (carrierSheetsHoldRowsOfFour).
+            if (type.articulation() != null) continue;
             int height = type == VehicleType.BREAKTHROUGH_TANK ? 768
                     : type == VehicleType.CARGO_CARRIER ? 384 : 576;
             int width = type == VehicleType.CARGO_CARRIER ? 1024 : 768;
@@ -28,6 +30,27 @@ class VehicleSpriteFramesTest {
                 assertEquals(0, frame.y);
                 assertEquals(width, frame.w);
                 assertEquals(height, frame.h);
+            }
+        }
+    }
+
+    @Test void carrierSheetsHoldTheWholeHullAboveItsSegmentsInRowsOfFour() {
+        for (VehicleType type : VehicleType.values()) {
+            Articulation joints = type.articulation();
+            if (joints == null) continue;
+            int rows = joints.sheetRows();
+            SpriteSheetFrames actual = type.registeredSpriteFrames(
+                    new SpriteSheetFrames(400 * 4, 200 * rows, new SpriteSheetFrames.Frame[0]));
+            assertEquals(4 * rows, actual.frames.length);
+            assertEquals(0, actual.frames[type.spriteFrame].y);
+            assertEquals(0, actual.frames[type.wreckHullFrame()].y);
+            for (int s = 0; s < joints.segments(); s++) {
+                SpriteSheetFrames.Frame live = actual.frames[joints.liveFrame(s)];
+                SpriteSheetFrames.Frame wreck = actual.frames[joints.wreckFrame(s)];
+                assertEquals(200, live.y);
+                assertTrue(wreck.y >= 200 && wreck != live);
+                assertEquals(400, live.w);
+                assertEquals(200, wreck.h);
             }
         }
     }

@@ -65,6 +65,25 @@ upright crucible's), its control core housed on its west flank and its spout flu
 cut free on its skid, `furnace-core`, 3x3. Its guide is drawn at 112 px a cell (`make_guide.FAMILY_CELL`) so the
 whole crucible is one block-out ImageGen takes at once.
 
+The pour line (`forge-line`, 160 px a cell) shares that sheet: the 6x7 tapping furnace, its taphole and spout trough
+running to its south edge (`tapping-furnace-melt`); the 3x3 ladle on its crane hook, upright (`ladle-hook-melt`)
+and tipped mid-pour (`ladle-hook-tipped-pour`), with no cover since it hangs overhead; the 2x3 ore car and its
+derailed state; the 2x4 cooling rack, empty and with castings; the 2x2 fettling bench, inspection table, pour head
+and mould master (the b3 hauls); and the 7x1 fallen crane girder. Their hazard trim is muted as the spool drum's is,
+and their melt graded as the crucible's.
+
+The forge floor (`forge-floor`, 160 px a cell) shares it too: the 2x2 rail bed, its 4x4 quarter curve (meeting a
+straight bed at its south and east edges) and the 2x2 buffer stop; the 2x3 slag car (`slag-car-melt`) and the 3x3 slag
+car tipped at the pit lip (`slag-car-tipped-spill`, running out of its east edge); the 3x3 pallet bay markings; the
+2x2 trench cover, the 1x2 drain gutter and the 1x1 floor drain; the overhead 1x4 crane runway and 1x2 cable tray;
+the 1x4 fallen tray. The slag pit's edge is the `FOUNDRY` drop's own `foundry-lip`. The runs (rail bed, trench cover,
+drain gutter, crane runway, cable tray) run north-south and are healed in `export.py` (`heal_run`) into a seamless
+repeat along their length.
+
+The forge's wear and b2 consoles (`forge-wear`, 160 px a cell) close the list: oil stain, oil trail, coolant stain,
+scorch mark, arc burn and skid marks, faded as the patches are but with a lower halo cut (`STAIN_FEATHER`), since
+they were drawn translucent to their edges; the 3x3 line pulpit's roof and the 1x2 recorder console.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

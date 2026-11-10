@@ -31,8 +31,20 @@ public final class MechPatternPicker {
     static final int BASE_WEIGHT = 2;
     static final int FACTION_ISSUE_WEIGHT = 8;
 
+    /** The midline factions, which field the midline row's carriers ({@code mech-lines.md}, Midline). */
+    static final String PERSEAN_LEAGUE_ID = "persean";
+    static final String SINDRIAN_DIKTAT_ID = "sindrian_diktat";
+
+
     /** Hardware each faction fields on its own mechs, mirrored from {@link FactionMechLoadouts}. */
     private static final Map<String, Set<MechPattern>> FACTION_ISSUE = Map.of(
+            // The midline factions field the midline row's carriers, each the patterns it is credited with
+            // (MechPatternCredits); Independents buy into the row at the base weight.
+            PERSEAN_LEAGUE_ID, Set.of(
+                    MechPattern.of(VehicleType.LIGHT_CARRIER),
+                    MechPattern.of(VehicleType.MEDIUM_CARRIER)),
+            SINDRIAN_DIKTAT_ID, Set.of(
+                    MechPattern.of(VehicleType.HEAVY_CARRIER)),
             // Tri-Tachyon fields its own crawler and no low-tech frame (owner: the heavy-shell stand-ins are gone);
             // its lasers stay its issue.
             FactionMechLoadouts.TRI_TACHYON_ID, Set.of(

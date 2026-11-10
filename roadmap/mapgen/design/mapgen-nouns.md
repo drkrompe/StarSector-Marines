@@ -1338,33 +1338,47 @@ four from size 7 (`CantonmentRoads.gates`), and each **further gate** is a
 narrower road from the patrol lane inside the wall, out across the glacis, on
 until it meets the town's road, in the middle of each further side that faces
 one, nearest first. Every gate therefore joins the map's network; a side whose
-road would only leave the map has none. Planned, not built: a further gate opens
-on the patrol lane, which walks but does not drive, so the layout is to keep a
-way three cells wide from each further gate to the nearest street once the
-motor pool plan is picked. The grade does not close gates: it arms
-them (`precincts.md`, Defences are sited by doctrine). Its parts:
+road would only leave the map has none. Inside the wall each further gate's road
+goes on as a lane three cells wide to the nearest street (`Cantonment.gateLanes`),
+so every gate road reaches the avenue (`CantonmentTest`). The grade does not close
+gates: it arms them (`precincts.md`, Defences are sited by doctrine).
 
-- the **motor pool**: vehicle sheds whose door ends open on a paved
-  **hardstand**, joined to the avenue, so every shed has a way out of the gate
-  at least three cells wide that no building stands on (`CantonmentTest`);
-- the **quadrangle**: a column of barracks down each side of the parade ground
-  facing it, the headquarters across its head facing the gate, the messes
-  either hand;
-- the **depot** (magazines, stores, workshops, generator) in rows outside the
-  barracks, and the **flight line**.
+The inside is laid from its logistics outward (the owner's pick `bands`: "where
+do trucks go? Where do they park? Where do they unload?"). Three **bands** run
+across the square from the gate to the back wall, each served by its own
+streets, with the avenue down the middle and a **cross street** between bands;
+every building's door opens on paving (`CantonmentTest`):
+
+- **logistics**, at the gate: the gate row (guard posts on the avenue, the
+  guardroom opening onto the **front lane** behind them); the **motor yard**,
+  vehicle sheds flanking the avenue with their doors on the paved
+  **hardstand** it widens into; to one hand the **depot**, warehouses whose
+  loading doors face an **unloading apron** that runs from the front lane to the
+  cross street; to the other the vehicle **fuel point** and the workshops on a
+  service street (both columns go to one hand when the other is too narrow);
+- **garrison**, in the middle: barracks and messes in lines on the side
+  streets, the **parade ground** split by the avenue, which runs through to the
+  second cross street;
+- **operations**, at the back: the headquarters with the generator beside it
+  facing the gate, the **flight line**, its own fuel point, and the **armoury**,
+  magazines staggered apart down an ammunition lane.
+
+A supply truck's round (`Cantonment.Laid.truckRoute`) enters at the main gate,
+unloads on the apron, fuels at the fuel point, parks on the hardstand and drives
+out; the flight line's round runs from each magazine and its fuel point to the
+field. Both drive only on paving no building stands on. Depth left over goes
+to the yard and the parade ground, a third and two thirds, so the bands fill
+the square rather than leaving the back empty.
 
 Every building stands on a footprint the ground takes whole and steps round any
 ground it cannot take; what cannot be seated in its place takes the nearest free
 spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
-(one, two from size 6), workshops and stores from the
-market's size, and the guardroom, corner towers and magazines from its
-security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
-pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
-(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. The
-motor yard stands at the gate (the owner's pick `raid-garrison`): sheds flank
-the avenue just inside it, their doors on the hardstand it widens into, so a
-vehicle drives out of its shed and straight out of the gate; the flight line
-stands against the back wall.
+(one, two from size 6), workshops, warehouses and fuel points (one, a second
+for the flight line) from the market's size, and the guardroom, corner towers
+and magazines from its security; the flight line is sized by the garrison
+(`Cantonment.fieldFor`: a pad, a field with its runway from size 6). Only a Raid
+site's garrison is a cantonment (`PrecinctPlan.raidGarrison`); every other
+garrison is packed as before.
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
@@ -2137,12 +2151,20 @@ at vast). It is shortened to fit, never below 44 long, and a hall narrower than
 32 is laid as the old foundry instead. The hall is laid out from its process,
 head to the north:
 
-- a great crucible's open bath, with waiting ladles, charge racks and a slag
-  pit;
+- the great crucible (12x16, `ruins-forge` sheet) west of the line, its
+  spout on its east edge pouring onto the line's head; ladles waiting, the
+  pour pulpit and the charge racks east of the line, the slag heaped beyond.
+  Without its art or room, the head is an open bath;
+- a feed path, a marked lane along the head row from the east wall to the
+  crucible's charge hopper, kept clear. It is generic until the feed's own
+  pieces land: the owner ruled out ore cars and rail ("Ore car does not make
+  sense for a space faring civilization"), and the hall reads as automated
+  heavy industry, not a period foundry;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
 - production lines branching off each side every sixteen rows, each a channel
-  to a mould grid over its bed, with a cooling rack beyond;
+  to a mould grid over its bed, with two cooling racks beyond, most laden
+  with castings;
 - the dispatch end left clear.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt

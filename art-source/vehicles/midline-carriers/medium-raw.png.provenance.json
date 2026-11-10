@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5d6-ee7d-7473-b292-995f7036172e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5d6-ee7d-7473-b292-995f7036172e\\exec-074e37a7-b97b-42c4-ae04-7ec47cc69298.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\midline-carriers\\medium-raw.png",
+    "sha256": "7097cc063b7fff3dadb13e0264134c2e17ef007fc6bd2b1a9c4147c4aa8f3247",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\midline-carriers\\medium-prompt.txt",
+  "promptSha256": "431609846d59a42b18019813334571826384102049913453c8412dece0865e41",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, sizes, socket placement and transparency\nImage 2: Identity: design language of the chosen concept; not its socket layout\nImage 3: Material/style only; not layout\n\nPaint image 1, a flat grey geometry guide, as a finished top-down game sprite of the medium carrier. It is a MIDLINE ARTICULATED CARRIER, a wheeled armoured combat machine about the size of a light tank: a drive cab and a longer mission module behind it, six wheels in all, two empty sockets in a line along the mission module's spine, a large one forward and a small one aft, joined by hinges that bend so the machine steers by folding in the middle. Each hinge is exposed machinery: a pivot drum on the centre line and paired hydraulic pistons with cables either side of it.\n\nImage 1 is the exact silhouette authority. The top row is the live machine, the bottom row the same machine wrecked. Fill each grey shape exactly where it is and at exactly its size; never move, rotate, rescale, join or add to any shape; you may only round its stepped edges. Light grey blocks are armour plate, one block per module, each its own separate module with a clear gap at every hinge. Mid grey is hinge machinery. Near-black blocks are chunky off-road tyres, seen from above, tucked under the plate edge. Each dark disc is an EMPTY round weapon socket: a recessed mount ring with a machined bearing race and a dark hollow centre, with NOTHING in it, because every gun is a separate layer drawn later. Draw exactly the sockets the guide shows, where it shows them, and no other socket, hatch, gun, barrel or launcher anywhere.\n\nImage 2 is the IDENTITY reference: the owner's chosen concept for this machine, nose pointing left. Copy its design language onto the guide's outline (the blunt drive cab with a flat front and narrow vision slits, chamfered slab plating, the vents and the hinge machinery), but NOT its weapon socket or hatch layout: the sockets come from image 1 only.\n\nImage 3 is material and style reference only, never layout: surface swatches from Starsector's midline warships. Match their finish: weathered tan, khaki and bone armour plate with olive-grey shading and crisp engraved panel lines, chamfered slab panels bolted in clean overlapping layers, over dark grey and gunmetal machinery in the gaps; small yellow-green indicator lights; light grime in the recesses; light from the upper left. Grounded and believable.\n\nThe bottom row is the same machine WRECKED: plate scorched and blackened, a burn-through hole and buckled panels, tyres burnt and shredded, machinery charred, every light dark and cold. Same silhouette as the guide.\n\nStrict 90-degree overhead orthographic view of the top surfaces, no perspective tilt. Both machines face LEFT (the cab's nose toward the left edge). True transparent background with genuine alpha outside the silhouettes, including the gaps at the hinges and between the tyres; no ground, cast-shadow slab, halo, border, labels, text or checkerboard. Same square canvas as the guide.\n\nAvoid: any resemblance to a starship, a forked or split prow, a V-shaped nose, a dome, a cockpit canopy, a pilot, two sockets side by side, a face, tracks, legs, a hover skirt, steel-blue or white plastic, rust, any gun or barrel.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\midline-carriers\\medium-guide.png",
+      "sha256": "fbda8700f7425a5e1087d6c902a8d56190411e21e4a9406036915de9738f28cb",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact silhouettes, sizes, socket placement and transparency"
+    },
+    {
+      "path": "art-source\\vehicles\\midline-carriers\\medium-concept.png",
+      "sha256": "bc8c767e77d435810b49ee37d9d9090e9a8f81e60ed5e76a2ebb4f8b94948e3d",
+      "dimensions": [
+        682,
+        344
+      ],
+      "mode": "RGBA",
+      "role": "Identity: design language of the chosen concept; not its socket layout"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\midline\\ref-midline-material.png",
+      "sha256": "7f8160abd234bf83a773054cd4cd716acc0cf4a15cf537e90ba8e32d9f507b1b",
+      "dimensions": [
+        1580,
+        540
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’m using the imagegen skill to paint the guide while preserving its layout and transparent gaps."
+  ],
+  "usage": {
+    "input_tokens": 83802,
+    "cached_input_tokens": 65024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 935,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 86.5
+}

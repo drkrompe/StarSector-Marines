@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -311,6 +312,21 @@ public final class FortReservations {
         if (barred != null) for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) held[x][y] |= barred[x][y];
         ctx.put(BspKeys.HELD_GROUND, held);
         return held;
+    }
+
+    /**
+     * The ground a designed drop is held on ({@code Landform.Drop}: its band, relief {@code DROP}) out to
+     * {@code Landform.Drop.HELD_MARGIN}: what a programmed place's claim keeps off ({@code PrecinctClaim}), so a walled place never
+     * stands on the drop's line. The design has already moved every programmed seed off it. {@code null} when the
+     * plan places no drop.
+     */
+    static boolean[][] dropGround(GenContext ctx, PrecinctPlan plan) {
+        List<RidgePlanner.Band> bands = new ArrayList<>();
+        for (RidgePlanner.Band band : plan.landscape().held()) {
+            if (band.relief() == RidgePlanner.Relief.DROP) bands.add(band);
+        }
+        if (bands.isEmpty()) return null;
+        return RidgePlanner.heldGround(bands, ctx.width, ctx.height, Landform.Drop.HELD_MARGIN);
     }
 
     /**

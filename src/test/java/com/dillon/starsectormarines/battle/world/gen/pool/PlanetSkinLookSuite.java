@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
@@ -55,10 +54,14 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
         for (StoryMap map : maps.isEmpty() ? DEFAULT_MAPS : List.of(StoryMap.values())) {
             if (!maps.isEmpty() && !maps.contains(map.id)) continue;
             StoryMapPool pool = StoryMapPools.pool(map);
-            // The spots are found once on a world whose fields are beds and whose woods stand, and framed in every world.
+            // The spots are found once on the home, where the fields are crops and the woods stand, and framed in every world.
             float[] fields, woods;
-            try (BattleSimulation probe = sim(map, SurfacePalette.FROZEN, pool.owned())) {
-                fields = densest(probe.getTopology(), (x, y) -> probe.getTopology().getGroundKind(x, y) == GroundKind.TILE);
+            try (BattleSimulation probe = sim(map, pool.home(), pool.owned())) {
+                CellTopology t = probe.getTopology();
+                fields = densest(t, (x, y) -> {
+                    String id = t.getSurfaceId(x, y);
+                    return id != null && (id.equals("floors.grass") || id.equals("floors.dirt") || id.equals("floors.sand"));
+                });
                 woods = densestDoodad(probe, "forest.");
             }
             for (SurfacePalette world : SurfacePalette.values()) {

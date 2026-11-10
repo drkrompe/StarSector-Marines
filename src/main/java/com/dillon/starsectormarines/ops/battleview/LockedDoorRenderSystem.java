@@ -30,6 +30,12 @@ final class LockedDoorRenderSystem implements RenderSystem {
     private static final float JAMB = 0.4f;
     /** Seconds for a forcible door's leaves to slide fully open or shut; a hardened (blast) door's are heavier. */
     static final float FORCIBLE_TRAVEL_SECONDS = .6f, HARDENED_TRAVEL_SECONDS = 1.4f;
+    /**
+     * The ruins' leaves at 160 px a cell: one leaf's art length, a hall leaf's and a blast leaf's thickness, a torn
+     * leaf's, and the blast clamp's length and depth (cells).
+     */
+    static final float RUINS_ART_CELLS = 1.5f, RUINS_LEAF_DEPTH = .55f, RUINS_BLAST_DEPTH = .9f,
+            RUINS_TORN_DEPTH = .8f, RUINS_CLAMP_CELLS = .9f, RUINS_CLAMP_DEPTH = .95f;
     /** How far a forced door's surviving leaf stands open in its track. */
     static final float FORCED_TRAVEL = .3f;
 
@@ -51,6 +57,8 @@ final class LockedDoorRenderSystem implements RenderSystem {
         List<LockedDoor> doors = ctx.sim.lockedDoors();
         if (doors.isEmpty() || sprites == null) return;
         BattleCamera cam = ctx.camera;
+        // A ruins site's seals wear the ruins' own leaves (ruins-doors); every other locked door its plates.
+        boolean ruins = ctx.sim.getRuinsWorks() != null;
         float margin = 4f;
         float left = cam.screenToCellX(cam.vpX()) - margin, right = cam.screenToCellX(cam.vpX() + cam.vpW()) + margin;
         float low = Math.min(cam.screenToCellY(cam.vpY()), cam.screenToCellY(cam.vpY() + cam.vpH())) - margin;
@@ -59,7 +67,8 @@ final class LockedDoorRenderSystem implements RenderSystem {
             int[][] cells = door.cells();
             int[] c = cells[cells.length / 2];
             if (c[0] < left || c[0] > right || c[1] < low || c[1] > high) continue;
-            draw(cam, out, door, step(door, ctx.realDt), ctx.alphaMult);
+            if (ruins) drawRuins(cam, out, door, step(door, ctx.realDt), ctx.alphaMult);
+            else draw(cam, out, door, step(door, ctx.realDt), ctx.alphaMult);
         }
     }
 
@@ -104,6 +113,46 @@ final class LockedDoorRenderSystem implements RenderSystem {
         }
         float eased = open * open * (3f - 2f * open);
         LeafDoorArt.leaves(cam, out, art, true, leafCells, span, 1f, eased, 1, 0, 1f, alpha);
+    }
+
+    /**
+     * A ruins seal: a forcible seal is a hall door's sealed leaves (plain once it unlocks), a hardened one the blast
+     * door's heavy leaves with the seal clamp across the seam while it is shut. A jamb stands at each end either way,
+     * its lamp red while locked, amber while powered and held, green open. Forced, a torn leaf lies on rubble.
+     */
+    private void drawRuins(BattleCamera cam, DrawList out, LockedDoor door, float open, float alpha) {
+        boolean alongX = door.spansX();
+        float min = Float.MAX_VALUE, max = -Float.MAX_VALUE;
+        for (int[] c : door.cells()) {
+            float a = alongX ? c[0] : c[1];
+            min = Math.min(min, a);
+            max = Math.max(max, a + 1f);
+        }
+        int[] first = door.cells()[0];
+        LeafDoorArt.Span span = new LeafDoorArt.Span(alongX, min, max, (alongX ? first[1] : first[0]) + 0.5f);
+        boolean blast = door.hardened();
+        String leafId = blast ? "ruins-blast-leaf"
+                : door.isOpen() || door.isForced() ? "ruins-leaf" : "ruins-leaf-sealed";
+        ShuttleSpriteCache leaf = sprites.spriteByPath(DIR + leafId + ".png");
+        if (leaf == null) return;
+        float depth = blast ? RUINS_BLAST_DEPTH : RUINS_LEAF_DEPTH;
+        float[] lamp = door.isForced() ? LeafDoorArt.LAMP_DEAD : door.isOpen() ? LeafDoorArt.LAMP_OPEN
+                : door.ready() ? LeafDoorArt.LAMP_READY : LeafDoorArt.LAMP_LOCKED;
+        LeafDoorArt.jambs(cam, out, sprites.spriteByPath(LeafDoorArt.RUINS_JAMB), span, lamp, alpha);
+        if (door.isForced()) {
+            int floor = floorSide(door, alongX);
+            ShuttleSpriteCache torn = sprites.spriteByPath(DIR + "ruins-leaf-torn.png");
+            LeafDoorArt.rubble(cam, out, sprites.spriteByPath(LeafDoorArt.RUINS_RUBBLE), span, -1, floor, alpha);
+            LeafDoorArt.torn(cam, out, torn != null ? torn : leaf, false, span, RUINS_TORN_DEPTH, -1, floor, alpha);
+            LeafDoorArt.leaves(cam, out, leaf, false, RUINS_ART_CELLS, span, depth, FORCED_TRAVEL, 1, -1, .85f, alpha);
+            return;
+        }
+        float eased = open * open * (3f - 2f * open);
+        LeafDoorArt.leaves(cam, out, leaf, false, RUINS_ART_CELLS, span, depth, eased, 1, 0, 1f, alpha);
+        if (blast && open <= 0f) {
+            LeafDoorArt.clamp(cam, out, sprites.spriteByPath(LeafDoorArt.RUINS_CLAMP), span, RUINS_CLAMP_CELLS,
+                    RUINS_CLAMP_DEPTH, alpha);
+        }
     }
 
     /** The side of the door's line its keep lies on, where a torn leaf falls: 1 above or right, -1 below or left. */
