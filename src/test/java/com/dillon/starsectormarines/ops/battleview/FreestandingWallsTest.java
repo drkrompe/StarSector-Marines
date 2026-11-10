@@ -21,6 +21,9 @@ class FreestandingWallsTest {
         assertEquals(FreestandingWalls.Kind.BLAST, FreestandingWalls.kind("colony.masonry-wall", 3));
         assertEquals(FreestandingWalls.Kind.COMPOUND, FreestandingWalls.kind("colony.masonry-wall", 0));
         assertEquals(FreestandingWalls.Kind.GARDEN, FreestandingWalls.kind("colony.olive-wall", 0));
+        assertEquals(FreestandingWalls.Kind.ENVELOPE, FreestandingWalls.kind("habitat.envelope-wall", 0));
+        assertEquals(FreestandingWalls.Kind.ENVELOPE, FreestandingWalls.kind("habitat.envelope-wall@buttress", 0));
+        assertEquals(FreestandingWalls.Kind.ENVELOPE_PLINTH, FreestandingWalls.kind("habitat.envelope-wall@plinth", 0));
         assertEquals(FreestandingWalls.Kind.UNKNOWN, FreestandingWalls.kind(null, 0));
         assertEquals(FreestandingWalls.Kind.NONE, FreestandingWalls.kind("ship.neutral-bulkhead", 0));
         int standing = FreestandingWalls.PERIMETER_CELLS;
@@ -38,6 +41,19 @@ class FreestandingWallsTest {
                 <= FreestandingWalls.height(FreestandingWalls.Kind.COMPOUND, standing));
         assertTrue(FreestandingWalls.height(FreestandingWalls.Kind.INSTALLATION, FreestandingWalls.STUB_CELLS - 1)
                 <= FreestandingWalls.height(FreestandingWalls.Kind.COMPOUND, standing), "a ruin's stub");
+    }
+
+    @Test
+    void anEnvelopeStandsAboveEveryOtherWallOverAPlinthBelowIt() {
+        int standing = FreestandingWalls.PERIMETER_CELLS;
+        float body = FreestandingWalls.height(FreestandingWalls.Kind.ENVELOPE, standing);
+        float plinth = FreestandingWalls.height(FreestandingWalls.Kind.ENVELOPE_PLINTH, standing);
+        assertTrue(body >= FreestandingWalls.height(FreestandingWalls.Kind.SEALED_PERIMETER, standing));
+        assertTrue(plinth < body);
+        assertEquals(FreestandingWalls.Part.BODY, FreestandingWalls.part("habitat.envelope-wall"));
+        assertEquals(FreestandingWalls.Part.BUTTRESS, FreestandingWalls.part("habitat.envelope-wall@buttress"));
+        assertEquals(FreestandingWalls.Part.PLINTH, FreestandingWalls.part("habitat.envelope-wall@plinth"));
+        assertEquals(null, FreestandingWalls.part("installation.dark-concrete-wall"));
     }
 
     @Test
