@@ -93,6 +93,8 @@ public final class MacroReliefField {
     private int lintelCells;
     /** The map's raised ground, or null; every height on a tier stands that tier's rise higher. */
     private final ElevationMap elevation;
+    /** The buildings whose roofs a runtime-opened cell may stand under; null when none. */
+    private final Buildings buildings;
 
     /**
      * Metres one tier of raised ground stands above the one below: a storey,
@@ -114,6 +116,7 @@ public final class MacroReliefField {
 
         this.elevation = grid != null ? grid.elevation() : null;
         this.roofed = new boolean[topology.getWidth() * topology.getHeight()];
+        this.buildings = buildings;
         markRoofs(buildings);
         markDoorwayLintels(grid);
     }
@@ -155,7 +158,7 @@ public final class MacroReliefField {
         if (topology.isWall(x, y)) {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }
-        if (roofed[topology.index(x, y)]) return roofMeters;
+        if (roofed[topology.index(x, y)] || roofedByOpening(topology, buildings, x, y)) return roofMeters;
         // Water is level with its bank wherever the shore's contour draws the
         // waterline: sunken square cells would cast it back in steps, at the bank
         // and again wherever open water meets the shore cells around it.
@@ -282,6 +285,17 @@ public final class MacroReliefField {
      */
     public int lintelCellCount() {
         return lintelCells;
+    }
+
+    /**
+     * Whether a wall cell opened at runtime ({@code MapEditor.openPassage}) stands under a building's roof: it takes
+     * the building of the floor it joins, and stands under that roof while the roof holds, though the building's own
+     * cell list never held it. Read live, so a passage opened after the field was built is roofed too.
+     */
+    static boolean roofedByOpening(CellTopology topology, Buildings buildings, int x, int y) {
+        if (buildings == null || topology.isWall(x, y) || topology.isRoofDestroyed(x, y)) return false;
+        int id = topology.getBuildingId(x, y);
+        return id != 0 && buildings.get(id) != null;
     }
 
     private boolean roofedAt(int x, int y) {

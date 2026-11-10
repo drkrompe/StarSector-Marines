@@ -309,12 +309,6 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                     // No company is on this ground to keep the zone awake: it is stirred again as one would.
                     if (t % 300 == 0) director.network().stir(w.zoneId(), sim.getSimTickIndex());
                     if (!step(sim)) break;
-                    if (t % 1000 == 0) {
-                        long l = sim.squadMemberAt(w.squadId(), 0);
-                        log("ram: t=%d zone %s order %s at (%.1f, %.1f) progress %.2f", t,
-                                director.network().zone(w.zoneId()).state(), director.orderOf(w.squadId()),
-                                sim.world().x(l), sim.world().y(l), director.ramProgress(w.squadId()));
-                    }
                     if (!mid && director.ramProgress(w.squadId()) >= 0.5f) {
                         mid = true;
                         log("ram: half way at t=%d", sim.getSimTickIndex());

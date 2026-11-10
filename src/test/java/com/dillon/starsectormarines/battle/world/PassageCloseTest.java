@@ -136,4 +136,17 @@ class PassageCloseTest {
                 "a zone the door merged is split again, which the merge-only update cannot do");
         assertEquals(-1, zones.zoneIdAt(WALL_X, 4), "the shut cell belongs to no zone");
     }
+
+    @Test
+    void anOpenedWallDrawsAsTheFloorItJoinsAndIsAWallAgainWhenShut() {
+        topology.setWallDirMask(WALL_X, 4, CellTopology.WALL_DIR_N | CellTopology.WALL_DIR_S);
+        topology.setBuildingId(WALL_X - 1, 4, 7);
+        MapEditor.PassageRecord[] records = open();
+        assertEquals(0, topology.getWallDirMask(WALL_X, 4), "floor has no wall frame");
+        assertEquals(7, topology.getBuildingId(WALL_X, 4), "it stands in the building of the floor it joins");
+        assertEquals(topology.getSurface(WALL_X - 1, 4), topology.getSurface(WALL_X, 4));
+        shut(records);
+        assertEquals(CellTopology.WALL_DIR_N | CellTopology.WALL_DIR_S, topology.getWallDirMask(WALL_X, 4));
+        assertEquals(0, topology.getBuildingId(WALL_X, 4));
+    }
 }
