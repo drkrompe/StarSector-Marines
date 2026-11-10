@@ -287,6 +287,25 @@ a whole one is not cut at all. Each side of a link is walked back along the
 flood's own parent pointers, so it bends around what the flood bent around; a
 straight link would be quicker to write and would drive through buildings.
 
+**Connected underneath is not connected on screen, and both are owed.** The
+road-owner grid came out whole, yet raid maps read as islands of road: the
+street sweep (`RoadSurfaceStage`) draws pavement only where a band makes a
+street, so a weld across a town's ground was left as bare dirt, a short band
+was refused as a pill and a band crowded by kerbs narrowed to nothing.
+Measured over eight raid maps, the drawn road fell into 6–23 pieces each.
+`RoadJoins` joins the drawn pieces the same way the weld joins networks: label
+them, flood the road under them from all at once while keeping to the middle
+of its bands, and take the cheapest meetings as a minimum spanning tree, each
+drawn down the road it followed. A piece the road under it does not reach is
+left alone, since joining it would pave ground nobody laid a road on.
+
+**A road the layout carves after the weld is welded too.** A feeder from a
+works' far side off the map, kept because it reaches the works' ground, was
+road from the edge to a wall with nothing behind it. A layout road that ends
+against a walled square place is now carried through the gate its wall opens
+there to the place's own roads (`LayoutRoads.enter`), and the network is welded
+once more after the layout's roads are carved.
+
 ## The partition must be handed one place's parcels, not the map's
 
 `GrownTrunkPlan.grow` returns sub-rects decomposed from frontage across the
@@ -1378,6 +1397,16 @@ needs no special handling.
 **One drivable crossing survives whatever the cap says.** A walled installation
 its own armour cannot leave is a defect rather than a difficulty, and it is the
 same obligation `PrecinctArtery` enforces one step earlier.
+
+**Nor does the last crossing onto any run of road outside.** The map's roads
+are welded into one network through the places, so a place can be the only
+link between two runs of road beyond its wall; sealing every crossing onto one
+cuts it off. Measured, a garrison kept its widest crossing, a feeder off the
+map's edge, and sealed the street from the town, and a works sealed the street
+through it that joined two quarters. Each run a crossing meets keeps one, past
+the cap if it must; two crossings onto the same run keep to the cap. Two runs
+that each leave the map count apart: two towns whose only road between them is
+sealed read as two road networks, whatever lies beyond the edge.
 
 The gate *defect* — a wall reading as a dashed line because eleven crossings is
 more gap than wall — turned out to have fixed itself. Pruning the wandering

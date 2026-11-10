@@ -72,6 +72,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HabitatStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadSurfaceStage;
@@ -268,6 +269,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new SpawnAnchorStage(),                     // spawn anchors
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
                 new OutdoorLandscapeStage(),                // finished access owns its clear ground
+                new HabitatStage(),                         // the town built for the world it stands on
                 new RoadSurfaceStage(),                     // finish the streets' carriageways over the placed city
                 new StormDriftStage(),                      // the weather's drifts, the last skin on the ground
                 new FrontDepthStage(),                      // the front, as a depth
@@ -344,6 +346,7 @@ public final class BspCityGenerator implements MapGenerator {
                 frontStage,                                 // precinct-only; null omits it
                 laneRouteStage,                             // precinct-only; the road each lane runs on
                 new OutdoorLandscapeStage(),                // retain those finished lane routes
+                new HabitatStage(),                         // the town built for the world it stands on
                 new RoadSurfaceStage(),                     // finish kept roads and street carriageways over the placed city
                 new StormDriftStage(),                      // the weather's drifts, the last skin on the ground
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid

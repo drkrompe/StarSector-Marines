@@ -17,32 +17,27 @@ import java.util.List;
 
 /**
  * The three mech chassis in a faction's livery, in their stock fits: a shot each for the Hegemony, Independents and
- * pirates, who wear the low-tech bodies (art-source/mech-modular-topdown/sources/lowtech), and one for Tri-Tachyon, a
- * repaint of the shared outlines, to compare them against. A last shot stands Tri-Tachyon's own light crawler between
- * its stand-in Warden and Bulwark, for scale (`mech-lines.md`, high-tech light). Owner-facing look frames only; there
- * is no verdict.
+ * pirates, who wear the low-tech bodies (art-source/mech-modular-topdown/sources/lowtech). Tri-Tachyon fields none of
+ * them; its light crawler has a suite of its own ({@link CrawlerLookSuite}). Owner-facing look frames only; there is
+ * no verdict.
  */
 public final class MechLiveriesSnapshotSuite implements SnapshotSuite {
 
     private static final MechVariant[] LINE = {MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN};
-    private static final MechVariant[] CRAWLER_LINE = {MechVariant.WARDEN, MechVariant.CRAWLER, MechVariant.BULWARK};
     private static final float SPACING = 4.5f;
 
     @Override public String id() { return "mech-liveries"; }
 
-    @Override public String label() { return "The Bulwark, Hound and Warden in the low-tech liveries and Tri-Tachyon's"; }
+    @Override public String label() { return "The Bulwark, Hound and Warden in the low-tech liveries"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
-        for (String faction : new String[] {"hegemony", "independent", "pirates", "tritachyon"}) {
+        for (String faction : new String[] {"hegemony", "independent", "pirates"}) {
             try (ReviewFactions ignored = ReviewFactions.bind(faction, "pirates")) {
                 out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-" + faction, LINE)));
             }
-        }
-        try (ReviewFactions ignored = ReviewFactions.bind("tritachyon", "pirates")) {
-            out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-tritachyon-crawler", CRAWLER_LINE)));
         }
         return out;
     }

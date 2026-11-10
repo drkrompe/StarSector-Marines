@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseShelter;
 import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -47,6 +48,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.nature.SignatureGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
+import com.dillon.starsectormarines.battle.world.gen.precinct.CrevasseTown;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -57,6 +59,7 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.SurfaceSignature;
@@ -108,7 +111,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         openPits(c, plan, reserved);
-        chasm(c, field, reserved);
+        if (!crevasseTown(c, reserved)) chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
@@ -130,7 +133,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
-        // The planet type's own detail over its palette: craters and ejecta, fissure rubble, vents.
+        // The planet type's own detail over its palette: craters and ejecta, cracks and their rubble, vents.
         int w = c.width;
         SignatureGround.dress(c.topology, c.width, c.height, c.seed, signature, signed,
                 i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
@@ -354,6 +357,48 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
+    /** The crevasse town's walls: how high they stand, in metres. UNTUNED: the owner's pick of the bank. */
+    static final float CREVASSE_WALL_METERS = 36f;
+
+    /**
+     * Raises a crevasse town's walls ({@code voids.md}, the crevasse town): where the plan held the crevasse's wall
+     * bands ({@link CrevasseTown}), so the town grew on the floor between them, terraced ice banks on the open ground
+     * the town left there ({@link CrevasseShelter}). The walls are a rise: unwalkable, natural solid, and blocking
+     * sight as high ground does. A map whose plan holds no walls, that already draws a drop, a rise or a backdrop, or
+     * that has too little open ground along its edges, is none. Returns whether it raised them.
+     */
+    private boolean crevasseTown(GenContext c, boolean[] reserved) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        List<RidgePlanner.Band> bands = plan == null ? List.of() : CrevasseTown.wallsOf(plan.landscape());
+        if (bands.isEmpty() || c.topology.naturalVoid() != null || c.topology.naturalRise() != null
+                || c.topology.voidBackdrop() != null) return false;
+        int w = c.width;
+        // The edge band is held against growth, not against a crevasse's walls: ask again without it.
+        boolean[] held = reservations(c, hostAnchors, true, null, 2, 0);
+        reserveRamps(c, held);
+        boolean[] walls = CrevasseShelter.plan(w, c.height, CrevasseTown.alongX(bands),
+                i -> !held[i] && shelterGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> shelterGround(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w),
+                (int) (c.seed ^ 0x4357L));
+        if (walls == null) return false;
+        for (int i = 0; i < walls.length; i++) {
+            if (!walls[i]) continue;
+            int x = i % w, y = i / w;
+            c.grid.setWalkable(x, y, false);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NO_EDGE_COVER, true);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
+            c.topology.setGroundKind(x, y, GroundKind.VOID);
+            c.topology.setSurface(x, y, 0);
+            c.topology.setNatureOverlayIndex(x, y, -1);
+            reserved[i] = true;
+        }
+        c.topology.setNaturalRise(new NaturalRise(NaturalRise.Style.ICE_WALL, NaturalRise.bank(CREVASSE_WALL_METERS),
+                NaturalVoidZoning.EYE_METERS, NaturalVoidZoning.CREVASSE.wallTexture(),
+                NaturalVoidZoning.CREVASSE.wallTileMeters(), (int) (c.seed ^ 0x4954L)));
+        return true;
+    }
+
     /** The surface a crossing's footbridge is decked with. */
     static final String DECK_SURFACE = "colony.timber";
 
@@ -454,6 +499,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         // The held and sealed bands and the valleys first: proved a segment at a time in order, so the ground the
         // mission holds open is taken before anything else can come within a gap of it.
         List<RidgePlanner.Band> bands = new ArrayList<>(landscape.allHeld());
+        // A crevasse town's walls are held like a ridge but raised as an ice rise, never as hills.
+        bands.removeIf(band -> band.relief() == RidgePlanner.Relief.ICE_WALL);
         bands.addAll(valleySides(c, landscape));
         bands.addAll(landscape.ridges());
         return bands;
@@ -816,7 +863,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 if (field.blocked(xx, yy)) closed[yy * c.width + xx] = true;
             }
         }
-        // The planet type's crater rims or fissures, under the same fit and detour proof as the hills.
+        // The planet type's crater rims, under the same fit and detour proof as the hills.
         List<TerrainPlan.Stroke> signed = new ArrayList<>();
         for (TerrainPlan.Stroke stroke : SignatureGround.strokes(signature, c.width, c.height, c.seed)) {
             if (signedFits(c, plan, stroke, reserved, occupied, closed, ridgeGround)) {
@@ -1096,7 +1143,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
         // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
-        if(surface.layoutOf()==SurfacePalette.ROCK) {
+        // An irradiated world's are the same crater rims, glassed.
+        if(surface.layoutOf()==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {
@@ -1333,7 +1381,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static boolean brookGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
@@ -1559,10 +1607,25 @@ public final class OutdoorLandscapeStage implements GenStage {
         return naturalGround(c, x, y) && c.topology.getSurface(x, y) == 0;
     }
 
+    /**
+     * Ground a crevasse's wall may stand on: walkable open ground outside any building, door, fixture or road, a
+     * yard's or a verge's as well as the wild's. Paved and built ground is the town's.
+     */
+    private static boolean shelterGround(GenContext c, int x, int y) {
+        boolean open = switch (c.topology.getGroundKind(x, y)) {
+            case GRASS, DIRT, STONE, SAND, SNOW, COURTYARD, RUBBLE -> true;
+            default -> false;
+        };
+        return open && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
+                && !c.topology.isWall(x, y) && !c.topology.isFixture(x, y)
+                && c.topology.getBuildingId(x, y) == 0
+                && (c.topology.roadSurface() == null || c.topology.roadSurface().underlay(x, y) == null);
+    }
+
     /** Walkable natural ground outside any building, door, fixture or road, whatever surface dresses it. */
     private static boolean naturalGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)

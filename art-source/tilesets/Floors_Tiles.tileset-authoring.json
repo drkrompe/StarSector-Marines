@@ -24,6 +24,10 @@
     {
       "id": "floors.snow",
       "layout": "variants"
+    },
+    {
+      "id": "floors.hardpan",
+      "layout": "variants"
     }
   ],
   "cellPx": 56,
@@ -9064,124 +9068,156 @@
       ]
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c16r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-1.png",
+      "note": "hardpanvar-1",
       "rect": [
         761,
         1135,
         47,
         49
-      ]
+      ],
+      "slot": "v1"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c17r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-2.png",
+      "note": "hardpanvar-2",
       "rect": [
         808,
         1135,
         48,
         49
-      ]
+      ],
+      "slot": "v2"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c18r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-3.png",
+      "note": "hardpanvar-3",
       "rect": [
         856,
         1135,
         47,
         49
-      ]
+      ],
+      "slot": "v3"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c19r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-4.png",
+      "note": "hardpanvar-4",
       "rect": [
         903,
         1135,
         48,
         49
-      ]
+      ],
+      "slot": "v4"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c20r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-5.png",
+      "note": "hardpanvar-5",
       "rect": [
         951,
         1135,
         48,
         49
-      ]
+      ],
+      "slot": "v5"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c21r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-6.png",
+      "note": "hardpanvar-6",
       "rect": [
         999,
         1135,
         47,
         49
-      ]
+      ],
+      "slot": "v6"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c22r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-7.png",
+      "note": "hardpanvar-7",
       "rect": [
         1046,
         1135,
         48,
         49
-      ]
+      ],
+      "slot": "v7"
     },
     {
+      "block": "floors.hardpan",
       "cover": "none",
       "footprintCells": [
         1,
         1
       ],
       "id": "doodad.floors.c23r23",
-      "included": false,
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/hardpan-variants/hardpanvar-8.png",
+      "note": "hardpanvar-8",
       "rect": [
         1094,
         1135,
         47,
         49
-      ]
+      ],
+      "slot": "v8"
     },
     {
       "cover": "none",
@@ -9952,7 +9988,7 @@
   "gridCols": 25,
   "gridRows": 26,
   "idPrefix": "doodad.floors",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for forty of its 650 cells: six variant pools and nothing else. Those forty are included and the rest are not, so the atlas holds forty tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nFour of the six pools take their picture from a tileable material rather than from the plate, and none of them shares a material file. floors.stone and floors.sand each had the same defect -- one tileable tile pasted into all three cells, so the hash pick a variant pool exists for was a no-op. floors.snow had nothing at all. floors.dirt had the opposite problem from the first two: three genuinely different plate cells, which is real variation and far too little of it, so an ordinary field of it read as a three-tile checker rather than as ground. Each of the four now has eight cells naming eight materials.\n\nThe added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture. Every family was generated to match its original material's palette and grain and to tile seamlessly.\n\nReference the material file when generating more, never a cell of the exported atlas. Re-exporting moves every block, and an arid batch aimed at atlas coordinates once came back matching dirt because the sheet was repacked while it ran. That batch is what floors.dirt is made of now, which is why its files are called dust: it is dirt by accident rather than by request, and it fits because the accident was to match this pool's colour exactly.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe three floors.grass plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior. A material-backed cell needs none: the material is already periodic.\n\nfloors.brick is cut from the plate's continuous brick field (the cross at about x 707-946, y 0-240), not from its cells, and carries no border: there is no rim to mirror, and mirroring one doubled the mortar at every cell edge. Each of its five cells is 119x124, three bricks by six courses, so a cell tiles with itself, and their corners sit on the bond's lattice (brick pitch about 39.5 px, two courses about 41 px) from (770,11), so any two neighbours carry the courses on. Its cells once mixed a 126x122 cut with four 47x49 cuts, all stretched to one cell, so most of a brick field was drawn at two and a half times the scale of the rest and no course ran on.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x26 grid, so the entries below are its cells in reading order - left to right, then top to bottom. 1225x1284 at 25x26.\n\nThe game asks this sheet for forty-eight of its 650 cells: seven variant pools and nothing else. Those forty are included and the rest are not, so the atlas holds forty-eight tiles rather than the plate's 650. Everything else stays here in the raw art and in these entries; including a cell is all it takes to bring one back.\n\nFive of the seven pools take their picture from a tileable material rather than from the plate, and none of them shares a material file. floors.stone and floors.sand each had the same defect -- one tileable tile pasted into all three cells, so the hash pick a variant pool exists for was a no-op. floors.snow had nothing at all, and neither had floors.hardpan, the irradiated worlds' scorched and glassed ground, which was made new with eight cells on row 23. floors.dirt had the opposite problem from the first two: three genuinely different plate cells, which is real variation and far too little of it, so an ordinary field of it read as a three-tile checker rather than as ground. Each of the four now has eight cells naming eight materials.\n\nThe added cells are plate cells that were never included; their rects only decide the packed size, since a material overrides the picture. Every family was generated to match its original material's palette and grain and to tile seamlessly.\n\nReference the material file when generating more, never a cell of the exported atlas. Re-exporting moves every block, and an arid batch aimed at atlas coordinates once came back matching dirt because the sheet was repacked while it ran. That batch is what floors.dirt is made of now, which is why its files are called dust: it is dirt by accident rather than by request, and it fits because the accident was to match this pool's colour exactly.\n\nThis matters most to barren surfaces. A rock world's ground is drawn from this one pool, and with a single picture the alternative was mixing STONE with DIRT and RUBBLE per cell, which reads as static rather than as ground.\n\nThe three floors.grass plate cells carry a 7px sprite border. ImageGen drew a dark rim around each isolated cell, and a repeating ground field shows that rim as a lattice at every tile boundary, so the border is mirrored away from the interior. A material-backed cell needs none: the material is already periodic.\n\nfloors.brick is cut from the plate's continuous brick field (the cross at about x 707-946, y 0-240), not from its cells, and carries no border: there is no rim to mirror, and mirroring one doubled the mortar at every cell edge. Each of its five cells is 119x124, three bricks by six courses, so a cell tiles with itself, and their corners sit on the bond's lattice (brick pitch about 39.5 px, two courses about 41 px) from (770,11), so any two neighbours carry the courses on. Its cells once mixed a 126x122 cut with four 47x49 cuts, all stretched to one cell, so most of a brick field was drawn at two and a half times the scale of the rest and no course ran on.",
   "sheet": "art-source/tilesets/Floors_Tiles.raw.png",
   "sheetName": "Floors_Tiles"
 }

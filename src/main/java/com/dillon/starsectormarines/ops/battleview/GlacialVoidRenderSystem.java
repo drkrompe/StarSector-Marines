@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -35,6 +37,8 @@ final class GlacialVoidRenderSystem implements RenderSystem {
     static final float WIND_X = .87f, WIND_Y = .49f, WIND_SPEED = 2.4f;
     /** The low mist over the floor: metres above it, puff size in cells and thickness. */
     static final float MIST_LOW_METERS = 3f, MIST_LOW_PUFF = 3.2f, MIST_LOW_ALPHA = .16f;
+    /** How fast the low mist drains down a flowing crevasse, cells a second, and a puff's life, seconds. */
+    static final float MIST_DRAIN = .3f, MIST_LIFE = 10f;
     /** Spindrift: streaks from each lip cell the wind blows off, how long one lives, seconds, and how far it sinks. */
     static final int DRIFT_PER_CELL = 2;
     static final float DRIFT_LIFE = 3.2f, DRIFT_SINK_METERS = 9f, DRIFT_ALPHA = .32f;
@@ -66,6 +70,14 @@ final class GlacialVoidRenderSystem implements RenderSystem {
         return look != null && look.style() == NaturalVoid.Style.ICE;
     }
 
+    /** Whether a rise is a crevasse's ice wall, the town on its floor sheltered from the gale over its lip. */
+    static boolean frozen(NaturalRise look) {
+        return look != null && look.style() == NaturalRise.Style.ICE_WALL;
+    }
+
+    /** How far down from the top a streak blown off an ice wall's lip sinks by the end of its life, as a share. */
+    static final float RISE_SINK = .3f;
+
     /**
      * Whether snow blows off ground whose edge into the drop points along {@code (gx, gy)} (not necessarily of unit
      * length): when the wind leaves the ground for the drop there, not when it blows in over the lip from it.
@@ -81,6 +93,11 @@ final class GlacialVoidRenderSystem implements RenderSystem {
         builtFrom = field;
         int w = field.w, h = field.h;
         lipCount = 0;
+        if (drop.rising()) {
+            overFloor = new boolean[w * h];
+            riseLip(field);
+            return;
+        }
         overFloor = VoidHaze.overFloor(field);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -93,6 +110,31 @@ final class GlacialVoidRenderSystem implements RenderSystem {
                 if (field.byBridge(cx, cy)) continue;
                 float gx = field.sample(field.edge, cx + .5f, cy) - field.sample(field.edge, cx - .5f, cy);
                 float gy = field.sample(field.edge, cx, cy + .5f) - field.sample(field.edge, cx, cy - .5f);
+                if (!windward(gx, gy, WIND_X, WIND_Y)) continue;
+                lip = grow(lip, lipCount * 2 + 2);
+                lip[lipCount * 2] = cx;
+                lip[lipCount * 2 + 1] = cy;
+                lipCount++;
+            }
+        }
+    }
+
+    /**
+     * An ice wall's lip: the top's cells within a cell of its rim where the wind leaves the top for the crevasse,
+     * the gale streaming snow off them high over the floor.
+     */
+    private void riseLip(NaturalVoidField field) {
+        int w = field.w, h = field.h, n = field.steps();
+        float[] top = field.reach[n];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!field.open[y * w + x]) continue;
+                float cx = x + .5f, cy = y + .5f;
+                float in = field.sample(top, cx, cy);
+                if (in <= 0f || in > 1f) continue;
+                // Out of the top is down the field's slope: the wind must leave the top that way.
+                float gx = field.sample(top, cx - .5f, cy) - field.sample(top, cx + .5f, cy);
+                float gy = field.sample(top, cx, cy - .5f) - field.sample(top, cx, cy + .5f);
                 if (!windward(gx, gy, WIND_X, WIND_Y)) continue;
                 lip = grow(lip, lipCount * 2 + 2);
                 lip[lipCount * 2] = cx;
@@ -145,20 +187,25 @@ final class GlacialVoidRenderSystem implements RenderSystem {
                     r, g, b, alpha);
         }
         if (!mesh.isEmpty()) drop.drawList().addPoly(RenderLayer.GROUND, mesh);
+        // The cold air drains down the crevasse toward its deeper end, as cold air runs downhill.
         VoidHaze.draw(drop, sprites, overFloor, MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, WIND_X, WIND_Y,
-                WIND_SPEED * .12f, IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B, time);
+                WIND_SPEED * .12f, MIST_DRAIN, MIST_LIFE, IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B,
+                time);
     }
 
     // ----- over the ground -----
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        if (!glacial(ctx.sim.getTopology().naturalVoid()) || !drop.begin(ctx, out)) return;
+        CellTopology topology = ctx.sim.getTopology();
+        boolean mine = drop.rising() ? frozen(topology.naturalRise()) : glacial(topology.naturalVoid());
+        if (!mine || !drop.begin(ctx, out)) return;
         NaturalVoidField field = drop.field();
         if (builtFrom != field) build(field);
         float time = FireLight.clock(ctx.animationTimeSeconds);
         spindrift(field, time);
-        snowfall(time);
+        // Down on a crevasse town's floor, out of the gale, the air is still: no snow drives across it.
+        if (!drop.rising()) snowfall(time);
     }
 
     /**
@@ -186,9 +233,15 @@ final class GlacialVoidRenderSystem implements RenderSystem {
                 float wob = (float) Math.sin(secs * 1.7f + (hsh & 63)) * .35f;
                 float px = lx + ((hsh & 15) / 15f - .5f) * .8f + WIND_X * run - WIND_Y * wob;
                 float py = ly + (((hsh >>> 12) & 15) / 15f - .5f) * .8f + WIND_Y * run + WIND_X * wob;
-                // Over the ground it skims the surface; once out over the drop it sinks into it.
-                float over = field.sample(field.edge, px, py);
-                float z = -.8f + (over > 0f ? DRIFT_SINK_METERS * t * t : 0f);
+                float z;
+                if (drop.rising()) {
+                    // Off an ice wall's lip the gale carries it out high over the floor, settling only a little.
+                    z = field.stepDepth(field.steps(), lx, ly) * (1f - RISE_SINK * t * t) - .8f;
+                } else {
+                    // Over the ground it skims the surface; once out over the drop it sinks into it.
+                    float over = field.sample(field.edge, px, py);
+                    z = -.8f + (over > 0f ? DRIFT_SINK_METERS * t * t : 0f);
+                }
                 float s = drop.scale(z);
                 if (!drop.inView(px, py, s, cellPx * 2f)) continue;
                 if (z > 0f && drop.hidden(px, py, z)) continue;

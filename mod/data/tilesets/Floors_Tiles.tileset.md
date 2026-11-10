@@ -20,6 +20,7 @@ variant pool has no geometry and is picked by hashing the cell.
 | `floors.sand` | variants | sandvar-1 | — |
 | `floors.brick` | variants | fl-tile-1 | — |
 | `floors.snow` | variants | snowvar-1 | — |
+| `floors.hardpan` | variants | hardpanvar-1 | — |
 
 ## Doodads
 

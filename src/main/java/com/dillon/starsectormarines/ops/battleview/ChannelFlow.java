@@ -11,7 +11,8 @@ import java.util.List;
  *
  * <p><b>Ends.</b> A floor flows only where it leaves the field: each run of open cells along the field's border is
  * an end. Of a channel's ends the shallowest is its source and every other an outlet, so a channel runs toward its
- * deeper end; ends as deep run toward the east and south. A channel with fewer than two ends is still: a pool, a
+ * deeper end; ends as deep run toward the east and south. A drop that says where it flows from
+ * ({@code NaturalVoid.Source}) takes the end nearest that point as its source instead. A channel with fewer than two ends is still: a pool, a
  * frozen crevasse, a lava lake.
  *
  * <p><b>Potential.</b> Between its source ({@code 0}) and its outlets ({@code 1}) a channel's potential is the
@@ -42,6 +43,7 @@ final class ChannelFlow {
     final float[] across;
     /** Whether any of the field flows at all. */
     final boolean any;
+    private final float[] from;
     /**
      * Per cell corner: the flow's velocity, direction times its speed, the mean of the flowing cells round the corner;
      * 0 where none flows. Read through {@link #velocity}, for whatever is carried down the flow as a sheet.
@@ -53,8 +55,14 @@ final class ChannelFlow {
      * @param depth each cell's floor depth, metres
      */
     ChannelFlow(int w, int h, boolean[] open, float[] depth) {
+        this(w, h, open, depth, null);
+    }
+
+    /** @param from where the flow comes from, {@code {x, y}} in cells: its nearest end is each channel's source; null for none */
+    ChannelFlow(int w, int h, boolean[] open, float[] depth, float[] from) {
         this.w = w;
         this.h = h;
+        this.from = from;
         flowing = new boolean[w * h];
         along = new float[w * h];
         across = new float[(w + 1) * (h + 1)];
@@ -93,6 +101,27 @@ final class ChannelFlow {
                 if (n > 0) { vx[j * cw + i] = sx / n; vy[j * cw + i] = sy / n; }
             }
         }
+    }
+
+    /**
+     * Where something carried down the flow from {@code (x, y)} has got to after travelling {@code cells} at an even
+     * reach's pace, into {@code out}: stepped along the flow a cell at most at a time, so it rounds a bend rather than
+     * cutting across it, and quicker where the flow quickens. Still water carries nothing.
+     */
+    void carry(float x, float y, float cells, float[] out) {
+        float px = x, py = y, left = cells;
+        float[] v = new float[2];
+        while (left > 1e-4f) {
+            velocity(px, py, v);
+            float sp = (float) Math.hypot(v[0], v[1]);
+            if (sp < 1e-4f) break;
+            float stride = Math.min(1f, left);
+            px += v[0] * stride;
+            py += v[1] * stride;
+            left -= stride;
+        }
+        out[0] = px;
+        out[1] = py;
     }
 
     /** The flow's velocity at a point in cells into {@code out} ({@code {x, y}}, cells per cell along), bilinear. */
@@ -174,6 +203,15 @@ final class ChannelFlow {
             d /= ends.get(e).length;
             place /= ends.get(e).length;
             float key = Math.round(d) * 1e5f + place;
+            if (from != null) {
+                // Told where it comes from: the end nearest that point, whatever its depth.
+                float best2 = Float.MAX_VALUE;
+                for (int cell : ends.get(e)) {
+                    float dx = cell % w + .5f - from[0], dy = cell / w + .5f - from[1];
+                    best2 = Math.min(best2, dx * dx + dy * dy);
+                }
+                key = best2;
+            }
             if (key < best) { best = key; source = e; }
         }
         // 0 at the source, 1 at every outlet, fixed; the rest free.

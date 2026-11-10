@@ -2,9 +2,12 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.StormBank;
+import com.dillon.starsectormarines.battle.world.gen.StormWind;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
+import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
@@ -22,6 +25,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.function.IntFunction;
+import java.util.function.UnaryOperator;
 
 /**
  * An authored Raid site for one industry ({@code raid-mission.md}, Site templates; owner pick {@code raid-mapgen}:
@@ -266,43 +270,52 @@ public final class RaidSiteTemplate {
         // Mixed through a splittable stream: the first draws of an ordinary Random barely move between
         // neighbouring seeds, so twelve battles in a row would land from the same side.
         SplittableRandom orientation = new SplittableRandom(rng.nextLong());
-        boolean mirrorX = orientation.nextBoolean();
+        boolean drawnX = orientation.nextBoolean();
         boolean mirrorY = orientation.nextBoolean();
+        // A desert storm world's town turns its back to the wind and banks earth along the windward edge: the
+        // landing is never on that side, and every place is set leeward of the bank's ground.
+        boolean banked = StormBank.raises(profile);
+        StormWind.Side wind = profile.climate().wind();
+        boolean mirrorX = banked ? StormBank.mirrorX(drawnX, wind) : drawnX;
+        UnaryOperator<MapPlacement> at = p -> banked
+                ? StormBank.leeward(oriented(p, mirrorX, mirrorY), wind, width, height) : oriented(p, mirrorX, mirrorY);
         Security security = Security.of(profile);
         List<PrecinctBrief> briefs = new ArrayList<>();
-        briefs.add(PrecinctBrief.garrison(WORKS, oriented(pit ? MINE_WORKS_AT : WORKS_AT, mirrorX, mirrorY),
+        briefs.add(PrecinctBrief.garrison(WORKS, at.apply(pit ? MINE_WORKS_AT : WORKS_AT),
                 WORKS_GROWTH,
                 works.apply(machines).fittedTo(Math.round(worksFit * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
-            briefs.add(PrecinctBrief.garrison(GARRISON, oriented(GARRISON_AT, mirrorX, mirrorY),
+            briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(GARRISON_AT),
                     PrecinctPlan.raidGarrisonGrowth(),
                     PrecinctPlan.raidGarrison(profile, security.ordinal())
                             .fittedTo(Math.round(PrecinctPlan.FIT * width * height)),
                     PrecinctPlan.raidGarrisonWall(demand.resolve(profile.defenseLevel()), security.buffer())));
         }
-        briefs.add(PrecinctBrief.settlement(HOMES, oriented(HOMES_AT, mirrorX, mirrorY), homesGrowth(profile),
+        briefs.add(PrecinctBrief.settlement(HOMES, at.apply(HOMES_AT), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY,
-                oriented(pit ? MINE_INDUSTRY_AT : INDUSTRY_AT, mirrorX, mirrorY), industryGrowth, industryCharacter));
+                at.apply(pit ? MINE_INDUSTRY_AT : INDUSTRY_AT), industryGrowth, industryCharacter));
         if (!pit) {
-            briefs.add(PrecinctBrief.settlement(YARDS, oriented(YARDS_AT, mirrorX, mirrorY),
+            briefs.add(PrecinctBrief.settlement(YARDS, at.apply(YARDS_AT),
                     industryGrowth, industryCharacter));
         }
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
-            briefs.add(PrecinctBrief.settlement(OUTSKIRTS, oriented(OUTSKIRTS_AT, mirrorX, mirrorY),
+            briefs.add(PrecinctBrief.settlement(OUTSKIRTS, at.apply(OUTSKIRTS_AT),
                     GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB));
         }
-        PrecinctPlan plan = PrecinctPlan.laidOut(briefs, oriented(LANDING_FROM, mirrorX, mirrorY), width, height, rng)
+        PrecinctPlan plan = PrecinctPlan.laidOut(briefs, at.apply(LANDING_FROM), width, height, rng)
                 .withStandoff(Standoff.INSET);
         List<Piece> pieces = new ArrayList<>();
         if (pit) {
             Precinct head = null;
             for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) head = p;
-            pieces.add(pitSite(head.seedX(), head.seedY(), worksReach(worksFit, security, width, height),
-                    mirrorX, mirrorY, width, height));
+            Site pitSite = pitSite(head.seedX(), head.seedY(), worksReach(worksFit, security, width, height),
+                    mirrorX, mirrorY, width, height);
+            pieces.add(banked ? clearOfBank(pitSite, wind, width, height) : pitSite);
         }
         pieces.addAll(lines(mirrorX, mirrorY, pit));
+        if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, pit, width, height));
         return plan.withLayout(new MissionLayout(pieces));
     }
 
@@ -326,6 +339,47 @@ public final class RaidSiteTemplate {
                     Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false));
         }
         return out;
+    }
+
+    /** The pit's ground stopped short of the storm bank's, so the pit and the bank never contend for the same cells. */
+    static Site clearOfBank(Site pit, StormWind.Side wind, int width, int height) {
+        int depth = StormBank.depth(wind, width, height);
+        int x0 = pit.x0(), y0 = pit.y0(), x1 = pit.x1(), y1 = pit.y1();
+        switch (wind) {
+            case WEST -> x0 = Math.max(x0, depth);
+            case EAST -> x1 = Math.min(x1, width - 1 - depth);
+            case SOUTH -> y0 = Math.max(y0, depth);
+            case NORTH -> y1 = Math.min(y1, height - 1 - depth);
+        }
+        if (x1 < x0) x1 = x0;
+        if (y1 < y0) y1 = y0;
+        return new Site(pit.name(), x0, y0, x1, y1, pit.purpose(), pit.required());
+    }
+
+    /**
+     * The plan's landscape with the storm bank along the windward edge ({@link StormBank}): its bands held from
+     * growth and the strip between them and the edge kept open, with a pass planned where each of the works' feeders
+     * leaves the map on that side. A feeder runs off the map from beside the works' claim, so across the edge it
+     * stands level with the works' seed.
+     */
+    static Landscape stormBank(PrecinctPlan plan, StormWind.Side wind, boolean mirrorX, boolean mirrorY, boolean pit,
+                               int width, int height) {
+        Side deep = mirrorX ? Side.WEST : Side.EAST;
+        Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
+        Precinct works = null;
+        for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) works = p;
+        List<Integer> passes = new ArrayList<>();
+        if (works != null) {
+            for (Side feeder : pit ? List.of(outer) : List.of(outer, deep)) {
+                if (feeder.name().equals(wind.name())) passes.add(wind.alongX() ? works.seedX() : works.seedY());
+            }
+        }
+        Landscape landscape = plan.landscape();
+        List<RidgePlanner.Band> held = new ArrayList<>(landscape.held());
+        held.addAll(StormBank.bands(wind, width, height, passes));
+        List<Landscape.Track> kept = new ArrayList<>(landscape.kept());
+        kept.addAll(StormBank.windward(wind, width, height, passes));
+        return landscape.withHeld(held).withKept(kept);
     }
 
     /**

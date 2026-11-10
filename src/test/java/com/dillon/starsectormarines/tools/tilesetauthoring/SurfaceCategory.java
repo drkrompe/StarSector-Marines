@@ -102,6 +102,7 @@ public final class SurfaceCategory {
         filed.put("STONE", new Section(Setting.OUTDOORS, Kind.FLOOR));
         filed.put("SAND", new Section(Setting.OUTDOORS, Kind.FLOOR));
         filed.put("SNOW", new Section(Setting.OUTDOORS, Kind.FLOOR));
+        filed.put("HARDPAN", new Section(Setting.OUTDOORS, Kind.FLOOR));
         // Neither a wall nor something to stand on.
         filed.put("WATER", new Section(Setting.OUTDOORS, Kind.OTHER));
         return Map.copyOf(filed);

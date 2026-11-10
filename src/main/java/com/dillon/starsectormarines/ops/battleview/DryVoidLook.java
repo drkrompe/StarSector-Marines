@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 
 /**
  * The colour rules of a dry natural drop (`voids.md`, natural styles): a cut through bedded rock with no water in
- * it, its strata in the walls and on the ledges, loose sediment lying back on each ledge, and a dry floor of fine
- * stuff and stones. GL-free; {@link DryVoidFloor} and {@link NaturalVoidRenderSystem} draw with it. Each dry style
+ * its walls, its strata in the walls and on the ledges, loose sediment lying back on each ledge, and a dry floor of
+ * fine stuff and stones. The toxic gorge shares its walls and ledges and has a floor of sludge instead. GL-free; {@link DryVoidFloor} and {@link NaturalVoidRenderSystem} draw with it. Each dry style
  * is one {@link Palette}.
  *
  * <p>Two rules every dry style shares. Shade in the drop is the rock's own light thrown back across it, not black,
@@ -71,6 +71,20 @@ final class DryVoidLook {
             new Rgb(.56f, .51f, .46f), new Rgb(.42f, .40f, .38f), 41, new Rgb(1.1f, 1.04f, 1f), .55f,
             new Rgb(.40f, .38f, .36f), new Rgb(.6f, .58f, .56f), 0f);
 
+    /**
+     * A toxic gorge (TOXIC worlds): corroded olive and khaki rock in strata, sulphur crusted on the ledges, pale
+     * efflorescence where they break; its floor is acid sludge ({@link ToxicVoidFloor}, not the dry floor), its air
+     * yellow-green fumes. The toxic ground's own field stones are not drawn on the sludge.
+     */
+    static final Palette TOXIC = new Palette(
+            new Rgb(.56f, .52f, .32f), new Rgb(.485f, .453f, .284f),
+            new Rgb(.42f, .42f, .30f), new Rgb(.50f, .44f, .26f),
+            new Rgb(.66f, .58f, .24f), new Rgb(.70f, .67f, .48f),
+            new Rgb(.06f, .08f, .03f), .8f,
+            new Rgb(.14f, .18f, .06f), .3f,
+            new Rgb(.22f, .26f, .08f), new Rgb(.22f, .26f, .08f), -1, new Rgb(1f, 1f, 1f), 0f,
+            new Rgb(.40f, .38f, .24f), new Rgb(.72f, .80f, .36f), .14f);
+
     /** Cells back from the drop over which the lip gives way to the plain. */
     static final float PLAIN_CELLS = .3f;
     /** Sediment on a ledge: cells back from the break where it starts, and where it lies full. */
@@ -84,6 +98,7 @@ final class DryVoidLook {
         return switch (look.style()) {
             case CANYON -> CANYON;
             case DRY_GORGE -> REGOLITH;
+            case TOXIC -> TOXIC;
             default -> null;
         };
     }
