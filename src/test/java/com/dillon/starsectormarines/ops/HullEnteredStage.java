@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * A stand-in for the hull entered (`art-source/fallen-hull`, `armour` and `fittings`), staged over a slice of the real
@@ -70,7 +71,25 @@ final class HullEnteredStage {
             new Object[]{"forge-hopper", 29, 10}, new Object[]{"forge-coolant", 32, 9},
             new Object[]{"forge-cables", 29, 7}, new Object[]{"forge-cables", 31, 7},
             new Object[]{"breach-plating", 28, 3}, new Object[]{"breach-scatter", 31, 3},
-            new Object[]{"breach-scatter", 32, 4}, new Object[]{"breach-scatter", 30, 5});
+            new Object[]{"breach-scatter", 32, 4}, new Object[]{"breach-scatter", 30, 5},
+            // the breach's torn lip on the ground outside it, the hull at the image's top
+            new Object[]{"breach-edge", 27, -1}, new Object[]{"breach-edge", 28, -1},
+            new Object[]{"breach-edge", 29, -1}, new Object[]{"breach-edge", 30, -1},
+            new Object[]{"breach-edge", 31, -1});
+
+    /**
+     * A stand-in for the debris shower on open ground: its craters, scorch and skid first, then the metal over them,
+     * id and centre cell offset from the ground's middle. The pieces are the tileset's, laid at their cell size.
+     */
+    static final List<Object[]> SHOWER = List.of(
+            new Object[]{"crater-large", -11, -5}, new Object[]{"crater-small", 7, 3},
+            new Object[]{"scorch-splash", -3, 2}, new Object[]{"scorch-streak", 3, -5},
+            new Object[]{"scorch-splash", 10, -3}, new Object[]{"crater-small", -6, 5},
+            new Object[]{"shower-bell", -10, 2}, new Object[]{"shower-slab", 2, -1},
+            new Object[]{"shower-mast", -1, -4}, new Object[]{"shower-girders", 9, 2},
+            new Object[]{"shower-pod", -5, -1}, new Object[]{"shower-plate-b", 6, -3},
+            new Object[]{"shower-plate-a", -7, 4}, new Object[]{"shower-plate-a", 12, 0},
+            new Object[]{"shower-plate-b", -13, -1}, new Object[]{"shower-pod", 13, 4});
 
     private static final int F = 64;
 
@@ -152,6 +171,10 @@ final class HullEnteredStage {
             int[] d = doodads.get(id);
             if (d == null) throw new IllegalStateException("no " + id + " in the fallen-hull tileset");
             int sx = (Integer) f[1], sy = (Integer) f[2];
+            if (sy == -1 && "fallen-hull.breach-edge".equals(id)) {
+                if (sx < toCol) cell(g, cam, h, hull, d[0], d[1], at[0] + sx, at[1] - 1, d[2], d[3]);
+                continue;
+            }
             if (sy < 0) {
                 // a rib running the compartment's depth, one cell at a time
                 for (int yy = 2; yy < ROWS - 1; yy++) {
@@ -162,6 +185,33 @@ final class HullEnteredStage {
             if (sx + d[2] > toCol) continue;
             cell(g, cam, h, hull, d[0], d[1], at[0] + sx, at[1] + sy, d[2], d[3]);
         }
+    }
+
+    /** The debris shower stand-in centred on {@code (cx, cy)}, {@code cells} wide, in a roofs-on look frame. */
+    BufferedImage shower(Path modRoot, BattleSimulation sim, int cx, int cy, float cells) throws IOException {
+        BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(modRoot, 1920, 1080, cx + .5f, cy + .5f,
+                cells);
+        BufferedImage shot = renderer.render(sim, "");
+        BufferedImage img = new BufferedImage(shot.getWidth(), shot.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.drawImage(shot, 0, 0, null);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        BattleCamera cam = renderer.cameraOf(sim);
+        Random rnd = new Random(5);
+        for (int i = 0; i < 18; i++) {
+            String id = "fallen-hull.shower-shard-" + (char) ('a' + i % 3);
+            int[] d = doodads.get(id);
+            cell(g, cam, img.getHeight(), hull, d[0], d[1], cx + rnd.nextInt(30) - 15, cy + rnd.nextInt(14) - 7, 1, 1);
+        }
+        for (Object[] f : SHOWER) {
+            String id = "fallen-hull." + f[0];
+            int[] d = doodads.get(id);
+            if (d == null) throw new IllegalStateException("no " + id + " in the fallen-hull tileset");
+            int x = cx + (Integer) f[1] - d[2] / 2, y = cy + (Integer) f[2] - d[3] / 2;
+            cell(g, cam, img.getHeight(), hull, d[0], d[1], x, y, d[2], d[3]);
+        }
+        g.dispose();
+        return img;
     }
 
     /** Wall-faces mask (N=1 E=2 S=4 W=8) of stage cell (r, c): a side is exposed where no wall of any kind joins it. */

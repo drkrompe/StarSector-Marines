@@ -7,8 +7,9 @@ from the stern (left) to the bow (right), LENGTH cells; y across it, BREADTH cel
 renderer (`HullRoof`) cuts each roofed cell of the hull's building out of it, turned to the hull's heading. No new
 painting goes in:
 
-  - the survey mothership's body from raw/hull-survey.png (the picked lineage), its guide box stretched onto the plan
-    rectangle, the stern's torn edge facing the trench;
+  - the survey mothership's body from raw/hull-burnt.png (the picked lineage, raw/hull-survey.png, repainted burnt and
+    broken over itself, so it registers on the same guide), its guide box stretched onto the plan rectangle, the
+    stern's torn edge facing the trench;
   - where the plan's outline reaches past the painting's silhouette (the bow's shoulders, the stern's tear), the
     painting's own edge carried outward, so no second material shows;
   - a light unsharp mask, so the card's 14 px a cell holds up stretched to the texture's 23.
@@ -25,6 +26,7 @@ LENGTH, BREADTH = 88, 32          # HullPlan.LENGTH, BREADTH
 OUT_W = 2048                      # one power-of-two texture wide
 PX = OUT_W / LENGTH               # pixels a plan cell
 OUT_H = round(BREADTH * PX)
+SOURCE = "hull-burnt.png"          # the picked lineage repainted burnt and broken, over itself (generate.py)
 BODY = (260, 296, 1480, 728)      # make_guide.hull: the body's box on the card, bow east
 GLOW_MARKS = (896, 390, 986, 419)  # output pixels: the glyph-like marks in the forge's glow window
 SHARPEN = 60                     # unsharp mask, percent, on the card stretched to 23 px a cell
@@ -50,7 +52,7 @@ def extend(img, mask):
 
 
 def main():
-    card = Image.open(HERE / "raw" / "hull-survey.png").convert("RGB").crop(BODY).resize((OUT_W, OUT_H),
+    card = Image.open(HERE / "raw" / SOURCE).convert("RGB").crop(BODY).resize((OUT_W, OUT_H),
                                                                                          Image.LANCZOS)
     guide = Image.open(HERE / "guides" / "hull-guide.png").convert("RGBA").crop(BODY)
     mask = guide.getchannel("A").resize((OUT_W, OUT_H), Image.LANCZOS).filter(ImageFilter.GaussianBlur(1.5))

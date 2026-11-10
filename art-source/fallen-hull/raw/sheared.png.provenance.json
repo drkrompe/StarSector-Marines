@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c7cf-fb3f-7be1-9cb8-0097c815bed3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c7cf-fb3f-7be1-9cb8-0097c815bed3\\exec-6a554e1c-59dc-4088-a6d4-8c7a0cac4c88.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\sheared.png",
+    "sha256": "d940fed7db5ae96b1d29059a6130a13885825425a45d9bd854eeb31c4b174979",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\sheared.prompt.txt",
+  "promptSha256": "0302d8ace509312e3f5796cb3fa6e2ab4695345c5ff6b585da0e788a59271b62",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Identity and palette: the accepted painting of this same crashed ship from above (its armour plate, colours and weathering); not layout or scale\nImage 3: Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem\n\nUse case: sketch-to-render, modular game wall tiles. Image 1 is the authoritative geometry guide and edit target: reskin it, preserving every shape, edge and position and the exact canvas, and keep the transparent gutters and empty space transparent. This is the INSIDE of a crashed Explorarium survey mothership that soldiers board and fight through, seen as map tiles for a top-down tactical game at about 64 pixels a cell. Match image 2's hull palette and plate closely (the accepted painting of this very ship from above): pale teal-green and sage armour plate, khaki and bone segments, rust-brown machinery and grime in the recesses, tarnished brass, a few broad hazard-yellow diagonals, mottled weathering, crisp hard bevelled edges, lit from the upper left. Everything is crash- and fire-damaged: soot and scorch blooms, heat-blued and blistered paint, buckled and missing plates showing dark structure beneath, torn edges curled back. The crashed ship BROKE INTO SECTIONS on impact. LEFT BLOCK, sixteen square cells: the top of the hull's outer armour wall where a section was SHEARED THROUGH. Pale grey is the armour cap and the mid-grey band its spine, running straight off the sides it touches so neighbouring cells join; where the guide draws a black strip along an outer edge, that edge is the raw break, seen from above: the torn, jagged edge of the armour plate, then the ship's decks exposed in layers (grey bands) falling away to the break, structural rib ends cut through (the grey bars), a frayed power cable (the yellow mark) hanging out, everything around them dark and deep, the cut metal scorched and glowing faintly rust-orange in places. RIGHT, two long strips lying on the ground with the hull at their top edge: first, the torn lip of a breach, a ragged edge of armour plate with a few fragments fallen below it; second, the spill below a sheared section end, deck plates torn out like tongues, rib stubs and a heavy black cable dragged out across the ground. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. Strict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. True transparent background with genuine alpha outside the pieces; no floor, ground, shadow slab, labels, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\sheared-guide.png",
+      "sha256": "8fadc89b3ac49c8b8a4aa3f901f25802064850fa7a80b3785801d2637e537418",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\hull-survey.png",
+      "sha256": "fd927a61d2d4a1ac8277ce15971e0953911b5558e308b9317820baa73ebc31bf",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Identity and palette: the accepted painting of this same crashed ship from above (its armour plate, colours and weathering); not layout or scale"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\build\\fallen-hull-refs\\survey_mothership_battle.png",
+      "sha256": "0ef11f134bab17e4322eca300310c54268d6b98f3ecc987057fd30798bfcb025",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving the guide’s geometry and transparent space.\n"
+  ],
+  "usage": {
+    "input_tokens": 86759,
+    "cached_input_tokens": 67712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 976,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 72.6
+}

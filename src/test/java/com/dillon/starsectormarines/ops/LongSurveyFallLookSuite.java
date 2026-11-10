@@ -29,7 +29,8 @@ import java.util.List;
  * hull's looks in their places (`art-source/fallen-hull`). Until the ground lays the hull's compartments, the hull
  * entered is a stand-in ({@link HullEnteredStage}) laid over a slice of the real hull: three compartments behind the
  * outer armour, roofs off ({@code 4-entered.png}, the bay closer {@code 4b-entered-bay.png}) and the bay boarded under
- * the roofed ship ({@code 4c-boarded.png}). Nothing is judged; the battle is not stepped after the walkers are moved.
+ * the roofed ship ({@code 4c-boarded.png}); and the debris shower, a stand-in laid on the walkers' open ground
+ * ({@code 5-shower.png}). Nothing is judged; the battle is not stepped after the walkers are moved.
  * Opt-in; {@code -Dsnapshot.longSurveyFall.seconds} sets how long it plays first (default 150).
  */
 public final class LongSurveyFallLookSuite implements SnapshotSuite {
@@ -110,6 +111,11 @@ public final class LongSurveyFallLookSuite implements SnapshotSuite {
                             world.renderX(hauler), world.renderY(hauler));
                     out.add(new SnapshotArtifact("3-stripper-hauler.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, spot[0] + .5f, spot[1] + .5f, 16f).withoutRoofs().render(sim, "")));
+                    // The walkers off the frame again, so the shower stand-in has the ground to itself.
+                    world.setPos(stripper, spot[0] - 40f, spot[1] + .5f);
+                    world.setPos(hauler, spot[0] - 40f, spot[1] + 2.5f);
+                    out.add(new SnapshotArtifact("5-shower.png", new HullEnteredStage(context.modRoot()).shower(
+                            context.modRoot(), sim, spot[0], spot[1], 34f)));
                 } else {
                     log("stripper %d, hauler %d: not both out", stripper, hauler);
                 }
