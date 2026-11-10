@@ -1419,10 +1419,11 @@ public class BattleRenderer {
             float u1 = Math.max(ua, ub);
             float v0 = Math.min(va, vb);
             float v1 = Math.max(va, vb);
-            int srcX = Math.round((column + u0) * frameW);
-            int srcY = Math.round((row + 1f - v1) * frameH);
-            int srcW = Math.max(1, Math.round((column + u1) * frameW) - srcX);
-            int srcH = Math.max(1, Math.round((row + 1f - v0) * frameH) - srcY);
+            // The sheet pixels RoofMesh addresses too, so the resident roof draws what this draws.
+            int srcX = RoofTiles.framePixel(column, u0, frameW);
+            int srcY = RoofTiles.framePixel(row, 1f - v1, frameH);
+            int srcW = Math.max(1, RoofTiles.framePixel(column, u1, frameW) - srcX);
+            int srcH = Math.max(1, RoofTiles.framePixel(row, 1f - v0, frameH) - srcY);
             float cellPx = rc.camera.cellPxSize();
             float cx = rc.camera.cellToScreenX(cellX + (x0 + x1) * 0.5f);
             float cy = rc.camera.cellToScreenY(cellY + (y0 + y1) * 0.5f);

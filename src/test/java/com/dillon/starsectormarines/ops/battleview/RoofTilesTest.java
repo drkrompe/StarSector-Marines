@@ -35,6 +35,14 @@ class RoofTilesTest {
     }
 
     @Test
+    void aFramePointIsAWholeSheetPixelATexelInsideItsFrame() {
+        // Frame 2 of frames 128 px across spans sheet pixels 256..384.
+        assertEquals(257, RoofTiles.framePixel(2, 0f, 128f), "its near edge a texel in");
+        assertEquals(383, RoofTiles.framePixel(2, 1f, 128f), "its far edge a texel in");
+        assertEquals(294, RoofTiles.framePixel(2, 0.3f, 128f), "and between them the nearest pixel");
+    }
+
+    @Test
     void anIntactFloorDrawsItsFieldOverTheWholeCellInItsStylesRow() {
         List<Quad> quads = resolve(room(), 3, 3, RoofStyle.CORRUGATED, 0);
         assertEquals(List.of(new Quad(RoofTiles.FIELD + 1 + 2, RoofStyle.CORRUGATED.ordinal(), 0, 0f, 0f, 1f, 1f)),
