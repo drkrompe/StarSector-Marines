@@ -622,6 +622,43 @@ in its wrecked cradles. The product's size is the art session's open pick
 `ruins-products-size`, building on 3x3. Placement is a coordinate
 hash, so the layout never changes with the theme.
 
+**A forge works has a foundry** (owner, with pick `ruins-products-size` fill:
+"for things like forges we have a cool lava effect, we could make an actual
+forge area with crucibles that would be fun for the player to explore"; pick
+`ruins-forge-area` open, building on a). A nanoforge plant cast its forge cores
+before its lines finished them, so the forge theme's chain gains a stage after
+intake: the **foundry**, where crucibles still hold melt. It takes the slot of
+the outer band's first line hall, so the hall's footprint is the one every
+theme gets, and only what fills it changes with the theme.
+
+- **Crucibles** (3x3, heavy cover) stand on a raised bank along one wall, the
+  melt still lit in them; one may lie tipped and wrecked.
+- **Pour channels** run from each crucible's lip to the **casting beds**, open
+  pools of melt where the cores were cast. Both are molten ground: lava voids
+  in a new engineered style, a cast-steel lip over molten rock, drawn by the
+  molten void's renderer. A void blocks movement, never sight, and gives no
+  cover (`voids.md`, Battle), so the melt is a hazard to cross, not to hide
+  behind, and it never changes in a battle.
+- **Crossings** are grate catwalks over a channel, two cells wide, staggered
+  from channel to channel so no single lane looks down every crossing. Each
+  crossing's ends have cover beside them: slag heaps, a fallen ladle, a
+  cooling rack of half-cast cores.
+- **Sight lines** run long over the melt: a channel is a lane of fire nobody
+  stands in. The lanes between channels are where the cover is.
+- The hall still holds the delve's laws: every crossing is checked by
+  `DelveCheck`, and blocking any single crossing still leaves the hall one
+  floor.
+
+| Option | Shape |
+| --- | --- |
+| a (recommended) | One foundry hall (34x22, 40x24 at vast): a crucible bank on the north wall, three pour channels south to three casting beds, staggered crossings, cover in the lanes |
+| b | A run of three halls joined by doors: melt shop (crucibles), pour hall (one channel winding across it, three crossings), casting hall (four small beds) |
+| c | One melt trunk down the plant's spine: crucibles at its head, casting beds off it in the side halls, the spine's walkway beside it and bridges at its junctions |
+
+The crucible art and the engineered lip are the art session's, to the piece
+list in the shared note `ruins-forge-area.md`. Picture cards:
+`createSnapshots -Psnapshot=ruins-forge-picks`.
+
 **Part of the dead town is a port** (owner, with pick `ruins-vault-facility`:
 "We might even devote part of the towns construction outside to be ruins for a
 large port"; pick `ruins-port` open, building on a). A plant shipped what it
