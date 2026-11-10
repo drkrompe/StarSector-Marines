@@ -79,10 +79,46 @@ public class CellTopology {
     private VoidBackdrop voidBackdrop;
     public VoidBackdrop voidBackdrop() { return voidBackdrop; }
     public void setVoidBackdrop(VoidBackdrop value) { voidBackdrop = value; }
-    private NaturalVoid naturalVoid;
-    /** The land's own drop seen through the void cells (a gorge, a crevasse), or null; never set with a backdrop. */
-    public NaturalVoid naturalVoid() { return naturalVoid; }
-    public void setNaturalVoid(NaturalVoid value) { naturalVoid = value; }
+    /** The most natural drops one map carries: an outdoor gorge or rift, and a hall's melt, with one to spare. */
+    public static final int MAX_NATURAL_VOIDS = 3;
+    private final List<NaturalVoid> naturalVoids = new ArrayList<>();
+    /** Per cell, which of {@link #naturalVoids} owns it, for a void cell that is a drop's; 0 by default. */
+    private byte[] dropOwner;
+    /**
+     * The land's own drops seen through the void cells (a gorge, a crevasse, a foundry's melt), in the order they
+     * were cut: each owns its own void cells ({@link #dropAt}). Empty for a map with none; never set with a backdrop.
+     */
+    public List<NaturalVoid> naturalVoids() { return List.copyOf(naturalVoids); }
+    /** The map's first drop, or null when it has none: for a reader to whom any drop will do. */
+    public NaturalVoid naturalVoid() { return naturalVoids.isEmpty() ? null : naturalVoids.get(0); }
+    /** The drop at {@code index} in {@link #naturalVoids}, or null past the last. */
+    public NaturalVoid naturalVoid(int index) { return index >= 0 && index < naturalVoids.size() ? naturalVoids.get(index) : null; }
+    /**
+     * Makes {@code value} the map's only drop, owning every void cell that is not a rise's; null clears the drops.
+     * For a generator that cuts one drop and owns the whole map's voids.
+     */
+    public void setNaturalVoid(NaturalVoid value) {
+        naturalVoids.clear();
+        dropOwner = null;
+        if (value != null) naturalVoids.add(value);
+    }
+    /**
+     * Adds a drop owning {@code cells} (row-major, map-sized), returning its index. The cells are the drop's own: its
+     * lip, its walls and its crossings are worked out from them alone, so two drops on a map never meet.
+     */
+    public int addNaturalVoid(NaturalVoid value, boolean[] cells) {
+        Objects.requireNonNull(value, "drop");
+        if (naturalVoids.size() >= MAX_NATURAL_VOIDS) throw new IllegalStateException("a map carries at most " + MAX_NATURAL_VOIDS + " drops");
+        int index = naturalVoids.size();
+        naturalVoids.add(value);
+        if (index > 0 && dropOwner == null) dropOwner = new byte[width * height];
+        if (dropOwner != null) {
+            for (int i = 0; i < Math.min(cells.length, dropOwner.length); i++) if (cells[i]) dropOwner[i] = (byte) index;
+        }
+        return index;
+    }
+    /** Which drop in {@link #naturalVoids} owns the cell, if it is a drop's void cell: 0 unless a later drop claimed it. */
+    public int dropAt(int x, int y) { return dropOwner == null || !inBounds(x, y) ? 0 : dropOwner[y * width + x]; }
     private NaturalRise naturalRise;
     /** The land's own high ground seen through the rise cells (a ravine's walls), or null. */
     public NaturalRise naturalRise() { return naturalRise; }

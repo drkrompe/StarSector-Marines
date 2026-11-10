@@ -457,10 +457,14 @@ com.dillon.starsectormarines.ops.battleview.VolcanicGroundLookSuite
 com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite
 com.dillon.starsectormarines.ops.LavaFlowLookSuite
 com.dillon.starsectormarines.ops.CrevasseTownLookSuite
+com.dillon.starsectormarines.ops.BuildingFacesLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsForgePicksSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorPicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsEnvironmentPicksSuite
 com.dillon.starsectormarines.ops.OwnedMapLookSuite
 com.dillon.starsectormarines.tools.mapauthoring.MapsEditorSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.pool.StoryMapCandidatesSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMegaForgePicksSuite

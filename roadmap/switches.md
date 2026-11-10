@@ -69,6 +69,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
+| `battle.garrison.layout` | experiment | 2026-11-10 | Raid garrison district cards (`raid-garrison-districts`): `YARD` (default, today's), `BANDS` or `WINGS`. Remove with the losing layouts in `Cantonment` once the owner picks. |
 | `battle.heart.airbase` | control | 2026-10-31 | Broad Front's air wing is the bays of the two airbases its layout lays and flies from them, with a standing patrol of fighters over the lanes (`BloomHeartSetup.AIRBASE`, `heart-nouns.md` Allied airbase); `false` is the old edge-only wing. Remove it and the heart's edge-only path once the owner has seen the based wing and its Broad Front evidence has been read. |
 | `battle.heart.boreAssault` | control | 2026-10-25 | The Burn's lanes assault each bore in phases (`BoreAssault`, `heart-bore-assault.md`); remove it and the posts ahead of the aim once the owner has seen it on The Burn and its evidence has been read. |
 | `battle.heart.helpStranded` | experiment | 2026-10-25 | Broad Front company: its own satellites down, it goes to the nearest satellite still standing instead of holding at its landing (`HeartAssaultCommand.stranded`). Remove the losing arm once the owner has seen it and the Broad Front pool has been read against it. |
@@ -114,6 +115,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.settlementLots` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
+| `battle.mapgen.streetPlan` | experiment | 2026-11-10 | Street plan (mapgen-nouns.md): grown streets planned as one network; remove with the unplanned path once the plan is proven on the story map pools and the owner's review. |
 | `battle.mapgen.townFields` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mech.<axis>.<short id>` | tuning | 2026-10-18 | Balance control over one authored mech-weapon value (MechWeaponComponent.tuned). Kept while armorMatchup balances mech weapons; fold the readings into the data files and drop it when that pass closes. |
 | `battle.mech.armorArcs` | control | 2026-10-19 | Standing control alongside battle.vehicle.armorArcs. Retire with it. |
@@ -134,6 +136,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
+| `battle.render.buildingFaces` | experiment | 2026-11-10 | Buildings stood up with wall faces and roofs lifted by height (voids.md, buildings in depth): remove it, with the losing path, once the owner picks keep, keep for tall buildings, or drop. |
 | `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (`render-evidence.md`). |
 | `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
