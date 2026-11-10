@@ -82,9 +82,15 @@ public final class WorksHallPlan {
 
     /**
      * One piece of a hall: art {@code id} with a {@code standIn} from the game's existing sets until it ships, in
-     * {@code w} by {@code h} cells at {@code (x, y)} from the hall's south-west corner.
+     * {@code w} by {@code h} cells at {@code (x, y)} from the hall's south-west corner, its art turned {@code turns}
+     * quarters clockwise from how it was drawn (a room's pieces turn with the room, {@link #turned}).
      */
-    public record Piece(String id, String standIn, int x, int y, int w, int h, Layer layer, String station) {
+    public record Piece(String id, String standIn, int x, int y, int w, int h, Layer layer, String station, int turns) {
+        /** A piece drawn as its art faces, unturned. */
+        public Piece(String id, String standIn, int x, int y, int w, int h, Layer layer, String station) {
+            this(id, standIn, x, y, w, h, layer, station, 0);
+        }
+
         public boolean contains(int cx, int cy) { return cx >= x && cy >= y && cx < x + w && cy < y + h; }
     }
 
@@ -152,6 +158,46 @@ public final class WorksHallPlan {
         return true;
     }
 
+    /**
+     * This plan turned {@code quarters} quarter turns clockwise, so what faced north faces east after one: its
+     * pieces, zones, skins, water and drop moved with it, a piece's footprint turned with its cells. A room is
+     * planned with its hall side north and turned to face its hall ({@link RuinsRoom}).
+     */
+    public WorksHallPlan turned(int quarters) {
+        int q = Math.floorMod(quarters, 4);
+        if (q == 0) return this;
+        boolean swap = q % 2 == 1;
+        WorksHallPlan out = new WorksHallPlan(kind, swap ? length : width, swap ? width : length);
+        out.stations.putAll(stations);
+        out.dropKind = dropKind;
+        out.specialFloor = specialFloor;
+        for (int y = 0; y < length; y++) {
+            for (int x = 0; x < width; x++) {
+                int[] t = turn(q, x, y, 1, 1);
+                int i = at(x, y), j = out.at(t[0], t[1]);
+                out.zones[j] = zones[i];
+                out.skins[j] = skins[i];
+                out.water[j] = water[i];
+                out.drop[j] = drop[i];
+            }
+        }
+        for (Piece p : pieces) {
+            int[] t = turn(q, p.x(), p.y(), p.w(), p.h());
+            out.pieces.add(new Piece(p.id(), p.standIn(), t[0], t[1], t[2], t[3], p.layer(), p.station(),
+                    (p.turns() + q) % 4));
+        }
+        return out;
+    }
+
+    /** A footprint at {@code (x, y)}, {@code pw} by {@code ph}, after {@code q} clockwise quarter turns. */
+    private int[] turn(int q, int x, int y, int pw, int ph) {
+        return switch (q) {
+            case 1 -> new int[]{y, width - x - pw, ph, pw};
+            case 2 -> new int[]{width - x - pw, length - y - ph, pw, ph};
+            default -> new int[]{length - y - ph, x, ph, pw};
+        };
+    }
+
     // ---- building (package, for the theme planners) ------------------------------------------
 
     boolean in(int x, int y) { return x >= 0 && y >= 0 && x < width && y < length; }
@@ -175,6 +221,11 @@ public final class WorksHallPlan {
         }
         pieces.add(new Piece(id, standIn, x, y, w, h, Layer.STAND, station));
         return true;
+    }
+
+    /** Takes back the piece laid last. */
+    void unlay() {
+        if (!pieces.isEmpty()) pieces.remove(pieces.size() - 1);
     }
 
     void floor(String id, String standIn, int x, int y, int w, int h, String station) {
