@@ -1,0 +1,18 @@
+Asset: a sheet of separate top-down tactical-game pieces for the pour, finishing and cooling plant of a vast abandoned Domain-era nanoforge foundry hall in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated and robot- or field-handled, heavy engineered plant, as the same world's mining megaworks with its mass driver (reference 3). No crane hooks or hanging cables, no workbenches, vices, hand tools or grinding wheels, nothing of a 20th-century foundry.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper linear-drive stator strips; the pale gold areas are lit lenses or emitters. The crane runway is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length.
+Style: match reference 2 (the same foundry's furnace, pour head and mould master: same blue-gray and gunmetal plate, rivets, worn ochre trim, the same melt) and reference 3 for the machinery's design: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Melt: every orange area is molten metal: deep orange to dull red glowing through cracks in a dark crust, never yellow-white. Keep it exactly inside the orange areas.
+Background: true transparent background with clean alpha; no floor, shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. ladle-lift (3x3): a heavy pouring ladle held in the clamp yoke of an overhead manipulator, seen from above: the manipulator's armoured trolley head at the top, two thick articulated yoke arms coming down both sides to clamp the ladle's trunnions, the round ladle bowl full of melt.
+2. ladle-lift-tipped (3x3): the same yoke holding the ladle tipped mid-pour: its bowl tilted and near empty, a stream of melt pouring from its lip to the right.
+3. finishing-cell (2x2): a robotic finishing cell: a heavy industrial robot arm on a round turret plinth, its arm reaching to a clamping fixture holding a dull grey casting, spark scorch around the fixture.
+4. metrology-bed (2x2): a metrology bed: a precision measuring bed with a pale plate surface and a scanning arch bridging across it, a thin dim emitter lens strip along the arch.
+Bottom row left to right:
+5. cooling-rack (2x4): an automated cooling stack: an open frame of heavy shelf beams with a stacker carriage rail along its left side and the carriage parked on it, empty.
+6. cooling-rack-castings (2x4): the same stack with dull grey forged castings left in field cradles on four of its shelves.
+7. crane-runway (1x4): an overhead gantry runway beam seen from above: an armoured box beam with a copper linear-drive stator strip down its centre and stiffener plates, a column cap bracket across its middle.
+8. fallen-girder (7x1): the same kind of runway beam fallen to the floor across the bay, its stator strip running along it, the far right end sheared off with torn cables spraying out.

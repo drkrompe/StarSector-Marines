@@ -1,0 +1,18 @@
+Asset: a sheet of separate top-down tactical-game pieces for the feed and slag movers of a vast abandoned Domain-era nanoforge foundry hall in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated and field-handled, as the same world's mining megaworks with its electromagnetic mass driver and hover haulers (reference 3). No wheels, no railway sleepers, no train cars, nothing of a 20th-century foundry or railway.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper coil rings; the pale gold areas are lit glowing parts. The mag-rail (first piece) is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length.
+Style: match reference 2 (the same foundry's floor and line pieces: same blue-gray and gunmetal plate, rivets, worn ochre trim, the same melt) and reference 3 (the mass driver's ribbed trough, copper coil rings and glowing capsule, the hover haulers' ducted lift-fan rings) for the machinery's design: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Melt: every orange area is molten slag: dull orange to dark red glowing through cracks in a thick dark crust, never yellow-white. Keep it exactly inside the orange areas.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. mag-rail (2x2): a magnetic feed rail sunk flush in steel floor plate: a dark ribbed trough between two polished guide rails, two copper coil rings wrapped across it.
+2. mag-rail-curve (4x4): the same mag-rail turning a quarter circle, coil rings across it at intervals.
+3. mag-rail-end (2x2): the end of the mag-rail: the trough running into a heavy decelerator block banked with copper coils, one coil ring across the trough.
+4. feed-pod (2x3): a sealed feed capsule pod that rides the mag-rail: a long banded steel capsule with three heavy bands, its nose a glowing charge window (amber, dim).
+5. feed-pod-derailed (2x3): the same capsule pod thrown off its rail, slewed askew, a band split, a few lumps of ore spilled beside it.
+Bottom row left to right:
+6. slag-skid (3x3): a hover slag skid: a plated spine carrying a thick round cast slag pot, four ducted lift-fan rings at its corners (fan blades still, small dead lamps), dark slag crust in the pot with one glowing crack.
+7. slag-skid-crashed (3x3): the same skid crashed at the slag pit's lip, slewed, one fan ring torn off, its pot tipped to the right and a tongue of glowing slag running out to the right edge.
+8. thrust-wash (2x3): two faint soot-and-heat scorch streaks on the floor left by hover skids' lift fans; only the stain itself, semi-transparent, no floor under it.
