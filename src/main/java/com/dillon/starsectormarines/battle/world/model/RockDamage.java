@@ -28,7 +28,7 @@ public final class RockDamage {
      * heat-fused stone on irradiated ones.
      */
     public enum Biome {
-        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-"),
+        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-"), SCORIA("scoria-"),
         /** Heat-fused stone with a glazed, glassy crust, on irradiated worlds. */
         GLASSED("glassed-");
 

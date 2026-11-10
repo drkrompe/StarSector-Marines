@@ -107,11 +107,12 @@ What differs, all presentation:
   breathing. Where they go is `VolcanicGroundLook`'s: only open wild stone or sand
   with open ground about it, never under a wall, road, raised ground, fixture or
   authored surface. Coordinate-hashed; nothing gameplay reads.
-- **Storm drift** banks ash, and the field stones are the basalt set.
+- **Storm drift** banks ash. The field stones are the scoria set
+  (`RockDamage.Biome.SCORIA`): the basalt stones graded dark and faintly warm by
+  `nature-tiles-refit.py`, in the same pool sizes and chances as rock, so they
+  fall where rock's would.
 
-Known left: the basalt field stones are the barren world's light grey set and
-read as pale pebbles on dark ground (a darker scoria set would need its damage
-states too); raised ground from `ElevationBrush` picks its finish from the
+Known left: raised ground from `ElevationBrush` picks its finish from the
 ground kinds and so stays rock on a lava world; no glow feathering at the ground
 target's edge, since the basalt joins no feathered material, as snow does not.
 

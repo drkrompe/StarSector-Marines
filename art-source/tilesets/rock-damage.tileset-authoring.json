@@ -905,6 +905,230 @@
       ]
     },
     {
+      "id": "nature.rock-scoria-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        7146,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        8033,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        7150,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        8037,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        7156,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        8043,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        7162,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        8049,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        7583,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        8470,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        7599,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        8486,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        7610,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        8497,
+        375,
+        325
+      ]
+    },
+    {
       "id": "nature.rock-glassed-small-1-damaged",
       "included": true,
       "cover": "none",
@@ -915,7 +1139,7 @@
       ],
       "rect": [
         25,
-        7147,
+        8921,
         309,
         361
       ]
@@ -931,7 +1155,7 @@
       ],
       "rect": [
         25,
-        8034,
+        9808,
         309,
         361
       ]
@@ -947,7 +1171,7 @@
       ],
       "rect": [
         521,
-        7151,
+        8925,
         330,
         360
       ]
@@ -963,7 +1187,7 @@
       ],
       "rect": [
         521,
-        8038,
+        9812,
         330,
         360
       ]
@@ -979,7 +1203,7 @@
       ],
       "rect": [
         930,
-        7155,
+        8929,
         369,
         358
       ]
@@ -995,7 +1219,7 @@
       ],
       "rect": [
         930,
-        8042,
+        9816,
         369,
         358
       ]
@@ -1011,7 +1235,7 @@
       ],
       "rect": [
         1388,
-        7164,
+        8938,
         349,
         342
       ]
@@ -1027,7 +1251,7 @@
       ],
       "rect": [
         1388,
-        8051,
+        9825,
         349,
         342
       ]
@@ -1043,7 +1267,7 @@
       ],
       "rect": [
         25,
-        7584,
+        9358,
         393,
         361
       ]
@@ -1059,7 +1283,7 @@
       ],
       "rect": [
         25,
-        8471,
+        10245,
         393,
         361
       ]
@@ -1075,7 +1299,7 @@
       ],
       "rect": [
         476,
-        7600,
+        9374,
         376,
         322
       ]
@@ -1091,7 +1315,7 @@
       ],
       "rect": [
         476,
-        8487,
+        10261,
         376,
         322
       ]
@@ -1107,7 +1331,7 @@
       ],
       "rect": [
         920,
-        7610,
+        9384,
         385,
         330
       ]
@@ -1123,7 +1347,7 @@
       ],
       "rect": [
         920,
-        8497,
+        10271,
         385,
         330
       ]

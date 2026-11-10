@@ -1212,13 +1212,180 @@
         1,
         1
       ],
+      "id": "nature.rock-scoria-small-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-scoria",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "rect": [
+        6881,
+        13,
+        74,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-scoria-small-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2-scoria",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
+      "rect": [
+        7032,
+        14,
+        81,
+        91
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-scoria-medium-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-scoria",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
+      "rect": [
+        7162,
+        15,
+        94,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-scoria-medium-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2-scoria",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
+      "rect": [
+        7302,
+        17,
+        89,
+        87
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-scoria-large-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-scoria",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "passable": false,
+      "rect": [
+        7431,
+        11,
+        101,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-scoria-large-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-2-scoria",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        7572,
+        15,
+        95,
+        83
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-scoria-large-3",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-3-scoria",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        7710,
+        18,
+        96,
+        84
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
       "id": "nature.rock-glassed-small-1",
       "included": true,
       "layer": "rock",
       "name": "rocks-small-glassed",
       "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
       "rect": [
-        6880,
+        7844,
         13,
         80,
         93
@@ -1241,7 +1408,7 @@
       "name": "rocks-small-2-glassed",
       "note": "three small stones, one larger — a tighter scatter than rock-small-1",
       "rect": [
-        7031,
+        7995,
         14,
         86,
         93
@@ -1264,7 +1431,7 @@
       "name": "rock-medium-glassed",
       "note": "a boulder with two stones at its foot — light cover, still walkable",
       "rect": [
-        7161,
+        8125,
         15,
         94,
         92
@@ -1287,7 +1454,7 @@
       "name": "rock-medium-2-glassed",
       "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
       "rect": [
-        7302,
+        8266,
         17,
         90,
         89
@@ -1312,7 +1479,7 @@
       "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
       "passable": false,
       "rect": [
-        7431,
+        8395,
         11,
         102,
         93
@@ -1337,7 +1504,7 @@
       "note": "a leaning slab over a low stone — heavy cover, impassable",
       "passable": false,
       "rect": [
-        7571,
+        8535,
         15,
         97,
         83
@@ -1362,7 +1529,7 @@
       "note": "the tallest stack on the sheet — heavy cover, impassable",
       "passable": false,
       "rect": [
-        7709,
+        8673,
         18,
         99,
         85

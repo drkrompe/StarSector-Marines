@@ -1268,23 +1268,40 @@ wall is. `compound-programs.md` owns the model, the measurements behind its
 sizing rules, and what remains before an ordinary compound can be built the same
 way.
 
-A **cantonment** is a garrison laid in rows rather than packed (`Cantonment`;
-owner note on the Raid site: a packed garrison read as "very messy"). Its claim
-is a square kept whole on the map, walled and glacised like a square place. The
-**gate** is where the town's road comes in, the widest road on the side facing
-the rest of the site; the avenue runs from the gate side's middle, with a
-forecourt street inside the wall where the road enters off that line. Every
-building stands on a footprint the ground takes whole, faces a street, and steps
-round any road the town grew through the square; what the rows cannot seat
-takes the nearest free spot, square to them. The program
-(`FortressProgram.cantonment`) counts barracks, workshops and stores from the
-market's size, and the guardroom, corner towers and magazines from its security.
-It keeps at most one flight line, placed where the rows leave room. Only a Raid
-site's garrison is a cantonment (`PrecinctPlan.raidGarrison`); every other
-garrison is packed as before. The row arrangement is the owner's pick
-`raid-garrison` (`battle.garrison.plan` until it is decided): a parade avenue
-from the gate to the HQ, a quadrangle round one parade square, or quadrants
-about two crossing avenues.
+A **cantonment** is a garrison laid out as an installation rather than packed
+(`Cantonment`; owner notes on the Raid site: a packed garrison read as "very
+messy", and the first rowed plans gave the motor pool no clear way out and too
+small a motor pool and airfield). Its claim is a square kept whole on the map
+and slid the least it takes off ground a place before it holds (a Raid site's
+works), walled and glacised like a square place; it is laid on the largest
+square of its own ground. Every road across its claim is taken up and one
+**road in** laid straight from its middle to the town's nearest road
+(`CantonmentRoads`), and no weld between road networks is cut back across it.
+The **gate** is where that road comes in; the avenue runs from the gate side's
+middle, with a forecourt street inside the wall where the road enters off that
+line. Its parts:
+
+- the **motor pool**: vehicle sheds whose door ends open on a paved
+  **hardstand**, joined to the avenue, so every shed has a way out of the gate
+  at least three cells wide that no building stands on (`CantonmentTest`);
+- the **quadrangle**: a column of barracks down each side of the parade ground
+  facing it, the headquarters across its head facing the gate, the messes
+  either hand;
+- the **depot** (magazines, stores, workshops, generator) in rows outside the
+  barracks, and the **flight line**.
+
+Every building stands on a footprint the ground takes whole and steps round any
+ground it cannot take; what cannot be seated in its place takes the nearest free
+spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
+(one, two from size 6), workshops and stores from the
+market's size, and the guardroom, corner towers and magazines from its
+security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
+pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
+(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
+the motor pool and flight line stand is the owner's pick `raid-garrison`
+(`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
+the gate with the flight line beside the quadrangle (`YARD`), or one apron
+inside the gate shared by the sheds and the flight line (`APRON`).
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,

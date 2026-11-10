@@ -35,6 +35,7 @@ script lists one set per biome, and `RockDamage.Biome` names the same sets:
 | Sandstone | `nature.rock-sandstone-<group>` | ARID | `field-stones/sandstone/`, `dusty` |
 | Basalt | `nature.rock-basalt-<group>` | ROCK | `field-stones/basalt/`, `weathered` |
 | Frost | `nature.rock-frost-<group>` | FROZEN | `field-stones/frost/`, `none` |
+| Scoria | `nature.rock-scoria-<group>` | VOLCANIC | `field-stones/basalt/`, `scoria` |
 | Glassed | `nature.rock-glassed-<group>` | IRRADIATED | `field-stones/glassed/`, `none` |
 
 Each set's three states have their own prompts and provenance in its folder.
