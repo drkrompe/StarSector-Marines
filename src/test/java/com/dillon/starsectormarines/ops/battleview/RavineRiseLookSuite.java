@@ -83,6 +83,27 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
         boolean video = FfmpegVideo.executable() != null;
         List<SnapshotArtifact> out = new ArrayList<>();
         float height = Float.parseFloat(System.getProperty("snapshot.ravine.height", "36"));
+        // The bank's width and terrace count for the owner's pick: "-Dsnapshot.ravine.banks=10x6,6x4,16x8" draws
+        // each, cells back to the top by terraces, at the wall's foot and wide.
+        String banks = System.getProperty("snapshot.ravine.banks", "");
+        if (!banks.isBlank()) {
+            for (String bank : banks.split(",")) {
+                String[] parts = bank.trim().split("x");
+                List<NaturalRise.Step> steps = NaturalRise.bank(height, Float.parseFloat(parts[0]),
+                        Integer.parseInt(parts[1]));
+                NaturalRise look = ICE
+                        ? new NaturalRise(NaturalRise.Style.ICE_WALL, steps, 120f, "graphics/battle/voids/ice-wall.png", 10f, 11)
+                        : new NaturalRise(NaturalRise.Style.RAVINE_WALL, steps, 120f, "graphics/battle/voids/gorge-wall.png",
+                        14f, 11);
+                String tag = String.format(Locale.ROOT, "ravine-%03dm%s-bank%s", Math.round(height), ICE ? "-ice" : "",
+                        bank.trim());
+                try (BattleSimulation sim = ravine(look)) {
+                    out.add(shot(context, sim, tag + "-1-wall-foot.png", 40f, centre(40) - 3f, PLAY));
+                    out.add(shot(context, sim, tag + "-4-wide.png", W / 2f, H / 2f, W));
+                }
+            }
+            return out;
+        }
         for (String eyeText : System.getProperty("snapshot.ravine.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
             boolean vary = Boolean.getBoolean("snapshot.ravine.vary");

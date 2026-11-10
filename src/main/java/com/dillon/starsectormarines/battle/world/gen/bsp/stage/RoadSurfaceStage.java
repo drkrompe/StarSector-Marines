@@ -87,9 +87,13 @@ public final class RoadSurfaceStage implements GenStage {
         boolean[][] street = new boolean[ctx.width][ctx.height];
         boolean[][] footway = new boolean[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
+            // A road the town did not pave as its own street (a weld or a road laid through) is paved in asphalt
+            // and swept as the roads beyond the claims are.
+            String id = precinct ? ctx.topology.getSurfaceId(x, y) : null;
             road[x][y] = precinct && owner[x][y] != GrownTrunkPlan.UNOWNED
                     && (claim[x][y] == GrownTrunkPlan.UNOWNED || precincts == null
-                    || precincts.precincts().get(claim[x][y]).isProgrammed());
+                    || precincts.precincts().get(claim[x][y]).isProgrammed()
+                    || id != null && id.startsWith("pavement.asphalt."));
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
             footway[x][y] = city && !road[x][y] && footway(ctx, x, y);
             // The country's roads are its own routes, laid below; none of it is a street.
