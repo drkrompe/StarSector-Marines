@@ -138,6 +138,14 @@ public final class NaturalVoidZoning {
             new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
             "graphics/battle/voids/basalt-wall.png", 12f);
 
+    /**
+     * A foundry's melt: a kerb a metre deep and the melt 2 m down, between firebrick walls
+     * (`ruins-expedition.md`, A forge works has a foundry). Laid by the ruins ground, never by a palette.
+     */
+    public static final Drop FOUNDRY = new Drop(NaturalVoid.Style.FOUNDRY, List.of(
+            new NaturalVoid.Step(1f, .06f), new NaturalVoid.Step(2f, .12f)),
+            "graphics/battle/voids/firebrick-wall.png", 2f);
+
     private NaturalVoidZoning() { }
 
     /**

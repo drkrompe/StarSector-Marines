@@ -1334,11 +1334,11 @@ spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
 market's size, and the guardroom, corner towers and magazines from its
 security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
 pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
-(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
-the motor pool and flight line stand is the owner's pick `raid-garrison`
-(`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
-the gate with the flight line against the back wall (`YARD`), or one apron
-inside the gate shared by the sheds and the flight line (`APRON`).
+(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. The
+motor yard stands at the gate (the owner's pick `raid-garrison`): sheds flank
+the avenue just inside it, their doors on the hardstand it widens into, so a
+vehicle drives out of its shed and straight out of the gate; the flight line
+stands against the back wall.
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
@@ -2103,6 +2103,15 @@ through the same one-floor placement as the dressing: line runs east-west, a
 line end feeding 6x3 modules with a gap after every second and a wreck here and
 there, some modules carrying the theme's unit half-built or wrecked on their bed; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
 wall (their levelers are floor) with stock left on the dock floor.
+
+**A forge works has a foundry.** The outer band's first line hall is laid at a
+foundry's size, 34x22 (40x24 at vast), whatever the theme. A dressing marked
+`foundry` fills it with a bank of crucibles on its north wall, a two-cell pour
+channel from each to a casting bed, and a grate crossing over each channel,
+staggered from channel to channel, all clear of doorways and the hall's middle.
+The hall is proved one floor across its crossings before the melt is cut. The
+ground plans the melt (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after
+finalize as a `FOUNDRY` lava drop (`voids.md`).
 
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
 and the interior's chambers wear for the site's vault prize
