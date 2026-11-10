@@ -437,21 +437,12 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
         if (Math.min(c.width, c.height) < CHASM_MIN_SIDE || !chasmWanted(c.seed)) return;
         int w = c.width;
-        String lavaFlow = field.world() == SurfacePalette.VOLCANIC ? lavaFlow() : "rift";
-        if (lavaFlow.equals("field")) {
-            int side = new Random(c.seed ^ 0x4c4146L).nextInt(4);
-            paintFlows(c, LavaFlows.fromEdge(w, c.height, side,
-                    i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                    (int) (c.seed ^ 0x4c46L)), reserved);
-            return;
-        }
         NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height,
                 i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                 i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
         if (cut == null) return;
         cutDrop(c, cut.drop(), reserved);
-        NaturalVoidZoning.Drop drop = lavaFlow.equals("rift") ? NaturalVoidZoning.forPalette(field.world())
-                : NaturalVoidZoning.LAVA_RIVER;
+        NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
         // Each crossing is decked as a timber footbridge. A snow bridge on ice was tried: plain snow over the
         // crevasse read as two pits with ground between them, not as a way across.
         int timber = c.topology.surfaceIndex(DECK_SURFACE);
@@ -465,25 +456,13 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setSurface(x, y, timber);
         }
         c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height));
-        if (lavaFlow.equals("flows")) {
+        // A volcanic world's lava river has broken its banks before: its older flows lie on the plain.
+        if (field.world() == SurfacePalette.VOLCANIC) {
             paintFlows(c, LavaFlows.offChannel(w, c.height, cut.drop(),
                     i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                     i -> !decks[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                     (int) (c.seed ^ 0x4c46L)), reserved);
         }
-    }
-
-    /**
-     * {@code battle.mapgen.lavaFlow}: what a volcanic world's natural drop is while the owner picks
-     * ({@code voids.md}, Lava flows): {@code rift} (the 40 m rift, the default and today's map), {@code river} (the
-     * 4 m lava river), {@code flows} (the river with its older flows on the plain) or {@code field} (the older flows
-     * alone, no drop). Undecided: remove it with the losing arms once the owner picks.
-     */
-    static final String LAVA_FLOW = "battle.mapgen.lavaFlow";
-
-    static String lavaFlow() {
-        String asked = System.getProperty(LAVA_FLOW);
-        return asked == null || asked.isBlank() ? "rift" : asked.trim();
     }
 
     /** Lays the older flows ({@link LavaFlows#heat}) and keeps the landscape's later features off them. */
