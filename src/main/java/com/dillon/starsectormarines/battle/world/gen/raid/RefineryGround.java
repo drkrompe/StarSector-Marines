@@ -37,24 +37,38 @@ import java.util.function.IntUnaryOperator;
  * plant leaves. Run by the landscape pass before anything wild grows, on a map whose plan's layout holds the
  * {@link RefiningWorks#TANK_FARM} site; every other map is left alone.
  *
- * <p>Art the plant has none of yet is stood in by the nearest prop drawn larger (its sheet read at a finer cell), so a
- * tank or column reads at its real size: a feed tank's roof for a storage tank, a product vessel for a column, a
- * lattice tank for the flare. Each is listed in the ruins theme art brief's refinery entry.
+ * <p>The vessels, the flare and the spills are the refinery's own sheet ({@code refinery-plant}), each frame drawn over
+ * the disc its fixture stands on ({@link #over}): a column's frame carries its platform ring, its vapour line and the
+ * long shadow that makes it read tall, so it is drawn larger than its disc and offset up and left. The bund walls,
+ * the loading rack and the tankers are still stood in by existing art drawn larger.
  */
 public final class RefineryGround {
 
-    /** Stand-in art: a storage tank's roof, a column's head, the flare's tip, and the spills. */
-    static final String TANK_ART = "doodad.ruins-feed-tank";
-    static final String SMALL_TANK_ART = "doodad.ruins-nutrient-tank";
-    static final String COLUMN_ART = "doodad.ruins-product-tank";
-    static final String FLARE_ART = "doodad.ruins-lattice-tank";
+    /** The refinery's own art: a floating-roof tank, a volatiles sphere, a column and its stripper, the flare, a spill. */
+    static final String TANK_ART = "refinery.tank";
+    static final String SPHERE_ART = "refinery.sphere";
+    static final String COLUMN_ART = "refinery.column";
+    static final String STRIPPER_ART = "refinery.stripper";
+    static final String FLARE_ART = "refinery.flare";
+    static final String SPILL_ART = "refinery.spill";
+    /**
+     * How each frame lies over its disc ({@code refinery-plant-export.py}): the frame's span in discs, and where the
+     * disc's middle falls across it.
+     */
+    static final float TANK_SPAN = 1f, TANK_AT = .5f;
+    static final float COLUMN_SPAN = 2.5f, COLUMN_AT = .4f;
+    static final float SPHERE_SPAN = 2f, SPHERE_AT = .375f;
+    static final float FLARE_SPAN = 4f, FLARE_AT = .5f;
+    /** A big spill where a tank weeps. */
+    static final int SPILL = 6;
+    /** Small stains: the loading arms' drips and the flare's soot. */
     static final String STAIN_ART = "doodad.ruins-oil-stain";
     static final String TRAIL_ART = "doodad.ruins-oil-trail";
     static final String TANKER_ART = "doodad.parked-tanker-truck";
 
     /**
      * A unit's columns, the main column and its stripper side by side on the plot: the biggest pair the yard beside its
-     * house takes. Each a divisor of the column art's 384 px. UNTUNED.
+     * house takes. Each drawn {@link #COLUMN_SPAN} times over, a divisor of the frame's 480 px. UNTUNED.
      */
     static final int[][] PLOT_SIZES = {{8, 6}, {6, 4}};
     /** How far along the house's side a plot may slide to find its ground. */
@@ -62,7 +76,9 @@ public final class RefineryGround {
     /** Cells between a unit's house and its plot. */
     static final int PLOT_GAP = 2;
     /** The flare stack's footprint, and the clear ground it keeps round it. UNTUNED. */
-    static final int FLARE = 4;
+    static final int FLARE = 8;
+    /** The soot round the flare's foot. */
+    static final int SCORCH = 16;
     static final int FLARE_CLEAR = 4;
     /** Cells beyond the works' claim the flare stands. UNTUNED. */
     static final int FLARE_OFF = 8;
@@ -99,6 +115,17 @@ public final class RefineryGround {
         if (registry == null || registry.doodad(StreetDressing.PIPE_STRAIGHT) == null) return;
         int w = c.width;
         new Dresser(c, plan, new boolean[c.width * c.height], i -> natural(c, i % w, i / w), registry).dress(farm);
+    }
+
+    /**
+     * A frame drawn over a disc {@code disc} cells across at {@code x}: its drawn size and where it starts, the frame
+     * being {@code span} discs across with the disc's middle {@code at} of the way along it. Null when either is not a
+     * whole number of cells.
+     */
+    static int[] over(int disc, float span, float at, int x) {
+        float size = disc * span, from = x + disc / 2f - at * size;
+        if (size != Math.round(size) || from != Math.round(from)) return null;
+        return new int[]{Math.round(size), Math.round(from)};
     }
 
     /** Open natural ground: walkable country outside any building, wall, door, fixture, made ground or road. */
@@ -197,14 +224,14 @@ public final class RefineryGround {
             for (TankFarm.Bund bund : farm.bunds()) {
                 for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) pave(x, y, PAD);
             }
-            DoodadDef stain = registry.doodad(STAIN_ART);
+            DoodadDef stain = registry.doodad(SPILL_ART);
             boolean leaked = false;
             for (TankFarm.Bund bund : farm.bunds()) {
                 for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) keep(x, y);
                 // One tank weeps into its bund: the stain on the bund floor beside it.
                 if (!leaked && stain != null && !bund.tanks().isEmpty()) {
                     TankFarm.Tank t = bund.tanks().get(0);
-                    Doodad spill = scaled(stain, 4, t.x() + t.size() - 3, t.y() - 2);
+                    Doodad spill = scaled(stain, SPILL, t.x() + t.size() - SPILL / 2, t.y() - 2);
                     if (spill != null) c.doodads.add(spill);
                     leaked = true;
                 }
@@ -219,12 +246,22 @@ public final class RefineryGround {
             return farm;
         }
 
-        /** A tank: its disc solid and blind, its roof drawn over the square it stands in. */
+        /**
+         * A tank: its disc solid and blind; a big one a floating-roof crude tank drawn over the square it stands in, a
+         * small one a volatiles sphere with its shadow.
+         */
         void tank(TankFarm.Tank tank) {
-            DoodadDef art = registry.doodad(tank.size() >= TankFarm.BIG ? TANK_ART : SMALL_TANK_ART);
             stampDisc(tank.x(), tank.y(), tank.size());
-            if (art == null) return;
-            Doodad d = scaled(art, tank.size(), tank.x(), tank.y());
+            if (tank.size() >= TankFarm.BIG) drawOver(TANK_ART, tank.size(), TANK_SPAN, TANK_AT, tank.x(), tank.y());
+            else drawOver(SPHERE_ART, tank.size(), SPHERE_SPAN, SPHERE_AT, tank.x(), tank.y());
+        }
+
+        /** {@code id}'s frame drawn over the disc {@code disc} cells across at {@code (x, y)}, by {@link #over}. */
+        void drawOver(String id, int disc, float span, float at, int x, int y) {
+            DoodadDef art = registry.doodad(id);
+            int[] ox = over(disc, span, at, x), oy = over(disc, span, at, y);
+            if (art == null || ox == null || oy == null) return;
+            Doodad d = scaled(art, ox[0], ox[1], oy[1]);
             if (d != null) c.doodads.add(d);
         }
 
@@ -269,7 +306,6 @@ public final class RefineryGround {
 
         /** The plot of a column and its stripper of these sizes beside the house, if one fits; true when laid. */
         boolean plot(House unit, int column, int stripper) {
-            DoodadDef art = registry.doodad(COLUMN_ART);
             int len = column + PLOT_GAP + stripper;
             for (int side = 0; side < 4; side++) {
                 boolean alongX = side < 2;
@@ -289,11 +325,8 @@ public final class RefineryGround {
                     for (int py = y - 1; py <= y + ph; py++) for (int px = x - 1; px <= x + pw; px++) pave(px, py, PAD);
                     stampDisc(x, y, column);
                     stampDisc(sx, sy, stripper);
-                    if (art != null) {
-                        Doodad a = scaled(art, column, x, y), b = scaled(art, stripper, sx, sy);
-                        if (a != null) c.doodads.add(a);
-                        if (b != null) c.doodads.add(b);
-                    }
+                    drawOver(COLUMN_ART, column, COLUMN_SPAN, COLUMN_AT, x, y);
+                    drawOver(STRIPPER_ART, stripper, COLUMN_SPAN, COLUMN_AT, sx, sy);
                     return true;
                 }
             }
@@ -511,17 +544,13 @@ public final class RefineryGround {
                 }
             }
             if (at == null) return;
-            DoodadDef stain = registry.doodad(STAIN_ART), tip = registry.doodad(FLARE_ART);
-            int scorch = 2 * FLARE;
+            DoodadDef stain = registry.doodad(STAIN_ART);
             if (stain != null) {
-                Doodad d = scaled(stain, scorch, at[0] - FLARE / 2, at[1] - FLARE / 2);
+                Doodad d = scaled(stain, SCORCH, at[0] - (SCORCH - FLARE) / 2, at[1] - (SCORCH - FLARE) / 2);
                 if (d != null) c.doodads.add(d);
             }
             stampDisc(at[0], at[1], FLARE);
-            if (tip != null) {
-                Doodad d = scaled(tip, FLARE, at[0], at[1]);
-                if (d != null) c.doodads.add(d);
-            }
+            drawOver(FLARE_ART, FLARE, FLARE_SPAN, FLARE_AT, at[0], at[1]);
             for (int y = at[1] - FLARE_CLEAR; y < at[1] + FLARE + FLARE_CLEAR; y++) {
                 for (int x = at[0] - FLARE_CLEAR; x < at[0] + FLARE + FLARE_CLEAR; x++) keep(x, y);
             }
@@ -583,10 +612,6 @@ public final class RefineryGround {
             c.markMadeGround(x, y);
         }
 
-        /**
-         * {@code def} drawn {@code size} cells square from {@code (x, y)}: its sheet read at a cell so much finer that
-         * its frame spans the size. Null when the frame does not divide into it.
-         */
         /** {@code def} drawn {@code k} times its sheet size from {@code (x, y)}, or null when its frame does not divide. */
         Doodad scaledBy(DoodadDef def, int k, int x, int y) {
             int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
@@ -605,6 +630,10 @@ public final class RefineryGround {
             keep(x, y);
         }
 
+        /**
+         * {@code def} drawn {@code size} cells square from {@code (x, y)}: its sheet read at a cell so much finer that
+         * its frame spans the size. Null when the frame does not divide into it.
+         */
         Doodad scaled(DoodadDef def, int size, int x, int y) {
             int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
             int px = cell0 * def.footprintCellsX;
