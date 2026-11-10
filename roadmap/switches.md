@@ -131,6 +131,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
+| `battle.planetSkin.landingSheds` | experiment | 2026-11-10 | Sunken sheds on a landing field (`PlanetSkin.shedsOnLanding`): off leaves the landing ground bare, on stands coverless sheds there; remove it with the arm not picked once the owner answers planet-skin-landing. |
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |

@@ -134,6 +134,20 @@ public final class Doodad {
         this.fightingPosition = def.fightingPosition;
     }
 
+    /** {@code def} turned, standing with the cover and silhouette its placer decides rather than the sheet's. */
+    public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns, int cover, float ballisticHalfHeight) {
+        this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
+                def.sheetPath, cover, ballisticHalfHeight,
+                def.footprintCellsX, def.footprintCellsY,
+                rotatedWidth(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotatedHeight(def.footprintCellsX, def.footprintCellsY, quarterTurns),
+                rotateSide(def.preferredWallSide, quarterTurns),
+                def.sourceCellPx, normalizeTurns(quarterTurns));
+        this.definitionId = def.id;
+        this.fogSurface = def.fogSurface;
+        this.fightingPosition = def.fightingPosition;
+    }
+
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
         this(cellX, cellY, tile,
                 fromRoadSheet ? TileManifest.ROAD_SHEET : TileManifest.SHEET,
