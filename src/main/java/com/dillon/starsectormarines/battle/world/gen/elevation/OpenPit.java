@@ -38,7 +38,7 @@ public final class OpenPit {
 
     /**
      * The benches going down, shallowest first: each a working bench 7 m below the last, cut 2 cells back from the
-     * face above, to a floor 42 m down. UNTUNED: the owner feels depth out from renders.
+     * face above, to a floor 42 m down: the owner's pick (raid-mine-pit-depth).
      */
     public static final List<NaturalVoid.Step> STEPS = List.of(
             new NaturalVoid.Step(7f, .45f),

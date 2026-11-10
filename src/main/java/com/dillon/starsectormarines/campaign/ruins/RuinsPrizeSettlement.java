@@ -45,6 +45,21 @@ public final class RuinsPrizeSettlement {
         return grants;
     }
 
+    /**
+     * Pays the tech caches found along the delve and brought home ({@code ruins-expedition.md}, Two tiers of find):
+     * each one roll of its vanilla drop group. The caller pays exactly once.
+     *
+     * @return the rolls paid; empty for none or no cargo
+     */
+    public static List<RuinsPrizeGrant> payTechFinds(CargoAPI cargo, List<String> findIds, long sectorSeed,
+                                                     String marketId) {
+        if (cargo == null || findIds == null || findIds.isEmpty() || marketId == null) return List.of();
+        List<RuinsPrizeGrant> rolls = RuinsPrizeGrant.ofTechFinds(findIds, sectorSeed, marketId);
+        for (RuinsPrizeGrant roll : rolls) cargo.addAll(techRoll(roll));
+        LOG.info("RuinsPrizeSettlement: " + marketId + " paid tech finds " + findIds + ": " + rolls);
+        return rolls;
+    }
+
     /** One roll of the grant's drop group, rerolled past vanilla's {@code nothing} so a cache is never empty. */
     private static CargoAPI techRoll(RuinsPrizeGrant grant) {
         Random random = new Random(grant.seed());

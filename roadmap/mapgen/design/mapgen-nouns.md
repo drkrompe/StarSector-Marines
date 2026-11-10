@@ -2196,7 +2196,11 @@ basin on a desert keeps its green floor. Lawn on every world used to be the law,
 read as a colony that shipped the soil in; on a desert it was most of what the
 player saw of the town, and it read as a mistake (owner). Cells that carry an
 authored surface — a farm's crop rows and pasture — draw that surface and are
-left as laid. Only the ground kind changes, so walkability, props and random
+left as laid. The town's open dirt lots — industrial yards and waste ground laid
+as bare earth with no surface of their own — settle the same way, so a dead world's
+town is not patched with olive squares (owner). Worked earth keeps its dirt: made
+ground and cells drawn as `floors.dirt` (trench floors, sandbag aprons, fort
+yards) are dug, not lots. Only the ground kind changes, so walkability, props and random
 streams do not move, and a living world's map is the map it was.
 
 **A settlement adapts to its climate.** The palette says what the ground is
@@ -2215,7 +2219,10 @@ sand (desert, or dust on a rock), snow (frozen) or sulphur dust (toxic), its dep
 noise. A drift is a surface skin (`floors.sand`, `floors.snow`), never ground:
 the cell keeps its ground kind, so walkability, cover, fire and every placement
 that reads pavement are unchanged, and it crosses a street only on the apron
-against the wall. A living world's storms pile up nothing. The other hazards are
+against the wall. It is the last skin laid (`StormDriftStage`, after
+`RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
+laid only on street with no surface of its own, so a drift laid earlier stripped
+the asphalt off the street beside a wall. A living world's storms pile up nothing. The other hazards are
 carried for adaptations still to come (storm banks, sealed habitats, hardened
 buildings); a bank round the town rarely has room on maps whose town fills the
 frame, and the rest need art the game does not have yet.

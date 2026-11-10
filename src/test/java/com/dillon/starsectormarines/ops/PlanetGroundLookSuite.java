@@ -21,19 +21,25 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * One settled map on every surface palette: the size-4 heavy-industry Raid site (seed 7) built on a rock, a desert,
  * a frozen and a living world, so the colony's own ground can be judged against the planet's
  * ({@code mapgen-nouns.md}, cultivated ground). Each palette is framed whole ({@code <palette>-whole.png}) and at
  * play zoom on the town by the landing ({@code <palette>-town.png}), look preset; a desert and a frozen world under
- * storms add {@code <palette>-storm-*} with their drifts, and a toxic world adds {@code toxic-pool.png}, play zoom on
- * the sludge pool nearest the map's centre. {@code -Dsnapshot.planetGround.palettes=TOXIC,ROCK} renders only those
- * palettes. Nothing is played.
+ * storms add {@code <palette>-storm-*} with their drifts. Close on the drifts, a desert, a dust-blown rock and a
+ * frozen world under storms are framed at {@link #DRIFT_CELLS} across on the stretch of town with the most drifted
+ * cells, once with their storms ({@code <palette>-drift-on.png}) and once the same map without
+ * ({@code <palette>-drift-off.png}), so the drift is the only difference. A toxic world adds {@code toxic-pool.png},
+ * play zoom on the sludge pool nearest the map's centre. {@code -Dsnapshot.planetGround.palettes=TOXIC,ROCK}
+ * renders only those palettes' whole and town shots. Nothing is played.
  */
 public final class PlanetGroundLookSuite implements SnapshotSuite {
 
     private static final long SEED = 7L;
+    /** How many cells across the drift close-ups frame: closer than play zoom, so a drift's cells read. */
+    static final float DRIFT_CELLS = 34f;
 
     @Override public String id() { return "planet-ground-look"; }
 
@@ -61,14 +67,7 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
                 long seed = k.length > 3 ? (Long) k[3] : SEED;
                 int size = k.length > 3 ? (Integer) k[4] : 4, defence = k.length > 3 ? (Integer) k[5] : 3;
                 OperationTier tier = k.length > 3 ? (OperationTier) k[6] : OperationTier.ESTABLISHED;
-                TargetProfile market = new TargetProfile(size, 5, defence, 2, "independent",
-                        EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
-                                EconomicFunction.HABITATION),
-                        palette, SettlementLink.ROAD).withClimate((Climate) k[1]);
-                try (BattleSimulation sim = BattleSetup.createRaidWorks(seed, BattleSetup.defaultManifest(),
-                        false, tier, RiskLevel.MEDIUM, market, FlybyRoster.EMPTY,
-                        FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier),
-                        "heavyindustry")) {
+                try (BattleSimulation sim = site(palette, (Climate) k[1], seed, size, defence, tier)) {
                     String name = palette.name().toLowerCase(Locale.ROOT) + k[2];
                     int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
                     out.add(new SnapshotArtifact(name + "-whole.png", BattleReviewFrameRenderer.look(
@@ -83,6 +82,18 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
                             context.modRoot(), 1920, 1080, pool[0] + .5f, pool[1] + .5f,
                             BattleReviewFrameRenderer.PLAY_ZOOM_CELLS)
                             .withMissionMarkers().render(sim, "")));
+                }
+            }
+            for (SurfacePalette palette : new SurfacePalette[] {SurfacePalette.ARID, SurfacePalette.ROCK,
+                    SurfacePalette.FROZEN}) {
+                try (BattleSimulation on = site(palette, storms, SEED, 4, 3, OperationTier.ESTABLISHED);
+                     BattleSimulation off = site(palette, Climate.NONE, SEED, 4, 3, OperationTier.ESTABLISHED)) {
+                    float[] at = mostDrifted(on.getTopology(), off.getTopology());
+                    String name = palette.name().toLowerCase(Locale.ROOT);
+                    out.add(new SnapshotArtifact(name + "-drift-on.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, at[0], at[1], DRIFT_CELLS).render(on, "")));
+                    out.add(new SnapshotArtifact(name + "-drift-off.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, at[0], at[1], DRIFT_CELLS).render(off, "")));
                 }
             }
             return out;
@@ -101,5 +112,38 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
             if (distance < bestDistance) { bestDistance = distance; best = new int[]{x, y}; }
         }
         return best;
+    }
+
+    private static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
+                                         OperationTier tier) {
+        TargetProfile market = new TargetProfile(size, 5, defence, 2, "independent",
+                EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT, EconomicFunction.HABITATION),
+                palette, SettlementLink.ROAD).withClimate(climate);
+        return BattleSetup.createRaidWorks(seed, BattleSetup.defaultManifest(), false, tier, RiskLevel.MEDIUM, market,
+                FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier), "heavyindustry");
+    }
+
+    /** The centre of the close-up window holding the most cells whose surface the storm changed. */
+    static float[] mostDrifted(CellTopology on, CellTopology off) {
+        int w = on.getWidth(), h = on.getHeight();
+        int ww = (int) DRIFT_CELLS, wh = (int) (DRIFT_CELLS * 9f / 16f);
+        int[] sum = new int[(w + 1) * (h + 1)];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int d = Objects.equals(on.getSurfaceId(x, y), off.getSurfaceId(x, y)) ? 0 : 1;
+                sum[(y + 1) * (w + 1) + x + 1] = d + sum[y * (w + 1) + x + 1] + sum[(y + 1) * (w + 1) + x]
+                        - sum[y * (w + 1) + x];
+            }
+        }
+        int best = -1;
+        float[] at = {w / 2f, h / 2f};
+        for (int y = 0; y + wh <= h; y += 2) {
+            for (int x = 0; x + ww <= w; x += 2) {
+                int n = sum[(y + wh) * (w + 1) + x + ww] - sum[y * (w + 1) + x + ww] - sum[(y + wh) * (w + 1) + x]
+                        + sum[y * (w + 1) + x];
+                if (n > best) { best = n; at = new float[] {x + ww / 2f, y + wh / 2f}; }
+            }
+        }
+        return at;
     }
 }

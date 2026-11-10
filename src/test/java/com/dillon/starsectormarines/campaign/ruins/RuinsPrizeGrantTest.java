@@ -41,6 +41,16 @@ class RuinsPrizeGrantTest {
     }
 
     @Test
+    void eachTechFindRollsItsOwnGroupFromTheSiteAndItsId() {
+        List<RuinsPrizeGrant> rolls = RuinsPrizeGrant.ofTechFinds(List.of("sealed-store-1", "guardian-hive"), SEED, SITE);
+        assertEquals(2, rolls.size());
+        for (RuinsPrizeGrant roll : rolls) assertEquals(RuinsPrizeGrant.Kind.TECH_ROLL, roll.kind());
+        assertEquals(RuinsTechCache.of(SEED, SITE, "guardian-hive").dropGroup(), rolls.get(1).id());
+        assertNotEquals(rolls.get(0).seed(), rolls.get(1).seed());
+        assertEquals(rolls, RuinsPrizeGrant.ofTechFinds(List.of("sealed-store-1", "guardian-hive"), SEED, SITE));
+    }
+
+    @Test
     void goodsPayBundlesOfTheFieldResources() {
         RuinsVaultPrize goods = new RuinsVaultPrize(RuinsVaultPrize.Family.GOODS, RuinsVaultTheme.DEPOT, null, 0);
         List<RuinsPrizeGrant> paid = grants(goods, false);

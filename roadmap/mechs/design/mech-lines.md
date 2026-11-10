@@ -75,10 +75,21 @@ purchases, so the low-tech row comes first:
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
    hulls, and Tri-Tachyon already wears it on the three frames
-   (art-source/mech-modular-topdown/sources/hightech). The row's own rules wait until
-   the campaign reaches Tri-Tachyon space: a frontal shield fed from the mech's one flux
-   pool, so blocking and firing compete; a combat drone wing on the medium, relaunched
-   for flux; the lance and shield sharing one pool on the heavy.
+   (art-source/mech-modular-topdown/sources/hightech). That body still reads as a reskin
+   of the low-tech frames (owner), against law 1, so the row needs frames of its own.
+   Direction (owner, from the frame concepts in `sources/hightech/frames/`): Tri-Tachyon
+   puts its weight into skimmers, a light, medium and heavy hover vehicle line built out
+   from the hover scout and drone skimmer (`convoy-nouns.md`), and into light crawlers,
+   small four-legged machines read as a drone concept. It fields no heavy walker of its
+   own. The concept sheets paint their guns in to show the silhouettes; every production
+   hull is drawn bare, with empty mount sockets, and every weapon stays a separate,
+   swappable layer (law 4). The shield rule is built: a
+   compartment's shield emitter (`MachineSystems.shieldEmitter`, `MechShield`) raises a
+   frontal flux shield run on the mech's one flux pool, so blocking and firing spend the
+   same headroom; the shield folds while the guns have the pool venting, and filling the
+   pool overloads the mech, shield and guns together. Only fixtures fit it so far. Still
+   to come: a combat drone wing on the medium, relaunched for flux; the lance and shield
+   sharing one pool on the heavy.
 
 ## Laws
 
@@ -88,6 +99,9 @@ purchases, so the low-tech row comes first:
    machine is a different line.
 3. A line's weight class is the lift it needs, so a line never changes lift through
    variants.
+4. Machines are modular (owner). A mech's or a vehicle's body never has a gun or turret
+   built into it: the hull is drawn with empty mounts, and every weapon is its own
+   swappable layer on a mount.
 
 ## Outside the grid
 

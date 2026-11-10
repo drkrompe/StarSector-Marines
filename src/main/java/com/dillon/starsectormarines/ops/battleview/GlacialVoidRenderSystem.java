@@ -120,16 +120,16 @@ final class GlacialVoidRenderSystem implements RenderSystem {
         if (builtFrom != field) build(field);
         BattleCamera cam = drop.camera();
         float alpha = drop.alpha();
-        float s = drop.scale(band.depth);
         float margin = cam.cellPxSize() * 2f;
         int seed = drop.seed();
-        float floorDepth = Math.max(1f, band.depth);
-        float tint = IceVoidLook.deepTint(floorDepth, floorDepth);
         PolyMesh mesh = drop.poly();
         float[] qd = band.quads, at = band.attrs;
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
-            if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
+            // Each piece at its own depth along the crevasse, as blue as that depth is against the crevasse's steps:
+            // a floor the crevasse shallows to takes less of the deep.
+            float tint = IceVoidLook.deepTint(Math.max(1f, band.z(q, 4)), Math.max(1f, band.depth));
+            if (!drop.inView(at[o], at[o + 1], drop.scale(band.z(q, 4)), margin)) continue;
             float x = at[o], y = at[o + 1], light = at[o + 2];
             // Cells in from the floor's edge, from the smooth field rather than the piece's own figure, which steps
             // between neighbouring pieces and would speckle the pools and drifts.
@@ -143,12 +143,14 @@ final class GlacialVoidRenderSystem implements RenderSystem {
             float r = IceVoidLook.lerp(rgb[0], IceVoidLook.DEEP_R, tint * .6f);
             float g = IceVoidLook.lerp(rgb[1], IceVoidLook.DEEP_G, tint * .6f);
             float b = IceVoidLook.lerp(rgb[2], IceVoidLook.DEEP_B, tint * .6f);
-            mesh.appendQuad(drop.sx(qd[o], s), drop.sy(qd[o + 1], s), drop.sx(qd[o + 2], s), drop.sy(qd[o + 3], s),
-                    drop.sx(qd[o + 4], s), drop.sy(qd[o + 5], s), drop.sx(qd[o + 6], s), drop.sy(qd[o + 7], s),
+            float s0 = drop.scale(band.z(q, 0)), s1 = drop.scale(band.z(q, 1));
+            float s2 = drop.scale(band.z(q, 2)), s3 = drop.scale(band.z(q, 3));
+            mesh.appendQuad(drop.sx(qd[o], s0), drop.sy(qd[o + 1], s0), drop.sx(qd[o + 2], s1), drop.sy(qd[o + 3], s1),
+                    drop.sx(qd[o + 4], s2), drop.sy(qd[o + 5], s2), drop.sx(qd[o + 6], s3), drop.sy(qd[o + 7], s3),
                     r, g, b, alpha);
         }
         if (!mesh.isEmpty()) drop.drawList().addPoly(RenderLayer.GROUND, mesh);
-        mist(field, band.depth - MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, time);
+        mist(field, MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, time);
     }
 
     // ----- over the ground -----
@@ -167,11 +169,13 @@ final class GlacialVoidRenderSystem implements RenderSystem {
      * A deck of mist {@code z} metres down, over the floor: soft puffs on a grid drifting with the wind, thick where a
      * slow noise says so, standing only over the floor, never under a bridge's deck.
      */
-    private void mist(NaturalVoidField field, float z, float puffCells, float thick, float time) {
+    private void mist(NaturalVoidField field, float above, float puffCells, float thick, float time) {
         ShuttleSpriteCache sheet = sprites.spriteByPath(MIST_SHEET);
         if (sheet == null || sheet.pxW <= 0) return;
         BattleCamera cam = drop.camera();
-        float s = drop.scale(z);
+        int n = field.steps();
+        // The grid reaches as far as the deepest of the deck would show.
+        float s = drop.scale(field.depth[n] * field.mostGain - above);
         float cellPx = cam.cellPxSize();
         float step = puffCells * .55f;
         float drift = time * WIND_SPEED * .12f;
@@ -192,10 +196,11 @@ final class GlacialVoidRenderSystem implements RenderSystem {
                 int ix = (int) Math.floor(x), iy = (int) Math.floor(y);
                 if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h || !overFloor[iy * field.w + ix]) continue;
                 if (field.nearBridge(x, y, puffCells * .75f)) continue;
-                float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .19f, j * .19f, seed);
-                if (n < .34f) continue;
-                float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
-                float a = thick * Math.min(1f, (n - .34f) / .3f) * alpha;
+                float dense = .5f + .5f * NaturalVoidField.Noise.fbm(i * .19f, j * .19f, seed);
+                if (dense < .34f) continue;
+                float ps = drop.scale(field.stepDepth(n, x, y) - above);
+                float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * ps;
+                float a = thick * Math.min(1f, (dense - .34f) / .3f) * alpha;
                 int cell = (hsh >>> 24) % (cells * cells);
                 drop.drawList().addImageRegion(RenderLayer.GROUND, sheet.sprite, sheet.pxW, sheet.pxH,
                         cell % cells * cw, cell / cells * ch, cw, ch, drop.sx(x, s), drop.sy(y, s), size, size,

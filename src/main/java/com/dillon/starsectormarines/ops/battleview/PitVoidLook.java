@@ -14,16 +14,14 @@ final class PitVoidLook {
 
     /** How far round the pit one haul ramp runs from one bench to the next, in radians. UNTUNED. */
     static final float RAMP_SWEEP = 1.15f;
-    /** How far out from the face the haul road reaches across the bench below, in cells. */
-    static final float RAMP_CELLS = 1.35f;
+    /** How far out from the face the haul road reaches across the bench below, in cells: a haul truck's width. */
+    static final float RAMP_CELLS = 1.9f;
     /** The bearing round the pit the haul road leaves the lip at, in radians from the map's east. */
     static final float RAMP_START = 2.4f;
-    /** How high over the ground a conveyor's belt runs on its gantry, in metres. */
+    /** How high over the ground the spine's gallery runs on its trestles, in metres. */
     static final float BELT_METERS = 3.2f;
-    /** A conveyor's width, in cells, and the gap between its trestles. */
-    static final float BELT_CELLS = 1.4f, TRESTLE_EVERY = 5f;
-    /** How fast the ore rides the belt toward the works, cells a second. */
-    static final float BELT_SPEED = 1.1f;
+    /** The gap between the spine's trestles, in cells. */
+    static final float TRESTLE_EVERY = 5f;
 
     private PitVoidLook() { }
 
@@ -58,9 +56,8 @@ final class PitVoidLook {
 
     /** The floor: wet ore rubble, and a still sump of murky water where the floor lies farthest from its walls. */
     static float[] floor(float x, float y, float light, float edge, float sky, int seed) {
-        float n = NaturalVoidField.Noise.fbm(x * .11f, y * .11f, seed * 7 + 37);
         float grain = NaturalVoidField.Noise.value(x * 2.3f, y * 2.3f, seed * 7 + 41) * .5f + .5f;
-        float sump = clamp01((n + (edge - 5f) * .12f - .2f) * 4f);
+        float sump = sump(x, y, edge, seed);
         float bright = .62f + .45f * light;
         float r = .36f * bright * (.85f + .3f * grain), g = .31f * bright * (.85f + .3f * grain),
                 b = .26f * bright * (.85f + .3f * grain);
@@ -69,6 +66,12 @@ final class PitVoidLook {
         r = lerp(r, .24f, mud); g = lerp(g, .21f, mud); b = lerp(b, .17f, mud);
         float wr = .15f + .10f * sky, wg = .19f + .12f * sky, wb = .18f + .12f * sky;
         return new float[]{lerp(r, wr, sump), lerp(g, wg, sump), lerp(b, wb, sump)};
+    }
+
+    /** How much of the floor at a point, {@code edge} cells in from its walls, is the sump's water: 0 dry, 1 water. */
+    static float sump(float x, float y, float edge, int seed) {
+        float n = NaturalVoidField.Noise.fbm(x * .11f, y * .11f, seed * 7 + 37);
+        return clamp01((n + (edge - 5f) * .12f - .2f) * 4f);
     }
 
     /**
