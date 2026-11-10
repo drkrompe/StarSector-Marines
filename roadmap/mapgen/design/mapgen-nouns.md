@@ -848,9 +848,15 @@ the outer edge of the other's asphalt, so the corner is paved square and
 nothing runs on into the kerb. A street that runs on through is a crossing
 and keeps its length. The kerb radius is still decided by whether both arms
 exist, so a T keeps its two near-side turns and gains none on the far side.
-Where two streets grown side by side make the road widen, the one that ends
-beside the other, meeting no crossing street, *tapers* into it over six cells
-with a diagonal stroke instead of stepping square across the carriageway.
+Where two streets grown side by side touch and each runs on past the other (a
+*jog* from one line onto the next), the shorter is trimmed to end one breadth
+past the longer's start, so the road steps across square at one street's width
+rather than drawing the stretch they share as a slab twice as broad; a road
+turns only at a corner, never on a diagonal. (`-Dbattle.mapgen.streetJogs=taper`
+restores the six-cell diagonal taper until the owner picks between them.) A
+town street lying beside a country road, running its way within two cells, is
+that road's verge and keeps its paving, so the town's edge does not read as a
+double road.
 The `city-junctions` snapshot suite frames the junctions as generated.
 
 **A street graph** (`StreetGraph`) reads a road mask as a planner reads it:
