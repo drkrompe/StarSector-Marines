@@ -33,12 +33,13 @@ public final class MechPatternPicker {
 
     /** Hardware each faction fields on its own mechs, mirrored from {@link FactionMechLoadouts}. */
     private static final Map<String, Set<MechPattern>> FACTION_ISSUE = Map.of(
+            // Tri-Tachyon fields its own crawler and no low-tech frame (owner: the heavy-shell stand-ins are gone);
+            // its lasers stay its issue.
             FactionMechLoadouts.TRI_TACHYON_ID, Set.of(
-                    MechPattern.of(MechVariant.BULWARK),
+                    MechPattern.of(MechVariant.CRAWLER),
+                    MechPattern.of(MechWeaponComponent.PL_1),
                     MechPattern.of(MechWeaponComponent.PL_2_AP),
                     MechPattern.of(MechWeaponComponent.LL_3),
-                    MechPattern.of(MechWeaponComponent.SRM_15),
-                    MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.HOVER_SCOUT),
                     MechPattern.of(VehicleType.DRONE_SKIMMER),
                     MechPattern.of(VehicleType.HEAVY_SKIMMER)),

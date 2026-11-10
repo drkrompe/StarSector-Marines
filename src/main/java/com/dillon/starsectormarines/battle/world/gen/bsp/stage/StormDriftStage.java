@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.StormDrift;
-import com.dillon.starsectormarines.battle.world.gen.StormWind;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -19,6 +18,6 @@ public final class StormDriftStage implements GenStage {
     @Override public void run(GenContext c) {
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
         if (profile == null || !profile.climate().has(Climate.Hazard.STORMS)) return;
-        StormDrift.paint(c.topology, SurfaceField.of(c), StormWind.windward(c.seed));
+        StormDrift.paint(c.topology, SurfaceField.of(c), profile.climate().wind());
     }
 }

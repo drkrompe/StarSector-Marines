@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ac-d918-7a82-8b45-305327b64635",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ac-d918-7a82-8b45-305327b64635\\exec-8b701855-6212-4a68-8cfc-72ff7343663c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\hardpan-variants\\hardpan-4.png",
+    "sha256": "2f9622fefe0ec810a72ad32f248120d849d3cf6281c83b216125217925fe370b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\hardpan-variants\\hardpan-4.prompt.txt",
+  "promptSha256": "82299d9bbbb2a120e93b81c58a3204463347be837513a0474bacdc66d05cac66",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: an opaque flat overhead ground tile; not colour, not texture, not layout\n\nA seamless ground material texture for a top-down tactical game: the bare\nground of an irradiated, airless dead world, seen from directly overhead.\n\nMaterial: scorched, bleached, glassed hardpan. Pale bone and ash-white to pale\ngrey-beige baked crust, broken into a polygonal desiccation crack network: flat\nplates separated by clearly legible dark grey cracks, 2 to 4 pixels wide,\nso the network still reads when the image is shrunk to a quarter of its size. Plates are irregular polygons,\neach roughly 1/12 to 1/16 of the image width across, so there are many of them.\nHarsh and washed out, very low saturation, nothing grows. Average colour close\nto RGB (182, 178, 164): pale and slightly warm grey, lighter than grey stone,\ngreyer than desert sand, warmer and duller than snow.\n\nVariant feature: small fused glassy patches (trinitite): scattered irregular puddles of pale olive / sickly yellow-green glaze, slightly glossy and finely bubbled, each about two or three plates across, melted into the crust between unglazed plates.\n\nRules:\n- Square image, the whole frame filled edge to edge with this one surface.\n- Flat, even, overhead lighting. No directional sun, no cast shadows, no\n  vignette, no gradient across the frame, no highlights larger than a few pixels.\n- The feature is repeated and spread evenly across the ENTIRE image, so that\n  any crop of the middle third still contains it. No single central subject.\n- Low contrast, fine detail. No objects, rocks, debris piles, craters, rubble,\n  plants, footprints, vehicles, text, borders or frames.\n- Photographic orthographic material scan, not an illustration.\n\nThe reference image is for format only (an opaque, flat, fine-grained ground\ntile seen from overhead); do not copy its colour or its texture.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: an opaque flat overhead ground tile; not colour, not texture, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one seamless overhead texture using your material and crack specifications.\n"
+  ],
+  "usage": {
+    "input_tokens": 38058,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 432,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.3
+}

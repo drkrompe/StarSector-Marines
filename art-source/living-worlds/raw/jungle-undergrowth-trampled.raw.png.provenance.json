@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a6-2bec-7a91-871c-cc6009f6528d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a6-2bec-7a91-871c-cc6009f6528d\\exec-fb2b9aa4-ba08-452f-a862-5431070f9231.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\living-worlds\\raw\\jungle-undergrowth-trampled.raw.png",
+    "sha256": "60225ff3daa6af7bf086edc045f9774f8c39bef0ae3e675c0cd07828b76a02eb",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\living-worlds\\prompts\\jungle-undergrowth-trampled.prompt.txt",
+  "promptSha256": "f14395ca3c40461ba531193af4eafbed3e6374269832aca15ae869a349caef7c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: where fragments lie, sparse coverage, open ground\nImage 2: Species identity only (leaf shapes); not layout, not palette, not brightness\nImage 3: Sparseness and quietness reference only; not palette, not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a transparent sprite sheet of TRAMPLED undergrowth for a top-down tactical game: the sparse low remains left after a heavy tracked tank drove over each plant. Image 2 is the intact sheet and is the species identity only (glossy broad leaves, fern fronds, reed blades, vine leaves); this state is far quieter than it. Image 3 is the accepted trampled sheet of the green forest: match its sparseness, quietness and scatter exactly, not its green palette.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch. Follow its scatter: crushed leaf clusters only where the guide has them, the guide's open ground left open. Coverage stays as sparse as the guide, about a fifth of each patch; never fill the patch, never close it into a mat, never reach the patch's straight edges.\nCamera STRAIGHT DOWN, orthographic plan view.\nOrder: liana tangle, creeping vines, elephant-ear thicket; fern clump, swamp reed bed, palm seedlings. Each is a loose, natural scatter of pressed, wilted, torn small leaves and crushed leaf clumps lying flat on the ground, every fragment at its own random angle, varied in size and shape; only an occasional thin dark twig fragment, never a stick laid across each cluster and no repeated motif. There is NO common direction: no streaks, no parallel strokes, no grain, no blades laid in rows, so the patch looks the same when rotated.\nMUTED: low contrast, low saturation, dull dark olive, muddy green-brown and wet brown, close in value to a dark wet jungle floor, so the patch recedes into the ground like trodden vegetation. NO pale or light wood, no bright snapped ends, no white or cream, no flowers, no highlights, no bright colours. Soft ragged edges fading into transparency.\nPainterly realistic rendering in the game's woodland style. No soil, no snow, no tread marks, no ground disc, no shadow, no labels, no text, no border. True transparent background everywhere between the fragments. Keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-trampled.png",
+      "sha256": "3aecd306d5343dcbeb57b264acc018e80d17850f4a1f429d3775a75fb65b2722",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: where fragments lie, sparse coverage, open ground"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\jungle-undergrowth.raw.png",
+      "sha256": "6a2fa717ab7b89212817c936021dc5b66c0ebe64c3f148ee6a5028aaa930336e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species identity only (leaf shapes); not layout, not palette, not brightness"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-undergrowth-destroyed.raw.png",
+      "sha256": "6f7c61ed23b764077359896dff146286d0e143683b51af1cd21db71a7afcc0a2",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Sparseness and quietness reference only; not palette, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, preserving Image 1’s sparse layout and using the other references only as specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 49621,
+    "cached_input_tokens": 40320,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 590,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.9
+}

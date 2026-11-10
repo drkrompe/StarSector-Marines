@@ -10,14 +10,19 @@ import java.util.List;
 /** Ordered brush intent in cell-center coordinates. Raised masses and excavations are inaccessible. */
 public record TerrainPlan(int width, int height, Finish finish, double faceDepth,
                           double ruggedness, long seed, List<Stroke> strokes) {
-    public enum Finish { ROCK, GRASS_TOP, ICE, BASALT;
-        public String materialPrefix() { return this==ICE?"terrain.ice.":this==BASALT?"terrain.basalt.":"terrain."; }
+    public enum Finish { ROCK, GRASS_TOP, ICE, BASALT,
+        /** Scorched, glass-fused escarpment on an irradiated world. */
+        GLASSED;
+        public String materialPrefix() { return switch(this) {
+            case ICE -> "terrain.ice."; case BASALT -> "terrain.basalt."; case GLASSED -> "terrain.glassed.";
+            default -> "terrain.";
+        }; }
         @Override public String toString() { return switch(this) {
             case ROCK -> "Rock escarpment"; case GRASS_TOP -> "Grass-topped cliff"; case ICE -> "Glacial ice ridge";
-            case BASALT -> "Basalt flow scarp";
+            case BASALT -> "Basalt flow scarp"; case GLASSED -> "Glassed escarpment";
         }; }
         /**
-         * A world's own finish: grass-topped where things grow, ice on a frozen world, basalt on a volcanic one,
+         * A world's own finish: grass-topped where things grow, ice on a frozen world, basalt on a volcanic one, glassed on an irradiated one,
          * bare rock otherwise. Basalt differs from rock in its material alone, never in shape.
          */
         public static Finish of(SurfacePalette surface) {
@@ -26,6 +31,7 @@ public record TerrainPlan(int width, int height, Finish finish, double faceDepth
                 case VERDANT -> GRASS_TOP;
                 case FROZEN -> ICE;
                 case VOLCANIC -> BASALT;
+                case IRRADIATED -> GLASSED;
                 default -> ROCK;
             };
         }

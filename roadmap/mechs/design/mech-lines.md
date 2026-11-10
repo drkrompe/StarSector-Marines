@@ -4,7 +4,8 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
-Updated: 2026-10-23 — order of work set by the campaign's Hegemony, Independent and pirate focus.
+Updated: 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own, and is the
+only mech Tri-Tachyon fields: its heavy-shell stand-ins are off its roster (owner: "they're not good").
 
 ## Where the roster stands
 
@@ -13,9 +14,11 @@ stand-ins. Each was made to prove a weight class (light, medium, heavy) and the 
 behind it: mounts, flux, internals, footsteps, doctrine. None was designed as one entry
 in a roster. All three are now Ordnance Board patterns, the Hegemony's low-tech walkers
 (owner), drawn as such for the Hegemony, Independents and pirates. Every other faction
-wears a body over the same frame that stands in for its own line. Tri-Tachyon's is the
-high-tech row's concept body (owner pick, the heavy shell); the rest wear sleek shells.
+wears a body over the same frame that stands in for its own line; they wear sleek shells.
 A stand-in body is a look, not a line: it carries the frame's mounts and numbers.
+Tri-Tachyon no longer fields stand-ins (owner, 2026-11-09): its heavy-shell bodies over the
+three frames are off its roster, and it fields only its own crawler. The heavy-shell
+livery stays drawn for a Tri-Tachyon mech a mission still spawns on a low-tech frame.
 
 ## The target: a grid of lines
 
@@ -28,10 +31,13 @@ through a trade-off.
 |---|---|---|---|
 | **Low-tech** | Hound | Warden | Bulwark |
 | **Midline** | open (shells stand in) | open (shells stand in) | open (shells stand in) |
-| **High-tech** | shield skirmisher (concept body on the Hound's frame) | drone controller (concept body on the Warden's frame) | lance platform (concept body on the Bulwark's frame) |
+| **High-tech** | light crawler (`MechVariant.CRAWLER`, its own chassis) | none (skimmers carry the weight) | none (no heavy walker, owner) |
 
-Nine lines in all. The low-tech row is the three first chassis; the other six cells are
-empty, filled meanwhile by other factions' shells over those frames (a livery, not a line).
+Nine lines in all. The low-tech row is the three first chassis. The high-tech light is
+Tri-Tachyon's crawler, a carapace on four short legs with one front gun and a built-in
+shield emitter (`mechs-nouns.md`, Family and doctrine). Tri-Tachyon puts its medium and
+heavy weight into skimmers rather than walkers. The midline cells are empty, filled
+meanwhile by other factions' shells over the low-tech frames (a livery, not a line).
 Each stand-in stays where it is until its line is designed. At that point the stand-in
 either becomes the line's base chassis or gets reworked into it.
 
@@ -59,7 +65,7 @@ its ships. No rule checks a mech's family (`tech-families.md`, law 4).
 A faction mainly fields the lines in its family's row, plus whatever it buys. Its roster
 weights its own row up, much as vehicle rosters already favour the variants each faction
 is known for. Until a faction's row exists, its roster uses the stand-ins. Tri-Tachyon
-would field nothing but stand-ins until the high-tech row exists.
+fields only its crawler.
 
 ## Order of work
 
@@ -88,8 +94,16 @@ purchases, so the low-tech row comes first:
    compartment's shield emitter (`MachineSystems.shieldEmitter`, `MechShield`) raises a
    frontal flux shield run on the mech's one flux pool, so blocking and firing spend the
    same headroom; the shield folds while the guns have the pool venting, and filling the
-   pool overloads the mech, shield and guns together. Only fixtures fit it so far. Still
-   to come: a combat drone wing on the medium, relaunched for flux; the lance and shield
+   pool overloads the mech, shield and guns together. The light crawler is built
+   (`MechVariant.CRAWLER`): its own parts cut from one ImageGen master over a guide
+   (art-source/mech-modular-topdown/sources/hightech/crawler), drawn by the derelict
+   walker's leg rig at its own size, one PL-1 on a front socket as its own layer, and a
+   shield emitter its compartment carries as built, so every crawler fields the shield.
+   It is the only mech on Tri-Tachyon's roster, the heavy-shell stand-ins taken off
+   (owner). It is crewed and
+   a company can buy it as a Tri-Tachyon pattern (owner, 2026-11-09), though the owner
+   saw it as a drone concept. Still to come: the skimmer line (a separate
+   session); a combat drone wing on the medium, relaunched for flux; the lance and shield
    sharing one pool on the heavy.
 
 ## Laws

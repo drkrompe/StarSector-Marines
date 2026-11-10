@@ -95,10 +95,10 @@ public final class CreepBlightBaker {
 
     /**
      * The tree sets baked, each from its own {@code <family>-canopies}, {@code -damaged} and {@code -destroyed}
-     * sheets into {@code <family>-blight} and {@code <family>-blight-felled}: the green woods and the dry scrub a
-     * desert basin's rim grows. The ids are the sources', so each set's blight follows its own placements.
+     * sheets into {@code <family>-blight} and {@code <family>-blight-felled}: the green woods, the dry scrub a
+     * desert basin's rim grows, and the jungle and taiga a living world's look grows ({@code LivingWorld}). The ids are the sources', so each set's blight follows its own placements.
      */
-    static final String[] FAMILIES = {"forest", "dry-scrub"};
+    static final String[] FAMILIES = {"forest", "dry-scrub", "jungle", "taiga"};
 
     private static void bakeFamily(Path mod, String family) throws Exception {
         BufferedImage canopies = ImageIO.read(mod.resolve("graphics/doodads/" + family + "-canopies.png").toFile());

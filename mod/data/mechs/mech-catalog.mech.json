@@ -17,6 +17,13 @@
       "description": "@gearCatalogSecurityWalkerDescription"
     },
     {
+      "variant": "crawler",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "designation": "TT-C2",
+      "role": "@gearCatalogCrawlerRole",
+      "description": "@gearCatalogCrawlerDescription"
+    },
+    {
       "variant": "hound",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "HND-3",

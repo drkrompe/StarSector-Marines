@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.mech;
 
 /**
- * What the company ship's Mech Lab refits are worth to one deployed mech, frozen at launch
+ * What the company's Mech Lab upgrades are worth to one deployed machine, mech or vehicle
+ * ({@code VehicleDeploymentSpec#refit}: the plate, coolant, turret traverse and aim the same way). For a mech, frozen at launch
  * beside its {@link MechFrame}: fire-control calibration (weapon accuracy, and with the tactical
  * core link a faster torso traverse onto a new target), the coolant plant (flux dissipation) and
  * the armor shop (armor capacity, which every section's plate is a share of). Battle reads only

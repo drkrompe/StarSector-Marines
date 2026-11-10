@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 
 /**
  * The colour rules of a dry natural drop (`voids.md`, natural styles): a cut through bedded rock with no water in
- * it, its strata in the walls and on the ledges, loose sediment lying back on each ledge, and a dry floor of fine
- * stuff and stones. GL-free; {@link DryVoidFloor} and {@link NaturalVoidRenderSystem} draw with it. Each dry style
+ * its walls, its strata in the walls and on the ledges, loose sediment lying back on each ledge, and a dry floor of
+ * fine stuff and stones. The toxic gorge shares its walls and ledges and has a floor of sludge instead. GL-free; {@link DryVoidFloor} and {@link NaturalVoidRenderSystem} draw with it. Each dry style
  * is one {@link Palette}.
  *
  * <p>Two rules every dry style shares. Shade in the drop is the rock's own light thrown back across it, not black,
@@ -35,13 +35,14 @@ final class DryVoidLook {
      * @param bar      the coarser stuff between its channels (gravel bars, rubble)
      * @param stones   the first of the five medium and large field stones in the nature sheet's frames that lie on
      *                 the floor, fallen from the walls (the same set the plain's ground scatters), or -1 for none;
-     *                 {@code stoneTint} multiplies their colour into the drop's light
+     *                 {@code stoneTint} multiplies their colour into the drop's light, and {@code stoneShare} is the
+     *                 share of the floor's scatter points that hold one
      * @param bridge   a bridge's edge over the drop
      * @param haze     the air low in the drop, and {@code hazeAlpha} how thick (0 for none)
      */
     record Palette(Rgb cap, Rgb plain, Rgb upper, Rgb lower, Rgb drift, Rgb scree, Rgb shade, float shadeMix,
                    Rgb deep, float deepMix, Rgb bed, Rgb bar, int stones, Rgb stoneTint,
-                   Rgb bridge, Rgb haze, float hazeAlpha) { }
+                   float stoneShare, Rgb bridge, Rgb haze, float hazeAlpha) { }
 
     /**
      * A desert canyon (ARID worlds): banded red and ochre sandstone, wind-blown sand lying on the ledges, a dry wash
@@ -54,8 +55,35 @@ final class DryVoidLook {
             new Rgb(.74f, .60f, .38f), new Rgb(.80f, .67f, .48f),
             new Rgb(.22f, .12f, .10f), .75f,
             new Rgb(.36f, .22f, .18f), .2f,
-            new Rgb(.80f, .66f, .45f), new Rgb(.66f, .50f, .35f), 34, new Rgb(1.2f, .98f, .8f),
+            new Rgb(.80f, .66f, .45f), new Rgb(.66f, .50f, .35f), 34, new Rgb(1.2f, .98f, .8f), .3f,
             new Rgb(.62f, .40f, .25f), new Rgb(.88f, .72f, .52f), .07f);
+
+    /**
+     * A dry rock gorge (ROCK barren worlds): grey regolith and bedrock in strata, grit lying on the ledges, a floor of
+     * dust and rubble thick with fallen basalt blocks; no water and, on an airless world, no haze.
+     */
+    static final Palette REGOLITH = new Palette(
+            new Rgb(.60f, .56f, .52f), new Rgb(.619f, .543f, .489f),
+            new Rgb(.50f, .48f, .46f), new Rgb(.38f, .37f, .37f),
+            new Rgb(.58f, .53f, .48f), new Rgb(.66f, .62f, .58f),
+            new Rgb(.08f, .08f, .09f), .85f,
+            new Rgb(.16f, .17f, .19f), .25f,
+            new Rgb(.56f, .51f, .46f), new Rgb(.42f, .40f, .38f), 41, new Rgb(1.1f, 1.04f, 1f), .55f,
+            new Rgb(.40f, .38f, .36f), new Rgb(.6f, .58f, .56f), 0f);
+
+    /**
+     * A toxic gorge (TOXIC worlds): corroded olive and khaki rock in strata, sulphur crusted on the ledges, pale
+     * efflorescence where they break; its floor is acid sludge ({@link ToxicVoidFloor}, not the dry floor), its air
+     * yellow-green fumes. The toxic ground's own field stones are not drawn on the sludge.
+     */
+    static final Palette TOXIC = new Palette(
+            new Rgb(.56f, .52f, .32f), new Rgb(.485f, .453f, .284f),
+            new Rgb(.42f, .42f, .30f), new Rgb(.50f, .44f, .26f),
+            new Rgb(.66f, .58f, .24f), new Rgb(.70f, .67f, .48f),
+            new Rgb(.06f, .08f, .03f), .8f,
+            new Rgb(.14f, .18f, .06f), .3f,
+            new Rgb(.22f, .26f, .08f), new Rgb(.22f, .26f, .08f), -1, new Rgb(1f, 1f, 1f), 0f,
+            new Rgb(.40f, .38f, .24f), new Rgb(.72f, .80f, .36f), .14f);
 
     /** Cells back from the drop over which the lip gives way to the plain. */
     static final float PLAIN_CELLS = .3f;
@@ -69,6 +97,8 @@ final class DryVoidLook {
         if (look == null) return null;
         return switch (look.style()) {
             case CANYON -> CANYON;
+            case DRY_GORGE -> REGOLITH;
+            case TOXIC -> TOXIC;
             default -> null;
         };
     }

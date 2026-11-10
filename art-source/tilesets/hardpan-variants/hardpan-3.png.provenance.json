@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ac-d913-7912-91d5-2e4239399185",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ac-d913-7912-91d5-2e4239399185\\exec-32c833fd-00b6-4005-971c-79ecb9fdbc66.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\hardpan-variants\\hardpan-3.png",
+    "sha256": "324520dbebe962882dba6ebe7356b53b61ee16ff58307b26e6d67e62ac4ade45",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\hardpan-variants\\hardpan-3.prompt.txt",
+  "promptSha256": "ccb3820810feb904148f3595fa0415440606b011908025a2178fab49b0769ada",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: an opaque flat overhead ground tile; not colour, not texture, not layout\n\nA seamless ground material texture for a top-down tactical game: the bare\nground of an irradiated, airless dead world, seen from directly overhead.\n\nMaterial: scorched, bleached, glassed hardpan. Pale bone and ash-white to pale\ngrey-beige baked crust, broken into a polygonal desiccation crack network: flat\nplates separated by clearly legible dark grey cracks, 2 to 4 pixels wide,\nso the network still reads when the image is shrunk to a quarter of its size. Plates are irregular polygons,\neach roughly 1/12 to 1/16 of the image width across, so there are many of them.\nHarsh and washed out, very low saturation, nothing grows. Average colour close\nto RGB (182, 178, 164): pale and slightly warm grey, lighter than grey stone,\ngreyer than desert sand, warmer and duller than snow.\n\nVariant feature: soft scorch-darkened streaks: several long, diffuse, smoky grey-brown burn streaks running in one direction across the hardpan, low contrast, as if flash-scorched.\n\nRules:\n- Square image, the whole frame filled edge to edge with this one surface.\n- Flat, even, overhead lighting. No directional sun, no cast shadows, no\n  vignette, no gradient across the frame, no highlights larger than a few pixels.\n- The feature is repeated and spread evenly across the ENTIRE image, so that\n  any crop of the middle third still contains it. No single central subject.\n- Low contrast, fine detail. No objects, rocks, debris piles, craters, rubble,\n  plants, footprints, vehicles, text, borders or frames.\n- Photographic orthographic material scan, not an illustration.\n\nThe reference image is for format only (an opaque, flat, fine-grained ground\ntile seen from overhead); do not copy its colour or its texture.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: an opaque flat overhead ground tile; not colour, not texture, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one seamless overhead hardpan texture with the pale cracked crust and diffuse scorch streaks you specified."
+  ],
+  "usage": {
+    "input_tokens": 74574,
+    "cached_input_tokens": 67712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 498,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 46.7
+}

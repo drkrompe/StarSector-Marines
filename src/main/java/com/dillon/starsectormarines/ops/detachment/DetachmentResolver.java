@@ -108,10 +108,18 @@ public final class DetachmentResolver {
         return deployment.stream().map(mech -> mech.campaignId() == null ? mech : mech.withRefit(refit)).toList();
     }
 
+    /** Each owned vehicle carries {@code refit} into battle as the mechs do; a vehicle the company does not own stays neutral. */
+    static List<VehicleDeploymentSpec> withShipRefitOnVehicles(List<VehicleDeploymentSpec> deployment, MechRefit refit) {
+        if (refit.neutral()) return deployment;
+        return deployment.stream().map(vehicle -> vehicle.campaignId() == null ? vehicle : vehicle.withRefit(refit)).toList();
+    }
+
     /** Null without a campaign roster, so debug and detached launches keep the fallback hull. */
     private static List<VehicleDeploymentSpec> campaignVehicleDeployment() {
         MarineRosterScript script = MarineRosterScript.getInstance();
-        return script != null ? script.roster().mechBay().activeVehicleDeployment() : null;
+        if (script == null) return null;
+        List<VehicleDeploymentSpec> vehicles = script.roster().mechBay().activeVehicleDeployment();
+        return vehicles == null ? null : withShipRefitOnVehicles(vehicles, ShipRefits.aboard().mechRefit());
     }
 
     // ---- shuttle manifest (moved verbatim from the briefing screens) ----

@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Stable chassis profiles built from swappable {@link MechWeaponComponent}s. */
 public enum MechVariant {
 
@@ -51,7 +54,23 @@ public enum MechVariant {
             null, MechWeaponComponent.HC_10, MechWeaponComponent.AC_6,
             MechWeaponComponent.SRM_5,
             MechWeaponComponent.SRM_5,
-            MechRole.ARMORED_SUPPORT);
+            MechRole.ARMORED_SUPPORT),
+
+    /**
+     * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light; owner: "an interesting 'drone' concept"): a
+     * small carapace low on four short legs, a chassis of its own (law 1), drawn by the walker's leg rig at the
+     * crawler's size ({@code DerelictLegRig.CRAWLER}) with its own parts. High-tech by its numbers: fast, thin plate,
+     * a light structure, precise. One gun in a socket at the front, drawn as its own layer (law 4), and no shoulder
+     * mounts ({@link #hasMount}); its compartment carries a shield emitter ({@link #shieldEmitter()}). Crewed, a
+     * Tri-Tachyon pattern a company can buy (owner, 2026-11-09). All numbers UNTUNED.
+     */
+    CRAWLER("crawler", "@gearMechVariantCRAWLER", 220f, 160f, 8f, 1.85f, 0.50f, 55f,
+            1.00f, 0.90f, 0.45f, 0.40f, 0.5f,
+            LayeredMechAppearance.CHASSIS_CRAWLER,
+            MechWeaponComponent.PL_1, null, null,
+            null,
+            null,
+            MechRole.ASSAULT);
 
     public final String id;
     private final String displayName;
@@ -116,7 +135,7 @@ public enum MechVariant {
     public boolean hostsDrones() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER -> false;
+            case SECURITY_WALKER, CRAWLER -> false;
         };
     }
 
@@ -127,8 +146,22 @@ public enum MechVariant {
     public boolean hostsPointDefence() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER -> false;
+            case SECURITY_WALKER, CRAWLER -> false;
         };
+    }
+
+    /**
+     * Whether this chassis's compartment carries a shield emitter as built (`mech-lines.md`, high-tech): its stock
+     * frame ({@link MechFrame#stock}) and every refit frame bring {@link MachineSystems#shieldEmitter}, so it fields
+     * the pooled frontal shield ({@link MechShield}) wherever it spawns.
+     */
+    public boolean shieldEmitter() {
+        return this == CRAWLER;
+    }
+
+    /** Whether this chassis has shoulder mounts: the crawler carries its one gun in a front socket and nothing else. */
+    public boolean hasShoulders() {
+        return this != CRAWLER;
     }
 
     /**
@@ -138,6 +171,13 @@ public enum MechVariant {
      */
     public boolean automated() {
         return this == SECURITY_WALKER;
+    }
+
+    /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
+    public static List<MechVariant> companyLines() {
+        List<MechVariant> lines = new ArrayList<>();
+        for (MechVariant variant : values()) if (!variant.automated()) lines.add(variant);
+        return lines;
     }
 
     public static MechVariant fromId(String id) {
@@ -182,6 +222,7 @@ public enum MechVariant {
         if (slot == null) return false;
         if (slot == MechMountSlot.ARMS) return !twoArmed();
         if (slot.isSideArm()) return twoArmed();
+        if (slot.isShoulder()) return hasShoulders();
         return true;
     }
 
@@ -215,6 +256,7 @@ public enum MechVariant {
             case BULWARK -> MechBodyPlan.BULWARK;
             case WARDEN -> MechBodyPlan.WARDEN;
             case SECURITY_WALKER -> MechBodyPlan.DERELICT;
+            case CRAWLER -> MechBodyPlan.CRAWLER;
         };
     }
 
@@ -224,7 +266,7 @@ public enum MechVariant {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HOUND -> LiftClass.LIGHT;
+            case HOUND, CRAWLER -> LiftClass.LIGHT;
             case WARDEN -> LiftClass.MEDIUM;
             case BULWARK -> LiftClass.HEAVY;
             case SECURITY_WALKER -> LiftClass.HEAVY;

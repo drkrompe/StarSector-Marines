@@ -88,13 +88,13 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   are the second and third. Sub-layer order is the whole of the painter contract
   between them, because within one sub-layer no cell's quad overlaps another's.
 - A **ground feather** is the noise-edged reach of one outdoor ground into its
-  weaker neighbour, so a boundary between grass, earth, sand, gravel or stone
+  weaker neighbour, so a boundary between grass, earth, sand, gravel, stone or snow
   reads as a mixed, irregular edge rather than a cell's square side. It is
   presentation only: the cell keeps its ground for movement, cover, damage and
   every other reading, and walls, paved road, ruins, interiors and authored
   surfaces outside the feathering list neither give nor take one. A fixed
   priority decides who bleeds into whom (green growth over bare earth, earth
-  over sand and gravel); a road's soft shoulder feathers as the ground it is
+  over sand and gravel, every one of them into lying snow); a road's soft shoulder feathers as the ground it is
   drawn as. The bleed is one field over the map — opacity falling off with
   distance from the stronger ground's cells, wobbled by a noise fixed edge by
   edge so neighbours always agree — and it reaches less than half a cell, so

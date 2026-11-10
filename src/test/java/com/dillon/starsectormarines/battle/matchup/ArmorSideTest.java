@@ -119,11 +119,11 @@ class ArmorSideTest {
 
     @Test
     void defaultLadderCoversEveryGroup() {
-        int fits = MechVariant.values().length * 2;
+        int fits = MechVariant.companyLines().size() * 2;
         int vehicles = ArmorMatchupEvidence.LADDER_VEHICLES.size();
         assertEquals(1, ArmorMatchupEvidence.ladder(Set.of("control")).size());
         assertEquals(fits * (fits - 1), ArmorMatchupEvidence.ladder(Set.of("mech")).size());
-        assertEquals(2 * MechVariant.values().length * vehicles, ArmorMatchupEvidence.ladder(Set.of("mixed")).size());
+        assertEquals(2 * MechVariant.companyLines().size() * vehicles, ArmorMatchupEvidence.ladder(Set.of("mixed")).size());
         assertEquals(vehicles * (vehicles - 1), ArmorMatchupEvidence.ladder(Set.of("vehicle")).size());
     }
 

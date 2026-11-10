@@ -32,6 +32,8 @@ public final class MechFrameBudget {
             case BULWARK -> 50f;
             // The automated walker is never refitted (MechVariant.automated): these keep the switch whole.
             case SECURITY_WALKER -> 60f;
+            // UNTUNED: a light frame, rated for its one small energy gun.
+            case CRAWLER -> 13f;
         };
     }
 
@@ -42,6 +44,7 @@ public final class MechFrameBudget {
             case WARDEN -> 4f;
             case BULWARK -> 6f;
             case SECURITY_WALKER -> 7f;
+            case CRAWLER -> 2f;
         };
     }
 
@@ -52,6 +55,7 @@ public final class MechFrameBudget {
             case WARDEN -> 400f;
             case BULWARK -> 950f;
             case SECURITY_WALKER -> 1200f;
+            case CRAWLER -> 240f;
         };
     }
 
@@ -62,6 +66,7 @@ public final class MechFrameBudget {
             case WARDEN -> 1.45f;
             case BULWARK -> 1.15f;
             case SECURITY_WALKER -> 0.75f;
+            case CRAWLER -> 2.05f;
         };
     }
 
@@ -311,7 +316,7 @@ public final class MechFrameBudget {
 
         public MechFrame frame() {
             return new MechFrame(armorCapacity(), moveSpeed(), fluxCapacity(), dissipationPerSecond(),
-                    MechCompartment.systems(compartment));
+                    MechFrame.builtIn(variant, MechCompartment.systems(compartment)));
         }
 
     }

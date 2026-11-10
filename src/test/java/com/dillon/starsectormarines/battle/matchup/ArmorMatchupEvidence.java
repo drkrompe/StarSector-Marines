@@ -157,7 +157,7 @@ class ArmorMatchupEvidence {
         List<Pairing> pairings = new ArrayList<>();
         if (groups.contains("control")) pairings.add(pairing("control: ", "control", "hound", "hound"));
         List<String> fits = new ArrayList<>();
-        for (MechVariant v : MechVariant.values()) {
+        for (MechVariant v : MechVariant.companyLines()) {
             fits.add(v.id);
             fits.add(v.id + ":refit");
         }
@@ -165,7 +165,7 @@ class ArmorMatchupEvidence {
             for (String a : fits) for (String d : fits) if (!a.equals(d)) pairings.add(pairing("", "mech", a, d));
         }
         if (groups.contains("mixed")) {
-            for (MechVariant v : MechVariant.values()) {
+            for (MechVariant v : MechVariant.companyLines()) {
                 for (VehicleType t : LADDER_VEHICLES) {
                     String vehicle = ArmorSide.vehicleId(t);
                     pairings.add(pairing("", "mixed", v.id, vehicle));

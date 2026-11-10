@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2aa-3b4c-7fb2-a49b-3d0f68034b9a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2aa-3b4c-7fb2-a49b-3d0f68034b9a\\exec-234ff1ec-67d7-4e1a-adb5-45e08eb4a64f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\glassed\\field-stones.png",
+    "sha256": "fe8028d6cc144a257b69af912627de2be1db3305f6d7474cf8d1915e0d203e74",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\glassed\\field-stones.prompt.txt",
+  "promptSha256": "3a9aa2e8b7952937a3cfbe128690d0856201461607374cdf17036ea41c5d6326",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every stone's place, size and outline\nImage 2: Form only: the stones' shapes and light; not their colour\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into seven separate overhead field-stone sprites for a top-down tactical game. Image 2 is the FORM reference: these exact stones, their rounded shapes and soft upper-left light; their pale grey colour is NOT the colour to use. The world is irradiated: pale cracked bleached hardpan under harsh pale light, the ground once flash-heated.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Keep every stone where the guide puts it, at its size and outline. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN, orthographic plan view; tops lit softly from the upper left, lower-right sides in gentle shade.\nHeat-fused glassed stones: bleached pale bone and ash-grey stone, partly melted and slumped so the forms look softened and fused, with a glossy pale olive-green glass glaze (trinitite) pooled on the top of each stone and run into its cracks, a subtle wet sheen on the glaze. The lower sides and the rim of every stone are scorch-darkened, a smoky brown-grey, so each stone keeps a darker outline that reads against pale ground. Low saturation: the green is a dull grey-olive, never bright or neon.\nSmooth rounded forms, NOT faceted, NOT low-poly. Must read at about 50 pixels across: clear masses, gentle value contrast, no fine noise. Muted: the stones sit in their ground rather than pop out of it; only a soft gloss on the glaze, no hard white highlights.\nNo ground, soil, sand, glass puddle or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-guide.png",
+      "sha256": "0d51964348542e2a94422d7b523731e3473cb77cd2b4fc7d03ae5ce4bafee7d5",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every stone's place, size and outline"
+    },
+    {
+      "path": "art-source\\tilesets\\field-stones\\field-stones.png",
+      "sha256": "926d51953713b30977d8e463350acbc1a67ad8e57da7e6e275f896f10bd07a23",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Form only: the stones' shapes and light; not their colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one reskinned sprite sheet, preserving Image 1’s layout and using Image 2 only for form and lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 46826,
+    "cached_input_tokens": 36096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 456,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.3
+}
