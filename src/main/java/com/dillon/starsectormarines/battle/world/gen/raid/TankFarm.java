@@ -31,7 +31,7 @@ public final class TankFarm {
     /** Width of the loading lane along the haul-road side. UNTUNED. */
     static final int LANE = 7;
     /** Length of the loading rack's bay at the lane's near end. UNTUNED. */
-    static final int BAY = 26;
+    static final int BAY = 32;
     /** Cells of a stair gap in a bund wall: one barrier's length. */
     static final int GAP = 2;
 
