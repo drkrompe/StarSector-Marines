@@ -71,7 +71,7 @@ public final class RuinsThemeDressing {
                     List.of(SERVER_RACK, WORKSTATIONS, CONSOLE)).withProduct(CORE_CABINET);
             case PRISTINE_NANOFORGE, CORRUPTED_NANOFORGE ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
-                            .withProduct(FORGE_CORE);
+                            .withProduct(FORGE_CORE).withFoundry();
             case DRONE_REPLICATOR ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
                             .withProduct(DRONE_FRAME);

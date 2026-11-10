@@ -167,6 +167,19 @@ public final class BattleForceScore {
         return affordableDefensePosts(candidates, roster, attackerScore, 0f);
     }
 
+    /**
+     * The emplacements that stand. Ones the map stated (a walled place's posts, a fort's nests) are fortification,
+     * not a force sent to meet the attack, and all stand: they are static, so the attack chooses which of them to
+     * meet and which to go round (owner, 2026-11-10). Only the setup-time scatter on a map that stated none is
+     * priced against the attackers ({@link #affordableDefensePosts}).
+     */
+    static List<DefensePost> standingDefensePosts(
+            List<DefensePost> candidates, boolean stated, DefenderRoster roster,
+            float attackerScore, float reservedSupportScore) {
+        if (stated) return candidates == null ? List.of() : List.copyOf(candidates);
+        return affordableDefensePosts(candidates, roster, attackerScore, reservedSupportScore);
+    }
+
     /** Static turrets spend the score left after ground forces and enemy air. */
     static List<DefensePost> affordableDefensePosts(
             List<DefensePost> candidates, DefenderRoster roster,

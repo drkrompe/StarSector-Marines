@@ -198,7 +198,7 @@ final class GlacialVoidRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         CellTopology topology = ctx.sim.getTopology();
-        boolean mine = drop.rising() ? frozen(topology.naturalRise()) : glacial(topology.naturalVoid());
+        boolean mine = drop.rising() ? frozen(topology.naturalRise()) : glacial(drop.naturalVoid(topology));
         if (!mine || !drop.begin(ctx, out)) return;
         NaturalVoidField field = drop.field();
         if (builtFrom != field) build(field);

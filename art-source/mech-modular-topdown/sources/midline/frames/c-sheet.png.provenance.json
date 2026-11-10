@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5c5-ef12-7702-aae7-a34895bba82f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5c5-ef12-7702-aae7-a34895bba82f\\exec-f886ca70-4ee9-49fe-b635-693f1ae3ac6f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\c-sheet.png",
+    "sha256": "3079df06c17dfbdff635e5e2a732d589249cb3c5f25a49f4ca997c9e7b632e78",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\c.prompt.txt",
+  "promptSha256": "0732ce64acfa1204d4c2fc6b2669f911b83e5d4f1cd41d1a23966c6169d8a9f2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/style only; not layout\n\nAsset type: concept sheet for a top-down game: the three machines of a new MIDLINE combat vehicle row, light, medium and heavy, drawn whole (body and locomotion together) in the design language of Starsector's midline warships, the Eagle above all.\n\nThe row is ARMOURED CARS on wheels. Each machine is a wheeled armoured fighting vehicle with exposed armoured wheels along its flanks, its bow split into a forked twin prow like the Eagle's with the driver's slit between the forks, and a raised central dome behind them. LIGHT: a four-wheeled scout car, one empty round weapon socket on the dome. MEDIUM: a six-wheeled car, one empty round socket in each prow fork and one on the dome. HEAVY: an eight-wheeled car, large empty round sockets in each fork, a big empty turret ring on the dome, and two square missile mounts on the rear deck.\n\nEvery weapon mount is drawn EMPTY: a dark recessed round socket ring or a square hatch, with no gun, barrel, launcher or turret in it. Guns are separate parts added later.\n\nLayout: one wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale so the heavy is clearly the biggest (about twice the light's length). Every machine faces the TOP edge of the sheet. Each machine is symmetric about its own vertical centre line.\n\nThe reference image is material and style reference only, never layout: Starsector's midline hulls, the Centurion, Hammerhead, Falcon and Eagle. Match their finish: weathered tan, khaki and bone-coloured armour slabs with olive-grey shading and crisp panel lines, flat-faced and chamfered, bolted in clean overlapping panels, set over dark grey and gunmetal machinery (pistons, conduits, vents) showing in the gaps; round recessed mounts; a pale rounded dome; small yellow-green indicator lights; light grime in the recesses; light from the upper left. These are compact ground machines about the size of a tank, not starships: no engine nozzles, no hangar bays, no bridge towers, no long ship hulls.\n\nStrict 90-degree zenith orthographic top-down view of the machines' top surfaces. True transparent background, including all negative space between legs, wheels and parts; no ground, shadow slab, cast shadow, halo, border, text, labels or logos. Paint at full resolution as crisp, detailed game-sprite concept art, not pixel art.\n\nAvoid: guns or barrels of any kind, a broad-torsoed two-legged walker with box missile racks on its shoulders, a four-legged crab shell, a hovering skimmer, rusty scrap, steel-blue carapace, white plastic, cockpit canopy, pilot figure, perspective, side view, isometric view, cropped machines, more or fewer than three machines, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\midline\\ref-midline-hulls.png",
+      "sha256": "357f7eb15d5cd6bd3e0663768f5e00d5adc87559919f65c59c729b645941a146",
+      "dimensions": [
+        1908,
+        786
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet with the three wheeled vehicles, using the reference for materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 103744,
+    "cached_input_tokens": 88064,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 746,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 69.2
+}

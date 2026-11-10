@@ -582,7 +582,7 @@ public final class BattleSetup {
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
                 assignments, defensePosts, marineFighterSupport,
-                enemyFighterSupport, groundRoster, garrisonOf(profile));
+                enemyFighterSupport, groundRoster, garrisonOf(profile), !map.defensePosts.isEmpty());
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         SabotageSiteLayout siteLayout = SabotageSiteLayout.select(
@@ -1384,7 +1384,8 @@ public final class BattleSetup {
                         ruinsRoster(ruinsDefence, ruinsCrew, risk), List.of(), FlybyRoster.EMPTY)
                 : defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
-                marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
+                marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile),
+                !map.defensePosts.isEmpty());
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidWorksLayout raidWorksLayout = type == MissionType.RAID && raidWorks > 0
@@ -3919,7 +3920,7 @@ public final class BattleSetup {
                 : defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
-                enemyFighterSupport, groundRoster, garrisonOf(profile));
+                enemyFighterSupport, groundRoster, garrisonOf(profile), true);
         // Conquest defense posts come pre-stamped by the generator — the
         // biome-aware DefensePostStamper on the stock recipe (BEACH→PORT→
         // kill-zone tiers + rear ARTILLERY battery), PrecinctDefence's stated
@@ -4250,7 +4251,7 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, GroundRosterProfile groundRoster,
-            MarketGarrison garrison) {
+            MarketGarrison garrison, boolean statedPosts) {
         // Conquest is an authored late-game set piece, not an encounter that
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
@@ -4262,8 +4263,8 @@ public final class BattleSetup {
                 type, tier, risk, enemyHasHeavyArmor, attackerScore, groundRoster, garrison);
         FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(
                 enemyFighterSupport, roster, attackerScore);
-        List<DefensePost> affordablePosts = BattleForceScore.affordableDefensePosts(
-                defensePosts, roster, attackerScore,
+        List<DefensePost> affordablePosts = BattleForceScore.standingDefensePosts(
+                defensePosts, statedPosts, roster, attackerScore,
                 BattleForceScore.fighterSupport(affordableFighters));
         return new DefenderForcePlan(roster, affordablePosts, affordableFighters);
     }

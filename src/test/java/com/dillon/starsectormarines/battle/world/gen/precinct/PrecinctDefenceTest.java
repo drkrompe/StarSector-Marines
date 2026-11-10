@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -336,5 +337,37 @@ class PrecinctDefenceTest {
         assertEquals(0, built.result().placedCount());
         assertEquals(0, built.result().unplacedCount());
         assertEquals(0, turrets(built.ctx()));
+    }
+
+    /** A military base is owed a post every so many cells of wall, in its heaviest kind, and one per thing it guards. */
+    @Test
+    void aBaseIsOwedItsWallsAndApproachesInItsHeaviestKind() {
+        int wall = 4 * 100;
+        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.STRONGHOLD, true, 3, 2, wall);
+        int perimeter = owed.getOrDefault(DefensePostKind.LIGHT, 0) + owed.getOrDefault(DefensePostKind.MEDIUM, 0)
+                + owed.getOrDefault(DefensePostKind.LARGE, 0);
+        assertEquals(wall / PrecinctDefence.WALL_EVERY + 2, perimeter, "a post every stretch of wall, and the hearts");
+        assertEquals(2, owed.get(DefensePostKind.MEDIUM), "the grade's own mediums are kept");
+        assertEquals(perimeter - 2, owed.get(DefensePostKind.LARGE), "the rest are its heaviest kind");
+        assertEquals(1, owed.get(DefensePostKind.ARTILLERY));
+        assertEquals(0, owed.getOrDefault(DefensePostKind.LIGHT, 0));
+    }
+
+    @Test
+    void aSmallBaseStillMansEveryGateAndCorner() {
+        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.PICKET, true, 4, 0, 40);
+        assertEquals(2 * 4 + PrecinctDefence.CORNERS, owed.get(DefensePostKind.LIGHT));
+    }
+
+    @Test
+    void aPlaceThatIsNotABaseKeepsItsGradesLoadout() {
+        assertEquals(Fortification.CITADEL.posts(), PrecinctDefence.owed(Fortification.CITADEL, false, 1, 2, 400));
+    }
+
+    @Test
+    void aWallIsTheEdgeOfItsGround() {
+        boolean[][] own = new boolean[12][12];
+        for (int x = 1; x <= 10; x++) for (int y = 1; y <= 10; y++) own[x][y] = true;
+        assertEquals(36, PrecinctDefence.wallLength(own, 12, 12));
     }
 }
