@@ -857,7 +857,8 @@ turns only at a corner, never on a diagonal. (`-Dbattle.mapgen.streetJogs=taper`
 restores the six-cell diagonal taper until the owner picks between them.) A
 town street lying beside a country road, running its way within two cells, is
 that road's verge and keeps its paving, so the town's edge does not read as a
-double road.
+double road; so is a shorter street lying one or two cells beside a longer
+street or road along all its length.
 A road line laid down the town's own street paving (a feeder carried through
 the town as its street) is swept as that street, never as a road beside it: a
 road cell takes the sweep only where it is asphalt, so it stood as a strip of

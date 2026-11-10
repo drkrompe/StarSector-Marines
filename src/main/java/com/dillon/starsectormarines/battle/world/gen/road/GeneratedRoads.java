@@ -68,6 +68,21 @@ public final class GeneratedRoads {
                     : Math.min(top, b.top) - Math.max(bottom, b.bottom) + 1;
             return along >= b.length() - 2 * b.breadth();
         }
+        /**
+         * A longer street or road running the same way as the street band {@code b}, one to {@link #BESIDE} cells across from
+         * it, over all of {@code b}'s length but up to a breadth at either end: {@code b} swept too would be a second
+         * carriageway beside it with a strip of paving between, a double road. One running on past this band's end
+         * is a jog ({@link #jogs}), not a verge.
+         */
+        boolean flanks(Band b, boolean[][] city) {
+            if (this == b || horizontal() != b.horizontal() || length() <= b.length()) return false;
+            boolean horizontal = horizontal();
+            int gap = horizontal ? Math.max(bottom - b.top, b.bottom - top) - 1 : Math.max(left - b.right, b.left - right) - 1;
+            if (gap < 1 || gap > BESIDE) return false;
+            int slack = (int) b.breadth();
+            return horizontal ? b.left >= left - slack && b.right <= right + slack
+                    : b.bottom >= bottom - slack && b.top <= top + slack;
+        }
         /** Whether the first (or last) cell line of this band meets another band or the map's edge. */
         boolean endMet(boolean first, List<Band> others, int mapW, int mapH) {
             Band end = end(first);
@@ -453,7 +468,7 @@ public final class GeneratedRoads {
      * Where two streets grown side by side touch, or stand a kerb cell apart, and each runs on past the other, a jog
      * from one line onto the next (or the arms of a crossing that do not line up, the one running on past the
      * crossing beside the other), both swept would draw the stretch they share as one slab of road twice a street's
-     * width. The shorter is trimmed
+     * width. The shorter, where it is a street, is trimmed
      * to end one breadth past the longer's start, so the road steps across square, a breadth long, and runs on at
      * one street's width; the longer keeps its length. Of two of one length, the later in {@code bands} is trimmed.
      */
@@ -466,7 +481,7 @@ public final class GeneratedRoads {
             int step = (int) s.breadth();
             for (int j = 0; j < bands.size(); j++) {
                 Band l = bands.get(j);
-                if (l == s || l.horizontal() != horizontal || !l.holds(city)) continue;
+                if (l == s || l.horizontal() != horizontal) continue;
                 int lSideLo = horizontal ? l.bottom : l.left, lSideHi = horizontal ? l.top : l.right;
                 if (lSideLo != sideHi + 1 && lSideLo != sideHi + 2 && lSideHi != sideLo - 1 && lSideHi != sideLo - 2) continue;
                 int sLo = lo(s, ends), sHi = hi(s, ends), lLo = lo(l, ends), lHi = hi(l, ends);
@@ -570,6 +585,9 @@ public final class GeneratedRoads {
             bands = lined.stream().filter(b -> !b.holds(city) || lined.stream().noneMatch(a -> a.shadows(b, city))).toList();
             // A street beside a road laid outside the network, running its way, is that road's verge.
             bands = bands.stream().filter(b -> !b.holds(city) || laid.stream().noneMatch(a -> a.beside(b, city))).toList();
+            // So is a shorter street beside a longer one, along all its length: swept, the two are a double road.
+            List<Band> flanked = bands;
+            bands = flanked.stream().filter(b -> !b.holds(city) || flanked.stream().noneMatch(a -> a.flanks(b, city))).toList();
             // A short band is a through street when each of its ends meets
             // another street. One met at a single end by a street that stands on
             // its own is a dead end off that street, a spur: it runs into a yard
