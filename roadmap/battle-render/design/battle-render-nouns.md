@@ -106,6 +106,17 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   review drain draw the same picture. Surface relief stays per cell; the
   feather changes colour, not height. Control switch:
   `-Dbattle.render.groundFeathering=false`.
+  A ruins hall's **coverings** (ice sheet, rime, biofilm, wet floor) are
+  feathering materials that also bleed onto an indoor floor of no material of
+  its own, which takes no other ground's bleed, so ice on a hall's plate ends
+  soft while paving and interiors elsewhere keep their edges
+  (`GroundFeather.COVERINGS`).
+- A **floor trim** is the step where a built floor panel (a ruins hall's raised
+  floor or stage) meets any other open floor: the panel keeps a clean cell edge
+  and lays its trim strip inside it, half a cell deep and turned to the side it
+  steps down to, with a faint shadow on the floor below. Over the tiles, under
+  everything standing on them; presentation only (`FloorTrimRenderSystem`). A
+  panel whose strip has not shipped draws a plain riser and nosing.
 - A **basin edge** is where a basin's floor meets its rim (`mapgen-nouns.md`,
   basin), drawn as the line `SurfaceField.edge` rather than the cells it was
   cut into. Each cell of either side's open ground (grass and sand on Asharu,

@@ -19,6 +19,13 @@ class GroundFeatherTest {
         assertEquals(0, GroundFeather.winners(-1, 0, 0, 0, out), "ground that does not feather receives nothing");
     }
 
+    @Test void anIndoorFloorTakesOnlyACoveringsBleed() {
+        int[] out = new int[3];
+        int ice = GroundFeather.priority("ruins-ground.ice-sheet"), sand = GroundFeather.priority("floors.sand");
+        assertEquals(1, GroundFeather.winners(GroundFeather.FLOOR, ice, sand, -1, out));
+        assertEquals(ice, out[0], "the ice bleeds onto the hall's floor, the sand does not");
+    }
+
     @Test void aCornerReadsAsEdgeInnerOrOuter() {
         assertEquals(Shape.EDGE_N, GroundFeather.shape(GroundFeather.NE, true, false, true));
         assertEquals(Shape.EDGE_W, GroundFeather.shape(GroundFeather.SW, false, true, false));

@@ -1003,8 +1003,11 @@ public final class GroundRenderSystem implements RenderSystem {
                 kind = underlay.ground();
                 surface = underlay.surface();
             }
-            if (surface > 0) return surface < surfacePriority.length ? surfacePriority[surface] : -1;
-            return kindPriority[kind.ordinal()];
+            int own = surface > 0 ? surface < surfacePriority.length ? surfacePriority[surface] : -1
+                    : kindPriority[kind.ordinal()];
+            // An indoor floor of no material of its own takes a covering's bleed (GroundFeather.COVERINGS).
+            return own < 0 && kind == CellTopology.GroundKind.INDOOR && !topology.isRubble(x, y) ? GroundFeather.FLOOR
+                    : own;
         }
 
         void resolve(int rank, int quadrant, int x, int y, GroundMesh.CellSink sink) {
