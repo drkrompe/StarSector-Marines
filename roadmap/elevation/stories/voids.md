@@ -574,8 +574,13 @@ Laws):
    **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
    get that partially 3d look"; kept for every building). The rise's pinhole
    camera turned on buildings (`BuildingFaces`): each building's roof is
-   lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
-   and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
+   lifted to its eave at the height of what it was built as
+   (`BuildingFaces.heightClass`, the one place it is decided; an author's
+   height from the map patch would go there): sheds, huts and pillboxes a low
+   3.2 m storey; homes one to three storeys, mostly two; stores one, shops two;
+   works one tall bay, the biggest tall works at 15 m; civic halls two or
+   three; a sealed town's blocks a storey higher; a tower's room a tower. Each
+   building's own number steps a street up and down (UNTUNED). It is scaled about the view's centre as a rise's top is,
    and each wall turned to the camera is a face from its foot to the eave,
    tinted from the building's own and lit by its side. A wall turned away lies under its own roof. All faces
    are drawn before all roofs. A face is built on the outline of the roof as
