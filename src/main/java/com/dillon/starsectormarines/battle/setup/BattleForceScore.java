@@ -77,6 +77,9 @@ public final class BattleForceScore {
             case BULWARK -> 24f;
             case HAULER, PILGRIM -> 26f;
             case FOUNDRY_BREAKER -> 19f;
+            // UNTUNED: a Hound's and a Warden's worth, the burner trading reach for fire.
+            case TORCH -> 18f;
+            case CENSER -> 22f;
             case HOUND, WARDEN -> 18f;
             case CRAWLER -> 14f;
             case SECURITY_WALKER -> 30f;

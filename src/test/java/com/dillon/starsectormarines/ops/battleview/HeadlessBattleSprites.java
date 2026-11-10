@@ -840,7 +840,8 @@ final class HeadlessBattleSprites extends BattleSprites {
                           optionalLayer(MECH_ROOT + "active-protection-bulwark.png"),
                           optionalLayer(MECH_ROOT + "active-protection-hound.png"),
                           optionalLayer(MECH_ROOT + "active-protection-warden.png")))
-                .withVariantBodies(mechVariantBodies());
+                .withVariantBodies(mechVariantBodies())
+                .withFlamers(optionalLayer(MECH_ROOT + "fl-1.png"), optionalLayer(MECH_ROOT + "fl-2.png"));
     }
 
     private LayeredSpriteCache optionalLayer(String path) throws IOException {

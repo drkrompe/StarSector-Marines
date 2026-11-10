@@ -1,6 +1,8 @@
-"""Production bodies for the low-tech row's first faction variants (owner picks from sheets/pirates-sheet.png and
-sheets/path-sheet.png): the pirate Hauler and the Luddic Path's Pilgrim on the Bulwark frame, and the Path's Foundry
-Breaker on the Hound frame (`mech-lines.md`, law 2; `mechs-nouns.md`, variant).
+"""Production bodies for the low-tech row's faction variants (owner picks from sheets/pirates-sheet.png,
+sheets/path-sheet.png and the flamer sheets): the pirate Hauler and the Luddic Path's Pilgrim on the Bulwark frame, the
+Path's Foundry Breaker and the pirate Torch on the Hound frame, and the Path's Censer on the Warden frame
+(`mech-lines.md`, law 2; `mechs-nouns.md`, variant). A flamer's fuel load is its body; its burner is a weapon layer of
+its own (flamer_parts.py).
 
 A variant keeps its frame's mounts, so each guide is the frame's own production master registered exactly as the
 runtime fits it (build.fitted: the outline's box filling the chassis square's height, centred), shrunk by FRAME_SCALE
@@ -15,11 +17,13 @@ Places kept clear, in hull widths from the frame's centre, +y forward (family_gu
            racks over the chassis, rear pivots (+-0.40, -0.30), over the shoulder pads
   Hound    nose gun under the chassis up the nose channel, rear pivot (0, -0.02), about 0.54 long;
            dorsal pod over the chassis, rear pivot (0, -0.30), 0.42 long and 0.23 wide
+  Warden   nose gun under the chassis, rear pivot (0, -0.05); racks over the chassis, rear pivots (+-0.40, -0.30),
+           the right one as long as a lance (0.62)
 
-  python art-source/mech-modular-topdown/sources/lowtech/variants/bodies.py guides
+  python art-source/mech-modular-topdown/sources/lowtech/variants/bodies.py guides [name ...]
   python tools/codex_imagegen.py --prompt <name>/<name>.prompt.txt --out <name>/<name>-master.png
       --ref <name>/guide.png="..." --ref sheets/<sheet>-<name>.png="..." [--ref ref-path-material.png="..."]
-  python art-source/mech-modular-topdown/sources/lowtech/variants/bodies.py pack
+  python art-source/mech-modular-topdown/sources/lowtech/variants/bodies.py pack [name ...]
 
 Runtime output: mod/graphics/battle/mech-modular-topdown/variants/<variant id>.png (MechVariantBodies)
 """
@@ -138,32 +142,68 @@ def breaker(body: Body, d: ImageDraw.ImageDraw) -> None:
         rect(d, body, -0.13, y - 0.018, 0.13, y + 0.018, LIGHT, 0.018)
 
 
+def torch(body: Body, d: ImageDraw.ImageDraw) -> None:
+    # The fuel load: a welded cradle across the back holding four mismatched drums round a pressure bottle, behind
+    # the nose channel, which stays open for the burner.
+    rect(d, body, -0.24, -0.50, 0.24, -0.06, DARK, 0.012)
+    for x, y in ((-0.125, -0.17), (0.125, -0.17), (-0.125, -0.39), (0.125, -0.39)):
+        ring(d, body, x, y, 0.095, LIGHT)
+    rect(d, body, -0.032, -0.46, 0.032, -0.10, BLOCK, 0.03)
+    # Hoses forward from the cradle along both flanks of the nose channel.
+    for side in (-1, 1):
+        rect(d, body, side * 0.075 - 0.012, -0.06, side * 0.075 + 0.012, 0.10, DARK, 0.01)
+
+
+def censer(body: Body, d: ImageDraw.ImageDraw) -> None:
+    # The promethium tank lying across the rear, past the frame's outline, in its welded frame.
+    rect(d, body, -0.33, -0.60, 0.33, -0.40, LIGHT, 0.09)
+    for x in (-0.20, 0.0, 0.20):
+        rect(d, body, x - 0.008, -0.60, x + 0.008, -0.40, DARK, 0.0)
+    # Gauges and a manifold on the tank's front, and the armoured hose up the right flank to the right mount's base.
+    ring(d, body, -0.12, -0.38, 0.035, BLOCK)
+    ring(d, body, 0.10, -0.38, 0.035, BLOCK)
+    poly(d, body, [(0.20, -0.42), (0.26, -0.42), (0.34, -0.30), (0.28, -0.27)], DARK)
+    # Empty bolted plates on both rack places, and prayer cloth strips off the left flank and the right hip.
+    ring(d, body, -0.31, -0.22, 0.05)
+    ring(d, body, 0.31, -0.22, 0.05)
+    for x0, y0 in ((-0.29, 0.02), (-0.255, -0.02)):
+        rect(d, body, x0, y0 - 0.12, x0 + 0.025, y0, LIGHT, 0.004)
+
+
 BODIES = {
     "hauler": (Body("hauler", "hauler", "pirates/bulwark-master.png", 0.80, "pirates-sheet.png", (1400, 0, 2116, 743)), hauler),
     "pilgrim": (Body("pilgrim", "pilgrim", "bulwark/bulwark-master.png", 0.80, "path-sheet.png", (1400, 0, 2116, 743)), pilgrim),
     "breaker": (Body("breaker", "foundry_breaker", "hound/canopy-1-master.png", 0.88, "path-sheet.png", (130, 0, 560, 743)), breaker),
+    "torch": (Body("torch", "torch", "pirates/hound-master.png", 0.88, "pirate-torch-sheet.png", (270, 0, 730, 887)), torch),
+    "censer": (Body("censer", "censer", "warden/warden-master.png", 0.84, "path-censer-sheet.png", (250, 0, 970, 1010)), censer),
 }
 
 
+def chosen() -> dict:
+    """The bodies named after the command, or all of them."""
+    names = sys.argv[2:]
+    return {n: BODIES[n] for n in names} if names else BODIES
+
+
 def guides() -> None:
-    for name, (body, draw) in BODIES.items():
+    for name, (body, draw) in chosen().items():
         (HERE / name).mkdir(exist_ok=True)
         guide = frame_layer(body)
         draw(body, ImageDraw.Draw(guide))
         guide.save(HERE / name / "guide.png")
         Image.open(HERE / "sheets" / body.sheet).crop(body.sheet_box).save(HERE / name / "concept.png")
-    print("wrote", ", ".join(f"{n}/guide.png" for n in BODIES))
+    print("wrote", ", ".join(f"{n}/guide.png" for n in chosen()))
 
 
 def pack() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, (body, _) in BODIES.items():
+    for name, (body, _) in chosen().items():
         master = Image.open(HERE / name / f"{name}-master.png").convert("RGBA")
         if master.size != (S, S):
             raise ValueError(f"{name}: master is {master.size}, its guide {S}x{S}")
         size = body.runtime_px()
         master.resize((size, size), Image.Resampling.LANCZOS).save(OUT / f"{body.variant_id}.png")
-    print("packed", ", ".join(BODIES), "into", OUT)
+    print("packed", ", ".join(chosen()), "into", OUT)
 
 
 if __name__ == "__main__":
