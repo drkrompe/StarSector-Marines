@@ -30,7 +30,32 @@ RAWS = {
     "frost": ("ruins-frost.raw.png", ("cryo-rack", "frost-heatsink")),
     "vats": ("ruins-vats.raw.png", ("culture-vat", "grow-bed")),
     "patches": ("ruins-patches.raw.png", ("frost-patch-a", "frost-patch-b", "growth-patch-a", "growth-patch-b")),
+    "plant-store": ("ruins-plant-store.raw.png", ("rack-stripped", "rack-crates", "dock-door")),
 }
+
+# Pieces cut at their exact guide frame instead of half a gutter wider: the dock door bled into the gutter beside
+# the racks, so a wider rack cut picks up its edge.
+TIGHT = {"rack-stripped", "rack-crates"}
+
+# The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
+# sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
+# one vertical window centred on the bed (rows 247-462), so the bed's cross-section is the same at every seam, and
+# each is cut at the middle of a roller gap one pitch (about 37.8 px) in from its end cap: the module from gap 75 to
+# gap 1020 (25 pitches), the line end from the hopper's edge to gap 1539. Each is then stretched to its exact
+# footprint, so a module meets the next module, or a line end, gap to gap. The cradle is cut at its own bounds.
+CELL_PX = 128
+LINE_ROWS = (65, 644)
+PLANT_LINE = {
+    "line-module": ((75, LINE_ROWS[0], 1020, LINE_ROWS[1]), (6, 3)),
+    "line-end": ((1083, LINE_ROWS[0], 1539, LINE_ROWS[1]), (3, 3)),
+    "empty-cradle": ((1612, 86, 2145, 627), (3, 3)),
+}
+
+
+def cut_plant_line():
+    raw = Image.open(HERE / "raw" / "ruins-plant-line.raw.png").convert("RGBA")
+    for pid, (box, (fx, fy)) in PLANT_LINE.items():
+        yield pid, raw.crop(box).resize((fx * CELL_PX, fy * CELL_PX), Image.LANCZOS)
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
@@ -46,7 +71,8 @@ def cut(family):
     for pid, x, y, w, h, kind in make_guide.frames(family):
         if pid not in keep:
             continue
-        box = (round((x - half) * sx), round((y - half) * sy), round((x + w + half) * sx), round((y + h + half) * sy))
+        m = 0 if pid in TIGHT else half
+        box = (round((x - m) * sx), round((y - m) * sy), round((x + w + m) * sx), round((y + h + m) * sy))
         piece = raw.crop(box)
         if kind == "organic":
             alpha = piece.getchannel("A").point(
@@ -61,6 +87,8 @@ def main() -> None:
         for family in RAWS:
             for pid, piece in cut(family):
                 piece.save(staged / f"{pid}.png")
+        for pid, piece in cut_plant_line():
+            piece.save(staged / f"{pid}.png")
         image, manifest, count = build_atlas(BuildOptions(
             input_dir=staged,
             output_image=ROOT / "mod" / "graphics" / "doodads" / "ruins-themes.png",
@@ -68,7 +96,7 @@ def main() -> None:
             sheet_path="graphics/doodads/ruins-themes.png",
             metadata_path=HERE / "_atlas.json",
             columns=8,
-            cell_size=128,
+            cell_size=CELL_PX,
             padding=4,
             id_prefix="doodad.",
             resample="lanczos",
