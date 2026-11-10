@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,5 +50,21 @@ class DerelictWalkerClassTest {
         assertTrue(ram.tick(1f, true));
         assertTrue(ram.forced());
         assertFalse(ram.tick(1f, true), "forced once");
+    }
+
+    @Test
+    void aRammedDoorOpensItsDeadLeavesAndIsTornWideEnoughForTheHallFrame() {
+        RuinsDelve.LeafDoor narrow = new RuinsDelve.LeafDoor(new RuinsDelve.Area(10, 5, 11, 5), true, false,
+                RuinsDelve.DoorStance.ANSWERS);
+        List<int[]> torn = DerelictWalkerClass.tornCells(narrow);
+        assertEquals(2, torn.size(), "a jamb cell each side: four cells fit the frame");
+        assertArrayEquals(new int[] {9, 5}, torn.get(0));
+        assertArrayEquals(new int[] {12, 5}, torn.get(1));
+        RuinsDelve.LeafDoor dead = new RuinsDelve.LeafDoor(new RuinsDelve.Area(3, 0, 3, 2), false, false,
+                RuinsDelve.DoorStance.DEAD);
+        List<int[]> opened = DerelictWalkerClass.tornCells(dead);
+        assertEquals(2, opened.size(), "three cells already fit: only its leaves' cells open");
+        assertArrayEquals(new int[] {3, 0}, opened.get(0));
+        assertArrayEquals(new int[] {3, 2}, opened.get(1));
     }
 }

@@ -97,6 +97,8 @@ public final class DerelictSecurityDirector {
     /** Each hall-bound frame's dead door, and its ram against it (`derelict-watch.md`, Medium and large walkers). */
     private final Map<Integer, RuinsDelve.LeafDoor> deadDoors = new TreeMap<>();
     private final Map<Integer, DerelictWalkerClass.Ram> rams = new TreeMap<>();
+    /** Where each ramming frame stands against its door: the nearest cell in its hall it fits. */
+    private final Map<Integer, int[]> ramStands = new TreeMap<>();
     private final List<RuinsDelve.LeafDoor> forced = new ArrayList<>();
     /** The security bulkheads, shut until the hunting stage. */
     private List<Bulkheads.Bulkhead> bulkheads = List.of();
@@ -462,9 +464,9 @@ public final class DerelictSecurityDirector {
      * Gives a hall-bound frame the dead door it forces once awake: its leaves give way after
      * {@link DerelictWalkerClass#FORCE_SECONDS} pressed against it, and the frame is bound no longer.
      */
-    public void forceDoor(int squadId, RuinsDelve.LeafDoor door) {
-        if (door.stance() != RuinsDelve.DoorStance.DEAD) throw new IllegalArgumentException("only a dead door is forced");
+    public void forceDoor(int squadId, RuinsDelve.LeafDoor door, int standX, int standY) {
         deadDoors.put(squadId, door);
+        ramStands.put(squadId, new int[] {standX, standY});
         rams.put(squadId, new DerelictWalkerClass.Ram());
     }
 
@@ -865,15 +867,15 @@ public final class DerelictSecurityDirector {
                 Math.abs(sim.world().y(lead) - (span.centreY() + 0.5f))) <= RAM_CELLS;
         if (rams.get(walker.squadId()).tick(PULSE_TICKS * BattleSimulation.TICK_DT, against)) {
             int likeX = span.centreX(), likeY = span.centreY();
-            sim.mapEditor().openPassage(span.left(), span.bottom(), likeX, likeY);
-            sim.mapEditor().openPassage(span.right(), span.top(), likeX, likeY);
+            for (int[] c : DerelictWalkerClass.tornCells(door)) sim.mapEditor().openPassage(c[0], c[1], likeX, likeY);
             forced.add(door);
             RuinsDoorStates doors = doorStates(sim);
-            if (doors != null && doors.stanceOf(door) == RuinsDelve.DoorStance.DEAD) doors.force(door);
+            if (doors != null && doors.stanceOf(door) != null) doors.force(door);
             hallBound.remove(walker.squadId());
             return order;
         }
-        return new Order(Kind.FORCE, span.centreX(), span.centreY(), -1L);
+        int[] stand = ramStands.get(walker.squadId());
+        return new Order(Kind.FORCE, stand[0], stand[1], -1L);
     }
 
     /**

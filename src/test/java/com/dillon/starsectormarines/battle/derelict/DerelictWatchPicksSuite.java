@@ -264,49 +264,75 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
     private static void ram(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
         long seed0 = fixture.getLong("seed");
-        for (int k = 0; k < RAM_SEEDS; k++) {
+        boolean rammed = false, deadShot = false, todayShot = false;
+        for (int k = 0; k < RAM_SEEDS && !(rammed && deadShot); k++) {
             JSONObject f = new JSONObject(fixture.toString());
             f.put("seed", seed0 + k);
             BattleSimulation sim = settled(f, 30);
             DerelictSecurityDirector director = sim.derelictSecurity();
-            int halls = 0, bound = 0, dead = 0, withDoor = 0;
-            for (RuinsDelve.LeafDoor d : sim.getRuinsWorks().doorStates().doors()) {
-                if (d.stance() == RuinsDelve.DoorStance.DEAD) dead++;
+            if (!deadShot) {
+                // Option b: a plant hall with a dead door three cells or more across, as the ground lays one.
+                for (RuinsDelve.LeafDoor d : sim.getRuinsWorks().doorStates().doors()) {
+                    if (d.stance() != RuinsDelve.DoorStance.DEAD) continue;
+                    log("ram: seed %d dead door at (%d, %d), %d cells", seed0 + k, d.span().left(), d.span().bottom(),
+                            d.length());
+                    add(out, "ram/b-dead-door.png", look(context, sim, d.span().centreX() + 0.5f,
+                            d.span().centreY() + 0.5f, CLOSE, true, "ram-dead-door"));
+                    deadShot = true;
+                    break;
+                }
             }
+            if (rammed) continue;
             for (DerelictSecurityDirector.Walker w : director.walkers()) {
-                if (w.frame() != DerelictWalkerFrame.HALL) continue;
-                halls++;
-                if (director.hallBound(w.squadId())) bound++;
-                if (DerelictSecurity.deadDoorOf(sim.getRuinsWorks().delve(), w.postX(), w.postY()) != null) withDoor++;
-            }
-            log("ram: seed %d: %d hall frames, %d bound, %d with a dead door on their hall, %d dead doors",
-                    seed0 + k, halls, bound, withDoor, dead);
-            for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                if (w.frame() != DerelictWalkerFrame.HALL || !director.hallBound(w.squadId())) continue;
+                if (!todayShot) {
+                    // Option c, and the door option a would tear: a hall frame kept in its hall, as today.
+                    todayShot = true;
+                    add(out, "ram/c-today.png", look(context, sim, w.postX() + 0.5f, w.postY() + 0.5f, CLOSE, true,
+                            "ram-today"));
+                    RuinsDelve.LeafDoor near = DerelictSecurity.ramDoorOf(sim.getRuinsWorks().delve(), w.postX(),
+                            w.postY(), new int[] {w.postX(), w.postY()});
+                    if (near != null) {
+                        add(out, "ram/a-door.png", look(context, sim, near.span().centreX() + 0.5f,
+                                near.span().centreY() + 0.5f, CLOSE, true, "ram-door"));
+                    }
+                }
                 RuinsDelve.LeafDoor door = director.deadDoorOf(w.squadId());
-                if (w.frame() != DerelictWalkerFrame.HALL || door == null || !director.hallBound(w.squadId())) continue;
-                log("ram: seed %d, lance %d, dead door at (%d, %d)", seed0 + k, w.squadId(), door.span().left(),
-                        door.span().bottom());
+                if (door == null) continue;
+                log("ram: seed %d, lance %d, %s door at (%d, %d), %d cells", seed0 + k, w.squadId(), door.stance(),
+                        door.span().left(), door.span().bottom(), door.length());
                 float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
-                add(out, "ram/before.png", look(context, sim, x, y, CLOSE, true, "ram-before"));
+                add(out, "ram/a-before.png", look(context, sim, x, y, CLOSE, true, "ram-before"));
                 director.network().stir(w.zoneId(), sim.getSimTickIndex());
                 boolean mid = false;
                 for (int t = 0; t < 6000 && director.forcedDoors().isEmpty(); t++) {
+                    // No company is on this ground to keep the zone awake: it is stirred again as one would.
+                    if (t % 300 == 0) director.network().stir(w.zoneId(), sim.getSimTickIndex());
                     if (!step(sim)) break;
+                    if (t % 1000 == 0) {
+                        long l = sim.squadMemberAt(w.squadId(), 0);
+                        log("ram: t=%d zone %s order %s at (%.1f, %.1f) progress %.2f", t,
+                                director.network().zone(w.zoneId()).state(), director.orderOf(w.squadId()),
+                                sim.world().x(l), sim.world().y(l), director.ramProgress(w.squadId()));
+                    }
                     if (!mid && director.ramProgress(w.squadId()) >= 0.5f) {
                         mid = true;
                         log("ram: half way at t=%d", sim.getSimTickIndex());
-                        add(out, "ram/mid.png", look(context, sim, x, y, CLOSE, true, "ram-mid"));
+                        add(out, "ram/a-mid.png", look(context, sim, x, y, CLOSE, true, "ram-mid"));
                     }
                 }
                 log("ram: forced %d by t=%d, stance %s, still bound %s", director.forcedDoors().size(),
                         sim.getSimTickIndex(), sim.getRuinsWorks().doorStates().stanceOf(door),
                         director.hallBound(w.squadId()));
-                play(sim, 120);
-                add(out, "ram/after.png", look(context, sim, x, y, CLOSE, true, "ram-after"));
-                return;
+                play(sim, 240);
+                long lead = sim.squadMemberAt(w.squadId(), 0);
+                log("ram: frame at (%.1f, %.1f) after", sim.world().x(lead), sim.world().y(lead));
+                add(out, "ram/a-after.png", look(context, sim, x, y, CLOSE, true, "ram-after"));
+                rammed = true;
+                break;
             }
         }
-        log("ram: no seed of %d has a hall-bound frame with a dead door", RAM_SEEDS);
+        if (!rammed) log("ram: no seed of %d has a hall-bound frame with a door to ram", RAM_SEEDS);
     }
 
     // ---- walker sizes ----

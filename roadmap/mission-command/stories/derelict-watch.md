@@ -278,9 +278,12 @@ of each pick, slice 3's comms lines.
   of twenty cells or more round, never into floor the hall cannot reach, never
   beside a leaf door; each a `RuinsDelve.LeafDoor` across its face. Wall until
   hunting, then opened (`MapEditor.openPassage`). A hall-bound frame is given
-  the dead door on its hall's face (`deadDoorOf`); once its zone is awake it
-  walks there (`Kind.FORCE`) and its `Ram` opens the door's end cells, freeing
-  it. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
+  a door on its hall's face it can walk up to (`ramDoorOf`: a dead one first,
+  else the one nearest its way out; `ramStand`); once its zone is awake it
+  walks there (`Kind.FORCE`) and its `Ram` opens the door: a dead door's end
+  cells, and a door too narrow for it torn a jamb at a time until it fits
+  (`DerelictWalkerClass.tornCells`). Pick `hall-frame-ram` (built on a) is
+  open: past the door the plant's ways are still two cells. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
   sealed and opened at hunting, a rammed door forced.
 
 Not built yet:

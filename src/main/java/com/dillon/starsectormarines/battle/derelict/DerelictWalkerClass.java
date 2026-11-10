@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The derelict line's sizes (`derelict-watch.md`, Medium and large walkers). The plant's ways come in widths (one-cell
@@ -61,6 +65,32 @@ public enum DerelictWalkerClass {
             case EXTENSIVE -> 1;
             case VAST -> 2;
         };
+    }
+
+    /**
+     * The cells a hall frame opens when a door gives way to its ram (`derelict-watch.md`, Medium and large walkers): a
+     * dead door's end cells, where its leaves stand; and a door too narrow for the frame torn wider, a jamb cell at
+     * each end along its line at a time, until the frame fits through.
+     */
+    public static List<int[]> tornCells(RuinsDelve.LeafDoor door) {
+        RuinsDelve.Area s = door.span();
+        List<int[]> out = new ArrayList<>();
+        if (door.stance() == RuinsDelve.DoorStance.DEAD) {
+            out.add(new int[] {s.left(), s.bottom()});
+            out.add(new int[] {s.right(), s.top()});
+        }
+        int width = door.length();
+        for (int k = 1; !LARGE.fits(width); k++) {
+            if (door.alongX()) {
+                out.add(new int[] {s.left() - k, s.bottom()});
+                out.add(new int[] {s.right() + k, s.bottom()});
+            } else {
+                out.add(new int[] {s.left(), s.bottom() - k});
+                out.add(new int[] {s.left(), s.top() + k});
+            }
+            width += 2;
+        }
+        return out;
     }
 
     /**
