@@ -30,7 +30,7 @@ through a trade-off.
 |  | Light | Medium | Heavy |
 |---|---|---|---|
 | **Low-tech** | Hound | Warden | Bulwark |
-| **Midline** | open (shells stand in) | open (shells stand in) | open (shells stand in) |
+| **Midline** | light carrier (articulated, wheeled) | medium carrier | heavy carrier |
 | **High-tech** | light crawler (`MechVariant.CRAWLER`, its own chassis) | none (skimmers carry the weight) | none (no heavy walker, owner) |
 
 Nine lines in all. The low-tech row is the three first chassis. The high-tech light is
@@ -83,9 +83,11 @@ purchases, so the low-tech row comes first:
    weathered tan and khaki plate with engraved panel lines over grey machinery, round sockets, yellow-green lights,
    but never a ship's outline: the first concepts, built round the Eagle's forked prow and on bird legs, read as the
    Eagle or as chickens (owner). Its machines are wheeled (owner: "a wheeled concept might not be bad"). The second
-   pass, from material swatches with no shape in them, is on the picks page
-   (art-source/mech-modular-topdown/sources/midline, briefs_v2.py): D, rover walkers on wheel-legs; E, articulated
-   carriers, a cab and swappable mission modules on a bending hinge; F, big-wheel machines. Its numbers sit between
+   pass came from material swatches with no shape in them (art-source/mech-modular-topdown/sources/midline,
+   briefs_v2.py), and the owner picked E (2026-11-10): **articulated carriers**, a drive cab and mission modules on
+   a hinge that bends to steer, light two modules on four wheels, medium two on six, heavy three on eight. They are a
+   wheeled hull line (`convoy-nouns.md`): a main gun card and secondary mounts on the mission module, the modules
+   drawn trailing the cab through the hinge. Its numbers sit between
    the other two rows (`machine-budgets.md`): about 2x flux draw, a shield at 1.0 where it carries one.
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
