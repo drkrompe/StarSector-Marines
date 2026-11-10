@@ -59,7 +59,8 @@ public final class NaturalVoidZoning {
         return switch (palette) {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
-            case ROCK, ARID -> CANYON;
+            // An irradiated world's dry drop is the canyon until a glassed wall of its own exists.
+            case ROCK, ARID, IRRADIATED -> CANYON;
         };
     }
 }
