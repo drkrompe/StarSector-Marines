@@ -1,6 +1,6 @@
 # Story — A vehicle's gun card is sized and locked by its hull
 
-Status: IN PROGRESS (slices 1 to 3 shipped: the small omni card and the light weapons, the laser parts and the PD laser tank's retirement, then the laser ladder in its white orb-lens look; the Thermal Lance and SRM-3 (QS) regrade and the balance pass remain)
+Status: IN PROGRESS (slices 1 to 3 shipped: the small omni card and the light weapons, the laser parts and the PD laser tank's retirement, then the laser ladder in its white orb-lens look; the Thermal Lance is regraded to a one-row part's band (`machine-budgets.md`); the SRM-3 (QS) regrade and the balance pass remain)
 
 Written: 2026-10-28
 

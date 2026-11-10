@@ -1,7 +1,7 @@
 # Machine budgets: mount size, flux, plate and shield by weight and family
 
-Status: DRAFT — a proposed model for sizing mounts and setting a line's flux, plate and shield; the owner's picks on
-the mech line picks page decide each open rule.
+Status: ACTIVE — the model for sizing mounts and setting a line's flux, plate and shield (owner's picks,
+2026-11-10). Every number set by it is first-pass and UNTUNED, for the owner's playtest.
 
 Written: 2026-11-10
 
@@ -58,28 +58,29 @@ is its flux per blocked point: high-tech 0.6 to 0.75, midline 1.0.
 
 Armour and shields counter different weapons. Plate turns low-penetration fire (lasers, chainguns, light guns) and
 loses to high penetration. A shield is blind to penetration: it pays for every point alike, so it turns the big
-armour-piercing hits plate cannot and loses to volume. A missile salvo's contact damage would fill a stock pool in one
-salvo if the shield is charged for it (five SRM contacts at 66 is about 200 flux at 0.6, against a stock pool of 100),
-which would make missiles high-tech's hard counter; measure what a shield is charged for a contact hit before tuning
+armour-piercing hits plate cannot and loses to volume. Missiles are the burst that breaks it: a salvo's contact
+damage can fill a pool at once (five SRM contacts at 66 is about 250 flux on the crawler's shield), so racks are
+high-tech's counter, and point defence is theirs. Measure what a shield is charged for a contact hit before tuning
 on it.
 
-## Where the shipped lines miss
+## Decided (owner, 2026-11-10)
 
-- **Warden**: nine weapon rows on a medium, three 3x2 mounts; the heavy has ten.
-- **Bulwark**: its twin chainguns draw 5x the 6 a second every mech sheds, twice the low-tech band.
-- **Crawler**: 1.9x on the stock bank with its shield's upkeep, hotter than a high-tech line should run.
-- **Heavy skimmer**: nearly the Onager's plate (480 at 16) and a shield on top, which its laser plant lets block
-  about 32 damage a second while the gun rests.
-- **Over their size class**: the AC-6 (a 2x2 that out-hits the 3x2 HC-20 against plate by 2x), the AC-6 (QS) and the
-  Thermal Lance (a 1x2 above every 2x2 laser against plate).
-- **Under their size class**: the PL-2, the PL-3 (a 3x2 weaker against plate than the 2x2 PL-2 (AP)), the LL-3 and
-  the DC-4 (QS).
+- **Mounts are capped by weight class.** The Warden's shoulders are 2x2, so it carries seven weapon rows. Its stock
+  guns are then the heaviest its mounts take, so its top fit is its full internal refit.
+- **The crawler keeps its 2x2 front socket**: any light or medium part, so it can still hurt a machine.
+- **Outliers are retuned to their row's band**, never moved to a new footprint. The AC-6 fires 10-damage rounds at
+  3 a second and the AC-6 (QS) at 4.5; the Thermal Lance cycles in 7 seconds; the PL-2 fires five pulses a trigger
+  (30 flux); the PL-3 six pulses of 20 at penetration 9; the LL-3 cycles in 5 seconds; the DC-4 (QS) in 3.5 with a
+  60-damage contact at penetration 14.
+- **A chassis carries a plant** to meet its family's flux band (`mechs-nouns.md`, frame values): the Bulwark +6 a
+  second, the crawler +3 and 50 more reservoir. The others already sit in their band.
+- **A high-tech shield replaces plate.** The heavy skimmer's plate is 350 at rating 12; the crawler's shield blocks
+  at 0.75 flux a point, so its 150 pool blocks 200.
+
+- **Missiles may break a shield in one salvo** (owner: "this might be fine"). Missiles are the burst weapon, and
+  point defence is their weakness where a laser has none, so a rack overloading a shield is their answer to high
+  tech, not a fault to cap.
 
 ## Open
 
-- Whether to cap mounts by weight class (the Warden's shoulders to 2x2).
-- The crawler's front socket: 2x2, or 1x2 for a drone screen.
-- How to fix the weapon ladder's outliers: retune their numbers, or move them to the footprint their power earns.
-- Whether a chassis gets a plant to meet its family's flux band.
-- Whether a high-tech shield replaces plate (the heavy skimmer's plate cut) or sits on top of it.
-- Whether a missile's contact damage should overload a shield in one salvo.
+- The midline row's numbers, when its lines are designed.

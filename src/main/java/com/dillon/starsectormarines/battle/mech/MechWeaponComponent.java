@@ -80,11 +80,11 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.ARMS_PL_1),
     PL_2("component.mech-pl-2", "@gearMechWeaponComponentPL2",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
-            WeaponRegistry.MECH_PL_2_ID, 3, -1,
+            WeaponRegistry.MECH_PL_2_ID, 5, -1,
             LayeredMechAppearance.ARMS_PL_2),
     PL_3("component.mech-pl-3", "@gearMechWeaponComponentPL3",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
-            WeaponRegistry.MECH_PL_3_ID, 4, -1,
+            WeaponRegistry.MECH_PL_3_ID, 6, -1,
             LayeredMechAppearance.ARMS_PL_3),
     BL_2("component.mech-bl-2", "@gearMechWeaponComponentBL2",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
@@ -318,9 +318,12 @@ public enum MechWeaponComponent {
             case HC_20 -> 2.5f;
             case PL_2_AP -> 2.1f;
             case DC_5 -> 5.8f;
-            case DC_4_QS -> 5.5f;
-            case LL_3, SRM_3_QS -> 7f;
-            case THERMAL_LANCE -> 4.8f;
+            // The bands a footprint buys (machine-budgets.md) set these three: the QS breaker up into a two-row gun's
+            // reach against plate, the lance up into a three-row's, the Thermal Lance down to a one-row's.
+            case DC_4_QS -> 3.5f;
+            case LL_3 -> 5f;
+            case SRM_3_QS -> 7f;
+            case THERMAL_LANCE -> 7f;
             case PL_3 -> 1.8f;
             case PL_3_SWEEP -> 1.8f;
             case PL_2 -> 1.6f;
@@ -378,7 +381,7 @@ public enum MechWeaponComponent {
             // The PL-3 is a flux hog, as on the tank.
             case PL_3 -> 38f;
             case PL_3_SWEEP -> 28f;
-            case PL_2 -> 26f;
+            case PL_2 -> 30f;
             case PL_1 -> 14f;
         };
     }
