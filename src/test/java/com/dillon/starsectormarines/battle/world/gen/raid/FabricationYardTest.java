@@ -73,7 +73,13 @@ class FabricationYardTest {
     private static final Function<String, int[]> FOOTPRINT = id -> {
         if (id.startsWith("doodad.parked-") || id.equals("doodad.mess-table-long")) return new int[]{3, 2};
         if (id.equals("doodad.stores-bin-rack") || id.equals("doodad.stores-cargo-loader")) return new int[]{2, 1};
-        if (id.startsWith("machine-shop.") || id.startsWith("loading-bay.insulated")) return new int[]{2, 2};
+        if (id.equals("machine-shop.lathe") || id.equals("machine-shop.mill") || id.endsWith("-bench")) {
+            return new int[]{4, 2};
+        }
+        if (id.equals("main-stores.rack")) return new int[]{2, 6};
+        if (id.equals("loading-bay.conveyor")) return new int[]{6, 2};
+        if (id.startsWith("machine-shop.") || id.startsWith("loading-bay.insulated") || id.startsWith("main-stores.")
+                || id.equals("factory-machines.coolant")) return new int[]{2, 2};
         if (id.equals("loading-bay.pallet-tug")) return new int[]{1, 3};
         return new int[]{1, 1};
     };
@@ -195,6 +201,26 @@ class FabricationYardTest {
             boolean reached = false;
             for (int[] c : d.paths()) reached |= c[0] == door[0] && c[1] == door[1];
             assertTrue(reached, "a path reaches the shop's door at " + door[0] + "," + door[1]);
+        }
+    }
+
+    /** The stock yards' loads follow the work: cartons by receiving, cases by dispatch, totes among the shops. */
+    @Test
+    void theStockFollowsTheWork() {
+        assertEquals("main-stores.cartons", FabricationYard.loadFor(HALLS, 10, 42));
+        assertEquals("main-stores.cases", FabricationYard.loadFor(HALLS, 31, 16));
+        assertEquals("loading-bay.insulated-tote", FabricationYard.loadFor(HALLS, 20, 31));
+    }
+
+    /** A load stands on a base set down at its corner: cartons and cases on pallets, totes on the roller line. */
+    @Test
+    void everyLoadStandsOnItsBase() {
+        FabricationYard.Dressing d = plan(6L);
+        assertFalse(d.loads().isEmpty());
+        for (Props.Placement load : d.loads()) {
+            boolean based = false;
+            for (Props.Placement p : d.props()) based |= p.x() == load.x() && p.y() == load.y();
+            assertTrue(based, load.doodad() + " at " + load.x() + "," + load.y() + " has its base");
         }
     }
 
