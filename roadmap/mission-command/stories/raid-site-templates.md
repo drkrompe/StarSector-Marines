@@ -106,7 +106,9 @@ sight lines before the works' wall.
   Refining rebuilt as its process after the owner rejected the generic stills
   (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; its own sheet,
   `refinery-plant`, for the columns, flare, floating-roof tanks, volatiles
-  spheres and spills; bund walls, loading rack and tankers still stand-ins;
+  spheres and spills, and `refinery-utilities` for what each house does:
+  furnace stacks, cooling tower, pump skids, comms mast, lab gas rack, loading
+  islands; bund walls and tankers still stand-ins;
   `createSnapshots -Psnapshot=raid-refinery-site-look`).
 
 ## Constraints
