@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -87,6 +88,20 @@ class SealedTownTest {
         int[][] road = new int[24][12];
         for (int[] column : road) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
         return road;
+    }
+
+    @Test
+    void anOwnedMapSealsItsTownsByTheWorldItIsFoughtOnNeverItsHome() {
+        Precinct town = Precinct.settlement("colony", 40, 30, GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.TOWN);
+        PrecinctPlan plan = new PrecinctPlan(List.of(town));
+        TargetProfile toxic = world(new Climate(EnumSet.of(Climate.Hazard.TOXIC)));
+        TargetProfile verdant = new TargetProfile(5, 5, 2, 1, "independent", EnumSet.of(EconomicFunction.HABITATION),
+                SurfacePalette.VERDANT, SettlementLink.ROAD);
+        assertTrue(SealedTown.is(PlanetSkin.sealedFor(plan, toxic).precincts().get(0)));
+        assertTrue(SealedTown.is(PlanetSkin.sealedFor(plan, world(Climate.NONE)).precincts().get(0)),
+                "bare rock is airless");
+        assertSame(plan, PlanetSkin.sealedFor(plan, verdant), "a world people live on in the open keeps it open");
+        assertEquals(null, PlanetSkin.sealedFor(null, toxic));
     }
 
     @Test

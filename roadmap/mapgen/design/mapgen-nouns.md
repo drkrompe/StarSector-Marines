@@ -2488,9 +2488,9 @@ capped top, and a service pipe along its inner face (`FreestandingWalls`, Part).
 It owns no emplacements. Outside is bare
 ground with no outlying places. The garrison stays its own walled compound. Radiation
 is answered the same way: the wall stands for the whole shielded envelope, roof
-included, as it does for air. A story map on such a world plays its mission's
-sealed layout (`story-map-pools.md`, Sealed layout): every town the mission names
-sealed where it stands.
+included, as it does for air. An owned map on such a world, a story mission's
+or the Raid's, plays its sealed layout (`story-map-pools.md`, Sealed layout):
+every town it names sealed where it stands.
 
 A habitat is presentation only and never moves a wall, door, window or road: the
 town plan, walkability, sight and every rule are the open town's on the same seed,
