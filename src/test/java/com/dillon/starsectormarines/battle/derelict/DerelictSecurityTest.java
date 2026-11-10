@@ -41,6 +41,23 @@ class DerelictSecurityTest {
     }
 
     @Test
+    void theZoneNearestAWorksHallTheRouteCrossesKeepsItsNodeThereOnTheRoute() {
+        List<DerelictSecurity.ZonePlan> zones = DerelictSecurity.zonesAlong(straight(), 4);
+        Area hall = new Area(84, 40, 96, 60);
+        List<DerelictSecurity.ZonePlan> anchored = DerelictSecurity.anchorAt(zones, straight(), hall);
+        DerelictSecurity.ZonePlan stand = anchored.get(3);
+        assertEquals(90, stand.nodeX(), "the route cell nearest the hall's middle");
+        assertEquals(50, stand.nodeY());
+        assertTrue(stand.perimeterCells() >= 12, "the perimeter takes in the hall");
+        assertEquals(90, stand.posts().get(0)[0], "the posts go with the node");
+        assertEquals(zones.get(0).nodeX(), anchored.get(0).nodeX(), "the vault zone stays");
+        assertEquals(zones.get(2).nodeX(), anchored.get(2).nodeX());
+        assertEquals(zones, DerelictSecurity.anchorAt(zones, straight(), new Area(84, 70, 96, 90)),
+                "a hall off the route changes nothing");
+        assertEquals(zones, DerelictSecurity.anchorAt(zones, straight(), null));
+    }
+
+    @Test
     void egressCellsLieOnTheWayOutPastTheMiddle() {
         for (int[] cell : DerelictSecurity.egressAlong(straight())) {
             assertTrue(cell[0] > 50 && cell[0] < 100);
