@@ -2,7 +2,7 @@
 
 Each piece is cut mechanically from its raw at its guide frame (``make_guide.py``) carried through the raw's measured
 scale, widened by half a gutter so a piece that bled past its block keeps its edge, then packed by
-``art-source/doodads/stitch_atlas.py`` at 128 px a cell, which crops to the visible pixels and fits each piece to its
+``art-source/doodads/stitch_atlas.py`` at 128 px a cell, 24 cells wide, which crops to the visible pixels and fits each piece to its
 footprint. Floor patches lose their faint outer ring (the near-white feather ImageGen drew round every spill, which
 reads as a halo on the floor) and are capped below opaque so the floor shows through. Run from the repository root:
 
@@ -15,7 +15,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageChops, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
@@ -31,11 +32,25 @@ RAWS = {
     "vats": ("ruins-vats.raw.png", ("culture-vat", "grow-bed")),
     "patches": ("ruins-patches.raw.png", ("frost-patch-a", "frost-patch-b", "growth-patch-a", "growth-patch-b")),
     "plant-store": ("ruins-plant-store.raw.png", ("rack-stripped", "rack-crates", "dock-door")),
+    "foundry-a": ("ruins-foundry-a.raw.png", ("crucible", "crucible-tipped", "fallen-ladle", "slag-heap", "pour-pulpit")),
+    "foundry-b": ("ruins-foundry-b.raw.png", ("mould-grid", "grate-catwalk")),
+    "products-a": ("ruins-products-a.raw.png", tuple(f"{p}-{s}" for p in ("cryo-unit", "vat-unit")
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-b": ("ruins-products-b.raw.png", tuple(f"{p}-{s}" for p in ("drone-frame", "forge-core")
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-c": ("ruins-products-c.raw.png", tuple(f"{p}-{s}" for p in ('core-cabinet', 'field-housing', 'magnet-segment')
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-d": ("ruins-products-d.raw.png", tuple(f"{p}-{s}" for p in ('catalyst-bed', 'spool-drum')
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-e": ("ruins-products-e.raw.png", tuple(f"{p}-{s}" for p in ('bore-head', 'projector-stack')
+                                                     for s in ("whole", "half", "wrecked"))),
 }
 
 # Pieces cut at their exact guide frame instead of half a gutter wider: the dock door bled into the gutter beside
 # the racks, so a wider rack cut picks up its edge.
-TIGHT = {"rack-stripped", "rack-crates"}
+# Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
+# scale and the wrecked one's fallen fragments stay where they lie.
+TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -56,6 +71,24 @@ def cut_plant_line():
     raw = Image.open(HERE / "raw" / "ruins-plant-line.raw.png").convert("RGBA")
     for pid, (box, (fx, fy)) in PLANT_LINE.items():
         yield pid, raw.crop(box).resize((fx * CELL_PX, fy * CELL_PX), Image.LANCZOS)
+# Crucibles whose melt ships as its own overlay on the same footprint, so the engine can pulse it: the guide's MELT
+# pixels, carried to the raw's scale and feathered a little, go to the overlay and the rest to the body; the two
+# alphas sum to the piece's own, so laid together they are the piece as drawn.
+MELT_SPLIT = {"crucible": "crucible-melt", "crucible-tipped": "crucible-tipped-spill"}
+MELT_FEATHER = 2.5
+
+
+def split_melt(piece, guide_frame):
+    rgb = np.asarray(guide_frame.convert("RGB"))
+    melt = Image.fromarray(np.where((rgb == make_guide.MELT[:3]).all(axis=2), 255, 0).astype(np.uint8), "L")
+    melt = melt.resize(piece.size, Image.BILINEAR).filter(ImageFilter.GaussianBlur(MELT_FEATHER))
+    alpha = piece.getchannel("A")
+    body, over = piece.copy(), piece.copy()
+    body.putalpha(ImageChops.multiply(alpha, ImageChops.invert(melt)))
+    over.putalpha(ImageChops.multiply(alpha, melt))
+    return body, over
+
+
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
@@ -78,6 +111,11 @@ def cut(family):
             alpha = piece.getchannel("A").point(
                 lambda v, cap=CAP[pid.split("-")[0]]: 0 if v < FEATHER else round((v - FEATHER) * cap / (255 - FEATHER)))
             piece.putalpha(alpha)
+        if pid in MELT_SPLIT:
+            body, over = split_melt(piece, guide.crop((x, y, x + w, y + h)))
+            yield pid, body
+            yield MELT_SPLIT[pid], over
+            continue
         yield pid, piece
 
 
@@ -95,7 +133,7 @@ def main() -> None:
             output_manifest=ROOT / "mod" / "data" / "tilesets" / "ruins-themes.tileset.json",
             sheet_path="graphics/doodads/ruins-themes.png",
             metadata_path=HERE / "_atlas.json",
-            columns=8,
+            columns=24,
             cell_size=CELL_PX,
             padding=4,
             id_prefix="doodad.",

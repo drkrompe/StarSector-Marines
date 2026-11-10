@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5a3-d282-7b80-a555-209b2172894b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5a3-d282-7b80-a555-209b2172894b\\exec-9a02f3bc-f4f8-40bd-9799-3ae21af8d3f8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\foundry\\firebrick-wall.png",
+    "sha256": "773cd3468cf5753e69f11ae2a1486482888bf9146a07604e56a354448413311b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\foundry\\firebrick-wall.prompt.txt",
+  "promptSha256": "55eff9c8bb2b488ba2c8fb24ea0657c7b604aebde472975bebbb099a06c75604",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: brick courses to reskin in place\n\nA seamless, tileable texture for a game: a flat, straight-on elevation (orthographic, no perspective, no horizon) of the refractory wall of a channel in an abandoned Domain-era industrial foundry, as it would be mapped onto a vertical wall dropping into molten metal.\nGeometry: reference 1 is the brick layout authority: keep every course and every brick exactly where it is, at its size, running bond, sixteen courses of eight bricks, so the pattern repeats exactly across every edge.\nMaterial: worn yellow-buff and pale rust firebrick, heat-cracked and glazed dark brown and black in places, soot-streaked, spalled corners, dark grey mortar joints, a few rust stains running down. Old, long cold.\nLight: unlit, flat and even, as if lit softly from straight in front; no glow, no orange light, no fire, no gradient or vignette (the game adds the melt's light). No cast shadows from outside the tile.\nPalette: buff, ochre, rust, soot black, dark grey. Square canvas. No text, no border, no frame.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\foundry\\firebrick-wall-guide.png",
+      "sha256": "7956fc4cc4c0fda863f434f70d498df66052175b0520774b5e3154d2a0f861d6",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: brick courses to reskin in place"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one texture using the reference as the exact brick layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 40115,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 417,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.3
+}

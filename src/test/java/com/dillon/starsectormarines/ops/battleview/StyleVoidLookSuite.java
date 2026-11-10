@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
@@ -28,6 +29,8 @@ import java.util.Locale;
  * part of {@code all}. Each style is a subclass naming its ground, its drop and its property prefix:
  * {@code -Dsnapshot.<key>.depth} sets the floor's depth in metres, the ledges scaled with it,
  * {@code -Dsnapshot.<key>.eyes} the camera heights to compare, {@code -Dsnapshot.<key>.stillsOnly} skips the pan.
+ * A style whose zoning row varies its depth ({@link NaturalVoidZoning.Drop#varies}) is shot varying along the drop
+ * as a generated map lays it, tagged {@code varied}, unless {@code depth} fixes one.
  */
 abstract class StyleVoidLookSuite implements SnapshotSuite {
 
@@ -55,6 +58,9 @@ abstract class StyleVoidLookSuite implements SnapshotSuite {
     /** Half the drop's width at a column, in cells. */
     abstract float halfWidth(int x);
 
+    /** The zoning row the style is laid with on a generated map, or null to shoot it at one depth only. */
+    NaturalVoidZoning.Drop zoned() { return null; }
+
     /** The drop's middle line at a column. */
     float centre(int x) {
         return 60f + 11f * (float) Math.sin(x / 31f + .9f) + 3.5f * (float) Math.sin(x / 8f);
@@ -68,11 +74,20 @@ abstract class StyleVoidLookSuite implements SnapshotSuite {
         String p = "snapshot." + key() + ".";
         boolean video = FfmpegVideo.executable() != null && !Boolean.getBoolean(p + "stillsOnly");
         List<SnapshotArtifact> out = new ArrayList<>();
-        float depth = Float.parseFloat(System.getProperty(p + "depth", Float.toString(defaultDepth())));
+        String fixed = System.getProperty(p + "depth");
+        NaturalVoidZoning.Drop zoned = zoned();
+        boolean varied = fixed == null && zoned != null && zoned.varies();
+        float depth = fixed == null ? defaultDepth() : Float.parseFloat(fixed);
         for (String eyeText : System.getProperty(p + "eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "%s-%03dm-eye%03dm", key(), Math.round(depth), Math.round(eye));
-            try (BattleSimulation sim = plain(drop(depth, eye))) {
+            String tag = String.format(Locale.ROOT, "%s-%s-eye%03dm", key(),
+                    varied ? "varied" : String.format(Locale.ROOT, "%03dm", Math.round(depth)), Math.round(eye));
+            NaturalVoid look = drop(depth, eye);
+            if (varied) {
+                look = look.withMarks(NaturalVoidZoning.marks(dropCells(), W, H, zoned.shallowest(), zoned.deepest(),
+                        look.seed()));
+            }
+            try (BattleSimulation sim = plain(look)) {
                 out.add(shot(context, sim, tag + "-1-bridge.png", BRIDGE_X + 4f, centre(BRIDGE_X) + 3f, PLAY));
                 out.add(shot(context, sim, tag + "-2-bend.png", 50f, centre(50) - 2f, PLAY));
                 out.add(shot(context, sim, tag + "-3-plank.png", PLANK_X - 3f, centre(PLANK_X) + 2f, PLAY));
@@ -104,6 +119,15 @@ abstract class StyleVoidLookSuite implements SnapshotSuite {
                                          float x, float y, float cells) throws Exception {
         return new SnapshotArtifact(name, BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, x, y, cells)
                 .withoutRoofs().atClock(REVIEW_CLOCK).render(sim, name));
+    }
+
+    /** The drop's cells, row-major, bridges and all: the cut a generated map would lay the drop over. */
+    boolean[] dropCells() {
+        boolean[] cells = new boolean[W * H];
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) cells[y * W + x] = Math.abs(y + .5f - centre(x)) < halfWidth(x);
+        }
+        return cells;
     }
 
     /** The plain and its drop, a wide bridge and a plank span over it, a rifle squad by the wide bridge. */

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-09 — habitat: an irradiated world's places are sealed complexes; frozen towns insulate. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -762,7 +762,11 @@ they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
 the same way along its whole length), which would swell the road into the
-yard, and a *pill* (a short band, under four breadths long, met by no
+yard, and narrows a broader band that a narrower street band running the same
+way overlaps to that street's breadth, on the line within it nearest the
+narrower's, so a street holds one width along its length rather than swelling
+where its frontage steps back at an end or where it jogs and widens at once;
+it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
 own, is a *spur*: a dead end off that street into a yard or a lot. It is
@@ -2055,8 +2059,8 @@ pads stand along its long walls with an aisle down the middle from the inner
 door. Units were pulled out of most cradles and wrecked in others, and the
 breach is held on the aisle before the far cradle, where the prize still
 stands. Each pad wears the plant kit's empty cradle frame, which is floor; a
-few hold a wreck, and the far one holds the theme's product
-(`RuinsDressing.product`) or a crate.
+few hold a wreck (the theme's product wrecked, else scrap), and the far one
+holds the theme's product whole (`RuinsDressing.whole`) or a crate.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
@@ -2080,7 +2084,7 @@ among the chambers so the delve laws hold them):
 Each hall is furnished by stage from the plant kit (`ruins-themes` sheet),
 through the same one-floor placement as the dressing: line runs east-west, a
 line end feeding 6x3 modules with a gap after every second and a wreck here and
-there; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
+there, some modules carrying the theme's unit half-built or wrecked on their bed; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
 wall (their levelers are floor) with stock left on the dock floor.
 
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
@@ -2322,50 +2326,45 @@ people the town is still built for its ground, read from the palette so a site
 with no market behind it adapts too: a frozen world **insulates**. Every other
 world builds the **open** town it always did.
 
-- **Shielded: no town at all.** Hard radiation is not something a society lives
-  beside in suits; it is kept out by mass, so the people live sealed away from it
-  by design (owner). On a battle laid out as places (`precincts.md`) every place
-  is a **sealed complex** (`SealedComplex`): the settlement is programmed rather
-  than zoned (`FortressProgram.habitat`: hab blocks counted from the market, a
-  mess, a workshop, stores, a power hall, a control room, and a vehicle bay and
-  lock posts on its face), and the garrison is the same garrison sealed. A
-  sealed program (`FortressProgram.sealedComplex`) packs as a hull
-  (`RoomPacker.Massing.WEDGED`) on tighter ground than a yard needs; its roads
-  give way to building except the stubs at its edge, so the packer cuts its own
-  halls in from the gates as a deck's passages are cut; whatever ground inside
-  its wall no room took is hall floored in installation concrete, and halls,
-  rooms and locks are one building under one roof. Its wall is the shielding,
-  poured as brutalist concrete, and where a road meets it the opening is an
-  airlock with a marked floor. Outside lies bare ground crossed by the roads in,
-  with no outlying places and no airfield. The battle is an approach over open
-  ground, a breach at the locks and a fight through the interior. A battle not
-  laid out as places (a stock map, a look frame) still builds its town shielded:
-  poured concrete under flat slab roofs (the installation wall's brutalist look,
-  a block of its own, so the town is never marked as a fort's lot).
+- **Shielded.** Every town building's shell is poured concrete (the installation
+  wall's brutalist look, a block of its own, so the town is never marked as a
+  fort's lot) under a flat slab roof.
 - **Sealed.** Masonry houses are rebuilt as white ceramic panel blocks; the olive
   prefabs stay as they are.
 - **Insulated.** Brick and steel that hold heat: the white ceramic blocks are
   rebuilt in brick. Its people still walk between buildings, so its parks and
   doors are the open town's. A site that lays its own town (the frozen crevasse
   town) calls `HabitatStage.apply` after stamping it.
-- **Shielded and sealed** mark a striped threshold on open ground outside every outside door, the
-  decontamination or airlock apron, and pave each park as a service court whose
-  edge holds oxygen spheres, the life support kept outside where a leak vents to
-  nothing, instead of benches (`ParkFiller`, on the park's own draws).
+- **Shielded and sealed** pave each park as a service court whose edge holds
+  oxygen spheres, the life support kept outside where a leak vents to nothing,
+  instead of benches (`ParkFiller`, on the park's own draws).
 
-A sealed, insulated or shielded town is presentation only and never moves a wall,
-door, window or road: the town plan, walkability, sight and every rule are the
-open town's on the same seed, except that a court's spheres are real bodies with
-cover where a park's benches were. A sealed complex is not presentation: it is a
-different map, and its look is `sealed-complex-look`. It is laid by `HabitatStage` once the open ground is settled; it leaves a
+**A shielded or sealed world's town is sealed inside one wall** (`SealedTown`).
+Nobody lives in the open there, and a society that must keep the air out does not
+give everyone a door to get wrong (owner): the whole town stands inside one
+continuous wall with a few locks, rather than a sealed door on every building. On
+the precinct path the settlement is a zoned town that is walled, the one place that
+pairing makes: streets, blocks and courts inside, ordinary doors on its buildings,
+and a wall drawn on the outline of what grew, like a garrison's. Its wall keeps two
+locks, where its widest roads meet it, and any more the map's road network needs
+to stay connected; each lock is marked with striped door lines, the outer door in
+the wall and the inner door a few cells in. It owns no emplacements. Outside is bare
+ground with no outlying places. The garrison stays its own walled compound. Radiation
+is answered the same way: the wall stands for the whole shielded envelope, roof
+included, as it does for air.
+
+A habitat is presentation only and never moves a wall, door, window or road: the
+town plan, walkability, sight and every rule are the open town's on the same seed,
+except that a court's spheres are real bodies with cover where a park's benches
+were. It is laid by `HabitatStage` once the open ground is settled; it leaves a
 fort lot's walls to their works, and never touches the dark installation concrete,
 which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
-Still to come, in this vocabulary: dressing for a complex's open courts
-(hydroponics) and outside works (radiators, intakes, sensor masts); whether
-toxic and airless worlds live in sealed complexes too, which is the owner's
-call; enclosed walkways linking a sealed town's blocks; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
+Still to come, in this vocabulary: a lock built as a structure (doors, a
+chamber) rather than a marked floor, and locks sited onto open country rather than
+the garrison's ground; a sealed town for the maps that lay their town without
+precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.
