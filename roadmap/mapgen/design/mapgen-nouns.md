@@ -2250,17 +2250,27 @@ owner): on a desert or a rock under storms, a graded berm ten cells through runs
 along the map's windward edge, ramped from the town's side. The wind is the
 planet's (`Climate.wind`, drawn once from the market), so the bank and the
 drifts face the same way. It is planned before anything grows: its bands are
-held from growth (`Landscape.withHeld`) and the strip from the edge to the bank
-is kept (`Landscape.withKept`), so no place grows onto it or round it onto its
-windward side, and a Raid site sets every place leeward of it
+held from growth (`Landscape.withHeld`) and the strip from the edge to a few
+cells past the bank's lee apron is kept (`Landscape.withKept`), so no place
+grows onto it or round it onto its windward side, and no road the town lays
+beside it reserves the apron's last row and refuses the whole stretch, and a Raid site sets every place leeward of it
 (`StormBank.leeward`) and turns its back to the wind, so the company never lands
 on the windward side. A pass is planned where a road the plan already knows
 leaves the map that way (a works' feeder), and the landscape pass raises the
 rest through `RidgePlanner`, which breaks it again wherever a road, a building or
 an access route crosses and proves the ground on both sides stays one: cover
 and a height to hold, never a seal. It stands past the edge reservation the
-landscape pass keeps, or no segment fits. A mine's pit stops short of it. Snow
-fences and quake hardening are still to come.
+landscape pass keeps, or no segment fits. A mine's pit stops short of it.
+
+The bank reads as works a colony keeps, not as a ridge (`StormBankDressing`,
+owner), dressed from existing art once the streets are finished: sand on its
+windward foot and the windward half of its crest, the lee half swept clean; a
+sandbag windbreak along the crest's windward edge, in panels; a worn
+maintenance track along its lee foot that runs on through the passes; a crash
+barrier and a work lamp either side of every pass, with a hauler or loader
+parked by it; and out toward the edge an older line, half buried, of broken
+parapet, broken again wherever a pass runs out. Nothing stands on a road or in
+a pass. Snow fences and quake hardening are still to come.
 
 **A settlement is built for the world it stands on: its habitat.** An irradiated
 world's town is not a garden world's open town on grey ground (owner). `Habitat`

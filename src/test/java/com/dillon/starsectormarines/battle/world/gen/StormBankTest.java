@@ -146,8 +146,10 @@ class StormBankTest {
             List<Landscape.Track> kept = StormBank.windward(wind, W, H, List.of(pass));
             for (int a = 0; a < length; a++) {
                 boolean inPass = Math.abs(a - pass) <= StormBank.OPEN_HALF;
-                // Walk in from the edge to the bank's far face: every cell is kept or held, except in the pass.
-                for (int d = 0; d < StormBank.OFFSET + StormBank.THICKNESS; d++) {
+                // Walk in from the edge past the bank's lee apron, where a road's reservation would refuse the
+                // stretch: every cell is kept or held, except in the pass.
+                int lee = StormBank.depth(wind, W, H) + StormBank.LEE_KEPT;
+                for (int d = 0; d < lee; d++) {
                     int x = wind.alongX() ? a : wind.low() ? d : W - 1 - d;
                     int y = wind.alongX() ? (wind.low() ? d : H - 1 - d) : a;
                     boolean covered = held[x][y];

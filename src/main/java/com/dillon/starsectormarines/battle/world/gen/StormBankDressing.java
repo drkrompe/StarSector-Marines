@@ -16,10 +16,10 @@ import java.util.function.IntPredicate;
  * ridge:
  * <ul>
  *   <li>sand drifted to its windward foot and over the windward half of its crest, the lee half clean;</li>
- *   <li>a windbreak fence along the crest's windward edge, in panels with breaks between;</li>
+ *   <li>a sandbag windbreak along the crest's windward edge, in panels with breaks between;</li>
  *   <li>a worn maintenance track along its lee foot, running on through the passes;</li>
- *   <li>a gate post either side of every pass, and a hauler or loader parked beside it on the lee side;</li>
- *   <li>an older bank line farther out to windward, half buried: a sand-drowned strip with sandbag remnants.</li>
+ *   <li>a crash barrier and a work lamp either side of every pass, and a hauler or loader parked by it on the lee;</li>
+ *   <li>an older bank line farther out to windward, half buried:  a sand-drowned strip with broken parapet.</li>
  * </ul>
  * Pure where it decides ({@link #plan}): cells in, placements out, so its rules are proved without a map. Nothing it
  * places stands on a road or in a pass, nothing blocks the town's side of the bank, and every prop takes only open
@@ -40,7 +40,12 @@ public final class StormBankDressing {
 
     static final String SAND = "floors.sand";
     static final String TRACK = "pavement.dirt.worn";
-    static final String POST = "doodad.boom-gate-post";
+    /** The gate at each pass mouth: a crash barrier, two cells along the bank, and a work lamp behind it. */
+    static final String GATE = "doodad.jersey-barrier", LAMP = "doodad.street-lamp-cap-industrial";
+    /** The crest's windbreak: the two-course parapet that tiles edge to edge, facing the wind. */
+    static final String PARAPET = "doodad.fort-sandbag-";
+    /** The old line's remains, alternating as they lie. */
+    static final String[] RUIN = {"doodad.fort-sandbag-damaged-", "doodad.fort-sandbag-destroyed-"};
     static final String[] MACHINES = {"doodad.parked-flatbed-truck", "doodad.stores-cargo-loader",
             "doodad.parked-utility-truck"};
 
@@ -71,6 +76,7 @@ public final class StormBankDressing {
         List<Prop> props = new ArrayList<>();
         boolean[] banked = new boolean[length];
         int first = -1, last = -1;
+        String facing = String.valueOf(Character.toLowerCase(wind.name().charAt(0)));
         for (int a = 0; a < length; a++) {
             int windward = -1, crest = -1;
             for (int d = lo; d <= hi; d++) {
@@ -96,8 +102,7 @@ public final class StormBankDressing {
                 int i = index(wind, width, height, a, crest);
                 if (open.test(i) && !road.test(i)) {
                     int[] c = cell(wind, width, height, a, crest);
-                    props.add(new Prop(wind.alongX() ? "doodad.industrial-fence-straight-h"
-                            : "doodad.industrial-fence-straight-v", c[0], c[1], 0));
+                    props.add(new Prop(PARAPET + facing, c[0], c[1], 0));
                 }
             }
         }
@@ -117,11 +122,10 @@ public final class StormBankDressing {
             }
             if ((a - first) % (OLD_RUN + OLD_GAP) < OLD_RUN && open.test(index(wind, width, height, a, OLD_LINE))) {
                 int[] c = cell(wind, width, height, a, OLD_LINE);
-                props.add(new Prop("doodad.sandbag-straight-" + Character.toLowerCase(wind.name().charAt(0)),
-                        c[0], c[1], 0));
+                props.add(new Prop(RUIN[(a / 2) % RUIN.length] + facing, c[0], c[1], 0));
             }
         }
-        // The passes: a gate post either side on the lee foot, and a machine parked beside each.
+        // The passes: a barrier and a lamp either side on the lee foot, and a machine parked beside each.
         int machine = 0;
         for (int a = first; a <= last; a++) {
             if (banked[a]) continue;
@@ -130,11 +134,18 @@ public final class StormBankDressing {
             int end = a - 1;
             if (end - start + 1 < MIN_PASS) continue;
             passes.add(new int[]{start, end});
-            for (int side : new int[]{start - 1, end + 1}) {
-                int d = trackAt - 1, i = index(wind, width, height, side, d);
-                if (open.test(i) && !road.test(i)) {
+            // The barrier runs two cells along the bank, away from the pass; its cell is its low corner.
+            for (int side : new int[]{start - 2, end + 1}) {
+                int d = trackAt - 1;
+                if (side < 0 || side + 1 >= length) continue;
+                if (fits(wind, width, height, open, road, side, d) && fits(wind, width, height, open, road, side + 1, d)) {
                     int[] c = cell(wind, width, height, side, d);
-                    props.add(new Prop(POST, c[0], c[1], 0));
+                    props.add(new Prop(GATE, c[0], c[1], wind.alongX() ? 0 : 1));
+                }
+                int lampAt = side == start - 2 ? start - 3 : end + 3;
+                if (lampAt >= 0 && lampAt < length && fits(wind, width, height, open, road, lampAt, d)) {
+                    int[] c = cell(wind, width, height, lampAt, d);
+                    props.add(new Prop(LAMP, c[0], c[1], 0));
                 }
             }
             int along = start - 5, d = trackAt + 3;
@@ -200,6 +211,12 @@ public final class StormBankDressing {
         }
         GroundKind kind = c.topology.getGroundKind(x, y);
         return kind != GroundKind.STREET && kind != GroundKind.INDOOR && kind != GroundKind.WATER;
+    }
+
+    private static boolean fits(StormWind.Side wind, int width, int height, IntPredicate open, IntPredicate road,
+                                int a, int d) {
+        int i = index(wind, width, height, a, d);
+        return open.test(i) && !road.test(i);
     }
 
     static int index(StormWind.Side wind, int width, int height, int a, int d) {

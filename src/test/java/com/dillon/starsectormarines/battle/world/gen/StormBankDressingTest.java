@@ -91,13 +91,16 @@ class StormBankDressingTest {
             assertEquals(1, plan.passes().size(), wind + ": the one pass");
             assertEquals(PASS0, plan.passes().get(0)[0]);
             assertEquals(PASS1, plan.passes().get(0)[1]);
-            List<StormBankDressing.Prop> posts = plan.props().stream()
-                    .filter(p -> p.id().equals(StormBankDressing.POST)).toList();
-            assertEquals(2, posts.size(), wind + ": a post either side");
-            for (StormBankDressing.Prop p : posts) {
+            List<StormBankDressing.Prop> gates = plan.props().stream()
+                    .filter(p -> p.id().equals(StormBankDressing.GATE)).toList();
+            assertEquals(2, gates.size(), wind + ": a barrier either side");
+            for (StormBankDressing.Prop p : gates) {
+                // The barrier is two cells along the bank from its cell: neither reaches into the pass.
                 int a = bank.along[p.y() * W + p.x()];
-                assertTrue(a == PASS0 - 1 || a == PASS1 + 1, wind + ": the post flanks the pass");
+                assertTrue(a == PASS0 - 2 || a == PASS1 + 1, wind + ": the barrier flanks the pass at " + a);
             }
+            assertEquals(2, plan.props().stream().filter(p -> p.id().equals(StormBankDressing.LAMP)).count(),
+                    wind + ": a lamp either side");
             assertTrue(plan.props().stream().anyMatch(p -> List.of(StormBankDressing.MACHINES).contains(p.id())),
                     wind + ": a machine waits at the pass");
         }
@@ -110,18 +113,18 @@ class StormBankDressingTest {
         int bags = 0, fence = 0;
         for (StormBankDressing.Prop p : plan.props()) {
             int i = p.y() * W + p.x();
-            if (p.id().startsWith("doodad.sandbag")) {
+            if (p.id().contains("damaged") || p.id().contains("destroyed")) {
                 bags++;
                 assertEquals(StormBankDressing.OLD_LINE, bank.in[i], "the old line lies out to windward");
             }
-            if (p.id().startsWith("doodad.industrial-fence")) {
+            else if (p.id().startsWith(StormBankDressing.PARAPET)) {
                 fence++;
-                assertTrue(bank.top(i) && !bank.face(i), "the fence stands on the crest");
+                assertTrue(bank.top(i) && !bank.face(i), "the windbreak stands on the crest");
             }
         }
         int banked = H - (PASS1 - PASS0 + 1);
         assertTrue(bags > 0 && bags < H * 2 / 3, "the old line is broken: " + bags);
-        assertTrue(fence > 0 && fence < banked, "the fence runs in panels: " + fence);
+        assertTrue(fence > 0 && fence < banked, "the windbreak runs in panels: " + fence);
     }
 
     @Test
