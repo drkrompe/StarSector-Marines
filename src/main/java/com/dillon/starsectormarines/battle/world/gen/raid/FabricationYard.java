@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Props;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -131,9 +132,18 @@ public final class FabricationYard {
         };
         Dressing d = plan(halls(ground, works), adapt(ground, works), ground.seed(NAME), line, footprint);
         for (int[] cell : d.paths()) PreparedGround.workedGround(c, cell[0], cell[1]);
-        for (List<Props.Placement> props : List.of(d.line(), d.legs(), d.props())) {
+        // The line runs overhead and takes no ground; its legs and the props stand only where the works' shared rule
+        // ({@link WorksProps#open}) lets a prop stand: off streets, doorways, ramps and landing pads.
+        for (Props.Placement p : d.line()) {
+            PreparedGround.prop(c, p.x(), p.y(), registry.doodad(p.doodad()), p.quarterTurns());
+        }
+        for (List<Props.Placement> props : List.of(d.legs(), d.props())) {
             for (Props.Placement p : props) {
-                PreparedGround.prop(c, p.x(), p.y(), registry.doodad(p.doodad()), p.quarterTurns());
+                DoodadDef def = registry.doodad(p.doodad());
+                if (def == null) continue;
+                Doodad turned = new Doodad(p.x(), p.y(), def, p.quarterTurns());
+                if (!WorksProps.open(c, p.x(), p.y(), turned.footprintCellsX, turned.footprintCellsY)) continue;
+                PreparedGround.prop(c, p.x(), p.y(), def, p.quarterTurns());
             }
         }
     }
