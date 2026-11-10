@@ -61,6 +61,35 @@ class BuildingFacesTest {
                 > BuildingFaces.lift(BuildingFaces.HEIGHTS[BuildingFaces.heightClass(20)]));
     }
 
+    @Test
+    void aDestroyedBuildingDropsItsLiftToRubble() {
+        int tall = BuildingFaces.heightClass(400);
+        assertEquals(tall, BuildingFaces.heightClass(400, .2f), "a damaged building still stands");
+        assertEquals(BuildingFaces.RAZED, BuildingFaces.heightClass(400, .6f));
+        assertEquals(1f, BuildingFaces.lift(BuildingFaces.HEIGHTS[BuildingFaces.RAZED]), 1e-6f, "rubble lies flat");
+    }
+
+    @Test
+    void aBreachOpensTheFaceAndADoorOrWindowIsDrawnWhereTheBuildingHasOne() {
+        assertEquals(BuildingFaces.Segment.BREACH, BuildingFaces.segment(false, false, false, false, false));
+        assertEquals(BuildingFaces.Segment.DOOR, BuildingFaces.segment(true, true, false, false, false));
+        assertEquals(BuildingFaces.Segment.LOADING, BuildingFaces.segment(true, true, false, false, true));
+        assertEquals(BuildingFaces.Segment.PANE, BuildingFaces.segment(true, false, true, true, false));
+        assertEquals(BuildingFaces.Segment.BLIND, BuildingFaces.segment(true, false, false, false, false));
+        assertEquals(BuildingFaces.Look.SEALED, BuildingFaces.look("colony.ceramic-wall", false));
+        assertEquals(BuildingFaces.Look.INSULATED, BuildingFaces.look("colony.masonry-wall", true));
+    }
+
+    @Test
+    void aRunIsCutAtEachCellAndEachPieceReadsTheCellUnderIt() {
+        // The roof's south edge, from 3.3 to 4.7 along y = 3.3, facing south: two pieces over cells (3,3) and (4,3).
+        float[] segs = BuildingFaces.segments(new float[]{3.3f, 3.3f, 4.7f, 3.3f, 0f, -1f}, GRID_W);
+        assertEquals(2 * BuildingFaces.SEG, segs.length);
+        assertEquals(4f, segs[2], 1e-4f);
+        assertEquals(33, (int) segs[6]);
+        assertEquals(34, (int) segs[BuildingFaces.SEG + 6]);
+    }
+
     private static boolean near(float a, float b) {
         return Math.abs(a - b) < 1e-4f;
     }
