@@ -571,21 +571,24 @@ Laws):
      so the landscape pass finishes them itself: their walls' hit points and
      tags, and their entries in the town's buildings, numbered on so no
      earlier building's id moves (`BuildingFloodFill.populate`).
-   **Buildings in depth** (experiment; owner, 2026-11-10: "a similar trick
-   for walls to get that partially 3d look ... see how a town looks"). The
-   rise's pinhole camera turned on buildings (`BuildingFaces`, behind
-   `-Dbattle.render.buildingFaces=true`): each building's roof is lifted to
-   its eave, one, two or three storeys by its size (4.5, 8 and 11.5 m,
-   UNTUNED), scaled about the view's centre as a rise's top is, and each wall
-   turned to the camera is a face from its foot to the eave, tinted from the
-   building's own and lit by its side, with a window to each cell on every
-   storey. A wall turned away lies under its own roof. All faces are drawn
-   before all roofs. Roofs are streamed while it is on, each building lifting
-   by its own height, so the resident roof mesh is not used: about 6 ms more
-   at whole-map framing on the stress map, about 0.2 ms at play zoom. A
-   keeper bakes the lift into the resident mesh. Look suite:
-   `createSnapshots -Psnapshot=building-faces-look` (an open verdant town and
-   a frozen crevasse town, flat and stood up, and a pan).
+   **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
+   get that partially 3d look"; kept for every building). The rise's pinhole
+   camera turned on buildings (`BuildingFaces`): each building's roof is
+   lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
+   and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
+   and each wall turned to the camera is a face from its foot to the eave,
+   tinted from the building's own and lit by its side, with a window to each
+   cell on every storey. A wall turned away lies under its own roof. All faces
+   are drawn before all roofs. A face is built on the outline of the roof as
+   drawn (its eaves stop short of each outside cell, `RoofCover.rects`), never
+   on its cells, so its top is the roof's edge at any view; the first pass
+   used the cells and its walls slid against the roofs as the view panned.
+   The resident roof mesh is baked by storey class and each class drawn at its
+   own lift, so the stood-up roofs cost what flat ones did: on
+   `renderEvidence -PrenderMaps=stress` the roof layer is about 0.5 ms at
+   whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
+   compound view full of buildings. Look suite:
+   `createSnapshots -Psnapshot=building-faces-look`.
    Next: each terrace a walkable tier (elevation's terraces,
    `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
    walkways crossing the floor, heat and glow from below (lit windows, vents
