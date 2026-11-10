@@ -1,0 +1,14 @@
+Concept art for a top-down strategy game: one finished environment concept frame, 16:9 landscape.
+
+Image 1 is the layout authority: the game's own straight-down view of a colony's security service motor pool on a desert planet. A walled compound, a road through it, large rectangular buildings, small parked vehicles, sandbag lines, desert ground outside the wall to the right, the edge of a larger walled compound to the left. Keep the camera (straight down, the same framing and scale), the compound's wall line, the road and the building footprints and positions. Repaint everything at the same painted, gritty game-sprite finish, and restyle the buildings and yard as described below so a glance reads "frontier army post / patrol base" at once.
+
+Setting: a Domain-era spacefaring frontier colony (heavy, worn, repaired, practical). Not a modern Earth army: no real-world vehicles, national flags, insignia or text.
+
+What the post must show:
+- Buildings: long vehicle hangars with arched ribbed roofs (quonset huts) and big doors facing the yard; low barracks huts with ridged olive sheet roofs in a regimented row; a squat stores bunker with an earth-banked roof inside a sandbag ring; a small operations hut with a radar dish and aerials.
+- Yard: olive-drab patrol carriers (boxy six-wheeled transports) and a few tracked crawlers parked nose to tail in tidy ranks on painted bays; a fuel point with a tanker truck and fuel bladders; pallets of supply crates by the depot.
+- A parade square: a large paved rectangle with painted lines and a tall mast flying a plain coloured pennant.
+- Perimeter: the wall with a lookout tower at each corner, a gatehouse with a striped barrier boom at the gate, a row of concrete barrier blocks and fencing outside the wall.
+- Colour scheme: olive drab, khaki and grey, yellow-black hazard striping at the gates; dusty and sun-bleached.
+
+Peaceful and empty: no people, no fighting, no damage. No text, no labels, no UI, no border.
