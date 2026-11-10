@@ -690,6 +690,23 @@ Laws):
      river with its flows and the flows alone): a volcanic world's drop is the
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
      it. Look suite `lava-flow-look`.
+     - **The source.** The river is fed from its end farthest from the town it
+       runs past (the place whose claimed ground comes nearest the river), so
+       the melt is seen to run down past it (`LavaBerm.source`,
+       `NaturalVoid.Source`).
+     - **The town's berm** (`LavaBerm`): an engineered bank one tier high,
+       the storm bank's band (`RidgePlanner.Relief.BERM`, 10 cells through,
+       27 to 40 long), on the town's side of the river within 20 cells of
+       the town's ground, upstream of the town where there is room and
+       slanting downstream off square to the river, so what comes down the
+       bank is turned away; a levee alongside where the town crowds the
+       river. Its ramp climbs from the downstream face. One older flow breaks
+       out above it and ponds against its face. It is raised on the ground
+       and access the ridge planner proves, at once when the map has no
+       ridges of its own, else with them, its ground held from the hills
+       meanwhile. A town too far from the river, or with no room, has none.
+       Left: basalt causeways for the crossings, waiting on a per-drop deck
+       (the ruins forge hall's multi-drop change).
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
