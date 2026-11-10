@@ -64,11 +64,26 @@ public final class GroundFeather {
             "floors.sand", "pavement.gravel.cracked", "floors.stone", "floors.snow",
             // A toxic world's own ground (SAND and STONE there): its sulphur flats spill onto the stained rock.
             "toxic-ground.sulphur", "toxic-ground.crust",
-            // A volcanic world's own ground, and what a dead site's weather lays over a ruin's floors (RuinsWeather):
-            // the world's ground frays out over the megastructure's cast concrete, the weakest of all, so a drift
-            // blown in through a mouth ends in a soft edge rather than a step of cells.
-            "volcanic.basalt", "volcanic.ash", "ruins-ground.rime", "ruins-ground.ice-sheet", "ruins-ground.biofilm",
-            "ruins-ground.wet-floor", "installation.concrete-floor");
+            // A volcanic world's own ground: its ash spills onto the basalt.
+            "volcanic.basalt", "volcanic.ash",
+            // A ruins hall's coverings (COVERINGS), the wet floor weakest: growth and ice lie over it.
+            "ruins-ground.biofilm", "ruins-ground.ice-sheet", "ruins-ground.rime", "ruins-ground.wet-floor");
+
+    /**
+     * Coverings over an indoor floor: ice, rime, biofilm and water lying on a hall's own plate and concrete
+     * ({@code ruins-expedition.md}, Themed halls are environments). Besides feathering into other materials, a
+     * covering bleeds onto an indoor floor that is not a material at all ({@link #FLOOR}), so it ends in a soft edge
+     * rather than the cell's step. The world's ground a dead site's weather blows in through a ruin's mouths and banks
+     * along its corridors ({@code RuinsWeather}: sand, snow, basalt, ash, sulphur and crust) covers its floor the same
+     * way. Nothing else bleeds onto such a floor, so paving and interiors elsewhere keep their edges (but for a
+     * quarter-cell of a world's drift across a doorway).
+     */
+    public static final List<String> COVERINGS = List.of(
+            "ruins-ground.biofilm", "ruins-ground.ice-sheet", "ruins-ground.rime", "ruins-ground.wet-floor",
+            "floors.sand", "floors.snow", "volcanic.basalt", "volcanic.ash", "toxic-ground.sulphur", "toxic-ground.crust");
+
+    /** The priority of an indoor floor that is no material: weaker than every one, and taking only coverings. */
+    public static final int FLOOR = MATERIALS.size();
 
     /** Noise fields a tile can sit in: one per combination of its four edge colours. */
     public static final int EDGE_CODES = 16;
@@ -153,7 +168,7 @@ public final class GroundFeather {
     /**
      * Which materials bleed into a quarter-cell, weakest first.
      *
-     * @param self the cell's own priority, -1 when it does not feather
+     * @param self the cell's own priority, -1 when it does not feather, {@link #FLOOR} for an indoor floor
      * @param vertical the priority of the cardinal above or below the corner
      * @param horizontal the priority of the cardinal beside it
      * @param diagonal the priority of the diagonal through it
@@ -177,6 +192,7 @@ public final class GroundFeather {
 
     private static int add(int self, int candidate, int[] out, int n) {
         if (candidate < 0 || candidate >= self) return n;
+        if (self == FLOOR && !COVERINGS.contains(MATERIALS.get(candidate))) return n;
         for (int i = 0; i < n; i++) if (out[i] == candidate) return n;
         out[n] = candidate;
         return n + 1;

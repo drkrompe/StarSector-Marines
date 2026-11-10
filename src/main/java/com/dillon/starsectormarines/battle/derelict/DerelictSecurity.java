@@ -5,13 +5,14 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockField;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -228,6 +229,25 @@ public final class DerelictSecurity {
                     post[1]));
             if (!reaches(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius, post, egress)) hallBound.add(squad);
         }
+        // The line's small (`derelict-watch.md`, Field repair): a tender beside each zone's first heavy, from widespread.
+        Map<Integer, DerelictSecurityDirector.Walker> heavyOf = new TreeMap<>();
+        for (DerelictSecurityDirector.Walker w : walkers) {
+            if (DerelictWalkerClass.of(w.frame().chassis) == DerelictWalkerClass.HEAVY) heavyOf.putIfAbsent(w.zoneId(), w);
+        }
+        int tenders = DerelictWalkerClass.tenders(grade, heavyOf.size());
+        for (DerelictSecurityDirector.Walker heavy : heavyOf.values()) {
+            if (tenders-- <= 0) break;
+            long heavyId = sim.squadMemberCount(heavy.squadId()) > 0 ? sim.squadMemberAt(heavy.squadId(), 0) : 0L;
+            int[] at = heavyId == 0L ? null : beside(sim, DerelictWalkerFrame.TENDER.chassis.radius,
+                    sim.world().cellX(heavyId), sim.world().cellY(heavyId));
+            if (at == null) continue;
+            int squad = spawn(sim, DerelictWalkerFrame.TENDER, at[0], at[1]);
+            if (squad < 0) continue;
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
+                    "derelict tender beside its zone's heavy");
+            walkers.add(new DerelictSecurityDirector.Walker(squad, DerelictWalkerFrame.TENDER, heavy.zoneId(),
+                    heavy.postX(), heavy.postY()));
+        }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
                 vault.sourceCellX(), vault.sourceCellY());
         for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
@@ -284,7 +304,7 @@ public final class DerelictSecurity {
         }
         standPosts(sim, route, plans, network, delve, director);
         standWatchHousings(sim, route, plans, delve, port, livery, director);
-        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
+        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director, livery);
         if (delve != null && !delve.layers().isEmpty()) {
             for (ZonePlan plan : plans) {
                 director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
@@ -640,13 +660,14 @@ public final class DerelictSecurity {
     }
 
     /** Puts a zone's repair drone up over its node, homed there. */
-    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director) {
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director,
+                                 FlockLivery livery) {
         Long node = director.nodes().get(zoneId);
         if (node == null) return 0L;
         float hx = sim.world().x(node);
         float hy = sim.world().y(node);
         EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
-                (int) Math.floor(hy), 0L, DroneLook.TENDER).role(UnitRole.STRUCTURE);
+                (int) Math.floor(hy), 0L, livery.repairDrone()).role(UnitRole.STRUCTURE);
         long id = sim.spawn(drone);
         if (id == 0L) return 0L;
         AirBody body = sim.world().kinematics(id);
@@ -762,6 +783,30 @@ public final class DerelictSecurity {
     }
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
+    /** Cells out from a walker a smaller one may stand at, nearest ring first. */
+    static final int BESIDE_RINGS = 4;
+
+    /**
+     * The nearest cell to {@code (x, y)}, a ring at a time out to {@link #BESIDE_RINGS}, where a walker of
+     * {@code radius} stands clear of the ground and of every unit; null when none does.
+     */
+    static int[] beside(BattleSimulation sim, float radius, int x, int y) {
+        for (int ring = 1; ring <= BESIDE_RINGS; ring++) {
+            for (int dy = -ring; dy <= ring; dy++) {
+                for (int dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                    int cx = x + dx, cy = y + dy;
+                    if (!sim.getGrid().inBounds(cx, cy)) continue;
+                    if (MechSpawnPlacement.nearCell(sim.getGrid(), radius, cx, cy, (px, py) -> true,
+                            (px, py) -> MechSpawnPlacement.unoccupied(sim.getRoster(), px, py, radius, 0L)) != null) {
+                        return new int[] {cx, cy};
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
         if (spawnInto(sim, frame, postX, postY, squad) == 0L) return -1;
@@ -782,7 +827,10 @@ public final class DerelictSecurity {
         long id = sim.spawn(frame.applyTo(new EntitySpec(frame.designation(), Faction.DEFENDER, UnitType.HEAVY_MECH,
                 at.cellX(), at.cellY())).atPosition(at.x(), at.y()).squad(squad));
         if (id == 0L) return 0L;
-        sim.world().attachMechLoadout(id, frame.createLoadout());
+        MechLoadoutComponent loadout = frame.createLoadout();
+        // No loader in the field (`derelict-watch.md`, Re-arming): racks fill only at the zone's service bay.
+        loadout.installMissileReplenisher(MissileReplenisherComponent.NONE);
+        sim.world().attachMechLoadout(id, loadout);
         Squad lance = sim.getSquad(squad);
         lance.leaderId = id;
         return id;

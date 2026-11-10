@@ -46,7 +46,7 @@ public final class GroundFeatherBaker {
         Path root = Path.of(args.length == 0 ? "." : args[0]);
         Path mod = root.resolve("mod");
         TileRegistry registry = new TileRegistry();
-        for (String sheet : new String[]{"nature-tiles", "Floors_Tiles", "pavement", "toxic-ground", "volcanic-ground", "ruins-ground", "installation-floors"}) {
+        for (String sheet : new String[]{"nature-tiles", "Floors_Tiles", "pavement", "toxic-ground", "volcanic-ground", "ruins-ground"}) {
             registry.ingestSheet(new JSONObject(Files.readString(
                     mod.resolve("data/tilesets/" + sheet + ".tileset.json"))));
         }
@@ -163,8 +163,7 @@ public final class GroundFeatherBaker {
         GridBlockDef block = registry.block(key);
         if (block == null) throw new IllegalStateException("No block " + key);
         BufferedImage image = ImageIO.read(mod.resolve(block.sheetPath).toFile());
-        // A variant pool's first cell, or a single block's origin.
-        int[] cell = block.cells != null ? block.cells[0] : new int[]{block.originCol, block.originRow};
+        int[] cell = block.cells[0];
         int inset = block.cellPx >= TileManifest.TILE_SIZE
                 ? FixedGridTileDrawer.GROUND_INSET_PX_LARGE : FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
         return image.getSubimage(cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,

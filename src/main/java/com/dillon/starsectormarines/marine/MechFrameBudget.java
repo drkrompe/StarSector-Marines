@@ -33,6 +33,7 @@ public final class MechFrameBudget {
             // The automated walker is never refitted (MechVariant.automated): these keep the switch whole.
             case SECURITY_WALKER -> 60f;
             case SECURITY_ROUNDS -> 25f;
+            case SECURITY_TENDER -> 15f;
             case SECURITY_HALL -> 90f;
             // UNTUNED: a light frame, rated for its one small energy gun.
             case CRAWLER -> 13f;
@@ -52,6 +53,7 @@ public final class MechFrameBudget {
             case BULWARK -> 6f;
             case SECURITY_WALKER -> 7f;
             case SECURITY_ROUNDS -> 3f;
+            case SECURITY_TENDER -> 2f;
             case SECURITY_HALL -> 10f;
             case CRAWLER -> 2f;
             case HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> platingUnit(variant.frame());
@@ -66,6 +68,7 @@ public final class MechFrameBudget {
             case BULWARK -> 950f;
             case SECURITY_WALKER -> 1200f;
             case SECURITY_ROUNDS -> 450f;
+            case SECURITY_TENDER -> 220f;
             case SECURITY_HALL -> 2600f;
             case CRAWLER -> 240f;
             // A variant's band starts higher than its frame's and climbs as far past its stock as the frame's does.
@@ -82,6 +85,7 @@ public final class MechFrameBudget {
             case BULWARK -> 1.15f;
             case SECURITY_WALKER -> 0.75f;
             case SECURITY_ROUNDS -> 1.45f;
+            case SECURITY_TENDER -> 1.30f;
             case SECURITY_HALL -> 0.50f;
             case CRAWLER -> 2.05f;
             case HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> variant.moveSpeed

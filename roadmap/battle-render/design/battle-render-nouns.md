@@ -94,8 +94,7 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   every other reading, and walls, paved road, ruins, interiors and authored
   surfaces outside the feathering list neither give nor take one. A fixed
   priority decides who bleeds into whom (green growth over bare earth, earth
-  over sand and gravel, every one of them into lying snow, and every one into the cast concrete floor a ruin's
-  weather lies on, `mapgen-nouns.md`, The world takes the ruin back); a road's soft shoulder feathers as the ground it is
+  over sand and gravel, every one of them into lying snow); a road's soft shoulder feathers as the ground it is
   drawn as. The bleed is one field over the map — opacity falling off with
   distance from the stronger ground's cells, wobbled by a noise fixed edge by
   edge so neighbours always agree — and it reaches less than half a cell, so
@@ -107,6 +106,20 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   review drain draw the same picture. Surface relief stays per cell; the
   feather changes colour, not height. Control switch:
   `-Dbattle.render.groundFeathering=false`.
+  A ruins hall's **coverings** (ice sheet, rime, biofilm, wet floor) are
+  feathering materials that also bleed onto an indoor floor of no material of
+  its own, which takes no other ground's bleed, so ice on a hall's plate ends
+  soft while paving and interiors elsewhere keep their edges
+  (`GroundFeather.COVERINGS`). The world's ground a ruin's weather blows in
+  and banks indoors (sand, snow, basalt, ash, sulphur, crust;
+  `mapgen-nouns.md`, The world takes the ruin back) is a covering too, so a
+  world's drift also frays a quarter-cell across any doorway it meets.
+- A **floor trim** is the step where a built floor panel (a ruins hall's raised
+  floor or stage) meets any other open floor: the panel keeps a clean cell edge
+  and lays its trim strip inside it, half a cell deep and turned to the side it
+  steps down to, with a faint shadow on the floor below. Over the tiles, under
+  everything standing on them; presentation only (`FloorTrimRenderSystem`). A
+  panel whose strip has not shipped draws a plain riser and nosing.
 - A **basin edge** is where a basin's floor meets its rim (`mapgen-nouns.md`,
   basin), drawn as the line `SurfaceField.edge` rather than the cells it was
   cut into. Each cell of either side's open ground (grass and sand on Asharu,

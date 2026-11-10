@@ -94,8 +94,8 @@ purchases, so the low-tech row comes first:
      collar round the nose and five shell canisters across its back, stock the Path's Hound issue (DC-5, SRM-5);
    - the Path's **Pilgrim** (`MechVariant.PILGRIM`) on the Bulwark frame: a mining hauler with a dozer blade across
      its front (the concept drew it at the back by mistake), ore-hopper ribs and prayer cloths, the slowest walker in
-     the row and the only one that crushes an ordinary wall by its weight, as the Onager does (`mechs-nouns.md`,
-     Family and doctrine);
+     the row, and its blade pushes an ordinary wall down fastest of the heavy walkers that crush them
+     (`mechs-nouns.md`, Wall crush);
    - the pirate **Torch** (`MechVariant.TORCH`) on the Hound frame: mismatched fuel drums and a pressure bottle in a
      welded cradle across its back, its dorsal rack place shipping empty under the cradle, the FL-1 burner on its nose;
    - the Path's **Censer** (`MechVariant.CENSER`) on the Warden frame: a promethium tank across its rear, an armoured

@@ -70,8 +70,9 @@ public enum MechVariant {
     /**
      * The Luddic Path's Pilgrim (`mech-lines.md`, low-tech variants): an armoured mining hauler on the Bulwark frame
      * (law 2), drawn as a body of its own with a dozer blade across its front, ore-hopper ribs down its back and
-     * prayer cloths. The heaviest and slowest walker in the row, and the only one that crushes an ordinary wall it
-     * walks into, by its weight as a heavy hull does ({@link #crushesWalls()}). All numbers UNTUNED.
+     * prayer cloths. The heaviest and slowest walker in the row; like every heavy walker it pushes down an ordinary
+     * wall it walks into ({@link #crushesWalls()}), and its blade does it fastest ({@link #crushesFast()}). All
+     * numbers UNTUNED.
      */
     PILGRIM("pilgrim", "@gearMechVariantPILGRIM", 620f, 840f, 20f, 0.85f, 0.38f, 52f,
             1.60f, 1.60f, 0.60f, 0.80f, 2.2f,
@@ -172,6 +173,19 @@ public enum MechVariant {
             MechWeaponComponent.PL_1, null, null,
             null,
             null,
+            MechRole.ASSAULT),
+
+    /**
+     * The derelict line's smallest (`derelict-watch.md`, Field repair): the MG-12 tender, the sentinel's chassis built
+     * under half the heavy's size on its own leg rig, unarmed, a welding arm in place of guns. It follows its zone's
+     * walkers and welds their plate back in the fight. Light enough for any door. Automated. All numbers UNTUNED.
+     */
+    SECURITY_TENDER("security_tender", "@gearMechVariantSECURITY_TENDER", 240f, 220f, 10f, 1.30f, 0.45f, 40f,
+            0.90f, 0.60f, 0.32f, 0.35f, 0.6f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
+            null,
+            null,
             MechRole.ASSAULT);
 
     public final String id;
@@ -239,7 +253,7 @@ public enum MechVariant {
             case HAULER, PILGRIM -> BULWARK;
             case FOUNDRY_BREAKER, TORCH -> HOUND;
             case CENSER -> WARDEN;
-            case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> this;
+            case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> this;
         };
     }
 
@@ -249,11 +263,21 @@ public enum MechVariant {
     }
 
     /**
-     * Whether this chassis crushes an ordinary wall it walks into by its weight, as a heavy hull does
-     * ({@code WallCrush}): the Pilgrim, the dozer-bladed mining hauler, alone among walkers.
+     * Whether this chassis pushes down an ordinary wall or prop it walks into by its weight, as a heavy hull does
+     * ({@code WallCrush}, {@code MechWallCrush}): every heavy-lift walker ({@link #liftClass()}), the company's
+     * Bulwark, Hauler and Pilgrim and the derelict MG-40 and MG-70 (owner: "heavy large walker like heavy mechs
+     * should be able to break through medium walls and doodads"). A medium or light frame goes round.
      */
     public boolean crushesWalls() {
-        return this == PILGRIM;
+        return liftClass() == LiftClass.HEAVY;
+    }
+
+    /**
+     * Whether this chassis pushes walls down at the faster, ultra-heavy rate: the Pilgrim, by its dozer blade, and
+     * the MG-70 hall frame, by its weight (twice the heavy's height). Every other crusher pushes at a heavy hull's.
+     */
+    public boolean crushesFast() {
+        return this == PILGRIM || this == SECURITY_HALL;
     }
 
     /**
@@ -263,7 +287,7 @@ public enum MechVariant {
     public boolean hostsDrones() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> false;
         };
     }
 
@@ -274,7 +298,7 @@ public enum MechVariant {
     public boolean hostsPointDefence() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> false;
         };
     }
 
@@ -297,7 +321,7 @@ public enum MechVariant {
         return switch (this) {
             case BULWARK, HAULER, PILGRIM -> 6f;
             case CRAWLER -> 3f;
-            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> 0f;
+            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER -> 0f;
         };
     }
 
@@ -317,7 +341,7 @@ public enum MechVariant {
      * Only an opposition spawns it.
      */
     public boolean automated() {
-        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL;
+        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL || this == SECURITY_TENDER;
     }
 
     /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
@@ -402,7 +426,7 @@ public enum MechVariant {
             case HOUND, FOUNDRY_BREAKER, TORCH -> MechBodyPlan.HOUND;
             case BULWARK, HAULER, PILGRIM -> MechBodyPlan.BULWARK;
             case WARDEN, CENSER -> MechBodyPlan.WARDEN;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> MechBodyPlan.DERELICT;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER -> MechBodyPlan.DERELICT;
             case CRAWLER -> MechBodyPlan.CRAWLER;
         };
     }
@@ -418,6 +442,7 @@ public enum MechVariant {
             case BULWARK, HAULER, PILGRIM -> LiftClass.HEAVY;
             case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
             case SECURITY_ROUNDS -> LiftClass.MEDIUM;
+            case SECURITY_TENDER -> LiftClass.LIGHT;
         };
     }
 }

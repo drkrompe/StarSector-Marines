@@ -2094,8 +2094,8 @@ growth banks along the corridor walls, thicker near the mouths; water stands
 there. It is look only: surface skins over cells that keep their ground kind,
 and flat decals with no cover (`ruins-delve-weather`), by coordinate noise on the
 site's seed. It leaves the landing ground, the courts, the aprons, the vault and
-the themed halls alone. The skins feather onto the megastructure's cast concrete
-(ground feather, `battle-render-nouns.md`), so a drift ends soft, never in a step
+the themed halls alone. Indoors its skins are coverings (`GroundFeather.COVERINGS`):
+they feather onto the megastructure's floor, so a drift ends soft, never in a step
 of cells. Pick `ruins-weather` open, building on it; `battle.ruins.weather` is
 its control.
 
