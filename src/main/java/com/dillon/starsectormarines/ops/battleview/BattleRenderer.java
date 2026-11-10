@@ -1098,9 +1098,7 @@ public class BattleRenderer {
             boolean industrial = b.kind == BuildingKind.INDUSTRIAL || b.kind == BuildingKind.FORTIFIED;
             boolean upper = BuildingFaces.upperWindows(b.kind, look);
             int storeys = BuildingFaces.storeys(BuildingFaces.HEIGHTS[heightClass]);
-            boolean ghost = BuildingFaces.ghostCutaway();
-            float upright = ghost ? 1f : BuildingFaces.standing(BuildingFaces.HEIGHTS[heightClass], cut);
-            if (ghost) roofAlpha = alphaMult * (1f - (1f - BuildingFaces.GHOST_ALPHA) * Math.min(1f, Math.max(0f, cut)));
+            float upright = BuildingFaces.standing(BuildingFaces.HEIGHTS[heightClass], cut);
             for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
                 float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
                 float nx = segs[e + 4], ny = segs[e + 5];

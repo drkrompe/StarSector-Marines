@@ -2177,17 +2177,20 @@ head to the north:
 - the dispatch end clear of the line: the trench runs on under covers,
   pallet bays are marked along it, and a finishing cell and a metrology bed
   stand by;
-- a crane girder fallen across the west aisle as cover;
+- overhead, drawn above the people under it but hidden under the hall's
+  roof until the roof fades (`ruins-forge-motions`): a crane runway down
+  each long wall, a cable tray beside the pour line with a length fallen to
+  the floor, a ladle lift hung under the spout, and another tipped over a
+  line junction. A crane girder lies fallen across the west aisle as cover;
 - wear laid under it all: scorch round the spout and the core's flank,
   coolant by the racks, a floor drain in each aisle, oil and a hover
   skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
   turn a floor zone to deck plate.
 
-The hall's overhead structure (crane runways, cable trays, ladle lifts) is
-authored to draw above units (`ruins-forge-motions`) but not yet laid: the
-roof pass draws overhead props after the roofs, so inside a roofed hall they
-would show on top of its shut roof. They wait until overhead props under a
-roof draw beneath it and show as it fades.
+An overhead prop inside a building under its intact roof draws at what the
+roof's fade leaves of it (`PropMotionRenderSystem`): hidden while the roof is
+shut, whole once it has faded for the people inside. An overhead prop under no
+roof draws as before.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
