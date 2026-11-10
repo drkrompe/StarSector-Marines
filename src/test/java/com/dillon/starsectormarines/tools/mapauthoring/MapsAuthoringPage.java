@@ -279,7 +279,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
     }
 
     private MapPatch with(List<MapPatch.Pin> pins, List<DamagePlan.Stroke> ruin, List<Structure> place) {
-        return new MapPatch(pins, ruin, patch.lift(), patch.bores(), patch.holdouts(), place);
+        return new MapPatch(pins, ruin, patch.lift(), patch.bores(), patch.holdouts(), place, patch.hull());
     }
 
     /** Saves the entry into its pool file once the mission's acceptance passes; off the event thread. */

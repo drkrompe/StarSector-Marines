@@ -2337,6 +2337,17 @@ It draws them by a coordinate hash, not from the layout's stream, so the same
 seed lays the same ground whatever it wears, and the delve laws above still
 hold it.
 
+## Fallen hull ground
+
+A story map's patch may lay a crashed survey mothership over the country it
+grew (`fallen-hull-nouns.md`, The ground): `CrashSiteStage` lays the trench,
+debris and hull before the tactical link, so its shells are ordinary buildings,
+and `CrashSiteFinishStage` roofs it, lays the claim lattice and haul roads on
+the finished ground and publishes `MapResult.hullSite`. The hull's interior is
+the ruins' vocabulary (`RuinsDelve.Interior`, leaf doors, the solid hull's one
+roof), not a second one; only a plan whose mission layout carries a crash runs
+either stage.
+
 ## Rural country
 
 The **country** is the band of open land an open-field landing claims along

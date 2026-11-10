@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite.CLOSE;
@@ -183,8 +184,15 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
     private static void stand(SnapshotContext context, List<SnapshotArtifact> out) throws Exception {
         TargetProfile profile = new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
                 SurfacePalette.ARID, SettlementLink.NONE, 0f, 0f, false, false, false, GroundDefences.NONE);
-        RuinsVaultPrize prize = new RuinsVaultPrize(RuinsVaultPrize.Family.COLONY_ITEM,
-                RuinsVaultTheme.CRYOARITHMETIC_ENGINE, RuinsVaultTheme.CRYOARITHMETIC_ENGINE.itemId, 2);
+        for (RuinsVaultTheme theme : new RuinsVaultTheme[] {RuinsVaultTheme.CRYOARITHMETIC_ENGINE,
+                RuinsVaultTheme.PRISTINE_NANOFORGE}) {
+            standOn(context, out, profile, new RuinsVaultPrize(RuinsVaultPrize.Family.COLONY_ITEM, theme, theme.itemId,
+                    2), theme.name().toLowerCase(Locale.ROOT));
+        }
+    }
+
+    private static void standOn(SnapshotContext context, List<SnapshotArtifact> out, TargetProfile profile,
+                                RuinsVaultPrize prize, String name) throws Exception {
         for (long seed : new long[] {7L, 9L, 11L, 13L}) {
             RuinsBattleFixture fixture = RuinsBattleFixture.fromFactoryInputs(seed, BattleSetup.defaultManifest(),
                     false, OperationTier.VETERAN, RiskLevel.MEDIUM, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
@@ -194,7 +202,7 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
                 DerelictSecurityDirector director = sim.derelictSecurity();
                 RuinsDelve delve = sim.getRuinsWorks() == null ? null : sim.getRuinsWorks().delve();
                 RuinsDelve.Cell stand = DerelictSecurity.worksStand(delve);
-                log("stand seed %d: network %s, works stand %s, hall %s", seed, director != null, stand,
+                log("stand %s seed %d: network %s, works stand %s, hall %s", name, seed, director != null, stand,
                         DerelictSecurity.hallAt(delve, stand));
                 if (director == null || stand == null) continue;
                 World world = sim.world();
@@ -217,9 +225,9 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
                 float cx = hall == null ? stand.x() + 0.5f : (hall.left() + hall.right() + 1) / 2f;
                 float cy = hall == null ? stand.y() + 0.5f : (hall.bottom() + hall.top() + 1) / 2f;
                 float cells = hall == null ? CLOSE * 2f : Math.max(hall.width() * 1.15f, hall.height() * 1.15f * 16f / 9f);
-                add(out, "stand/works-hall-seed" + seed + ".png", look(context, sim, cx, cy, cells, true,
+                add(out, "stand/" + name + "-hall-seed" + seed + ".png", look(context, sim, cx, cy, cells, true,
                         "stand-works-hall"));
-                add(out, "stand/node-seed" + seed + ".png", look(context, sim, stand.x() + 0.5f, stand.y() + 0.5f,
+                add(out, "stand/" + name + "-node-seed" + seed + ".png", look(context, sim, stand.x() + 0.5f, stand.y() + 0.5f,
                         CLOSE, true, "stand-node"));
                 return;
             }
