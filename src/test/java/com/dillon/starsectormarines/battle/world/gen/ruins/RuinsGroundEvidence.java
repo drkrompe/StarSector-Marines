@@ -50,7 +50,9 @@ class RuinsGroundEvidence {
                     long start = System.nanoTime();
                     MapResult map;
                     try {
-                        map = new BspCityGenerator().generateRuins(seed, profile(surface), plan);
+                        // Odd seeds lay a forge works' foundry, so its melt and crossings are held to the laws too.
+                        map = new BspCityGenerator().generateRuins(seed, profile(surface),
+                                (seed & 1) == 1 ? plan.withDressing(FOUNDRY) : plan);
                     } catch (RuntimeException e) {
                         failures.add(layers + "/" + surface + "/" + seed + ": " + e.getMessage());
                         out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)
@@ -136,6 +138,9 @@ class RuinsGroundEvidence {
     }
 
     /** One to {@link #SEEDS}, then the regression seeds. */
+    /** Bare dressing on a plant that cast its product: the foundry and nothing else. */
+    static final RuinsDressing FOUNDRY = new RuinsDressing(List.of(), List.of(), List.of(), null, true);
+
     static long[] seeds() {
         long[] out = new long[SEEDS + REGRESSION_SEEDS.length];
         for (int k = 0; k < SEEDS; k++) out[k] = k + 1;

@@ -655,8 +655,18 @@ theme gets, and only what fills it changes with the theme.
 | b | A run of three halls joined by doors: melt shop (crucibles), pour hall (one channel winding across it, three crossings), casting hall (four small beds) |
 | c | One melt trunk down the plant's spine: crucibles at its head, casting beds off it in the side halls, the spine's walkway beside it and bridges at its junctions |
 
-The crucible art and the engineered lip are the art session's, to the piece
-list in the shared note `ruins-forge-area.md`. Picture cards:
+Built on a: the outer band's first line hall is laid at the foundry's size for
+every theme, and a forge works (`RuinsDressing.foundry`) fills it as a foundry.
+Its melt is a `FOUNDRY` lava drop (`NaturalVoidZoning.FOUNDRY`) that the ground
+plans and `RuinsMeltStage` cuts after finalize, as the outdoor landscape cuts
+its drops, since finalize takes any unwalkable cell left standing for a wall. A
+map carries one drop look, so a foundry's map lays no outdoor rift. The melt
+runs hot with no crust, between firebrick walls under the cast-steel kerb strip.
+Crucibles carry their melt overlay, and each channel's crossing is a grate
+catwalk. Still to come: the melt's cooler patches in the narrow channels (the
+drop's ledges wander), the crucibles' pulsing glow, and slag-heap cover tuning.
+The art is the art session's, to `ruins-forge-area.md` and the texture contract
+in `ruins-forge-hall.md`. Picture cards:
 `createSnapshots -Psnapshot=ruins-forge-picks`.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a

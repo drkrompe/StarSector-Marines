@@ -938,7 +938,7 @@ public final class PrecinctWardStage implements GenStage {
         int l = square[0], b = square[1], r = l + square[2] - 1, t = b + square[2] - 1;
         Cantonment.Gate gate = Cantonment.gate(mine, paved, l, b, r, t);
         Cantonment.Laid laid = Cantonment.lay(masks.buildable(), l, b, r, t, gate.side(), gate.axis(),
-                precinct.program(), Cantonment.chosenPlan());
+                precinct.program());
         for (int[] c : laid.streets()) {
             if (!masks.buildable()[c[0]][c[1]]) continue;
             masks.buildable()[c[0]][c[1]] = false;

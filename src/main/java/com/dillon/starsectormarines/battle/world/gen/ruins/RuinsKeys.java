@@ -12,4 +12,7 @@ public final class RuinsKeys {
 
     /** The delve {@link RuinsDelveStage} laid, read by the stages after it and by result assembly. */
     public static final GenKey<RuinsDelve> DELVE = GenKey.of("ruinsDelve");
+
+    /** A forge works' foundry melt, row-major, that {@link RuinsMeltStage} cuts after finalize; absent without one. */
+    public static final GenKey<boolean[]> MELT = GenKey.of("ruinsMelt");
 }
