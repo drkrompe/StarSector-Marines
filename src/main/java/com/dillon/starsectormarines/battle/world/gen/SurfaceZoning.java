@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.model.SurfaceSignature;
+
 import java.util.Locale;
 
 /**
@@ -76,5 +78,24 @@ public final class SurfaceZoning {
         if (id.contains("tundra")) return LivingWorld.TUNDRA;
         if (id.contains("water") || id.contains("ocean")) return LivingWorld.OCEAN;
         return LivingWorld.TEMPERATE;
+    }
+
+    /**
+     * The detail a planet type wears over its palette ({@link SurfaceSignature}): what tells it apart from the other
+     * types that share the palette. Chosen apart from the palette, so a type keeps its signature whichever palette it
+     * comes to read as. Matched by substring as the palette is; a type with nothing of its own, or an unknown or null
+     * one, has {@link SurfaceSignature#NONE}.
+     *
+     * @param planetTypeId vanilla planet type id, or {@code null} when nothing is known about the target.
+     */
+    public static SurfaceSignature signatureFor(String planetTypeId) {
+        if (planetTypeId == null || planetTypeId.isBlank()) return SurfaceSignature.NONE;
+        String id = planetTypeId.toLowerCase(Locale.ROOT);
+        if (id.contains("cryovolcanic")) return SurfaceSignature.CRYO_VENTS;
+        if (id.contains("bombarded")) return SurfaceSignature.CRATER_FIELD;
+        if (id.contains("venuslike")) return SurfaceSignature.HOT_HAZE;
+        if (id.contains("unstable")) return SurfaceSignature.FISSURES;
+        if (id.contains("castiron") || id.contains("metallic")) return SurfaceSignature.METAL_FLECKED;
+        return SurfaceSignature.NONE;
     }
 }

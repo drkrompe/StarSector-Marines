@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.model.SurfaceSignature;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.StationedStrength;
@@ -102,6 +103,7 @@ public final class TargetProfileResolver {
                 hasPlanetaryShield(market))
                 .withGarrison(garrison(market, groundDefence, stationed))
                 .withClimate(climate(market))
+                .withSignature(signature(market))
                 .withLivingWorld(living(market));
     }
 
@@ -109,6 +111,15 @@ public final class TargetProfileResolver {
     private static LivingWorld living(MarketAPI m) {
         SectorEntityToken entity = m.getPrimaryEntity();
         return SurfaceZoning.livingWorld(entity instanceof PlanetAPI planet ? planet.getTypeId() : null);
+    }
+
+    /**
+     * The detail the target world's planet type wears over its palette; {@link SurfaceZoning} owns what each type id
+     * means. A station has none, as it has no palette of its own.
+     */
+    private static SurfaceSignature signature(MarketAPI m) {
+        return m.getPrimaryEntity() instanceof PlanetAPI planet
+                ? SurfaceZoning.signatureFor(planet.getTypeId()) : SurfaceSignature.NONE;
     }
 
     /**
