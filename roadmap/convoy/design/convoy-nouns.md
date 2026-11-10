@@ -1773,7 +1773,9 @@ reservoir (hull flux), which it shares with the laser. Every round it stops and 
 second it is held charges that pool, it folds while the pool vents, and a full pool
 overloads shield and guns together. It faces what the hull's gun is on, or whoever shot
 it last, and goes when the hull is wrecked. Its reservoir is the laser tank's stock bank,
-vent arrays and plant. Every figure is first-pass and untuned, for the owner's playtest.
+vent arrays and plant. Its shield stands in for plate (`machine-budgets.md`, owner): its plate is thinner and
+softer than the Onager's (350 at rating 12), so plate and a full shield come to about the Onager's plate. Every
+figure is first-pass and untuned, for the owner's playtest.
 
 The `hover-line` snapshot suite's look shot, `skimmer-line`, shows the three skimmers in
 file on real ground under fire. Acceptance is the `hover-line` scene:

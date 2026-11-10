@@ -1,7 +1,7 @@
 # Machine budgets: mount size, flux, plate and shield by weight and family
 
-Status: DRAFT — a proposed model for sizing mounts and setting a line's flux, plate and shield; the owner's picks on
-the mech line picks page decide each open rule.
+Status: ACTIVE — the model for sizing mounts and setting a line's flux, plate and shield (owner's picks,
+2026-11-10). Every number set by it is first-pass and UNTUNED, for the owner's playtest.
 
 Written: 2026-11-10
 
@@ -63,23 +63,22 @@ salvo if the shield is charged for it (five SRM contacts at 66 is about 200 flux
 which would make missiles high-tech's hard counter; measure what a shield is charged for a contact hit before tuning
 on it.
 
-## Where the shipped lines miss
+## Decided (owner, 2026-11-10)
 
-- **Warden**: nine weapon rows on a medium, three 3x2 mounts; the heavy has ten.
-- **Bulwark**: its twin chainguns draw 5x the 6 a second every mech sheds, twice the low-tech band.
-- **Crawler**: 1.9x on the stock bank with its shield's upkeep, hotter than a high-tech line should run.
-- **Heavy skimmer**: nearly the Onager's plate (480 at 16) and a shield on top, which its laser plant lets block
-  about 32 damage a second while the gun rests.
-- **Over their size class**: the AC-6 (a 2x2 that out-hits the 3x2 HC-20 against plate by 2x), the AC-6 (QS) and the
-  Thermal Lance (a 1x2 above every 2x2 laser against plate).
-- **Under their size class**: the PL-2, the PL-3 (a 3x2 weaker against plate than the 2x2 PL-2 (AP)), the LL-3 and
-  the DC-4 (QS).
+- **Mounts are capped by weight class.** The Warden's shoulders are 2x2, so it carries seven weapon rows. Its stock
+  guns are then the heaviest its mounts take, so its top fit is its full internal refit.
+- **The crawler keeps its 2x2 front socket**: any light or medium part, so it can still hurt a machine.
+- **Outliers are retuned to their row's band**, never moved to a new footprint. The AC-6 fires 10-damage rounds at
+  3 a second and the AC-6 (QS) at 4.5; the Thermal Lance cycles in 7 seconds; the PL-2 fires five pulses a trigger
+  (30 flux); the PL-3 six pulses of 20 at penetration 9; the LL-3 cycles in 5 seconds; the DC-4 (QS) in 3.5 with a
+  60-damage contact at penetration 14.
+- **A chassis carries a plant** to meet its family's flux band (`mechs-nouns.md`, frame values): the Bulwark +6 a
+  second, the crawler +3 and 50 more reservoir. The others already sit in their band.
+- **A high-tech shield replaces plate.** The heavy skimmer's plate is 350 at rating 12; the crawler's shield blocks
+  at 0.75 flux a point, so its 150 pool blocks 200.
 
 ## Open
 
-- Whether to cap mounts by weight class (the Warden's shoulders to 2x2).
-- The crawler's front socket: 2x2, or 1x2 for a drone screen.
-- How to fix the weapon ladder's outliers: retune their numbers, or move them to the footprint their power earns.
-- Whether a chassis gets a plant to meet its family's flux band.
-- Whether a high-tech shield replaces plate (the heavy skimmer's plate cut) or sits on top of it.
-- Whether a missile's contact damage should overload a shield in one salvo.
+- Whether a missile's contact damage should overload a shield in one salvo; measure what a shield is charged for a
+  contact hit first.
+- The midline row's numbers, when its lines are designed.

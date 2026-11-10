@@ -301,13 +301,14 @@ public final class MechFrameBudget {
             return band(variant.moveSpeed, refitMoveSpeed(variant), engine.speedFraction);
         }
 
+        /** The bank's reservoir and the chassis plant's ({@code MechVariant.plantCapacity}). */
         public float fluxCapacity() {
-            return capacitorBank().fluxCapacity;
+            return capacitorBank().fluxCapacity + variant.plantCapacity();
         }
 
-        /** The bank's base dissipation, every vent array's addition and the engine's penalty. */
+        /** The bank's base dissipation, the chassis plant's, every vent array's addition and the engine's penalty. */
         public float dissipationPerSecond() {
-            float dissipation = capacitorBank().dissipation + engine.dissipation;
+            float dissipation = capacitorBank().dissipation + variant.plantDissipation() + engine.dissipation;
             for (MechInternal part : compartment) {
                 if (part.role == MechInternal.Role.VENT_ARRAY) dissipation += part.dissipation;
             }
