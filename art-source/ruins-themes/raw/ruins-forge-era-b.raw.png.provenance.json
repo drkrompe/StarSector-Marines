@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c60a-2875-7a03-9c85-398154c452b9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c60a-2875-7a03-9c85-398154c452b9\\exec-0ef27de4-94eb-4628-80cc-91160b17223e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-b.raw.png",
+    "sha256": "08d98b3bbfb84e77f0b045ab2ed72c8538d234d8f76d7fa79e972bc5236f0c7a",
+    "dimensions": [
+      1639,
+      960
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\forge-era-b.prompt.txt",
+  "promptSha256": "c58f4f375826f1398b6f9790f2eb2377ff934c89fd832465e2efab41c606e270",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same foundry; not layout\nImage 3: Machinery design and era: the same world's mass driver; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the pour, finishing and cooling plant of a vast abandoned Domain-era nanoforge foundry hall in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated and robot- or field-handled, heavy engineered plant, as the same world's mining megaworks with its mass driver (reference 3). No crane hooks or hanging cables, no workbenches, vices, hand tools or grinding wheels, nothing of a 20th-century foundry.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper linear-drive stator strips; the pale gold areas are lit lenses or emitters. The crane runway is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length.\nStyle: match reference 2 (the same foundry's furnace, pour head and mould master: same blue-gray and gunmetal plate, rivets, worn ochre trim, the same melt) and reference 3 for the machinery's design: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nMelt: every orange area is molten metal: deep orange to dull red glowing through cracks in a dark crust, never yellow-white. Keep it exactly inside the orange areas.\nBackground: true transparent background with clean alpha; no floor, shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. ladle-lift (3x3): a heavy pouring ladle held in the clamp yoke of an overhead manipulator, seen from above: the manipulator's armoured trolley head at the top, two thick articulated yoke arms coming down both sides to clamp the ladle's trunnions, the round ladle bowl full of melt.\n2. ladle-lift-tipped (3x3): the same yoke holding the ladle tipped mid-pour: its bowl tilted and near empty, a stream of melt pouring from its lip to the right.\n3. finishing-cell (2x2): a robotic finishing cell: a heavy industrial robot arm on a round turret plinth, its arm reaching to a clamping fixture holding a dull grey casting, spark scorch around the fixture.\n4. metrology-bed (2x2): a metrology bed: a precision measuring bed with a pale plate surface and a scanning arch bridging across it, a thin dim emitter lens strip along the arch.\nBottom row left to right:\n5. cooling-rack (2x4): an automated cooling stack: an open frame of heavy shelf beams with a stacker carriage rail along its left side and the carriage parked on it, empty.\n6. cooling-rack-castings (2x4): the same stack with dull grey forged castings left in field cradles on four of its shelves.\n7. crane-runway (1x4): an overhead gantry runway beam seen from above: an armoured box beam with a copper linear-drive stator strip down its centre and stiffener plates, a column cap bracket across its middle.\n8. fallen-girder (7x1): the same kind of runway beam fallen to the floor across the bay, its stator strip running along it, the far right end sheared off with torn cables spraying out.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-forge-era-b-guide.png",
+      "sha256": "8e19ce6b3028e6bc25840007b777f58e1f4e872fd91dd7e00c5a6deccc527688",
+      "dimensions": [
+        2240,
+        1312
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-line.raw.png",
+      "sha256": "244a0300b937af5ac61e11eed2f0e4f9b448ac2a9efd24d6a4a3fc0e7b5f967d",
+      "dimensions": [
+        1459,
+        1078
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same foundry; not layout"
+    },
+    {
+      "path": "art-source\\voids\\open-pit\\pit-massdriver.png",
+      "sha256": "4829e1c0e1d407e665d92e7138fdb83e53deb80c20aa290eeb46cc23a832f60e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Machinery design and era: the same world's mass driver; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1’s exact layout and Images 2–3’s materials and machinery style."
+  ],
+  "usage": {
+    "input_tokens": 53048,
+    "cached_input_tokens": 39424,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 895,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 87.8
+}

@@ -182,19 +182,24 @@ class MacroReliefFieldTest {
         assertTrue(relief.tallestMeters() >= GenMappingRegistry.installed().roofMacroHeightMeters());
     }
 
-    /** A hardpoint's plinth casts as a block of its tiers, sizes the march, and is gone once cleared. */
+    /**
+     * A hardpoint's plinth stands its tiers high and sizes the march, but its cells report their ground: the block is
+     * raised over the painted foot ({@link PlinthFoot}), not the whole footprint. Gone once cleared.
+     */
     @Test
-    void aPlinthStandsItsTiersHighUntilItIsCleared() {
+    void aPlinthStandsItsTiersHighOverItsGroundUntilItIsCleared() {
         CellTopology topology = walledBox();
+        NavigationGrid grid = new NavigationGrid(WORLD, WORLD);
         float ground = field(topology, roofOverInterior(topology)).metersAt(6, 6);
         topology.setPlinthTiers(6, 6, 1);
         MacroReliefField raised = field(topology, roofOverInterior(topology));
-        assertEquals(MacroReliefField.TIER_RISE_METERS, raised.metersAt(6, 6), 1e-4f);
+        assertEquals(ground, raised.metersAt(6, 6), 1e-4f);
+        assertEquals(MacroReliefField.TIER_RISE_METERS, MacroReliefField.plinthTopMeters(grid, topology, 6, 6), 1e-4f);
         assertTrue(raised.tallestMeters() >= MacroReliefField.TIER_RISE_METERS,
                 "a plinth taller than every wall still has to be inside the sun's march");
 
         topology.setPlinthTiers(6, 6, 0);
-        assertEquals(ground, field(topology, roofOverInterior(topology)).metersAt(6, 6), 1e-4f);
+        assertEquals(0f, MacroReliefField.plinthTopMeters(grid, topology, 6, 6), 1e-4f);
     }
 
     // ------------------------------------------------------------------------

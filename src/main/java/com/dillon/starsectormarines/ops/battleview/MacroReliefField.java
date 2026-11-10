@@ -41,12 +41,17 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  *       lands behind the opening while the full-height wall either side keeps
  *       its shadow. That reads as a shaft through the window, and it costs the
  *       composite nothing — no extra channel and no extra sample.</li>
- *   <li><b>A plinth is a block of whole tiers.</b> A hardpoint's footprint
- *       stands {@link CellTopology#getPlinthTiers} tiers of
- *       {@link #TIER_RISE_METERS} above its ground while the structure stands,
- *       so the block casts as a wall of that height does, in the same
- *       direction and at the same reach per metre. Destroyed, the footprint is
- *       rubble and the plinth is gone.</li>
+ *   <li><b>A plinth is a block of whole tiers, as wide as it is painted.</b>
+ *       A hardpoint stands {@link CellTopology#getPlinthTiers} tiers of
+ *       {@link #TIER_RISE_METERS} above its ground while the structure stands
+ *       ({@link #plinthTopMeters}), so the block casts as a wall of that height
+ *       does, in the same direction and at the same reach per metre. Its cells
+ *       report their ground here, not the block: the painted plinth stands
+ *       inside its footprint ({@link PlinthFoot}), and a block raised over the
+ *       whole footprint cast its shadow from beyond the painted walls, a band
+ *       of lit ground away from the body. The height pass raises the painted
+ *       foot instead. Destroyed, the footprint is rubble and the plinth is
+ *       gone.</li>
  * </ul>
  *
  * <h2>What deliberately has no height</h2>
@@ -124,16 +129,29 @@ public final class MacroReliefField {
      * up, a ramp by how far up it stands. Zero on a flat map.
      */
     private float tierMeters(int x, int y) {
+        return tierMeters(elevation, y * topology.getWidth() + x);
+    }
+
+    private static float tierMeters(ElevationMap elevation, int idx) {
         if (elevation == null) return 0f;
-        int idx = y * topology.getWidth() + x;
         if (elevation.isRampAt(idx)) return (elevation.sightHeightAt(idx) + elevation.rampRiseAt(idx)) * TIER_RISE_METERS;
         return elevation.sightHeightAt(idx) * TIER_RISE_METERS;
     }
 
+    /**
+     * Metres above the datum of the top of the plinth standing at {@code (x, y)}: its ground's tier and the
+     * plinth's tiers over it; zero where no plinth stands or off the map.
+     */
+    public static float plinthTopMeters(NavigationGrid grid, CellTopology topology, int x, int y) {
+        if (x < 0 || y < 0 || x >= topology.getWidth() || y >= topology.getHeight()) return 0f;
+        int plinth = topology.getPlinthTiers(x, y);
+        if (plinth <= 0) return 0f;
+        ElevationMap elevation = grid != null ? grid.elevation() : null;
+        return tierMeters(elevation, y * topology.getWidth() + x) + plinth * TIER_RISE_METERS;
+    }
+
     /** What stands on the ground at {@code (x, y)}, above it. */
     private float standingMeters(int x, int y) {
-        int plinth = topology.getPlinthTiers(x, y);
-        if (plinth > 0) return plinth * TIER_RISE_METERS;
         if (topology.isWall(x, y)) {
             return topology.isWindow(x, y) ? windowSillMeters : wallMeters;
         }

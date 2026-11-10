@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c601-65c7-72a0-9157-8f6e06b500a1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c601-65c7-72a0-9157-8f6e06b500a1\\exec-64c0573b-3454-479a-80e3-46b1a4f5f94b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\concepts-fanless\\c-gimbal-v2-raw.png",
+    "sha256": "aff86b70b90d93745ea9d373a001dc08cd47f64750428752bf420e8f65f2e493",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\drones\\concepts-fanless\\c-gimbal-v2-brief.txt",
+  "promptSha256": "d6609360a1ca77803f2fd2bcd7422aaf682db4ac372d399bda509a7f06cb36b9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Rendering style and detail level only; not layout, palette, shape or subject\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale\n\nConcept sheet for a science-fiction strategy video game: four small Tri-Tachyon corporate robotic DRONE units, each about a metre long, that hover low over a battlefield map. They are designed as GIMBALLED PAYLOADS: the drone's tool is its body. Each is its payload hung in a sturdy U-shaped gimbal yoke, with a slim spine behind it carrying a compact power cell and two or three small angled thruster blocks with cyan vents. From above you read the payload first and the yoke around it second.\n- ESCORT: a short thick pulse-emitter tube with a cyan lens at its tip, in a U-shaped gimbal yoke, pointing forward, a small sensor block on the yoke.\n- SENSOR: a large rectangular sensor head with a dark lens array in a gimbal frame, two folding antenna blades.\n- POINT-DEFENCE: two small cyan emitter lenses on a cross-shaped rotating gimbal mount over a compact square body, able to swing to any side.\n- STRIKE: a sealed payload canister with a brass nose cap in a light frame with stabilising fins and one rear thrust block.\nTri-Tachyon high-tech livery and material: pearl white and pale grey composite with fine graphite seams, restrained cyan lights; image 2 is livery and material reference only, not layout or shape.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left, every drone nose UP (toward the top edge), the four drones evenly spaced in one row across a wide landscape canvas, each drawn large and with a small plain caption beneath it naming its role (ESCORT, SENSOR, POINT-DEFENCE, STRIKE). Plain flat dark-grey background, no ground, scene, shadow slab, border or grid. Rendered as finished top-down game sprites in the manner of the attached approved game sprite: grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art.\nBANNED SHAPES, do not draw any of these anywhere: exposed fans, fan blades, rotor rings, rotor discs, propellers, ducted props, shrouded lift fans, round fan ducts, grilles over circular ducts, quadcopter arms. No drone may be built around a circle. The outline must come from what the drone does (its weapon, sensor or warhead and how it is steered), never from a lift fan.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\tempest.png",
+      "sha256": "b1811fa2e74ac737e94479f097025bab8e3a5d0c8b6c04128561001babecfc36",
+      "dimensions": [
+        64,
+        92
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet using the references for rendering style and materials, with the four payload-first drones facing up.\n"
+  ],
+  "usage": {
+    "input_tokens": 40549,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 688,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 54.7
+}

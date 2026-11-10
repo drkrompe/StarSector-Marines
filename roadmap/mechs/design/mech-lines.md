@@ -4,7 +4,8 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
-Updated: 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own, and is the
+Updated: 2026-11-10 — the midline row is built as three articulated carriers, wheeled hulls (`convoy-nouns.md`, the
+articulated carriers). Earlier 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own, and is the
 only mech Tri-Tachyon fields: its heavy-shell stand-ins are off its roster (owner: "they're not good").
 
 ## Where the roster stands
@@ -30,14 +31,15 @@ through a trade-off.
 |  | Light | Medium | Heavy |
 |---|---|---|---|
 | **Low-tech** | Hound | Warden | Bulwark |
-| **Midline** | light carrier (articulated, wheeled) | medium carrier | heavy carrier |
+| **Midline** | light carrier (`LIGHT_CARRIER`, a hull) | medium carrier (`MEDIUM_CARRIER`) | heavy carrier (`HEAVY_CARRIER`) |
 | **High-tech** | light crawler (`MechVariant.CRAWLER`, its own chassis) | none (skimmers carry the weight) | none (no heavy walker, owner) |
 
 Nine lines in all. The low-tech row is the three first chassis. The high-tech light is
 Tri-Tachyon's crawler, a carapace on four short legs with one front gun and a built-in
 shield emitter (`mechs-nouns.md`, Family and doctrine). Tri-Tachyon puts its medium and
-heavy weight into skimmers rather than walkers. The midline cells are empty, filled
-meanwhile by other factions' shells over the low-tech frames (a livery, not a line).
+heavy weight into skimmers rather than walkers. The midline row is three wheeled hulls, the
+articulated carriers; the midline factions' walkers remain shells over the low-tech frames
+(a livery, not a line).
 Each stand-in stays where it is until its line is designed. At that point the stand-in
 either becomes the line's base chassis or gets reworked into it.
 
@@ -86,9 +88,12 @@ purchases, so the low-tech row comes first:
    pass came from material swatches with no shape in them (art-source/mech-modular-topdown/sources/midline,
    briefs_v2.py), and the owner picked E (2026-11-10): **articulated carriers**, a drive cab and mission modules on
    a hinge that bends to steer, light two modules on four wheels, medium two on six, heavy three on eight. They are a
-   wheeled hull line (`convoy-nouns.md`): a main gun card and secondary mounts on the mission module, the modules
-   drawn trailing the cab through the hinge. Its numbers sit between
-   the other two rows (`machine-budgets.md`): about 2x flux draw, a shield at 1.0 where it carries one.
+   wheeled hull line (`convoy-nouns.md`, the articulated carriers): a main gun card and secondary mounts on the
+   mission module, the modules drawn trailing the cab through the hinge. Its numbers sit between
+   the other two rows (`machine-budgets.md`): about 2x flux draw, a shield at 1.0 where it carries one. **Built**
+   (2026-11-10): `LIGHT_CARRIER`, `MEDIUM_CARRIER` and `HEAVY_CARRIER`, each cut from one ImageGen master over a guide
+   whose sockets run along the module's spine (the concept's pair over a hatch read as a face), no shield, first-pass
+   and UNTUNED. The League and the Diktat field them; the Kit Ladder holds them at "none" for the owner to place.
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
    hulls, and Tri-Tachyon already wears it on the three frames

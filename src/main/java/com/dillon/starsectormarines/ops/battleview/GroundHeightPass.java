@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
@@ -140,7 +141,38 @@ final class GroundHeightPass {
      *                    whole map and the projection clips it.
      */
     void render(BattleCamera cam, NavigationGrid grid, CellTopology topology,
-                Buildings buildings, GenMappingRegistry mapping, int marginCells) {
+                Buildings buildings, GenMappingRegistry mapping, int marginCells, PlinthFoot plinths) {
+        renderField(cam, grid, topology, buildings, mapping, marginCells);
+        raisePlinths(cam, grid, topology, plinths);
+    }
+
+    /**
+     * Raises each standing plinth's painted foot ({@link PlinthFoot}) to its top over the field, which leaves
+     * plinth cells at their ground. Only the macro channel is written: the foot keeps the micro height, water and
+     * shore the field gave its cells.
+     */
+    private void raisePlinths(BattleCamera cam, NavigationGrid grid, CellTopology topology, PlinthFoot plinths) {
+        if (plinths == null || plinths.count() == 0) return;
+        float[] feet = plinths.feet();
+        for (int i = 0, n = plinths.count(); i < n; i++) {
+            int at = i * PlinthFoot.STRIDE;
+            float top = encodeMacroMeters(MacroReliefField.plinthTopMeters(grid, topology,
+                    (int) feet[at + 4], (int) feet[at + 5]));
+            solidBatch.appendRect(cam.cellToScreenX(feet[at]), cam.cellToScreenY(feet[at + 1]),
+                    cam.cellToScreenX(feet[at + 2]), cam.cellToScreenY(feet[at + 3]), top, 0f, 0f, 0f);
+        }
+        glDisable(GL_BLEND);
+        ShaderProgram.useNone();
+        glColorMask(true, false, false, false);
+        try {
+            solidBatch.flush();
+        } finally {
+            glColorMask(true, true, true, true);
+        }
+    }
+
+    private void renderField(BattleCamera cam, NavigationGrid grid, CellTopology topology,
+                             Buildings buildings, GenMappingRegistry mapping, int marginCells) {
         boolean textured = shader.ensure();
         if (mesh.isUsable() && renderResident(cam, grid, topology, buildings, mapping, textured)) {
             return;

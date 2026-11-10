@@ -2151,12 +2151,20 @@ at vast). It is shortened to fit, never below 44 long, and a hall narrower than
 32 is laid as the old foundry instead. The hall is laid out from its process,
 head to the north:
 
-- a great crucible's open bath, with waiting ladles, charge racks and a slag
-  pit;
+- the great crucible (12x16, `ruins-forge` sheet) west of the line, its
+  spout on its east edge pouring onto the line's head; ladles waiting, the
+  pour pulpit and the charge racks east of the line, the slag heaped beyond.
+  Without its art or room, the head is an open bath;
+- a feed path, a marked lane along the head row from the east wall to the
+  crucible's charge hopper, kept clear. It is generic until the feed's own
+  pieces land: the owner ruled out ore cars and rail ("Ore car does not make
+  sense for a space faring civilization"), and the hall reads as automated
+  heavy industry, not a period foundry;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
 - production lines branching off each side every sixteen rows, each a channel
-  to a mould grid over its bed, with a cooling rack beyond;
+  to a mould grid over its bed, with two cooling racks beyond, most laden
+  with castings;
 - the dispatch end left clear.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt

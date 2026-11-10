@@ -378,6 +378,46 @@ def bulwark(name):
     return d.write()
 
 
+def derelict(name):
+    """The derelict security walkers' one chassis: a low armoured torso slung between legs that reach up to a high
+    knee and down to a wide-planted foot, a gun port in each flank, two racks on its back and a small sensor cluster
+    for a head. The heavy, the rounds walker and the hall frame share it; a port or rack a frame leaves empty draws
+    as outline."""
+    d = Doll(name)
+    port = [(-16, 64), (-31, 64), (-31, 82), (-16, 82)]
+    barrels = [((-29, 70), (-18, 70)), ((-29, 76), (-18, 76))]
+    rack = [(-18, 50), (-6, 50), (-6, 64), (-18, 64)]
+    leg = [(-31, 64), (-42, 42), (-48, 42), (-54, 52), (-54, 118), (-57, 130), (-43, 130), (-46, 118), (-46, 62),
+           (-31, 82)]
+    for cx, rear in views():
+        sl, sr = shoulders(rear)
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-16, 64), (16, 64), (16, 88), (-16, 88)], cx)
+        d.mirrored(sl, sr, rack, cx, tubes(-18, 50, -6, 64, 2, 2))
+        if rear:
+            continue
+        d.panel("HEAD", [(-4, 54), (4, 54), (6, 64), (-6, 64)], cx)
+        d.mirrored("RIGHT_ARM", "LEFT_ARM", port, cx, barrels)
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-54, 52), (-46, 62)), ((-54, 118), (-46, 118))])
+    return d.write()
+
+
+def crawler(name):
+    """Tri-Tachyon's crawler: a wide, low carapace on four short legs spread to the sides, one gun in a socket under
+    its nose and a small sensor head. No shoulders. From in front the near and far legs of a side are one outline."""
+    d = Doll(name)
+    leg = [(-32, 82), (-44, 74), (-50, 78), (-54, 108), (-46, 108), (-44, 92), (-32, 94)]
+    for cx, rear in views():
+        d.shape("TORSO_REAR" if rear else "TORSO",
+                [(-26, 72), (26, 72), (32, 80), (32, 94), (-32, 94), (-32, 80)], cx,
+                [((-14, 73), (-14, 93)), ((14, 73), (14, 93))])
+        if rear:
+            continue
+        d.panel("HEAD", [(-6, 64), (6, 64), (8, 72), (-8, 72)], cx)
+        d.shape("ARMS", [(-6, 94), (6, 94), (5, 106), (-5, 106)], cx, [((0, 96), (0, 106))])
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-50, 78), (-44, 92))])
+    return d.write()
+
+
 # --------------------------------------------------------------------- marines
 #
 # A Marine is one front figure in a narrow drawing of its own (MARINE_W wide):
@@ -548,6 +588,8 @@ def main():
         bulwark("mech-bulwark"),
         hound("mech-hound"),
         warden("mech-warden"),
+        derelict("mech-derelict"),
+        crawler("mech-crawler"),
         marine("marine"),
         marine("marine-suit", suit=True),
         talon(),
