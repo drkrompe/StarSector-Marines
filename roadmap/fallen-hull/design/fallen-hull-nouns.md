@@ -185,8 +185,60 @@ Numbers UNTUNED.
   (`worker()`). Both are drawn as the sentinel at their size until the art
   session's looks ship (pick `stripper-hauler`, option a).
 
+- **The seam from the ground.** `FallenHullSite` is what the crash-site ground
+  fills and the battle stands on: the hull's footprint (`Rect`), the forge's
+  cell (the vault, deep in the forge hall), the bay mouth (open ground outside
+  the hull where everything printed walks out), the hull zone's perimeter, the
+  lattice points and their link distance, the haul roads (polylines of cells),
+  the stakes already standing with their stage (`StartingStake`), the metal on
+  the claim (`Pile`: headframes, fences, vehicles, the town's structures), the
+  walkers already out (`Posting`: frame and cell), the egress cells the hull's
+  walkers hold in the contingency, and the hull store's metal at the start.
+  `FallenHullFixtures` (tests) stands one in on open ground meanwhile.
+- **The battle.** `FallenHull.install(sim, site, queue, livery)` stands the
+  hull's zone (`HULL_ZONE`) over the footprint with the autoforge as its node
+  and vault (an armoured, unarmed structure at the forge cell), its flock at the
+  mouth, its service bay and repair drone; the ground's stakes nearest first,
+  each chained through the anchors before it (one the chain cannot reach is
+  stranded from the start); the walkers already out, each in the zone keeping
+  its post; and the network's `DerelictSecurityDirector`, which runs
+  `FallenHull.pulse` each half second before its walkers take their postures.
+  Each pulse: a gone forge is put out; a planted stake whose pylon is gone is
+  scrap and its point open; `RelayChain` strands what is cut; stakes count
+  down; trains walk their haul road out and plant (the escort guards the pylon,
+  the carrier goes to work hauling) or are scrapped (the escort goes to the
+  frontier); the watch's lying wrecks and the company's and garrison's fallen
+  machines become salvage; strippers cut the salvage inside the hull's and
+  every linked stake's perimeter, and haulers carry it to the nearest linked
+  store (none while the forge is out); then the forge cycle prints, a stake
+  as a train to the next plantable point, a walker posted round the newest
+  anchor (the frontier), else the mouth. A raised stake is an ordinary
+  `SecurityZone` (`zoneOf`: `STAKE_ZONE_BASE` plus its point) with its node,
+  its relay to the zone its chain runs through, its docked flock and its repair
+  drone, and its escort reposted to it; established, it adds a service bay,
+  `DerelictPost.PER_ZONE` folded posts and its store. The forge's breach
+  (`Autoforge.BREACH_SHARE`) calls the contingency. The director gained
+  `addWalker` (a printed walker joins with its body armed), `repost` and
+  `attachHull`; unarmed walkers (tender, stripper, hauler) are walked by a
+  withdrawal, since a lance with no gun declines every attack goal
+  (`DerelictSecurityDirector.walk`).
+
 Evidence: `AutoforgeTest`, `ClaimLatticeTest`, `SurveyStakeTest`,
-`HullWorkersTest`.
+`HullWorkersTest`; `sceneEvidence -Pscene=fallen-hull` (train-plants: the
+forge prints a stake, its train walks out and plants, and sixty seconds on the
+stake rises into a zone linked to the hull's with its node and a flock;
+train-scrapped: the hauler killed on the way leaves the stake scrap and the
+point open; stranded: an established stake's node destroyed strands it and the
+planted stake beyond, which never rises; feedstock: a stripper cuts a pile and a
+hauler carries the metal into the hull's store).
+
+Not built yet: the claim-edge pursuit law (walkers keep their zone's perimeter,
+as at a site network); a stake's rounds walker on a round; cutting a stripped
+structure out of the map (a pile is metal at a cell); the forge's power cut
+other than its destruction; the stripper's and hauler's own looks and the
+stake's three stages drawn (stand-ins: the sentinel at size, the node's
+structure for pylon and node); the briefing and rail reading the build queue
+(`BuildQueue.peek`); a seed's real hull site from the ground.
 
 ## Boundaries
 

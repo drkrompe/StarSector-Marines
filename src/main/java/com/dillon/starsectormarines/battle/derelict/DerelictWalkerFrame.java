@@ -88,6 +88,11 @@ public enum DerelictWalkerFrame {
         return chassis.armorCapacity * plateShare;
     }
 
+    /** Whether this frame carries a gun at all: the tender, stripper and hauler carry none. */
+    public boolean armed() {
+        return leftArm != null || rightArm != null || leftShoulder != null || rightShoulder != null;
+    }
+
     /** Whether this frame is one of a fallen hull's workers, whose work the hull's rules direct rather than a posture. */
     public boolean worker() {
         return this == STRIPPER || this == HAULER;

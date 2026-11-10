@@ -18,18 +18,22 @@ import java.util.List;
  * @param stakes         the stakes that already stand at the chapter's point in the arc, each at its stage
  * @param salvage        the metal standing on the claim at the start: headframes, fences, vehicles, the town's
  *                       structures, each a pile at a cell
+ * @param walkers        the watch already out at the chapter's start: walkers, strippers and haulers at their posts;
+ *                       each answers to the zone keeping its post, the hull's where none does
  * @param egress         the cells the hull's walkers hold in the contingency: the hull's ways in from the trench
  * @param feedstock      the hull store's metal at the start
  */
 public record FallenHullSite(Rect hull, int forgeX, int forgeY, int mouthX, int mouthY, int perimeterCells,
                              List<ClaimLattice.Point> lattice, int linkCells, List<int[]> haulRoads,
-                             List<StartingStake> stakes, List<Pile> salvage, List<int[]> egress, float feedstock) {
+                             List<StartingStake> stakes, List<Pile> salvage, List<Posting> walkers,
+                             List<int[]> egress, float feedstock) {
 
     public FallenHullSite {
         lattice = List.copyOf(lattice);
         haulRoads = List.copyOf(haulRoads);
         stakes = List.copyOf(stakes);
         salvage = List.copyOf(salvage);
+        walkers = List.copyOf(walkers);
         egress = List.copyOf(egress);
         if (perimeterCells < 1) throw new IllegalArgumentException("The hull keeps at least a cell");
         if (feedstock < 0f) throw new IllegalArgumentException("The hull's store is never below empty");
@@ -71,6 +75,9 @@ public record FallenHullSite(Rect hull, int forgeX, int forgeY, int mouthX, int 
 
     /** A stake the ground stands before the battle. */
     public record StartingStake(int pointId, SurveyStake.Stage stage) { }
+
+    /** A walker of the watch out at the start, at its post. */
+    public record Posting(DerelictWalkerFrame frame, int x, int y) { }
 
     /** Metal standing on the claim: what a stripper cuts into feedstock. */
     public record Pile(int x, int y, float metal) { }

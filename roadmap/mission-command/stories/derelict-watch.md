@@ -362,7 +362,9 @@ of each pick, slice 3's comms lines.
   (charge in hand, shadowing, weld, reload); `DerelictWalkerClass.tenders`
   counts them, and `DerelictSecurity.install` stands one beside each zone's first
   heavy (`beside`: the nearest clear cell a ring at a time). The director's `tend` lays the pulse's plate through `mend` and walks
-  the tender by a hold order. Every derelict walker spawns with
+  the tender by a hold order: walking there by a withdrawal, not an attack
+  move, since a lance with no gun declines every attack goal and breaks contact
+  (`DerelictSecurityDirector.walk`; it walked away from its charge before). Every derelict walker spawns with
   `MissileReplenisherComponent.NONE`; `BayRearm` is the re-arming rule, and the
   director's `rearm` sends a walker to stand just off its bay (`bayStand`, the
   bay's own cell being the housing's) and puts packs in with
