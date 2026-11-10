@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.forest;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
@@ -8,7 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /** Generation-time forest construction. Editing replays the plan on clean ground, never a live battle. */
 public final class ForestBrush {
@@ -27,13 +28,13 @@ public final class ForestBrush {
     /** Selected production crowns may stand on complete grassy summit cells, never on cliff faces. */
     public static void stampTrees(List<ForestField.Tree> trees, NavigationGrid grid, CellTopology topology,
                                   List<Doodad> doodads, boolean[] reserved, boolean allowSummits) {
-        stampTrees(trees, grid, topology, doodads, reserved, allowSummits, tree -> false);
+        stampTrees(trees, grid, topology, doodads, reserved, allowSummits, tree -> Flora.TEMPERATE);
     }
 
-    /** As above, each tree {@code dry} names drawn as its dry-country twin ({@link NaturalPropShape#DRY}). */
+    /** As above, each tree drawn in the flora {@code flora} names for it ({@link Flora}). */
     public static void stampTrees(List<ForestField.Tree> trees, NavigationGrid grid, CellTopology topology,
                                   List<Doodad> doodads, boolean[] reserved, boolean allowSummits,
-                                  Predicate<ForestField.Tree> dry) {
+                                  Function<ForestField.Tree, Flora> flora) {
         int w = grid.getWidth(), h = grid.getHeight();
         if (topology.getWidth() != w || topology.getHeight() != h || (reserved != null && reserved.length != w * h))
             throw new IllegalArgumentException("Forest and map dimensions differ");
@@ -46,7 +47,7 @@ public final class ForestBrush {
             for (int y = tree.y(); y < tree.y() + tree.height(); y++)
                 for (int x = tree.x(); x < tree.x() + tree.width(); x++)
                     if (tree.blocks(x, y)) blocked[y * w + x] = true;
-            String id = NaturalPropShape.placedId(tree.canopy(), dry.test(tree));
+            String id = flora.apply(tree).placedId(tree.canopy());
             var def = tiles == null ? null : tiles.doodad(id);
             if (def == null || def.footprintCellsX != tree.canopy().width || def.footprintCellsY != tree.canopy().height)
                 throw new IllegalStateException("Missing or mismatched tree canopy " + id);
@@ -54,7 +55,7 @@ public final class ForestBrush {
         }
         // The entire canopy is protected, not just its trunk. Refusal is atomic.
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (blocked[y * w + x]) {
-            boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW -> true; default -> false; };
+            boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true; default -> false; };
             boolean summit = allowSummits && isGrassySummit(grid, topology, x, y);
             if (!natural || (!grid.isWalkable(x, y) && !summit) || grid.isDoorway(x, y) || topology.isWall(x, y)
                     || (topology.isFixture(x, y) && !summit) || topology.getBuildingId(x, y) != 0 || topology.getSurface(x, y) != 0

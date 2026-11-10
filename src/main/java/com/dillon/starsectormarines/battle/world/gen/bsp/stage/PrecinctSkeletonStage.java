@@ -124,7 +124,12 @@ public final class PrecinctSkeletonStage implements GenStage {
         // paving and the road graph come from the stages that do that for every road.
         List<Laid> layoutRoads = LayoutRoads.carve(plan, claim, grown.owner(), rural,
                 ctx.width, ctx.height, FortReservations.barred(ctx, plan));
-        if (!layoutRoads.isEmpty()) ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
+        if (!layoutRoads.isEmpty()) {
+            ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
+            // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
+            // piece of road on its own; the map is one network after it as before it.
+            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+        }
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;
         boolean[][] trunkPainted = new boolean[ctx.width][ctx.height];

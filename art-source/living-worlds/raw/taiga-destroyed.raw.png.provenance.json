@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a6-4fca-7513-8257-0b6d7868c9a2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a6-4fca-7513-8257-0b6d7868c9a2\\exec-6c236b47-c46f-42a9-a6a2-1928c9279743.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\living-worlds\\raw\\taiga-destroyed.raw.png",
+    "sha256": "5291965305adf0b043ada547fa86ed523c17b52a3a6508672ff6ad1b66d6bbdc",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\living-worlds\\prompts\\taiga-destroyed.prompt.txt",
+  "promptSha256": "2695878bdea38fab4e60af9e3e51a6c31d80d3e0e88d754aa7c1b8a43f0eab26",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: stump centers, fallen limbs, gaps and envelope; reskin, never move or enlarge\nImage 2: Species/material identity only, slot for slot; not layout\nImage 3: Bark and broken-wood material only; not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production transparent tree destruction sprite sheet for a top-down tactical game. Image 2 is ONLY the intact species/material reference: the six cold-country trees (old larch, dwarf willow, dwarf birch, black spruce, white spruce, wind-bent fir) slot for slot. Image 3 is the same trees damaged; use it for bark and broken-wood material only.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, six centers and footprint sizes. Do not enlarge silhouettes or recenter content; nothing may extend beyond the guide's limbs and leaf blobs. Strictly orthographic DIRECTLY OVERHEAD game art, no perspective, no side-view upright trees.\nThese trees are DESTROYED: each has one LOW jagged broken stump at its exact center, and the guide's separate low fallen limbs scattered around it: bark matching image 2's species, cracked and chipped, with pale splintered breaks, and a few small clusters of leaves or needles in image 2's palette (dark blue-green and black-green needles, golden-olive larch, grey-green fir, yellowing birch leaves, pale grey bark, a little snow) at broken branch tips, matching image 2's species per slot. Most canopy has gone and most of the footprint is transparent ground-visible space. Preserve clear gaps separating fallen branches from the central stump; no reconnecting as an intact wheel of branches. Small detached twigs and sparse leaf litter allowed within the supplied envelope only.\nPainterly realistic rendering matching image 2. Actual transparent background, no ground disk, no soil, no snow, no carpet of leaves, no terrain, no glow, no external shadows, no labels, no border. Keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\tree-destroyed.png",
+      "sha256": "422d88e75e322cc35b7a131d9fc71690879e7c921396d310a43281ef655bc7a6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: stump centers, fallen limbs, gaps and envelope; reskin, never move or enlarge"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\taiga-canopies.raw.png",
+      "sha256": "96eb11cb93dfd9d0ab2252f7093b094977bf63009a0c25535bc0afc34dcd7b87",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species/material identity only, slot for slot; not layout"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\taiga-damaged.raw.png",
+      "sha256": "163334e73365c689b852c0a8f0f96a5510c2af745969246e36ca8982e8c701c0",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Bark and broken-wood material only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, preserving Image 1’s layout and using Images 2 and 3 only for species and materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 49675,
+    "cached_input_tokens": 40448,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 807,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.4
+}

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.forest;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
@@ -8,7 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /**
  * Generation-time undergrowth. Choosing where it grows is the caller's; this closes exactly the cells each
@@ -34,12 +35,12 @@ public final class UndergrowthBrush {
 
     public static void stamp(List<Placement> placements, NavigationGrid grid, CellTopology topology,
                              List<Doodad> props, boolean[] reserved) {
-        stamp(placements, grid, topology, props, reserved, p -> false);
+        stamp(placements, grid, topology, props, reserved, p -> Flora.TEMPERATE);
     }
 
-    /** As above, each patch {@code dry} names drawn as its dry-country twin ({@link NaturalPropShape#DRY}). */
+    /** As above, each patch drawn in the flora {@code flora} names for it ({@link Flora}). */
     public static void stamp(List<Placement> placements, NavigationGrid grid, CellTopology topology,
-                             List<Doodad> props, boolean[] reserved, Predicate<Placement> dry) {
+                             List<Doodad> props, boolean[] reserved, Function<Placement, Flora> flora) {
         int w = grid.getWidth(), h = grid.getHeight();
         if (topology.getWidth() != w || topology.getHeight() != h || (reserved != null && reserved.length != w * h))
             throw new IllegalArgumentException("Undergrowth and map dimensions differ");
@@ -52,7 +53,7 @@ public final class UndergrowthBrush {
         for (Placement p : placements) {
             if (!fits(p, grid, topology, reserved))
                 throw new IllegalArgumentException("Undergrowth overlaps protected ground at " + p.x() + "," + p.y());
-            String id = NaturalPropShape.placedId(p.kind(), dry.test(p));
+            String id = flora.apply(p).placedId(p.kind());
             var def = registry.doodad(id);
             if (def == null || def.footprintCellsX != p.kind().width || def.footprintCellsY != p.kind().height)
                 throw new IllegalStateException("Missing or mismatched undergrowth " + id);
@@ -73,7 +74,7 @@ public final class UndergrowthBrush {
     }
 
     private static boolean eligible(NavigationGrid grid, CellTopology topology, boolean[] reserved, int x, int y) {
-        boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW -> true; default -> false; };
+        boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true; default -> false; };
         return natural && grid.isWalkable(x, y) && !grid.isDoorway(x, y) && !topology.isWall(x, y)
                 && !topology.isFixture(x, y) && topology.getBuildingId(x, y) == 0 && topology.getSurface(x, y) == 0
                 && (reserved == null || !reserved[y * grid.getWidth() + x])

@@ -1011,7 +1011,8 @@ and carries one gun on a front socket, stock a PL-1, drawn as its own layer over
 mount takes shows there (law 4). Its compartment carries a **shield emitter as built** (`MechVariant.shieldEmitter`):
 its stock frame and every refit frame bring it (`MechFrame.builtIn`), and every crawler that spawns is enrolled with
 the field's machine hosts, so it raises the pooled frontal shield (`MechShield`) on its one flux pool, gun and shield
-spending the same headroom. Tri-Tachyon's roster leads with it. It is crewed, not a drone, and a company buys it as a Tri-Tachyon pattern
+spending the same headroom. It is the only mech Tri-Tachyon fields (owner: its heavy-shell stand-ins on the
+low-tech frames are off its roster), so Tri-Tachyon issues no Bulwark pattern either. It is crewed, not a drone, and a company buys it as a Tri-Tachyon pattern
 (owner, 2026-11-09). All its numbers are UNTUNED.
 
 The Hound is a quick close-assault strider that lacks long-range pressure. The

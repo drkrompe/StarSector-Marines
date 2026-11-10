@@ -1,0 +1,88 @@
+{
+  "sheet": "graphics/doodads/ore-conveyor.png",
+  "cellPx": 256,
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "ore-conveyor.belt"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "ore-conveyor.straight"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "ore-conveyor.corner"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "ore-conveyor.leg"
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "ore-conveyor.drive"
+    }
+  ],
+  "doodads": [
+    {
+      "id": "ore-conveyor.belt",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ore-conveyor.straight",
+      "col": 1,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ore-conveyor.corner",
+      "col": 2,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ore-conveyor.leg",
+      "col": 3,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ore-conveyor.drive",
+      "col": 4,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}
