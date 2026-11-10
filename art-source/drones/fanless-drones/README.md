@@ -10,6 +10,8 @@ for the hub and swarm drones).
 - `family-*`: a drone hub's drone as low-tech, midline and high-tech hubs build it (`DroneLook.forHub`).
 - `swarm-*`: the flock's swarm dart in Domain and contingency liveries, painted side by side in one sheet so both
   are the same machine. The flock cradles are still cut by `../swarm-drones/pack.py`.
+- `repair-*`: the derelict network's unarmed repair drone (welding arm, stock canister, lift pods) in Domain and
+  contingency liveries, after the owner found the vanilla Borer it wore before low-res.
 
 Each `*-brief.txt` is the brief as sent to `tools/codex_imagegen.py`; `*-raw.png.provenance.json` records every
 reference and its role (the guide as geometry authority, the concept sheet as design reference, vanilla hulls and the

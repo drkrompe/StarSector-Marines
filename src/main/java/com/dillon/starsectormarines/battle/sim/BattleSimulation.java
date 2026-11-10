@@ -2070,8 +2070,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         WallCrush wallCrush = new WallCrush(navigation, mapEditor, doodadService);
         groundSystem.setWallCrush(wallCrush);
-        // A wall-crushing walker (the Pilgrim, mech-lines.md) plans over the walkers' breach view and pushes down what
-        // it walks into. Routes are asked for from the parallel unit update, so the view is caught up under a lock.
+        // A wall-crushing walker (every heavy-lift walker, mechs-nouns.md) plans over the walkers' breach view and
+        // pushes down what it walks into. Routes are asked for from the parallel unit update, so the view is caught
+        // up under a lock.
         mechWallCrush = new MechWallCrush(entityWorld, battleComponents, rosterService, navigation, mapEditor,
                 doodadService);
         navigation.setOwnRouteGrid(id -> {
