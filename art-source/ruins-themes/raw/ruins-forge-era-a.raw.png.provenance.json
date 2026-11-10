@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c60a-2875-75f3-a88a-4da7775d8347",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c60a-2875-75f3-a88a-4da7775d8347\\exec-7f072b04-2504-4fa7-bb94-b1cfe9474e19.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-a.raw.png",
+    "sha256": "ec134dcf4b357d96dcc559e57e97c01db367125e5787c9c33944720430662622",
+    "dimensions": [
+      1662,
+      946
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\forge-era-a.prompt.txt",
+  "promptSha256": "478c9065e1ce6051f6825a7b2138fbe5d4ad7823125989b2ac9797efc2401384",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same foundry; not layout\nImage 3: Machinery design and era: the same world's mass driver and hover haulers; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the feed and slag movers of a vast abandoned Domain-era nanoforge foundry hall in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated and field-handled, as the same world's mining megaworks with its electromagnetic mass driver and hover haulers (reference 3). No wheels, no railway sleepers, no train cars, nothing of a 20th-century foundry or railway.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper coil rings; the pale gold areas are lit glowing parts. The mag-rail (first piece) is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even pattern along its length.\nStyle: match reference 2 (the same foundry's floor and line pieces: same blue-gray and gunmetal plate, rivets, worn ochre trim, the same melt) and reference 3 (the mass driver's ribbed trough, copper coil rings and glowing capsule, the hover haulers' ducted lift-fan rings) for the machinery's design: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nMelt: every orange area is molten slag: dull orange to dark red glowing through cracks in a thick dark crust, never yellow-white. Keep it exactly inside the orange areas.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. mag-rail (2x2): a magnetic feed rail sunk flush in steel floor plate: a dark ribbed trough between two polished guide rails, two copper coil rings wrapped across it.\n2. mag-rail-curve (4x4): the same mag-rail turning a quarter circle, coil rings across it at intervals.\n3. mag-rail-end (2x2): the end of the mag-rail: the trough running into a heavy decelerator block banked with copper coils, one coil ring across the trough.\n4. feed-pod (2x3): a sealed feed capsule pod that rides the mag-rail: a long banded steel capsule with three heavy bands, its nose a glowing charge window (amber, dim).\n5. feed-pod-derailed (2x3): the same capsule pod thrown off its rail, slewed askew, a band split, a few lumps of ore spilled beside it.\nBottom row left to right:\n6. slag-skid (3x3): a hover slag skid: a plated spine carrying a thick round cast slag pot, four ducted lift-fan rings at its corners (fan blades still, small dead lamps), dark slag crust in the pot with one glowing crack.\n7. slag-skid-crashed (3x3): the same skid crashed at the slag pit's lip, slewed, one fan ring torn off, its pot tipped to the right and a tongue of glowing slag running out to the right edge.\n8. thrust-wash (2x3): two faint soot-and-heat scorch streaks on the floor left by hover skids' lift fans; only the stain itself, semi-transparent, no floor under it.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-forge-era-a-guide.png",
+      "sha256": "738056b574b869fc5ee124092d713847783d4025117f5d7a469f26702fb99d9f",
+      "dimensions": [
+        2304,
+        1312
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-floor.raw.png",
+      "sha256": "90f781e5eda8b6225a566f294cdff16427c983f2f5ed65c32b48553668954d7d",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same foundry; not layout"
+    },
+    {
+      "path": "art-source\\voids\\open-pit\\pit-massdriver.png",
+      "sha256": "4829e1c0e1d407e665d92e7138fdb83e53deb80c20aa290eeb46cc23a832f60e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Machinery design and era: the same world's mass driver and hover haulers; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using the first image’s exact layout and the other references’ materials and machinery design."
+  ],
+  "usage": {
+    "input_tokens": 53054,
+    "cached_input_tokens": 39424,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1061,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 87.2
+}
