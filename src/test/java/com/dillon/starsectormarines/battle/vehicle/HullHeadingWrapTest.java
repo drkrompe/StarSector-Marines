@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * A hull's heading can come out of a Reeds-Shepp manoeuvre a whole turn out (The Burn, seed 202: a breakthrough tank
+ * A hull's heading can come out of a Reeds-Shepp manoeuvre a whole turn out (The Burn, seed 202: an Onager
  * at 607.86 degrees). The carrot dead ahead of it must still read as dead ahead, not a full turn off, or pursuit backs
  * the hull away from its route.
  */

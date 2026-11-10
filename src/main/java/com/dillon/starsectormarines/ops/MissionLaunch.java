@@ -281,6 +281,11 @@ public final class MissionLaunch {
             if (!WellhollowBloomCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to Asharu before deploying.");
         }
+        if (LongSurveyCampaign.owns(m.id)) {
+            LongSurveyCampaign.requireCurrent(m);
+            if (!LongSurveyCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to the Long Survey's world before deploying.");
+        }
         boolean enemyHasHeavyArmor = enemyHasHeavyArmor(ctx, m);
         final TargetProfile profile = targetProfile(ctx, m);
 
@@ -327,6 +332,10 @@ public final class MissionLaunch {
                     : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
         } else if (WellhollowBloomCampaign.isBattle(m) && !WellhollowBloomCampaign.isColonyBreach(m)) {
             fixture = WellhollowBloomCampaign.fixture(m, seed, constructionDetachment.shuttleManifest);
+            builder = fixture::build;
+        } else if (LongSurveyCampaign.isBattle(m)) {
+            // Every chapter plays its own seed, whatever the launch rolled (long-survey-arc.md, Seeds).
+            fixture = LongSurveyCampaign.fixture(m, constructionDetachment.shuttleManifest);
             builder = fixture::build;
         } else if (DistrictEscortCampaign.isBattle(m)) {
             String party = DistrictEscortCampaign.partyName(m);
@@ -454,7 +463,8 @@ public final class MissionLaunch {
                 FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
                 FighterWingCommitment.captureRoster(m.enemyFighterSupport));
         String defenderFactionId = SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m)
-                || isCivilianRescueBattle(m) || WellhollowBloomCampaign.isBattle(m) ? "" : profile.factionId();
+                || isCivilianRescueBattle(m) || WellhollowBloomCampaign.isBattle(m) || LongSurveyCampaign.isBattle(m)
+                ? "" : profile.factionId();
         return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder, defenderFactionId,
                 hostileShipFor(m, profile, defenderFactionId, null));
     }
@@ -482,6 +492,7 @@ public final class MissionLaunch {
                 : DistrictEscortCampaign.isBattle(m) ? DistrictEscortCampaign.profile(m)
                 : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m)
                 : WellhollowBloomCampaign.isBattle(m) ? WellhollowBloomCampaign.profile(m)
+                : LongSurveyCampaign.isBattle(m) ? LongSurveyCampaign.profile(m)
                 : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
@@ -631,7 +642,7 @@ public final class MissionLaunch {
             var debugScenario = DebugMissionCatalog.scenario(m);
             if (debugScenario == null) debugScenario = CompletedReplays.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
-                    && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario.wellhollow() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
+                    && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario.wellhollow() == null && debugScenario.longSurvey() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
@@ -652,6 +663,7 @@ public final class MissionLaunch {
             if (agreus) AgreusArcCampaign.begin(m);
             if (escort) DistrictEscortCampaign.begin(m);
             if (WellhollowBloomCampaign.isBattle(m)) WellhollowBloomCampaign.begin(m);
+            if (LongSurveyCampaign.isBattle(m)) LongSurveyCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();
@@ -674,6 +686,7 @@ public final class MissionLaunch {
         if (AgreusArcCampaign.isBattle(m) && AgreusArcCampaign.current() != null)
             AgreusArcCampaign.current().abandon(m.id);
         WellhollowBloomCampaign.abandon(m);
+        LongSurveyCampaign.abandon(m);
     }
 
     /**

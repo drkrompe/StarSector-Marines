@@ -110,7 +110,10 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   feathering materials that also bleed onto an indoor floor of no material of
   its own, which takes no other ground's bleed, so ice on a hall's plate ends
   soft while paving and interiors elsewhere keep their edges
-  (`GroundFeather.COVERINGS`).
+  (`GroundFeather.COVERINGS`). The world's ground a ruin's weather blows in
+  and banks indoors (sand, snow, basalt, ash, sulphur, crust;
+  `mapgen-nouns.md`, The world takes the ruin back) is a covering too, so a
+  world's drift also frays a quarter-cell across any doorway it meets.
 - A **floor trim** is the step where a built floor panel (a ruins hall's raised
   floor or stage) meets any other open floor: the panel keeps a clean cell edge
   and lays its trim strip inside it, half a cell deep and turned to the side it
