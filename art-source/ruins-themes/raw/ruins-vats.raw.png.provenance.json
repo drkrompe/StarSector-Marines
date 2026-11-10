@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2e2-03df-75c1-9461-561a7595464b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2e2-03df-75c1-9461-561a7595464b\\exec-6284ea52-4b20-43a4-b501-1745b4998f09.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-vats.raw.png",
+    "sha256": "fee7d0703023ed4e7d5c51aa00976a8834c0d36ba1dc4c05fb4a14d39791d158",
+    "dimensions": [
+      2111,
+      745
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\vats.prompt.txt",
+  "promptSha256": "143745ea441fcfe2e9b843e39b88e78cc486bb0786ad23515bb27a600831fb81",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for a sci-fi colony ruin, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every prop exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add props. The transparent space between blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Grounded, industrial, weathered, adult military sci-fi; detail that still reads when shrunk to 64 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nBackground: true transparent background with clean alpha, including between props; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubjects, left to right:\n1. culture-vat (2x2 round block): a large round bio-culture vat seen from above: armoured gunmetal ring with clamps and hose ports, a thick clouded glass dome showing murky green-amber nutrient fluid and a dark pale organic mass inside, one cracked glass sector, olive service panel.\n2. grow-bed (wide 2x1 block): a long hydroponic grow trough in a gunmetal frame, dark wet substrate filled with pale, overgrown, slightly mutated stalks and fungal tufts spilling over the rims, thin irrigation pipe along one side.\n3. growth-patch (2x2 irregular blot): a floor decal only, no object: a flat spreading mat of dark-green and ochre biofilm, lichen and creeping tendrils over the floor in the blot shape, feathered translucent edges fading to transparent. No raised geometry.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-vats-guide.png",
+      "sha256": "6325368bb3d876e84f69454011a97f7bca662e451f8a65fb256d6c641054aa34",
+      "dimensions": [
+        2176,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
+      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\galley-cold-store.png",
+      "sha256": "dfc6bed519119245ebb23188f2a6ca002d6cb79807ce479e9d669a4cf8628014",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
+      "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent prop sheet, keeping Image 1’s layout and matching the material style of Images 2–4."
+  ],
+  "usage": {
+    "input_tokens": 53352,
+    "cached_input_tokens": 42112,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 644,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.0
+}

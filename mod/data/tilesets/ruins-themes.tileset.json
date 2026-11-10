@@ -1,0 +1,140 @@
+{
+  "sheet": "graphics/doodads/ruins-themes.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-cryo-rack",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-heatsink",
+      "col": 1,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-culture-vat",
+      "col": 3,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-grow-bed",
+      "col": 5,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-patch-a",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-frost-patch-b",
+      "col": 5,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-growth-patch-a",
+      "col": 3,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-growth-patch-b",
+      "col": 0,
+      "row": 3,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Frozen cryo rack",
+      "description": "A cryoarithmetic engine's computing cabinet, rimed over and still leaking cold light."
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "Frosted heatsink bank",
+      "description": "Upright heat-exchanger fins on a manifold, furred with hoar frost."
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "Culture vat",
+      "description": "An armoured bio-culture vat under a clouded, cracked dome, something pale still in the fluid."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "Overgrown grow bed",
+      "description": "A hydroponic trough gone wild, pale stalks and fungus spilling over its rims."
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "Frost patch",
+      "description": "Floor decal: a thin sheet of hoar frost and cracked ice. Walkable, no cover."
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "name": "Frozen spill",
+      "description": "Floor decal: a frozen coolant puddle crusted with rime. Walkable, no cover."
+    },
+    {
+      "col": 3,
+      "row": 2,
+      "name": "Biofilm patch",
+      "description": "Floor decal: a mat of biofilm, lichen and creeping tendrils. Walkable, no cover."
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "name": "Moss stain",
+      "description": "Floor decal: an uneven stain of slime and moss with root threads. Walkable, no cover."
+    }
+  ]
+}

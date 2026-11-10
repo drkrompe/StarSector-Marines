@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district), one look per
@@ -83,9 +84,23 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
         }
     }
 
+    /** Cells from the HQ a garrison building may stand: more than any cantonment's square is across. */
+    private static final int REACH = 90;
+
+    /** Cells past the military floor a depot building may stand and still be the garrison's. */
+    private static final int DEPOT_REACH = 30;
+
+    private static final Set<RoomPurpose> MILITARY = EnumSet.of(RoomPurpose.BARRACKS, RoomPurpose.KEEP_THRONE,
+            RoomPurpose.MESS_HALL, RoomPurpose.VEHICLE_BAY, RoomPurpose.KEEP_ENTRY, RoomPurpose.ARMORY,
+            RoomPurpose.CONTROL_ROOM, RoomPurpose.HANGAR);
+    private static final Set<RoomPurpose> DEPOT = EnumSet.of(RoomPurpose.STOCKROOM, RoomPurpose.PARTS_CAGE,
+            RoomPurpose.ENGINE_ROOM);
+
     /**
      * The headquarters' middle and the garrison's frame: {hqX, hqY, frameX, frameY, cellsAcross}. The garrison is
-     * the military floor (barracks, HQ, posts, motor pool) within reach of the HQ.
+     * the military floor (barracks, HQ, posts, motor pool, magazines, the flight line's hangars) within {@link #REACH}
+     * of the HQ, and the depot's stores, workshops and generator within {@link #DEPOT_REACH} of that: near enough to
+     * be the garrison's, not the works' beside it.
      */
     private static float[] headquarters(CellTopology topology, int w, int h) {
         long sx = 0, sy = 0, n = 0;
@@ -99,21 +114,32 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
         }
         if (n == 0) return new float[]{w / 2f, h / 2f, w / 2f, h / 2f, w};
         float hx = sx / (float) n, hy = sy / (float) n;
-        int l = w, b = h, r = -1, t = -1;
+        int[] box = {w, h, -1, -1};
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
-                RoomPurpose p = topology.getRoomPurpose(x, y);
-                if (p != RoomPurpose.BARRACKS && p != RoomPurpose.KEEP_THRONE && p != RoomPurpose.MESS_HALL
-                        && p != RoomPurpose.VEHICLE_BAY && p != RoomPurpose.KEEP_ENTRY && p != RoomPurpose.ARMORY
-                        && p != RoomPurpose.CONTROL_ROOM) {
-                    continue;
-                }
-                if (Math.abs(x - hx) > 70 || Math.abs(y - hy) > 70) continue;
-                l = Math.min(l, x); b = Math.min(b, y); r = Math.max(r, x); t = Math.max(t, y);
+                if (!MILITARY.contains(topology.getRoomPurpose(x, y))) continue;
+                if (Math.abs(x - hx) > REACH || Math.abs(y - hy) > REACH) continue;
+                grow(box, x, y);
             }
         }
-        float fx = (l + r) / 2f + .5f, fy = (b + t) / 2f + .5f;
-        float across = Math.max(r - l + 1, (t - b + 1) * 16f / 9f) + 40f;
+        int[] military = box.clone();
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (!DEPOT.contains(topology.getRoomPurpose(x, y))) continue;
+                if (x < military[0] - DEPOT_REACH || x > military[2] + DEPOT_REACH
+                        || y < military[1] - DEPOT_REACH || y > military[3] + DEPOT_REACH) continue;
+                grow(box, x, y);
+            }
+        }
+        float fx = (box[0] + box[2]) / 2f + .5f, fy = (box[1] + box[3]) / 2f + .5f;
+        float across = Math.max(box[2] - box[0] + 1, (box[3] - box[1] + 1) * 16f / 9f) + 24f;
         return new float[]{hx, hy, fx, fy, across};
+    }
+
+    private static void grow(int[] box, int x, int y) {
+        box[0] = Math.min(box[0], x);
+        box[1] = Math.min(box[1], y);
+        box[2] = Math.max(box[2], x);
+        box[3] = Math.max(box[3], y);
     }
 }

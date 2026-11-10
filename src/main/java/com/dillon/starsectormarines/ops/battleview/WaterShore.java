@@ -97,7 +97,7 @@ public final class WaterShore {
         if (ground == GroundKind.WATER) return WATER;
         if (topology.roadSurface() != null && topology.roadSurface().underlay(x, y) != null) return BUILT;
         return switch (ground) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> NATURAL;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> NATURAL;
             default -> BUILT;
         };
     }

@@ -82,7 +82,7 @@ final class GroundMicroHeightSampler {
             if (frames != null) {
                 return sliced(tileReg.tile(GroundTileSelector.natureTileId(kind, gridX, gridY)), frames);
             }
-            return gridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
+            return gridBlock(mapping.groundBlockId(kind, topology.groundPalette()), tileReg, topology, gridX, gridY);
         }
 
         if (kind == CellTopology.GroundKind.STREET || kind == CellTopology.GroundKind.SIDEWALK) {
@@ -97,7 +97,7 @@ final class GroundMicroHeightSampler {
                     : null;
         }
 
-        return gridBlock(mapping.groundBlockId(kind), tileReg, topology, gridX, gridY);
+        return gridBlock(mapping.groundBlockId(kind, topology.groundPalette()), tileReg, topology, gridX, gridY);
     }
 
     private Sample streetFallback(NavigationGrid grid, CellTopology topology,

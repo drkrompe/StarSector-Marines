@@ -53,6 +53,13 @@ public final class NaturalVoidZoning {
     public static final Drop LAVA_RIFT = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(27f, 1.2f), new NaturalVoid.Step(40f, 1.7f)),
             "graphics/battle/voids/basalt-wall.png", 12f);
+    /**
+     * A shallow lava river: a low bank of cooled crust and the melt 4 m down, running so its crust is seen to travel
+     * (owner pick, 2026-11-09, of 2.5, 4 and 8 m). A volcanic world's rift is {@link #LAVA_RIFT}; this is its river.
+     */
+    public static final Drop LAVA_RIVER = new Drop(NaturalVoid.Style.LAVA, List.of(
+            new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
+            "graphics/battle/voids/basalt-wall.png", 12f);
 
     private NaturalVoidZoning() { }
 
@@ -64,7 +71,9 @@ public final class NaturalVoidZoning {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
             case ARID -> CANYON;
-            case ROCK -> DRY_GORGE;
+            // An irradiated world's drop is rock's dry gorge until a glassed wall of its own exists; a toxic world
+            // is cut as rock is until it has a rift of its own (acid floor, vapour).
+            case ROCK, IRRADIATED, TOXIC -> DRY_GORGE;
             // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
             case VOLCANIC -> LAVA_RIFT;
         };

@@ -28,8 +28,8 @@ import java.util.Locale;
  * held by scavengers whose vault keeps a cryoarithmetic engine, so it keeps the old colony's batteries
  * ({@code RuinsBatteries}) on its approach. Built through {@link RuinsBattleFixture} as a launched expedition is, then
  * through the look preset at 1920x1080: the whole map, the approach at twice play zoom, and the middle battery close,
- * dark at landfall ({@code 01-dark}) and awake once the hall is restarted ({@code 02-awake}). Its ground is today's ruins ground: the
- * theme's own interior set is still owed. Prints each battery's cell and state. {@code -Dsnapshot.ruinsBattle.seed}
+ * dark at landfall ({@code 01-dark}) and awake once the hall is restarted ({@code 02-awake}). Then {@code inside/}: each shown theme's vault
+ * room and a chamber, roofs off, wearing its {@code RuinsThemeDressing}. Prints each battery's cell and state. {@code -Dsnapshot.ruinsBattle.seed}
  * (default 7) and {@code -Dsnapshot.ruinsBattle.surface} (ARID).
  */
 public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
@@ -105,8 +105,8 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
         return out;
     }
 
-    /** The themes shown inside: one of each kind of prize, and a reactor site. */
-    private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE,
+    /** The themes shown inside: one of each kind of prize, a growth theme, and a reactor site. */
+    private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE, RuinsVaultTheme.SOIL_NANITES,
             RuinsVaultTheme.SERVER_HALL, RuinsVaultTheme.ARMORY, RuinsVaultTheme.FUSION_LAMP, RuinsVaultTheme.DEPOT);
 
     private static void advance(BattleSimulation sim, float seconds) {

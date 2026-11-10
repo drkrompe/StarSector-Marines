@@ -5,8 +5,8 @@ line is pinned; lava worlds have their own ground; toxic and irradiated worlds
 are open.
 
 Written: 2026-08-31
-Updated: 2026-11-09 — lava worlds have their own ground and the living worlds looks of their own (`LivingWorld`);
-remaining work is distinct toxic and irradiated material families.
+Updated: 2026-11-09 — lava, irradiated and toxic worlds have their own ground and the living worlds looks of
+their own (`LivingWorld`).
 
 ## What this is
 
@@ -124,9 +124,10 @@ worlds are `VERDANT` with a `LivingWorld` look rather than palettes of their own
 (`mapgen-nouns.md`, a living world has a look): every rule the palette owns is
 the same for them, and only what grows and how wet the ground is differs.
 
-**Toxic and irradiated worlds still use `ROCK`.** Splitting each is a palette
-plus a material family; where its layout is rock's, `layoutOf` and
-`paletteGroundRender` make it an art change only, as volcanic is.
+**Irradiated worlds are `IRRADIATED`**, on a ground kind of their own (`HARDPAN`,
+`mapgen-nouns.md`). **Toxic worlds are `TOXIC`**: they restyle `STONE`, `SAND` and
+`WATER` through `paletteGroundRender`, on a sheet of their own, and add ground of
+their own (sludge pools, sulphur flats; `mapgen-nouns.md`).
 
 Types that share a palette are told apart by a surface signature rather than by
 more palettes (`mapgen-nouns.md`, surface signatures): cryovolcanic, bombarded,

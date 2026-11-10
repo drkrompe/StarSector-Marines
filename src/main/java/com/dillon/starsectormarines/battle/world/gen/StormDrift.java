@@ -32,17 +32,17 @@ public final class StormDrift {
     /** The surface a world's storms drift, or null where they drift nothing. */
     public static String driftSurface(SurfacePalette world) {
         return switch (world) {
-            case ARID, ROCK -> "floors.sand";
+            case ARID, ROCK, IRRADIATED -> "floors.sand";
             case FROZEN -> "floors.snow";
             case VOLCANIC -> "volcanic.ash";
+            case TOXIC -> "toxic-ground.sulphur";
             case VERDANT -> null;
         };
     }
 
     /** Banks drifts against every wall's face toward {@code wind}. Returns how many cells were drifted. */
     public static int paint(CellTopology topology, SurfaceField field, StormWind.Side wind) {
-        int dx = wind == StormWind.Side.WEST ? -1 : wind == StormWind.Side.EAST ? 1 : 0;
-        int dy = wind == StormWind.Side.NORTH ? -1 : wind == StormWind.Side.SOUTH ? 1 : 0;
+        int dx = wind.dx, dy = wind.dy;
         int w = topology.getWidth(), h = topology.getHeight(), drifted = 0;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
@@ -68,7 +68,7 @@ public final class StormDrift {
     static boolean drifts(CellTopology topology, int x, int y, int k) {
         if (topology.isWall(x, y) || topology.getSurface(x, y) != 0 || paved(topology.roadSurface(), x, y)) return false;
         return switch (topology.getGroundKind(x, y)) {
-            case DIRT, STONE, SAND, SNOW, GRASS, COURTYARD, BRICK -> true;
+            case DIRT, STONE, SAND, SNOW, HARDPAN, GRASS, COURTYARD, BRICK -> true;
             case STREET, SIDEWALK -> k <= STREET_APRON;
             default -> false;
         };

@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge; a toxic gorge waits for the toxic palette; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -85,6 +85,7 @@ generation, never a battle rule, as an emplacement style is
 | **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
 | **Arid canyon** | Desert worlds, where a living world lays a gorge river: a canyon cut through a sand plain | Banded red and ochre sandstone in terraces, sand lying on the ledges | A dry wash: pale sand braided between gravel bars, boulders fallen from the walls, a dust haze | A stone bridge or a laid plank span |
 | **Dry gorge** | Barren rock worlds, where a living world lays a gorge river: a gorge cut through a stone plain | Grey regolith and bedrock strata, grit on the ledges | Dust and rubble thick with fallen basalt blocks; no water, no haze | A rock bridge or a laid plank span |
+| **Toxic gorge** | Toxic worlds, where a living world lays a gorge river | Corroded olive rock in strata, sulphur crusted on the ledges, weeping stains | Acid sludge creeping down the gorge, crust along the walls, bubbles, yellow-green fumes | A rock bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
@@ -514,6 +515,52 @@ Laws):
      them for comparison. Drops keep their sheer walls: the player looks
      down into them, not out of them. Left: the owner's pick of how wide and
      how many terraces (`BANK_CELLS`, `BANK_TERRACES`, UNTUNED).
+
+   **The crevasse town** (owner, 2026-11-09: "a plausible 'habitable' region
+   for cold planets ... a settlement might have built itself into a massive
+   crevasse to shelter from the planet's winds / storms"). A frozen world's
+   town on the floor of a great crevasse, the battle fought among its
+   streets, the crevasse's walls rising along both sides. Look suite:
+   `createSnapshots -Psnapshot=crevasse-town-look` (an Assault on a remote
+   garrison and on a town, `-Dbattle.mapgen.crevasseTowns=1`).
+   - **The ice wall.** A rise of style `ICE_WALL`: the terraced bank in the
+     crevasse's ice (the glacial crevasse's wall image), snow drifted on every
+     terrace, the top a wind-scoured snowfield with blue ice blown bare along
+     its rim (`IceVoidLook.snowfield`). Its shadow on the snow floor is the
+     sky's blue, lighter than on rock. The gale streams snow off every lip it
+     leaves for the crevasse, high over the floor and settling only a little
+     (`GlacialVoidRenderSystem`, rising); on the floor no snow drives: the
+     town lies out of the wind. `-Dsnapshot.ravine.ice=true` draws the
+     ravine suite in ice.
+   - **Decided with the plan.** On a frozen world half of the derived maps
+     (`CrevasseTown.CHANCE`, UNTUNED; `-Dbattle.mapgen.crevasseTowns`) hold
+     two bands of relief `ICE_WALL` along a pair of opposite edges before
+     anything is laid (`CrevasseTown.shelter`, from
+     `BattleSetup.precinctPlanFor` and `conquestPlanFor`): along the long
+     edges, or for a conquest along its axis, so the attack runs down the
+     floor rather than over a wall. Held ground, as a rim round a settlement
+     is (`Landscape.held`): the town, its roads and its fields grow on the
+     floor between them. The ordinary settlement and precinct programs lay
+     the town; nothing new builds it, and a frozen world's own building
+     style (the per-palette settlement adaptation, FROZEN: insulated, compact,
+     heated blocks) is what it builds.
+   - **The walls raised.** The landscape pass raises those bands as the ice
+     rise, never as hills (`CrevasseShelter`): in from each edge about 17
+     cells, wandering, on the open ground the town left there (yards and
+     verges as well as wild ground, never a building, door, fixture or road),
+     notched by a pass wherever the town, the landing, a spawn or a route
+     reaches the edge. Proved as a drop is: every stretch of walkable ground
+     connected before stays connected, dead ground behind a wall (600 cells
+     or fewer) is taken into it, and anything else refuses the walls; a map
+     whose walls would stand along less than half of their edges keeps none.
+     A crevasse town lays no other drop.
+   Next (slice 2): buildings stepped into the banks, each terrace a walkable
+   tier (elevation's terraces, `elevation-nouns.md`) with stairs, ramps and
+   lifts between them, enclosed walkways crossing the floor, heat and glow
+   from below (lit windows, vents steaming in the cold), and the walls
+   taller and wider for "huge": the owner's pick of the bank. Left: a
+   compound that runs to an edge still breaks its wall; the garrison could
+   be held off the bands as the town is.
    First pass (ravine wall): the gorge's strata wall, two ledges and the top
    36 m up, camera 120 m. Left: the owner's pick of height; a top with real
    art (a canopy image rather than flat colour, which blurs as the top scales
@@ -582,8 +629,9 @@ Laws):
    margin in the wide shot, as the gorge's water does.
    - **A lava river** (owner, 2026-11-09: "the lava river might look good with
      flow and not need a 40m drop"): the same style set shallow, a low bank of
-     cooled crust and the melt 4 m down (`LavaVoidLookSuite.river`), a valid
-     `NaturalVoid` with no new rule. A shallow melt runs where a deep one
+     cooled crust and the melt 4 m down (`NaturalVoidZoning.LAVA_RIVER`), a
+     valid `NaturalVoid` with no new rule. The owner picked 4 m from 2.5, 4
+     and 8 m (2026-11-09): the river's standing depth. A shallow melt runs where a deep one
      pools: the crust's drift and the heat's run quicken from a 24 m melt's
      crawl (0.22 cells a second, the rift's) to a 4 m channel's run (1.1)
      (`LavaVoidLook.runShare`, `MoltenVoidRenderSystem.crustSpeed`), so the
@@ -690,6 +738,29 @@ Laws):
    across. Left: the owner's pick of depth; dust sifting off the lip;
    impact-shattered blocks bigger than the field stones.
 
+   **Toxic gorge** (owner, 2026-11-09: a drop for every ground palette,
+   including the new toxic one): style `TOXIC`. Look suite:
+   `createSnapshots -Psnapshot=toxic-void-look` (`-Dsnapshot.toxic.depth`,
+   `.eyes`, `.stillsOnly`), its plain the toxic ground's crust where that
+   tileset is in the mod and plain stone until then.
+   - Wall image `toxic-wall.png`: acid-pitted olive and khaki strata, sulphur
+     crusts caked along the ledges, chartreuse and rust stains weeping down,
+     pale efflorescence (`art-source/voids/toxic/`).
+   - The walls and ledges are the dry rules with the toxic palette
+     (`DryVoidLook.TOXIC`): olive strata, sulphur on the ledges, the lip going
+     over to the crust's own tone.
+   - **The floor** (`ToxicVoidFloor`): acid sludge creeping down the gorge
+     along the channel's own flow (`ChannelFlow`), far slower than water, scum
+     drifting on it; dried sulphur crust along the walls' feet with a wet rim
+     where the sludge laps it; bubbles swelling and bursting out in the
+     sludge, never in the crust. Two decks of yellow-green fumes lie over it,
+     drifting different ways.
+   - **Battle.** Unchanged: no hazard (as the lava rift's heat, undecided).
+   First pass: three ledges to sludge 34 m down, a gorge 10 to 22 cells
+   across. Left: the owner's look against the real toxic ground, once it is
+   on main; the zoning row (`NaturalVoidZoning`) when the TOXIC palette lands;
+   fumes rising off the lip; a faint glow off the sludge at dusk.
+
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
    than one dig). A made drop, not an eroded one: an open-cut mine beside a
@@ -720,7 +791,7 @@ Laws):
    - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
      and also built onto the grid system", its legs giving cover). From the
      first ground cell past the tower, `OreLine` finds a course on the grid to
-     the ore mill's wall: straight runs turning only at right angles, over open
+     the receiving house's wall: straight runs turning only at right angles, over open
      ground, roads and walls but never a building or the pit, a turn costing
      eight cells of run. Its pieces (`ore-conveyor` sheet: straight, corner,
      drive) are overhead props drawn in the roof pass above the people walking
@@ -729,6 +800,18 @@ Laws):
      straight run, where a solid prop blocks no road, doorway, route or ground
      (the landscape pass's reservations and `PlacementGuards`): a fixture
      giving medium cover.
+   - **The processing chain** (owner, 2026-11-09: the belt "pulling ore to a
+     processing facility with burners to refine the ore", the facility "a
+     series of buildings that again plausibly make sense"; real buildings,
+     dressed). The head works is the chain the ore passes through
+     (`RaidWorksPrograms.mine`): receiving, stockpile, one mill line per
+     machine (the raid's machines), smelter, loadout, each a real building the
+     battle enters. The ore line links them in that order, each link from the
+     wall of one hall nearest the next, never through a hall or a link already
+     laid; a link that would wander more than twice its straight distance plus
+     twelve cells is left out. Inside the works its legs keep off roads and
+     doorways. Next: roof dressing by role (stacker and heaps, mill drums,
+     furnace grilles and stacks), the smelter's burner glow and stack smoke.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -758,7 +841,10 @@ Laws):
      concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
-   (to the stores, or from the shafts); dust over the working bench.
+   (to the stores, or from the shafts); dust over the working bench; the
+   receiving house on the pit's side of the works, so the pit's line need not
+   wrap round the compound; a shared trunk where one hall feeds several, not a
+   line each.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
@@ -833,7 +919,8 @@ Laws):
    on each palette, `-Dbattle.mapgen.naturalVoids=1`).
    - **Which style.** One table beside `SurfaceZoning`,
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
-     glacial crevasse, arid the canyon, rock the dry gorge, and a molten palette the lava
+     glacial crevasse, arid the canyon, rock and irradiated the dry gorge (irradiated
+     until a glassed wall of its own exists), and a molten palette the lava
      rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it

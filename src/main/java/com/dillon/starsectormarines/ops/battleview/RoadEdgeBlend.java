@@ -15,7 +15,7 @@ final class RoadEdgeBlend {
     private static boolean background(CellTopology t,int x,int y) {
         if(!t.inBounds(x,y) || t.isWall(x,y)) return false;
         return switch(t.getGroundKind(x,y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW, COURTYARD, SIDEWALK, RUBBLE -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN, COURTYARD, SIDEWALK, RUBBLE -> true;
             default -> false;
         };
     }

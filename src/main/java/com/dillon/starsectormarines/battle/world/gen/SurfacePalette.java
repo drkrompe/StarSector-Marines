@@ -53,7 +53,28 @@ public enum SurfacePalette {
      * so a seed makes the same map on either ({@link #layoutOf}). What differs is art: the basalt finish, the basalt
      * formations, the dark scoria field stones and the fissures and ash drawn over the ground.
      */
-    VOLCANIC(false, GroundKind.STONE);
+    VOLCANIC(false, GroundKind.STONE),
+
+    /**
+     * Scorched, bleached and glassed: cracked hardpan fused to glass in patches, with the dead husks of whatever
+     * stood on it. Rocks scatter; nothing grows.
+     *
+     * <p>Vanilla's {@code irradiated} type used to fall through to {@link #ROCK} and read as the same grey regolith
+     * as a barren moon. Hard radiation at the surface is a different picture: the ground has been burnt white and
+     * the light is pale and harsh. It bears no open water.
+     */
+    IRRADIATED(false, GroundKind.HARDPAN),
+
+    /**
+     * A toxic world: corroded, chemically stained rock with crusted sulphur flats and pools of acid sludge. Rocks
+     * scatter; nothing grows.
+     *
+     * <p>Its ground is ordinary {@link GroundKind#STONE}, {@link GroundKind#SAND} for the sulphur flats and
+     * {@link GroundKind#WATER} for the sludge, each drawn from the palette's own art
+     * ({@code GenMappingRegistry.groundBlockId(GroundKind, SurfacePalette)}), so the sludge is impassable exactly as
+     * water is and every rule about stone holds. It bears no open water: the pools are {@link #bearsSludge() sludge}.
+     */
+    TOXIC(false, GroundKind.STONE);
 
     private final boolean openWater;
     private final GroundKind approachGround;
@@ -99,6 +120,15 @@ public enum SurfacePalette {
         return this == VERDANT ? GroundKind.GRASS : approachGround;
     }
 
+    /**
+     * Whether pools of standing chemical sludge and crusted sulphur flats lie on this world's wild ground. The pools
+     * are {@link GroundKind#WATER} cells drawn as sludge, impassable as water is; the flats are
+     * {@link GroundKind#SAND} drawn as sulphur crust. Neither harms anyone: hazard is not a ground rule.
+     */
+    public boolean bearsSludge() {
+        return this == TOXIC;
+    }
+
     /** The field-stone set lying loose on this ground; the mapping's rock pools for this palette name the same set. */
     public RockDamage.Biome stones() {
         return switch (this) {
@@ -107,6 +137,8 @@ public enum SurfacePalette {
             case ROCK -> RockDamage.Biome.BASALT;
             case FROZEN -> RockDamage.Biome.FROST;
             case VOLCANIC -> RockDamage.Biome.SCORIA;
+            case IRRADIATED -> RockDamage.Biome.GLASSED;
+            case TOXIC -> RockDamage.Biome.TOXIC;
         };
     }
 

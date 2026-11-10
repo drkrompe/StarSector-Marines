@@ -1,0 +1,16 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of the sheer wall of a
+gorge on a toxic world, as it would be mapped onto a vertical cliff.
+Corroded, chemically stained bedrock: horizontal strata running across the
+tile in bands of uneven thickness, dark olive-grey and khaki rock eaten
+into pitted, etched ledges by acid; bright sulphur-yellow mineral crusts
+caked along the ledges and seams; sickly yellow-green and chartreuse stains
+weeping down across the strata from seeps, with rust-orange and ochre
+leaching streaks beside them; patches of white and pale green crystalline
+efflorescence; a few dark wet seeps where sludge has run down. Fine
+fractures, small blistered pits. Lit evenly by soft neutral light from
+straight in front, no cast shadows from outside the tile, no glow, no
+bright glare. Even density across the whole tile with no focal point, so
+it repeats horizontally and vertically. Palette: olive grey, khaki,
+sulphur yellow, chartreuse, rust orange, dirty white. No sky, no plants, no
+people, no text, no border, no vignette. Square canvas.

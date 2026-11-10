@@ -25,12 +25,8 @@ public final class FormationBrush {
     }
 
     public static void scatter(GenContext c, SurfacePalette surface, boolean[] reserved) {
-        if(surface.layoutOf()!=SurfacePalette.ROCK && surface!=SurfacePalette.FROZEN) return;
-        boolean ice=surface==SurfacePalette.FROZEN;
-        // Basalt keeps rock's shapes in rock's order, so a volcanic seed draws and blocks exactly as a rock one does.
-        MineralFormation[] pool=ice?new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES}
-                :surface==SurfacePalette.VOLCANIC?new MineralFormation[]{MineralFormation.BASALT_BOULDERS,MineralFormation.BASALT_SPIRES}
-                :new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
+        MineralFormation[] pool=pool(surface);
+        if(pool.length==0) return;
         Random random=new Random(c.seed^0x4d494e4552414cL);
         PatchField patches=new PatchField(c.seed^0x535049524553L,17);
         List<int[]> candidates=new ArrayList<>();
@@ -46,8 +42,7 @@ public final class FormationBrush {
             boolean fits=true;
             for(int y=p.y();y<p.y()+p.height() && fits;y++) for(int x=p.x();x<p.x()+p.width();x++) {
                 if(!p.blocks(x,y))continue;
-                boolean material=ice?c.topology.getGroundKind(x,y)==CellTopology.GroundKind.SNOW
-                        :switch(c.topology.getGroundKind(x,y)) {case STONE,DIRT -> true;default -> false;};
+                boolean material=standsOn(surface,c.topology.getGroundKind(x,y));
                 if(!material || patches.sample(x,y)>.52f || closed[y*c.width+x]
                         || !eligible(c.grid,c.topology,reserved,x,y)) {fits=false;break;}
             }
@@ -57,6 +52,32 @@ public final class FormationBrush {
                 if(p.blocks(x,y))closed[y*c.width+x]=true;
         }
         stamp(accepted,c.grid,c.topology,c.doodads,reserved);
+    }
+
+    /**
+     * The formations a world's wild ground grows, or none: boulders and spires on bare rock, ice on frozen worlds,
+     * dead husks on irradiated ones. Living and arid worlds keep their open ground.
+     */
+    public static MineralFormation[] pool(SurfacePalette surface) {
+        if(surface==null) return new MineralFormation[0];
+        return switch(surface) {
+            // A toxic world's stained rock stands in the same boulders and spires as bare rock does.
+            case ROCK, TOXIC -> new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
+            case FROZEN -> new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES};
+            // Basalt keeps rock's shapes in rock's order, so a volcanic seed draws and blocks exactly as a rock one does.
+            case VOLCANIC -> new MineralFormation[]{MineralFormation.BASALT_BOULDERS,MineralFormation.BASALT_SPIRES};
+            case IRRADIATED -> new MineralFormation[]{MineralFormation.HUSKS,MineralFormation.HUSK_SPIRES};
+            default -> new MineralFormation[0];
+        };
+    }
+
+    /** Whether a world's formations stand on this ground: each only on its own world's wild ground. */
+    static boolean standsOn(SurfacePalette surface,CellTopology.GroundKind ground) {
+        return switch(surface) {
+            case FROZEN -> ground==CellTopology.GroundKind.SNOW;
+            case IRRADIATED -> ground==CellTopology.GroundKind.HARDPAN;
+            default -> ground==CellTopology.GroundKind.STONE || ground==CellTopology.GroundKind.DIRT;
+        };
     }
 
     /** All-or-nothing placement, also available to authored maps without procedural scatter. */
@@ -88,8 +109,8 @@ public final class FormationBrush {
         props.addAll(additions);
     }
 
-    private static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
-        boolean natural=switch(topology.getGroundKind(x,y)){case STONE,DIRT,SNOW,SAND,GRASS -> true;default -> false;};
+    static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
+        boolean natural=switch(topology.getGroundKind(x,y)){case STONE,DIRT,SNOW,SAND,GRASS,HARDPAN -> true;default -> false;};
         if(!natural || !grid.isWalkable(x,y) || grid.isDoorway(x,y) || topology.isWall(x,y) || topology.isFixture(x,y)
                 || topology.getBuildingId(x,y)!=0 || topology.getSurface(x,y)!=0
                 || (reserved!=null && reserved[y*grid.getWidth()+x])

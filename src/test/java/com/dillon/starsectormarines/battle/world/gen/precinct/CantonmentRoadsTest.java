@@ -40,6 +40,7 @@ class CantonmentRoadsTest {
             }
         }
         assertEquals(GrownTrunkPlan.UNOWNED, owner[19][20], "and only from the middle out");
+        assertEquals(1, owner[40][20], "it ends on the town's road, joining that network");
         for (int y = 3; y < 10; y++) assertEquals(GrownTrunkPlan.UNOWNED, owner[20][y], "not south as well");
     }
 
@@ -47,8 +48,16 @@ class CantonmentRoadsTest {
     void aSquareSlidesTheLeastItTakesOffGroundAnotherPlaceHolds() {
         int[][] claim = grid(GrownTrunkPlan.UNOWNED);
         for (int x = 0; x < 20; x++) for (int y = 0; y < 20; y++) claim[x][y] = 0;   // the works
-        assertArrayEquals(new int[]{20, 5}, PrecinctClaim.clearSquare(claim, 20, 10, 5, W, H));
-        assertArrayEquals(new int[]{30, 5}, PrecinctClaim.clearSquare(claim, 20, 30, 5, W, H), "clear stays put");
+        assertArrayEquals(new int[]{20, 5}, PrecinctClaim.clearSquare(claim, null, 20, 10, 5, W, H));
+        assertArrayEquals(new int[]{30, 5}, PrecinctClaim.clearSquare(claim, null, 20, 30, 5, W, H), "clear stays put");
+    }
+
+    @Test
+    void aSquareSlidesOffGroundTheLandscapeHoldsAsIfAnotherPlaceHeldIt() {
+        int[][] claim = grid(GrownTrunkPlan.UNOWNED);
+        boolean[][] held = new boolean[W][H];
+        for (int x = 40; x < W; x++) for (int y = 0; y < H; y++) held[x][y] = true;   // a storm bank's windward band
+        assertArrayEquals(new int[]{20, 5}, PrecinctClaim.clearSquare(claim, held, 20, 30, 5, W, H));
     }
 
     private static int[][] grid(int fill) {
