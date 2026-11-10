@@ -65,6 +65,13 @@ upright crucible's), its control core housed on its west flank and its spout flu
 cut free on its skid, `furnace-core`, 3x3. Its guide is drawn at 112 px a cell (`make_guide.FAMILY_CELL`) so the
 whole crucible is one block-out ImageGen takes at once.
 
+The pour line (`forge-line`, 160 px a cell) shares that sheet: the 6x7 tapping furnace, its taphole and spout trough
+running to its south edge (`tapping-furnace-melt`); the 3x3 ladle on its crane hook, upright (`ladle-hook-melt`)
+and tipped mid-pour (`ladle-hook-tipped-pour`), with no cover since it hangs overhead; the 2x3 ore car and its
+derailed state; the 2x4 cooling rack, empty and with castings; the 2x2 fettling bench, inspection table, pour head
+and mould master (the b3 hauls); and the 7x1 fallen crane girder. Their hazard trim is muted as the spool drum's is,
+and their melt graded as the crucible's.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.
