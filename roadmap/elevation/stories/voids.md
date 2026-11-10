@@ -574,8 +574,13 @@ Laws):
    **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
    get that partially 3d look"; kept for every building). The rise's pinhole
    camera turned on buildings (`BuildingFaces`): each building's roof is
-   lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
-   and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
+   lifted to its eave at the height of what it was built as
+   (`BuildingFaces.heightClass`, the one place it is decided; an author's
+   height from the map patch would go there): sheds, huts and pillboxes a low
+   3.2 m storey; homes one to three storeys, mostly two; stores one, shops two;
+   works one tall bay, the biggest tall works at 15 m; civic halls two or
+   three; a sealed town's blocks a storey higher; a tower's room a tower. Each
+   building's own number steps a street up and down (UNTUNED). It is scaled about the view's centre as a rise's top is,
    and each wall turned to the camera is a face from its foot to the eave,
    tinted from the building's own and lit by its side. A wall turned away lies under its own roof. All faces
    are drawn before all roofs. A face is built on the outline of the roof as
@@ -714,12 +719,16 @@ Laws):
      whose look alone changes (`LavaFlowShading`, one shader pass: the crust
      image laid dark, its cracks glowing by the heat, the margin a curve where
      the flow's blurred cover crosses a half, lobed and frayed by noise, never
-     the cells' steps), and they
+     the cells' steps, a flow's root running on into the melt so it meets
+     the river's lip as a curve), and they
      keep the landscape's later features off what they buried. The owner picked
      the river with its older flows (2026-11-10, of the rift, the river, the
      river with its flows and the flows alone): a volcanic world's drop is the
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
-     it. Look suite `lava-flow-look`.
+     it. Its scorched lip is laid whole out to the fray's wandering end, and
+     the fray lies on the drop's own cells outside the smoothed edge, so the
+     bank shows no cell steps (`NaturalVoidField`). Look suite
+     `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so
        the melt is seen to run down past it (`LavaBerm.source`,

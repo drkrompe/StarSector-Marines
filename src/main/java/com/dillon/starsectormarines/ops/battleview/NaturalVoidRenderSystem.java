@@ -325,12 +325,15 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it; a
                 // crevasse's cornice and a dry drop's rim go over to the plain's own tone, so their end needs no
                 // fading. A partly covering piece would also thin the ground target's alpha, read as shade.
-                if ((lava || ice || frozenRise || dry != null) && at[o + 7] < 1f) continue;
+                // A lava rift's lip is laid whole out to the fray's wandering end, so its hard edge is that smooth
+                // line, well past the cells' stair steps the drop's own edge would otherwise show.
+                float cover = lava ? 1f : at[o + 7];
+                if ((ice || frozenRise || dry != null) && cover < 1f) continue;
                 // A foundry's kerb is a laid strip (below), not rock fraying onto the floor.
                 if (foundry) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
-                        frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
+                        frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], cover * alpha);
             }
             // A rise's shadow over the floor at its foot, and over the fray.
             NaturalVoidField.Band shade = field.floorShade;

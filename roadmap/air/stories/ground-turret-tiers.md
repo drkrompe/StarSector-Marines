@@ -202,10 +202,11 @@ Presentation only, so a battle plays the same with or without them:
   it throws sparks too.
 - **Night light.** The muzzle flash already lights the ground around a turret in the live game.
 - **Plinth shadow.** A hardpoint's plinth is a block of its tiers in the ground relief's height
-  field (`CellTopology.getPlinthTiers` over the footprint, read by `MacroReliefField`), so the sun
-  composite casts it exactly as it casts a wall: same direction, same reach per metre, about five
-  cells from a 4 m plinth at the default sun. The block goes with the structure; its rubble casts
-  nothing.
+  field (`CellTopology.getPlinthTiers` over the footprint, `MacroReliefField.plinthTopMeters`), so
+  the sun composite casts it exactly as it casts a wall: same direction, same reach per metre,
+  about five cells from a 4 m plinth at the default sun. The block is raised over the painted foot
+  (`PlinthFoot`, the guide's 0.12 to 2.72 cells), not the whole footprint, so the shadow meets the
+  painted walls. The block goes with the structure; its rubble casts nothing.
 
 `createSnapshots -Psnapshot=ground-turret-look` plays a `firing-<style>` shot with all of it
 (`-Dsnapshot.groundTurrets.firingSeconds=30` for long enough to see the scorch build up).

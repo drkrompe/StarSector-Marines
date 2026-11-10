@@ -290,6 +290,61 @@ public enum VehicleType {
         @Override public Stance engagementStance() { return Stance.AMBUSH; }
         @Override public ArmorArcs.Profile armorArcs() { return arcs(FIELD_RIG_ARCS); }
     },
+    /**
+     * The midline row's light articulated carrier ({@code mech-lines.md}, Midline; {@code convoy-nouns.md}, the
+     * articulated carriers): a short drive cab and one mission module on four wheels, joined by a hinge that bends to
+     * steer. Its body has no gun (law 4: machines are modular): the mission module carries one empty socket, the small
+     * one-row omni card, and whatever is fitted stands on it. Light weight, a Light lift. Plate between the militia
+     * technical's and the hover scout's; every figure first-pass and UNTUNED (art-source/vehicles/midline-carriers).
+     */
+    LIGHT_CARRIER("graphics/battle/vehicles/midline-carrier-light.png", 0, 4, -90f,
+            0, MidlineCarriers.LIGHT_DRAWN, 2.76f, 1.22f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
+            1, 0f, -.55f, 0f, 0f, .56f, -90f,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 360f, 115f, 7.5f, 1.3f, .65f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.7f, 32f, 180f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public Articulation articulation() { return MidlineCarriers.LIGHT; }
+        @Override public float turretRingShareOfWidth() { return .56f / 1.22f; }
+    },
+    /**
+     * The midline row's medium articulated carrier: a drive cab and a longer mission module on six wheels. Its module
+     * carries the two-row omni card on a large socket and, aft of it on the spine, one secondary mount
+     * ({@link #secondaryMounts}), each drawn bare until a gun stands on it. Medium weight, a Medium lift; plate between
+     * the APC's and the drone skimmer's, and wheels that out-run the tracked Scorpion on the same lift. First-pass and
+     * UNTUNED.
+     */
+    MEDIUM_CARRIER("graphics/battle/vehicles/midline-carrier-medium.png", 0, 4, -90f,
+            0, MidlineCarriers.MEDIUM_DRAWN, 3.78f, 1.42f, 3.8f, 1.8f, 3.6f, .8f, 2.6f,
+            1, 0f, -.34f, 0f, 0f, .76f, -90f,
+            TurretCatalogRegistry.TANK_MEDIUM_CANNON_STRUCTURE_ID, 300f, 135f, 13f, 1.3f, .8f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.2f, 30f, 150f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public Articulation articulation() { return MidlineCarriers.MEDIUM; }
+        @Override public float turretRingShareOfWidth() { return .76f / 1.42f; }
+        @Override public List<VehicleMount> secondaryMounts() { return MidlineCarriers.MEDIUM_SECONDARIES; }
+    },
+    /**
+     * The midline row's heavy articulated carrier: three modules in a chain, the drive cab, a power module and a long
+     * mission module, on eight wheels. The mission module carries the three-row omni card on its large socket, with a
+     * secondary mount fore and aft of it on the spine. Heavy weight, so it opens ordinary walls as every heavy hull
+     * does; a Heavy lift. Plate between the Onager line's and the heavy skimmer's, and no shield. First-pass and
+     * UNTUNED.
+     */
+    HEAVY_CARRIER("graphics/battle/vehicles/midline-carrier-heavy.png", 0, 4, -90f,
+            0, MidlineCarriers.HEAVY_DRAWN, 4.97f, 1.7f, 3.0f, 1.3f, 3.0f, .8f, 3.0f,
+            1, 0f, -1.365f, 0f, 0f, .9f, -90f,
+            TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 640f, 430f, 15f, 1.35f, 1.0f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.8f, 30f, 120f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public Articulation articulation() { return MidlineCarriers.HEAVY; }
+        @Override public float turretRingShareOfWidth() { return .9f / 1.7f; }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        @Override public List<VehicleMount> secondaryMounts() { return MidlineCarriers.HEAVY_SECONDARIES; }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
             0, 4.8f, 4.5f, 1.3f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
@@ -344,6 +399,39 @@ public enum VehicleType {
      * lists them; empty for every hull with one gun.
      */
     public List<VehicleMount> secondaryMounts() { return List.of(); }
+
+    /**
+     * How this hull is cut into a cab and trailing modules that bend at their hinges ({@link Articulation},
+     * {@link TrailerKinematic}), or null for a rigid hull: the midline carriers. Drawing only; the hull moves as one
+     * body.
+     */
+    public Articulation articulation() { return null; }
+
+    /** Whether this hull is one of the midline row's articulated carriers. */
+    public boolean isMidlineCarrier() { return articulation() != null; }
+
+    /**
+     * The midline carriers' sheet registration and mounts (art-source/vehicles/midline-carriers/pack.py, which prints
+     * these figures): drawn lengths, the hinges and axle centres along the straight hull, and the secondary sockets on
+     * each mission module's spine.
+     */
+    private static final class MidlineCarriers {
+        static final float LIGHT_DRAWN = 3.0f, MEDIUM_DRAWN = 4.0227f, HEAVY_DRAWN = 5.2045f;
+        static final Articulation LIGHT = new Articulation(new float[]{.2f}, new float[]{.86f, -.78f});
+        static final Articulation MEDIUM = new Articulation(new float[]{.6f}, new float[]{1.33f, -.765f});
+        static final Articulation HEAVY =
+                new Articulation(new float[]{1.155f, -.055f}, new float[]{1.905f, .545f, -1.345f});
+        static final List<VehicleMount> MEDIUM_SECONDARIES =
+                List.of(new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 0f, -1.34f, false));
+        static final List<VehicleMount> HEAVY_SECONDARIES = List.of(
+                new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 0f, -.605f, false),
+                new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 0f, -2.165f, false));
+        /** A secondary socket's diameter, cells, as painted. */
+        static final float SECONDARY_RING_CELLS = .4f;
+    }
+
+    /** The diameter of the painted socket a secondary mount stands on, cells; zero for a hull that paints none. */
+    public float secondaryRingCells() { return isMidlineCarrier() ? MidlineCarriers.SECONDARY_RING_CELLS : 0f; }
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
     public float turretRecoilCells() { return 0f; }
@@ -643,14 +731,16 @@ public enum VehicleType {
     }
 
     /**
-     * The hull's weight class: the pickups, Tri-Tachyon's light and medium skimmers and haulers are light, the APC
-     * lines and the missile carriers medium, the laser and medium tanks and the heavy skimmer heavy, and the Onager
-     * ultra-heavy.
+     * The hull's weight class: the pickups, Tri-Tachyon's light and medium skimmers, the light carrier and haulers are
+     * light, the APC lines, the missile carriers and the medium carrier medium, the laser and medium tanks, the heavy
+     * skimmer and the heavy carrier heavy, and the Onager ultra-heavy.
      */
     public Weight weight() {
         if (this == BREAKTHROUGH_TANK) return Weight.ULTRA_HEAVY;
-        if (this == LASER_TANK || this == MEDIUM_TANK || this == HEAVY_SKIMMER) return Weight.HEAVY;
-        if (isApc() || this == SRM_TECHNICAL) return Weight.MEDIUM;
+        if (this == LASER_TANK || this == MEDIUM_TANK || this == HEAVY_SKIMMER || this == HEAVY_CARRIER) {
+            return Weight.HEAVY;
+        }
+        if (isApc() || this == SRM_TECHNICAL || this == MEDIUM_CARRIER) return Weight.MEDIUM;
         return Weight.LIGHT;
     }
 
@@ -712,7 +802,7 @@ public enum VehicleType {
      * ({@link #turretHead}) shows the head with nothing in its slot, and every other hull still carries the gun its
      * sheet was drawn with.
      */
-    public boolean hasModularTurret() { return this == LASER_TANK || this == HEAVY_SKIMMER; }
+    public boolean hasModularTurret() { return this == LASER_TANK || this == HEAVY_SKIMMER || isMidlineCarrier(); }
 
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
     /**
@@ -752,8 +842,12 @@ public enum VehicleType {
     public MechWeaponComponent standardPart() {
         return switch (this) {
             case LASER_TANK, HEAVY_SKIMMER -> MechWeaponComponent.PL_3;
-            case BREAKTHROUGH_TANK -> MechWeaponComponent.HC_20;
+            case BREAKTHROUGH_TANK, HEAVY_CARRIER -> MechWeaponComponent.HC_20;
             case MEDIUM_TANK -> MechWeaponComponent.HC_10;
+            // The midline carriers' stock guns, first-pass: mixed mounts, a light pulse laser on the light, an
+            // autocannon on the medium, the heavy cannon on the heavy.
+            case LIGHT_CARRIER -> MechWeaponComponent.PL_1;
+            case MEDIUM_CARRIER -> MechWeaponComponent.AC_6;
             default -> ownGun();
         };
     }
@@ -792,6 +886,7 @@ public enum VehicleType {
     public MechWeaponComponent ownGun() {
         if (this == BREAKTHROUGH_TANK) return MechWeaponComponent.HC_20;
         if (this == MEDIUM_TANK) return MechWeaponComponent.HC_10;
+        if (isMidlineCarrier()) return null;
         return TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID.equals(turretStructureId) && turretFrame >= 0
                 ? MechWeaponComponent.LIGHT_MACHINE_GUN : null;
     }
@@ -891,6 +986,20 @@ public enum VehicleType {
 
     /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
+        Articulation joints = articulation();
+        if (joints != null) {
+            // Rows of four equal frames: the whole hull's, then its segments' (art-source/vehicles/midline-carriers).
+            int rows = joints.sheetRows();
+            if (detected.sheetWidth % 4 != 0 || detected.sheetHeight % rows != 0) {
+                throw new IllegalArgumentException("Registered carrier sheet must hold equal frames in rows of four");
+            }
+            int w = detected.sheetWidth / 4, h = detected.sheetHeight / rows;
+            SpriteSheetFrames.Frame[] frames = new SpriteSheetFrames.Frame[4 * rows];
+            for (int i = 0; i < frames.length; i++) {
+                frames[i] = new SpriteSheetFrames.Frame((i % 4) * w, (i / 4) * h, w, h);
+            }
+            return new SpriteSheetFrames(detected.sheetWidth, detected.sheetHeight, frames);
+        }
         if (detected.sheetWidth % frameCount != 0) {
             throw new IllegalArgumentException("Registered vehicle sheet must contain equal horizontal frames");
         }
@@ -1034,9 +1143,10 @@ public enum VehicleType {
      */
     public LiftClass liftClass() {
         return switch (this) {
-            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
-            case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER, MEDIUM_TANK -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, LASER_TANK, HEAVY_SKIMMER -> LiftClass.HEAVY;
+            case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL, LIGHT_CARRIER -> LiftClass.LIGHT;
+            case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER, MEDIUM_TANK, MEDIUM_CARRIER ->
+                    LiftClass.MEDIUM;
+            case BREAKTHROUGH_TANK, LASER_TANK, HEAVY_SKIMMER, HEAVY_CARRIER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

@@ -49,6 +49,8 @@ class VehicleDurabilityIntegrationTest {
                 case MILITIA_TECHNICAL, SUPPLY_TRUCK, SCOUT_CAR, SRM_TECHNICAL -> .9875f;
                 case CARGO_CARRIER -> .75f;
                 case HOVER_SCOUT, DRONE_SKIMMER, HEAVY_SKIMMER -> EffectsService.hoverFanAftCells(type.drawnLengthCells);
+                // A carrier's engine burns in its drive cab, ahead of the centre.
+                case LIGHT_CARRIER, MEDIUM_CARRIER, HEAVY_CARRIER -> -type.articulation().axleY()[0];
             };
             assertEquals(12 + rearOffset, engine.x, .001f);
             assertEquals(7f, engine.y, .001f);
