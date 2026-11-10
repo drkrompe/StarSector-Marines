@@ -27,7 +27,7 @@ public final class BspPartitionStage implements GenStage {
         List<BlockLeaf> leaves = new ArrayList<>();
         for (TrunkPlan.SubRect r : plan.subRects) {
             Bsp.partitionRect(r.x0, r.y0, r.x1, r.y1, ctx.width, ctx.height,
-                    Bsp.ROAD_WIDTH_MAX_WITH_TRUNKS, plan.roadCells, leaves, ctx.rng);
+                    Bsp.LANE_WIDTH_WITH_TRUNKS, plan.roadCells, leaves, ctx.rng);
         }
         ctx.put(BspKeys.PARTITION,
                 new Bsp.Partition(leaves, plan.roadCells, ctx.width, ctx.height));
