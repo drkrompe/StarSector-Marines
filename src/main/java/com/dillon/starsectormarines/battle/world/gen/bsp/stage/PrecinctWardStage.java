@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Fills and walls every programmed precinct on the map.
@@ -915,6 +916,12 @@ public final class PrecinctWardStage implements GenStage {
     }
 
     /**
+     * Who sees each cantonment's layout as it is laid, on this thread: the garrison look suite, which draws a supply
+     * truck's round onto its frames. Unset in play.
+     */
+    public static final ThreadLocal<Consumer<Cantonment.Laid>> CANTONMENT_OBSERVER = new ThreadLocal<>();
+
+    /**
      * Lays a {@link FortressProgram#cantonment() cantonment} in rows ({@link Cantonment}) instead of packing it: the
      * gate where the town's road comes in, its streets paved as roads, the motor pool's hardstand as striped concrete,
      * its parade ground as a courtyard, and its flight line built where the layout set it.
@@ -937,8 +944,13 @@ public final class PrecinctWardStage implements GenStage {
         if (square == null) return new FortressInterior.Result(List.of(), precinct.program().expanded());
         int l = square[0], b = square[1], r = l + square[2] - 1, t = b + square[2] - 1;
         Cantonment.Gate gate = Cantonment.gate(mine, paved, l, b, r, t);
+        // Every further gate's road is joined to its streets inside the wall.
+        List<int[]> further = new ArrayList<>();
+        for (Cantonment.Gate g : Cantonment.further(mine, paved, l, b, r, t, gate)) further.add(g.cell(l, b, r, t));
         Cantonment.Laid laid = Cantonment.lay(masks.buildable(), l, b, r, t, gate.side(), gate.axis(),
-                precinct.program());
+                precinct.program(), further);
+        Consumer<Cantonment.Laid> observer = CANTONMENT_OBSERVER.get();
+        if (observer != null) observer.accept(laid);
         for (int[] c : laid.streets()) {
             if (!masks.buildable()[c[0]][c[1]]) continue;
             masks.buildable()[c[0]][c[1]] = false;
@@ -960,9 +972,12 @@ public final class PrecinctWardStage implements GenStage {
         // The motor pool's hardstand: striped concrete the sheds open on and the vehicles stand and turn on.
         InstallationGround.pave(ctx, laid.pool(), GroundKind.STRIPED, Material.CONCRETE);
         for (int[] c : laid.pool()) masks.buildable()[c[0]][c[1]] = false;
+        // The depot's unloading apron, where the supply trucks stand at the warehouses' loading doors.
+        InstallationGround.pave(ctx, laid.apron(), GroundKind.STRIPED, Material.CONCRETE);
+        for (int[] c : laid.apron()) masks.buildable()[c[0]][c[1]] = false;
         // Its streets, parade and hardstand are where it moves, and its motor pool is the first thing it guards.
         if (kept != null) {
-            for (List<int[]> cells : List.of(laid.streets(), laid.parade(), laid.pool())) {
+            for (List<int[]> cells : List.of(laid.streets(), laid.parade(), laid.pool(), laid.apron())) {
                 for (int[] c : cells) kept[c[0]][c[1]] = true;
             }
         }
