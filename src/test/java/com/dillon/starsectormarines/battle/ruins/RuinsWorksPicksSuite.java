@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -37,7 +39,9 @@ import java.util.List;
  * with roofs lifted. {@code ruins-court-power}: an empty site's nearest landing court, unpowered beside powered with
  * its lift marker (option a), and always a lift point (option b). {@code ruins-occupied-locks}: an occupied scattered
  * site's vault antechamber with the bunker door and the vault's door both open (a), the bunker open and the vault
- * locked (b), and both locked as now (c). The options are staged for the picture, not built: the lift ring and the
+ * locked (b), and both locked as now (c). {@code ruins-works-twists}: four themed sites, each framed on the part of
+ * the works its twist changes (option a, one rule per theme; option b, only the four themes whose tells name a
+ * machine), and plain works (c). The options are staged for the picture, not built: the lift ring and the
  * state labels are a review overlay the game never draws. Opt-in: {@code -Psnapshot=ruins-works-picks}.
  */
 public final class RuinsWorksPicksSuite implements SnapshotSuite {
@@ -59,7 +63,91 @@ public final class RuinsWorksPicksSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         courtCards(context, Long.getLong("snapshot.ruinsWorksPicks.courtSeed", 31L), out);
         lockCards(context, Long.getLong("snapshot.ruinsWorksPicks.lockSeed", 31L), out);
+        twistCards(context, Long.getLong("snapshot.ruinsWorksPicks.twistSeed", 31L), out);
         return out;
+    }
+
+    /** One quarter of a twist card: a themed site framed on what its twist changes. */
+    private record Twist(RuinsVaultTheme theme, String focus, String label) { }
+
+    private static void twistCards(SnapshotContext context, long seed, List<SnapshotArtifact> out) throws Exception {
+        out.add(new SnapshotArtifact("ruins-works-twists/a-one-rule-per-theme.png", grid(context, seed, List.of(
+                new Twist(RuinsVaultTheme.ARMORY, "store-1", "Armory: bunkered store, only power opens it"),
+                new Twist(RuinsVaultTheme.DEPOT, "store-2", "Depot: two sealed stores a layer"),
+                new Twist(RuinsVaultTheme.SERVER_HALL, RuinsWorks.VAULT_SEAL, "Server hall: vault powered at landing"),
+                new Twist(RuinsVaultTheme.SYNCHROTRON, "store-1", "Synchrotron: powered doors cycle 20 s open, 10 s shut")))));
+        out.add(new SnapshotArtifact("ruins-works-twists/b-four-machine-themes.png", grid(context, seed, List.of(
+                new Twist(RuinsVaultTheme.CRYOARITHMETIC_ENGINE, "hall", "Frozen: restart takes 18 s"),
+                new Twist(RuinsVaultTheme.SYNCHROTRON, "store-1", "Synchrotron: powered doors cycle 20 s open, 10 s shut"),
+                new Twist(RuinsVaultTheme.FUSION_LAMP, "junction", "Reactor: no spare load, a store costs a gate"),
+                new Twist(RuinsVaultTheme.CATALYTIC_CORE, "store-1", "Refinery: forcing a door is loud")))));
+        try (BattleSimulation sim = themedSite(seed, null)) {
+            SealDoor store = door(sim.getRuinsWorks(), "store-1");
+            float cx = store.middle()[0] + .5f, cy = store.middle()[1] + .5f;
+            out.add(new SnapshotArtifact("ruins-works-twists/c-plain-works.png", labelled(tagged(
+                    frame(context, sim, W, H, cx, cy, ZOOM), camera(context, sim, W, H, cx, cy, ZOOM),
+                    List.<float[]>of(new float[]{store.middle()[0], store.middle()[1]}), List.of("sealed store")),
+                    "Plain works on every site: the prize changes only the look")));
+        }
+    }
+
+    /** Four themed sites in quarters, each ringed on its focus with the twist's rule as its label. */
+    private static BufferedImage grid(SnapshotContext context, long seed, List<Twist> twists) throws Exception {
+        BufferedImage card = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = card.createGraphics();
+        int w = W / 2, h = H / 2;
+        for (int i = 0; i < twists.size(); i++) {
+            Twist twist = twists.get(i);
+            RuinsVaultPrize prize = new RuinsVaultPrize(twist.theme().family, twist.theme(),
+                    twist.theme().family == RuinsVaultPrize.Family.AI_CORE ? RuinsVaultPrize.BETA_CORE
+                            : twist.theme().itemId, 2);
+            try (BattleSimulation sim = themedSite(seed, prize)) {
+                RuinsWorks works = sim.getRuinsWorks();
+                int[] at = focus(works, twist.focus());
+                float cx = at[0] + .5f, cy = at[1] + .5f;
+                BufferedImage quarter = labelled(tagged(frame(context, sim, w, h, cx, cy, ZOOM / 2f),
+                        camera(context, sim, w, h, cx, cy, ZOOM / 2f), List.<float[]>of(new float[]{at[0], at[1]}),
+                        List.of(twist.focus().startsWith("store") ? "sealed store" : twist.focus().replace('-', ' '))),
+                        twist.label());
+                g.drawImage(quarter, (i % 2) * w, (i / 2) * h, null);
+            }
+        }
+        g.setColor(Color.BLACK);
+        g.fillRect(w - 2, 0, 4, H);
+        g.fillRect(0, h - 2, W, 4);
+        g.dispose();
+        return card;
+    }
+
+    /** The cell a twist card rings: a seal door's middle, the hall's console, or the first junction's box. */
+    private static int[] focus(RuinsWorks works, String focus) {
+        if (focus.equals("hall")) return new int[]{works.hall().x(), works.hall().y()};
+        if (focus.equals("junction")) return new int[]{works.junctions().get(0).x(), works.junctions().get(0).y()};
+        for (SealDoor door : works.doors()) if (door.id().equals(focus)) return door.middle();
+        // The ground may lack that one (no gate on its first layer): the first of its kind, else the vault's seal.
+        String kind = focus.substring(0, focus.indexOf('-') + 1);
+        for (SealDoor door : works.doors()) if (!kind.isEmpty() && door.id().startsWith(kind)) return door.middle();
+        System.out.println("ruins-works-twists: no " + focus + " on this ground, framing the vault seal");
+        return door(works, RuinsWorks.VAULT_SEAL).middle();
+    }
+
+    private static SealDoor door(RuinsWorks works, String id) {
+        for (SealDoor door : works.doors()) if (door.id().equals(id)) return door;
+        throw new IllegalStateException("the site's works have no " + id);
+    }
+
+    /** An empty widespread site, so its gates are sealed, built round {@code prize} (null for none). */
+    private static BattleSimulation themedSite(long seed, RuinsVaultPrize prize) {
+        BattleSimulation sim = BattleSetup.createRuins(seed, BattleSetup.defaultManifest(), false,
+                OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, profile(), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                RuinsGrade.WIDESPREAD, RuinsOccupant.NOBODY, prize);
+        for (int t = 0; t < Math.round(5f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
+        return sim;
+    }
+
+    private static BattleCamera camera(SnapshotContext context, BattleSimulation sim, int w, int h, float cx, float cy,
+                                       float zoom) {
+        return BattleReviewFrameRenderer.look(context.modRoot(), w, h, cx, cy, zoom).withoutRoofs().cameraOf(sim);
     }
 
     private static void courtCards(SnapshotContext context, long seed, List<SnapshotArtifact> out) throws Exception {

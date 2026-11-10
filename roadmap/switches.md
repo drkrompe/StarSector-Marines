@@ -68,7 +68,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.dustLedger.sideObjectives` | control | 2026-10-25 | Permanent evidence lever: grants the Dust Ledger's side objectives before play (`coupling`, `warden`, `feed` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (dust-ledger-crossing.md, Defences). |
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.garrison.plan` | experiment | 2026-11-09 | Raid garrison layout cards (`raid-garrison`): `PARADE` (default, recommended), `QUADRANGLE` or `QUADRANTS`. Remove with the losing plans in `Cantonment` once the owner picks. |
+| `battle.garrison.plan` | experiment | 2026-11-09 | Raid garrison layout cards (`raid-garrison`): `YARD` (default, recommended) or `APRON`. Remove with the losing plan in `Cantonment` once the owner picks. |
 | `battle.stormBank.facing` | experiment | 2026-11-09 | Storm bank cards (`storm-bank-facing`): `LEE` (default, recommended: the town turns its back to the wind, the bank never across the landing) or `ANY`. Remove with the losing arm in `StormBank.mirrorX` once the owner picks. |
 | `battle.stormBank.standoff` | experiment | 2026-11-09 | Storm bank cards (`storm-bank-standoff`): open ground between the bank and the town's places, `StormBank.STANDOFF` (6) by default. Fold the pick into the constant and remove once the owner picks. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
@@ -113,6 +113,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.cityRoads` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.citySidewalks` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.compoundPreparedGround` | experiment | 2026-10-20 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
+| `battle.mapgen.naturalVoids` | control | 2026-11-09 | Permanent evidence lever: the share (0 to 1) of generated outdoor maps cut by a natural drop, in place of `CHASM_CHANCE`; 1 lays one on every map that fits, for look suites and evidence (voids.md, placement in generated maps). |
 | `battle.mapgen.outdoorLandscape` | experiment | 2026-10-11 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |

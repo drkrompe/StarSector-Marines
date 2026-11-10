@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -574,7 +575,7 @@ class BattleFixtureJsonTest {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
                 VehiclePlating.HEAVY, VehicleEngine.MILITARY,
                 MechWeaponComponent.HC_10, List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER,
-                MechInternal.SENSOR_PAIR));
+                MechInternal.SENSOR_PAIR)).withRefit(new MechRefit(1.03f, 1.1f, 1.05f, 1.25f));
         BattleLaunchFixture fixture = new BattleLaunchFixture(
                 canonicalFixture(), new BattleLaunchOverlay(
                         0, List.of(), List.of(), List.of(),
@@ -592,6 +593,7 @@ class BattleFixtureJsonTest {
         frozen.remove("engine");
         frozen.remove("gun");
         frozen.remove("compartment");
+        frozen.remove("refit");
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
                 legacy.launch().commandPowers().get(0).vehicleDeployments());

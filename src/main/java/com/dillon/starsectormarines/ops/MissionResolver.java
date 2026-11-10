@@ -601,6 +601,12 @@ public final class MissionResolver {
                 RuinsPrizeSettlement.pay(CampaignBackend.playerFleet().getCargo(), outcome.ruinsPrize,
                         outcome.ruinsVaultPowered, SectorBloomWorld.sectorSeed(), key.marketId());
             }
+            // The tech caches brought home settle as rolls of the game's equipment, beside the commodity finds.
+            if ((outcome.victory || outcome.pulledOut) && CampaignBackend.playerFleet() != null) {
+                RuinsPrizeSettlement.payTechFinds(CampaignBackend.playerFleet().getCargo(), outcome.fieldSalvage.stream()
+                        .filter(SalvageCache.Recovered::tech).map(SalvageCache.Recovered::id).toList(),
+                        SectorBloomWorld.sectorSeed(), key.marketId());
+            }
         }
         CargoAPI cargo = CampaignBackend.playerFleet() != null
                 ? CampaignBackend.playerFleet().getCargo()

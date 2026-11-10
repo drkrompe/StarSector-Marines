@@ -1,0 +1,5 @@
+A square, perfectly flat overhead (straight-down orthographic) photograph-like texture of settled volcanic ash on an airless volcanic world, for a top-down tactical game's ground tiles.
+
+Material: fine compacted grey volcanic ash and tephra, cool neutral mid-grey, average colour close to RGB (104, 100, 98). Very fine granular grain, faint shallow wind ripples running in slightly different directions in different parts of the frame, a sparse scatter of small dark cinder grains and a few tiny pale pumice flecks.
+
+Hard rules: no directional lighting, no cast shadows, no highlights, no vignette, no gradient across the frame; even, diffuse, low-contrast detail everywhere; nothing larger than about one twentieth of the frame; no glow, no orange, no objects, no text, no border. Fully opaque, edge to edge.

@@ -159,6 +159,7 @@ public class BattleSprites {
             new java.util.EnumMap<>(Faction.class);
     private boolean layeredMechSpritesLoadAttempted;
     private DerelictWalkerAssets derelictWalker;
+    private DerelictWalkerAssets crawler;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
@@ -309,6 +310,8 @@ public class BattleSprites {
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** The derelict security walker's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
+    /** Tri-Tachyon's light crawler's own parts, or null when incomplete (it then draws as a layered mech). */
+    public DerelictWalkerAssets crawlerSprites() { return crawler; }
     /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
     public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return vehicleGunMounts.get(style); }
     /** The collar that turns with a modular turret inside its ring; null when the art did not load. */
@@ -1432,6 +1435,7 @@ public class BattleSprites {
         if (layeredMechSpritesLoadAttempted) return;
         layeredMechSpritesLoadAttempted = true;
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
+        crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
         String root = MECH_ROOT;
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");

@@ -25,6 +25,15 @@ class RuinsVaultStoreTest {
     }
 
     @Test
+    void onlyTheDeepestFindIsATechCacheAndItSettlesAsOne() {
+        List<SalvageCache> store = RuinsVaultStore.of(3, 0, 0);
+
+        assertEquals(List.of(false, false, true), store.stream().map(SalvageCache::tech).toList());
+        assertEquals(List.of(false, false, true), RuinsVaultStore.settled(List.of(), store, true).stream()
+                .map(SalvageCache.Recovered::tech).toList());
+    }
+
+    @Test
     void theStoreComesHomeOnlyWhenTheHaulBoards() {
         List<SalvageCache> store = RuinsVaultStore.of(2, 5, 5);
 

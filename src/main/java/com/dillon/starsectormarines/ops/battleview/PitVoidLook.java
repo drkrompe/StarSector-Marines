@@ -18,12 +18,10 @@ final class PitVoidLook {
     static final float RAMP_CELLS = 1.9f;
     /** The bearing round the pit the haul road leaves the lip at, in radians from the map's east. */
     static final float RAMP_START = 2.4f;
-    /** How high over the ground a conveyor's belt runs on its gantry, in metres. */
+    /** How high over the ground the spine's gallery runs on its trestles, in metres. */
     static final float BELT_METERS = 3.2f;
-    /** A conveyor's width, in cells, and the gap between its trestles. */
-    static final float BELT_CELLS = 1.4f, TRESTLE_EVERY = 5f;
-    /** How fast the ore rides the belt toward the works, cells a second. */
-    static final float BELT_SPEED = 1.1f;
+    /** The gap between the spine's trestles, in cells. */
+    static final float TRESTLE_EVERY = 5f;
 
     private PitVoidLook() { }
 

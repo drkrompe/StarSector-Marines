@@ -254,4 +254,14 @@ class MechVariantTest {
         assertEquals(LayeredMechAppearance.POD_NONE,
                 bare.appearanceSelector(MechMountSlot.RIGHT_SHOULDER));
     }
+
+    @Test
+    void theCrawlerCarriesOneFrontGunAndNoShoulders() {
+        MechVariant crawler = MechVariant.CRAWLER;
+        assertTrue(crawler.hasMount(MechMountSlot.ARMS));
+        assertFalse(crawler.hasMount(MechMountSlot.LEFT_SHOULDER));
+        assertFalse(crawler.hasMount(MechMountSlot.RIGHT_SHOULDER));
+        assertFalse(crawler.hasMount(MechMountSlot.LEFT_ARM));
+        assertTrue(MechVariant.HOUND.hasMount(MechMountSlot.LEFT_SHOULDER));
+    }
 }

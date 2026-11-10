@@ -31,7 +31,7 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
     }
 
     public static String label(SalvageCache cache) {
-        return cache.quantity + " " + cache.resource.displayName;
+        return cache.label();
     }
     public static String status(SalvageCache cache) {
         if (cache.secured()) return "SECURED / CLAIM AFTER VICTORY";

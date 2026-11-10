@@ -4,7 +4,7 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
-Updated: 2026-10-23 — order of work set by the campaign's Hegemony, Independent and pirate focus.
+Updated: 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own.
 
 ## Where the roster stands
 
@@ -28,10 +28,12 @@ through a trade-off.
 |---|---|---|---|
 | **Low-tech** | Hound | Warden | Bulwark |
 | **Midline** | open (shells stand in) | open (shells stand in) | open (shells stand in) |
-| **High-tech** | shield skirmisher (concept body on the Hound's frame) | drone controller (concept body on the Warden's frame) | lance platform (concept body on the Bulwark's frame) |
+| **High-tech** | light crawler (`MechVariant.CRAWLER`, its own chassis) | drone controller (concept body on the Warden's frame) | lance platform (concept body on the Bulwark's frame) |
 
-Nine lines in all. The low-tech row is the three first chassis; the other six cells are
-empty, filled meanwhile by other factions' shells over those frames (a livery, not a line).
+Nine lines in all. The low-tech row is the three first chassis. The high-tech light is
+Tri-Tachyon's crawler, a carapace on four short legs with one front gun and a built-in
+shield emitter (`mechs-nouns.md`, Family and doctrine). The other five cells are empty,
+filled meanwhile by other factions' shells over those frames (a livery, not a line).
 Each stand-in stays where it is until its line is designed. At that point the stand-in
 either becomes the line's base chassis or gets reworked into it.
 
@@ -79,7 +81,8 @@ purchases, so the low-tech row comes first:
    of the low-tech frames (owner), against law 1, so the row needs frames of its own.
    Direction (owner, from the frame concepts in `sources/hightech/frames/`): Tri-Tachyon
    puts its weight into skimmers, a light, medium and heavy hover vehicle line built out
-   from the hover scout and drone skimmer (`convoy-nouns.md`), and into light crawlers,
+   from the hover scout and drone skimmer, now built (`convoy-nouns.md`, the hover line:
+   the heavy skimmer carries the shield rule on its hull's pool), and into light crawlers,
    small four-legged machines read as a drone concept. It fields no heavy walker of its
    own. The concept sheets paint their guns in to show the silhouettes; every production
    hull is drawn bare, with empty mount sockets, and every weapon stays a separate,
@@ -87,8 +90,14 @@ purchases, so the low-tech row comes first:
    compartment's shield emitter (`MachineSystems.shieldEmitter`, `MechShield`) raises a
    frontal flux shield run on the mech's one flux pool, so blocking and firing spend the
    same headroom; the shield folds while the guns have the pool venting, and filling the
-   pool overloads the mech, shield and guns together. Only fixtures fit it so far. Still
-   to come: a combat drone wing on the medium, relaunched for flux; the lance and shield
+   pool overloads the mech, shield and guns together. The light crawler is built
+   (`MechVariant.CRAWLER`): its own parts cut from one ImageGen master over a guide
+   (art-source/mech-modular-topdown/sources/hightech/crawler), drawn by the derelict
+   walker's leg rig at its own size, one PL-1 on a front socket as its own layer, and a
+   shield emitter its compartment carries as built, so every crawler fields the shield.
+   Tri-Tachyon's roster leads with it in place of the Hound stand-in. Still to come:
+   whether the crawler is crewed or a drone (owner); the skimmer line (a separate
+   session); a combat drone wing on the medium, relaunched for flux; the lance and shield
    sharing one pool on the heavy.
 
 ## Laws

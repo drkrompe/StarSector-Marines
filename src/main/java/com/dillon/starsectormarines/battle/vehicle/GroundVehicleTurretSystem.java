@@ -268,7 +268,7 @@ public final class GroundVehicleTurretSystem {
         boolean aimed = cursor != null && cursor.validFrom(mountX, mountY);
         if (aimed) {
             turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
-                    TurretAim.bearingTo(mountX, mountY, cursor.x(), cursor.y()), mount.turnRateDegPerSec * dt);
+                    TurretAim.bearingTo(mountX, mountY, cursor.x(), cursor.y()), turret.traverse(mount) * dt);
         }
         int rounds = feed.advance(dt, trigger && aimed);
         for (int r = 0; r < rounds; r++) {
@@ -341,7 +341,7 @@ public final class GroundVehicleTurretSystem {
         if (aim != null && aim.validFrom(mountX, mountY)) {
             turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
                     TurretAim.bearingTo(mountX, mountY, aim.x(), aim.y()),
-                    mount.turnRateDegPerSec * dt);
+                    turret.traverse(mount) * dt);
         }
         if (!turret.loaded()) return;
         // APC cadence starts its cooldown recovery after the committed burst finishes.
@@ -408,7 +408,7 @@ public final class GroundVehicleTurretSystem {
         if (!turret.loaded()) {
             turret.clearQueuedFire();
             turret.targetId = 0L;
-            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), turret.traverse(mount), dt);
             return;
         }
         WeaponDef weapon = mount.weapon;
@@ -426,7 +426,7 @@ public final class GroundVehicleTurretSystem {
             if (tracks && burstTarget != 0L && world.isAlive(burstTarget)) {
                 turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
                         TurretAim.bearingTo(mountX, mountY, world.x(burstTarget), world.y(burstTarget)),
-                        mount.turnRateDegPerSec * dt);
+                        turret.traverse(mount) * dt);
             }
             turret.burstTimer -= dt;
             int release = TurretMountGeometry.releaseIndex(weapon.burstCount, turret.burstRemaining);
@@ -478,7 +478,7 @@ public final class GroundVehicleTurretSystem {
         aim.originY = mountY;
         aim.faction = convoy.faction(id);
         aim.facingDegrees = turret.facingDeg;
-        aim.turnRateDegPerSec = mount.turnRateDegPerSec;
+        aim.turnRateDegPerSec = turret.traverse(mount);
         if (weapon.hitscanBeam()) aim.fireArcDeg = TurretAim.BEAM_OPEN_ARC_DEG;
         aim.attackRange = weapon.range;
         // A body close enough that the round's burst would reach this hull is no target: the gun takes one further out.
@@ -496,7 +496,7 @@ public final class GroundVehicleTurretSystem {
         turret.cooldownTimer = aim.cooldownTimer;
         turret.targetId = aim.target;
         if (aim.target == 0L) {
-            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), turret.traverse(mount), dt);
             return;
         }
         if (turret.rotary != null) {
@@ -541,7 +541,7 @@ public final class GroundVehicleTurretSystem {
         if (craft == 0L) return false;
         turret.targetId = 0L;
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft));
-        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
+        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, turret.traverse(mount) * dt);
         if (turret.rotary != null) {
             // A rotary gun leases its trigger on the craft while the barrel is on it, and keeps turning otherwise.
             if (ready(turret, mount, roundCost(mount), true)
@@ -582,7 +582,7 @@ public final class GroundVehicleTurretSystem {
             return;
         }
         turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
-                TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft)), mount.turnRateDegPerSec * dt);
+                TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft)), turret.traverse(mount) * dt);
         turret.burstTimer -= dt;
         if (turret.burstTimer > 0f) return;
         int release = TurretMountGeometry.releaseIndex(mount.weapon.burstCount, turret.burstRemaining);
@@ -621,7 +621,7 @@ public final class GroundVehicleTurretSystem {
         if (aim.validFrom(mountX, mountY)) {
             turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
                     TurretAim.bearingTo(mountX, mountY, aim.x(), aim.y()),
-                    structure.mount.turnRateDegPerSec * dt);
+                    turret.traverse(structure.mount) * dt);
         }
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
         float cost = roundCost(structure.mount);
@@ -659,11 +659,11 @@ public final class GroundVehicleTurretSystem {
         }
         turret.targetId = target;
         if (target == 0L) {
-            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), turret.traverse(mount), dt);
             return;
         }
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(target), world.y(target));
-        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
+        turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, turret.traverse(mount) * dt);
         // A chained salvo goes to the body its chain was committed against, and to no other.
         if (turret.chainedTrigger() && target != turret.chainTargetId) turret.chainSalvos = 0;
         float cost = triggerCost(turret, mount);

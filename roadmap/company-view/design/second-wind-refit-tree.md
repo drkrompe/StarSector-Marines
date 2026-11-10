@@ -47,6 +47,14 @@ Every track reads on one scale the player learns once:
 | **Restored** | neutral: the numbers every other company and every evidence harness uses | no glyph (healthy rooms stay quiet) |
 | **Improved I / II** | past neutral; a named bonus | upgrade pip(s) on the room |
 
+**The tree reads as plain upgrade chains** (owner, 2026-11-09). On screen the bands
+are Tier 0–3. A track is named for what it scales (Mech Lab capacity, Morale
+recovery, Infantry aim), and a tier for what the player gets (2 mechs, +15%
+recovery). The room and its hardware (gantries, galley, bunkrooms) belong in
+the track's description, never in its name. The buttons say review and install
+an upgrade, not repair. Repairing a damaged room on the deck keeps its repair
+wording.
+
 Neutral is the ship's calibration point. Mission balance, `commanderEvidence`,
 scenes and matchups all run at neutral, so a Deficit or an upgrade is a known
 offset from tuned ground, not a new tuning surface. Only the campaign company
@@ -218,9 +226,14 @@ head-loss penalty, and the traverse factor scales the torso's turn rate. A mech
 the company does not own is neutral, and so is every mech off the founding
 hull. A recorded fixture carries the refit with the frame.
 
-Player-side vehicles are not deployable yet (`c12-the-debug-company.md` waits on
-them). A vehicle bay track returns when they are: engine tuning (speed), turret
-calibration (accuracy), field repair (integrity between battles).
+**The company's vehicles take the same three bonuses** (owner, 2026-11-09: apply
+the upgrades to mechs and vehicles equally where possible). The launch freezes the
+same `MechRefit` over each owned vehicle's deployment, and the convoy spawn lays it
+on the hull: the plate over every armor pool, the coolant over the reservoir's
+dissipation, the calibration over the turret's traverse (`GroundTurret`) and
+over every gun's hit roll on the hull (the shooter accuracy the turret fire reads).
+A recorded fixture carries it on the vehicle. Field repair stays with mechs:
+vehicles carry no damage between battles, so it has nothing to shorten.
 
 ### Campaign layer (outside battle)
 
