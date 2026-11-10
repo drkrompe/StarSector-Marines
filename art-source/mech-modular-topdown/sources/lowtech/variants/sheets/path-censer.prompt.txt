@@ -1,0 +1,15 @@
+Asset type: concept sheet for a top-down game: a LUDDIC PATH FLAMER CONVERSION, the CENSER, an industrial medium walking machine (the Warden, middle in image 1) a Pather cell has converted to burn out what it calls corruption.
+
+The machine: the Warden's body, its shoulders kept. Its back carries a large tall ribbed pressure tank of promethium fuel in a welded frame, like a church boiler or an industrial gas cylinder, with gauges, valves and a pipe manifold, joined by armoured hoses along its right side to its right arm. The right arm mount is EMPTY, a flat bolted plate with a hose coupling; the left arm keeps an empty mounting plate. Prayer cloth strips and simple painted devotional shapes (no text) hang from its plate. Scorch soot darkens the front of the body.
+
+Image 2 is material and colour reference only, a sheet of surface swatches cut from inside the Luddic Path's warships; it holds no shapes to copy. Paint the conversion in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, grime and sooty scorching, scuffed bare metal on worn edges, hand-welded repairs.
+
+The loose part beside it: the Path flame projector, a long heavy industrial burner lance with a flared cowl at its tip, cooling fins, a pilot light and a hose coupling at its base, in dark scorched steel with a red band.
+
+Layout: one wide landscape sheet. On the left, the machine whole, large, facing the TOP edge of the sheet, symmetric about its own vertical centre line except where the brief says otherwise. On the right, with clear space between, its flame gun drawn on its own as a loose part, seen from above, pointing to the top, at the same scale. Nothing else on the sheet.
+
+Image 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. The machine must still read as the one named: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change only what the brief says. No thrusters or engines on its back, no claw, no saw blade.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, flame, smoke, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.
+
+Avoid: fire or flame effects; any gun other than the one flame gun; perspective, side view or isometric view; a starship's outline; bird or chicken legs; text.
