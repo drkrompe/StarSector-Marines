@@ -65,7 +65,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire.throwSafety` | control | 2026-10-22 | Standing control: the control loop of the fire-ignition kit scene verdict. Retire it with that loop. |
 | `battle.fog.bodyReveal` | experiment | 2026-10-22 | Remove once the fog body-reveal rule is accepted (fog-of-war-nouns.md). |
 | `battle.blindWatch.sideObjectives` | control | 2026-10-26 | Permanent evidence lever: grants Blind Watch's side objectives before play (`riggers`, `schedule`, `coldstore` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (blind-watch-sounding.md, Acceptance). |
-| `battle.dustLedger.sideObjectives` | control | 2026-10-25 | Permanent evidence lever: grants the Dust Ledger's side objectives before play (`coupling`, `warden`, `feed` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (dust-ledger-crossing.md, Defences). |
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
@@ -147,6 +146,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.nestTrails` | control | 2026-10-25 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.roundedWallCorners` | experiment | 2026-11-09 | Rounded wall corners (`battle-render-nouns.md`): remove it with the square-corner path once the owner has judged the two in look shots. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.ruins.weather` | experiment | 2026-11-10 | Ruins weathering (`RuinsWeather`): remove the switch and the off arm once the owner decides the pick `ruins-weather`. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |

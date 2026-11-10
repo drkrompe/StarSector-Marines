@@ -880,13 +880,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public DustLedgerSequence getDustLedger() { return dustLedger; }
     /**
      * Installs the Dust Ledger over an installed Raid whose target is the ledger room ({@code dust-ledger-crossing.md}):
-     * stands the broker in his office and puts the quiet phase over the scans. The reserves spawn at the alarm.
+     * stands the broker in his office and puts the quiet phase over the scans.
      */
-    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid,
-                                                List<EntitySpec> drinkers, List<EntitySpec> salvageTeam) {
+    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid) {
         if (simTickIndex != 0 || dustLedger != null) throw new IllegalStateException("Install the Dust Ledger once at setup");
         if (!getObjectives().contains(raid)) throw new IllegalStateException("Install the ledger room's Raid first");
-        dustLedger = new DustLedgerSequence(sites, raid, drinkers, salvageTeam, storyBeats);
+        dustLedger = new DustLedgerSequence(sites, raid, storyBeats);
         dustLedger.begin(this);
         addObjective(dustLedger);
         return dustLedger;

@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c71e-de86-7171-9818-b3286c6c0b7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c71e-de86-7171-9818-b3286c6c0b7a\\exec-8c7de8fd-06f2-48f7-b15c-d82f5cd5f5c8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\stake.png",
+    "sha256": "70be215db07b1e350a793f5f5c600e6d99f5545dc04a7cd219e8dcae1519d81f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\stake.prompt.txt",
+  "promptSha256": "de820d6bc11e834e7c8d310283aef75665c49067fd51a1f30fff5f3d808dd0c1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Family reference: the same network's control node (material, palette, detail scale; not layout)\nImage 3: Family reference: the same network's pop-up post (material, palette, detail scale; not layout)\nImage 4: Material and weathering style (vanilla derelict_rampart, 4x Lanczos); not layout or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of six finished top-down game sprites: two alternative designs (the rows) of a SURVEY STAKE, a prefabricated automated outpost that a crashed survey mothership prints and plants in the ground to claim it; three stages of it (the columns). Armoured, unarmed machinery of the derelict security network, same family as image 2.\n- column 1, PLANTED: the stake just planted, folded shut: an armoured pylon driven into the ground, its panels folded tight, a few hazard marks, unlit. Row 1 SPIRE: a square spike with four folded petals. Row 2 TRIPOD: a round core with three legs folded against it.\n- column 2, RAISED: the same pylon opened out: its petals or legs splayed and anchored into the ground, a control node mast risen in the middle with a red sensor lamp, and a round drone cradle (a launch well) beside it.\n- column 3, STORE: the established stake's feedstock store: an armoured open hopper heaped with stripped scrap metal (torn plate, girders, wreck parts), a chute on one side.\nStyle and material: Starsector's own derelict Explorarium and Domain drone ships, as in the material references: kitbashed, densely greebled machinery read from directly above; pale sage-green and khaki armour plates with a few broad diagonal yellow hazard stripes, bone-white and tarnished brass segments, pipework and cable runs, rust-brown machinery and grime in the recesses, small red sensor lamps, mottled weathering on every plate, crisp hard edges, painted as a game sprite lit from the upper left. Never smooth, clean, glossy or toy-like. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. In the guide pale grey is armour plate, mid grey is raised housings, seams and panels, near-black is vents, sockets, recesses and open voids (keep a void a dark open hole into the machine or the hull below), red dots are sensor lamps, orange is molten metal glowing, yellow bars are hazard striping. Strict 90-degree overhead orthographic view, no perspective tilt, no visible side walls, lit from the upper left. Keep each drawing exactly where the guide puts it, at exactly its size, position and outline; never move, rotate, rescale or recompose anything, and add nothing between the pieces. True transparent background with genuine alpha outside the silhouettes, including inside holes the guide leaves transparent; no ground, floor, cast-shadow slab, labels, text, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\stake-guide.png",
+      "sha256": "1fd0e824b4de31be1170756cc60d67fadf564b22b299c6af4f91d1fd43b26df8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\mod\\graphics\\battle\\derelict\\node-domain.png",
+      "sha256": "5fe492f36e47e9da350460513b07070b0c8a4723a2da07ad6619c22322971f56",
+      "dimensions": [
+        192,
+        122
+      ],
+      "mode": "RGBA",
+      "role": "Family reference: the same network's control node (material, palette, detail scale; not layout)"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\derelict-security\\post-v2b-raw.png",
+      "sha256": "157891b345aef1acc9f0e32e14555254868e4247cf0214f91e5558d1236ce0c1",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Family reference: the same network's pop-up post (material, palette, detail scale; not layout)"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\build\\fallen-hull-refs\\derelict_rampart.png",
+      "sha256": "b06e2077778ae9b11dc4d2d68ea065d0934e10ac28ede9d964e43f14c62b99d8",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGBA",
+      "role": "Material and weathering style (vanilla derelict_rampart, 4x Lanczos); not layout or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to paint the guide’s exact layout and silhouettes with the referenced derelict materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 87663,
+    "cached_input_tokens": 61184,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1132,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 86.7
+}
