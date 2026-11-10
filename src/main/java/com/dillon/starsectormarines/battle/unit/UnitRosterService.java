@@ -778,7 +778,7 @@ public final class UnitRosterService {
                     BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LOCOMOTION,
                     BattleComponents.MECH_LOCOMOTION_TURN_RATE,
-                    MechLocomotion.DEFAULT_TURN_RATE_DEGREES);
+                    MechLocomotion.turnRateDegrees(variant));
             entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,

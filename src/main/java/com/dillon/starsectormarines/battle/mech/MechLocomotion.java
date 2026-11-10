@@ -15,7 +15,22 @@ public final class MechLocomotion {
     /** Forward travel may begin once the chassis is this close to its path bearing. */
     public static final float MOVE_ALIGNMENT_DEGREES = 8f;
 
+    /**
+     * A four-legged machine's turn at render scale one, degrees a second: the derelict line and Tri-Tachyon's crawler
+     * turn by stepping round, so a larger machine turns more slowly, in proportion to its size (owner: the derelict
+     * walkers turned so fast their legs tangled). UNTUNED.
+     */
+    public static final float LEGGED_TURN_AT_SCALE_ONE_DEGREES = 150f;
+
     private MechLocomotion() {}
+
+    /** The fastest {@code variant}'s hips turn, degrees a second. */
+    public static float turnRateDegrees(MechVariant variant) {
+        if (variant == null) return DEFAULT_TURN_RATE_DEGREES;
+        MechBodyPlan plan = variant.bodyPlan();
+        if (plan != MechBodyPlan.DERELICT && plan != MechBodyPlan.CRAWLER) return DEFAULT_TURN_RATE_DEGREES;
+        return Math.min(DEFAULT_TURN_RATE_DEGREES, LEGGED_TURN_AT_SCALE_ONE_DEGREES / variant.renderScale);
+    }
 
     /** Sprite heading for a non-zero grid delta. */
     public static float desiredFacing(float dx, float dy) {
