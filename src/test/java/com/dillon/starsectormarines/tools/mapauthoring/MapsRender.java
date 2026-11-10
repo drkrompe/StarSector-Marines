@@ -187,9 +187,9 @@ public final class MapsRender {
     // ------------------------------------------------------------------ contact sheet
 
     /** One tile of the all-worlds sheet: a world's whole-map picture and two lines on what it chose. */
-    public record Tile(MapWorld world, BufferedImage image, String line1, String line2) { }
+    public record Tile(String title, BufferedImage image, String line1, String line2) { }
 
-    /** Every world's picture side by side, five across and two down, 1920 by 1080, each labelled. */
+    /** Every world's picture side by side in two rows, 1920 by 1080, each labelled. */
     public static BufferedImage contactSheet(String title, List<Tile> tiles) {
         BufferedImage out = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = out.createGraphics();
@@ -201,8 +201,8 @@ public final class MapsRender {
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
         g.setColor(new Color(232, 225, 203));
         g.drawString(title, 16, 32);
-        int cols = 5, top = 46, tw = WIDTH / cols, th = (HEIGHT - top) / 2, text = 50;
-        for (int k = 0; k < tiles.size() && k < 10; k++) {
+        int cols = Math.max(1, (tiles.size() + 1) / 2), top = 46, tw = WIDTH / cols, th = (HEIGHT - top) / 2, text = 50;
+        for (int k = 0; k < tiles.size(); k++) {
             Tile t = tiles.get(k);
             int x = (k % cols) * tw, y = top + (k / cols) * th;
             int iw = tw - 8, ih = Math.round(iw * t.image().getHeight() / (float) t.image().getWidth());
@@ -212,7 +212,7 @@ public final class MapsRender {
             int ty = iy + ih + 20;
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
             g.setColor(new Color(240, 232, 208));
-            g.drawString(t.world().label() + " · " + t.world().planetType(), x + 10, ty);
+            g.drawString(t.title(), x + 10, ty);
             g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
             g.setColor(new Color(190, 200, 205));
             g.drawString(t.line1(), x + 10, ty + 19);

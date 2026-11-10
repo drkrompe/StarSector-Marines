@@ -390,6 +390,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 else if (command.customDraw() instanceof CliffArtPass cliffs) drawCliffArt(context, viewport, cliffs, bandTop, bandBottom);
                 else if (command.customDraw() instanceof CreepPass creep) drawCreep(context, viewport, creep, bandTop, bandBottom);
                 else if (command.customDraw() instanceof ScorchPass scorch) drawScorch(context, viewport, scorch, bandTop, bandBottom);
+                else if (command.customDraw() instanceof LavaFlowPass flows) drawLavaFlows(context, viewport, flows, bandTop, bandBottom);
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night, prepared, bandTop, bandBottom);
                 else if (command.customDraw() instanceof EngineFxPass engine) drawEngineFx(context, viewport, engine, prepared);
                 else if (command.customDraw() instanceof EngineHullLightPass light) drawEngineHullLight(context, viewport, light, prepared);
@@ -714,6 +715,52 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         if (!any) return;
         HeadlessUiRenderer.blendImage(context, multiply, px0, row0, true);
         HeadlessUiRenderer.blendImage(context, overlay, px0, row0, false);
+    }
+
+    /**
+     * Older lava flows through {@link LavaFlowShading}, the CPU model of their shader, per pixel: the dark crust over
+     * an ordinary alpha blend, then its glow added.
+     */
+    private static void drawLavaFlows(CanvasContext context, CanvasHostViewport viewport, LavaFlowPass pass,
+                                      int top, int bottom) {
+        float surfaceHeight = viewport.height();
+        float sx0 = pass.cellToScreenX(pass.minX), sx1 = pass.cellToScreenX(pass.maxX + 1);
+        float gy0 = pass.cellToScreenY(pass.minY), gy1 = pass.cellToScreenY(pass.maxY + 1);
+        int px0 = Math.max(0, (int) Math.floor(Math.min(sx0, sx1)));
+        int px1 = Math.min((int) Math.ceil(viewport.width()), (int) Math.ceil(Math.max(sx0, sx1)));
+        int row0 = Math.max(Math.max(0, top), (int) Math.floor(surfaceHeight - Math.max(gy0, gy1)));
+        int row1 = Math.min(Math.min((int) Math.ceil(surfaceHeight), bottom), (int) Math.ceil(surfaceHeight - Math.min(gy0, gy1)));
+        if (px1 <= px0 || row1 <= row0 || pass.crustPath == null) return;
+        BufferedImage crust = HeadlessUiRenderer.sourceImage(context, pass.crustPath);
+        if (crust == null) return;
+        int w = px1 - px0, h = row1 - row0;
+        BufferedImage over = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage glow = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        LavaFlowShading.Scratch scratch = new LavaFlowShading.Scratch();
+        float[] out = new float[4];
+        boolean any = false, glows = false;
+        for (int y = row0; y < row1; y++) {
+            float cellY = pass.screenToCellY(surfaceHeight - (y + 0.5f));
+            for (int x = px0; x < px1; x++) {
+                float cellX = pass.screenToCellX(x + 0.5f);
+                if (!LavaFlowShading.shade(pass.layer(), cellX, cellY, pass.time, scratch, out)) continue;
+                any = true;
+                int rgb = crust.getRGB(Math.min(crust.getWidth() - 1, (int) (out[2] * crust.getWidth())),
+                        Math.min(crust.getHeight() - 1, (int) ((1f - out[3]) * crust.getHeight())));
+                float r = (rgb >> 16 & 0xFF) / 255f, g = (rgb >> 8 & 0xFF) / 255f, b = (rgb & 0xFF) / 255f;
+                int a = Math.round(clamp(LavaFlowShading.ALPHA * out[0] * pass.alpha) * 255f);
+                over.setRGB(x - px0, y - row0, a << 24 | channel(r * LavaFlowShading.TINT[0]) << 16
+                        | channel(g * LavaFlowShading.TINT[1]) << 8 | channel(b * LavaFlowShading.TINT[2]));
+                int ga = Math.round(clamp(out[1] * pass.alpha) * 255f);
+                if (ga <= 0) continue;
+                glows = true;
+                glow.setRGB(x - px0, y - row0, ga << 24 | channel(r * LavaFlowShading.GLOW_TINT[0]) << 16
+                        | channel(g * LavaFlowShading.GLOW_TINT[1]) << 8 | channel(b * LavaFlowShading.GLOW_TINT[2]));
+            }
+        }
+        if (!any) return;
+        HeadlessUiRenderer.blendImage(context, over, px0, row0, false);
+        if (glows) HeadlessUiRenderer.additiveImage(context, glow, px0 + w / 2f, row0 + h / 2f, w, h, 0f, 1f);
     }
 
     private static int channel(float v) { return Math.round(clamp(v) * 255f); }

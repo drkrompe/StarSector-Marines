@@ -1,0 +1,21 @@
+Asset: a sheet of separate top-down tactical-game floor and overhead pieces for a vast abandoned Domain-era nanoforge foundry hall, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. Pieces drawn edge to edge in their block (rail bed, trench cover, drain gutter, crane runway, cable tray) are lengths of a run that repeats north-south: keep them filling their block to the top and bottom edges, with an even, regular pattern of sleepers, plates, slots or crossbars along their length and nothing special at either end.
+Style: match reference 2 (the same foundry's tapping furnace, ladles, ore cars and cooling racks: same steel, rivets, worn ochre trim, the same melt) and reference 3 for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective, never a look into an opening at an angle. Light from the upper left, object-local.
+Melt: every orange area is molten slag: dull orange to dark red glowing through cracks in a thick dark crust, never yellow-white. Keep it exactly inside the orange areas and nowhere else.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. rail-bed (2x2): a length of heavy rail track sunk flush in steel floor plate: two worn steel rails, dark steel sleepers between, grit and rust in the recess.
+2. rail-bed-curve (4x4): the same track turning a quarter circle, the same plate, sleepers and rails following the curve.
+3. rail-buffer (2x2): the end of the track: the same rails ending at a massive riveted buffer stop beam with two round spring buffers facing the rails.
+4. slag-car (2x3): a slag pot car on rail wheels: a thick round cast-steel slag pot sitting in its frame, a dark crust of cooled slag in it with a small glowing crack.
+5. slag-car-tipped (3x3): the same slag car tipped over at a pit edge, its pot rolled toward the right, a tongue of glowing slag running out of its mouth to the right edge.
+6. pallet-bay (3x3): painted floor markings only: four worn ochre corner brackets and a short ochre bay label bar, paint chipped and scuffed; everything else transparent.
+Bottom row left to right:
+7. trench-cover (2x2): a service trench with heavy chequer-plate covers laid across it, steel kerbs along both long sides.
+8. drain-gutter (1x2): a narrow drain channel in floor plate with a slotted steel grate along its length, grime in the slots.
+9. floor-drain (1x1): a square cast floor drain grate in its steel frame.
+10. crane-runway (1x4): an overhead crane runway girder seen from above: a riveted box girder with its crane rail along the top and stiffener plates, a column cap bracket across its middle.
+11. cable-tray (1x2): an overhead ladder cable tray seen from above: two side rails, rungs, and a bundle of dark heavy cables laid along it.
+12. cable-tray-fallen (1x4): the same tray fallen to the floor, bent, its cables spilled loose beside it.
