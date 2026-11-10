@@ -55,6 +55,22 @@ class NaturalChasmTest {
     }
 
     @Test
+    void aRouteAcrossItsLineIsDeckedAtItsLineAndTheDropTakesTheRestOfItsGround() {
+        // A route's line north-south at x = 60; its five reserved cells are not kept out of the drop.
+        NaturalChasm.Cut planned = NaturalChasm.plan(W, H, true, .5f, i -> true, i -> true, i -> i % W == 60, 5);
+        assertNotNull(planned);
+        boolean decked = false, cutBeside = false;
+        for (int y = 0; y < H; y++) {
+            assertFalse(planned.drop()[y * W + 60], "the route's line is never cut");
+            decked |= planned.decks()[y * W + 60];
+            cutBeside |= planned.drop()[y * W + 57] || planned.drop()[y * W + 63];
+        }
+        assertTrue(decked, "a deck carries the route over");
+        assertTrue(cutBeside, "the drop runs on either side of the deck, through the route's ground");
+        assertEquals(1, pieces(planned.drop()));
+    }
+
+    @Test
     void aCutThatStrandsMoreThanAPocketIsRefusedAndAPocketIsTakenIn() {
         // A cut walling off the west third of the map strands too much.
         boolean[] wall = new boolean[W * H];

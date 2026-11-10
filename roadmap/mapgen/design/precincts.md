@@ -1361,6 +1361,17 @@ generator places exactly that. It is the same 0-to-many shape a programmed
 precinct's building list has, for the same reason: a mission designer asking for
 "a garrison with no artillery but four heavy posts" should be able to say so.
 
+**Gates are leaf doors.** A walled place's open gate (all but a sealed town's,
+whose gates are its locks) is hung with a pair of sliding leaves (`WallGate`,
+drawn by `WallGateRenderSystem` with the shared `LeafDoorArt`): the forcible
+door's hazard-banded pair, telescoping two a side in a gate five cells or wider,
+between gateposts cut from the fort's blast-door frame on the wall either side.
+They part for anyone in line with the gate within three and a half cells of the
+wall, a vehicle's nose included, and close behind them. A breach of either
+jamb forces the gate: one leaf lies on the ground inside, the other jams
+part-open, and the gateposts are the damaged frame's. Presentation only: the way
+through is the opening the wall left, and the grid owns its passage and sight.
+
 **Defences are sited by doctrine, never drawn.** The owner's notes on the
 defended bases were that the guns cut the roads and their placement read as
 random, and both were true: the placer avoided only the road graph's one-cell

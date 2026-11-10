@@ -75,6 +75,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
@@ -205,7 +206,7 @@ public final class CordonSetup {
         List<String> failures = new ArrayList<>();
         for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            Generated generated = generate(variant, density, biome, battleSeed, MapPatch.NONE);
+            Generated generated = generate(variant, density, biome, biome, battleSeed, MapPatch.NONE);
             if (generated.missing() == null) return generated.cordon();
             failures.add("attempt " + attempt + ": " + generated.missing());
         }
@@ -234,7 +235,8 @@ public final class CordonSetup {
     /** As {@link #map(CordonVariant, SurfacePalette, StoryMapPool.Entry)}, from the pool of a density. */
     public static CordonMap map(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
                                 StoryMapPool.Entry entry) {
-        Generated generated = generate(variant, density, biome, entry.seed(), entry.patch());
+        Generated generated = generate(variant, density, biome,
+                StoryMapPools.pool(storyMap(variant, density)).layoutFor(biome), entry.seed(), entry.patch());
         if (generated.missing() != null) {
             throw new IllegalStateException(storyMap(variant, density).id + " " + biome + " seed " + entry.seed()
                     + " does not carry the Cordon: " + generated.missing());
@@ -246,10 +248,11 @@ public final class CordonSetup {
 
     private record Generated(CordonMap cordon, String missing) { }
 
+    /** The map laid out on {@code layout}'s palette and skinned for a world of {@code biome} ({@link PlanetSkin}). */
     private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
-                                      long battleSeed, MapPatch patch) {
+                                      SurfacePalette layout, long battleSeed, MapPatch patch) {
         PrecinctPlan plan = patch.pinned(CordonPlan.planFor(variant, density, WIDTH, HEIGHT, battleSeed));
-        Generated whole = generate(variant, density, biome, battleSeed, plan, List.of(), null);
+        Generated whole = generate(variant, density, biome, layout, battleSeed, plan, List.of(), null);
         if (whole.missing() == null) return whole;
         // A layout road moves the ground the places grow round, and a map can come out without the Cordon for it
         // (a base whose shed faces a wall). An optional road is not worth the map: try the map without it.
@@ -267,7 +270,7 @@ public final class CordonSetup {
         if (roads.contains(CordonPlan.SECOND_ROAD)) fallbacks.add(List.of(CordonPlan.SECOND_ROAD));
         if (!roads.isEmpty()) fallbacks.add(roads);
         for (List<String> drop : fallbacks) {
-            Generated without = generate(variant, density, biome, battleSeed, plan, drop, whole.missing());
+            Generated without = generate(variant, density, biome, layout, battleSeed, plan, drop, whole.missing());
             if (without.missing() == null) return without;
         }
         return whole;
@@ -275,24 +278,26 @@ public final class CordonSetup {
 
     /** The map from {@code plan} less the layout pieces named in {@code drop}, reported refused for {@code why}. */
     private static Generated generate(CordonVariant variant, CordonPlan.Density density, SurfacePalette biome,
-                                      long battleSeed, PrecinctPlan plan, List<String> drop, String why) {
+                                      SurfacePalette layout, long battleSeed, PrecinctPlan plan, List<String> drop,
+                                      String why) {
         if (!drop.isEmpty()) {
             List<Piece> kept = new ArrayList<>();
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
             plan = plan.withLayout(new MissionLayout(kept));
         }
-        MapResult map = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, true,
-                biome);
+        MapResult map = constructed(generated(battleSeed, layout, plan, drop, why), plan, density, battleSeed, true,
+                layout);
         String missing = missing(variant, map, plan);
         if (missing != null) {
             // A redoubt or base built from what stood there that costs the map its Cordon is not worth the map: the
             // same map with the generated compounds and shed instead.
-            MapResult plain = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed,
-                    false, biome);
+            MapResult plain = constructed(generated(battleSeed, layout, plan, drop, why), plan, density, battleSeed,
+                    false, layout);
             String plainMissing = missing(variant, plain, plan);
             if (plainMissing != null) return new Generated(null, missing);
             map = plain;
         }
+        map = PlanetSkin.apply(map, layout, country(biome));
         List<int[]> corridor = variant == CordonVariant.ROAD ? CordonCorridor.find(convoyGrid(map), map.topology, plan) : null;
         return new Generated(new CordonMap(map, plan, battleSeed, corridor, biome, density), null);
     }

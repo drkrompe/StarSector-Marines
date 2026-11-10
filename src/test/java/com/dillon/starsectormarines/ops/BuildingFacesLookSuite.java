@@ -24,14 +24,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Buildings stood up ({@code voids.md}, buildings in depth; {@code battle.render.buildingFaces}): an open verdant town
- * and a frozen town in a crevasse, each drawn flat and stood up, whole ({@code <case>-<flat|faces>-whole.png}) and at
+ * Buildings stood up ({@code voids.md}, buildings in depth; {@code BuildingFaces}): an open verdant town
+ * and a frozen town in a crevasse, each stood up, whole ({@code <case>-faces-whole.png}) and at
  * play zoom on its busiest block ({@code -play.png}), and stood up panned across that block at play zoom
  * ({@code <case>-pan-NN.png}), since the parallax is the point. Look preset; nothing is played.
  */
 public final class BuildingFacesLookSuite implements SnapshotSuite {
 
-    private static final String SWITCH = "battle.render.buildingFaces";
     /** Frames in a pan, and how far it runs either side of the block, cells. */
     private static final int PAN_FRAMES = 60;
     private static final float PAN_CELLS = 14f;
@@ -50,7 +49,6 @@ public final class BuildingFacesLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String was = System.getProperty(SWITCH);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
@@ -64,9 +62,8 @@ public final class BuildingFacesLookSuite implements SnapshotSuite {
                         FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.BALANCED, c.landform())) {
                     int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
                     float[] block = busiest(sim);
-                    for (boolean faces : new boolean[]{false, true}) {
-                        System.setProperty(SWITCH, Boolean.toString(faces));
-                        String id = c.id() + (faces ? "-faces" : "-flat");
+                    {
+                        String id = c.id() + "-faces";
                         out.add(new SnapshotArtifact(id + "-whole.png", BattleReviewFrameRenderer.look(
                                 context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
                                 .render(sim, "")));
@@ -74,7 +71,6 @@ public final class BuildingFacesLookSuite implements SnapshotSuite {
                                 context.modRoot(), 1920, 1080, block[0], block[1],
                                 BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
                     }
-                    System.setProperty(SWITCH, "true");
                     for (int f = 0; f < PAN_FRAMES; f++) {
                         float t = f / (PAN_FRAMES - 1f) * 2f - 1f;
                         out.add(new SnapshotArtifact(String.format(Locale.ROOT, "%s-pan-%02d.png", c.id(), f),
@@ -85,9 +81,6 @@ public final class BuildingFacesLookSuite implements SnapshotSuite {
                 }
             }
             return out;
-        } finally {
-            if (was == null) System.clearProperty(SWITCH);
-            else System.setProperty(SWITCH, was);
         }
     }
 

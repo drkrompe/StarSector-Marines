@@ -115,8 +115,13 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                 for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
                     if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY) continue;
                     RuinsDelve.Area f = hall.footprint();
+                    // The whole hall fitted to the frame, then its head (the great crucible) close in.
+                    float fit = Math.max(f.width() + 14f, (f.height() + 8f) * W / (float) H);
                     out.add(new SnapshotArtifact("inside/" + name + "-foundry.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f, f.width() + 14f)
+                            context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f, fit)
+                            .withoutRoofs().render(sim, "")));
+                    out.add(new SnapshotArtifact("inside/" + name + "-foundry-head.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, f.centreX() + 0.5f, f.top() - 12f, f.width() + 14f)
                             .withoutRoofs().render(sim, "")));
                 }
             }

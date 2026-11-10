@@ -1,38 +1,32 @@
 # Story map pools
 
 Status: ACTIVE — every pooled story map (Colony Breach, the Cordon's and the
-Heart's, at every density) plays exactly one vetted map per world biome, the
-owner picking each from candidates; Conquest and the generic contracts stay
-fully random until they are pooled too.
+Heart's, at every density) is one owned seed laid out on the mission's home
+palette and skinned for the world it is fought on (`PlanetSkin`); Conquest and
+the generic contracts stay fully random until they own a map too.
 
-Updated: 2026-11-10 — one map per biome everywhere (owner: "start small. Each mission should have a single seed per biome. Once we get that right then we can branch out with more variety"); the rest of each biome's entries kept as `candidates` for the owner's pick.
+Updated: 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
-Earlier, 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name; the Heart fails a map with anything built on a way in its start-side third. Earlier, 2026-10-28: a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
-
-Owned maps (`owned-maps.md`, one layout per mission skinned per biome) are the
-later variety step and are parked until one seed per biome is right.
+Earlier, 2026-11-10 — one map per biome. 2026-10-31 — a story map per biome the campaign always plays; a patch may place layout structures by name. 2026-10-28: a Colony Breach patch places the lift, bores and holdouts.
 
 A story mission's map is the generator's, but the mission does not take any
-seed the dice offer. It plays from a **pool**: for each world biome, a short,
-vetted list of seeds the team has looked at and owns, each optionally carrying
-a small authored **patch**. Generation still makes the map every time, so the pool rides
-generator improvements; the pool decides only *which* maps a player can get.
+seed the dice offer. It **owns one map**: a seed the team has looked at and
+made good, with a small authored **patch**, generated on the mission's **home**
+palette. Every world plays that map, and a **planet skin** re-dresses it for
+the world. Generation still makes the map every time, so the map rides
+generator improvements; the pool decides which map it is.
 
 ## Why
 
 A story map's outcome swings on small behaviour changes, and evidence over a
-sample of random seeds is a sample that keeps moving: two balance readings on
-"seeds 3, 11, 42" and "seeds 7, 19, 64" are not comparable, and neither covers
-the map the player will actually get. A fixed pool makes evidence **complete**
-(every map the player can get is played) and **comparable** (the same maps,
-run to run). It also lets a person own a map: look at it, name what is good
-about it, and fix the one thing wrong with it.
-
-The setups already vetted informally: Cordon re-rolls a map whose base packed
-no shed or whose redoubt has no wall, and the Heart re-rolls one whose bores
-would not seat. A pool is that vetting done once, by a person, with a record.
+sample of random seeds is a sample that keeps moving. One owned map makes
+evidence **complete** (it is the map the player gets) and **comparable** (the
+same map, run to run and world to world). It also lets a person own the map:
+look at it, name what is good about it, and fix the one thing wrong with it.
+The owner, 2026-11-10: "Currently our story missions are the only ones that
+play okay", so the authored story maps are what every world plays.
 
 ## The pool
 
@@ -41,83 +35,90 @@ One data file per story map, `mod/data/world/pools/<map>.pool.json`
 load):
 
 ```json
-{ "version": 2, "map": "cordon-line",
-  "biomes": {
-    "VERDANT": [
-      { "seed": 3, "note": "rear south; redoubt guns 1-2-2-2" },
-      { "seed": 9, "note": "...", "patch": { "pin": [...], "ruin": [...] } } ],
-    "ARID": [ ... ], "ROCK": [ ... ], "FROZEN": [ ... ] } }
+{ "version": 3, "map": "cordon-line", "home": "ARID",
+  "entry": { "seed": 3, "note": "rear south; redoubt guns 2-2-2-2",
+             "patch": { "pin": [...], "ruin": [...] } } }
 ```
 
-**Biomes.** A bloom surfaces on any world, so its story is fought on that
-world's own ground: the event world's `SurfacePalette` (verdant, arid, rock,
-frozen, toxic) picks the pool, and every biome must have maps. A seed names a
-different map on each biome (the palette feeds generation), so a seed is
-vetted per biome; the same seed pooled on several biomes keeps one layout
-under different ground, which makes the biome the only difference between
-those readings. A palette laid out as another (`SurfacePalette.layoutOf`:
-volcanic is rock's layout in basalt) pools no maps of its own and plays that
-one's.
+**Home.** The palette the map is laid out on (`StoryMapPool.layoutFor`): its
+generation, acceptance and patch coordinates are the home's. A palette feeds
+generation in many places that move the layout (rock chance and its draws,
+formations, woods, sludge pools, the desert's green basin), so a world never
+generates its own map: it plays the home's layout, skinned. Every pool's home
+is ARID today, the ground the Wellhollow campaign plays and its maps were tuned
+on.
 
-**Density.** The Cordon is also laid out at its world's density (rural, town
-or urban, from the market size; `cordon-nouns.md`, Density), and each density
-is a story map of its own with its own pool: `cordon-line-town`,
-`cordon-road-urban` and so on. The heart is the same (`heart-map-intent.md`,
-Density): `heart-front-town`, `heart-burn-city` and so on, rural, town and city
-each from the world's market size. A density changes the whole map a seed names,
-so it is vetted as a biome is.
-
-A pool **seed** is the battle seed itself: the map it names on its biome
+**The owned seed.** The battle seed itself: the map it names on its home
 passes the mission's acceptance on the first generation, with no re-roll. The
-note is for people: what the map is and why it is in.
+note is for people: what the map is and why it is the one.
 
-**Choosing.** A campaign battle picks `entries[floorMod(roll, size)]` of its
-world's biome from a roll its event already carries (`StoryMapPool.pick`), so
-the choice is deterministic per event and saved with it. A fixture names a
-seed and a biome (absent means verdant): a pooled seed plays that entry with
-its patch; a seed outside the pool plays the old unvetted path, re-rolls and
-all, which is how a candidate is tried before it is added. Nothing on the
-campaign path reaches the unvetted path.
+| Map | Seed | Why this one |
+|---|---|---|
+| `colony-breach` | 38 | Asharu, the campaign's map; lift, bores and holdouts placed by the owner |
+| `heart-burn` (and its town and city) | 2 | the Wellhollow story map The Burn was tuned on |
+| `heart-front` | 5 | the Wellhollow story map, its airbases placed |
+| `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
+| `cordon-line`, `cordon-road`; town; urban | 3, 15; 14, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
 
-**Story map.** An entry marked `"story": true` (at most one per biome,
-`StoryMapPool.story`) is the one map a story campaign's chapter plays on that
-biome, on every attempt: a controlled experience, its patch authored for it,
-its flow the same each time. The Wellhollow campaign plays its chapter's ARID
-story map wherever the pool names one (`WellhollowBloomCampaign.seed`, and the
-debug player's `fixedSeed`), and cycles the ARID entries by attempt only where
-it names none. Broad Front's is `heart-front` ARID seed 5 and The Burn's
-`heart-burn` ARID seed 2, the map The Burn's young bores, bore growth and
-station airbase were tuned on (owner, 2026-10-31): switching one is moving the
-flag to another entry. The biome's other entries
-stay in the pool for bloom events on other worlds.
+**Density.** The Cordon is laid out at its world's density (rural, town or
+urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
+same (`heart-map-intent.md`, Density). A density changes the whole map a seed
+names, so each density is a story map of its own with its own pool.
 
-**Size.** One per biome (owner, 2026-11-10: "start small. Each mission should
-have a single seed per biome"), so every reading of a mission on a biome is the
-same map. It was three (owner, 2026-10-23); the pool is still a dial, not a
-constant, and the reader takes any number, so variety returns by adding entries
-once one map per biome is right.
+**Choosing.** There is nothing to choose: every world, roll and attempt plays
+the owned entry (`StoryMapPool.pick`, `story`, `entry`). A fixture that names
+the owned seed plays it with its patch; any other seed plays the old unvetted
+path, re-rolls and all, laid out on the fixture's own biome, which is how a
+replacement is tried before it is owned. Nothing on the campaign path reaches
+the unvetted path.
 
-**Candidates.** The owner picks each biome's map. A pool file's top-level
-`candidates` (by biome, entries as in `biomes`, notes and patches kept) holds the
-seeds put to the owner beside the pooled one; the reader ignores it. The pooled
-entry is the recommendation until the owner picks: the `story` entry where a
-biome had one, else the first of the old three. `createSnapshots
--Psnapshot=story-map-candidates` (`-Dsnapshot.candidates.maps=`) frames each
-biome's pooled entry and candidates whole through the look preset, pooled first,
-and screens seeds from 1 up for a map with fewer than three (Colony Breach). A
-pick moves the chosen entry into `biomes` and the pooled one into `candidates`.
+## Planet skin
 
-**Colony Breach.** The colony (`colony-breach`) is pooled too, one map per
-biome while the mission is tuned (owner, 2026-10-26), so every tuning reading
-plays the four maps a player can get. A pooled colony is generated on its
-world's biome alone, never on the market behind it, with no re-roll; a pooled
-seed that no longer seats its shelter, lift, bores, holdouts and opening swarm
-fails, in the campaign and in the regeneration check alike. Its entries take
-no pin or ruin yet, only the colony's own placements (The patch, below). The
-debug stress test and the lower-risk rescues stay random.
-The first four were screened from seeds 1 to 40 (18 pass, on any biome alike:
-the palette does not move the colony's layout): a different seed per biome,
-each with at least two holdouts and the widest room between holdouts and bores.
+`PlanetSkin.apply(map, home, world)` re-dresses the finished map in place.
+**The layout never moves**: no cell changes whether it can be walked, seen
+through or built on (`PlanetSkinTest`). It swaps:
+
+- **Ground.** The home's wild ground and its lawns become the world's own wild
+  ground (`SurfacePalette.inlandGround`: grass, sand, stone, snow, hardpan);
+  bare earth, stone and snow stay what they are, drawn in the world's material
+  (`CellTopology.setGroundPalette`). The home's basin (the desert's green
+  middle) goes with it: the world is one surface.
+- **Woods.** The same trees and undergrowth on the same cells in the world's
+  flora (`Flora`, identical footprints): the home's own on its palette, a living
+  world's species, boreal conifers on a frozen world, grey dead scrub where
+  nothing lives. Loose plants come off a world where nothing grows; field stones
+  take the world's set; cliffs take the world's finish (`TerrainPlan.Finish`).
+- **Fields.** Open crops, grain and pasture only where things grow under air
+  that lets them: a verdant or desert world with breathable air
+  (`PlanetSkin.fieldsOn`). On a frozen, bare-rock, volcanic, irradiated or toxic
+  world, or under air that kills, every worked field (`MapResult.fields`: the
+  surveyed country's plots, the town's own fields and the lots' kitchen plots)
+  is laid as **hydroponic beds** on its footprint: paved bays on the crop's rows
+  between walkways along its headland, as walkable as the field was. Bare
+  ground of the planet's own surface is the other arm of the owner's pick
+  (`-Dbattle.planetSkin.fields=bare`).
+- **Buildings.** Every town wall in the world's habitat (`HabitatStage.rebuild`,
+  `BiomeSkin.habitat`): shielded on an irradiated world, sealed on a toxic or
+  airless one (bare rock is airless unless its profile says otherwise),
+  insulated on a frozen one.
+
+It does not raise a sealed perimeter round a town, add a drop or grow new
+water or woods: each would move the layout. A drop belongs on a map only where
+its terrain explains one (`owned-maps.md`, Relay Nine). Living worlds (jungle,
+tundra, ocean) reach a story setup as verdant today, since the setups take the
+world's palette alone.
+
+`createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
+`.worlds=`) frames each mission's map whole under every palette through the
+look preset, with close frames on its fields and woods.
+
+**Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
+never on the market behind it, with no re-roll, then skinned for the world the
+campaign gives it; a seed that no longer seats its shelter, lift, bores,
+holdouts and opening swarm fails, in the campaign and in the regeneration
+check alike. Its entry takes no pin or ruin yet, only the colony's own
+placements (The patch, below). The debug stress test and the lower-risk
+rescues stay random.
 
 **How the first pools were chosen.** Seeds 2 to 25 screened on every biome
 (the Cordon passes on 60 to 72% of them, the Heart on all); for the Cordon the
@@ -226,10 +227,11 @@ Any entry may also **place** a mission layout's structures by name
   this way (`heart-nouns.md`, Allied airbase). Asharu's ARID entry is placed
 this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
-Patches are authored in the pool file, in cell coordinates read off the
-pool's whole-map review frames (`createSnapshots -Psnapshot=story-map-pools`).
-The Map damage workbench page hosts only Relief so far; giving it the story
-maps is the natural next step once patches are common.
+Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
+or headless through `map_render` and `map_save`: pins, ruin strokes and
+placements on the home entry's whole-map picture, the mission's acceptance
+(`StoryMapAcceptance`, the same check `storyMapPools` runs) before every save,
+and only that entry's text rewritten in the pool file.
 
 ## Evidence plays the pool
 
@@ -249,6 +251,6 @@ question about one map.
   different forms at different sizes, so each has its own.
 - The pool does not hold the setup's tuning, timetables or rosters; those
   stay in the mission's code and story docs.
-- The check generates each map on its biome with no market behind it. The
+- The check generates each map on its home with no market behind it. The
   story campaign passes only the world's biome, never the market's profile,
-  so the map it plays is the map the check saw.
+  and the skin moves no cell, so the map it plays is the map the check saw.

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
+import com.dillon.starsectormarines.battle.door.WallGate;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -214,6 +216,14 @@ public final class MapResult {
      * null on every map that is not a ruins site's.
      */
     public final RuinsDelve ruinsDelve;
+    /** The gates in walled places' walls, hung with sliding leaves ({@link WallGate}); empty where none. */
+    public final List<WallGate> wallGates;
+    /**
+     * The fields the map's colony works ({@code story-map-pools.md}, Planet skin): every crop, grain, pasture and
+     * fallow plot laid as worked ground, so a skin can say what each becomes on a world where open fields make no
+     * sense. Empty on a map with none, and never null.
+     */
+    public final List<RuralLayout.Plot> fields;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -487,73 +497,82 @@ public final class MapResult {
         this.cordonedFacilities = List.of();
         this.industrialZones = List.of();
         this.ruinsDelve = null;
+        this.wallGates = List.of();
+        this.fields = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
     public MapResult withInitialDamage(DamagePlan damage) {
         return new MapResult(this, damage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities, industrialZones, ruinsDelve);
+                cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the field of fire its landing promised. */
     public MapResult withFieldOfFire(FieldOfFire field) {
         return new MapResult(this, initialDamage, field, layout, loadingBays, openSquares, serviceLanes, mainStreets,
-                cordonedFacilities, industrialZones, ruinsDelve);
+                cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying what its mission layout laid. */
     public MapResult withLayout(LaidLayout laid) {
         return new MapResult(this, initialDamage, fieldOfFire, laid == null ? LaidLayout.EMPTY : laid, loadingBays,
-                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the loading bays its set pieces laid. */
     public MapResult withLoadingBays(List<LoadingBay> bays) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, bays == null ? List.of() : List.copyOf(bays),
-                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
+                openSquares, serviceLanes, mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the open squares its set pieces framed. */
     public MapResult withOpenSquares(List<OpenSquare> squares) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays,
                 squares == null ? List.of() : List.copyOf(squares), serviceLanes, mainStreets, cordonedFacilities,
-                industrialZones, ruinsDelve);
+                industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the service lanes its factory rows laid. */
     public MapResult withServiceLanes(List<ServiceLane> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares,
-                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities, industrialZones, ruinsDelve);
+                laid == null ? List.of() : List.copyOf(laid), mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the main streets its districts laid. */
     public MapResult withMainStreets(List<MainStreet> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities, industrialZones, ruinsDelve);
+                laid == null ? List.of() : List.copyOf(laid), cordonedFacilities, industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the cordoned facilities its districts laid. */
     public MapResult withCordonedFacilities(List<CordonedFacility> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, laid == null ? List.of() : List.copyOf(laid), industrialZones, ruinsDelve);
+                mainStreets, laid == null ? List.of() : List.copyOf(laid), industrialZones, ruinsDelve, wallGates);
     }
 
     /** The same map, carrying the industrial zones its districts laid. */
     public MapResult withIndustrialZones(List<IndustrialZone> laid) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, cordonedFacilities, laid == null ? List.of() : List.copyOf(laid), ruinsDelve);
+                mainStreets, cordonedFacilities, laid == null ? List.of() : List.copyOf(laid), ruinsDelve, wallGates);
+    }
+
+    /** The same map, carrying the gates its walled places' walls left open. */
+    public MapResult withWallGates(List<WallGate> gates) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
+                mainStreets, cordonedFacilities, industrialZones, ruinsDelve, gates == null ? List.of() : List.copyOf(gates));
     }
 
     /** The same map, carrying the delve a ruins site's ground laid. */
     public MapResult withRuinsDelve(RuinsDelve delve) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, cordonedFacilities, industrialZones, delve);
+                mainStreets, cordonedFacilities, industrialZones, delve, wallGates);
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
                       List<MainStreet> streets, List<CordonedFacility> facilities,
-                      List<IndustrialZone> zones, RuinsDelve delve) {
+                      List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates,
+                      List<RuralLayout.Plot> worked) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -588,5 +607,26 @@ public final class MapResult {
         cordonedFacilities = facilities;
         industrialZones = zones;
         ruinsDelve = delve;
+        wallGates = gates;
+        fields = worked;
+    }
+
+    /** The same map, carrying the fields its colony works. */
+    public MapResult withFields(List<RuralLayout.Plot> worked) {
+        return new MapResult(this, worked == null ? List.of() : List.copyOf(worked));
+    }
+
+    private MapResult(MapResult base, List<RuralLayout.Plot> worked) {
+        this(base, base.initialDamage, base.fieldOfFire, base.layout, base.loadingBays, base.openSquares,
+                base.serviceLanes, base.mainStreets, base.cordonedFacilities, base.industrialZones, base.ruinsDelve,
+                base.wallGates, worked);
+    }
+
+    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
+                      List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
+                      List<MainStreet> streets, List<CordonedFacility> facilities,
+                      List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates) {
+        this(base, damage, field, laid, bays, squares, laidLanes, streets, facilities, zones, delve, gates,
+                base.fields);
     }
 }

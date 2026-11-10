@@ -59,10 +59,8 @@ public final class PrecinctSkeletonStage implements GenStage {
                         FortReservations.keepClear(ctx, plan), KnollGround.bounds(knolls, plan.precincts().size()),
                         FortReservations.sealed(ctx, plan));
         // The grown streets planned as one network before any place claims its ground (`StreetPlan`).
-        if (StreetPlan.enabled()) {
-            grown = StreetPlan.plan(grown, barredForStreets(FortReservations.keepClear(ctx, plan),
-                    FortReservations.sealed(ctx, plan), ctx.width, ctx.height)).grown();
-        }
+        grown = StreetPlan.plan(grown, barredForStreets(FortReservations.keepClear(ctx, plan),
+                FortReservations.sealed(ctx, plan), ctx.width, ctx.height)).grown();
 
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
@@ -97,7 +95,8 @@ public final class PrecinctSkeletonStage implements GenStage {
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
-            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height, 1, precinct.fortification().glacis());
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height, 1, precinct.fortification().glacis(),
+                    grown.plan().trunks);
             if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
             CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
         }
@@ -143,7 +142,7 @@ public final class PrecinctSkeletonStage implements GenStage {
             Precinct precinct = plan.precincts().get(i);
             if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
             CantonmentRoads.further(claim, grown.owner(), i, ctx.width, ctx.height,
-                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis());
+                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis(), grown.plan().trunks);
         }
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;

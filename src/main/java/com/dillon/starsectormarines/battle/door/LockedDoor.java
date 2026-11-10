@@ -58,6 +58,9 @@ public final class LockedDoor {
     public void setReady(boolean ready) { this.ready = ready; }
     /** The door's cells, {x, y} each; read only. */
     public int[][] cells() { return cells; }
+    /** The middle of the door's keep, in cells: the side of the door its room lies on. */
+    public float keepCentreX() { return (keep[0] + keep[2] + 1) * 0.5f; }
+    public float keepCentreY() { return (keep[1] + keep[3] + 1) * 0.5f; }
     /** Whether the door runs along x (a passage through it runs north-south); known once installed. */
     public boolean spansX() { return spansX; }
 

@@ -1,12 +1,12 @@
 # Owned maps
 
-Status: PARKED (owner, 2026-11-10: "We should start small. Each mission should have a single seed per biome. Once we
-get that right then we can branch out with more variety."). Owned maps are that later variety step. Until it resumes:
-the document, `OwnedMapJson`, `OwnedMapCatalog`, `BiomeSkin` and `OwnedMapRecipe` stay on main as built, and Relay
-Nine keeps reading `relay-nine.map.json` (its map was code-authored, never seeded, so it already is one map on every
-biome and serves the one-seed stage as it is). Nothing else converts; the map editor builds no Maps page on this
-format; the sealed-town extraction (`SealedTown` for a lot) and a public drop cutter (`NaturalChasm`) offered by
-their sessions were declined. Resuming starts at Not yet, below, with the map inventory's order
+Status: PARKED — the document format. Story missions take the idea without it: each owns one seed, laid out on its
+home palette and skinned for every world by `PlanetSkin` (`story-map-pools.md`, Planet skin; owner, 2026-11-10: "All of
+these should use a single seed, that we own and make good"). The skin carries this document's rules (the layout never
+moves; a drop only where terrain explains one) but not its format. Until the format resumes, `OwnedMapJson`,
+`OwnedMapCatalog`, `BiomeSkin` and `OwnedMapRecipe` stay on main as built and Relay Nine keeps reading
+`relay-nine.map.json`; nothing else converts and the map editor builds no Maps page on this format. Resuming starts
+at Not yet, below, with the map inventory's order
 (`G:\My Drive\starsector\review\owned-maps\2026-11-10_mission-inventory_win\inventory.md`).
 
 Written: 2026-11-10
@@ -147,9 +147,10 @@ Relay Nine was converted first because the existing tools made it the easiest:
 - It is a live mission with a short setup (`BattleSetup.createRelayNine`).
 
 The conversion laid the code-authored map cell for cell on rock, arid and verdant: the same ground, surfaces, walls,
-props and sites. The owned map then gained a **south wash**, a `RIVER` drop between the two southern escarpments
-below the reserve shed, which the reserve road crosses as a bridge. It lies outside the main fight and shows each
-world's drop: a gorge river, a canyon, a crevasse, a dry gorge, a toxic gorge, or the shallow lava river. On a frozen world the relay hall's ceramic walls turn to brick (insulated), and on airless, toxic and
+props and sites. A **south wash** (a `RIVER` drop between the two southern escarpments) was tried and taken out
+(owner, 2026-11-10: "It seems strange there in relation to the hills and the road. It doesn't seem natural. It's
+unclear how this would have formed here."). A drop belongs on a map only where its terrain explains one: it follows
+the fall of the land from high ground down and out, and a road meets it at a real crossing. Relay Nine has none. On a frozen world the relay hall's ceramic walls turn to brick (insulated), and on airless, toxic and
 irradiated worlds the works is sealed. `createSnapshots -Psnapshot=owned-map-look` shows it under every palette.
 
 ## Not yet

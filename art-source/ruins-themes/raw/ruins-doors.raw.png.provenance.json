@@ -1,0 +1,85 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5e7-40d6-7ac2-9e2d-e6c173667cd3",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5e7-40d6-7ac2-9e2d-e6c173667cd3\\exec-181d3512-5e23-49e4-879b-e9dfa478ccc8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-doors.raw.png",
+    "sha256": "49ebe1cf8d7b287274f0e2afbc3671c04b11a4250f272094610456cade6534a0",
+    "dimensions": [
+      2021,
+      778
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\doors.prompt.txt",
+  "promptSha256": "803e6abd38e2d6378498d4d51e8bd0cf56a0c544fd98d1b15c645f2c6f8a0cda",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only: the game's ship door leaf; not layout\nImage 3: Material/style only: the game's cargo door pair; not layout\nImage 4: Material/style only: the game's hardened door; not layout\nImage 5: Material/style only: the game's door jamb; not layout\n\nAsset: a sheet of separate top-down tactical-game door parts for an abandoned Domain-era automated factory ruin, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map: sliding leaf doors seen from above, so each leaf is the top edge of a thick steel slab that slides along its wall line. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; the four leaves (top row) fill their blocks edge to edge as solid rectangles, square-cornered, with no transparent margin, because the game cuts them from their right end. Do not move, enlarge, merge or add pieces. The transparent space between blocks stays fully transparent.\nStyle: match references 2-5 exactly, the game's own ship doors: crisp painterly-pixel sprite, dark gunmetal plate, riveted ribs, worn yellow-black hazard paint, small lamps, soft upper-left object-local light. But these are a dead ruin's doors, not a working ship's: dust in every seam, rust bloom, chipped and faded paint, scorch. Heavy, grounded, adult military sci-fi. Not cartoon, no thick outlines, no bright saturated flat colours.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubjects, top row left to right (each leaf runs left to right: its jamb end on the left, its meeting edge on the right):\n1. ruins-leaf: a hall door leaf: plated slab between riveted ribs, dusty, a worn hazard band at its right (meeting) end.\n2. ruins-leaf-sealed: the same leaf locked down on power: the ribs painted with red-and-black bands and a lit red seal strip down its right (meeting) end.\n3. ruins-cargo-leaf: a heavier cargo door leaf: thicker, deep ribs, a broad worn hazard field over most of it.\n4. ruins-blast-leaf: a thick blast door leaf for a vault: heavy bolted armour, rows of bolt heads along both long edges, two massive lock bars running to its right (meeting) edge.\nBottom row left to right:\n5. ruins-leaf-torn: a hall door leaf torn from its track and lying on the floor: buckled and bent in the middle, its bottom edge showing the row of track rollers it ran on, paint scraped.\n6. ruins-blast-clamp: a heavy locking clamp seen from above, a block bolted across a sealed door's seam (the horizontal bar is the seam line it grips), with a red lamp at its top.\n7. ruins-door-jamb: a door jamb housing, the frame block a leaf withdraws into: steel housing, the dark slot the leaf slides into, and a round lamp socket at its upper left with a clear, plain white-grey lens (the game tints it).\n8. ruins-door-rubble: grit, concrete chips and torn metal fragments scattered round a forced door's empty track (the bar across the middle is the track), loose and low on the floor.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-doors-guide.png",
+      "sha256": "577e1d1715bb5ce39b19953a778d1ac3c79b4ff3d7622b63dc3394c21e4fb567",
+      "dimensions": [
+        2080,
+        800
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "mod\\graphics\\doors\\ship-leaf.png",
+      "sha256": "7bff3a69d70a5175e67be8338efcda0860eb229b47db7656cc6ed949a0789c62",
+      "dimensions": [
+        240,
+        67
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: the game's ship door leaf; not layout"
+    },
+    {
+      "path": "mod\\graphics\\doors\\forcible-4.png",
+      "sha256": "d38169e7f884c9fcbc8a1fa3b6d222aba2e3ab6679c269a243e51a9d08c7ce46",
+      "dimensions": [
+        512,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: the game's cargo door pair; not layout"
+    },
+    {
+      "path": "mod\\graphics\\doors\\hardened-2.png",
+      "sha256": "44d1a021e3944bdff9fc9e3e87bedf18671135194e46d255304c77208013f2db",
+      "dimensions": [
+        256,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: the game's hardened door; not layout"
+    },
+    {
+      "path": "mod\\graphics\\doors\\forcible-jamb-low.png",
+      "sha256": "756c468c004202f8af93be719e13683f085d2222ea522d52142b0b518cecfad8",
+      "dimensions": [
+        51,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: the game's door jamb; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, using Image 1 for the exact layout and Images 2–5 for the worn metal style."
+  ],
+  "usage": {
+    "input_tokens": 44022,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1113,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 83.9
+}

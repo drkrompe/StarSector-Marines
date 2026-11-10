@@ -114,8 +114,8 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.settlementLots` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
-| `battle.mapgen.streetPlan` | experiment | 2026-11-10 | Street plan (mapgen-nouns.md): grown streets planned as one network; remove with the unplanned path once the plan is proven on the story map pools and the owner's review. |
 | `battle.mapgen.townFields` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
+| `battle.planetSkin.fields` | experiment | 2026-11-10 | Planet skin (story-map-pools.md): `bare` lays fields a hazardous or frozen world cannot grow in the open as bare ground instead of hydroponic beds; remove with the losing arm once the owner answers picks question `planet-skin-fields`. |
 | `battle.mech.<axis>.<short id>` | tuning | 2026-10-18 | Balance control over one authored mech-weapon value (MechWeaponComponent.tuned). Kept while armorMatchup balances mech weapons; fold the readings into the data files and drop it when that pass closes. |
 | `battle.mech.armorArcs` | control | 2026-10-19 | Standing control alongside battle.vehicle.armorArcs. Retire with it. |
 | `battle.mission.counterattack` | experiment | 2026-10-21 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
@@ -135,7 +135,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
-| `battle.render.buildingFaces` | experiment | 2026-11-10 | Buildings stood up with wall faces and roofs lifted by height (voids.md, buildings in depth): remove it, with the losing path, once the owner picks keep, keep for tall buildings, or drop. |
 | `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (`render-evidence.md`). |
 | `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |

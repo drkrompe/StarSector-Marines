@@ -636,35 +636,7 @@
       "id": "doodad.industrial-crate-stack"
     }
   ],
-  "drops": [
-    {
-      "name": "south-wash",
-      "role": "RIVER",
-      "path": [
-        [
-          75,
-          4
-        ],
-        [
-          86,
-          4
-        ],
-        [
-          104,
-          3
-        ],
-        [
-          122,
-          4
-        ],
-        [
-          133,
-          5
-        ]
-      ],
-      "width": 5
-    }
-  ],
+  "drops": [],
   "rises": [],
   "routes": [
     [
