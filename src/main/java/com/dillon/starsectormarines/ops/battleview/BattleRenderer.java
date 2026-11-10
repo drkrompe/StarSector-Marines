@@ -332,6 +332,8 @@ public class BattleRenderer {
                 // The land falling away below a map's void cells: a gorge, a crevasse, a sea cliff.
                 naturalVoid,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
+                // A volcanic world's ash drifts and glowing cracks, vents and embers, over its basalt tiles.
+                new VolcanicGroundRenderSystem(sprites),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
                 naturalVoid.fray(),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.

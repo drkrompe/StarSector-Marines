@@ -18,6 +18,8 @@ public final class PlanetFormationTemplate {
     public static BufferedImage render() {
         var image=new BufferedImage(PITCH*4,PITCH*3,BufferedImage.TYPE_INT_ARGB);
         for(var shape:MineralFormation.values()) for(int state=0;state<3;state++) {
+            // The basalt formations are the first two columns regraded (art-source/tilesets/volcanic-formations).
+            if(shape.ordinal()>=4) continue;
             double scale=FRAME/(double)Math.max(shape.width(),shape.height());
             var g=image.createGraphics();
             g.translate(shape.ordinal()*PITCH+(PITCH-shape.width()*scale)/2,
@@ -58,6 +60,7 @@ public final class PlanetFormationTemplate {
         if (Files.exists(root.resolve("art-source/tilesets/planet-formations.tileset-authoring.json"))) return;
         var entries=new JSONArray();
         for(var shape:MineralFormation.values()) for(int state=0;state<3;state++) {
+            if(shape.ordinal()>=4) continue;
             double scale=FRAME/(double)Math.max(shape.width(),shape.height());
             int w=(int)Math.round(shape.width()*scale),h=(int)Math.round(shape.height()*scale);
             var mask=new JSONArray();
