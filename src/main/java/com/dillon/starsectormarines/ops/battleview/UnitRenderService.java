@@ -1780,6 +1780,13 @@ public final class UnitRenderService implements RenderSystem {
                                 cam, ctx.sim.world().mechLoadout(entityId).variant, roster.renderScale(entityId),
                                 walkerGuns, mechFacing[r], 0.025f * LayeredMechAppearance.recoil(mechChaingunPhase[r]),
                                 0.018f * LayeredMechAppearance.recoil(mechSrmPhase[r]), mechFlags[r], unitAlpha);
+                        // Its reservoir's haze over the back of the drawn body, which is its torso.
+                        sprites.ensureEngineFxSprites();
+                        FluxHaze.collectMech(out, sprites.engineGlowSprite(), cam, cam.cellPxSize(),
+                                rig.bodyX(), rig.bodyY(), rig.bodyFacing(),
+                                LayeredMechAppearance.hullWidthCells(roster.renderScale(entityId)),
+                                ctx.sim.world().mechLoadout(entityId).flux,
+                                ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, unitAlpha);
                     }
                     DerelictWalkerComposer.marker(out, rig, cam, unitAlpha);
                     continue;
