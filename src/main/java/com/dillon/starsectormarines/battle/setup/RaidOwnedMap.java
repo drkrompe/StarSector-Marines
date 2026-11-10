@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -38,8 +39,13 @@ public final class RaidOwnedMap {
     public static final int STABILITY = 5;
     /** The reference market's owner. Only the emplacements' style reads it; the raided market's faction defends. */
     public static final String FACTION = "independent";
-    /** The tier the owned map is laid at, whatever tier the raid is: 280x168, the Established and Veteran map. */
+    /** The tier the owned map's fortification is read at, whatever tier the raid is. */
     public static final OperationTier TIER = OperationTier.ESTABLISHED;
+    /**
+     * The owned map's size, whatever tier the raid is: 400x240, larger than the Established Raid's 280x168 after the
+     * owner's "Probably larger than this. How is the player supposed to skirt the base?" ({@code raid-owned-scale}).
+     */
+    public static final MapScale SCALE = MapScale.VAST;
     /** The risk the map's fortification ceiling is read at. */
     public static final RiskLevel RISK = RiskLevel.MEDIUM;
     /** Machines in the works on every owned map: one hall each, so the count is the map's, not the tier's. */
@@ -67,10 +73,11 @@ public final class RaidOwnedMap {
 
     /**
      * The ground an owned Raid map is laid on: the map, the home palette it is generated on, the reference market, the
-     * tier its size and fortification are read at and the machines its works holds. {@link #of} is the owned map; the
+     * tier its fortification is read at, its size and the machines its works holds. {@link #of} is the owned map; the
      * other values exist so a look suite can lay an alternative for the owner to compare.
      */
-    public record Ground(StoryMap map, SurfacePalette home, TargetProfile reference, OperationTier tier, int machines) {
+    public record Ground(StoryMap map, SurfacePalette home, TargetProfile reference, OperationTier tier, MapScale scale,
+                         int machines) {
         public Ground {
             if (!isRaid(map)) throw new IllegalArgumentException(map + " is not a Raid map");
             if (machines < 1) throw new IllegalArgumentException("a Raid map's works needs a machine");
@@ -78,7 +85,7 @@ public final class RaidOwnedMap {
 
         /** {@code map}'s owned ground on {@code home}. */
         public static Ground of(StoryMap map, SurfacePalette home) {
-            return new Ground(map, home, RaidOwnedMap.reference(map, home), TIER, MACHINES);
+            return new Ground(map, home, RaidOwnedMap.reference(map, home), TIER, SCALE, MACHINES);
         }
 
         /** The site this ground is laid as, or {@code null} for the generic map. */
