@@ -24,8 +24,11 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -54,6 +57,8 @@ public final class MilitaryWorks implements RaidIndustry {
     private static final RoomShape FUEL_HOUSE = RoomShape.rectangle(8, 6);
     /** Dispatch: the operations room the patrols are briefed and sent out from. */
     private static final RoomShape DISPATCH_ROOM = RoomShape.rectangle(8, 6);
+    /** The medical post: a treatment room and a few beds, where the patrols' wounded come in by the gate. */
+    private static final RoomShape AID_POST = RoomShape.rectangle(10, 7);
 
     /** Vehicle park a base keeps per motor shed, round the sheds and the fuel point. UNTUNED. */
     static final int POOL_PER_SHED = 220;
@@ -66,6 +71,7 @@ public final class MilitaryWorks implements RaidIndustry {
     public static final RoomPurpose FUEL_POINT = RoomPurpose.ENGINE_ROOM;
     public static final RoomPurpose MOTOR_POOL = RoomPurpose.PARTS_CAGE;
     public static final RoomPurpose DISPATCH = RoomPurpose.CONTROL_ROOM;
+    public static final RoomPurpose MEDICAL_POST = RoomPurpose.PATIENT_WARD;
 
     /** Width of a patrol road, cells: a track for patrol vehicles, narrower than the feeders. UNTUNED. */
     static final int PATROL_ROAD_WIDTH = 2;
@@ -97,7 +103,8 @@ public final class MilitaryWorks implements RaidIndustry {
 
     /**
      * The patrol base: a motor shed per machine, the supply depot (two from {@link #SECOND_DEPOT_FROM} sheds), the
-     * magazine and the fuel point, dispatch by the gate, and the posts its gates are watched from.
+     * magazine and the fuel point, dispatch and the medical post by the gate (the wounded come in the way the patrols
+     * go out), and the posts its gates are watched from.
      */
     @Override public FortressProgram works(int sheds) {
         if (sheds < 1) throw new IllegalArgumentException("a motor pool has at least one shed");
@@ -107,6 +114,7 @@ public final class MilitaryWorks implements RaidIndustry {
                 new FortressBuilding(FUEL_POINT, FUEL_HOUSE, Ward.YARD, 1),
                 new FortressBuilding(MOTOR_POOL, MOTOR_SHED, Ward.YARD, sheds),
                 new FortressBuilding(DISPATCH, DISPATCH_ROOM, Ward.FRONTAGE, 1),
+                new FortressBuilding(MEDICAL_POST, AID_POST, Ward.FRONTAGE, 1),
                 RaidWorksParts.guardPosts(2)),
                 0, sheds * POOL_PER_SHED, true);
     }
@@ -220,20 +228,18 @@ public final class MilitaryWorks implements RaidIndustry {
     }
 
     /**
-     * The base at work: a belt of hedgehogs round its wall and a sandbagged checkpoint at every gate; the vehicle
-     * park's ranks on the open yard; trucks in rows by the motor sheds and oil drums at their corners; pallets and
-     * crates along the supply depot and a cargo truck at it; a tanker, a tank and drums at the fuel point; sandbags
-     * round the magazine; the radar mast by dispatch.
+     * The base at work (owner, 2026-11-10: each structure a real base needs, placed for its job): a belt of hedgehogs
+     * round its wall and a sandbagged checkpoint at every gate. By each building what it works with: armour in rows
+     * by the motor sheds; pallets, crates and a cargo truck at the supply depot; the fuel depot's tanks beside the
+     * fuel point; sandbags round the magazine; the radar mast by dispatch. In the garrison ({@link #garrisonWorks}):
+     * the command post's sat comms dishes and radar, the generator hall's generator sets, the armoury's sandbags, the
+     * workshops' machine tools by the vehicle sheds. The open ground left is then the parade square, the drill yards
+     * and the vehicle park.
      */
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
         perimeter(c, plan, works);
         int[] bounds = claimBounds(c, plan.precincts().indexOf(works));
         if (bounds != null) MilitaryGround.watchtowers(c, bounds);
-        for (int i = 0; i < plan.precincts().size(); i++) {
-            if (!RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) continue;
-            MilitaryGround.drillYards(c, i, MilitaryGround.paradeSquare(c, i));
-        }
-        vehiclePark(c, plan, works);
         // The base's buildings and its garrison's are built alike, so the two read as one cantonment: olive sheet
         // walls, hangar roofs over the sheds, the depot and the fuel house, hut roofs over dispatch and the barracks.
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
@@ -249,7 +255,8 @@ public final class MilitaryWorks implements RaidIndustry {
             if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
             for (PointOfInterest b : WorksProps.buildings(c, plan, p)) {
                 oliveWalls(c, b);
-                roof(c, b, CellTopology.RoofKind.HUT);
+                RoomPurpose purpose = WorksProps.purposeOf(c, b);
+                roof(c, b, purpose == RoomPurpose.VEHICLE_BAY ? CellTopology.RoofKind.HANGAR : CellTopology.RoofKind.HUT);
             }
         }
         int n = 0;
@@ -269,6 +276,121 @@ public final class MilitaryWorks implements RaidIndustry {
                 default -> { }
             }
         }
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            Precinct p = plan.precincts().get(i);
+            if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
+            garrisonWorks(c, plan, p);
+            MilitaryGround.drillYards(c, i, MilitaryGround.paradeSquare(c, i));
+        }
+        vehiclePark(c, plan, works);
+    }
+
+    /** Sat comms dishes the command post keeps beside it. UNTUNED. */
+    static final int SATCOM_DISHES = 2;
+
+    /**
+     * The garrison's buildings at their jobs, on a military site: the command post with its sat comms dishes, radar
+     * and flag; the generator hall with its generator sets, a cable reel and a fuel tank; the armoury behind
+     * sandbags; the workshops with machine tools at their doors; armour by the vehicle sheds; a tanker and tanks at
+     * the fuel point. Each stands along its building's wall, so it reads as that building's.
+     */
+    private static void garrisonWorks(GenContext c, PrecinctPlan plan, Precinct garrison) {
+        int sheds = 0;
+        boolean generators = false;
+        PointOfInterest hq = null;
+        for (PointOfInterest b : WorksProps.buildings(c, plan, garrison)) {
+            RoomPurpose purpose = WorksProps.purposeOf(c, b);
+            if (purpose == null) continue;
+            switch (purpose) {
+                case KEEP_THRONE -> {
+                    commandPost(c, b);
+                    hq = b;
+                }
+                case ENGINE_ROOM -> generators |= near(c, b, 1, GENERATOR_SETS) > 0;
+                case ARMORY -> revetment(c, b);
+                case PARTS_CAGE -> aside(c, b, 1, List.of("doodad.industrial-machine-tool",
+                        "doodad.industrial-crate-stack", "doodad.industrial-machine-tool",
+                        "doodad.industrial-drum-cluster"), 4);
+                case VEHICLE_BAY -> motorPark(c, b, sheds++);
+                case STOCKROOM -> {
+                    if (Math.min(width(b), height(b)) <= FUEL_HOUSE.height()
+                            && Math.max(width(b), height(b)) <= FUEL_HOUSE.width()) {
+                        fuelPoint(c, b);
+                    }
+                }
+                default -> { }
+            }
+        }
+        // A garrison whose generator hall did not stand still powers its command post: the sets stand by it.
+        if (!generators && hq != null) near(c, hq, 2, GENERATOR_SETS);
+    }
+
+    /** The generator sets, their cable reel and their day tank, stood by whatever they power. */
+    private static final List<String> GENERATOR_SETS = List.of("doodad.industrial-generator",
+            "doodad.industrial-generator", "doodad.industrial-generator", "doodad.industrial-cable-reel",
+            "doodad.industrial-fluid-tank");
+
+    /** Farthest out from its building a structure looks for open ground, cells. UNTUNED. */
+    static final int NEAR_MOST = 14;
+    /**
+     * Cells a building's drawn walls lean out over its low-x and high-y sides (the view looks down from that way), so
+     * a prop stood within them there is hidden under its roof. UNTUNED.
+     */
+    static final int LEAN = 6;
+
+    /**
+     * The command post: its sat comms dishes on the nearest open ground round it, then the radar mast and the flag,
+     * so the dishes, mast and flag mark it out from the barracks round it.
+     */
+    private static void commandPost(GenContext c, PointOfInterest hq) {
+        List<String> dishes = new ArrayList<>();
+        for (int i = 0; i < SATCOM_DISHES; i++) dishes.add("doodad.listening-dish");
+        near(c, hq, 2, dishes);
+        near(c, hq, 1, List.of("doodad.military-radar-dish", "doodad.flag-mast"));
+    }
+
+    /**
+     * {@code props} in order on the open ground nearest building {@code b}: each at the first spot, ring by ring from
+     * {@code gap} cells off its walls out to {@link #NEAR_MOST}, where its whole footprint stands. Returns how many
+     * stood.
+     */
+    static int near(GenContext c, PointOfInterest b, int gap, List<String> props) {
+        int placed = 0;
+        for (String id : props) {
+            boolean stood = false;
+            for (int r = gap + 1; r <= NEAR_MOST && !stood; r++) {
+                for (int x = b.left - r; x <= b.right + r && !stood; x++) {
+                    for (int y = b.top - r; y <= b.bottom + r && !stood; y++) {
+                        boolean ring = x == b.left - r || x == b.right + r || y == b.top - r || y == b.bottom + r;
+                        if (!ring) continue;
+                        // A prop beyond the building's left or top side stands back from its corner by its size.
+                        int size = footprint(id);
+                        int px = x < b.left ? x - size + 1 : x, py = y < b.top ? y - size + 1 : y;
+                        if (hidden(b, px, py, size)) continue;
+                        stood = WorksProps.place(c, px, py, id, 0);
+                    }
+                }
+            }
+            if (stood) placed++;
+        }
+        return placed;
+    }
+
+    /** Whether a {@code size}-square prop at {@code (x, y)} stands under building {@code b}'s leaning walls. */
+    private static boolean hidden(PointOfInterest b, int x, int y, int size) {
+        boolean alongY = y + size - 1 >= b.top && y <= b.bottom + LEAN;
+        boolean alongX = x + size - 1 >= b.left - LEAN && x <= b.right;
+        return (x + size - 1 < b.left && b.left - (x + size - 1) <= LEAN && alongY)
+                || (y > b.bottom && y - b.bottom <= LEAN && alongX);
+    }
+
+    /** The larger side of a prop's footprint, cells; one where it is not installed. */
+    private static int footprint(String id) {
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef def = registry == null ? null : registry.doodad(id);
+        if (def == null) return 1;
+        Doodad d = new Doodad(0, 0, def, 0);
+        return Math.max(d.footprintCellsX, d.footprintCellsY);
     }
 
     /** Cells out from the works' ground the hedgehog belt runs, and cells between two hedgehogs along it. UNTUNED. */
@@ -442,10 +564,19 @@ public final class MilitaryWorks implements RaidIndustry {
         aside(c, depot, 3, List.of("doodad.parked-cargo-truck"), 1);
     }
 
-    /** The tanker at the fuel point, its tank and drums. */
+    /** Fuel tanks the fuel depot keeps beside the fuel point. UNTUNED. */
+    static final int DEPOT_TANKS = 4;
+
+    /**
+     * The fuel point and its fuel depot: the tanker filling at the pump house, and on its other side the depot's
+     * tanks in a row a little further out, drums at the row's end.
+     */
     private static void fuelPoint(GenContext c, PointOfInterest fuel) {
-        aside(c, fuel, 2, List.of("doodad.parked-tanker-truck", "doodad.industrial-fluid-tank",
-                "doodad.industrial-drum-cluster"), 3);
+        aside(c, fuel, 2, List.of("doodad.parked-tanker-truck", "doodad.industrial-drum-cluster"), 2);
+        List<String> tanks = new ArrayList<>();
+        for (int i = 0; i < DEPOT_TANKS; i++) tanks.add("doodad.industrial-fluid-tank");
+        tanks.add("doodad.industrial-drum-cluster");
+        aside(c, fuel, 4, tanks, tanks.size());
     }
 
     /** Sandbags round the magazine, a cell out from its walls, broken only where they would block its door. */
@@ -469,7 +600,7 @@ public final class MilitaryWorks implements RaidIndustry {
         boolean wide = width(b) >= height(b);
         int[][] sides = wide
                 ? new int[][]{{0, b.top - gap - 1}, {0, b.bottom + gap + 1}, {1, b.left - gap - 1}, {1, b.right + gap + 1}}
-                : new int[][]{{1, b.left - gap - 1}, {1, b.right + gap + 1}, {0, b.top - gap - 1}, {0, b.bottom + gap + 1}};
+                : new int[][]{{1, b.right + gap + 1}, {1, b.left - gap - 1}, {0, b.top - gap - 1}, {0, b.bottom + gap + 1}};
         for (int[] side : sides) {
             int placed = 0;
             boolean along = side[0] == 0;

@@ -404,9 +404,11 @@ public enum VehicleType {
     /**
      * Where this hull's coax card's gun stands ({@link VehicleGunCard#COAX}), a second fittable weapon point beside its
      * turret, or null for a hull with one gun card: the Onager alone (owner, 2026-11-10). The mount's structure is the
-     * carriage the fitted part rides ({@link VehicleGun#fit(VehicleMount, MechWeaponComponent)}); with a part in the
-     * card it fights as a secondary mount ({@link GroundTurret#secondaries}), first among them, and with none there is
-     * no gun there at all. It goes with the turret: a shot-away turret silences it.
+     * carriage the fitted part rides ({@link VehicleGun#fit(VehicleType, VehicleMount, MechWeaponComponent)}); with a
+     * part in the card it fights as a secondary mount ({@link GroundTurret#secondaries}), first among them, and with
+     * none there is no gun there at all. It rides the turret: its {@code mountX, mountY} are cells from the turret ring
+     * in the turret's own frame (+X right of the barrel, +Y along it), it points where the main gun points and turns
+     * only with it, and a shot-away turret silences it.
      */
     public VehicleMount coaxMount() { return null; }
 
@@ -453,7 +455,7 @@ public enum VehicleType {
      * Onager's coax stands on beside its turret; zero for a hull with neither.
      */
     public float secondaryRingCells() {
-        return isMidlineCarrier() || coaxMount() != null ? MidlineCarriers.SECONDARY_RING_CELLS : 0f;
+        return isMidlineCarrier() ? MidlineCarriers.SECONDARY_RING_CELLS : 0f;
     }
 
     /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
@@ -654,11 +656,11 @@ public enum VehicleType {
         /** The pair of radiator grilles flanking the spine behind the turret ring. */
         static final FluxVents VENTS = new FluxVents(164f, 110f);
         /**
-         * The coax card's gun: on its own ring on the glacis ahead of the turret's right cheek, clear of the head and
-         * inside the flanks, on the heavy machine gun's carriage. First placement, for the owner's look.
+         * The coax card's gun, in the turret's own frame: on the turret's right cheek beside the main barrel, its pivot
+         * a little ahead of the ring, on the heavy machine gun's carriage (owner, 2026-11-10: it rides the turret).
          */
         static final VehicleMount COAX = new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-                .55f, TURRET_MOUNT_Y + .85f, false);
+                .36f, .30f, false);
     }
 
     /**

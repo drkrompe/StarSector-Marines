@@ -113,7 +113,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.settlementLots` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
-| `battle.mapgen.streetJogs` | experiment | 2026-11-10 | Mapgen pass (mapgen-nouns.md): `taper` restores the diagonal taper between side-by-side streets; remove it with the losing path once the owner answers picks `street-jogs`. |
 | `battle.mapgen.townFields` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mech.<axis>.<short id>` | tuning | 2026-10-18 | Balance control over one authored mech-weapon value (MechWeaponComponent.tuned). Kept while armorMatchup balances mech weapons; fold the readings into the data files and drop it when that pass closes. |
 | `battle.mech.armorArcs` | control | 2026-10-19 | Standing control alongside battle.vehicle.armorArcs. Retire with it. |
@@ -147,6 +146,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.render.nestTrails` | control | 2026-10-25 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.roundedWallCorners` | experiment | 2026-11-09 | Rounded wall corners (`battle-render-nouns.md`): remove it with the square-corner path once the owner has judged the two in look shots. |
 | `battle.render.settledBodyMesh` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
+| `battle.ruins.plant` | undecided | 2026-11-10 | The ruins interior laid as its plant's brief (`PlantBrief`, `RuinsDelveStage.PLANT_PROPERTY`): remove the switch and the losing path once the owner decides the pick `ruins-plant-plan`. |
 | `battle.ruins.weather` | experiment | 2026-11-10 | Ruins weathering (`RuinsWeather`): remove the switch and the off arm once the owner decides the pick `ruins-weather`. |
 | `battle.sallyDoors` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |

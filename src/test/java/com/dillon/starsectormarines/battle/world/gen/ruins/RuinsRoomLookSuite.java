@@ -30,6 +30,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -82,6 +84,19 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
                         box.centreX() + .5f, box.centreY() + .5f, span).withoutRoofs();
                 BufferedImage base = whole.render(sim, "");
                 BattleCamera cam = whole.cameraOf(sim);
+                Map<String, RuinsDelve.Area> spaces = delve.interior().spaces();
+                if (!spaces.isEmpty()) {
+                    // The plant laid from its brief: every space by its name and size.
+                    out.add(card(dir + "plant.png", base, g -> {
+                        box(g, cam, anchor, new Color(255, 255, 255, 40), "WORKS HALL");
+                        for (Map.Entry<String, RuinsDelve.Area> e : spaces.entrySet()) {
+                            RuinsDelve.Area a = e.getValue();
+                            String label = e.getKey().substring(RuinsDelve.INTERIOR.length() + 1).toUpperCase(Locale.ROOT);
+                            box(g, cam, a, new Color(255, 210, 90, 70), label + " " + a.width() + "x" + a.height());
+                        }
+                        caption(g, RuinsWorksHallLookSuite.title(works) + "'s plant, laid from its brief");
+                    }));
+                }
                 out.add(card(dir + "rooms.png", base, g -> {
                     box(g, cam, anchor, new Color(255, 255, 255, 40), "WORKS HALL");
                     for (Laid r : rooms) {
@@ -114,17 +129,36 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
         return out;
     }
 
-    /** The rooms the ground laid: the plain chambers by rank, the stores inside the megastructure. */
+    /**
+     * The rooms the ground laid: the plain chambers by rank (or, on a plant laid from its brief, its spaces by their
+     * roles, the maintenance shop as a workshop), the stores inside the megastructure.
+     */
     private static List<Laid> rooms(RuinsDelve delve) {
         RuinsDelve.Interior interior = delve.interior();
         List<RuinsDelve.Area> plain = new ArrayList<>(interior.chambers());
         for (RuinsDelve.PlantHall hall : interior.halls()) plain.remove(hall.footprint());
         RuinsDelve.Area anchor = RuinsRoom.anchor(interior.halls(), delve.vault().footprint());
         List<RuinsDelve.Area> ranked = RuinsRoom.ranked(plain, anchor);
+        Map<RuinsDelve.Area, RuinsRoom> roles = new HashMap<>();
+        if (!interior.spaces().isEmpty()) {
+            Map<String, RuinsRoom> byName = new HashMap<>();
+            for (int band = 0; band < 2; band++) {
+                for (PlantBrief.Space s : PlantBrief.spaces(band, 2, 3)) {
+                    RuinsRoom role = s.stage() == RuinsDelve.PlantStage.MAINTENANCE ? RuinsRoom.WORKSHOP : s.role();
+                    if (role != null) byName.put(RuinsDelve.Interior.spaceName(s.name()), role);
+                }
+            }
+            for (Map.Entry<String, RuinsDelve.Area> e : interior.spaces().entrySet()) {
+                if (byName.containsKey(e.getKey())) roles.put(e.getValue(), byName.get(e.getKey()));
+            }
+            ranked = new ArrayList<>(roles.keySet());
+            ranked.sort(Comparator.comparingInt(RuinsDelve.Area::centreX).thenComparingInt(RuinsDelve.Area::centreY));
+        }
         List<Laid> out = new ArrayList<>();
         for (int rank = 0; rank < ranked.size(); rank++) {
             RuinsDelve.Area a = ranked.get(rank);
-            out.add(new Laid(RuinsRoom.chamberRole(rank), a, new RuinsDelve.Cell(a.centreX(), a.centreY()),
+            RuinsRoom kind = roles.isEmpty() ? RuinsRoom.chamberRole(rank) : roles.get(a);
+            out.add(new Laid(kind, a, new RuinsDelve.Cell(a.centreX(), a.centreY()),
                     RuinsRoom.facing(anchor.centreX() - a.centreX(), anchor.centreY() - a.centreY())));
         }
         for (RuinsDelve.Layer layer : delve.layers()) {
