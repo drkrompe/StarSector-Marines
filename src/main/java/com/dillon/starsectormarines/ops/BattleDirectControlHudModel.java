@@ -260,17 +260,26 @@ public final class BattleDirectControlHudModel {
 
     /**
      * A picked member's name, with its hardpoint when another member shares it (a Bulwark's two
-     * chainguns). The heading font has no middle dot and draws parentheses thinly, so the hardpoint
-     * leads with a space.
+     * chainguns, a carrier's two deck guns). The heading font has no middle dot and draws parentheses
+     * thinly, so the hardpoint leads with a space.
      */
     private String pickName(List<WeaponStatus> members, int index) {
         String name = members.get(index).name();
         for (int i = 0; i < members.size(); i++) {
             if (i != index && members.get(i).name().equals(name)) {
-                return label("Side" + members.get(index).slotKey()) + " " + name;
+                return hardpoint(members.get(index).slotKey()) + " " + name;
             }
         }
         return name;
+    }
+
+    /** A slot's hardpoint name; a hull's secondary mounts share one, told apart by their number. */
+    private String hardpoint(String slotKey) {
+        String mount = BattleDirectControlStatus.MOUNT_KEY;
+        if (slotKey.startsWith(mount) && slotKey.length() > mount.length()) {
+            return label("Side" + mount) + " " + slotKey.substring(mount.length());
+        }
+        return label("Side" + slotKey);
     }
 
     /** Whether a mount the left (or right) button fires is refusing the cursor as too close. */
