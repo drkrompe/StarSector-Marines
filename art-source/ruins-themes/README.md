@@ -122,7 +122,11 @@ Every works piece is cut at its exact frame; ImageGen's faint gutter haze (alpha
 
 The halls' floor coverings are the `ruins-ground` tileset (`art-source/tilesets/README.md`). The shaft hall's bore
 has an engineered collar, `mod/graphics/battle/voids/shaft-collar-lip.png`, a 128x64 strip laid along the drop's edge
-as the foundry's kerb is (`art-source/voids/shaft/`: `make_guide.py`, `derive.py`).
+as the foundry's kerb is (`art-source/voids/shaft/`: `make_guide.py`, `derive.py`). The raised floor and the stage
+step down to the hall floor behind a trim, `mod/graphics/battle/floors/raised-floor-trim.png` and
+`stage-floor-trim.png`: 128x64 strips in the kerb's format, drawn for the south edge and turned by the renderer, their
+top rows transparent so the panel shows through and their joints on the floors' panel grid (`art-source/floors/trims/`:
+`make_guide.py`, `derive.py`).
 
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
