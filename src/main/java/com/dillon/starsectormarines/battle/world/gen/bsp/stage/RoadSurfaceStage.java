@@ -94,6 +94,9 @@ public final class RoadSurfaceStage implements GenStage {
                     && (claim[x][y] == GrownTrunkPlan.UNOWNED || precincts == null
                     || precincts.precincts().get(claim[x][y]).isProgrammed()
                     || id != null && id.startsWith("pavement.asphalt."));
+            // A road line over the town's own street paving is that street: swept as a road it could not be paved
+            // (only asphalt road takes the sweep) and stood as a strip of paving down the street's middle.
+            if (road[x][y] && city && id == null && carriageway(ctx, x, y)) road[x][y] = false;
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
             footway[x][y] = city && !road[x][y] && footway(ctx, x, y);
             // The country's roads are its own routes, laid below; none of it is a street.

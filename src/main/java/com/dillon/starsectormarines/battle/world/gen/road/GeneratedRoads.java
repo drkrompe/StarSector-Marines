@@ -450,8 +450,10 @@ public final class GeneratedRoads {
     }
 
     /**
-     * Where two streets grown side by side touch and each runs on past the other, a jog from one line onto the next,
-     * both swept would draw the stretch they share as one slab of road twice a street's width. The shorter is trimmed
+     * Where two streets grown side by side touch, or stand a kerb cell apart, and each runs on past the other, a jog
+     * from one line onto the next (or the arms of a crossing that do not line up, the one running on past the
+     * crossing beside the other), both swept would draw the stretch they share as one slab of road twice a street's
+     * width. The shorter is trimmed
      * to end one breadth past the longer's start, so the road steps across square, a breadth long, and runs on at
      * one street's width; the longer keeps its length. Of two of one length, the later in {@code bands} is trimmed.
      */
@@ -466,7 +468,7 @@ public final class GeneratedRoads {
                 Band l = bands.get(j);
                 if (l == s || l.horizontal() != horizontal || !l.holds(city)) continue;
                 int lSideLo = horizontal ? l.bottom : l.left, lSideHi = horizontal ? l.top : l.right;
-                if (lSideLo != sideHi + 1 && lSideHi != sideLo - 1) continue;
+                if (lSideLo != sideHi + 1 && lSideLo != sideHi + 2 && lSideHi != sideLo - 1 && lSideHi != sideLo - 2) continue;
                 int sLo = lo(s, ends), sHi = hi(s, ends), lLo = lo(l, ends), lHi = hi(l, ends);
                 if (sHi - sLo > lHi - lLo || sHi - sLo == lHi - lLo && i < j) continue;
                 if (sLo < lLo && sHi > lLo + step - 1 && sHi < lHi) ends.put(s, new int[]{sLo, lLo + step - 1});
