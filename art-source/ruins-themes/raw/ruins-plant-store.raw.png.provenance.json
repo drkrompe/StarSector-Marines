@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c308-0acb-7933-afee-2c07b3a85ba9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c308-0acb-7933-afee-2c07b3a85ba9\\exec-69014174-30cd-4d94-a981-6b2ae9389fed.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-plant-store.raw.png",
+    "sha256": "e15ea735a2ba3b503c4e53994c09b1924b1b27da6e2e4e3bbabcf5bff4d92b0a",
+    "dimensions": [
+      1903,
+      826
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\plant-store.prompt.txt",
+  "promptSha256": "80436e9a8e0aef18d591b7610ad0ff785c5f5f5fad5bbb3e5179009220ebc4e5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for the production floor of an abandoned Domain-era automated factory, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubjects:\n1. rack-stripped (top left, wide 6x2 block): a long heavy-duty pallet storage rack seen from above, six bays divided by upright steel frames and cross beams, every bay empty, bare dark deck grating, dust, one bent beam.\n2. dock-door (top right, 4x2 block): a loading dock: along the top edge a heavy armoured roll-up dock door seen from above as a thick slab in its frame (it sits in a wall), below it a steel dock leveler plate with hazard striped edges and a hinge line, scuffed.\n3. rack-crates (bottom left, wide 6x2 block): the same storage rack, mostly stripped, with a few sealed gunmetal and olive cargo crates left in three bays as in the block-out, the other bays empty.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-plant-store-guide.png",
+      "sha256": "0dfc547dd3c46e7ed9ced26e1538d1e816025bcb949ef8a27763647f14729f9f",
+      "dimensions": [
+        3392,
+        1472
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-machine-tool.png",
+      "sha256": "d90c6007d00d0128df21bb3ef8d9385b88dbb77ff705d30413e0a74899e9f292",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
+      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
+      "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent prop sheet using the first image for exact geometry and the others for material style."
+  ],
+  "usage": {
+    "input_tokens": 54231,
+    "cached_input_tokens": 42496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 733,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.8
+}

@@ -17,28 +17,43 @@ from PIL import Image, ImageDraw
 CELL = 320
 GUTTER = 64
 
-# Each family: (id, cells w, cells h, kind) laid left to right, tops aligned.
+# Each family: (id, cells w, cells h, kind) laid left to right, tops aligned; None starts a new row below.
 FAMILIES = {
     "frost": [("cryo-rack", 1, 2, "box"), ("frost-heatsink", 2, 1, "fins"), ("frost-patch", 2, 2, "blot")],
     "vats": [("culture-vat", 2, 2, "round"), ("grow-bed", 2, 1, "trough"), ("growth-patch", 2, 2, "blot")],
     "patches": [("frost-patch-a", 2, 2, "organic"), ("frost-patch-b", 2, 2, "organic"),
                 ("growth-patch-a", 2, 2, "organic"), ("growth-patch-b", 2, 2, "organic")],
     "forge": [("assembly-cradle", 2, 2, "cradle"), ("shaft-head", 3, 3, "shaft"), ("hoist-winch", 2, 1, "drum")],
+    # The plant kit every theme's halls share (``ruins-vault-facility``): a line module that joins end to end along
+    # its long axis, so its bed runs flush off both short ends with one cross-section; a line end carrying that same
+    # cross-section in from its east edge; an empty 3x3 cradle (open middle: the product stands in it).
+    "plant-line": [("line-module", 6, 3, "line"), ("line-end", 3, 3, "lineend"), ("empty-cradle", 3, 3, "ring")],
+    # Rack rows, stripped and with a few crates left, and a dock door with its leveler, the door on the north edge.
+    "plant-store": [("rack-stripped", 6, 2, "rack"), ("dock-door", 4, 2, "dock"), None,
+                    ("rack-crates", 6, 2, "rackfull")],
 }
+
+# The line's bed: the middle half of its width, flush to the short ends, shared by the module and the line end.
+BED = (0.3, 0.7)
 
 
 def frames(family):
-    x = GUTTER
+    x, y, row_h = GUTTER, GUTTER, 0
     out = []
-    for pid, cw, ch, kind in FAMILIES[family]:
-        out.append((pid, x, GUTTER, cw * CELL, ch * CELL, kind))
+    for entry in FAMILIES[family]:
+        if entry is None:
+            x, y, row_h = GUTTER, y + row_h + GUTTER, 0
+            continue
+        pid, cw, ch, kind = entry
+        out.append((pid, x, y, cw * CELL, ch * CELL, kind))
         x += cw * CELL + GUTTER
+        row_h = max(row_h, ch * CELL)
     return out
 
 
 def draw(family):
     fr = frames(family)
-    width = fr[-1][1] + fr[-1][3] + GUTTER
+    width = max(f[1] + f[3] for f in fr) + GUTTER
     height = max(f[2] + f[4] for f in fr) + GUTTER
     im = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
@@ -73,6 +88,41 @@ def draw(family):
             d.rectangle((x + inset, y + 60, x + w - inset, y + h - 60), fill=edge)
             d.rectangle((x + 140, y + inset + 20, x + w - 140, y + h - inset - 20), fill=light, outline=edge,
                         width=6)
+        elif kind in ("line", "lineend"):
+            b0, b1 = y + round(h * BED[0]), y + round(h * BED[1])
+            bed_x0 = x if kind == "line" else x + 150
+            d.rectangle((bed_x0, b0, x + w, b1), fill=body)
+            d.rectangle((bed_x0, b0, x + w, b0 + 16), fill=edge)
+            d.rectangle((bed_x0, b1 - 16, x + w, b1), fill=edge)
+            # Rollers across the bed at a pitch that divides the module, so a seam falls between two rollers.
+            for rx in range(bed_x0 + 20, x + w, 80):
+                d.rectangle((rx, b0 + 24, rx + 36, b1 - 24), fill=light)
+            if kind == "line":
+                for sx in (x + 220, x + w - 620):
+                    d.rectangle((sx, y + inset, sx + 400, b0 - 20), fill=body, outline=edge, width=8)
+                    d.rectangle((sx + 100, b1 + 20, sx + 300, y + h - inset), fill=body, outline=edge, width=8)
+            else:
+                d.rectangle((x + inset, y + 120, x + 420, y + h - 120), fill=body, outline=edge, width=10)
+                d.rectangle((x + 80, y + 200, x + 340, y + h - 200), fill=dark)
+        elif kind == "ring":
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), outline=edge, width=60)
+            for cx, cy in ((x + 140, y + 140), (x + w - 140, y + 140), (x + 140, y + h - 140),
+                           (x + w - 140, y + h - 140)):
+                d.rectangle((cx - 50, cy - 50, cx + 50, cy + 50), fill=body, outline=edge, width=6)
+        elif kind in ("rack", "rackfull"):
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=dark, outline=edge, width=24)
+            for i in range(1, 6):
+                bx = x + i * w // 6
+                d.rectangle((bx - 10, y + inset, bx + 10, y + h - inset), fill=edge)
+            if kind == "rackfull":
+                for bay, wide in ((0, 1), (2, 2), (5, 1)):
+                    bx = x + bay * w // 6
+                    d.rectangle((bx + 40, y + 70, bx + wide * w // 6 - 40, y + h - 70), fill=light, outline=edge,
+                                width=6)
+        elif kind == "dock":
+            d.rectangle((x, y, x + w, y + 120), fill=edge)
+            d.rectangle((x + 60, y + 20, x + w - 60, y + 110), fill=body)
+            d.rectangle((x + 80, y + 130, x + w - 80, y + h - inset), fill=light, outline=edge, width=10)
         elif kind == "blot":
             cx, cy, r = x + w / 2, y + h / 2, min(w, h) / 2 - 50
             pts = []
