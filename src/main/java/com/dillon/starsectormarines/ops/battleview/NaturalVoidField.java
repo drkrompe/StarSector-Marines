@@ -183,21 +183,27 @@ final class NaturalVoidField {
      * downward; {@code spans} when narrow ground across the shape is a bridge; {@code wander} how far the edge
      * and ledges swing about their insets, as a share of the natural styles' ({@link #WANDER_SLOW}): an open pit's
      * benches are cut, not eroded, so they wander much less; {@code marks} {@code {x, y, gain}} in the field's cells,
-     * each a place where the shape stands at {@code gain} of its steps' depth, empty for none.
+     * each a place where the shape stands at {@code gain} of its steps' depth, empty for none; {@code source} the
+     * point in the field's cells whose nearest end the floor flows from, null to run toward the deeper end.
      */
-    record Shape(float[] depths, float[] insets, int seed, boolean spans, float wander, float[] marks) {
+    record Shape(float[] depths, float[] insets, int seed, boolean spans, float wander, float[] marks, float[] source) {
         /** How little an open pit's benches wander, as a share of a natural drop's ledges. */
         static final float CUT_WANDER = .22f;
 
         Shape(float[] depths, float[] insets, int seed, boolean spans, float wander) {
-            this(depths, insets, seed, spans, wander, new float[0]);
+            this(depths, insets, seed, spans, wander, new float[0], null);
+        }
+
+        Shape(float[] depths, float[] insets, int seed, boolean spans, float wander, float[] marks) {
+            this(depths, insets, seed, spans, wander, marks, null);
         }
 
         /** This shape on a field whose cells are the map's moved by {@code (dx, dy)}. */
         Shape shifted(float dx, float dy) {
             float[] m = marks.clone();
             for (int i = 0; i < m.length; i += 3) { m[i] += dx; m[i + 1] += dy; }
-            return new Shape(depths, insets, seed, spans, wander, m);
+            float[] from = source == null ? null : new float[]{source[0] + dx, source[1] + dy};
+            return new Shape(depths, insets, seed, spans, wander, m, from);
         }
 
         static Shape of(NaturalVoid look) {
@@ -216,7 +222,8 @@ final class NaturalVoidField {
                 NaturalVoid.DepthMark mark = marks.get(i);
                 m[i * 3] = mark.x(); m[i * 3 + 1] = mark.y(); m[i * 3 + 2] = mark.floorMeters() / look.floorMeters();
             }
-            return new Shape(d, in, look.seed(), true, wander, m);
+            float[] from = look.source() == null ? null : new float[]{look.source().x(), look.source().y()};
+            return new Shape(d, in, look.seed(), true, wander, m, from);
         }
 
         static Shape of(NaturalRise look) {
@@ -331,7 +338,7 @@ final class NaturalVoidField {
     private ChannelFlow flow(int n) {
         float[] floorDepth = new float[w * h];
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) floorDepth[y * w + x] = stepDepth(n, x + .5f, y + .5f);
-        ChannelFlow f = new ChannelFlow(w, h, open, floorDepth);
+        ChannelFlow f = new ChannelFlow(w, h, open, floorDepth, shape.source());
         Band floor = bands.get(n);
         float[] at = new float[5];
         floor.flow = new float[floor.count * 5];

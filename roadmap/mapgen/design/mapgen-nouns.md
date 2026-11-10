@@ -2268,6 +2268,37 @@ alike, and a baked cliff lip over sand, stone or snow is bare rather than
 turfed. All of it is arithmetic on the map's size and seed with no random draw,
 so a map with no basin is the map it was.
 
+**A living world has a look, not a palette of its own.** `terran`, `jungle`,
+`tundra` and `water` all resolve to `VERDANT`, and every rule the palette owns
+holds for each: open water belongs, the colony's lawn is grass, the woods grow,
+the stones are mossed, a hill is grass-topped, and each story map pool vets one
+living list of seeds. What differs is what grows and how much of the ground is
+wet, and that is a `LivingWorld` (`SurfaceZoning.livingWorld`, carried on
+`TargetProfile.living` and read through `SurfaceField.living`): `TEMPERATE`,
+`JUNGLE`, `TUNDRA` or `OCEAN`. A look picks the woods' species (`Flora`: the
+green twins under `-jungle` or `-taiga`, as the dry scrub is under `-dry`) and
+how thick they grow, and the closing landscape pass dresses the wild grass for
+it before the woods grow (`LivingGround`): drifts of lying snow and bare
+permafrost on a tundra, still all walked; swamp mud with standing pools on a
+jungle; and on an ocean world a sea along the map's most open edge with a sand
+beach above it, and marsh with lagoons inland. Each was a palette candidate and
+was not made one: it would have restated `VERDANT` in every exhaustive switch
+over the palette, in a vetted seed list in every story map pool and in a block
+of surface fillers, all to say the same thing. Patches are a two-octave smooth
+noise under a level, so they come out as rounded blobs (a lattice of square
+patches showed every step under white snow), and snow is the last of the
+feathering grounds so the grass and earth round it fray into it. Standing water
+is real water with the shore's rounded edge; a wade over a swamp's worth of
+ground drew as a grid of ford shallows and was taken out. A pool is laid only
+where the woods' own local proof says it closes no way round, for infantry and a
+tank's lane; the sea is laid whole or not at all, by a whole-map check that
+every cell of the walkable main body before it is still joined after. It keeps
+off the landscape's places, props and roads but not the edge band, and may start
+just inside a road round the map's rim. A map built from a palette alone (a story
+map, a fixture) and a desert's green basin floor are `TEMPERATE`, so no vetted
+map moves. The open look work: a tundra's own short grass (its lawn is the green
+tile), and offshore islands.
+
 **A surface signature tells apart the types that share a palette.** Thirty landable
 vanilla types fall into a handful of palettes, so a bombarded rock, a cast-iron one
 and a plain barren one used to be the same map. `SurfaceZoning.signatureFor` reads a
@@ -2283,12 +2314,15 @@ their banks; venus-like worlds are graded amber under a slow haze; cast-iron and
 metallic worlds are graded darker and cooler, ground, hills and formations alike, with
 metal flecks glinting in the rock.
 
-**A signature is detail, never a rule.** Crater rims and fissures are terrain the stock
-hills' plan takes under the same fit and detour proof: a rim is raised rock, open by at
-least a third of the way round so it seals no island, and a fissure is the excavation
-contract (impassable, seen and shot across). Everything else is presentation: crater
-bowls and vent mounds are marks the renderer draws (`CellTopology.signatureMarks`),
-cracked fissure banks are the ground's cosmetic blast skin, ejecta and rubble are
+**A signature is detail, never a rule.** Crater rims are terrain the stock hills' plan
+takes under the same fit and detour proof: raised rock, open by at least a third of the
+way round so it seals no island. Fissures are cracks drawn in the ground, jagged lines
+opening widest in the middle with hairline branches, walked over like the ground round
+them; the first pass cut them as narrow trench excavations, which read as trenches, and
+that arm stays behind `battle.signature.fissureTrench` until the owner picks. Everything
+else is presentation: crater bowls, vent mounds and cracks are marks the renderer draws
+(`CellTopology.signatureMarks`), cracked fissure banks are the ground's cosmetic blast
+skin, ejecta and rubble are
 passable field stones with no cover, and grade, flecks, haze and vapour are drawn, never
 simulated (`SignatureRenderSystem`, look suite `planet-signature-look`). The haze
 and vapour draw over the props and under the fog and every unit, so they soften the

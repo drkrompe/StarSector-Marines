@@ -737,12 +737,22 @@ Laws):
      from the walls.
    - **The spine.** `NaturalVoid.belts`: the covered conveyor gallery that
      carries the ore from the crushing station on the floor up the benches on
-     its trestles, through a transfer tower on the rim, and over the ground to
-     the wall of the largest building in the works (the ore mill). It leaves the
-     floor where the floor lies nearest the works. Drawn after the ground tiles
-     and before every unit: the gallery's bays end to end at each one's depth,
-     the trestles' cross-beams and the shadow on the ground. Drawn only: it
-     neither blocks nor covers anyone.
+     its trestles to a transfer tower on the rim. It leaves the floor where the
+     floor lies nearest the works. Drawn after the ground tiles and before every
+     unit: the gallery's bays end to end at each one's depth, the trestles'
+     cross-beams and their shadow. Drawn only.
+   - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
+     and also built onto the grid system", its legs giving cover). From the
+     first ground cell past the tower, `OreLine` finds a course on the grid to
+     the ore mill's wall: straight runs turning only at right angles, over open
+     ground, roads and walls but never a building or the pit, a turn costing
+     eight cells of run. Its pieces (`ore-conveyor` sheet: straight, corner,
+     drive) are overhead props drawn in the roof pass above the people walking
+     under them; the straight run's belt scrolls toward the works with its ore
+     (`ore-conveyor-motions`). A trestle leg stands every five cells on a
+     straight run, where a solid prop blocks no road, doorway, route or ground
+     (the landscape pass's reservations and `PlacementGuards`): a fixture
+     giving medium cover.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -812,10 +822,19 @@ Laws):
      flow's velocity at each corner of each piece, so the image bends with
      the channel and never tears between cells.
    - **Ice**: the glint on the frozen pools drifts along the streamlines.
-   A rise has no flow: its floor is the battle's ground. Left: a flow hint on
-   the look for a generator that knows which way its brook runs; embers,
-   smoke and mist carried by the channel rather than the wind alone; a falls
-   where a floor steps.
+   - **The air low over a floor** rides the flow too: each puff of the lava's
+     low smoke rises off one place and is dragged down the channel a little
+     faster than the crust, and each puff of a crevasse's mist drains down
+     it toward the deeper end, as cold air runs downhill
+     (`ChannelFlow.carry`, stepped a cell at a time so it rounds a bend; the
+     mist through `VoidHaze`, whose canyon dust stays on the wind).
+     Each fades over its life. Smoke above the surface and embers stay on
+     the wind.
+   - **A source**: a generator that knows which way its river runs says so
+     (`NaturalVoid.Source`, `withSource`); the end nearest that point is the
+     source, whatever the depths.
+   A rise has no flow: its floor is the battle's ground. Left: a falls where a
+   floor steps.
 
    **Depth along a void** (owner, 2026-11-09, Model). Every natural drop and
    rise takes depth marks: the field blends a **gain** from them, the share of

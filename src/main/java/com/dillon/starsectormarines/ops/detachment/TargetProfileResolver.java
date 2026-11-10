@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
 import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.ClimateZoning;
+import com.dillon.starsectormarines.battle.world.gen.LivingWorld;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrisonEstimate;
@@ -102,7 +103,14 @@ public final class TargetProfileResolver {
                 hasPlanetaryShield(market))
                 .withGarrison(garrison(market, groundDefence, stationed))
                 .withClimate(climate(market))
-                .withSignature(signature(market));
+                .withSignature(signature(market))
+                .withLivingWorld(living(market));
+    }
+
+    /** Which living world the target is ({@link SurfaceZoning#livingWorld}); temperate for a station. */
+    private static LivingWorld living(MarketAPI m) {
+        SectorEntityToken entity = m.getPrimaryEntity();
+        return SurfaceZoning.livingWorld(entity instanceof PlanetAPI planet ? planet.getTypeId() : null);
     }
 
     /**
