@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -32,6 +33,9 @@ import java.util.Locale;
  */
 public final class LavaFlowLookSuite implements SnapshotSuite {
 
+    /** The map's design: a drop south to north across the approach, which the volcanic palette skins. */
+    private static final Landform DESIGN = new Landform.Drop(false, .62f);
+
     @Override public String id() { return "lava-flow-look"; }
 
     @Override public String label() { return "Lava flows on a volcanic world, one frame set per option, look preset"; }
@@ -40,9 +44,7 @@ public final class LavaFlowLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String was = System.getProperty("battle.mapgen.naturalVoids");
         String wasFlow = System.getProperty("battle.mapgen.lavaFlow");
-        System.setProperty("battle.mapgen.naturalVoids", "1");
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
@@ -57,14 +59,13 @@ public final class LavaFlowLookSuite implements SnapshotSuite {
                             SurfacePalette.VOLCANIC, SettlementLink.ROAD);
                     try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
                             false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
-                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)) {
+                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, DESIGN)) {
                         render(context, sim, id, out);
                     }
                 }
             }
             return out;
         } finally {
-            restore("battle.mapgen.naturalVoids", was);
             restore("battle.mapgen.lavaFlow", wasFlow);
         }
     }

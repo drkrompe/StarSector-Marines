@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5aa-151c-78f1-9793-fa79905c5cd0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5aa-151c-78f1-9793-fa79905c5cd0\\exec-6469b8bc-9dfa-4018-992d-ef86c1c19163.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ship-doors\\master-v1.png",
+    "sha256": "ae380d401d70a1238d8b3228009ea36054cf077fda51dbc84943d36682199738",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ship-doors\\brief.txt",
+  "promptSha256": "5aad5ad94c139e8e2546caec6b9735315448bb942022434d1a14153cdc18b679",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every grey box is one sprite, fill exactly; transparent elsewhere\nImage 2: Material/style only: the ship's own bulkhead and deck art; not layout\n\nA sprite sheet of sliding compartment-door leaves for a top-down tactical game set aboard an old, low-tech freighter, seen straight down (orthographic, no perspective, no tilt), lit softly from the top-left.\n\nReference 1 is the geometry guide and the exact layout authority. Every grey box in it is one sprite: fill each box exactly, edge to edge, keeping its position, size and proportions. Do not move, resize, add or merge boxes. Everything outside the boxes stays fully transparent: a true transparent background, including the gutters between pieces; no floor, wall, shadow slab, border, label or text anywhere.\n\nReference 2 is material and style only, not layout: the ship's own bulkhead and deck art. Match its painted, slightly gritty, worn industrial look exactly: dark gunmetal plate, bolted flat steel straps with small round bolt heads, muted grey-green paint, subtle scuffs and grime, crisp dark outlines, low contrast, readable at small size. No bright sci-fi glow, no chrome, no saturated colour beyond what is named below.\n\nEach long box is one leaf of a sliding door, seen from above as it lies in the bulkhead's slot: its length runs left to right, its depth through the wall top to bottom. The left end slides into the wall; the right end is the meeting edge where it seals against its partner leaf.\n\n- Top box, the ordinary leaf: a thick riveted gunmetal slab with a darker rail along its top and bottom edges (the guide's dark strips), cross ribs as bolted steel straps where the guide shows lighter bars, and at the right-hand meeting edge a worn rubber-and-steel seal strip with a band of faded, chipped amber safety paint. One tiny dim amber indicator light near the meeting edge.\n- Lower long box, the sealed leaf: the same leaf shut for vacuum: darker, soot-stained plate, the cross straps replaced by worn diagonal red-and-black hazard banding across the leaf, and a faded red seal band at the right-hand meeting edge.\n- Short box, the seal clamp: a heavy steel clamp seen from above that bridges the seam of two shut leaves: a central bolted steel block (the guide's grey square) with a red-painted locking bar running left and right through it, one tiny glowing red lamp on the block.\n\nNo people, no floor, no wall, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ship-doors\\guide.png",
+      "sha256": "c2fe1dfe5c00dcf2b9a9b50ee7be909c608a5a7421c799fc852200adca1b7a21",
+      "dimensions": [
+        1600,
+        900
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every grey box is one sprite, fill exactly; transparent elsewhere"
+    },
+    {
+      "path": "art-source\\ship-doors\\material-reference.png",
+      "sha256": "623246e01d756cf1409df3170aa18df80bc0919e09e6b7d4e70e2554a34b7797",
+      "dimensions": [
+        1840,
+        680
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: the ship's own bulkhead and deck art; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using the first image for exact geometry and the second for materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 43873,
+    "cached_input_tokens": 25984,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 624,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.7
+}
