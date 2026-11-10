@@ -128,7 +128,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
-        // The planet type's own detail over its palette: craters and ejecta, fissure rubble, vents.
+        // The planet type's own detail over its palette: craters and ejecta, cracks and their rubble, vents.
         int w = c.width;
         SignatureGround.dress(c.topology, c.width, c.height, c.seed, signature, signed,
                 i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
@@ -717,7 +717,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 if (field.blocked(xx, yy)) closed[yy * c.width + xx] = true;
             }
         }
-        // The planet type's crater rims or fissures, under the same fit and detour proof as the hills.
+        // The planet type's crater rims, under the same fit and detour proof as the hills.
         List<TerrainPlan.Stroke> signed = new ArrayList<>();
         for (TerrainPlan.Stroke stroke : SignatureGround.strokes(signature, c.width, c.height, c.seed)) {
             if (signedFits(c, plan, stroke, reserved, occupied, closed, ridgeGround)) {
