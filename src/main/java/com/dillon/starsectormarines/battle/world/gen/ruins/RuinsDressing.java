@@ -15,8 +15,12 @@ import java.util.List;
  * @param vault    props along the vault room's long walls
  * @param chambers props along the interior chambers' walls
  * @param floor    walkable patches on the open floor of the vault room and the chambers
+ * @param product  the base id of the theme's unit, or null
+ * @param foundry  whether the plant cast its product, so the outer band's first line hall is a foundry
+ *                 ({@code ruins-expedition.md}, A forge works has a foundry)
  */
-public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product) {
+public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product,
+                            boolean foundry) {
 
     /** Plain ground: the ruins as they stand. */
     public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of(), null);
@@ -34,13 +38,23 @@ public record RuinsDressing(List<String> vault, List<String> chambers, List<Stri
         this(vault, chambers, floor, null);
     }
 
+    /** Props, floor patches and a product, with no foundry. */
+    public RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product) {
+        this(vault, chambers, floor, product, false);
+    }
+
+    /** The same dressing on a plant that cast its product: the outer band's first line hall is a foundry. */
+    public RuinsDressing withFoundry() {
+        return new RuinsDressing(vault, chambers, floor, product, true);
+    }
+
     /**
      * The same dressing whose product is {@code product}: the base id of the theme's unit on the {@code ruins-themes}
      * sheet, for example {@code doodad.ruins-cryo-unit}, whose states are {@code -whole}, {@code -half} and
      * {@code -wrecked}.
      */
     public RuinsDressing withProduct(String product) {
-        return new RuinsDressing(vault, chambers, floor, product);
+        return new RuinsDressing(vault, chambers, floor, product, foundry);
     }
 
     /** The product whole, as the prize stands in its cradle; null without a product. */
