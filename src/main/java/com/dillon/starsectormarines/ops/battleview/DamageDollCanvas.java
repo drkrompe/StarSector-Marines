@@ -183,10 +183,14 @@ public final class DamageDollCanvas implements CanvasProducer {
         return ramp;
     }
 
-    /** The doll a mech chassis draws as; the derelict walkers are one chassis and share one. */
+    /**
+     * The doll a mech chassis draws as; the derelict MG-40 and MG-70 share one, and the MG-25 has its own for its two
+     * guns, one in each flank port.
+     */
     public static String dollPath(MechVariant variant) {
         String name = switch (variant) {
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> "derelict";
+            case SECURITY_WALKER, SECURITY_HALL -> "derelict";
+            case SECURITY_ROUNDS -> "derelict-rounds";
             default -> variant.id;
         };
         return DOLL_DIR + "mech-" + name + ".svg";
