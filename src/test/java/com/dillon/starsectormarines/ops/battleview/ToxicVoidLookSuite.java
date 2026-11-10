@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 
@@ -33,6 +34,8 @@ public final class ToxicVoidLookSuite extends StyleVoidLookSuite {
                 new NaturalVoid.Step(34f * f, 1.9f)),
                 eye, "graphics/battle/voids/toxic-wall.png", 11f, 43);
     }
+
+    @Override NaturalVoidZoning.Drop zoned() { return NaturalVoidZoning.TOXIC_GORGE; }
 
     @Override GroundKind ground() { return GroundKind.STONE; }
 

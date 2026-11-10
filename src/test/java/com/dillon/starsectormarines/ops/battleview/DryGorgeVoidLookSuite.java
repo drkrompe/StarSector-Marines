@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 
@@ -28,6 +29,8 @@ public final class DryGorgeVoidLookSuite extends StyleVoidLookSuite {
                 new NaturalVoid.Step(40f * f, 1.9f)),
                 eye, "graphics/battle/voids/regolith-wall.png", 12f, 37);
     }
+
+    @Override NaturalVoidZoning.Drop zoned() { return NaturalVoidZoning.DRY_GORGE; }
 
     @Override GroundKind ground() { return GroundKind.STONE; }
 
