@@ -3,11 +3,13 @@ package com.dillon.starsectormarines.battle.world.gen;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin.FieldUse;
 import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
@@ -174,6 +176,40 @@ class PlanetSkinTest {
         for (NightLighting.Lamp lamp : turned) assertEquals(11.5f, lamp.x(), 1e-4f);
         NightLighting night = PlanetSkin.lit(new NightLighting(0.78f, List.of(), Set.of()), along);
         assertTrue(night.lamps().stream().allMatch(night::powered));
+    }
+
+    @Test
+    void aSunkenShedIsAnEarthMoundWalkedOverWithLowCoverOnItsBankAndNoWall() {
+        int w = 12, h = 8;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) grid.setWalkable(x, y, true);
+        DoodadService doodads = new DoodadService(grid);
+        PlanetSkin.Placed placed = new PlanetSkin.Placed(PlanetSkin.SHED, 3, 2, 0);
+        doodads.addDoodad(PlanetSkin.shed(placed, def(PlanetSkin.SHED)));
+        int light = PlanetSkin.BANK.level();
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            assertTrue(grid.isWalkable(x, y), x + "," + y);
+            assertTrue(!grid.blocksLineOfSight(x, y), x + "," + y);
+        }
+        for (int y = 2; y < 5; y++) for (int x = 3; x < 9; x++) {
+            assertEquals(light, doodads.getDoodadLevelOnCell(x, y), x + "," + y);
+            assertEquals(0, doodads.getDoodadLevelOnCell(x, y, 0.5f), "a chest-high round passes over the bank");
+        }
+        assertEquals(light, doodads.getDoodadCoverAt(3, 1, 0, 1), "a man lying north of the bank has it as cover");
+        assertTrue(grid.hasLineOfSight(0, 3, 11, 3), "the mound hides no one");
+        assertEquals(0, doodads.getDoodadLevelOnCell(3, 1));
+        assertTrue(light < DoodadCover.MED.level() && PlanetSkin.BANK_HALF_HEIGHT < 0.4f, "lower than a parapet");
+        PlanetSkin.Placed pump = new PlanetSkin.Placed(PlanetSkin.PUMPHOUSE, 0, 0, 0);
+        assertEquals(0, PlanetSkin.shed(pump, def(PlanetSkin.PUMPHOUSE)).cover);
+    }
+
+    @Test
+    void theLandingFieldIsLeftBareSoItsFieldOfFireStaysClear() {
+        FieldOfFire field = new FieldOfFire(20, 20, 5);
+        assertTrue(PlanetSkin.onLanding(new PlanetSkin.Placed(PlanetSkin.SHED, 22, 19, 0), field));
+        assertTrue(PlanetSkin.onLanding(new PlanetSkin.Placed(PlanetSkin.SHED, 10, 19, 0), field), "reaching in");
+        assertTrue(!PlanetSkin.onLanding(new PlanetSkin.Placed(PlanetSkin.SHED, 30, 19, 0), field));
+        assertTrue(!PlanetSkin.onLanding(new PlanetSkin.Placed(PlanetSkin.SHED, 22, 19, 0), null));
     }
 
     private static DoodadDef def(PlanetSkin.Piece piece) {
