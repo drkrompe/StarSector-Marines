@@ -37,6 +37,24 @@ public final class LavaFlows {
      * allows (natural ground the drop keeps clear, never a crossing), so it is seen to break from the melt itself.
      */
     public static boolean[] offChannel(int w, int h, boolean[] lava, IntPredicate free, IntPredicate lip, int seed) {
+        IntPredicate may = mayFlow(w, h, lava, free, lip);
+        return breakouts(w, h, lava, may, seed);
+    }
+
+    /**
+     * One older flow, unsplit, from {@code (x, y)} on the bank along {@code heading} for {@code length} cells: the
+     * breakout that ran down against a town's berm and ponded at its foot. It takes the ground {@link #offChannel}'s
+     * flows may.
+     */
+    public static boolean[] offChannelToward(int w, int h, boolean[] lava, IntPredicate free, IntPredicate lip,
+                                             float x, float y, float heading, int length, int seed) {
+        boolean[] out = new boolean[w * h];
+        lobe(w, h, out, lava, mayFlow(w, h, lava, free, lip), x, y, heading, length, 1f, new Random(seed), false);
+        return out;
+    }
+
+    /** Ground a flow may take: what {@code free} allows, and within {@link #ROOT_REACH} of the melt what {@code lip} does. */
+    private static IntPredicate mayFlow(int w, int h, boolean[] lava, IntPredicate free, IntPredicate lip) {
         boolean[] near = new boolean[w * h];
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
             if (!lava[y * w + x]) continue;
@@ -45,19 +63,7 @@ public final class LavaFlows {
                 if (nx >= 0 && ny >= 0 && nx < w && ny < h) near[ny * w + nx] = true;
             }
         }
-        IntPredicate may = i -> !lava[i] && (free.test(i) || near[i] && lip.test(i));
-        return breakouts(w, h, lava, may, seed);
-    }
-
-    /**
-     * One older flow, unsplit, from {@code (x, y)} on the bank along {@code heading} for {@code length} cells, over
-     * what {@code free} allows: the breakout that ran down against a town's berm and ponded at its foot.
-     */
-    public static boolean[] toward(int w, int h, boolean[] lava, IntPredicate free, float x, float y, float heading,
-                                   int length, int seed) {
-        boolean[] out = new boolean[w * h];
-        lobe(w, h, out, lava, free, x, y, heading, length, 1f, new Random(seed), false);
-        return out;
+        return i -> !lava[i] && (free.test(i) || near[i] && lip.test(i));
     }
 
     private static boolean[] breakouts(int w, int h, boolean[] lava, IntPredicate free, int seed) {
