@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 
 /** The ruins recipe's facts on the generation blackboard. */
@@ -15,4 +16,10 @@ public final class RuinsKeys {
 
     /** A forge works' foundry melt, row-major, that {@link RuinsMeltStage} cuts after finalize; absent without one. */
     public static final GenKey<boolean[]> MELT = GenKey.of("ruinsMelt");
+
+    /**
+     * The drop {@link #MELT} is cut as: a works hall's shaft or sump ({@link WorksHallPlan.Drop}); absent for a
+     * foundry's melt.
+     */
+    public static final GenKey<NaturalVoidZoning.Drop> MELT_DROP = GenKey.of("ruinsMeltDrop");
 }
