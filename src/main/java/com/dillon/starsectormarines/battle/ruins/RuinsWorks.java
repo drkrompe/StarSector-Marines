@@ -205,7 +205,9 @@ public final class RuinsWorks {
                 int n = stores.size() + 1;
                 String storeId = "store-" + n;
                 doors.add(new SealDoor(storeId, Strings.format("ruinsWorksStoreName", n),
-                        new int[][]{{room.door().x(), room.door().y()}}, room.interior().x(), room.interior().y(),
+                        // The store's blast door spans its three-cell doorway in the room's wall.
+                        new int[][]{{room.door().x() - 1, room.door().y()}, {room.door().x(), room.door().y()},
+                                {room.door().x() + 1, room.door().y()}}, room.interior().x(), room.interior().y(),
                         new int[]{f.left(), f.bottom(), f.right(), f.top()}, true, twist.hardenedStores()));
                 consumers.add(new Consumer(storeId, j, Branch.STORE));
                 storeBy[j]++;
@@ -254,7 +256,9 @@ public final class RuinsWorks {
         // The vault's inner door is its seal, hardened: its power and its access open it, for the powered breach.
         RuinsDelve.Vault vaultPlace = delve.vault();
         int ix = vaultPlace.innerDoor().x(), iy = vaultPlace.innerDoor().y();
-        doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"), new int[][]{{ix, iy}},
+        // The seal spans the inner door's three cells in the partition, a blast door across the aisle.
+        doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"),
+                new int[][]{{ix, iy - 1}, {ix, iy}, {ix, iy + 1}},
                 vaultPlace.source().x(), vaultPlace.source().y(), box(vaultPlace.footprint()), false, true));
         VaultAccess access = twist.access(VaultAccess.draw(siteSeed(delve), delve.records() != null,
                 onwardBy[last] > 0), onwardBy[last] > 0);

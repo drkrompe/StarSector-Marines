@@ -404,6 +404,8 @@ public class BattleRenderer {
                 new SwingDoorRenderSystem(),
                 // A locked door stands shut over the wall it is shut as, its sprite saying whether a charge can open it.
                 new LockedDoorRenderSystem(sprites),
+                // The ruins' hall and cargo doors, sliding leaf doors as a ship's are.
+                new RuinsLeafDoorRenderSystem(sprites),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,
