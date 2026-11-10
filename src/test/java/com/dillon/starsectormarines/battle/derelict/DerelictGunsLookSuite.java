@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechBodyHardpoints;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -125,6 +126,15 @@ public final class DerelictGunsLookSuite implements SnapshotSuite {
             }
             Long heavy = walkers.get(MechVariant.SECURITY_WALKER);
             if (heavy != null) out.add(new SnapshotArtifact("derelict-guns-heads.png", heads(context, sim, heavy, cx, cy)));
+            // Last, since the reservoir cannot be emptied again: the MG-40 venting a nearly full pool off its back.
+            if (heavy != null) {
+                MechFlux flux = sim.world().mechLoadout(heavy).flux;
+                flux.commit(0.96f * flux.capacity());
+                stand(sim, heavy, cx, cy, 0f, LINEUP_AIM, 0);
+                out.add(new SnapshotArtifact("derelict-guns-venting.png", BattleReviewFrameRenderer.look(
+                        context.modRoot(), 1920, 1080, cx, cy, 3.2f * MechVariant.SECURITY_WALKER.renderScale)
+                        .withoutRoofs().render(sim, "derelict-guns-venting")));
+            }
             out.add(new SnapshotArtifact("derelict-guns-dolls.png", dolls(context)));
         }
         return out;

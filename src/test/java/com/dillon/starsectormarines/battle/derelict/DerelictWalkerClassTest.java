@@ -42,6 +42,13 @@ class DerelictWalkerClassTest {
     }
 
     @Test
+    void aTenderStandsForEachZoneWithAHeavyAboveScattered() {
+        assertEquals(0, DerelictWalkerClass.tenders(RuinsGrade.SCATTERED, 1));
+        assertEquals(2, DerelictWalkerClass.tenders(RuinsGrade.WIDESPREAD, 2));
+        assertTrue(DerelictWalkerClass.SMALL.fits(1), "the tender passes a one-cell door");
+    }
+
+    @Test
     void aHallFrameForcesADeadDoorOnlyByStandingAgainstItLongEnoughAtAStretch() {
         DerelictWalkerClass.Ram ram = new DerelictWalkerClass.Ram();
         assertFalse(ram.tick(DerelictWalkerClass.FORCE_SECONDS - 1f, true));
