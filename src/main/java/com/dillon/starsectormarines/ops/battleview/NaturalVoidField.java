@@ -145,9 +145,10 @@ final class NaturalVoidField {
         Band(int step, float depth) { this.step = step; this.depth = depth; }
 
         void add(float[] poly, int n, float[] attr) {
-            // A convex polygon of up to five corners, as quads: (0,1,2,3) and (0,3,4,4).
+            // A convex polygon of up to six corners, as quads: (0,1,2,3) and (0,3,4,4) or (0,3,4,5).
             emit(poly, 0, 1, 2, n > 3 ? 3 : 2, attr);
             if (n == 5) emit(poly, 0, 3, 4, 4, attr);
+            if (n == 6) emit(poly, 0, 3, 4, 5, attr);
         }
 
         private void emit(float[] p, int a, int b, int c, int d, float[] attr) {
@@ -830,7 +831,9 @@ final class NaturalVoidField {
 
     /**
      * The fray: on ground cells beside the drop, where the signed distance to the drop plus a wandering
-     * reach is above nothing. Its cover fades from full at the drop's edge to none at its wandering end.
+     * reach is above nothing. Its cover fades from full at the drop's edge to none at its wandering end. It is laid
+     * on the drop's own cells too where they lie outside the smoothed edge, so the lip meets it along that line and
+     * not along the cells' stair steps.
      */
     private void fray() {
         float[] e = new float[sw * sh];
@@ -842,12 +845,14 @@ final class NaturalVoidField {
                 e[s] = reach + edge[s];
             }
         }
-        float[] poly = new float[16], tmp = new float[16];
+        float[] poly = new float[16], tmp = new float[16], piece = new float[16];
         float[] attr = new float[8];
-        float[] tx = new float[3], ty = new float[3], val = new float[3];
+        float[] tx = new float[3], ty = new float[3], val = new float[3], fade = new float[3], out = new float[3];
+        float[] clipped = new float[16];
         for (int cy = 0; cy < h; cy++) {
             for (int cx = 0; cx < w; cx++) {
-                if (open[cy * w + cx] || !nearOpen(cx, cy)) continue;
+                boolean drop = open[cy * w + cx];
+                if (drop && bridge[cy * w + cx] || !nearOpen(cx, cy)) continue;
                 for (int sj = 0; sj < RES; sj++) {
                     for (int si = 0; si < RES; si++) {
                         int i = cx * RES + si, j = cy * RES + sj;
@@ -860,22 +865,37 @@ final class NaturalVoidField {
                                 poly[v * 2] = tx[v];
                                 poly[v * 2 + 1] = ty[v];
                                 val[v] = e[ts[v]];
+                                out[v] = edge[ts[v]];
                             }
                             int m = clipLinear(poly, 3, tmp, tx, ty, val, 1f);
                             if (m < 3) continue;
-                            float mx = 0f, my = 0f;
-                            for (int v = 0; v < m; v++) { mx += tmp[v * 2]; my += tmp[v * 2 + 1]; }
-                            mx /= m; my /= m;
-                            // A bank's end where a bridge leaves it is the road onto the deck, not a lip.
-                            if (byBridge(mx, my)) continue;
-                            // Full at the drop's edge, fading out into the turf, broken into clumps.
-                            float e0 = linear(tx, ty, val, mx, my);
-                            float cover = e0 >= FRAY_FADE ? 1f : e0 / FRAY_FADE
-                                    * (.55f + .45f * Noise.value(mx * 1.7f, my * 1.7f, shape.seed() * 5 + 2));
-                            attr[0] = mx; attr[1] = my; attr[2] = 1f;
-                            attr[3] = .3f + (1f - cover) * 1.4f;
-                            attr[4] = 0f; attr[5] = 0f; attr[6] = 1f; attr[7] = cover;
-                            fray.add(tmp, m, attr);
+                            if (drop) {
+                                // On the drop's own cells, only outside its smoothed edge.
+                                m = clipLinear(tmp, m, clipped, tx, ty, out, -1f);
+                                if (m < 3) continue;
+                                System.arraycopy(clipped, 0, tmp, 0, m * 2);
+                            }
+                            // Split where the fade begins, so the fully covered part ends on the contour itself
+                            // rather than on whole pieces: a look that draws only full cover (a lava rift's lip)
+                            // keeps a smooth edge, never the sub-cell triangles' teeth.
+                            for (int v = 0; v < 3; v++) fade[v] = val[v] - FRAY_FADE;
+                            for (int part = 0; part < 2; part++) {
+                                int n = clipLinear(tmp, m, piece, tx, ty, fade, part == 0 ? 1f : -1f);
+                                if (n < 3) continue;
+                                float mx = 0f, my = 0f;
+                                for (int v = 0; v < n; v++) { mx += piece[v * 2]; my += piece[v * 2 + 1]; }
+                                mx /= n; my /= n;
+                                // A bank's end where a bridge leaves it is the road onto the deck, not a lip.
+                                if (byBridge(mx, my)) continue;
+                                // Full at the drop's edge, fading out into the turf, broken into clumps.
+                                float e0 = linear(tx, ty, val, mx, my);
+                                float cover = part == 0 ? 1f : Math.min(.99f, e0 / FRAY_FADE
+                                        * (.55f + .45f * Noise.value(mx * 1.7f, my * 1.7f, shape.seed() * 5 + 2)));
+                                attr[0] = mx; attr[1] = my; attr[2] = 1f;
+                                attr[3] = .3f + (1f - cover) * 1.4f;
+                                attr[4] = 0f; attr[5] = 0f; attr[6] = 1f; attr[7] = cover;
+                                fray.add(piece, n, attr);
+                            }
                         }
                     }
                 }

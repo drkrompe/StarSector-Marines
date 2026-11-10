@@ -686,12 +686,16 @@ Laws):
      whose look alone changes (`LavaFlowShading`, one shader pass: the crust
      image laid dark, its cracks glowing by the heat, the margin a curve where
      the flow's blurred cover crosses a half, lobed and frayed by noise, never
-     the cells' steps), and they
+     the cells' steps, a flow's root running on into the melt so it meets
+     the river's lip as a curve), and they
      keep the landscape's later features off what they buried. The owner picked
      the river with its older flows (2026-11-10, of the rift, the river, the
      river with its flows and the flows alone): a volcanic world's drop is the
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
-     it. Look suite `lava-flow-look`.
+     it. Its scorched lip is laid whole out to the fray's wandering end, and
+     the fray lies on the drop's own cells outside the smoothed edge, so the
+     bank shows no cell steps (`NaturalVoidField`). Look suite
+     `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so
        the melt is seen to run down past it (`LavaBerm.source`,

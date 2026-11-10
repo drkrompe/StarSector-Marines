@@ -109,12 +109,17 @@ final class LavaFlowLayer implements LavaFlowShading.Field {
             mirror = null;
             return;
         }
-        byte[] cover = LavaFlowShading.cover(heat, gridW, gridH);
+        boolean[] melt = new boolean[gridW * gridH];
+        for (int y = 0; y < gridH; y++) for (int x = 0; x < gridW; x++) {
+            melt[y * gridW + x] = topology.getGroundKind(x, y) == CellTopology.GroundKind.VOID;
+        }
+        byte[] cover = LavaFlowShading.cover(LavaFlowShading.rooted(heat, melt, gridW, gridH), gridW, gridH);
         mirror = new byte[gridW * gridH * 4];
         for (int y = 0; y < gridH; y++) for (int x = 0; x < gridW; x++) {
             int i = y * gridW + x;
             mirror[i * 4] = cover[i];
             mirror[i * 4 + 1] = (byte) Math.round(Math.max(0f, Math.min(1f, heat[i])) * 255f);
+            mirror[i * 4 + 2] = (byte) (melt[i] ? 255 : 0);
             mirror[i * 4 + 3] = (byte) 255;
             if (cover[i] == 0) continue;
             extentMinX = Math.min(extentMinX, x);
