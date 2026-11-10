@@ -224,4 +224,44 @@ class DerelictLegRigTest {
         assertTrue(most[0] <= DerelictLegRig.CRAWLER.twistDegrees() + 1e-3f);
         assertEquals(0f, most[1], 1e-6f, "the walker's body keeps its heading");
     }
+
+    @Test
+    void aCrawlersSuspendedBodyEasesThroughItsStepsAndStopsWithoutAJolt() {
+        DerelictLegRig.Build c = DerelictLegRig.CRAWLER;
+        DerelictLegRig.Build rigid = new DerelictLegRig.Build(c.hipCells(), c.restCells(), c.gripCells(),
+                c.hipHeightCells(), c.thighCells(), c.shinCells(), c.wallFootCells(), c.stepLiftCells(), c.walkStride(),
+                c.runStride(), c.runSpeed(), c.walkSpeed(), c.stepSeconds(), c.scale(), c.motionScale(),
+                c.twistDegrees(), c.jointInsetCells(), 0f);
+        float[] suspended = peakJolt(new DerelictLegRig(c));
+        float[] stiff = peakJolt(new DerelictLegRig(rigid));
+        assertTrue(suspended[0] < stiff[0] / 3f, "the body's acceleration: " + suspended[0] + " vs " + stiff[0]);
+        assertTrue(suspended[1] > 0f, "it keeps a little way on once its path stops: " + suspended[1]);
+    }
+
+    /** A slow walk east then a dead stop: the body's peak acceleration, and how far it drifted on after the stop. */
+    private static float[] peakJolt(DerelictLegRig rig) {
+        float[] x = new float[3];
+        float[] peak = {0f};
+        float[] path = {10f};
+        int[] tick = {0};
+        Runnable each = () -> {
+            x[0] = x[1];
+            x[1] = x[2];
+            x[2] = rig.bodyX();
+            if (tick[0]++ >= 3) peak[0] = Math.max(peak[0], Math.abs(x[2] - 2f * x[1] + x[0]) / (DT * DT));
+        };
+        for (int t = 0; t < 120; t++) {
+            path[0] += 0.9f * DT;
+            rig.advance(path[0], 50.5f, EAST, DT, OPEN);
+            each.run();
+        }
+        float atStop = rig.bodyX();
+        float furthest = atStop;
+        for (int t = 0; t < 60; t++) {
+            rig.advance(path[0], 50.5f, EAST, DT, OPEN);
+            each.run();
+            furthest = Math.max(furthest, rig.bodyX());
+        }
+        return new float[] {peak[0], furthest - atStop};
+    }
 }
