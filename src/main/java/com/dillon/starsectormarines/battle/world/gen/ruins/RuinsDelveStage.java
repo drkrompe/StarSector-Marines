@@ -511,10 +511,10 @@ public final class RuinsDelveStage implements GenStage {
                             case LANE -> surface = feedLane;
                             case BAY -> surface = walkway;
                             case PLATE -> surface = plate;
-                            case SPECIAL -> surface = topology.surfaceIndex(VAULT_ROOM_FLOOR);
+                            case SPECIAL -> surface = topology.surfaceIndex(works.specialFloor());
                             case DERIVED -> { }
                         }
-                        String skin = works.skin(lx, ly);
+                        String skin = works.water(lx, ly) ? WorksHallPlan.WET_FLOOR : works.skin(lx, ly);
                         if (skin != null) surface = topology.surfaceIndex(skin);
                     }
                     topology.setSurface(x, y, surface);
@@ -1797,7 +1797,7 @@ public final class RuinsDelveStage implements GenStage {
                 ctx.put(RuinsKeys.MELT, cut);
                 ctx.put(RuinsKeys.MELT_DROP, switch (laid.dropKind()) {
                     case MELT -> NaturalVoidZoning.FOUNDRY;
-                    case SHAFT -> NaturalVoidZoning.DRY_GORGE;
+                    case SHAFT -> NaturalVoidZoning.SHAFT;
                     case SLUDGE -> NaturalVoidZoning.TOXIC_GORGE;
                 });
             }

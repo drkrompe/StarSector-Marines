@@ -185,6 +185,15 @@ public final class NaturalVoidZoning {
             "graphics/battle/voids/firebrick-wall.png", 2f)
             .withDeck(new Deck(null, "doodad.ruins-grate-catwalk"));
 
+    /**
+     * A works hall's bore shaft: its collar a metre deep, then the bedrock in strata 30 m down to the rubble
+     * (`ruins-expedition.md`, Every theme has its works hall). Laid by the ruins ground, never by a palette.
+     */
+    public static final Drop SHAFT = new Drop(NaturalVoid.Style.SHAFT, List.of(
+            new NaturalVoid.Step(1f, .06f), new NaturalVoid.Step(14f, .5f), new NaturalVoid.Step(30f, 1f)),
+            "graphics/battle/voids/regolith-wall.png", 12f)
+            .withDeck(new Deck(null, "doodad.ruins-grate-catwalk"));
+
     private NaturalVoidZoning() { }
 
     /**

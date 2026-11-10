@@ -120,10 +120,9 @@ class DefenderRosterMechCompositionTest {
         DefenderRoster admitted = DefenderRoster.forMission(
                 MissionType.CONQUEST, OperationTier.FULL_STRENGTH,
                 RiskLevel.HIGH, true, Float.POSITIVE_INFINITY, path);
-        assertEquals(List.of(
-                MechVariant.HOUND, MechVariant.HOUND, MechVariant.HOUND,
-                MechVariant.HOUND, MechVariant.HOUND, MechVariant.HOUND),
-                admitted.mechVariants);
+        // The Path's own heavy support, in its profile's order, not a stock line's.
+        assertEquals(6, admitted.mechVariants.size());
+        assertEquals(path.heavySupportCycle(6), admitted.mechVariants);
 
         DefenderRoster gated = DefenderRoster.forMission(
                 MissionType.CONQUEST, OperationTier.FULL_STRENGTH,

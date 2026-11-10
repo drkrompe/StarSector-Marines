@@ -37,7 +37,7 @@ public final class MechFrameBudget {
             // UNTUNED: a light frame, rated for its one small energy gun.
             case CRAWLER -> 13f;
             // A variant is rated as its frame, whose mounts it keeps (mech-lines.md, law 2). UNTUNED.
-            case HAULER, PILGRIM -> ratedOutput(variant.frame());
+            case HAULER, PILGRIM, TORCH, CENSER -> ratedOutput(variant.frame());
             // A point over the Hound for its DC-5, so a full refit around it fits, and still short of the top of
             // every ladder. UNTUNED.
             case FOUNDRY_BREAKER -> 21f;
@@ -54,7 +54,7 @@ public final class MechFrameBudget {
             case SECURITY_ROUNDS -> 3f;
             case SECURITY_HALL -> 10f;
             case CRAWLER -> 2f;
-            case HAULER, FOUNDRY_BREAKER, PILGRIM -> platingUnit(variant.frame());
+            case HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> platingUnit(variant.frame());
         };
     }
 
@@ -69,7 +69,7 @@ public final class MechFrameBudget {
             case SECURITY_HALL -> 2600f;
             case CRAWLER -> 240f;
             // A variant's band starts higher than its frame's and climbs as far past its stock as the frame's does.
-            case HAULER, FOUNDRY_BREAKER, PILGRIM -> variant.armorCapacity
+            case HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> variant.armorCapacity
                     + refitArmorCapacity(variant.frame()) - variant.frame().armorCapacity;
         };
     }
@@ -84,7 +84,7 @@ public final class MechFrameBudget {
             case SECURITY_ROUNDS -> 1.45f;
             case SECURITY_HALL -> 0.50f;
             case CRAWLER -> 2.05f;
-            case HAULER, FOUNDRY_BREAKER, PILGRIM -> variant.moveSpeed
+            case HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> variant.moveSpeed
                     + refitMoveSpeed(variant.frame()) - variant.frame().moveSpeed;
         };
     }

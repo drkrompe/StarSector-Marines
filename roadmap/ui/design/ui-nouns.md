@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-11-04 — the page bar is the mod's own art with eight routes, the last reaching a Settings page. Earlier, 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
+Updated: 2026-11-10 — a bound operation's page bar leads to its briefing, not the board. Earlier, 2026-11-04 — the page bar is the mod's own art with eight routes, the last reaching a Settings page. Earlier, 2026-11-03 — buttons take the base game's look, and the shell's navigation is the base game's bottom bar.
 
 Earlier 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
@@ -125,6 +125,7 @@ them.
   into the frame, with one route in each of its nine slots, each about the size of the base
   game's own (148x30). Past 100% UI scale, where everything is already drawn larger, a compact
   holder (`page-bar-compact.svg`) takes over. A tenth route means redrawing both. Each route has a letter key, `accesskey` on its legend, shown yellow and underlined in the word as on the base game's bottom bar; a word without that letter, as in a translation, shows it after the word as `[T]`. Missions is the first route, the contract board, greyed out in space and at a planet with neither work the company may take nor a hostile contact, and marked only while there is work; a dialog opens there unless it is greyed, then at HQ. A page's root does not clip, so the bar can reach that corner.
+- A **bound operation** is a dialog the campaign opened for one operation from its own menus: a raid, a ruins expedition or a Nexerelin invasion (`BoundOperation`). It opens at that operation's briefing and has no contract board: the Missions slot wears the operation's kind (Raid, Expedition, Invasion) and leads back to its briefing, and the briefing's Back goes to HQ. Barracks, Mech Lab, Boats and Engineering stay open for last adjustments to the ground force (owner). Return leaves to the campaign's own choice, committing nothing; once the fought operation settles, the panel closes on its own, so the campaign commits it at once.
 - The **Settings page** is where a player preference goes when it belongs to no one
   room, reached from the page bar, each setting a compact card in a grid. Each is saved with the game and starts from
   its default in a new one. A key that only makes sense on its own page, such as the

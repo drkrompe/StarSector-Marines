@@ -22,7 +22,6 @@ import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageLi
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
-import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.mech.MechFittingDollCatalog;
@@ -97,10 +96,6 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         LOG.info("Starsector Marines: jar loaded");
-        // Armed before any catalog loads so a load-time failure is described
-        // too. Silent process deaths have no stack to catch; see
-        // ProcessExitWatchdog for how to read the log tail after one.
-        ProcessExitWatchdog.install(DevConfig.PROCESS_HEARTBEAT_SECONDS);
         // Dev builds measure how large every texture is drawn, for the release build's
         // texture fit; tools/texture_usage.py folds the file into the checked-in record.
         if (DevConfig.DEV_MODE) {

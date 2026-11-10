@@ -53,10 +53,10 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in two ranks
- * on a generated colony map, a third rank of medium tanks fitted with each gun of the rotary ladder ({@link #GUN_LADDER})
- * to compare, then the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS})
- * and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the second rank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Behind the machines
+ * A disposable diagnostic battle for feeling how machines drive: every mech and vehicle in the game parked in ranks of
+ * ten on a generated colony map (as many ranks as they fill), then medium tanks fitted with each gun of the rotary
+ * ladder ({@link #GUN_LADDER}) to compare, the Scorpion and Onager with a missile rack and a laser in their omni cards ({@link #COLOUR_HULLS})
+ * and a laser tank fitted with the PL-3 (Pulse) ({@link #LASER_VARIANTS}) to drive beside the stock laser tank's PL-3, with Morrow in its low hover beside them, and no enemy and no end. Behind the machines
  * stands a rank of infantry: one squad for each Marine primary ({@link #SQUAD_PRIMARIES}), all at service grade, whose
  * seats carry every special between them, so each weapon can be fired under direct control. Each is the player's,
  * so it answers move orders and direct control. The Diagnostics tab of the debug missions lists it, and
@@ -73,16 +73,13 @@ public final class ProvingGroundSetup {
 
     private static final int MAP_W = 280;
     private static final int MAP_H = 168;
-    private static final int HULLS_PER_RANK = 8;
-    /** Cells from one machine's centre to the next along a rank; the Wayline hauler needs most of it. */
-    private static final int FILE_SPACING = 8;
-    private static final int RANK_SPACING = 12;
+    private static final int HULLS_PER_RANK = 10;
+    /** Cells from one machine's centre to the next along a rank; every machine faces north, so only its beam counts. */
+    private static final int FILE_SPACING = 6;
+    private static final int RANK_SPACING = 11;
     private static final int WIDTH = FILE_SPACING * HULLS_PER_RANK;
-    /** The machines' two ranks and the gun ladder's. */
-    private static final int RANKS = 3;
     /** Cells along the window's south edge for the infantry rank, behind the machines. */
     private static final int INFANTRY_DEPTH = 6;
-    private static final int HEIGHT = INFANTRY_DEPTH + RANK_SPACING * RANKS;
     /**
      * The infantry rank's squads, one per Marine primary; drone weapons are left out. Every marine is issued at
      * service grade, a regular, so the weapons differ and nothing else does.
@@ -94,23 +91,29 @@ public final class ProvingGroundSetup {
     /** Cells between marines in a squad's line. */
     private static final int SEAT_SPACING = 2;
     /**
-     * The guns a medium tank carries in the third rank, light calibre to medium (mechs-nouns.md, rotary gun): the
+     * The guns a medium tank carries after the stock hulls, light calibre to medium (mechs-nouns.md, rotary gun): the
      * chaingun, the AC-6 (QS) and the AC-6, each on the same hull, so the difference is only the gun.
      */
     private static final MechWeaponComponent[] GUN_LADDER = {
             MechWeaponComponent.CHAINGUN, MechWeaponComponent.AC_6_QS, MechWeaponComponent.AC_6};
     private static final VehicleType GUN_LADDER_HULL = VehicleType.MEDIUM_TANK;
     /**
-     * The laser tank's other large laser, parked at the end of the third rank: the second rank's laser tank
+     * The laser tank's other large laser, parked last: the stock laser tank
      * carries its standard PL-3 ({@link VehicleType#standardPart}), so the two lasers can be driven side by side.
      */
     private static final MechWeaponComponent[] LASER_VARIANTS = {MechWeaponComponent.PL_3_SWEEP};
     /**
-     * The gun tanks, whose omni cards take any colour (hegemony-armor-line.md), fielded in the third rank after the
-     * gun ladder with the missile and the energy part a stock spawn of each fits; the ranks above hold their cannons.
+     * The gun tanks, whose omni cards take any colour (hegemony-armor-line.md), fielded after the gun
+     * ladder with the missile and the energy part a stock spawn of each fits; their stock spawns hold their cannons.
      */
     private static final VehicleType[] COLOUR_HULLS = {VehicleType.MEDIUM_TANK, VehicleType.BREAKTHROUGH_TANK};
     private static final HardpointType[] OTHER_COLOURS = {HardpointType.MISSILE, HardpointType.ENERGY};
+    /** Every machine parked: each mech and hull once, then the gun ladder, the colour builds and the laser variants. */
+    private static final int MACHINES = MechVariant.values().length + VehicleType.values().length + GUN_LADDER.length
+            + COLOUR_HULLS.length * OTHER_COLOURS.length + LASER_VARIANTS.length;
+    /** As many ranks as the machines fill, so a new hull or variant grows the window rather than parking off it. */
+    private static final int RANKS = (MACHINES + HULLS_PER_RANK - 1) / HULLS_PER_RANK;
+    private static final int HEIGHT = INFANTRY_DEPTH + RANK_SPACING * RANKS;
     /** How far around the ranks a building or wild ground counts as nearby. */
     private static final int SURROUND = 20;
     /** Cells of either kind that count, so that a town with nothing wild does not outscore a little of both. */
@@ -141,29 +144,18 @@ public final class ProvingGroundSetup {
         sim.setSurface(surface);
         trees.forEach(sim::addDoodad);
         MechVariant[] mechs = MechVariant.values();
-        for (int i = 0; i < mechs.length; i++) spawnMech(sim, mechs[i], site.x(fileX(i)), site.y(rankY(0)));
-        ConvoyService convoy = sim.convoy();
-        VehicleType[] hulls = VehicleType.values();
-        for (int i = 0; i < hulls.length; i++) {
-            int slot = mechs.length + i;
-            float x = site.x(fileX(slot % HULLS_PER_RANK)) + 0.5f;
-            float y = site.y(rankY(slot / HULLS_PER_RANK)) + 0.5f;
-            VehicleType type = hulls[i];
-            if (!VehicleFootprint.isPoseFeasible(x, y, FACING_NORTH, type.visualLengthCells, type.visualWidthCells,
-                    sim.getGrid())) {
-                throw new IllegalStateException(String.format(Locale.ROOT,
-                        "%s has no room at (%.1f, %.1f) on seed %d", type, x, y, seed));
-            }
-            long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
-            convoy.body(id).teleport(x, y, FACING_NORTH);
+        // Every machine takes the next slot, filling each rank west to east from the infantry's side.
+        int slot = 0;
+        for (MechVariant mech : mechs) {
+            spawnMech(sim, mech, site.x(fileX(slot % HULLS_PER_RANK)), site.y(rankY(slot / HULLS_PER_RANK)));
+            slot++;
         }
-        // The machines that spill past two ranks stand at the head of the third; the gun ladder starts after them.
-        int file = Math.max(0, mechs.length + hulls.length - 2 * HULLS_PER_RANK);
-        for (MechWeaponComponent gun : GUN_LADDER) parkFitted(convoy, site, file++, GUN_LADDER_HULL, gun);
+        for (VehicleType hull : VehicleType.values()) park(sim, site, slot++, hull, null, seed);
+        for (MechWeaponComponent gun : GUN_LADDER) park(sim, site, slot++, GUN_LADDER_HULL, gun, seed);
         for (VehicleType hull : COLOUR_HULLS) {
-            for (HardpointType colour : OTHER_COLOURS) parkFitted(convoy, site, file++, hull, hull.standardPart(colour));
+            for (HardpointType colour : OTHER_COLOURS) park(sim, site, slot++, hull, hull.standardPart(colour), seed);
         }
-        for (MechWeaponComponent gun : LASER_VARIANTS) parkFitted(convoy, site, file++, VehicleType.LASER_TANK, gun);
+        for (MechWeaponComponent gun : LASER_VARIANTS) park(sim, site, slot++, VehicleType.LASER_TANK, gun, seed);
         spawnInfantry(sim, site);
         spawnMorrow(sim, map, site);
         // A launched company stands between the ranks, and the opening camera frames the same spot.
@@ -174,13 +166,21 @@ public final class ProvingGroundSetup {
         return sim;
     }
 
-    /** A hull fitted with {@code gun}, parked at {@code file} of the third rank. */
-    private static void parkFitted(ConvoyService convoy, Site site, int file, VehicleType hull, MechWeaponComponent gun) {
-        float x = site.x(fileX(file)) + 0.5f;
-        float y = site.y(rankY(2)) + 0.5f;
-        VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, hull, VehiclePlating.FACTORY,
-                VehicleEngine.STOCK, gun);
-        long id = convoy.spawn(spec, Faction.MARINE, VehicleMission.deployed(x, y));
+    /** A hull parked at {@code slot}, stock when {@code gun} is null, otherwise fitted with it. */
+    private static void park(BattleSimulation sim, Site site, int slot, VehicleType hull, MechWeaponComponent gun,
+                             long seed) {
+        float x = site.x(fileX(slot % HULLS_PER_RANK)) + 0.5f;
+        float y = site.y(rankY(slot / HULLS_PER_RANK)) + 0.5f;
+        if (!VehicleFootprint.isPoseFeasible(x, y, FACING_NORTH, hull.visualLengthCells, hull.visualWidthCells,
+                sim.getGrid())) {
+            throw new IllegalStateException(String.format(Locale.ROOT,
+                    "%s has no room at (%.1f, %.1f) on seed %d", hull, x, y, seed));
+        }
+        ConvoyService convoy = sim.convoy();
+        long id = gun == null
+                ? convoy.spawn(hull, Faction.MARINE, VehicleMission.deployed(x, y))
+                : convoy.spawn(new VehicleDeploymentSpec(null, null, hull, VehiclePlating.FACTORY,
+                        VehicleEngine.STOCK, gun), Faction.MARINE, VehicleMission.deployed(x, y));
         convoy.body(id).teleport(x, y, FACING_NORTH);
     }
 

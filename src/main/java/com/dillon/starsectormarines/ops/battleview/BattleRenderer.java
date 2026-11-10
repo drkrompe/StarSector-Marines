@@ -290,6 +290,8 @@ public class BattleRenderer {
     /** Whether this frame draws the fog: what is drawn above it carries the fog itself only then. */
     private boolean fogDrawn = true;
     private final IdentityHashMap<Building, float[]> buildingEdges = new IdentityHashMap<>();
+    /** Each building's outline as built ({@link #builtOutline}), kept for the battle's map whatever falls. */
+    private final IdentityHashMap<Building, float[]> buildingOutlines = new IdentityHashMap<>();
     /**
      * Cells beside a window the map was built with, kept across topology changes for this map: a window shot out
      * leaves no barrier behind, and its cell still shows the empty frame rather than a door.
@@ -1148,6 +1150,12 @@ public class BattleRenderer {
         NavigationGrid grid = sim.getGrid();
         if (edgesOf != buildings || edgesAt != topology) {
             buildingEdges.clear();
+            buildingOutlines.clear();
+            // Every building's outline now, while its walls stand as the map built them.
+            boolean frozenWorld = topology.groundPalette() == SurfacePalette.FROZEN;
+            for (Building b : buildings.all()) {
+                buildingOutlines.put(b, builtOutline(topology, roofPlans.of(topology, buildings, b).cells, frozenWorld));
+            }
             // Every window the map was built with, on both cells beside its edge, before any is shot out.
             windowCells.clear();
             for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
@@ -1306,16 +1314,44 @@ public class BattleRenderer {
      * A building's faces cut by cell ({@link BuildingFaces#segments}), each segment's spare slot holding its corners
      * in its low two bits and, above them, what stands under it ({@link BuildingFaces.Segment}, a door taken as a
      * loading door; the caller narrows it by kind) plus the building's habitat ({@link BuildingFaces.Look}) times the
-     * segment kinds' count. Settled once per topology change,
-     * so a frame reads it rather than the cells.
+     * segment kinds' count. The outline is the building's as built ({@link #builtOutline}), kept while the battle
+     * lasts; what stands on each piece of it is read again at each topology change ({@link #stamp}), so a frame reads
+     * it rather than the cells.
      */
     private float[] faceSegments(CellTopology topology, NavigationGrid grid, Buildings buildings, Building b,
                                  boolean frozen) {
+        float[] built = buildingOutlines.computeIfAbsent(b,
+                k -> builtOutline(topology, roofPlans.of(topology, buildings, k).cells, frozen));
+        return stamp(built, topology, windowCells);
+    }
+
+    /**
+     * The outline a building's faces stand on, from its walls as built, its habitat in each segment's spare slot.
+     * Settled once: read again from the live cells, a wall's destroyed cells would move the roof's edge in behind them
+     * and stand fresh, whole walls up inside the building, where the wall it had is a breach.
+     */
+    static float[] builtOutline(CellTopology topology, int[] roofCells, boolean frozen) {
         int gridW = topology.getWidth();
-        float[] segs = BuildingFaces.segments(BuildingFaces.outline(roofPlans.of(topology, buildings, b).cells, gridW,
+        float[] segs = BuildingFaces.segments(BuildingFaces.outline(roofCells, gridW,
                 at -> RoofCover.rects(RoofCover.of(topology, at % gridW, at / gridW))), gridW);
         int look = BuildingFaces.look(wallSurface(topology, segs, gridW), frozen).ordinal();
         for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
+            segs[e + 7] = ((int) segs[e + 7] & 3) | (look * SEGMENTS.length) << 2;
+        }
+        return segs;
+    }
+
+    /**
+     * A copy of a {@link #builtOutline} with what stands on each segment now: a wall, a window (one the map was built
+     * with, in {@code windowCells}, stays an empty frame once shot out), a door, or a breach where the wall's cell is
+     * rubble.
+     */
+    static float[] stamp(float[] built, CellTopology topology, BitSet windowCells) {
+        int gridW = topology.getWidth();
+        float[] segs = built.clone();
+        for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
+            int code = (int) built[e + 7];
+            int look = (code >> 2) / SEGMENTS.length;
             int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
             int cover = RoofCover.of(topology, cx, cy);
             boolean pane = topology.isWindow(cx, cy);
@@ -1326,11 +1362,11 @@ public class BattleRenderer {
             // leaves.
             float length = Math.abs(segs[e + 2] - segs[e]) + Math.abs(segs[e + 3] - segs[e + 1]);
             boolean reveal = length < .5f;
-            boolean door = !window && (RoofCover.edge(cover) == RoofCover.Edge.DOOR
-                    || !wall && !reveal && !topology.isRubble(cx, cy));
+            boolean rubble = topology.isRubble(cx, cy);
+            boolean door = !window && !rubble && (RoofCover.edge(cover) == RoofCover.Edge.DOOR || !wall && !reveal);
             boolean standing = door || wall || reveal;
             BuildingFaces.Segment kind = BuildingFaces.segment(standing, door, window, pane, true);
-            segs[e + 7] = ((int) segs[e + 7] & 3) | (kind.ordinal() + look * SEGMENTS.length) << 2;
+            segs[e + 7] = (code & 3) | (kind.ordinal() + look * SEGMENTS.length) << 2;
         }
         return segs;
     }

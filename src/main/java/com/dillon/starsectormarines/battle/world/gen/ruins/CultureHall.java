@@ -21,7 +21,7 @@ import java.util.List;
  */
 final class CultureHall {
 
-    static final String GROWTH = "floors.grass", EARTH = "floors.dirt";
+    static final String GROWTH = "ruins-ground.biofilm", EARTH = "floors.dirt";
 
     private CultureHall() {}
 

@@ -63,7 +63,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
      */
     @Test
     void aShedIsTooledForTheFactionWhoseShedItIs() {
-        assertEquals(List.of(MechVariant.FOUNDRY_BREAKER), tooling("luddic_path"),
+        assertEquals(List.of(MechVariant.FOUNDRY_BREAKER, MechVariant.CENSER), tooling("luddic_path"),
                 "a Luddic Path motor pool is building something the Path does not field");
         assertEquals(List.of(MechVariant.CRAWLER), tooling("tritachyon"),
                 "a Tri-Tachyon motor pool is building something Tri-Tachyon does not field");

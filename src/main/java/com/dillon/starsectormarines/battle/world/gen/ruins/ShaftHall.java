@@ -34,9 +34,10 @@ final class ShaftHall {
         p.station("feed").station("assembly").station("crane").station("shaft");
         int top = length - 2;
 
-        // The shaft at the head, the line's way north; its headframe overhead, a winder either side.
+        // The shaft at the head, the line's way north; its headframe overhead, standing on the collar a cell wide
+        // round the shaft, a winder either side.
         int sl = f.cx - SHAFT / 2 + 1, sb = top - SHAFT;
-        p.drop(WorksHallPlan.Drop.SHAFT, sl, sb, sl + SHAFT - 1, top - 1);
+        p.drop(WorksHallPlan.Drop.SHAFT, sl + 1, sb + 1, sl + SHAFT - 2, top - 2);
         p.overhead("doodad.ruins-headframe", null, sl - 1, sb - 1, SHAFT + 2, SHAFT + 2);
         f.stand("doodad.ruins-hoist-winder", "doodad.industrial-cable-reel", sl - 6, top - 6, 4, 4, "shaft");
         f.stand("doodad.ruins-hoist-winder", "doodad.industrial-cable-reel", sl + SHAFT + 2, top - 6, 4, 4, "shaft");

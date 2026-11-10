@@ -164,6 +164,8 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             case PL_3_SWEEP -> assets.pl3Sweep;
             case PL_2 -> assets.pl2;
             case PL_1 -> assets.pl1;
+            case FL_1 -> assets.fl1();
+            case FL_2 -> assets.fl2();
         };
     }
 

@@ -45,6 +45,9 @@ public final class MechPatternCredits {
         chassis(MechVariant.HAULER, MechPatternPicker.PIRATES_ID, PIRATES, "patternCreditHauler");
         chassis(MechVariant.FOUNDRY_BREAKER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditFoundryBreaker");
         chassis(MechVariant.PILGRIM, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditPilgrim");
+        // The flamer rigs: a pirate fuel rig on the Hound frame, a Pather conversion of the Warden.
+        chassis(MechVariant.TORCH, MechPatternPicker.PIRATES_ID, PIRATES, "patternCreditTorch");
+        chassis(MechVariant.CENSER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH, "patternCreditCenser");
 
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);
