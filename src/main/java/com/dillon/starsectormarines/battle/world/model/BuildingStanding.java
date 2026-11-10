@@ -47,22 +47,26 @@ public final class BuildingStanding {
     }
 
     /**
-     * The outline of the building standing on or beside cell {@code (x, y)} (the cell itself first, then its eight
-     * neighbours), or empty if there is none: how a machine in a hall finds the hall it falls with.
+     * The building standing on or beside cell {@code (x, y)} (the cell itself first, then its eight neighbours), or
+     * null if there is none: how a machine in a hall finds the hall it falls with.
      */
-    public static List<int[]> outlineAt(CellTopology topology, Buildings buildings, int x, int y) {
+    public static Building buildingAt(CellTopology topology, Buildings buildings, int x, int y) {
         for (int r = 0; r <= 1; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
                     int id = topology.getBuildingId(x + dx, y + dy);
                     Building building = id > 0 ? buildings.get(id) : null;
-                    if (building == null) continue;
-                    return outline(building.cellsX, building.cellsY, topology::isWall, topology.getWidth(),
-                            topology.getHeight());
+                    if (building != null) return building;
                 }
             }
         }
-        return List.of();
+        return null;
+    }
+
+    /** {@link #outline} of {@code building} as it stands on {@code topology}; empty for no building. */
+    public static List<int[]> outline(Building building, CellTopology topology) {
+        if (building == null) return List.of();
+        return outline(building.cellsX, building.cellsY, topology::isWall, topology.getWidth(), topology.getHeight());
     }
 
     /** The share of {@code outline} still standing: 1 for a whole building, 0 for one razed; 0 for no outline. */

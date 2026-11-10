@@ -1,0 +1,104 @@
+{
+  "sheet": "graphics/doodads/refinery-utilities.png",
+  "cellPx": 480,
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "refinery.stack"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "refinery.cooling-tower"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "refinery.pump-skid"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "refinery.mast"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "refinery.loading-island"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "refinery.gas-rack"
+    }
+  ],
+  "doodads": [
+    {
+      "id": "refinery.stack",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.cooling-tower",
+      "col": 1,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.pump-skid",
+      "col": 2,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.mast",
+      "col": 0,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.loading-island",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.gas-rack",
+      "col": 2,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}
