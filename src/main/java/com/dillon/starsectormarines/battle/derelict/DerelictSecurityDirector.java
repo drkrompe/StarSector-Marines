@@ -468,6 +468,22 @@ public final class DerelictSecurityDirector {
         rams.put(squadId, new DerelictWalkerClass.Ram());
     }
 
+    /** The dead door a hall-bound frame is to force, or null; it stays given once forced. */
+    public RuinsDelve.LeafDoor deadDoorOf(int squadId) {
+        return deadDoors.get(squadId);
+    }
+
+    /** Whether a hall frame is still kept to its hall. */
+    public boolean hallBound(int squadId) {
+        return hallBound.contains(squadId);
+    }
+
+    /** How far a hall frame's ram is toward forcing its door, 0 to 1; 0 for a frame with none. */
+    public float ramProgress(int squadId) {
+        DerelictWalkerClass.Ram ram = rams.get(squadId);
+        return ram == null ? 0f : ram.progress();
+    }
+
     /** The dead doors hall frames have forced, in the order they gave way. */
     public List<RuinsDelve.LeafDoor> forcedDoors() {
         return Collections.unmodifiableList(forced);

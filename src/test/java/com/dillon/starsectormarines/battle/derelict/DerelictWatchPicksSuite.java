@@ -53,6 +53,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
             sizes(context, fixture, out);
             repair(context, fixture, out);
             doors(context, fixture, out);
+            ram(context, fixture, out);
             return out;
         }
     }
@@ -253,6 +254,59 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         play(rammed, 60);
         add(out, "doors/dead-before.png", before);
         add(out, "doors/forced.png", look(context, rammed, x, y, CLOSE, true, "doors-forced"));
+    }
+
+    // ---- a hall frame ramming a dead door, on a seed whose site has one ----
+
+    /** Seeds tried, from the fixture's own, for a hall-bound frame with a dead door on its hall's face. */
+    static final int RAM_SEEDS = 8;
+
+    private static void ram(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
+            throws Exception {
+        long seed0 = fixture.getLong("seed");
+        for (int k = 0; k < RAM_SEEDS; k++) {
+            JSONObject f = new JSONObject(fixture.toString());
+            f.put("seed", seed0 + k);
+            BattleSimulation sim = settled(f, 30);
+            DerelictSecurityDirector director = sim.derelictSecurity();
+            int halls = 0, bound = 0, dead = 0, withDoor = 0;
+            for (RuinsDelve.LeafDoor d : sim.getRuinsWorks().doorStates().doors()) {
+                if (d.stance() == RuinsDelve.DoorStance.DEAD) dead++;
+            }
+            for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                if (w.frame() != DerelictWalkerFrame.HALL) continue;
+                halls++;
+                if (director.hallBound(w.squadId())) bound++;
+                if (DerelictSecurity.deadDoorOf(sim.getRuinsWorks().delve(), w.postX(), w.postY()) != null) withDoor++;
+            }
+            log("ram: seed %d: %d hall frames, %d bound, %d with a dead door on their hall, %d dead doors",
+                    seed0 + k, halls, bound, withDoor, dead);
+            for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                RuinsDelve.LeafDoor door = director.deadDoorOf(w.squadId());
+                if (w.frame() != DerelictWalkerFrame.HALL || door == null || !director.hallBound(w.squadId())) continue;
+                log("ram: seed %d, lance %d, dead door at (%d, %d)", seed0 + k, w.squadId(), door.span().left(),
+                        door.span().bottom());
+                float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
+                add(out, "ram/before.png", look(context, sim, x, y, CLOSE, true, "ram-before"));
+                director.network().stir(w.zoneId(), sim.getSimTickIndex());
+                boolean mid = false;
+                for (int t = 0; t < 6000 && director.forcedDoors().isEmpty(); t++) {
+                    if (!step(sim)) break;
+                    if (!mid && director.ramProgress(w.squadId()) >= 0.5f) {
+                        mid = true;
+                        log("ram: half way at t=%d", sim.getSimTickIndex());
+                        add(out, "ram/mid.png", look(context, sim, x, y, CLOSE, true, "ram-mid"));
+                    }
+                }
+                log("ram: forced %d by t=%d, stance %s, still bound %s", director.forcedDoors().size(),
+                        sim.getSimTickIndex(), sim.getRuinsWorks().doorStates().stanceOf(door),
+                        director.hallBound(w.squadId()));
+                play(sim, 120);
+                add(out, "ram/after.png", look(context, sim, x, y, CLOSE, true, "ram-after"));
+                return;
+            }
+        }
+        log("ram: no seed of %d has a hall-bound frame with a dead door", RAM_SEEDS);
     }
 
     // ---- walker sizes ----
