@@ -3,9 +3,9 @@ package com.dillon.starsectormarines.battle.world.gen.elevation;
 import java.util.function.IntPredicate;
 
 /**
- * A natural drop across open country ({@code voids.md}, placement in generated maps): a gorge, canyon, crevasse or
- * rift running edge to edge across a generated outdoor map, its look picked by the world's palette
- * ({@code NaturalVoidZoning}). GL-free; the landscape pass asks it once and stamps what it returns.
+ * A natural drop across open country ({@code voids.md}, placed by design): a gorge, canyon, crevasse or rift running
+ * edge to edge across an outdoor map whose design places one ({@code Landform.Drop}), its look picked by the world's
+ * palette ({@code NaturalVoidZoning}). GL-free; the landscape pass asks it once and stamps what it returns.
  *
  * <p>It runs from one edge of the map to the opposite one, wandering, its width swelling and narrowing. It takes only open ground
  * ({@code free}): the caller's reservations keep roads, buildings, doorways, fixtures, the landing and the routes
@@ -16,9 +16,8 @@ import java.util.function.IntPredicate;
  *
  * <p>Then it is proved: every stretch of walkable ground connected before stays connected after, through the
  * crossings. A small pocket of open ground the drop would strand ({@link #MAX_POCKET} cells or fewer) is taken into
- * it; any other stranding refuses that line. Lines both ways across the map are tried, through its middle and
- * through the country to either side of a settlement, and the one cutting most is kept; a map none of them fits
- * keeps no drop.
+ * it; any other stranding refuses the drop: its line is the design's, never searched for, so a design whose
+ * line does not fit keeps no drop.
  */
 public final class NaturalChasm {
 
@@ -32,8 +31,6 @@ public final class NaturalChasm {
     static final int MIN_PIECE = 60, MIN_CELLS = 300;
     /** The largest pocket of open ground the drop may swallow rather than strand. */
     static final int MAX_POCKET = 40;
-    /** Where across the map its line is tried, as shares of the side it crosses. */
-    static final float[] LINES = {.5f, .36f, .64f, .22f, .78f, .12f, .88f};
     /** How far its line wanders either side, as a share of the side it crosses. */
     static final float WANDER = .09f;
 
@@ -49,27 +46,22 @@ public final class NaturalChasm {
     public record Cut(boolean[] drop, boolean[] decks) { }
 
     /**
-     * The drop's cells over a {@code w} by {@code h} map, row-major, or {@code null} when no line fits.
+     * The designed drop's cells over a {@code w} by {@code h} map, row-major, or {@code null} when its line does not
+     * fit: too little of it open ground, or a cut that would strand ground.
      *
+     * @param along    whether it runs west to east, else south to north
+     * @param across   where it runs, as a share of the map across it
      * @param free     cells the drop may take: open natural ground nothing is reserved on
      * @param walkable cells anything stands on now
      */
-    public static Cut plan(int w, int h, IntPredicate free, IntPredicate walkable, int seed) {
+    public static Cut plan(int w, int h, boolean along, float across, IntPredicate free, IntPredicate walkable,
+                           int seed) {
         int[] before = OpenPit.label(w, h, walkable);
-        boolean[] best = null, bestCrossings = null;
-        boolean bestAlong = true;
-        int bestCells = 0;
-        for (int attempt = 0; attempt < 2 * LINES.length; attempt++) {
-            boolean along = attempt % 2 == 0;
-            boolean[] crossings = new boolean[w * h];
-            boolean[] cut = line(w, h, free, walkable, along, LINES[attempt / 2], seed + 31 * attempt, crossings);
-            if (cut == null) continue;
-            cut = proved(w, h, cut, before, free, walkable);
-            if (cut == null) continue;
-            int cells = OpenPit.count(cut);
-            if (cells > bestCells) { bestCells = cells; best = cut; bestCrossings = crossings; bestAlong = along; }
-        }
-        return best == null ? null : new Cut(best, decks(w, h, best, bestCrossings, bestAlong, free, walkable));
+        boolean[] crossings = new boolean[w * h];
+        boolean[] cut = line(w, h, free, walkable, along, across, seed, crossings);
+        if (cut == null) return null;
+        cut = proved(w, h, cut, before, free, walkable);
+        return cut == null ? null : new Cut(cut, decks(w, h, cut, crossings, along, free, walkable));
     }
 
     /** The crossings' open ground with the drop on both sides of it along the line. */

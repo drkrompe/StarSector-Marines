@@ -45,79 +45,63 @@ class PitMachinesTest {
     }
 
     /**
-     * The ore's path reads: the crushing station stands at the spine's foot on the floor with its hopper turned from
-     * the spine, and the cutter works a face on the floor near enough to feed it, its back to the station.
+     * The ore's path reads: the loader stands at the driver's foot on the floor with its hopper turned from the rail,
+     * and the cutter works a face on the floor near enough to feed it, its back to the loader.
      */
     @Test
-    void theCutterFeedsTheStationAtTheSpinesFoot() {
+    void theCutterFeedsTheLoaderAtTheDriversFoot() {
         NaturalVoidField field = field();
-        NaturalVoid.Belt spine = spine();
-        List<PitMachines.Machine> machines = PitMachines.place(field, PitVoidLook.ramps(field), spine, 0, 5);
+        NaturalVoid.Belt driver = spine();
+        List<PitMachines.Machine> machines = PitMachines.place(field, PitVoidLook.ramps(field), driver, 0, 5);
         int n = field.steps();
-        PitMachines.Machine station = only(machines, PitMachines.Kind.CRUSHER);
-        assertEquals(n, station.step());
-        assertTrue(PitMachines.on(field, n, station.x(), station.y()), "the station is off the floor");
-        float sx = spine.rimX() - spine.floorX(), sy = spine.rimY() - spine.floorY();
-        assertTrue(station.headingX() * sx + station.headingY() * sy < 0f, "the hopper faces the spine");
-        assertTrue(Math.hypot(station.x() - spine.floorX(), station.y() - spine.floorY()) < 4f,
-                "the station is not at the spine's foot");
+        PitMachines.Machine loader = only(machines, PitMachines.Kind.LOADER);
+        assertEquals(n, loader.step());
+        assertTrue(PitMachines.on(field, n, loader.x(), loader.y()), "the loader is off the floor");
+        float sx = driver.rimX() - driver.floorX(), sy = driver.rimY() - driver.floorY();
+        assertTrue(loader.headingX() * sx + loader.headingY() * sy < 0f, "the hopper faces the rail");
+        assertTrue(Math.hypot(loader.x() - driver.floorX(), loader.y() - driver.floorY()) < 4f,
+                "the loader is not at the driver's foot");
         PitMachines.Machine cutter = only(machines, PitMachines.Kind.CUTTER);
         assertTrue(PitMachines.on(field, n, cutter.x(), cutter.y()), "the cutter is off the floor");
-        float away = (float) Math.hypot(cutter.x() - station.x(), cutter.y() - station.y());
-        assertTrue(away >= PitMachines.FEED_MIN && away <= PitMachines.FEED_MAX, "the cutter cannot feed the station");
-        assertTrue(cutter.headingX() * (cutter.x() - station.x()) + cutter.headingY() * (cutter.y() - station.y()) > 0f,
-                "the cutter faces the station instead of its face");
-    }
-
-    /** Ore from the upper benches joins the spine: a hopper beside it on a bench, a loaded crawler backed up to it. */
-    @Test
-    void theBenchesFeedTheSpineThroughAHopper() {
-        NaturalVoidField field = field();
-        List<PitMachines.Machine> machines = PitMachines.place(field, PitVoidLook.ramps(field), spine(), 0, 5);
-        PitMachines.Machine hopper = only(machines, PitMachines.Kind.HOPPER);
-        assertTrue(hopper.step() > 0 && hopper.step() < field.steps(), "the hopper is not on a bench");
-        assertTrue(PitMachines.on(field, hopper.step(), hopper.x(), hopper.y()));
-        assertTrue(machines.stream().anyMatch(m -> m.kind() == PitMachines.Kind.ORE_LOADED && m.rampWall() < 0
-                && m.step() == hopper.step()), "no crawler tipping into the hopper");
+        float away = (float) Math.hypot(cutter.x() - loader.x(), cutter.y() - loader.y());
+        assertTrue(away >= PitMachines.FEED_MIN && away <= PitMachines.FEED_MAX, "the cutter cannot feed the loader");
+        assertTrue(cutter.headingX() * (cutter.x() - loader.x()) + cutter.headingY() * (cutter.y() - loader.y()) > 0f,
+                "the cutter faces the loader instead of its face");
     }
 
     /**
-     * The haul road carries a loaded crawler up and an empty one down; a gantry drills a bench. A pit that sends no
-     * spine has no cutter or station.
+     * Haulers bring the benches' ore to the loader: one hovering in to tip, turned toward the loader; one loaded over
+     * a bench turned into the pit and one empty over another bench turned out of it; none on the haul road, and a
+     * gantry drills a bench. A pit that sends no driver has nothing to load.
      */
     @Test
-    void theRoadAndBenchesAreWorkedAndNoSpineMeansNoCrushing() {
+    void haulersFerryTheBenchesOreToTheLoader() {
         NaturalVoidField field = field();
         List<PitVoidLook.Ramp> ramps = PitVoidLook.ramps(field);
         List<PitMachines.Machine> machines = PitMachines.place(field, ramps, spine(), 0, 5);
-        PitMachines.Machine gantry = only(machines, PitMachines.Kind.GANTRY);
-        assertTrue(gantry.step() < field.steps(), "the gantry works a bench, not the floor");
-        boolean up = false, down = false;
+        int n = field.steps();
+        PitMachines.Machine loader = only(machines, PitMachines.Kind.LOADER);
+        boolean tipping = false, lifting = false, returning = false;
         for (PitMachines.Machine m : machines) {
-            if (m.rampWall() < 0) continue;
-            assertEquals(m.rampWall() + 1, m.step());
-            PitVoidLook.Ramp piece = nearest(ramps, m);
-            float[] p = piece.corners();
-            float along = (p[3] - p[0]) * m.headingX() + (p[4] - p[1]) * m.headingY();
-            boolean towardShallow = along > 0 ? p[5] < p[2] : p[2] < p[5];
-            assertEquals(m.kind() == PitMachines.Kind.ORE_LOADED, towardShallow, m.toString());
-            up |= m.kind() == PitMachines.Kind.ORE_LOADED;
-            down |= m.kind() == PitMachines.Kind.ORE_EMPTY;
+            assertTrue(m.rampWall() < 0, "nothing works the haul road now: " + m);
+            if (m.kind() != PitMachines.Kind.HAULER_LOADED && m.kind() != PitMachines.Kind.HAULER_EMPTY) continue;
+            assertTrue(m.hover() > 0f, "a hauler hovers");
+            assertEquals(field.depth[m.step()] - m.hover(), m.depth(), 1e-4f, "it flies its hover over its band");
+            float[] out = PitMachines.outward(field, field.reach[m.step()], m.x(), m.y());
+            if (m.step() == n) {
+                float toX = loader.x() - m.x(), toY = loader.y() - m.y();
+                tipping |= m.kind() == PitMachines.Kind.HAULER_LOADED && m.headingX() * toX + m.headingY() * toY > 0f;
+            } else if (out != null) {
+                float outward = m.headingX() * out[0] + m.headingY() * out[1];
+                lifting |= m.kind() == PitMachines.Kind.HAULER_LOADED && outward < 0f;
+                returning |= m.kind() == PitMachines.Kind.HAULER_EMPTY && outward > 0f;
+            }
         }
-        assertTrue(up && down, "the road carries a loaded crawler and an empty one");
+        assertTrue(tipping && lifting && returning, "tipping " + tipping + ", lifting " + lifting + ", returning "
+                + returning);
+        PitMachines.Machine gantry = only(machines, PitMachines.Kind.GANTRY);
+        assertTrue(gantry.step() < n, "the gantry works a bench, not the floor");
         assertTrue(PitMachines.place(field, ramps, null, 0, 5).stream().noneMatch(m ->
-                m.kind() == PitMachines.Kind.CUTTER || m.kind() == PitMachines.Kind.CRUSHER));
-    }
-
-    private static PitVoidLook.Ramp nearest(List<PitVoidLook.Ramp> ramps, PitMachines.Machine m) {
-        PitVoidLook.Ramp best = null;
-        double bestD = Double.MAX_VALUE;
-        for (PitVoidLook.Ramp r : ramps) {
-            if (r.side() || r.lane() != 2 || r.wall() != m.rampWall()) continue;
-            float[] p = r.corners();
-            double d = Math.hypot((p[0] + p[3] + p[6] + p[9]) / 4f - m.x(), (p[1] + p[4] + p[7] + p[10]) / 4f - m.y());
-            if (d < bestD) { bestD = d; best = r; }
-        }
-        return best;
+                m.kind() != PitMachines.Kind.GANTRY), "no driver, nothing to load");
     }
 }

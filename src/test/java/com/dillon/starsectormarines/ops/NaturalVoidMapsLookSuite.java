@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -24,14 +25,17 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Natural drops on generated maps ({@code voids.md}, placement in generated maps): an Assault on a remote
- * market of each palette (a garrison in the country round it), with {@code battle.mapgen.naturalVoids=1} so every map that fits is cut, the drop's look picked
- * by the palette ({@code NaturalVoidZoning}). Each case framed whole with its mission markers
+ * A natural drop placed by a map's design ({@code voids.md}, placed by design): one design, an Assault on a remote
+ * market (a garrison in the country round it) cut across its middle by a drop ({@code Landform.Drop}), skinned by
+ * each palette in turn ({@code NaturalVoidZoning}). Each case framed whole with its mission markers
  * ({@code <case>-whole.png}), on the drop ({@code <case>-drop.png}) and at play zoom on a crossing
  * ({@code <case>-crossing.png}). Look preset; nothing is played. {@code -Dsnapshot.naturalVoids.seeds=7,11} picks the
  * seeds.
  */
 public final class NaturalVoidMapsLookSuite implements SnapshotSuite {
+
+    /** The design every palette skins: a drop south to north across the approach, between the landing and the garrison. */
+    private static final Landform DESIGN = new Landform.Drop(false, .62f);
 
     @Override public String id() { return "natural-void-maps-look"; }
 
@@ -41,11 +45,6 @@ public final class NaturalVoidMapsLookSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String was = System.getProperty("battle.mapgen.naturalVoids");
-        System.setProperty("battle.mapgen.naturalVoids", "1");
-        // A frozen map here shows its crevasse drop, not a crevasse town (crevasse-town-look shows those).
-        String wasTowns = System.getProperty("battle.mapgen.crevasseTowns");
-        System.setProperty("battle.mapgen.crevasseTowns", "0");
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
@@ -58,17 +57,12 @@ public final class NaturalVoidMapsLookSuite implements SnapshotSuite {
                             SettlementLink.ROAD);
                     try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
                             false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
-                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)) {
+                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, DESIGN)) {
                         render(context, sim, id, out);
                     }
                 }
             }
             return out;
-        } finally {
-            if (was == null) System.clearProperty("battle.mapgen.naturalVoids");
-            else System.setProperty("battle.mapgen.naturalVoids", was);
-            if (wasTowns == null) System.clearProperty("battle.mapgen.crevasseTowns");
-            else System.setProperty("battle.mapgen.crevasseTowns", wasTowns);
         }
     }
 

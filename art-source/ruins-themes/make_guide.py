@@ -39,6 +39,22 @@ FAMILIES = {
     "products-b": [(f"drone-frame-{s}", 2, 2, f"drone:{s}") for s in ("whole", "half", "wrecked")] + [None]
                   + [(f"forge-core-{s}", 2, 2, f"forge:{s}") for s in ("whole", "half", "wrecked")],
 }
+# The foundry hall's pieces (``ruins-forge-area``): crucibles whose melt (drawn in MELT) ``export.py`` splits off
+# as an overlay the engine can pulse, the loose foundry props, and the overlays that sit on the hall's lava drop: a
+# mould grid over a casting bed and a grate catwalk deck over a crossing (span east-west, both ends flush).
+FAMILIES["foundry-a"] = [("crucible", 3, 3, "crucible"), ("crucible-tipped", 3, 3, "crucibletip"), None,
+                         ("fallen-ladle", 3, 2, "ladle"), ("slag-heap", 2, 2, "slag"), ("pour-pulpit", 2, 2, "pulpit")]
+FAMILIES["foundry-b"] = [("mould-grid", 8, 5, "mould"), None, ("grate-catwalk", 2, 2, "catwalk")]
+
+# The other themes' products, the same way: one row per product.
+for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
+                     ("products-d", (("catalyst-bed", "catalyst"), ("spool-drum", "spool"))),
+                     ("products-e", (("bore-head", "bore"), ("projector-stack", "projector")))):
+    FAMILIES[_fam] = []
+    for _pid, _shape in _prods:
+        if FAMILIES[_fam]:
+            FAMILIES[_fam].append(None)
+        FAMILIES[_fam] += [(f"{_pid}-{s}", 2, 2, f"{_shape}:{s}") for s in ("whole", "half", "wrecked")]
 
 # The line's bed: the middle half of its width, flush to the short ends, shared by the module and the line end.
 BED = (0.3, 0.7)
@@ -59,6 +75,19 @@ def frames(family):
 
 
 BODY, EDGE, DARK, LIGHT = (128, 132, 138, 255), (70, 74, 80, 255), (40, 42, 46, 255), (176, 180, 186, 255)
+# The melt in a foundry guide: a colour no other block uses, so ``export.py`` finds it in the guide.
+MELT = (214, 120, 48, 255)
+
+
+def crucible_melt(x, y, w, h, kind):
+    """The melt's outline in guide pixels: the crucible's open mouth, or the tipped one's spill tongue."""
+    if kind == "crucible":
+        cx, cy, r = x + w / 2, y + h / 2 - 20, w * 0.27
+        return [(cx + r * math.cos(a), cy + r * math.sin(a)) for a in (k * math.pi / 60 for k in range(120))]
+    # The tipped crucible's mouth faces south-east; its spill runs out of it across the floor to the frame's corner.
+    return [(x + w * 0.55, y + h * 0.58), (x + w * 0.66, y + h * 0.66), (x + w * 0.80, y + h * 0.70),
+            (x + w * 0.93, y + h * 0.82), (x + w * 0.90, y + h * 0.94), (x + w * 0.74, y + h * 0.93),
+            (x + w * 0.62, y + h * 0.84), (x + w * 0.52, y + h * 0.72)]
 
 
 def product_shape(name, size, solid):
@@ -99,6 +128,69 @@ def product_shape(name, size, solid):
         d.ellipse((c - 140, c - 140, c + 140, c + 140), fill=DARK, outline=EDGE, width=14)
         for cx, cy in ((i + 50, i + 50), (s - i - 50, i + 50), (i + 50, s - i - 50), (s - i - 50, s - i - 50)):
             d.ellipse((cx - 20, cy - 20, cx + 20, cy + 20), fill=EDGE)
+    elif name == "core":
+        d.rectangle((i, i, s - i, s - i), fill=shell, outline=EDGE, width=14)
+        for y0 in range(i + 60, s - i - 60, 70):
+            d.rectangle((i + 40, y0, i + 110, y0 + 40), fill=DARK)
+            d.rectangle((s - i - 110, y0, s - i - 40, y0 + 40), fill=DARK)
+        c = s // 2
+        d.ellipse((c - 150, c - 150, c + 150, c + 150), fill=EDGE)
+        d.ellipse((c - 105, c - 105, c + 105, c + 105), fill=LIGHT, outline=EDGE, width=8)
+    elif name == "lamp":
+        c, r = s // 2, s // 2 - i
+        d.polygon([(c + r * math.cos(a), c + r * math.sin(a)) for a in (k * math.pi / 4 + math.pi / 8 for k in range(8))],
+                  fill=shell, outline=EDGE, width=14)
+        for k in range(4):
+            a = k * math.pi / 2 + math.pi / 4
+            d.line((c + 120 * math.cos(a), c + 120 * math.sin(a), c + (r - 30) * math.cos(a), c + (r - 30) * math.sin(a)),
+                   fill=EDGE, width=40)
+        d.ellipse((c - 130, c - 130, c + 130, c + 130), fill=LIGHT, outline=EDGE, width=14)
+        d.ellipse((c - 55, c - 55, c + 55, c + 55), fill=DARK)
+    elif name == "magnet":
+        cx, cy, ro, ri = -s * 0.25, s * 0.5, s * 1.1, s * 0.62
+        d.pieslice((cx - ro, cy - ro, cx + ro, cy + ro), -24, 24, fill=shell, outline=EDGE, width=14)
+        d.pieslice((cx - ri, cy - ri, cx + ri, cy + ri), -40, 40, fill=(0, 0, 0, 0))
+        rm = (ro + ri) / 2
+        d.arc((cx - rm, cy - rm, cx + rm, cy + rm), -25, 25, fill=DARK, width=50)
+        for a in (-17, -6, 6, 17):
+            t = math.radians(a)
+            px, py = cx + rm * math.cos(t), cy + rm * math.sin(t)
+            d.rectangle((px - 70, py - 34, px + 70, py + 34), fill=LIGHT, outline=EDGE, width=6)
+    elif name == "catalyst":
+        d.rectangle((i, i + 60, s - i, s - i - 60), fill=shell, outline=EDGE, width=14)
+        for gy in range(3):
+            for gx in range(4):
+                x0, y0 = i + 50 + gx * 130, i + 120 + gy * 130
+                d.rectangle((x0, y0, x0 + 105, y0 + 105), fill=LIGHT, outline=EDGE, width=6)
+        d.rectangle((i + 40, i, s - i - 40, i + 60), fill=DARK)
+        d.rectangle((i + 40, s - i - 60, s - i - 40, s - i), fill=DARK)
+    elif name == "spool":
+        d.rectangle((i + 70, i + 60, s - i - 70, s - i - 60), fill=shell, outline=EDGE, width=12)
+        for y0 in range(i + 90, s - i - 90, 34):
+            d.line((i + 80, y0, s - i - 80, y0), fill=LIGHT, width=12)
+        for x0 in (i, s - i - 70):
+            d.rectangle((x0, i, x0 + 70, s - i), fill=EDGE)
+        d.rectangle((i - 10, s // 2 - 40, s - i + 10, s // 2 + 40), outline=DARK, width=10)
+    elif name == "bore":
+        c = s // 2
+        d.ellipse((i, i, s - i, s - i), fill=shell, outline=EDGE, width=14)
+        for k in range(6):
+            a = k * math.pi / 3
+            ex, ey = c + 185 * math.cos(a), c + 185 * math.sin(a)
+            d.ellipse((ex - 55, ey - 55, ex + 55, ey + 55), fill=LIGHT, outline=EDGE, width=8)
+            d.line((c, c, c + 260 * math.cos(a + math.pi / 6), c + 260 * math.sin(a + math.pi / 6)), fill=EDGE, width=16)
+        d.ellipse((c - 70, c - 70, c + 70, c + 70), fill=DARK)
+    elif name == "projector":
+        c = s // 2
+        d.rectangle((i + 40, i + 40, s - i - 40, s - i - 40), fill=shell, outline=EDGE, width=12)
+        for k in range(3):
+            a = k * 2 * math.pi / 3 - math.pi / 2
+            d.line((c, c, c + 230 * math.cos(a), c + 230 * math.sin(a)), fill=EDGE, width=34)
+            d.ellipse((c + 230 * math.cos(a) - 45, c + 230 * math.sin(a) - 45, c + 230 * math.cos(a) + 45,
+                       c + 230 * math.sin(a) + 45), fill=LIGHT, outline=EDGE, width=6)
+        for r, w in ((170, 12), (115, 10)):
+            d.ellipse((c - r, c - r, c + r, c + r), outline=EDGE, width=w)
+        d.ellipse((c - 55, c - 55, c + 55, c + 55), fill=LIGHT, outline=EDGE, width=8)
     return im
 
 
@@ -205,6 +297,57 @@ def draw(family):
             d.rectangle((x, y, x + w, y + 120), fill=edge)
             d.rectangle((x + 60, y + 20, x + w - 60, y + 110), fill=body)
             d.rectangle((x + 80, y + 130, x + w - 80, y + h - inset), fill=light, outline=edge, width=10)
+        elif kind == "crucible":
+            cx, cy = x + w / 2, y + h / 2 - 20
+            d.rectangle((x + inset, cy - 80, x + w - inset, cy + 80), fill=EDGE)
+            for sx in (x + inset, x + w - inset - 110):
+                d.rectangle((sx, cy - 120, sx + 110, cy + 120), fill=BODY, outline=EDGE, width=8)
+            d.polygon([(cx - 90, y + h - 200), (cx + 90, y + h - 200), (cx + 50, y + h - inset),
+                       (cx - 50, y + h - inset)], fill=BODY, outline=EDGE, width=8)
+            r = w * 0.38
+            d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=BODY, outline=EDGE, width=16)
+            d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind == "crucibletip":
+            body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            bd = ImageDraw.Draw(body)
+            bd.rectangle((w * 0.12, h * 0.22, w * 0.62, h * 0.58), fill=BODY, outline=EDGE, width=14)
+            bd.ellipse((w * 0.50, h * 0.18, w * 0.70, h * 0.62), fill=DARK, outline=EDGE, width=14)
+            bd.rectangle((w * 0.28, h * 0.12, w * 0.40, h * 0.22), fill=EDGE)
+            bd.rectangle((w * 0.28, h * 0.58, w * 0.40, h * 0.68), fill=EDGE)
+            im.alpha_composite(body.rotate(-28, center=(w * 0.4, h * 0.4), resample=Image.BICUBIC), (x, y))
+            d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind == "ladle":
+            d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)
+            d.rectangle((x + w * 0.5, y + h / 2 - 40, x + w - inset, y + h / 2 + 40), fill=EDGE)
+            d.rectangle((x + w - 200, y + h / 2 - 110, x + w - inset, y + h / 2 + 110), fill=BODY, outline=EDGE,
+                        width=8)
+        elif kind == "slag":
+            pts = [(x + w / 2 + (w / 2 - 60) * (0.75 + 0.25 * rng.random()) * math.cos(a),
+                    y + h / 2 + (h / 2 - 60) * (0.75 + 0.25 * rng.random()) * math.sin(a))
+                   for a in (k * math.pi / 9 for k in range(18))]
+            d.polygon(pts, fill=DARK, outline=EDGE)
+            d.ellipse((x + w / 2 - 90, y + h / 2 - 70, x + w / 2 + 80, y + h / 2 + 90), fill=BODY)
+        elif kind == "pulpit":
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=BODY, outline=EDGE, width=14)
+            d.rectangle((x + 70, y + 70, x + w - 70, y + 250), fill=LIGHT, outline=EDGE, width=8)
+            d.rectangle((x + 120, y + 330, x + w - 120, y + 420), fill=DARK)
+            d.rectangle((x + w / 2 - 70, y + h - 200, x + w / 2 + 70, y + h - inset), fill=EDGE)
+        elif kind == "mould":
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), outline=EDGE, width=70)
+            for k in range(1, 4):
+                bx = x + k * w // 4
+                d.rectangle((bx - 22, y + inset, bx + 22, y + h - inset), fill=EDGE)
+            d.rectangle((x + inset, y + h / 2 - 22, x + w - inset, y + h / 2 + 22), fill=EDGE)
+        elif kind == "catwalk":
+            d.rectangle((x, y + 60, x + w, y + h - 60), fill=BODY)
+            for gx in range(x + 20, x + w, 40):
+                d.line((gx, y + 70, gx, y + h - 70), fill=EDGE, width=6)
+            for ry in (y + 30, y + h - 54):
+                d.rectangle((x, ry, x + w, ry + 24), fill=LIGHT)
+            for px in range(x + 40, x + w, 160):
+                for ry in (y + 22, y + h - 62):
+                    d.rectangle((px, ry, px + 40, ry + 40), fill=EDGE)
         elif ":" in kind:
             name, state = kind.split(":")
             im.alpha_composite(product(name, state, w, pid), (x, y))

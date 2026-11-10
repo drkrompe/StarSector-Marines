@@ -605,8 +605,7 @@ cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
 (`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
 `RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
 vast) and storage bays (18x14), furnished from the plant kit. The control room
-and the substation as plant halls, and the products of the themes still without
-one, are still owed.
+and the substation as plant halls are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its
@@ -615,12 +614,75 @@ kit itself (line runs, cradle grids, rack rows, dock doors); the theme's
 `RuinsDressing` names its product, a 3x3 unit in three states
 (`doodad.ruins-<product>-whole`, `-half`, `-wrecked`): whole only in the prize's
 cradle, half-built on some line modules, wrecked on others and in a few cradles.
-So far the cryo unit (cryoarithmetic engine), the vat unit (soil nanites,
-biofactory embryo), the forge core (nanoforges) and the drone frame (drone
-replicator); a theme without one keeps a crate in the prize's cradle and scrap
-in its wrecked cradles. The product's size is the art session's open pick
-`ruins-products-size`, building on 3x3. Placement is a coordinate
+Every theme but the depot, the armory and the hypershunt tap has one: cryo
+unit, vat unit, forge core, drone frame, core cabinet (AI core), field housing
+(fusion lamp, plasma dynamo), magnet segment, catalyst bed, spool drum, bore
+head and projector stack. A theme without one keeps a crate in the prize's
+cradle and scrap in its wrecked cradles. Products fill the cradle, 3x3 (owner
+pick `ruins-products-size` fill). Placement is a coordinate
 hash, so the layout never changes with the theme.
+
+**A forge works has a foundry** (owner, with pick `ruins-products-size` fill:
+"for things like forges we have a cool lava effect, we could make an actual
+forge area with crucibles that would be fun for the player to explore"; pick
+`ruins-forge-area` open, building on a). A nanoforge plant cast its forge cores
+before its lines finished them, so the forge theme's chain gains a stage after
+intake: the **foundry**, where crucibles still hold melt. It takes the slot of
+the outer band's first line hall, so the hall's footprint is the one every
+theme gets, and only what fills it changes with the theme.
+
+- **Crucibles** (3x3, heavy cover) stand on a raised bank along one wall, the
+  melt still lit in them; one may lie tipped and wrecked.
+- **Pour channels** run from each crucible's lip to the **casting beds**, open
+  pools of melt where the cores were cast. Both are molten ground: lava voids
+  in a new engineered style, a cast-steel lip over molten rock, drawn by the
+  molten void's renderer. A void blocks movement, never sight, and gives no
+  cover (`voids.md`, Battle), so the melt is a hazard to cross, not to hide
+  behind, and it never changes in a battle.
+- **Crossings** are grate catwalks over a channel, two cells wide, staggered
+  from channel to channel so no single lane looks down every crossing. Each
+  crossing's ends have cover beside them: slag heaps, a fallen ladle, a
+  cooling rack of half-cast cores.
+- **Sight lines** run long over the melt: a channel is a lane of fire nobody
+  stands in. The lanes between channels are where the cover is.
+- The hall still holds the delve's laws: every crossing is checked by
+  `DelveCheck`, and blocking any single crossing still leaves the hall one
+  floor.
+
+| Option | Shape |
+| --- | --- |
+| a (recommended) | One foundry hall (34x22, 40x24 at vast): a crucible bank on the north wall, three pour channels south to three casting beds, staggered crossings, cover in the lanes |
+| b | A run of three halls joined by doors: melt shop (crucibles), pour hall (one channel winding across it, three crossings), casting hall (four small beds) |
+| c | One melt trunk down the plant's spine: crucibles at its head, casting beds off it in the side halls, the spine's walkway beside it and bridges at its junctions |
+
+The crucible art and the engineered lip are the art session's, to the piece
+list in the shared note `ruins-forge-area.md`. Picture cards:
+`createSnapshots -Psnapshot=ruins-forge-picks`.
+
+**Themed halls are environments** (owner: "for things like ice etc we have a
+lot of environmental tools that allow us to make much more compelling
+environments than a concrete block"; pick `ruins-themed-environments` open,
+building on a). A themed plant's halls are its ground, not a concrete room with
+themed props in it: a cryo plant is iced over, rime banked on its walls; a
+nanite plant is earth, growth and standing water; a lamp works is scorched,
+with coolant pooled at its junctions. The ground is the game's own climate
+tools on the hall's cells (surface skins, shallows, the lava drop, floor
+patches, wall banks in the way storm drifts bank), laid by coordinate noise so
+the layout never changes with the theme, densest at its source and thinning to
+bare slab at the hall's mouths. Its rules are those of the tools: a skin is
+look only, shallows are a wade, melt is a drop.
+
+| Option | Reach |
+| --- | --- |
+| a (recommended) | Every themed hall is its ground, the secure store most of all |
+| b | The theme deepens with the delve: bare at the entrances, full in the secure store |
+| c | As a, and it spills out of the plant's entrances into the dead town |
+
+What the tools lack indoors is the work: soft edges between skins (outdoor
+ground feathers; a hall floor ends in hard cell steps), ice, rime, biofilm and
+coolant skins, static glow lights and vent emitters. The plan by theme is the
+shared note `ruins-themed-environments.md`. Picture options:
+`createSnapshots -Psnapshot=ruins-environment-picks`.
 
 **Part of the dead town is a port** (owner, with pick `ruins-vault-facility`:
 "We might even devote part of the towns construction outside to be ruins for a
