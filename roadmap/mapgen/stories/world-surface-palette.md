@@ -79,6 +79,11 @@ correctly grows nothing.
 ash worlds all collapse into `ROCK`. Splitting them is a JSON block each plus a
 material family, once the art supports a visible difference.
 
+Types that share a palette are told apart by a surface signature rather than by
+more palettes (`mapgen-nouns.md`, surface signatures): cryovolcanic, bombarded,
+venus-like, unstable, cast-iron and metallic worlds each wear one. `toxic_cold`
+has none yet; it waits on the toxic palette.
+
 `mapgen-nouns.md` owns planet terrain and mineral-field behavior. Additional
 palettes must select appropriate permanent masses and destructible obstacles
 alongside ground materials, preserving their separate gameplay contracts.

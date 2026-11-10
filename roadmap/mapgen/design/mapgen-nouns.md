@@ -2244,6 +2244,33 @@ alike, and a baked cliff lip over sand, stone or snow is bare rather than
 turfed. All of it is arithmetic on the map's size and seed with no random draw,
 so a map with no basin is the map it was.
 
+**A surface signature tells apart the types that share a palette.** Thirty landable
+vanilla types fall into a handful of palettes, so a bombarded rock, a cast-iron one
+and a plain barren one used to be the same map. `SurfaceZoning.signatureFor` reads a
+`SurfaceSignature` from the type id beside the palette, never instead of it: the
+palette still says what the ground is made of, and the signature adds the one detail
+the type is known for. It rides on `TargetProfile.signature`, and the closing outdoor
+pass writes it on the topology for the renderer; a battle with no planet behind it
+has none. Cryovolcanic worlds breathe vapour from frost-rimmed vent mounds; bombarded
+worlds carry crater fields, open crescent rims as a barren world's stock hills are,
+smaller and many, with a bowl drawn inside and ejecta thrown round them, and rimless
+craters between; unstable worlds open fissures with quake rubble and cracked ground along
+their banks; venus-like worlds are graded amber under a slow haze; cast-iron and
+metallic worlds are graded darker and cooler, ground, hills and formations alike, with
+metal flecks glinting in the rock.
+
+**A signature is detail, never a rule.** Crater rims and fissures are terrain the stock
+hills' plan takes under the same fit and detour proof: a rim is raised rock, open by at
+least a third of the way round so it seals no island, and a fissure is the excavation
+contract (impassable, seen and shot across). Everything else is presentation: crater
+bowls and vent mounds are marks the renderer draws (`CellTopology.signatureMarks`),
+cracked fissure banks are the ground's cosmetic blast skin, ejecta and rubble are
+passable field stones with no cover, and grade, flecks, haze and vapour are drawn, never
+simulated (`SignatureRenderSystem`, look suite `planet-signature-look`). The haze
+and vapour draw over the props and under the fog and every unit, so they soften the
+ground and never hide a marine or what the fog says the player sees. Each signature
+reads its own random stream, so a world without one is the map it was.
+
 **A world the palette has no entry for is a world that looks like every other
 one.** `GroundKind.SNOW` was declared and then emitted by nothing: unmapped in
 `groundRender`, skipped outright by the renderer, refused relief by the

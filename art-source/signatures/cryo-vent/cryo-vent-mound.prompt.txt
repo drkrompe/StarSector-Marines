@@ -1,0 +1,7 @@
+A single cryovolcanic vent mound for a top-down tactical battle game, seen from directly overhead (orthographic, straight down, no perspective tilt).
+
+Subject: a low, roughly round mound of frozen ejecta about as wide as a small truck, centred in the frame. At its middle a dark, narrow vent throat (a ragged slot or small pit, dark blue-grey, not black) where cold vapour escapes. Around the throat, concentric crusts of pale blue-white frost and rime, thick hoarfrost feathers and refrozen slush splashed outward in uneven lobes, a few small cracked ice plates and dark frozen grit flecks. The rim fades outward into thin powdery frost so it can sit on a snowfield. Muted, grounded realism, soft overcast light from the upper left, subtle shading only; no glow, no vapour cloud (vapour is a separate animated layer).
+
+Colour: cold whites, pale ice blue, blue-grey grit; match the snow ground in reference 1 at the outer edge so the mound blends into it.
+
+Output: square canvas, the mound filling about 80% of it. True transparent background, including all space around the mound; the outer frost should fade to transparent with a soft irregular edge. No ground tile, no shadow slab, no border, no text, no other objects.
