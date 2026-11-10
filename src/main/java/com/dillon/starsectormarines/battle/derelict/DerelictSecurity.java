@@ -122,38 +122,38 @@ public final class DerelictSecurity {
     }
 
     /**
-     * The layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): where the route runs through a works
-     * hall, the zone nearest it along the route (never the vault's) keeps its node in the hall, on the route cell
-     * nearest the hall's middle, with its posts round that cell and its perimeter over the whole hall. Its service
-     * bay and repair drone stand by the node, so the hall is where the zone is kept. Unchanged with no works hall, or
-     * none the route crosses.
+     * The layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): on a site whose interior publishes a
+     * works stand ({@link RuinsDelve.Interior#worksStand}, by the mega forge's pour pulpit or at the end of a works
+     * hall's transfer aisle), the zone nearest it along the route (never the vault's) keeps its node there, its posts
+     * round the route cell nearest it and its perimeter over the hall that holds it. Its service bay and repair drone
+     * stand by the node, so the hall is where the zone is kept. Unchanged with no stand.
+     *
+     * @param hall the hall holding the stand, for the perimeter; null keeps the zone's own
      */
-    public static List<ZonePlan> anchorAt(List<ZonePlan> plans, int[] route, RuinsDelve.Area hall) {
-        if (hall == null || plans.size() < 2) return plans;
+    public static List<ZonePlan> anchorAt(List<ZonePlan> plans, int[] route, RuinsDelve.Cell stand,
+                                          RuinsDelve.Area hall) {
+        if (stand == null || plans.size() < 2) return plans;
         int cells = route.length / 2;
-        int stand = -1;
+        int near = 0;
         int best = Integer.MAX_VALUE;
         for (int i = 0; i < cells; i++) {
-            int x = route[i * 2], y = route[i * 2 + 1];
-            if (!hall.contains(x, y)) continue;
-            int d = Math.abs(x - hall.centreX()) + Math.abs(y - hall.centreY());
+            int d = Math.abs(route[i * 2] - stand.x()) + Math.abs(route[i * 2 + 1] - stand.y());
             if (d < best) {
                 best = d;
-                stand = i;
+                near = i;
             }
         }
-        if (stand < 0) return plans;
         int zone = 1;
         for (int z = 1; z < plans.size(); z++) {
-            if (Math.abs(indexOf(route, plans.get(z)) - stand) < Math.abs(indexOf(route, plans.get(zone)) - stand)) {
+            if (Math.abs(indexOf(route, plans.get(z)) - near) < Math.abs(indexOf(route, plans.get(zone)) - near)) {
                 zone = z;
             }
         }
         ZonePlan was = plans.get(zone);
-        int perimeter = Math.max(was.perimeterCells(), Math.max(hall.width(), hall.height()) / 2 + 2);
+        int perimeter = hall == null ? was.perimeterCells()
+                : Math.max(was.perimeterCells(), Math.max(hall.width(), hall.height()) / 2 + 2);
         List<ZonePlan> out = new ArrayList<>(plans);
-        out.set(zone, new ZonePlan(was.id(), route[stand * 2], route[stand * 2 + 1], perimeter,
-                postsAround(route, stand)));
+        out.set(zone, new ZonePlan(was.id(), stand.x(), stand.y(), perimeter, postsAround(route, near)));
         return out;
     }
 
@@ -164,11 +164,24 @@ public final class DerelictSecurity {
         return 0;
     }
 
-    /** The interior's works hall, or null where the site has none. */
+    /**
+     * The interior's works hall (a theme's works hall or a forge works' mega forge): the hall holding its works stand,
+     * which is published exactly when one is laid; null where the site has none.
+     */
     static RuinsDelve.Area worksHall(RuinsDelve delve) {
-        if (delve == null || delve.interior() == null) return null;
+        return hallAt(delve, worksStand(delve));
+    }
+
+    /** The interior's works stand, or null where the site has none. */
+    static RuinsDelve.Cell worksStand(RuinsDelve delve) {
+        return delve == null || delve.interior() == null ? null : delve.interior().worksStand();
+    }
+
+    /** The plant hall holding a cell, or null. */
+    static RuinsDelve.Area hallAt(RuinsDelve delve, RuinsDelve.Cell cell) {
+        if (cell == null || delve == null || delve.interior() == null) return null;
         for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
-            if (hall.stage() == RuinsDelve.PlantStage.WORKS) return hall.footprint();
+            if (hall.footprint().contains(cell.x(), cell.y())) return hall.footprint();
         }
         return null;
     }
@@ -236,7 +249,7 @@ public final class DerelictSecurity {
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
                                                    FlockLivery livery, int[] route, int sourceX, int sourceY) {
-        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksHall(delve));
+        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve), worksHall(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));
@@ -288,7 +301,13 @@ public final class DerelictSecurity {
         }
         List<int[]> egress = egressAlong(route);
         for (int[] post : hallPosts(delve, DerelictWalkerClass.hallFrames(grade))) {
-            int squad = spawn(sim, DerelictWalkerFrame.HALL, post[0], post[1]);
+            // A heavy may already hold the hall's middle: the frame stands at the nearest cell round it that it fits.
+            int[] at = MechSpawnPlacement.nearCell(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius, post[0],
+                    post[1], (x, y) -> true, (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y,
+                            DerelictWalkerFrame.HALL.chassis.radius, 0L)) != null ? post
+                    : beside(sim, DerelictWalkerFrame.HALL.chassis.radius, post[0], post[1]);
+            if (at == null) continue;
+            int squad = spawn(sim, DerelictWalkerFrame.HALL, at[0], at[1]);
             if (squad < 0) continue;
             sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
                     "derelict hall frame in its hall");
