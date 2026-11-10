@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -2222,10 +2222,40 @@ that reads pavement are unchanged, and it crosses a street only on the apron
 against the wall. It is the last skin laid (`StormDriftStage`, after
 `RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
 laid only on street with no surface of its own, so a drift laid earlier stripped
-the asphalt off the street beside a wall. A living world's storms pile up nothing. The other hazards are
-carried for adaptations still to come (storm banks, sealed habitats, hardened
-buildings); a bank round the town rarely has room on maps whose town fills the
-frame, and the rest need art the game does not have yet.
+the asphalt off the street beside a wall. A living world's storms pile up nothing. A storm bank round the town
+rarely has room on maps whose town fills the frame, so it is not built.
+
+**A settlement is built for the world it stands on: its habitat.** An irradiated
+world's town is not a garden world's open town on grey ground (owner). `Habitat`
+says how the town lives where it stands, and `HabitatZoning` decides it from the
+hazards, which are the campaign's own statement of what the air does: hard
+radiation **shields** a town, and air that kills or is not there **seals** it.
+Shielding answers both, so radiation wins; every other world, and every battle
+with no market behind it (`Climate.NONE`), builds the **open** town it always did.
+
+- **Shielded.** Every town building's shell is poured concrete (the installation
+  wall's brutalist look, a block of its own, so the town is never marked as a
+  fort's lot) under a flat slab roof.
+- **Sealed.** Masonry houses are rebuilt as white ceramic panel blocks; the olive
+  prefabs stay as they are.
+- **Both** mark a striped threshold on open ground outside every outside door, the
+  decontamination or airlock apron, and pave each park as a service court whose
+  edge holds oxygen spheres, the life support kept outside where a leak vents to
+  nothing, instead of benches (`ParkFiller`, on the park's own draws).
+
+A habitat is presentation only and never moves a wall, door, window or road: the
+town plan, walkability, sight and every rule are the open town's on the same seed,
+except that a court's spheres are real bodies with cover where a park's benches
+were. It is laid by `HabitatStage` once the open ground is settled; it leaves a
+fort lot's walls to their works, and never touches the dark installation concrete,
+which is a compound's perimeter that the Cordon's rules read by its surface. The
+look is `habitat-look`.
+
+Still to come, in this vocabulary: enclosed walkways linking a sealed town's
+blocks; frozen towns insulated and compact, volcanic towns raised and heat
+shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
+towns on piers. The toxic and irradiated palettes, once they exist, join the
+hazards in `HabitatZoning`, so a story map on such a world adapts without a market.
 
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's
