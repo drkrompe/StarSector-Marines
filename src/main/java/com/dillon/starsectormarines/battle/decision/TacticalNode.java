@@ -157,6 +157,13 @@ public final class TacticalNode {
      */
     private int compoundLeft, compoundTop, compoundRight, compoundBottom;
 
+    /**
+     * The name of the precinct whose packed room this node is (a Raid site's {@code works}, its {@code garrison}),
+     * or {@code null} for a node no precinct emitted. Set once by the precinct ward at map-generation time, same
+     * lifecycle as {@link #compoundLeft}; it is how a setup tells one place's rooms from another's.
+     */
+    private String place;
+
     private final List<Link> links = new ArrayList<>();
 
     public TacticalNode(Kind kind, int anchorX, int anchorY,
@@ -217,6 +224,12 @@ public final class TacticalNode {
         this.compoundRight = right;
         this.compoundBottom = bottom;
     }
+
+    /** Names the precinct this node is a room of. Map generation only; see {@link #place}. */
+    public void setPlace(String place) { this.place = place; }
+
+    /** The precinct this node is a room of, or {@code null}. */
+    public String place() { return place; }
 
     public int compoundLeft()   { return compoundLeft; }
     public int compoundTop()    { return compoundTop; }

@@ -8,23 +8,27 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
- * Draws a derelict walker's guns on its body (`mechs-nouns.md`, mount): each fitted mount's weapon, from the company's
- * own weapon drawings in the walker's faction's casing, standing on a turret ring at its body hardpoint
- * ({@link MechBodyHardpoints}) and turned toward the walker's aim as far as its arc lets it. The hardpoints ride the
+ * Draws a derelict walker's guns on its body (`mechs-nouns.md`, mount): each fitted mount's weapon, from the weapon's own
+ * drawing, under a turret head at its body hardpoint ({@link MechBodyHardpoints}), turned together toward the walker's
+ * aim as far as its arc lets it. The head is the derelict's own housing, one for a gun port and one for a rack, and the
+ * weapon beneath it is whatever the mount holds, so any weapon the game has sits on a derelict mount with no art made for
+ * that pairing (owner: turret heads over the weapons rather than custom art per weapon). The head covers the weapon's
+ * breech and the barrel or tube box shows past it. The hardpoints ride the
  * drawn body ({@link DerelictLegRig#bodyX()}, its heading and its rise), never the legs, so a gun stays where it is
  * bolted while the body sways. Its flash is drawn at the tip of its barrel, where the battle fires its round from
  * ({@code MechHardpointGeometry.muzzle}).
  */
 final class DerelictWalkerGuns {
 
-    /** A mount's turret ring across, as a share of its gun scale's hull width. */
-    static final float RING_SHARE = 0.30f;
-    /** The ring a shade darker than painted, so it reads as the hull's own collar rather than a lid. */
-    static final float RING_SHADE = 0.72f;
-    /**
-     * The guns weathered toward the sentinel's plate (its torso drawing averages a rust-brown, 106/92/71): the company's
-     * drawings in a derelict casing until derelict-built gun art exists. UNTUNED.
-     */
+    /** The gun port's head, and the rack's cradle, each drawn centred on its mount's pivot. */
+    static final String PORT_HEAD = "graphics/battle/derelict-walker/turret-head-port.png";
+    static final String RACK_HEAD = "graphics/battle/derelict-walker/turret-head-rack.png";
+    /** A head's width as a share of its mount's gun-scale hull width. UNTUNED. */
+    static final float PORT_HEAD_SHARE = 0.24f;
+    static final float RACK_HEAD_SHARE = 0.36f;
+    /** How far behind the pivot the rack's cradle sits, as a share of the rack's drawn length, so its arms flank the box. */
+    static final float RACK_HEAD_BACK = 0.12f;
+    /** The weapons beneath weathered toward the sentinel's plate (its torso drawing averages 106/92/71). UNTUNED. */
     static final float[] WEATHER = {0.90f, 0.84f, 0.72f};
     /** How wide a chaingun is drawn: the six-barrel drawing at half width, as on a centreline mount. */
     static final float CHAINGUN_WIDTH = 0.5f;
@@ -34,13 +38,15 @@ final class DerelictWalkerGuns {
 
     /**
      * @param guns        the weapon layers in the walker's faction's casing
-     * @param ring        the turret ring drawn under each gun, or null for none
+     * @param portHead    the gun ports' head, or null to draw the weapons bare
+     * @param rackHead    the racks' cradle, or null to draw the racks bare
      * @param appearance  each mount's drawing selector by {@link MechMountSlot} ordinal, 0 for an empty mount
      * @param aimDegrees  the walker's fire-control bearing
      * @param armKick     an arm gun's kick this frame, hull widths
      * @param podKick     a rack's kick this frame, hull widths
      */
-    static void emit(DrawList out, LayeredMechAssets guns, LayeredSpriteCache ring, DerelictLegRig rig,
+    static void emit(DrawList out, LayeredMechAssets guns, LayeredSpriteCache portHead, LayeredSpriteCache rackHead,
+                     DerelictLegRig rig,
                      BattleCamera cam, MechVariant variant, float renderScale, int[] appearance, float aimDegrees,
                      float armKick, float podKick, int flags, float alpha) {
         if (guns == null || !MechBodyHardpoints.has(variant)) return;
@@ -59,12 +65,6 @@ final class DerelictWalkerGuns {
             float[] pivot = MechBodyHardpoints.pivot(rig.bodyX(), rig.bodyY(), rig.bodyFacing(), hullWidth, point);
             float facing = point.gunFacing(rig.bodyFacing(), aimDegrees);
             float gunHull = hullWidth * point.gunScale();
-            if (ring != null && ring.sprite != null) {
-                float across = RING_SHARE * gunHull * ppc;
-                out.addSprite(RenderLayer.UNITS, ring.sprite, cam.cellToScreenX(pivot[0]),
-                        cam.cellToScreenY(pivot[1]), across, across, facing, RING_SHADE * WEATHER[0],
-                        RING_SHADE * WEATHER[1], RING_SHADE * WEATHER[2], alpha);
-            }
             float kick = (slot.isArm() ? (LayeredMechComposer.armKicks(gun) ? armKick : 0f) : podKick) * gunHull;
             float centre = (0.5f - MechBodyHardpoints.SEAT) * length - kick;
             float[] at = along(pivot, facing, centre);
@@ -74,6 +74,13 @@ final class DerelictWalkerGuns {
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
                     lengthPx * sprite.pxWidth / Math.max(1f, sprite.pxHeight) * widthScale, lengthPx, facing,
                     WEATHER[0], WEATHER[1], WEATHER[2], alpha);
+            LayeredSpriteCache head = slot.isArm() ? portHead : rackHead;
+            if (head != null && head.sprite != null) {
+                float wide = (slot.isArm() ? PORT_HEAD_SHARE : RACK_HEAD_SHARE) * gunHull * ppc;
+                float[] seat = slot.isArm() ? pivot : along(pivot, facing, -RACK_HEAD_BACK * length);
+                out.addSprite(RenderLayer.UNITS, head.sprite, cam.cellToScreenX(seat[0]), cam.cellToScreenY(seat[1]),
+                        wide, wide * head.pxHeight / Math.max(1f, head.pxWidth), facing, 1f, 1f, 1f, alpha);
+            }
             if (flashing(slot, gun, flags) && guns.muzzleFlash != null && guns.muzzleFlash.sprite != null) {
                 float[] tip = along(pivot, facing, (1f - MechBodyHardpoints.SEAT) * length - kick);
                 float scale = gunHull * ppc / 208f;

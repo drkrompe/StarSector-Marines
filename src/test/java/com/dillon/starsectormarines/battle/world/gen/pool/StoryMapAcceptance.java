@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
 import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
@@ -144,6 +147,18 @@ public final class StoryMapAcceptance {
             if (!works.works() || works.sites().size() != ground.machines()) {
                 throw new AssertionError("works holds " + works.sites().size() + " of " + ground.machines() + " machines");
             }
+            // The works' own guard (raid-works-guard a): a squad posted at each of its guard posts from the start.
+            int posts = 0;
+            for (TacticalNode post : sim.getTacticalMap().ofKind(TacticalNode.Kind.GUARDPOST)) {
+                if (!RaidSiteTemplate.WORKS.equals(post.place())) continue;
+                posts++;
+                boolean held = false;
+                for (Squad squad : sim.getSquads()) held |= squad.assignedNode == post && squad.originalSize > 0;
+                if (!held) throw new AssertionError("the works' guard post at " + post.anchorX + "," + post.anchorY
+                        + " has nobody posted");
+            }
+            if (map != StoryMap.RAID && posts == 0) throw new AssertionError("the works has no guard post");
+            detail.append(String.format(Locale.ROOT, "; %d works guard posts held", posts));
             detail.append(String.format(Locale.ROOT, "; works %d machines, egress %d,%d; map %dx%d",
                     works.sites().size(), works.egressCellX(), works.egressCellY(),
                     sim.getTopology().getWidth(), sim.getTopology().getHeight()));
