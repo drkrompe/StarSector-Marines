@@ -56,6 +56,7 @@
     {"item": "loadout-card:sheet:armor:freeport-assault", "station": "none"},
     {"item": "loadout-card:sheet:armor:salvage-assisted", "station": "none"},
     {"item": "mech-pattern:chassis:hound", "station": "start"},
+    {"item": "mech-pattern:chassis:crawler", "station": "none"},
     {"item": "mech-pattern:chassis:warden", "station": "junction"},
     {"item": "mech-pattern:chassis:bulwark", "station": "blind-watch"},
     {"item": "mech-pattern:weapon:component.mech-light-mg", "station": "start"},

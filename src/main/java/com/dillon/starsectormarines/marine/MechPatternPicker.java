@@ -35,6 +35,8 @@ public final class MechPatternPicker {
     private static final Map<String, Set<MechPattern>> FACTION_ISSUE = Map.of(
             FactionMechLoadouts.TRI_TACHYON_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
+                    MechPattern.of(MechVariant.CRAWLER),
+                    MechPattern.of(MechWeaponComponent.PL_1),
                     MechPattern.of(MechWeaponComponent.PL_2_AP),
                     MechPattern.of(MechWeaponComponent.LL_3),
                     MechPattern.of(MechWeaponComponent.SRM_15),

@@ -14,7 +14,7 @@ final class DerelictWalkerComposer {
 
     /** The torso's width, cells, at render scale one. */
     static final float TORSO_CELLS = 0.85f;
-    /** How far a part's root joint centre sits in from its sprite's end, cells. */
+    /** How far a part's root joint centre sits in from its sprite's end, cells, on the walker (scaled by build). */
     static final float JOINT_INSET_CELLS = 0.16f;
     /** How much larger a part draws per cell of height. */
     static final float HEIGHT_GROWTH = 0.10f;
@@ -40,22 +40,33 @@ final class DerelictWalkerComposer {
      */
     static void emit(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
                      BattleCamera cam, float renderScale, float alpha) {
+        emitBody(out, art, rig, cam, TORSO_CELLS * renderScale, alpha);
+    }
+
+    /**
+     * Any four-legged machine on this rig (the walker, Tri-Tachyon's crawler): its legs sized by the rig's
+     * {@link DerelictLegRig.Build}, its torso drawn {@code torsoCells} wide at rest.
+     */
+    static void emitBody(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
+                         BattleCamera cam, float torsoCells, float alpha) {
+        DerelictLegRig.Build build = rig.build();
+        float inset = JOINT_INSET_CELLS * build.scale();
         float[] knee = new float[3];
         for (int pass = 0; pass < 2; pass++) {
             for (int i = 0; i < rig.legs(); i++) {
                 boolean lifted = rig.lift(i) > 0f;
                 if (lifted != (pass == 1)) continue;
-                float footHeight = (rig.onWall(i) ? DerelictLegPose.WALL_FOOT_HEIGHT_CELLS : 0f)
-                        + DerelictLegPose.STEP_LIFT_CELLS * rig.lift(i);
+                float footHeight = (rig.onWall(i) ? build.wallFootCells() : 0f) + build.stepLiftCells() * rig.lift(i);
                 float hx = rig.hipX(i);
                 float hy = rig.hipY(i);
-                float hipZ = DerelictLegPose.HIP_HEIGHT_CELLS + rig.bodyHeight();
-                DerelictLegPose.knee(hx, hy, hipZ, rig.footX(i), rig.footY(i), footHeight, knee);
+                float hipZ = build.hipHeightCells() + rig.bodyHeight();
+                DerelictLegPose.knee(hx, hy, hipZ, rig.footX(i), rig.footY(i), footHeight, build.thighCells(),
+                        build.shinCells(), knee);
                 // A lost leg is scorched below its broken knee.
                 float shade = rig.lost(i) ? LOST_SHADE : 1f;
                 bone(out, art.shin, cam, knee[0], knee[1], rig.footX(i), rig.footY(i), (knee[2] + footHeight) / 2f,
-                        shade, alpha);
-                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, 1f, alpha);
+                        inset, shade, alpha);
+                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, inset, 1f, alpha);
                 float joint = art.joint.pxWidth / DerelictWalkerAssets.PX_PER_CELL * JOINT_SCALE * cam.cellPxSize()
                         * (1f + HEIGHT_GROWTH * knee[2]);
                 float legAngle = (float) Math.toDegrees(Math.atan2(-(rig.footX(i) - hx), rig.footY(i) - hy));
@@ -70,7 +81,7 @@ final class DerelictWalkerComposer {
         }
         float ppc = cam.cellPxSize();
         // The body nearer the camera as it rises, further as it sinks onto its legs.
-        float torsoW = TORSO_CELLS * renderScale * ppc * (1f + TORSO_HEIGHT_GROWTH * rig.bodyHeight());
+        float torsoW = torsoCells * ppc * (1f + TORSO_HEIGHT_GROWTH * rig.bodyHeight());
         float torsoH = torsoW * art.torso.pxHeight / Math.max(1f, art.torso.pxWidth);
         out.add(art.torso, cam.cellToScreenX(rig.bodyX()), cam.cellToScreenY(rig.bodyY()), torsoW, torsoH,
                 rig.facing(), 1f, 1f, 1f, alpha);
@@ -106,7 +117,8 @@ final class DerelictWalkerComposer {
      * root, its length the seen distance (a part reaching up or down looks shorter from above), its width as authored.
      */
     private static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
-                             float x0, float y0, float x1, float y1, float height, float shade, float alpha) {
+                             float x0, float y0, float x1, float y1, float height, float inset, float shade,
+                             float alpha) {
         float dx = x1 - x0;
         float dy = y1 - y0;
         float seen = (float) Math.sqrt(dx * dx + dy * dy);
@@ -114,9 +126,9 @@ final class DerelictWalkerComposer {
         float ux = dx / seen;
         float uy = dy / seen;
         float grow = 1f + HEIGHT_GROWTH * height;
-        float length = seen + JOINT_INSET_CELLS;
-        float cx = x0 + ux * (seen - JOINT_INSET_CELLS) / 2f;
-        float cy = y0 + uy * (seen - JOINT_INSET_CELLS) / 2f;
+        float length = seen + inset;
+        float cx = x0 + ux * (seen - inset) / 2f;
+        float cy = y0 + uy * (seen - inset) / 2f;
         float ppc = cam.cellPxSize();
         float width = part.pxWidth / DerelictWalkerAssets.PX_PER_CELL * ppc * grow;
         // Sprites are authored head-up: turned so the part's top lies along root to far end (0 = +y, counter-clockwise).
