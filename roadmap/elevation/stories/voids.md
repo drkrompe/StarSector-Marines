@@ -1010,7 +1010,7 @@ Laws):
      processing facility with burners to refine the ore", the facility "a
      series of buildings that again plausibly make sense"; real buildings,
      dressed). The head works is the chain the ore passes through
-     (`RaidWorksPrograms.mine`): receiving (in the rear, the pit's side, so
+     (`MiningWorks`): receiving (in the rear, the pit's side, so
      the pit's line runs straight in), stockpile, one mill line per
      machine (the raid's machines), smelter, loadout, each a real building the
      battle enters. The ore line links them in that order, each link from the
