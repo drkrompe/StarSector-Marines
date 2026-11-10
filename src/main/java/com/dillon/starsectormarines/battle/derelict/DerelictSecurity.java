@@ -459,12 +459,12 @@ public final class DerelictSecurity {
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
-        float radius = DerelictWalkerFrame.CHASSIS.radius;
+        float radius = frame.chassis.radius;
         MechSpawnPlacement.Point at = MechSpawnPlacement.nearCell(sim.getGrid(), radius, postX, postY,
                 (x, y) -> true, (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L));
         if (at == null) return -1;
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        String name = "MG-40 " + frame.name().toLowerCase() + " frame";
+        String name = frame.designation();
         long id = sim.spawn(frame.applyTo(new EntitySpec(name, Faction.DEFENDER, UnitType.HEAVY_MECH,
                 at.cellX(), at.cellY())).atPosition(at.x(), at.y()).squad(squad));
         sim.world().attachMechLoadout(id, frame.createLoadout());
