@@ -56,11 +56,17 @@ public record NaturalRise(Style style, List<Step> steps, float eyeMeters, String
      * lip of a wall.
      */
     public static List<Step> bank(float topMeters) {
+        return bank(topMeters, BANK_CELLS, BANK_TERRACES);
+    }
+
+    /** A bank of {@code terraces} even terraces, its top standing {@code cells} back from the foot. */
+    public static List<Step> bank(float topMeters, float cells, int terraces) {
         if (!(topMeters > 0f)) throw new IllegalArgumentException("a bank's top stands above its foot");
+        if (terraces < 2 || !(cells > BANK_FIRST_CELLS)) throw new IllegalArgumentException("a bank climbs in terraces");
         List<Step> steps = new ArrayList<>();
-        for (int k = 1; k <= BANK_TERRACES; k++) {
-            float t = (k - 1) / (float) (BANK_TERRACES - 1);
-            steps.add(new Step(topMeters * k / BANK_TERRACES, BANK_FIRST_CELLS + (BANK_CELLS - BANK_FIRST_CELLS) * t));
+        for (int k = 1; k <= terraces; k++) {
+            float t = (k - 1) / (float) (terraces - 1);
+            steps.add(new Step(topMeters * k / terraces, BANK_FIRST_CELLS + (cells - BANK_FIRST_CELLS) * t));
         }
         return steps;
     }

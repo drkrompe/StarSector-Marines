@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -47,6 +49,43 @@ class LayoutRoadsTest {
         for (int x = 1; x <= 9; x++) for (int y = 19; y <= 21; y++) owner[x][y] = 0;
         List<int[]> mouth = List.of(new int[]{9, 19}, new int[]{9, 20}, new int[]{9, 21});
         assertTrue(LayoutRoads.enter(claim, owner, null, PLACE, mouth, W, H).isEmpty(), "a second way in was cut");
+    }
+
+    /**
+     * Three settled places in a row along y 15: a road from the first to the last is laid on open country only, so
+     * across the middle place's ground it is missing unless it is laid through.
+     */
+    private static int[][] across(Road road) {
+        int w = 60, h = 30;
+        GrownTrunkPlan.Profile hamlet = GrownTrunkPlan.Profile.hamlet();
+        PrecinctPlan plan = new PrecinctPlan(List.of(Precinct.settlement("a", 6, 15, hamlet),
+                Precinct.settlement("b", 28, 15, hamlet), Precinct.settlement("c", 50, 15, hamlet)))
+                .withLayout(new MissionLayout(List.of(road)));
+        int[][] claim = new int[w][h], owner = new int[w][h];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                claim[x][y] = x >= 2 && x <= 10 ? 0 : x >= 20 && x <= 35 && y >= 4 && y <= 26 ? 1
+                        : x >= 45 && x <= 55 ? 2 : GrownTrunkPlan.UNOWNED;
+                // Each end place has a street along the road's line; the middle one's runs elsewhere.
+                boolean street = (claim[x][y] == 0 || claim[x][y] == 2) && y >= 14 && y <= 16
+                        || claim[x][y] == 1 && y >= 5 && y <= 7;
+                owner[x][y] = street ? claim[x][y] : GrownTrunkPlan.UNOWNED;
+            }
+        }
+        LayoutRoads.carve(plan, claim, owner, null, w, h);
+        return owner;
+    }
+
+    @Test
+    void aRoadLaidThroughShowsAcrossASettledPlace() {
+        Road road = new Road("line", Endpoint.beside("a", Side.EAST, 0, 0), Endpoint.beside("c", Side.WEST, 0, 0), 3,
+                false);
+        int[][] open = across(road), through = across(road.laidThrough());
+        assertTrue(open[28][15] == GrownTrunkPlan.UNOWNED, "a road on open country crossed the place");
+        for (int x = 11; x <= 44; x++) {
+            assertTrue(through[x][15] != GrownTrunkPlan.UNOWNED, "the road laid through stops at " + x);
+        }
+        assertTrue(through[28][15] == 1, "across the place the road is not its street");
     }
 
     private static boolean joined(int[][] owner, int ax, int ay, int bx, int by) {
