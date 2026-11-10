@@ -466,3 +466,4 @@ com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorPicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsEnvironmentPicksSuite
 com.dillon.starsectormarines.ops.OwnedMapLookSuite
 com.dillon.starsectormarines.battle.world.gen.pool.StoryMapCandidatesSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMegaForgePicksSuite
