@@ -654,9 +654,10 @@ points.
 the company commits. The prize's **theme** shows four ways:
 
 - **The survey's tell** (`RuinsVaultPrizes.tellKeys`): the briefing's last
-  survey line, for example "Cold racks humming below; something keeps a hall
-  lit and its repair drones at work.", then for a core its hinted tier ("The
-  hall draws a steady load: likely a beta core."). The theme's line is spoken
+  survey line names the plant the ruin was and its one surviving unit, for
+  example "The ruin was a datacentre plant: cold racks humming in its halls,
+  one still lit and its repair drones at work.", then for a core its hinted
+  tier ("The hall draws a steady load: likely a beta core."). The theme's line is spoken
   through the occupant's own instruments (`RuinsVaultPrizes.voiceKey`): an
   empty site's deep scan, the scavengers' open channel, the Rav's lifesigns,
   security traffic, or Tri-Tachyon contingency codes. The core line stays
@@ -773,7 +774,8 @@ stand on the approach outside, wired to the power hall:
 
 In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
 emplacement, standing 9 cells out from an entrance's apron toward the landing,
-on open ground outside the aprons and the interior. They hang on the first
+on open ground outside the aprons and the interior, in the old colony's own
+rusted steel (`EmplacementStyle.DERELICT`). They hang on the first
 junction's way on, beside the first layer's gate. Throwing that junction to its
 store cuts the guns, but it also cuts the gate's power. The count comes from
 the prize. They stand on the hazard side (`Faction.HAZARD`), hostile to every
