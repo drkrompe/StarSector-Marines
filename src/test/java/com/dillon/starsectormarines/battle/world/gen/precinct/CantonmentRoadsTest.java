@@ -101,13 +101,9 @@ class CantonmentRoadsTest {
 
     @Test
     void aBigMarketOwesMoreGates() {
-        CantonmentRoads.GateRule size = CantonmentRoads.GateRule.SIZE;
-        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 1, 1), size));
-        assertEquals(3, CantonmentRoads.gates(FortressProgram.cantonment(5, 1, 1), size));
-        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 1, 1), size));
-        CantonmentRoads.GateRule grade = CantonmentRoads.GateRule.GRADE;
-        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 0, 1), grade));
-        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 2, 1), grade));
+        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 1, 1)));
+        assertEquals(3, CantonmentRoads.gates(FortressProgram.cantonment(5, 1, 1)));
+        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 1, 1)));
     }
 
     @Test

@@ -464,7 +464,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setGroundKind(x, y, GroundKind.DIRT);
             c.topology.setSurface(x, y, timber);
         }
-        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height));
         if (lavaFlow.equals("flows")) {
             paintFlows(c, LavaFlows.offChannel(w, c.height, cut.drop(),
                     i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),

@@ -40,51 +40,16 @@ public final class CantonmentRoads {
     static final int LANE = 3;
 
     /**
-     * Temporary A/B lever for the gate-count cards (picks {@code raid-gates}): {@code SIZE} (default, recommended),
-     * {@code GRADE} or {@code TWO}. Removed with the losing rules once the owner picks.
+     * How many gates a cantonment of this program owes, by its market's size: two, three from size five, four from size
+     * seven. A garrison's barrack blocks are its market's size less one ({@link FortressProgram#cantonment}), so they
+     * stand for it here. UNTUNED.
      */
-    public static final String GATES_PROPERTY = "battle.garrison.gates";
-
-    /** How a cantonment's gate count is decided; the picks {@code raid-gates} choose one. */
-    public enum GateRule {
-        /** By market size: two, three from size five, four from size seven. */
-        SIZE,
-        /** By security grade: an open base four, a guarded three, a fortified two. */
-        GRADE,
-        /** Always two: the main gate and one more. */
-        TWO
-    }
-
-    /** The rule the property names, {@link GateRule#SIZE} when it names none. */
-    public static GateRule gateRule() {
-        String named = System.getProperty(GATES_PROPERTY, "");
-        for (GateRule rule : GateRule.values()) {
-            if (rule.name().equalsIgnoreCase(named.trim())) return rule;
-        }
-        return GateRule.SIZE;
-    }
-
-    /** How many gates a cantonment of this program owes under the chosen {@link #gateRule}. */
     public static int gates(FortressProgram program) {
-        return gates(program, gateRule());
-    }
-
-    /**
-     * How many gates a cantonment of this program owes. A garrison's barrack blocks are its market's size less one and
-     * its magazines its security grade plus one ({@link FortressProgram#cantonment}), so they stand for both here.
-     * UNTUNED.
-     */
-    static int gates(FortressProgram program, GateRule rule) {
-        int barracks = 0, magazines = 0;
+        int barracks = 0;
         for (FortressBuilding b : program.buildings()) {
             if (b.purpose() == RoomPurpose.BARRACKS) barracks += b.count();
-            if (b.purpose() == RoomPurpose.ARMORY) magazines += b.count();
         }
-        return switch (rule) {
-            case SIZE -> barracks >= 6 ? 4 : barracks >= 4 ? 3 : 2;
-            case GRADE -> Math.max(2, 5 - magazines);
-            case TWO -> 2;
-        };
+        return barracks >= 6 ? 4 : barracks >= 4 ? 3 : 2;
     }
 
     /**

@@ -34,10 +34,25 @@ public record RuinsDressing(List<String> vault, List<String> chambers, List<Stri
         this(vault, chambers, floor, null);
     }
 
-    /** The same dressing whose product, the prize standing in its cradle, is {@code product}. */
+    /**
+     * The same dressing whose product is {@code product}: the base id of the theme's unit on the {@code ruins-themes}
+     * sheet, for example {@code doodad.ruins-cryo-unit}, whose states are {@code -whole}, {@code -half} and
+     * {@code -wrecked}.
+     */
     public RuinsDressing withProduct(String product) {
         return new RuinsDressing(vault, chambers, floor, product);
     }
+
+    /** The product whole, as the prize stands in its cradle; null without a product. */
+    public String whole() { return state("-whole"); }
+
+    /** The product half-built, as it was left on the line; null without a product. */
+    public String half() { return state("-half"); }
+
+    /** The product wrecked, on the line or in a cradle; null without a product. */
+    public String wrecked() { return state("-wrecked"); }
+
+    private String state(String suffix) { return product == null ? null : product + suffix; }
 
     /** Props only, bare floors. */
     public RuinsDressing(List<String> vault, List<String> chambers) {
