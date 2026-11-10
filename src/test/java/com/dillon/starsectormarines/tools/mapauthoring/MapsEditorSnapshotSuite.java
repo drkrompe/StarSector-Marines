@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.mapauthoring;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
 import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
@@ -97,12 +98,12 @@ public final class MapsEditorSnapshotSuite implements SnapshotSuite {
             on(() -> page[0].save());
             await(page[0]);
             System.out.println("[maps-editor] save: " + page[0].status());
-            StoryMapPool.Entry back = Files.exists(pool) ? StoryMapPool.read(page[0].opened().map(), new JSONObject(Files.readString(pool)))
-                    .entries(StoryMapsSession.HOME).get(page[0].opened().index()) : null;
+            StoryMapPool.Entry back = Files.exists(pool)
+                    ? StoryMapPool.read(page[0].opened().map(), new JSONObject(Files.readString(pool))).owned() : null;
             if (back == null || !back.equals(page[0].entry())) {
                 throw new IllegalStateException("The saved pool did not read back as the page holds it: " + page[0].status());
             }
-            for (MapWorld world : new MapWorld[]{MapWorld.FROZEN, MapWorld.TOXIC}) {
+            for (SurfacePalette world : new SurfacePalette[]{SurfacePalette.FROZEN, SurfacePalette.TOXIC}) {
                 on(() -> page[0].selectWorld(world));
                 await(page[0]);
                 out.add(new SnapshotArtifact("maps-editor-" + world.name().toLowerCase() + ".png", capture(page[0])));
@@ -112,7 +113,7 @@ public final class MapsEditorSnapshotSuite implements SnapshotSuite {
             on(() -> page[0].close());
             page[0] = null;
             try (StoryMapsSession session = new StoryMapsSession(c.projectRoot())) {
-                out.add(new SnapshotArtifact("maps-all-worlds.png", session.contactSheet(opened.map(), entry)));
+                out.add(new SnapshotArtifact("maps-all-worlds.png", session.contactSheet(opened, entry)));
             }
         } finally {
             if (page[0] != null) on(() -> page[0].close());

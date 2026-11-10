@@ -229,9 +229,10 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
 Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
 or headless through `map_render` and `map_save`: pins, ruin strokes and
-placements on the home entry's whole-map picture, the mission's acceptance
-(`StoryMapAcceptance`, the same check `storyMapPools` runs) before every save,
-and only that entry's text rewritten in the pool file.
+placements on the owned entry's whole-map picture, any world shown through the
+planet skin, the mission's acceptance on home (`StoryMapAcceptance`, the same
+check `storyMapPools` runs) before every save, and the file written back in its
+own form.
 
 ## Evidence plays the pool
 
