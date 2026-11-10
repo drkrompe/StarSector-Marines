@@ -8,7 +8,8 @@ import java.util.List;
 
 /**
  * The works programs of the Raid sites after heavy industry's ({@code raid-mission.md}, Site templates): what each
- * industry's compound holds. Heavy industry's is {@link FortressProgram#works}. Each is {@link FortressProgram#detached()
+ * industry's compound holds. Heavy industry's is {@link FortressProgram#works}; light industry's is
+ * {@link FabricationWorks}. Each is {@link FortressProgram#detached()
  * detached}, so every machine stands as a building of its own, and its machines are its
  * {@link RoomPurpose#PARTS_CAGE parts cages}, which is how the raid finds them.
  */
@@ -50,12 +51,6 @@ public final class RaidWorksPrograms {
     /** Ground a refinery keeps per still: pipe runs and the fire gaps between columns. UNTUNED. */
     static final int REFINERY_YARD_PER_STILL = 320;
 
-    /** A light-industry shop: a long, low production floor. */
-    private static final RoomShape SHOP = RoomShape.rectangle(11, 7);
-    private static final RoomShape LOADING_SHED = RoomShape.rectangle(14, 6);
-    /** Yard a light-industry works keeps per shop: lanes and loading, closer set than a heavy works. UNTUNED. */
-    static final int SHOPS_YARD_PER_SHOP = 150;
-
     /** A farm plant's silo: a bin on its pad, square for the same reason as a still. */
     private static final RoomShape SILO = RoomShape.rectangle(7, 7);
     private static final RoomShape PACKING_SHED = RoomShape.rectangle(16, 7);
@@ -90,18 +85,6 @@ public final class RaidWorksPrograms {
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 2)),
                 0, stills * REFINERY_YARD_PER_STILL, true);
-    }
-
-    /** Light industry: a shop floor per machine, the loading shed they ship from, a stores and the posts. */
-    public static FortressProgram shops(int shops) {
-        if (shops < 1) throw new IllegalArgumentException("light industry has at least one shop");
-        return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, SHOP, Ward.YARD, shops),
-                new FortressBuilding(RoomPurpose.LOADING_BAY, LOADING_SHED, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 2)),
-                0, shops * SHOPS_YARD_PER_SHOP, true);
     }
 
     /** A farm plant: a silo per machine, the packing shed the harvest goes through, a stores and one post. */

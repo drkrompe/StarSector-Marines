@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FabricationWorks;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
@@ -48,7 +49,7 @@ import java.util.function.UnaryOperator;
  *
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
  * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
- * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
+ * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's a fabrication works laid out as its process (receiving, shops, assembly, finishing, dispatch); a farm's
  * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
  * among depots, with the garrison beside it as on every site.
  *
@@ -167,6 +168,12 @@ public final class RaidSiteTemplate {
     /** Share of the map a mine's head works may claim: its processing halls stand apart on wide ore yards. UNTUNED. */
     static final float MINE_FIT = 0.08f;
 
+    /**
+     * Share of the map light industry's fabrication works may claim: a hall for each step of its process, with the
+     * staging and lanes between them. UNTUNED.
+     */
+    static final float FABRICATION_FIT = 0.08f;
+
     private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
     private static final Set<String> MINING = Set.of("mining", "techmining");
     private static final Set<String> REFINING = Set.of("refining", "fuelprod");
@@ -181,10 +188,20 @@ public final class RaidSiteTemplate {
     private final GrownTrunkPlan.Profile industryGrowth;
     private final PrecinctCharacter industryCharacter;
     private final boolean pit;
+    /**
+     * The works' yard dressing, from the number of sites feeding it ({@link #feedersFor}): a piece laid once the
+     * works' halls stand that shows the process the works runs, or {@code null} for a works with none yet.
+     */
+    private final IntFunction<Piece> yard;
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth) {
         this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY, false);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, IntFunction<Piece> yard) {
+        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY, false, yard);
     }
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
@@ -195,12 +212,19 @@ public final class RaidSiteTemplate {
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
                              boolean pit) {
+        this(key, works, worksFit, industryGrowth, industryCharacter, pit, null);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
+                             boolean pit, IntFunction<Piece> yard) {
         this.key = key;
         this.works = works;
         this.worksFit = worksFit;
         this.industryGrowth = industryGrowth;
         this.industryCharacter = industryCharacter;
         this.pit = pit;
+        this.yard = yard;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
@@ -218,7 +242,8 @@ public final class RaidSiteTemplate {
             return new RaidSiteTemplate("refining", RaidWorksPrograms::refinery, MINE_FIT, INDUSTRY_GROWTH);
         }
         if (LIGHT_INDUSTRY.contains(id)) {
-            return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
+            return new RaidSiteTemplate("light-industry", FabricationWorks::program, FABRICATION_FIT, INDUSTRY_GROWTH,
+                    FabricationYard::piece);
         }
         if (FARMING.contains(id)) {
             return new RaidSiteTemplate("farming", RaidWorksPrograms::farmPlant, WORKS_FIT, ORE_YARDS,
@@ -315,6 +340,7 @@ public final class RaidSiteTemplate {
             pieces.add(banked ? clearOfBank(pitSite, wind, width, height) : pitSite);
         }
         pieces.addAll(lines(mirrorX, mirrorY, pit));
+        if (yard != null) pieces.add(yard.apply(feedersFor(profile.marketSize())));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, pit, width, height));
         return plan.withLayout(new MissionLayout(pieces));
     }
