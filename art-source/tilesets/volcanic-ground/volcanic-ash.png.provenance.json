@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a3-839e-7da3-bbd0-8813b06b353c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a3-839e-7da3-bbd0-8813b06b353c\\exec-9546c881-ab5d-4242-b007-98903d003d94.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\volcanic-ground\\volcanic-ash.png",
+    "sha256": "8e2885a6fe642a594523ceca19045c46ee695e8d27f420a53c04eb17350aa6e5",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\volcanic-ground\\volcanic-ash.prompt.txt",
+  "promptSha256": "bab603b476f97711da57e408cc3be336d760a6cd20957f520736251705ed1ab4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA square, perfectly flat overhead (straight-down orthographic) photograph-like texture of settled volcanic ash on an airless volcanic world, for a top-down tactical game's ground tiles.\n\nMaterial: fine compacted grey volcanic ash and tephra, cool neutral mid-grey, average colour close to RGB (104, 100, 98). Very fine granular grain, faint shallow wind ripples running in slightly different directions in different parts of the frame, a sparse scatter of small dark cinder grains and a few tiny pale pumice flecks.\n\nHard rules: no directional lighting, no cast shadows, no highlights, no vignette, no gradient across the frame; even, diffuse, low-contrast detail everywhere; nothing larger than about one twentieth of the frame; no glow, no orange, no objects, no text, no border. Fully opaque, edge to edge.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square ash texture with the flat, evenly lit detail you specified."
+  ],
+  "usage": {
+    "input_tokens": 37181,
+    "cached_input_tokens": 31104,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 276,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 35.7
+}

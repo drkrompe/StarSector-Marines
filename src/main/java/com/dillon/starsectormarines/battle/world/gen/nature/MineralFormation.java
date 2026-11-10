@@ -17,7 +17,11 @@ public enum MineralFormation implements NaturalPropShape {
     ICE_PINNACLES("ice-pinnacles", 3, 5, true, List.of(
             new Facet(.3,.7, 1.25,.15, 1.95,.85, 1.45,2.05, .25,1.65),
             new Facet(1.0,1.5, 2.5,1.25, 2.8,2.6, 1.9,3.55, .7,2.6),
-            new Facet(.35,3.3, 1.3,2.85, 2.25,3.75, 1.8,4.8, .45,4.6, .2,4.0)));
+            new Facet(.35,3.3, 1.3,2.85, 2.25,3.75, 1.8,4.8, .45,4.6, .2,4.0))),
+    /** A volcanic world's boulders: {@link #BOULDERS}' body in basalt, so a seed blocks the same cells on either. */
+    BASALT_BOULDERS("basalt-boulders", BOULDERS),
+    /** A volcanic world's spires: {@link #SPIRES}' body in basalt. */
+    BASALT_SPIRES("basalt-spires", SPIRES);
 
     public record Facet(double... points) {
         public Facet { points = points.clone(); }
@@ -47,6 +51,10 @@ public enum MineralFormation implements NaturalPropShape {
     private final int width, height;
     private final boolean ice;
     private final List<Facet> facets;
+    /** Another formation's body in another material. */
+    MineralFormation(String name,MineralFormation body) {
+        this(name,body.width,body.height,body.ice,body.facets);
+    }
     MineralFormation(String name,int width,int height,boolean ice,List<Facet> facets) {
         id="formation."+name; this.width=width; this.height=height; this.ice=ice; this.facets=facets;
     }

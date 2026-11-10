@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a3-83ce-72b3-9e4d-68d370d21b08",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a3-83ce-72b3-9e4d-68d370d21b08\\exec-da0fa7e7-9877-471b-bafe-c88a5d1f8dc5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\volcanic-ground\\basalt-flow.png",
+    "sha256": "60e4db0234080ea700a7ff9e9bc953f3f28078988a58229a3fd4bde673b61e74",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\volcanic-ground\\basalt-flow.prompt.txt",
+  "promptSha256": "d64e762ef2b93b4e8153b9f2ccd282edd71132d962341585bf69ef14d6d669e3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA square, perfectly flat overhead (straight-down orthographic) photograph-like texture of cooled pahoehoe basalt lava ground on an airless volcanic world, for a top-down tactical game's ground tiles.\n\nMaterial: dark charcoal basalt with a very slight warm brown cast, average colour close to RGB (60, 55, 54). Low, ropy, wrinkled flow skin: fine folded rope-like ridges a few pixels wide, small gas vesicles and pits, thin hairline cooling cracks, a sparse grit of darker cinders. The ropes wander gently in different directions across the frame so that any small crop looks like a different arrangement of the same ground.\n\nHard rules: no directional lighting, no cast shadows, no highlights or sheen, no vignette, no gradient across the frame; even, diffuse, low-contrast detail everywhere; nothing larger than about one twentieth of the frame; no glowing lava, no orange, no red; no rocks standing up, no objects, no text, no border, no frame. Fully opaque, edge to edge.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square basalt ground texture with the flat, evenly lit detail you specified."
+  ],
+  "usage": {
+    "input_tokens": 37310,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 317,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 32.9
+}
