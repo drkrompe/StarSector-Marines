@@ -1325,8 +1325,10 @@ small a motor pool and airfield). Its claim is a square kept whole on the map
 and slid the least it takes off ground a place before it holds (a Raid site's
 works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
-**road in** laid straight from its middle to the town's nearest road
-(`CantonmentRoads`), and no weld between road networks is cut back across it.
+**road in** laid on its middle line, from the patrol lane inside the gate to the
+town's nearest road (`CantonmentRoads`); it ends at the gate, and the streets
+inside are the cantonment's own. No weld between road networks is cut back
+across it.
 The **main gate** is where that road comes in, the widest road in; the avenue
 runs from the gate side's middle, with a forecourt street inside the wall where
 the road enters off that line. A base has more than one way in and out (owner:

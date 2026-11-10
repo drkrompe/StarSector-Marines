@@ -177,6 +177,15 @@ final class GlReviewDrain implements ReviewSceneBackend {
         return gl.rendererDescription();
     }
 
+    @Override
+    public void forget(BattleSimulation simulation) {
+        call(() -> {
+            BattleRenderer renderer = renderers.remove(simulation);
+            if (renderer != null) release(renderer);
+            return null;
+        });
+    }
+
     /** Called with the drain's settings installed. */
     private BattleRenderer rendererFor(BattleSimulation simulation) {
         BattleRenderer existing = renderers.get(simulation);

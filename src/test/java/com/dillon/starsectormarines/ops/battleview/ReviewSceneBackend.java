@@ -34,6 +34,12 @@ interface ReviewSceneBackend {
     /** The scene as a {@code width}x{@code height} image, top row first. */
     BufferedImage draw(Scene scene, int width, int height);
 
+    /**
+     * Lets go of whatever this backend keeps for drawing {@code simulation} again, for a caller that will never draw it
+     * again (a map editor draws a fresh battle per frame). Nothing for a backend that keeps nothing.
+     */
+    default void forget(BattleSimulation simulation) { }
+
     /** The backend this run asked for, or the Java2D one where that is not available here. */
     static ReviewSceneBackend select(Path modRoot) {
         String asked = System.getProperty(PROPERTY, "java2d").trim().toLowerCase(Locale.ROOT);

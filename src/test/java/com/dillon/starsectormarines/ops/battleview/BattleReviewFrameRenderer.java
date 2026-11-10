@@ -217,6 +217,13 @@ public final class BattleReviewFrameRenderer {
         return cameraFor(width, height, simulation);
     }
 
+    /**
+     * Lets go of what the backend keeps for drawing {@code simulation} again. The GL drain keeps a renderer for each
+     * of the last sixteen battles drawn, which is right for suites that take turns between a few battles and a heap
+     * of renderers for a caller that draws a fresh battle per frame.
+     */
+    public void forget(BattleSimulation simulation) { backend.forget(simulation); }
+
     public int width() { return width; }
 
     public int height() { return height; }
