@@ -1,8 +1,10 @@
 # Derelict watch: how a live ruin moves, wakes, grows heavier and repairs
 
-Status: IN PROGRESS — four picks open (`derelict-movement`, `derelict-waking`,
-`derelict-walker-sizes`, `derelict-repair`), each built on its recommended
-option (a) while open. What is built is listed under each mechanic.
+Status: IN PROGRESS — the owner picked (a) on `derelict-movement`,
+`derelict-waking`, `derelict-walker-sizes`, `derelict-repair` and
+`hall-frame-ram` ("It should tear and we should have wider doors as well for
+these facilities": the facility's doors and ways are widened by the ground).
+What is built is listed under each mechanic.
 
 Written: 2026-11-10
 
@@ -41,7 +43,7 @@ sensors, flocks and relays tell it.
 
 ## 1. Movement: rounds and service ducts
 
-Pick `derelict-movement`.
+Picked `derelict-movement`: (a), by the owner.
 
 Today a dormant or alert zone stands still: its walkers hold their posts and its
 flock waits at its doorway. The briefing already tells the player otherwise
@@ -75,13 +77,11 @@ is awake.
 
 | Option | What moves |
 | --- | --- |
-| a (recommended) | Rounds walked by the rounds walker while a zone sleeps, and flocks through service ducts between drone vents |
-| b | Rounds only: the watch is seen patrolling, but flocks keep to open ground |
-| c | Ducts only: flocks surface in the light wells, and everything else stands at its post until woken (today's posture) |
+| a (picked) | Rounds walked by the rounds walker while a zone sleeps, and flocks through service ducts between drone vents |
 
 ## 2. Waking: the facility comes up in stages
 
-Pick `derelict-waking`.
+Picked `derelict-waking`: (a), by the owner.
 
 The owner: "the facility waking opening more passages and releasing more
 swarms". The site's stir (`ruins-pressure.md`) already climbs with time inside,
@@ -119,13 +119,11 @@ there. That keeps the watch apart from the Rav.
 
 | Option | What sets the stage |
 | --- | --- |
-| a (recommended) | The stir, as above: time inside and noise wake the whole site a stage at a time |
-| b | Depth: a zone's reserve bay and bulkheads open when the company first enters its layer, so the site wakes ahead of the company as it goes in |
-| c | Only the breach: the site stays as today until the vault is breached, and the contingency opens every bay and bulkhead at once |
+| a (picked) | The stir, as above: time inside and noise wake the whole site a stage at a time |
 
 ## 3. Medium and large walkers: the rounds walker and the hall frame
 
-Pick `derelict-walker-sizes`.
+Picked `derelict-walker-sizes`: (a), by the owner.
 
 The shipped MG-40 is the heavy: sized for a two-cell corridor, it holds a layer
 and comes to pins (line, siege and vault frames). The plant's ways come in three
@@ -153,6 +151,14 @@ three builds).
 - **The hall frame and the contingency.** In the contingency it walks to the
   egress only where its way fits; a hall frame whose way out is all corridor
   stays on its hall, and its hall is then the egress fight.
+- **How they turn.** Every walker size and the Tri-Tachyon crawler share one
+  four-legged rig (`DerelictLegRig`) with the crawler's suspension and yaw. A
+  machine turns no faster than its size allows
+  (`MechLocomotion.turnRateDegrees`: rounds 125, heavy 75, hall frame about
+  44 degrees a second; UNTUNED). It turns by stepping: the feet step round in
+  diagonal pairs ahead of the turn, and the body never carries a planted foot
+  more than `MAX_FOOT_DRIFT_DEGREES` past its hip. So no leg crosses another,
+  even under manual control (owner).
 - **Strength by grade** (UNTUNED): a rounds walker per zone from widespread (one
   at scattered); a hall frame at extensive, two at vast, posted in the largest
   plant halls. Neither is part of the stir's reserve; pushes stay line frames.
@@ -164,13 +170,11 @@ three builds).
 
 | Option | Sizes |
 | --- | --- |
-| a (recommended) | Both: the rounds walker and the hall frame beside the heavy |
-| b | The hall frame only; the heavy walks the rounds |
-| c | The rounds walker only; the halls keep the heavy |
+| a (picked) | Both: the rounds walker and the hall frame beside the heavy |
 
 ## 4. Repair: service bays and raised wrecks
 
-Pick `derelict-repair`.
+Picked `derelict-repair`: (a), by the owner.
 
 Shipped: each zone's repair drone mends plate on damaged posts, cradles and
 walkers from a stock it carries, and stands down under fire. That is upkeep,
@@ -204,9 +208,7 @@ that gives the company targets to deny.
 
 | Option | Repair |
 | --- | --- |
-| a (recommended) | Service bays and raised wrecks, with scrapping |
-| b | Service bays only: the drone reloads at its bay, and the bay is the one target; nothing dead comes back |
-| c | Raised wrecks only, from the drone's own stock as today; no bay to strike |
+| a (picked) | Service bays and raised wrecks, with scrapping |
 
 ## Slices
 
@@ -282,8 +284,8 @@ of each pick, slice 3's comms lines.
   else the one nearest its way out; `ramStand`); once its zone is awake it
   walks there (`Kind.FORCE`) and its `Ram` opens the door: a dead door's end
   cells, and a door too narrow for it torn a jamb at a time until it fits
-  (`DerelictWalkerClass.tornCells`). Pick `hall-frame-ram` (built on a) is
-  open: past the door the plant's ways are still two cells. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
+  (`DerelictWalkerClass.tornCells`). Picked `hall-frame-ram`: (a), with
+  wider doors and ways laid by the ground so a frame can leave its hall. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
   sealed and opened at hunting, a rammed door forced.
 
 Not built yet:

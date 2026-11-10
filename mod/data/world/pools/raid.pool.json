@@ -3,7 +3,7 @@
   "map": "raid",
   "home": "ARID",
   "entry": {
-    "seed": 4,
-    "note": "the generic Raid (valuables, and an industry with no site): a town filling the map, its industrial quarter east; screened over seeds 2 to 5 on the reference market (2026-11-10)"
+    "seed": 2,
+    "note": "the generic map: the target in its own walled compound; the shortest walk in and out passes 18 defenders, a skirting walk 1; screened over seeds 2 to 7 at 400x240 on the reference market for a landing clear of the garrison and a way round it (2026-11-10)"
   }
 }

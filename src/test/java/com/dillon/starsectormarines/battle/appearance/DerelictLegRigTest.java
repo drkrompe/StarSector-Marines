@@ -214,7 +214,7 @@ class DerelictLegRigTest {
     }
 
     @Test
-    void aCrawlersBodyYawsAsItStepsAndTheWalkersNever() {
+    void bothBodiesYawAsTheyStepTheWalkerLessThanTheCrawler() {
         DerelictLegRig crawler = new DerelictLegRig(DerelictLegRig.CRAWLER);
         DerelictLegRig walker = new DerelictLegRig();
         float[] most = {0f, 0f};
@@ -222,7 +222,9 @@ class DerelictLegRigTest {
         walk(walker, 0.7f, 240, OPEN, () -> most[1] = Math.max(most[1], Math.abs(walker.bodyFacing() - EAST)));
         assertTrue(most[0] > 1f, "the crawler wriggles: " + most[0]);
         assertTrue(most[0] <= DerelictLegRig.CRAWLER.twistDegrees() + 1e-3f);
-        assertEquals(0f, most[1], 1e-6f, "the walker's body keeps its heading");
+        assertTrue(most[1] > 0f && most[1] <= DerelictLegRig.WALKER.twistDegrees() + 1e-3f,
+                "the walker's heavier body yaws a little: " + most[1]);
+        assertTrue(DerelictLegRig.WALKER.twistDegrees() < DerelictLegRig.CRAWLER.twistDegrees());
     }
 
     @Test
@@ -231,7 +233,7 @@ class DerelictLegRigTest {
         DerelictLegRig.Build rigid = new DerelictLegRig.Build(c.hipCells(), c.restCells(), c.gripCells(),
                 c.hipHeightCells(), c.thighCells(), c.shinCells(), c.wallFootCells(), c.stepLiftCells(), c.walkStride(),
                 c.runStride(), c.runSpeed(), c.walkSpeed(), c.stepSeconds(), c.scale(), c.motionScale(),
-                c.twistDegrees(), c.jointInsetCells(), 0f);
+                c.twistDegrees(), c.jointInsetCells(), 0f, c.turnDegreesPerSecond());
         float[] suspended = peakJolt(new DerelictLegRig(c));
         float[] stiff = peakJolt(new DerelictLegRig(rigid));
         assertTrue(suspended[0] < stiff[0] / 3f, "the body's acceleration: " + suspended[0] + " vs " + stiff[0]);
@@ -263,5 +265,65 @@ class DerelictLegRigTest {
             furthest = Math.max(furthest, rig.bodyX());
         }
         return new float[] {peak[0], furthest - atStop};
+    }
+
+    @Test
+    void aTurnIsCappedAndTakenByStepsSoNoFootIsCarriedRoundPastItsNeighbour() {
+        for (DerelictLegRig.Build build : new DerelictLegRig.Build[] {DerelictLegRig.WALKER,
+                DerelictLegRig.WALKER.scaled(1.7f), DerelictLegRig.CRAWLER}) {
+            for (float speed : new float[] {0f, 0.5f}) {
+                DerelictLegRig rig = new DerelictLegRig(build);
+                float dt = 1f / 60f;
+                float x = 10f, y = 10f;
+                rig.advance(x, y, 0f, dt, (cx, cy) -> false);
+                float was = rig.facing();
+                boolean turned = false;
+                for (int f = 0; f < 60 * 30; f++) {
+                    // Manual control snaps the wanted heading straight round.
+                    y += speed * dt;
+                    rig.advance(x, y, 180f, dt, (cx, cy) -> false);
+                    float turnedBy = Math.abs(wrap(rig.facing() - was));
+                    assertTrue(turnedBy <= build.turnDegreesPerSecond() * dt + 1e-3f,
+                            "turned " + turnedBy + " in a frame at speed " + speed);
+                    was = rig.facing();
+                    // No two legs cross: no leg, hip to foot, passes over another.
+                    for (int leg = 0; leg < rig.legs(); leg++) {
+                        for (int other = leg + 1; other < rig.legs(); other++) {
+                            assertFalse(crosses(rig.hipX(leg), rig.hipY(leg), rig.footX(leg), rig.footY(leg),
+                                    rig.hipX(other), rig.hipY(other), rig.footX(other), rig.footY(other)),
+                                    "legs " + leg + " and " + other + " crossed at speed " + speed + ", frame " + f);
+                        }
+                    }
+                    if (speed == 0f) {
+                        // A planted foot is never carried round past the drift; one in the air is stepping round.
+                        for (int leg = 0; leg < rig.legs(); leg++) {
+                            if (rig.stepping(leg)) continue;
+                            assertTrue(Math.abs(rig.drift(leg, rig.facing())) <= DerelictLegRig.MAX_FOOT_DRIFT_DEGREES
+                                    + 0.5f, "standing, the turn waits for leg " + leg + ": " + rig.drift(leg, rig.facing()));
+                        }
+                    }
+                    if (Math.abs(wrap(rig.facing() - 180f)) < 0.5f) turned = true;
+                }
+                assertTrue(turned, "it gets round in the end, by stepping, at speed " + speed);
+            }
+        }
+    }
+
+    /** Whether segment a-b properly crosses segment c-d. */
+    private static boolean crosses(float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy) {
+        float d1 = side(cx, cy, dx, dy, ax, ay), d2 = side(cx, cy, dx, dy, bx, by);
+        float d3 = side(ax, ay, bx, by, cx, cy), d4 = side(ax, ay, bx, by, dx, dy);
+        return d1 * d2 < 0f && d3 * d4 < 0f;
+    }
+
+    private static float side(float ax, float ay, float bx, float by, float px, float py) {
+        return (bx - ax) * (py - ay) - (by - ay) * (px - ax);
+    }
+
+    private static float wrap(float d) {
+        d %= 360f;
+        if (d > 180f) d -= 360f;
+        if (d < -180f) d += 360f;
+        return d;
     }
 }

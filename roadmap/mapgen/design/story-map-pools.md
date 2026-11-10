@@ -101,7 +101,8 @@ through or built on (`PlanetSkinTest`). It swaps:
   between pieces, each row of long pieces finished with a short one or a plant
   piece (pumps, tanks, a boiler), and short pieces on a grid on a plot too
   short for a long one. Three looks (`PlanetSkin.FarmLook`) await the owner's
-  pick, each piece lit by magenta grow-light and piped: pressurised sheds
+  pick, each piece lit by warm amber grow-light and piped (owner, over
+  ImageGen's pink: "Warm amber"): pressurised sheds
   (`hydro-sheds`), linked geodesic domes (`hydro-domes`) and glass halls
   (`glasshouses`), with no farm as the control. The pieces are walk-in and
   coverless, so pathing, sight and cover are the home map's. Paved hydroponic
