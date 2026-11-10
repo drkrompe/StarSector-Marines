@@ -39,6 +39,15 @@ FAMILIES = {
     "products-b": [(f"drone-frame-{s}", 2, 2, f"drone:{s}") for s in ("whole", "half", "wrecked")] + [None]
                   + [(f"forge-core-{s}", 2, 2, f"forge:{s}") for s in ("whole", "half", "wrecked")],
 }
+# The other themes' products, the same way: one row per product.
+for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
+                     ("products-d", (("catalyst-bed", "catalyst"), ("spool-drum", "spool"))),
+                     ("products-e", (("bore-head", "bore"), ("projector-stack", "projector")))):
+    FAMILIES[_fam] = []
+    for _pid, _shape in _prods:
+        if FAMILIES[_fam]:
+            FAMILIES[_fam].append(None)
+        FAMILIES[_fam] += [(f"{_pid}-{s}", 2, 2, f"{_shape}:{s}") for s in ("whole", "half", "wrecked")]
 
 # The line's bed: the middle half of its width, flush to the short ends, shared by the module and the line end.
 BED = (0.3, 0.7)
@@ -99,6 +108,69 @@ def product_shape(name, size, solid):
         d.ellipse((c - 140, c - 140, c + 140, c + 140), fill=DARK, outline=EDGE, width=14)
         for cx, cy in ((i + 50, i + 50), (s - i - 50, i + 50), (i + 50, s - i - 50), (s - i - 50, s - i - 50)):
             d.ellipse((cx - 20, cy - 20, cx + 20, cy + 20), fill=EDGE)
+    elif name == "core":
+        d.rectangle((i, i, s - i, s - i), fill=shell, outline=EDGE, width=14)
+        for y0 in range(i + 60, s - i - 60, 70):
+            d.rectangle((i + 40, y0, i + 110, y0 + 40), fill=DARK)
+            d.rectangle((s - i - 110, y0, s - i - 40, y0 + 40), fill=DARK)
+        c = s // 2
+        d.ellipse((c - 150, c - 150, c + 150, c + 150), fill=EDGE)
+        d.ellipse((c - 105, c - 105, c + 105, c + 105), fill=LIGHT, outline=EDGE, width=8)
+    elif name == "lamp":
+        c, r = s // 2, s // 2 - i
+        d.polygon([(c + r * math.cos(a), c + r * math.sin(a)) for a in (k * math.pi / 4 + math.pi / 8 for k in range(8))],
+                  fill=shell, outline=EDGE, width=14)
+        for k in range(4):
+            a = k * math.pi / 2 + math.pi / 4
+            d.line((c + 120 * math.cos(a), c + 120 * math.sin(a), c + (r - 30) * math.cos(a), c + (r - 30) * math.sin(a)),
+                   fill=EDGE, width=40)
+        d.ellipse((c - 130, c - 130, c + 130, c + 130), fill=LIGHT, outline=EDGE, width=14)
+        d.ellipse((c - 55, c - 55, c + 55, c + 55), fill=DARK)
+    elif name == "magnet":
+        cx, cy, ro, ri = -s * 0.25, s * 0.5, s * 1.1, s * 0.62
+        d.pieslice((cx - ro, cy - ro, cx + ro, cy + ro), -24, 24, fill=shell, outline=EDGE, width=14)
+        d.pieslice((cx - ri, cy - ri, cx + ri, cy + ri), -40, 40, fill=(0, 0, 0, 0))
+        rm = (ro + ri) / 2
+        d.arc((cx - rm, cy - rm, cx + rm, cy + rm), -25, 25, fill=DARK, width=50)
+        for a in (-17, -6, 6, 17):
+            t = math.radians(a)
+            px, py = cx + rm * math.cos(t), cy + rm * math.sin(t)
+            d.rectangle((px - 70, py - 34, px + 70, py + 34), fill=LIGHT, outline=EDGE, width=6)
+    elif name == "catalyst":
+        d.rectangle((i, i + 60, s - i, s - i - 60), fill=shell, outline=EDGE, width=14)
+        for gy in range(3):
+            for gx in range(4):
+                x0, y0 = i + 50 + gx * 130, i + 120 + gy * 130
+                d.rectangle((x0, y0, x0 + 105, y0 + 105), fill=LIGHT, outline=EDGE, width=6)
+        d.rectangle((i + 40, i, s - i - 40, i + 60), fill=DARK)
+        d.rectangle((i + 40, s - i - 60, s - i - 40, s - i), fill=DARK)
+    elif name == "spool":
+        d.rectangle((i + 70, i + 60, s - i - 70, s - i - 60), fill=shell, outline=EDGE, width=12)
+        for y0 in range(i + 90, s - i - 90, 34):
+            d.line((i + 80, y0, s - i - 80, y0), fill=LIGHT, width=12)
+        for x0 in (i, s - i - 70):
+            d.rectangle((x0, i, x0 + 70, s - i), fill=EDGE)
+        d.rectangle((i - 10, s // 2 - 40, s - i + 10, s // 2 + 40), outline=DARK, width=10)
+    elif name == "bore":
+        c = s // 2
+        d.ellipse((i, i, s - i, s - i), fill=shell, outline=EDGE, width=14)
+        for k in range(6):
+            a = k * math.pi / 3
+            ex, ey = c + 185 * math.cos(a), c + 185 * math.sin(a)
+            d.ellipse((ex - 55, ey - 55, ex + 55, ey + 55), fill=LIGHT, outline=EDGE, width=8)
+            d.line((c, c, c + 260 * math.cos(a + math.pi / 6), c + 260 * math.sin(a + math.pi / 6)), fill=EDGE, width=16)
+        d.ellipse((c - 70, c - 70, c + 70, c + 70), fill=DARK)
+    elif name == "projector":
+        c = s // 2
+        d.rectangle((i + 40, i + 40, s - i - 40, s - i - 40), fill=shell, outline=EDGE, width=12)
+        for k in range(3):
+            a = k * 2 * math.pi / 3 - math.pi / 2
+            d.line((c, c, c + 230 * math.cos(a), c + 230 * math.sin(a)), fill=EDGE, width=34)
+            d.ellipse((c + 230 * math.cos(a) - 45, c + 230 * math.sin(a) - 45, c + 230 * math.cos(a) + 45,
+                       c + 230 * math.sin(a) + 45), fill=LIGHT, outline=EDGE, width=6)
+        for r, w in ((170, 12), (115, 10)):
+            d.ellipse((c - r, c - r, c + r, c + r), outline=EDGE, width=w)
+        d.ellipse((c - 55, c - 55, c + 55, c + 55), fill=LIGHT, outline=EDGE, width=8)
     return im
 
 
