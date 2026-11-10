@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ruins;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -283,8 +284,13 @@ public final class RuinsDelveStage implements GenStage {
                 if (in) {
                     // The plant's halls first, in its own order: intake and lines in the outer band, storage deeper.
                     for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
-                        Area floor = plantHall(region, stage);
+                        // The outer band's first line hall is laid at a foundry's size whatever the theme, so the
+                        // ground's footprint never changes with it; a forge works makes it its foundry.
+                        boolean first = i == firstInside && stage == RuinsDelve.PlantStage.PRODUCTION
+                                && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
+                        Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
                         if (floor == null) continue;
+                        if (first && plan.dressing().foundry()) stage = RuinsDelve.PlantStage.FOUNDRY;
                         connect(new Cell(floor.centreX(), floor.centreY()), i, null);
                         chambers.add(floor);
                         plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
@@ -1356,11 +1362,13 @@ public final class RuinsDelveStage implements GenStage {
             int cw = switch (stage) {
                 case INTAKE -> 16;
                 case PRODUCTION -> vast ? 30 : 26;
+                case FOUNDRY -> vast ? 40 : 34;
                 case STORAGE -> 18;
             };
             int ch = switch (stage) {
                 case INTAKE -> 12;
                 case PRODUCTION -> vast ? 18 : 16;
+                case FOUNDRY -> vast ? 24 : 22;
                 case STORAGE -> 14;
             };
             cw = Math.min(cw, region.width() - 6);
@@ -1386,6 +1394,7 @@ public final class RuinsDelveStage implements GenStage {
             Area hall = plantHall.footprint();
             Cell centre = new Cell(hall.centreX(), hall.centreY());
             switch (plantHall.stage()) {
+                case FOUNDRY -> foundry(registry, hall, centre);
                 case PRODUCTION -> {
                     // Line runs east-west, three deep with a two-cell aisle between: a line end feeding modules, a
                     // gap after every second module so a run is never a wall, and a module wrecked here and there.
@@ -1430,6 +1439,90 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
             }
+        }
+
+        /**
+         * A forge works' foundry ({@code ruins-expedition.md}, A forge works has a foundry): a bank of crucibles along
+         * the north wall, a pour channel two cells wide running south from each to its casting bed, both melt (a
+         * foundry drop, cut by {@link RuinsMeltStage}), and a crossing over each channel, staggered from channel to channel
+         * so no one lane looks down them all. Cover stands at the crossings' ends and the pulpit in the corner. The
+         * melt keeps clear of every doorway and of the hall's middle, where its way in arrives, and the hall stays one
+         * floor across its crossings.
+         */
+        void foundry(TileRegistry registry, Area hall, Cell centre) {
+            int n = Math.max(1, Math.min(3, (hall.width() + 2) / 11));
+            int span = hall.width() - 4 - 3;
+            boolean[] melt = new boolean[w * h];
+            boolean any = false;
+            for (int k = 0; k < n; k++) {
+                int cx = hall.left() + 2 + (n == 1 ? span / 2 : k * span / (n - 1));
+                // Off the hall's middle column, where the corridor's way in arrives.
+                if (Math.abs(cx + 1 - centre.x()) <= 2) cx += cx + 1 <= centre.x() ? -3 : 3;
+                int bank = hall.top() - 4, bedTop = hall.bottom() + 6, crossing = hall.bottom() + (k % 2 == 0 ? 9 : 13);
+                for (int y = hall.bottom() + 2; y <= bank - 1; y++) {
+                    for (int x = cx - 2; x <= cx + 5; x++) {
+                        boolean channel = y > bedTop && (x == cx + 1 || x == cx + 2);
+                        boolean bed = y <= bedTop;
+                        if (!channel && !bed) continue;
+                        if (channel && (y == crossing || y == crossing + 1)) continue;
+                        if (!hall.contains(x, y) || x <= hall.left() || x >= hall.right()) continue;
+                        if (Math.abs(x - centre.x()) <= 1 && Math.abs(y - centre.y()) <= 1) continue;
+                        if (!grid.isWalkable(x, y) || nearDoorway(x, y)) continue;
+                        melt[i(x, y)] = true;
+                        any = true;
+                    }
+                }
+                over(registry, "doodad.ruins-mould-grid", cx - 2, hall.bottom() + 2);
+                // Each crossing wears the foundry drop's deck: the hall's floor under a grate catwalk.
+                lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx + 1, crossing);
+                // The bank: a crucible over its channel's head, the last of the bank tipped on some sites.
+                boolean tipped = k == n - 1 && hash(cx, bank, 0xF0D) % 3 == 0;
+                if (piece(registry, tipped ? "doodad.ruins-crucible-tipped" : "doodad.ruins-crucible", cx, bank, 3, 3,
+                        hall, centre)) {
+                    over(registry, tipped ? "doodad.ruins-crucible-tipped-spill" : "doodad.ruins-crucible-melt", cx,
+                            bank);
+                }
+                piece(registry, "doodad.ruins-slag-heap", cx - 2, crossing, 2, 2, hall, centre);
+                piece(registry, "doodad.ruins-slag-heap", cx + 3, crossing + 2, 2, 2, hall, centre);
+                if (k + 1 < n) piece(registry, RACK_STRIPPED, cx + 4, bank + 1, 6, 2, hall, centre);
+            }
+            if (!any) return;
+            // The melt is cut after finalize (RuinsMeltStage); here it is held clear of every later piece, and the
+            // hall is proved one floor across its crossings with it in.
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (melt[i(x, y)]) grid.setWalkable(x, y, false);
+                }
+            }
+            boolean whole = oneFloor(hall);
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (!melt[i(x, y)]) continue;
+                    grid.setWalkable(x, y, true);
+                    kitFloor[i(x, y)] = true;
+                }
+            }
+            if (!whole) throw new IllegalStateException("a foundry split its hall at " + hall);
+            ctx.put(RuinsKeys.MELT, melt);
+            piece(registry, "doodad.ruins-fallen-ladle", hall.left() + 2 + span / 4, hall.bottom() + 11, 3, 2, hall,
+                    centre);
+            piece(registry, "doodad.ruins-pour-pulpit", hall.right() - 3, hall.top() - 3, 2, 2, hall, centre);
+        }
+
+        /** Whether a cell is a doorway or beside one. */
+        boolean nearDoorway(int x, int y) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    if (grid.inBounds(x + dx, y + dy) && grid.isDoorway(x + dx, y + dy)) return true;
+                }
+            }
+            return false;
+        }
+
+        /** Draws an overlay piece over whatever stands there, blocking nothing: a crucible's melt, a mould grid. */
+        void over(TileRegistry registry, String id, int x, int y) {
+            DoodadDef def = registry.doodad(id);
+            if (def != null) ctx.doodads.add(new Doodad(x, y, def));
         }
 
         /**

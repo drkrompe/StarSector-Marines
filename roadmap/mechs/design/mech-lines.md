@@ -58,7 +58,9 @@ noticeably differently, not just look different:
   actuators. This row gives Tri-Tachyon mechs of its own.
 
 These leanings shape each line's authored numbers the way vanilla's hull families shape
-its ships. No rule checks a mech's family (`tech-families.md`, law 4).
+its ships. No rule checks a mech's family (`tech-families.md`, law 4). The bands those
+numbers should land in, mount sizes, power per row, flux, plate and shield, are
+`machine-budgets.md`'s.
 
 ## Factions
 
@@ -77,7 +79,14 @@ purchases, so the low-tech row comes first:
    Independents and pirates walk the low-tech row (pirates in repaired-scrap bodies).
 2. **Low-tech variants** across the row, including the field-rig and salvage
    variants that pirates and Independents would build.
-3. **Midline light.** It completes the row that Independents buy into.
+3. **Midline.** It completes the row that Independents buy into. It takes the Eagle's material and colour (owner):
+   weathered tan and khaki plate with engraved panel lines over grey machinery, round sockets, yellow-green lights,
+   but never a ship's outline: the first concepts, built round the Eagle's forked prow and on bird legs, read as the
+   Eagle or as chickens (owner). Its machines are wheeled (owner: "a wheeled concept might not be bad"). The second
+   pass, from material swatches with no shape in them, is on the picks page
+   (art-source/mech-modular-topdown/sources/midline, briefs_v2.py): D, rover walkers on wheel-legs; E, articulated
+   carriers, a cab and swappable mission modules on a bending hinge; F, big-wheel machines. Its numbers sit between
+   the other two rows (`machine-budgets.md`): about 2x flux draw, a shield at 1.0 where it carries one.
 4. **High-tech.** The look is chosen (owner, the heavy shell): steel-blue armour lobes
    over exposed machinery, sockets sunk into the shells, after vanilla's high-tech
    hulls, and Tri-Tachyon already wears it on the three frames

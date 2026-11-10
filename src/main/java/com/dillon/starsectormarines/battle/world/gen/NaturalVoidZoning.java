@@ -28,13 +28,28 @@ public final class NaturalVoidZoning {
     /**
      * One row: a style, its steps going down (shallowest first), its wall image and the metres one tile of it
      * spans; and the band the floor's depth varies in along a cut, {@code shallowest} to {@code deepest} metres, or
-     * 0 and 0 for a drop as deep everywhere as its steps.
+     * 0 and 0 for a drop as deep everywhere as its steps; and the {@link Deck} its crossings wear.
      */
     public record Drop(NaturalVoid.Style style, List<NaturalVoid.Step> steps, String wallTexture,
-                       float wallTileMeters, float shallowest, float deepest) {
+                       float wallTileMeters, float shallowest, float deepest, Deck deck) {
+        /** A drop whose depth varies in a band, its crossings decked in timber. */
+        public Drop(NaturalVoid.Style style, List<NaturalVoid.Step> steps, String wallTexture, float wallTileMeters,
+                    float shallowest, float deepest) {
+            this(style, steps, wallTexture, wallTileMeters, shallowest, deepest, Deck.TIMBER);
+        }
+
         /** A drop as deep everywhere as its steps. */
         public Drop(NaturalVoid.Style style, List<NaturalVoid.Step> steps, String wallTexture, float wallTileMeters) {
             this(style, steps, wallTexture, wallTileMeters, 0f, 0f);
+        }
+
+        public Drop {
+            if (deck == null) throw new IllegalArgumentException("a drop's crossings wear a deck");
+        }
+
+        /** This drop with its crossings decked as {@code deck} says. */
+        public Drop withDeck(Deck deck) {
+            return new Drop(style, steps, wallTexture, wallTileMeters, shallowest, deepest, deck);
         }
 
         /** Whether this drop's depth varies along a cut. */
@@ -49,6 +64,24 @@ public final class NaturalVoidZoning {
         public NaturalVoid look(int seed, boolean[] cells, int w, int h) {
             NaturalVoid look = look(seed);
             return varies() ? look.withMarks(marks(cells, w, h, shallowest, deepest, seed)) : look;
+        }
+    }
+
+    /**
+     * What a drop's crossings are decked with, the cells a cut leaves standing across it: the walked surface laid on
+     * them, and a doodad laid over them by the generator that cuts the drop. The renderers draw every crossing alike
+     * whatever its deck.
+     *
+     * @param surface the surface id the crossing's cells wear (as {@code colony.timber}), or null to leave them the
+     *                ground they were
+     * @param doodad  a doodad id laid over the crossing (a hall's grate catwalk), or null for none
+     */
+    public record Deck(String surface, String doodad) {
+        /** A timber footbridge: the outdoor drops' deck. A snow bridge on ice read as two pits with ground between. */
+        public static final Deck TIMBER = new Deck("colony.timber", null);
+
+        public Deck {
+            if (surface == null && doodad == null) throw new IllegalArgumentException("a deck is a surface or a doodad");
         }
     }
 
@@ -137,6 +170,16 @@ public final class NaturalVoidZoning {
     public static final Drop LAVA_RIVER = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
             "graphics/battle/voids/basalt-wall.png", 12f);
+
+    /**
+     * A foundry's melt: a kerb a metre deep and the melt 2 m down, between firebrick walls
+     * (`ruins-expedition.md`, A forge works has a foundry). Laid by the ruins ground, never by a palette; its
+     * crossings keep the hall's floor under a grate catwalk.
+     */
+    public static final Drop FOUNDRY = new Drop(NaturalVoid.Style.FOUNDRY, List.of(
+            new NaturalVoid.Step(1f, .06f), new NaturalVoid.Step(2f, .12f)),
+            "graphics/battle/voids/firebrick-wall.png", 2f)
+            .withDeck(new Deck(null, "doodad.ruins-grate-catwalk"));
 
     private NaturalVoidZoning() { }
 

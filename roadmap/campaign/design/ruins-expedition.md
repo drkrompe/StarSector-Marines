@@ -655,8 +655,18 @@ theme gets, and only what fills it changes with the theme.
 | b | A run of three halls joined by doors: melt shop (crucibles), pour hall (one channel winding across it, three crossings), casting hall (four small beds) |
 | c | One melt trunk down the plant's spine: crucibles at its head, casting beds off it in the side halls, the spine's walkway beside it and bridges at its junctions |
 
-The crucible art and the engineered lip are the art session's, to the piece
-list in the shared note `ruins-forge-area.md`. Picture cards:
+Built on a: the outer band's first line hall is laid at the foundry's size for
+every theme, and a forge works (`RuinsDressing.foundry`) fills it as a foundry.
+Its melt is a `FOUNDRY` lava drop (`NaturalVoidZoning.FOUNDRY`) that the ground
+plans and `RuinsMeltStage` cuts after finalize, as the outdoor landscape cuts
+its drops, since finalize takes any unwalkable cell left standing for a wall. The
+melt is a drop of its own beside any rift outside, each owning its cells. The melt
+runs hot with no crust, between firebrick walls under the cast-steel kerb strip.
+Crucibles carry their melt overlay, and each channel's crossing is a grate
+catwalk. Still to come: the melt's cooler patches in the narrow channels (the
+drop's ledges wander), the crucibles' pulsing glow, and slag-heap cover tuning.
+The art is the art session's, to `ruins-forge-area.md` and the texture contract
+in `ruins-forge-hall.md`. Picture cards:
 `createSnapshots -Psnapshot=ruins-forge-picks`.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
@@ -709,6 +719,41 @@ by the layers' boundaries and never a standing line. Its size follows the
 grade, from a pad and a yard at scattered to a full port at vast. It is laid by
 coordinate hash like the rest of the dead town, so the same site has the same
 port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
+
+**The ruins' doors are leaf doors** (owner: "we have nice automated doors we
+use on ships in the engineering tab renderer... We should look at reusing the
+tech there to make better vault/facility doors than a 1x1"; pick `ruins-doors`
+open, building on a). Today the plant's halls meet at open three-cell gaps, and
+the vault's doors and the works' seals are one cell. The ship's sliding door
+(`RoomDoor`, drawn by `RoomDoorRenderSystem`) is two leaves parting from a seam
+into their jambs, any width, along either axis, and answers whoever stands in
+line with it. The ruins reuse it rather than drawing a door of their own. It
+needs three changes:
+
+- **A door kind.** `RoomDoor` gains a kind: a hall door (two leaves), a cargo
+  door (two telescoping leaves each way) and a blast door (two thick leaves,
+  the seam clamped when sealed). Each kind has its own leaf art.
+- **A derelict state.** A door answers while its works are powered. It stands
+  dead where its power died, part-open: the cells under its leaves are wall, so
+  a dead door narrows the way. It is sealed while its `SealDoor` is shut, and
+  forced for good once a breach forces it, one leaf torn out onto the floor. A
+  ruins door's state is the works' (`LockedDoor` open, forced and hardened), so
+  passage stays the grid's and the `LockedDoor`'s, as on a ship.
+- **Fed from the battle.** Ruins doors are built from the ground (the plant
+  halls' joins, the interior's entrances, the works' seals and the vault's
+  doors), not from a ship's compartments. The animation that moves the leaves
+  for the bodies near them, today in `ShipDeckBattleScene`, moves to the battle
+  view for every map.
+
+| Option | What becomes a leaf door |
+| --- | --- |
+| a (recommended) | Every hall join (hall door), every intake dock (cargo door, four leaves), the vault and secure stores (blast doors widened to three cells), all with the four states |
+| b | Only the works' seals (gates, stores, bunker, vault), sealed and forced; the joins stay open gaps |
+| c | The joins answer as a ship's do, with no derelict states; the seals stay as today |
+
+The leaf art is ruins-theme-art's (`ruins-doors.md` in the shared notes holds
+the piece list). The cards use today's ship leaves, forcible and hardened plates
+as stand-ins. Picture cards: `createSnapshots -Psnapshot=ruins-door-picks`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:

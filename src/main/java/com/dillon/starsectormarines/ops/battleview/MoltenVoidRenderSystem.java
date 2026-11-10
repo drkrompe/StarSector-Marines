@@ -103,7 +103,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     @Override public RenderLayer layer() { return RenderLayer.GROUND; }
 
     static boolean molten(NaturalVoid look) {
-        return look != null && look.style() == NaturalVoid.Style.LAVA;
+        return look != null && (look.style() == NaturalVoid.Style.LAVA || look.style() == NaturalVoid.Style.FOUNDRY);
     }
 
     /** How fast the crust drifts on a melt {@code floorMeters} down, cells a second: a pooled rift's crawl to a run. */
@@ -211,6 +211,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             float run = mw * r1 + (1f - mw) * r2;
             float pulse = NaturalVoidField.Noise.value(x * .15f, y * .15f + time * .12f, seed + 23);
             float heat = .42f + .3f * run + .14f * pulse + .4f * (1f - LavaVoidLook.crustCover(in));
+            // A foundry's melt is kept hot: it runs bright from wall to wall.
+            if (drop.foundry()) heat = .62f + .38f * Math.min(1f, heat);
             LavaVoidLook.molten(heat, rgb);
             float s0 = drop.scale(band.z(q, 0)), s1 = drop.scale(band.z(q, 1));
             float s2 = drop.scale(band.z(q, 2)), s3 = drop.scale(band.z(q, 3));
@@ -222,7 +224,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
         // The crust, two layers drifting downstream, each fading out as the other comes in.
-        ShuttleSpriteCache crust = sprites.spriteByPath(CRUST_TEXTURE);
+        // A foundry's melt is tended and running: it carries no crust.
+        ShuttleSpriteCache crust = drop.foundry() ? null : sprites.spriteByPath(CRUST_TEXTURE);
         if (crust != null && crust.pxW > 4) {
             float p1 = frac(time / crustPeriod), p2 = frac(time / crustPeriod + .5f);
             float w1 = 1f - Math.abs(2f * p1 - 1f);
@@ -391,7 +394,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        if (!molten(ctx.sim.getTopology().naturalVoid()) || !drop.begin(ctx, out)) return;
+        if (!molten(drop.naturalVoid(ctx.sim.getTopology())) || !drop.begin(ctx, out)) return;
         NaturalVoidField field = drop.field();
         if (builtFrom != field) build(field);
         float time = FireLight.clock(ctx.animationTimeSeconds);

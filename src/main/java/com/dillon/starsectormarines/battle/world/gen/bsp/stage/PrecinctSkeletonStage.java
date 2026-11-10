@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.StreetPlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutRoads;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
@@ -21,6 +22,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctClaim;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctHighways;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctInterconnect;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -57,6 +59,12 @@ public final class PrecinctSkeletonStage implements GenStage {
                 GrownTrunkPlan.grow(ctx.width, ctx.height, ctx.rng, plan.seeds(),
                         FortReservations.keepClear(ctx, plan), KnollGround.bounds(knolls, plan.precincts().size()),
                         FortReservations.sealed(ctx, plan));
+        // The grown streets planned as one network before any place claims its ground (`StreetPlan`). Raid sites
+        // only for now: the pooled story maps keep their grown streets until their pools are vetted on the plan.
+        if (StreetPlan.enabled() && raidSite(plan)) {
+            grown = StreetPlan.plan(grown, barredForStreets(FortReservations.keepClear(ctx, plan),
+                    FortReservations.sealed(ctx, plan), ctx.width, ctx.height)).grown();
+        }
 
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
@@ -301,5 +309,19 @@ public final class PrecinctSkeletonStage implements GenStage {
             }
         }
         return blocked;
+    }
+
+    /** Ground the street plan moves no street onto: what growth was kept off. Either may be null. */
+    static boolean[][] barredForStreets(boolean[][] keepClear, boolean[][] sealed, int width, int height) {
+        if (keepClear == null && sealed == null) return null;
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++)
+            out[x][y] = keepClear != null && keepClear[x][y] || sealed != null && sealed[x][y];
+        return out;
+    }
+
+    /** Whether the plan is a Raid site's ({@link RaidSiteTemplate}): it has the works. */
+    static boolean raidSite(PrecinctPlan plan) {
+        return named(plan, RaidSiteTemplate.WORKS) != null;
     }
 }

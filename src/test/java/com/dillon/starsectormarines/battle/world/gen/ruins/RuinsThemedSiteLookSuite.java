@@ -111,6 +111,14 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                             context.modRoot(), W, H, chamber.centreX() + 0.5f, chamber.centreY() + 0.5f,
                             CLOSE_CELLS).withoutRoofs().render(sim, "")));
                 }
+                // A forge works' foundry, where it has one.
+                for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+                    if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY) continue;
+                    RuinsDelve.Area f = hall.footprint();
+                    out.add(new SnapshotArtifact("inside/" + name + "-foundry.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f, f.width() + 14f)
+                            .withoutRoofs().render(sim, "")));
+                }
             }
         }
         return out;
@@ -118,7 +126,8 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
 
     /** The themes shown inside: one of each kind of prize, a growth theme, and a reactor site. */
     private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE, RuinsVaultTheme.SOIL_NANITES,
-            RuinsVaultTheme.SERVER_HALL, RuinsVaultTheme.ARMORY, RuinsVaultTheme.FUSION_LAMP, RuinsVaultTheme.DEPOT);
+            RuinsVaultTheme.SERVER_HALL, RuinsVaultTheme.ARMORY, RuinsVaultTheme.FUSION_LAMP, RuinsVaultTheme.DEPOT,
+            RuinsVaultTheme.PRISTINE_NANOFORGE);
 
     private static void advance(BattleSimulation sim, float seconds) {
         for (int t = 0; t < Math.round(seconds / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);

@@ -89,6 +89,7 @@ generation, never a battle rule, as an emplacement style is
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
+| **Foundry melt** | A forge works' foundry in a ruins site's plant (`ruins-expedition.md`): pour channels and casting beds cut in a hall floor, 2 m down | Firebrick walls under a laid cast-steel kerb strip | Molten metal kept hot, no crust | A grate catwalk, the drop's own crossing |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
@@ -410,9 +411,13 @@ Laws):
    eroded line that wanders off the cells, not runs along them; its walls are
    rock strata stepping down in ledges, not facades over terraces grown from a
    footprint; its floor is water, scree, dark ice or surf, not a city plate;
-   it has no towers, walkways, traffic or lit windows. So a map carries a
-   `NaturalVoid` instead of a `VoidBackdrop` (never both), drawn by
-   `NaturalVoidRenderSystem` beside `VoidBackdropRenderSystem`. What they
+   it has no towers, walkways, traffic or lit windows. So a map carries
+   `NaturalVoid`s instead of a `VoidBackdrop` (never both), drawn by
+   `NaturalVoidRenderSystem` beside `VoidBackdropRenderSystem`. A map may
+   carry several drops, each owning its own void cells
+   (`CellTopology.addNaturalVoid`, `dropAt`) and drawn by its own instance
+   from them alone: an outdoor drop across the open country, at most one,
+   and a drop cut indoors (`NaturalVoid.indoor`, a foundry's melt) beside it. What they
    share is the camera and the rules, not code: the pinhole eye in metres
    above the surface, painter's order by depth, the battle's sun, and the
    ground tiles drawn after, covering everything but the void cells. Neither
@@ -537,7 +542,8 @@ Laws):
      relief `SHELTER_WALL` along a pair of opposite edges before anything is
      laid (`CrevasseTown.shelter`): along the battle's axis, so the attack
      runs down the floor rather than over a wall. The palette skins the
-     walls: ice on a frozen world, the ravine's rock elsewhere. Held ground, as a rim round a settlement
+     walls: ice on a frozen world, the ravine's rock elsewhere. Any world may
+     stand a sheltered town (the owner's pick, 2026-11-10). Held ground, as a rim round a settlement
      is (`Landscape.held`): the town, its roads and its fields grow on the
      floor between them. The ordinary settlement and precinct programs lay
      the town; nothing new builds it, and a frozen world's own building
@@ -565,6 +571,21 @@ Laws):
      so the landscape pass finishes them itself: their walls' hit points and
      tags, and their entries in the town's buildings, numbered on so no
      earlier building's id moves (`BuildingFloodFill.populate`).
+   **Buildings in depth** (experiment; owner, 2026-11-10: "a similar trick
+   for walls to get that partially 3d look ... see how a town looks"). The
+   rise's pinhole camera turned on buildings (`BuildingFaces`, behind
+   `-Dbattle.render.buildingFaces=true`): each building's roof is lifted to
+   its eave, one, two or three storeys by its size (4.5, 8 and 11.5 m,
+   UNTUNED), scaled about the view's centre as a rise's top is, and each wall
+   turned to the camera is a face from its foot to the eave, tinted from the
+   building's own and lit by its side, with a window to each cell on every
+   storey. A wall turned away lies under its own roof. All faces are drawn
+   before all roofs. Roofs are streamed while it is on, each building lifting
+   by its own height, so the resident roof mesh is not used: about 6 ms more
+   at whole-map framing on the stress map, about 0.2 ms at play zoom. A
+   keeper bakes the lift into the resident mesh. Look suite:
+   `createSnapshots -Psnapshot=building-faces-look` (an open verdant town and
+   a frozen crevasse town, flat and stood up, and a pan).
    Next: each terrace a walkable tier (elevation's terraces,
    `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
    walkways crossing the floor, heat and glow from below (lit windows, vents
@@ -999,7 +1020,9 @@ Laws):
      its approach, a spawn, or a route between required places, and each of
      those that crosses its line is left standing across it as a bridge.
    - **Crossings.** Every 34 cells along its line a crossing four cells wide
-     is left standing, decked as a timber footbridge; the drop is opened
+     is left standing, decked with its drop's deck (`NaturalVoidZoning.Deck`:
+     a surface laid on the crossing, a doodad laid over it, or both), a
+     timber footbridge for every outdoor drop today; the drop is opened
      before the crossings are taken out, so it meets each deck square and runs
      on under it. A snow bridge on ice was tried: plain snow over a crevasse
      read as two pits with ground between them, not as a way across.

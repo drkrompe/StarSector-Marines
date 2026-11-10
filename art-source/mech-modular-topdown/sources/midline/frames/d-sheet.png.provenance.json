@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5ca-2217-7b23-a24f-33c863644cad",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5ca-2217-7b23-a24f-33c863644cad\\exec-a1102c73-e03e-43d3-97f0-37653b5ef540.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\d-sheet.png",
+    "sha256": "5d8f7792bfeacd433f1cc4036bc9fcec48bc23abb0420c5a7b6c461c32cf3d20",
+    "dimensions": [
+      1933,
+      814
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\d.prompt.txt",
+  "promptSha256": "514931c8bc92fb4c0c3e6dc39f1247bb7dc99c9d199269bf9532da7bca71aa9f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, colour and surface detail only; contains no shapes to copy\n\nAsset type: concept sheet for a top-down game: the three machines of a new MIDLINE wheeled combat machine row, light, medium and heavy, drawn whole.\n\nThe row is ROVER WALKERS: wheel-legged machines. Each is a compact, squat, octagonal armoured hull, about as wide as it is long, flat-topped with chamfered corners, carried on jointed legs that each end in a fat armoured drive wheel; the legs can lift a wheel to step over rubble. The legs leave the hull's flanks horizontally and kink down to the wheels, so the wheels sit well out from the hull at the corners. LIGHT: a small square hull on four wheel-legs, one empty round weapon socket on top. MEDIUM: a rectangular hull on four heavier wheel-legs, two empty round sockets side by side on top and one empty square missile hatch. HEAVY: a long rectangular hull on six wheel-legs (three a side), two large empty round sockets and two empty square missile hatches.\n\nEvery weapon mount is drawn EMPTY: a dark recessed round socket ring or a square hatch, with no gun, barrel, launcher or turret in it. Guns are separate parts added later.\n\nLayout: one wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale so the heavy is clearly the biggest (about twice the light's length). Every machine faces the TOP edge of the sheet. Each machine is symmetric about its own vertical centre line.\n\nThe reference image is a sheet of surface swatches cut from Starsector's midline warships: take only their material, colour and surface detail, never any shape. Weathered tan, khaki and bone-coloured armour plate with olive-grey shading and crisp engraved panel lines, chamfered slab panels bolted in clean overlapping layers, over dark grey and gunmetal machinery (pistons, conduits, vents) showing in the gaps; round recessed socket rings; small yellow-green indicator lights; light grime in the recesses; light from the upper left. These are compact ground machines about the size of a tank or an armoured car.\n\nStrict 90-degree zenith orthographic top-down view of the machines' top surfaces. True transparent background, including all negative space between wheels, legs and parts; no ground, shadow slab, cast shadow, halo, border, text, labels or logos. Paint at full resolution as crisp, detailed game-sprite concept art, not pixel art.\n\nAvoid: any resemblance to a starship; a forked or split prow, twin prongs or a V-shaped nose; a dome; bird or chicken legs; guns or barrels of any kind; tracks; a hovering skimmer; a two-legged walker; rusty scrap; steel-blue or white plastic; a cockpit canopy; a pilot figure; perspective, side view or isometric view; cropped machines; more or fewer than three machines; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\midline\\ref-midline-material.png",
+      "sha256": "7f8160abd234bf83a773054cd4cd716acc0cf4a15cf537e90ba8e32d9f507b1b",
+      "dimensions": [
+        1580,
+        540
+      ],
+      "mode": "RGBA",
+      "role": "Material, colour and surface detail only; contains no shapes to copy"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent concept sheet with all three rover walkers, using the reference only for materials and surface detail.\n"
+  ],
+  "usage": {
+    "input_tokens": 40887,
+    "cached_input_tokens": 33280,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 848,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.6
+}

@@ -606,7 +606,10 @@ increasing an encounter's total armored threat.
   plating move speed and armor capacity along the chassis's own band, from its
   stock value to its refit ceiling (roughly the pre-cut value), so no fit makes
   one chassis another. The capacitor bank sets the reservoir and base dissipation, each vent array
-  adds to it, and an uprated engine runs hotter. The budget reads the whole compartment's mass;
+  adds to it, and an uprated engine runs hotter. A chassis may carry a **plant** of its own beside the bank
+  (`MechVariant.plantDissipation`, `plantCapacity`), as the laser hulls do, so its stock fit runs at its tech
+  family's heat (`machine-budgets.md`): the Bulwark sheds 6 more a second, the crawler 3 more on a reservoir 50
+  larger. The budget reads the whole compartment's mass;
   an empty compartment reads as the factory bank for frame values, the stand-in a bare frame's
   card shows. Battle reads only these values;
   internals, mass and budget stay campaign authority.

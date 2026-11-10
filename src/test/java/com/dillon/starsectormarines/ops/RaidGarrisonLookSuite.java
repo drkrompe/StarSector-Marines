@@ -25,10 +25,10 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district), one look per
- * {@link Cantonment.Plan} across market sizes and security grades: the garrison framed whole
- * ({@code <plan>-<case>-garrison.png}) and the whole map ({@code <plan>-<case>-whole.png}), look preset, 1920x1080.
- * The plan is chosen through {@link Cantonment#PLAN_PROPERTY} for each set; nothing is played.
+ * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district) across market
+ * sizes and security grades, one set per {@link Cantonment.Layout} (or only the one {@link Cantonment#LAYOUT_PROPERTY}
+ * names): the garrison framed whole ({@code <layout>-<case>-garrison.png}) and the whole map
+ * ({@code <layout>-<case>-whole.png}), look preset, 1920x1080. Nothing is played.
  */
 public final class RaidGarrisonLookSuite implements SnapshotSuite {
 
@@ -41,46 +41,46 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "raid-garrison-look"; }
 
-    @Override public String label() { return "The Raid site's garrison district in rows, each plan, look preset"; }
+    @Override public String label() { return "The Raid site's garrison district, look preset"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String only = System.getProperty(Cantonment.PLAN_PROPERTY, "");
-        String before = System.getProperty(Cantonment.PLAN_PROPERTY);
+        String only = System.getProperty(Cantonment.LAYOUT_PROPERTY, "");
+        String before = System.getProperty(Cantonment.LAYOUT_PROPERTY);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-                if (!only.isBlank() && !plan.name().equalsIgnoreCase(only.trim())) continue;
-                System.setProperty(Cantonment.PLAN_PROPERTY, plan.name());
-                String key = plan.name().toLowerCase(Locale.ROOT);
-                for (Case c : CASES) {
-                    TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
-                            EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
-                                    EconomicFunction.HABITATION),
-                            SurfacePalette.ROCK, SettlementLink.ROAD);
-                    try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
-                            false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null,
-                            null, RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
-                        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
-                        float[] hq = headquarters(sim.getTopology(), w, h);
-                        System.out.printf(Locale.ROOT, "[%s] %s %s headquarters at %.0f,%.0f%n", id(), key, c.id(),
-                                hq[0], hq[1]);
-                        out.add(new SnapshotArtifact(key + "-" + c.id() + "-garrison.png",
-                                BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, hq[2], hq[3],
-                                        hq[4]).withMissionMarkers().render(sim, "")));
-                        out.add(new SnapshotArtifact(key + "-" + c.id() + "-whole.png",
-                                BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, w / 2f, h / 2f,
-                                        Math.max(w, h * 16f / 9f) + 4f).withMissionMarkers().render(sim, "")));
-                    }
-                }
+            for (Cantonment.Layout layout : Cantonment.Layout.values()) {
+                if (!only.isBlank() && !layout.name().equalsIgnoreCase(only.trim())) continue;
+                System.setProperty(Cantonment.LAYOUT_PROPERTY, layout.name());
+                for (Case c : CASES) out.addAll(shots(context, layout.name().toLowerCase(Locale.ROOT), c));
             }
             return out;
         } finally {
-            if (before == null) System.clearProperty(Cantonment.PLAN_PROPERTY);
-            else System.setProperty(Cantonment.PLAN_PROPERTY, before);
+            if (before == null) System.clearProperty(Cantonment.LAYOUT_PROPERTY);
+            else System.setProperty(Cantonment.LAYOUT_PROPERTY, before);
+        }
+    }
+
+    private List<SnapshotArtifact> shots(SnapshotContext context, String key, Case c) throws Exception {
+        TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
+                EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT, EconomicFunction.HABITATION),
+                SurfacePalette.ROCK, SettlementLink.ROAD);
+        try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(), false,
+                c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
+                RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
+            int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+            float[] hq = headquarters(sim.getTopology(), w, h);
+            System.out.printf(Locale.ROOT, "[%s] %s %s headquarters at %.0f,%.0f%n", id(), key, c.id(), hq[0], hq[1]);
+            return List.of(
+                    new SnapshotArtifact(key + "-" + c.id() + "-garrison.png",
+                            BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, hq[2], hq[3], hq[4])
+                                    .withMissionMarkers().render(sim, "")),
+                    new SnapshotArtifact(key + "-" + c.id() + "-whole.png",
+                            BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, w / 2f, h / 2f,
+                                    Math.max(w, h * 16f / 9f) + 4f).withMissionMarkers().render(sim, "")));
         }
     }
 
