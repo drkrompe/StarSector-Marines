@@ -121,6 +121,11 @@ target's edge, since the basalt joins no feathered material, as snow does not.
 plus a material family; where its layout is rock's, `layoutOf` and
 `paletteGroundRender` make it an art change only, as volcanic is.
 
+Types that share a palette are told apart by a surface signature rather than by
+more palettes (`mapgen-nouns.md`, surface signatures): cryovolcanic, bombarded,
+venus-like, unstable, cast-iron and metallic worlds each wear one. `toxic_cold`
+has none yet; it waits on the toxic palette.
+
 `mapgen-nouns.md` owns planet terrain and mineral-field behavior. Additional
 palettes must select appropriate permanent masses and destructible obstacles
 alongside ground materials, preserving their separate gameplay contracts.

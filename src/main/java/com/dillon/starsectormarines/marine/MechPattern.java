@@ -80,9 +80,10 @@ public record MechPattern(Kind kind, String definitionId) {
         // The missile carriers: a rocket rig any workshop bolts together, and the APC line's long arm against armor.
         VEHICLE_TIERS.put(VehicleType.SRM_TECHNICAL, EquipmentAccessTier.COMMON);
         VEHICLE_TIERS.put(VehicleType.LRM_CARRIER, EquipmentAccessTier.ADVANCED);
-        // Tri-Tachyon's hover line: a screen first, the drone carrier above it.
+        // Tri-Tachyon's skimmer line: a screen first, the drone carrier and the shielded heavy above it.
         VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
+        VEHICLE_TIERS.put(VehicleType.HEAVY_SKIMMER, EquipmentAccessTier.PRESTIGE);
 
     }
 

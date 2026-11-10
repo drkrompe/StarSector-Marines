@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.model.SurfaceSignature;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -98,5 +99,31 @@ class SurfaceZoningTest {
                 SettlementLink.ROAD);
         assertEquals(SurfacePalette.ROCK, p.surface());
         assertEquals(SurfacePalette.ROCK, TargetProfile.NEUTRAL.surface());
+    }
+
+    /**
+     * Types that share a palette are told apart by their signature, chosen beside the palette rather than as one:
+     * the signature never changes which palette a type reads as.
+     */
+    @Test
+    void sharedPaletteTypesWearTheirOwnSignature() {
+        assertEquals(SurfaceSignature.CRYO_VENTS, SurfaceZoning.signatureFor("cryovolcanic"));
+        assertEquals(SurfaceSignature.CRATER_FIELD, SurfaceZoning.signatureFor("barren-bombarded"));
+        assertEquals(SurfaceSignature.HOT_HAZE, SurfaceZoning.signatureFor("barren_venuslike"));
+        assertEquals(SurfaceSignature.FISSURES, SurfaceZoning.signatureFor("rocky_unstable"));
+        assertEquals(SurfaceSignature.METAL_FLECKED, SurfaceZoning.signatureFor("barren_castiron"));
+        assertEquals(SurfaceSignature.METAL_FLECKED, SurfaceZoning.signatureFor("Rocky_Metallic"));
+        assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("cryovolcanic"));
+        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren-bombarded"));
+    }
+
+    /** A plain type, an unknown one and no planet at all carry nothing beyond the palette. */
+    @Test
+    void plainAndUnknownTypesHaveNoSignature() {
+        assertEquals(SurfaceSignature.NONE, SurfaceZoning.signatureFor("barren"));
+        assertEquals(SurfaceSignature.NONE, SurfaceZoning.signatureFor("frozen"));
+        assertEquals(SurfaceSignature.NONE, SurfaceZoning.signatureFor("some_modded_type"));
+        assertEquals(SurfaceSignature.NONE, SurfaceZoning.signatureFor(null));
+        assertEquals(SurfaceSignature.NONE, TargetProfile.NEUTRAL.signature());
     }
 }
