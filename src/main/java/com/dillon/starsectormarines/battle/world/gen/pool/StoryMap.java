@@ -15,7 +15,20 @@ public enum StoryMap {
     HEART_BURN_CITY("heart-burn-city"),
     HEART_FRONT_CITY("heart-front-city"),
     /** Colony Breach's colony, one map per biome while the mission is tuned (owner, 2026-10-26). */
-    COLONY_BREACH("colony-breach");
+    COLONY_BREACH("colony-breach"),
+    /**
+     * The generic Raid's map ({@code raid-mission.md}, The owned map): a raid for valuables, and a raid on an industry with no site
+     * of its own. Every Raid map below is laid on the reference market, not the raided one.
+     */
+    RAID("raid"),
+    /** Each industry's Raid site ({@code RaidSiteTemplate}), one owned map per site. */
+    RAID_HEAVY_INDUSTRY("raid-heavy-industry"),
+    RAID_MINING("raid-mining"),
+    RAID_REFINING("raid-refining"),
+    RAID_LIGHT_INDUSTRY("raid-light-industry"),
+    RAID_FARMING("raid-farming"),
+    RAID_SPACEPORT("raid-spaceport"),
+    RAID_MILITARY("raid-military");
 
     /** The pool file's name and the {@code map} it declares. */
     public final String id;

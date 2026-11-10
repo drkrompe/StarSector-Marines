@@ -140,6 +140,27 @@ GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "l
 MELT_GRADE = (0.80, 0.62, 0.50)
 
 
+# Floor paint is flat: ImageGen drew the pallet bay's corners as raised ochre angle, so the bay is painted from its
+# guide's own marks instead, in worn ochre with scuffed-through patches and a fine speckle, and no light or edge.
+PAINT = (150, 128, 74)
+PAINT_ALPHA = 190
+
+
+def flat_paint(guide_frame, size):
+    rgb = np.asarray(guide_frame.convert("RGB")).astype(int)
+    mark = (np.abs(rgb - np.array(make_guide.PAINT[:3])).sum(axis=2) < 30).astype(np.uint8) * 255
+    mask = np.asarray(Image.fromarray(mark, "L").resize(size, Image.BILINEAR)).astype(np.float32) / 255
+    rng = np.random.default_rng(7)
+    w, h = size
+    wear = np.asarray(Image.fromarray((rng.random((h // 12 + 1, w // 12 + 1)) * 255).astype(np.uint8), "L")
+                      .resize(size, Image.BICUBIC)).astype(np.float32) / 255
+    speck = rng.random((h, w)).astype(np.float32)
+    alpha = mask * PAINT_ALPHA * np.clip((wear - 0.1) * 4, 0, 1) * (0.72 + 0.28 * speck)
+    tint = (0.88 + 0.12 * wear)[..., None] * np.array(PAINT, dtype=np.float32)
+    out = np.dstack([np.clip(tint, 0, 255), alpha]).astype(np.uint8)
+    return Image.fromarray(out, "RGBA")
+
+
 def heal_run(piece):
     a = np.asarray(piece.convert("RGBA")).astype(np.float32)
     h = a.shape[0]
@@ -172,6 +193,8 @@ def grade_melt(piece):
 
 
 def grade(pid, piece):
+    if pid == "pallet-bay":
+        return piece
     if pid == "thrust-wash":
         # Drawn a pale brown that vanished on the hall floor: taken down to soot.
         a = np.asarray(piece).astype(np.float32)
@@ -216,6 +239,8 @@ def cut(family):
                 lambda v, cap=CAP[pid.split("-")[0]], f=f, top=top:
                 0 if v < f else min(cap, round((v - f) * cap / (top - f))))
             piece.putalpha(alpha)
+        if pid == "pallet-bay":
+            piece = flat_paint(guide.crop((x, y, x + w, y + h)), piece.size)
         if pid in MELT_SPLIT:
             body, over = split_melt(piece, guide.crop((x, y, x + w, y + h)))
             yield pid, body
