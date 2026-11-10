@@ -1782,9 +1782,14 @@ public final class RuinsDelveStage implements GenStage {
                     piece(registry, coolingRack(wx, y0), wx, y0 - 9, 2, 4, hall, centre);
                     piece(registry, coolingRack(ex, y0), ex, y0 - 9, 2, 4, hall, centre);
                 }
-                // Work stopped mid-pour: one line's ladle tipped beside the trench.
+                // Work stopped mid-pour: one line's ladle tipped beside the trench, the next's ladle lift tipped
+                // over its junction where it hung.
                 if (line == 1 && piece(registry, "doodad.ruins-crucible-tipped", cx + 2, y0 + 3, 3, 3, hall, centre)) {
                     over(registry, "doodad.ruins-crucible-tipped-spill", cx + 2, y0 + 3);
+                }
+                if (line == 2) {
+                    over(registry, "doodad.ruins-ladle-lift-tipped", cx - 2, y0 - 1);
+                    over(registry, "doodad.ruins-ladle-lift-tipped-pour", cx - 2, y0 - 1);
                 }
                 // The line's wear: coolant spilt by the racks, a floor drain in each aisle, its castings' oil.
                 if (hash(cx, y0, 0xC00) % 2 == 0) lay(registry, "doodad.ruins-coolant-stain", cx - 12, y0 - 5, under);
@@ -1792,7 +1797,7 @@ public final class RuinsDelveStage implements GenStage {
                 lay(registry, "doodad.ruins-floor-drain", cx - 4, y0 - 5, under);
                 lay(registry, "doodad.ruins-floor-drain", cx + 3, y0 - 5, under);
                 if (hash(cx, y0, 0x011) % 3 == 0) lay(registry, "doodad.ruins-oil-stain", cx + 14, y0 - 11, under);
-                // A crane girder fallen across the west aisle, the hall's best cover.
+                // A crane girder fallen across the west aisle under its runway, the hall's best cover.
                 if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 1, y0 - 4, 7, 1, hall, centre);
             }
             // The head, east of the line: ladles waiting by the spout, the charge racks feeding the crucible, the
@@ -1826,12 +1831,38 @@ public final class RuinsDelveStage implements GenStage {
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
             if (great) {
-                // Scorch round the spout and the core's flank.
+                // A ladle lift hung under the spout to take the pour; scorch round the spout and the core's flank.
+                over(registry, "doodad.ruins-ladle-lift", cx - 2, lineHead - 4);
+                over(registry, "doodad.ruins-ladle-lift-melt", cx - 2, lineHead - 4);
                 lay(registry, "doodad.ruins-scorch-mark", cx + 1, lineHead - 3, under);
                 lay(registry, "doodad.ruins-scorch-arc", gx - 2, gy + 6, under);
                 feedRail(registry, hall, centre, gy);
             }
             dispatch(registry, hall, centre, under);
+            overheads(registry, hall, centre);
+        }
+
+        /**
+         * The mega forge's overhead structure, drawn above the people under it and hidden under the hall's roof until it
+         * fades ({@code ruins-forge-motions}): a crane runway down each long wall, and a cable tray down the east side of
+         * the pour line, broken where a length of it lies fallen on the floor.
+         */
+        private void overheads(TileRegistry registry, Area hall, Cell centre) {
+            for (int y = hall.bottom(); y + 3 <= hall.top(); y += 4) {
+                lay(registry, "doodad.ruins-crane-runway", hall.left(), y);
+                lay(registry, "doodad.ruins-crane-runway", hall.right(), y);
+            }
+            int tx = hall.centreX() + 2;
+            boolean fallen = false;
+            for (int y = hall.bottom() + 6; y + 1 <= hall.top() - 10; y += 2) {
+                if (!fallen && y >= hall.centreY()
+                        && piece(registry, "doodad.ruins-cable-tray-fallen", tx + 1, y, 1, 4, hall, centre)) {
+                    fallen = true;
+                    y += 2;
+                    continue;
+                }
+                lay(registry, "doodad.ruins-cable-tray", tx, y);
+            }
         }
 
         /**

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.ruins.RuinsBatteryGuns;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
@@ -123,6 +124,20 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact("inside/" + name + "-foundry-head.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, f.centreX() + 0.5f, f.top() - 12f, f.width() + 14f)
                             .withoutRoofs().render(sim, "")));
+                    // The roof pass on with the hall's roof faded, as for the people inside: the hall's overhead
+                    // structure over its floor. A roofs-off shot leaves out the roof pass, overheads and all.
+                    Building roof = sim.getBuildings().get(sim.getTopology().getBuildingId(f.centreX(), f.centreY()));
+                    if (roof != null) {
+                        float was = roof.currentAlpha;
+                        roof.currentAlpha = 0f;
+                        out.add(new SnapshotArtifact("inside/" + name + "-foundry-overhead.png",
+                                BattleReviewFrameRenderer.look(context.modRoot(), W, H, f.centreX() + 0.5f,
+                                        f.centreY() + 0.5f, fit).render(sim, "")));
+                        out.add(new SnapshotArtifact("inside/" + name + "-foundry-head-overhead.png",
+                                BattleReviewFrameRenderer.look(context.modRoot(), W, H, f.centreX() + 0.5f,
+                                        f.top() - 12f, f.width() + 14f).render(sim, "")));
+                        roof.currentAlpha = was;
+                    }
                     // The south half: the feed and slag lanes running to the dispatch end.
                     out.add(new SnapshotArtifact("inside/" + name + "-foundry-lanes.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, f.centreX() + 0.5f, f.bottom() + f.height() * 0.3f,
