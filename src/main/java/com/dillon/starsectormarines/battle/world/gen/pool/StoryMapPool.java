@@ -38,6 +38,8 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
     public StoryMapPool {
         Map<SurfacePalette, List<Entry>> copy = new EnumMap<>(SurfacePalette.class);
         for (SurfacePalette biome : SurfacePalette.values()) {
+            // A palette laid out as another plays that one's maps (SurfacePalette.layoutOf): it pools none of its own.
+            if (biome.layoutOf() != biome) continue;
             List<Entry> entries = biomes.get(biome);
             if (entries == null || entries.isEmpty()) throw new IllegalArgumentException(map + " has no " + biome + " maps");
             Set<Long> seeds = new HashSet<>();
@@ -52,8 +54,8 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
         biomes = Map.copyOf(copy);
     }
 
-    /** The maps of one biome, in pool order. */
-    public List<Entry> entries(SurfacePalette biome) { return biomes.get(biome); }
+    /** The maps of one biome, in pool order: those of the biome it is laid out as ({@link SurfacePalette#layoutOf}). */
+    public List<Entry> entries(SurfacePalette biome) { return biomes.get(biome.layoutOf()); }
 
     /** The entry a campaign battle plays on a world of this biome for a roll its event carries. */
     public Entry pick(SurfacePalette biome, long roll) {
@@ -81,6 +83,7 @@ public record StoryMapPool(StoryMap map, Map<SurfacePalette, List<Entry>> biomes
         JSONObject biomes = json.getJSONObject("biomes");
         Map<SurfacePalette, List<Entry>> out = new EnumMap<>(SurfacePalette.class);
         for (SurfacePalette biome : SurfacePalette.values()) {
+            if (biome.layoutOf() != biome) continue;
             JSONArray seeds = biomes.optJSONArray(biome.name());
             if (seeds == null) continue;
             List<Entry> entries = new ArrayList<>();

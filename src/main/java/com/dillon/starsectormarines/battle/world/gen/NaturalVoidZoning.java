@@ -53,13 +53,15 @@ public final class NaturalVoidZoning {
     private NaturalVoidZoning() { }
 
     /**
-     * The drop a world of this palette is cut by. A molten world's palette takes {@link #LAVA_RIFT}.
+     * The drop a world of this palette is cut by. A volcanic world takes {@link #LAVA_RIFT}.
      */
     public static Drop forPalette(SurfacePalette palette) {
         return switch (palette) {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
             case ROCK, ARID -> CANYON;
+            // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
+            case VOLCANIC -> LAVA_RIFT;
         };
     }
 }

@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a3-83c2-7b82-b771-36521f533811",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a3-83c2-7b82-b771-36521f533811\\exec-4b13331a-bd3d-47af-a77f-f117d9313208.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\volcanic-ground\\lava-fissures.png",
+    "sha256": "d4d7b9b7d0d0ee142d70eef8d9f9102753fcafe16de941823b5ea3729bbfad75",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\volcanic-ground\\lava-fissures.prompt.txt",
+  "promptSha256": "716245ea3096d9b5334750c693f95877634533abb56c9c64619c7f03c8a0f240",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA sprite sheet of glowing lava fissures for a top-down tactical game, seen straight down from above, on a PURE BLACK background (RGB 0,0,0 everywhere that is not glowing). The sheet is drawn additively over dark basalt ground, so black means \"adds nothing\": there must be no ground, rock, texture, smoke or grey anywhere, only light.\n\nLay out eight separate sprites in a 4 x 2 grid, each well inside its own quarter-by-half cell with generous black space around it, none touching another or the edge:\n1-4: thin, jagged, branching cooling cracks with a molten core: a bright yellow-white hairline at the centre of the deepest part, orange along the crack, fading to deep red and then black at the tips and edges. Different shapes: a long single crack with two side branches; a short forked crack; a zigzag crack; a three-way junction crack.\n5-6: small round volcanic vents seen from above: a ring of dull red-orange glow around a brighter orange-yellow throat, soft falloff to black.\n7-8: a cluster of tiny scattered glowing pinprick embers and short crack fragments, sparse.\n\nGlow is soft and believable, not neon; the brightest core is small. No text, no labels, no border, no grid lines.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one sprite sheet with the eight lava-glow sprites on pure black."
+  ],
+  "usage": {
+    "input_tokens": 37526,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 454,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 36.3
+}
