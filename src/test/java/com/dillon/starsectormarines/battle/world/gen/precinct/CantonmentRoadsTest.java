@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A cantonment's square and its one road in: the square slides off ground another place holds, every road across its
- * claim is taken up, one straight road runs from the square's middle to the nearest road outside, and a weld goes round.
+ * claim is taken up, one straight road runs from the gate to the nearest road outside, and a weld goes round.
  */
 class CantonmentRoadsTest {
 
@@ -33,14 +33,15 @@ class CantonmentRoadsTest {
         assertEquals(2, owner[25][5], "but not outside it");
         boolean[][] blocked = CantonmentRoads.blocked(null, W, H);
         CantonmentRoads.block(blocked, claim, owner, 0, W, H);
-        assertTrue(blocked[12][14] && !blocked[25][20], "a weld goes round it, all but its road in");
+        assertTrue(blocked[12][14] && !blocked[27][20], "a weld goes round it, all but its road in");
         // Two sides as near: the one facing the map's middle, east.
-        for (int x = 20; x < 40; x++) {
+        int gate = 29 - CantonmentRoads.LANE;                          // the patrol lane inside the east wall
+        for (int x = gate; x < 40; x++) {
             for (int dy = -CantonmentRoads.HALF; dy <= CantonmentRoads.HALF; dy++) {
                 assertEquals(0, owner[x][20 + dy], "the road runs straight east at " + x + "," + (20 + dy));
             }
         }
-        assertEquals(GrownTrunkPlan.UNOWNED, owner[19][20], "and only from the middle out");
+        assertEquals(GrownTrunkPlan.UNOWNED, owner[gate - 1][20], "and ends at the gate, short of the parade");
         assertEquals(1, owner[40][20], "it ends on the town's road, joining that network");
         for (int y = 3; y < 10; y++) assertEquals(GrownTrunkPlan.UNOWNED, owner[20][y], "not south as well");
     }
@@ -135,7 +136,7 @@ class CantonmentRoadsTest {
         for (int x = 0; x < 20; x++) for (int y = 10; y < 30; y++) claim[x][y] = 0;
         CantonmentRoads.lay(claim, owner, 0, W, H);
         boolean east = true;
-        for (int x = 10; x < W; x++) east &= owner[x][20] == 0;
+        for (int x = 19 - CantonmentRoads.LANE; x < W; x++) east &= owner[x][20] == 0;
         assertTrue(east, "with no road anywhere it runs toward the map's middle and on to the edge");
     }
 }
