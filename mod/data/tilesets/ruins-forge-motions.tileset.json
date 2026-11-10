@@ -1,0 +1,11 @@
+{
+  "note": "The mega forge hall's overhead structure: each piece is a fixed part on itself in the overhead layer, so it draws in the roof pass above the people under it and never as a ground doodad beneath them. The pieces carry no cover and are never fixtures, so they block neither movement nor sight. Hand-authored: tileset exports rewrite their own documents, so motions live here. See PropMotion.",
+  "motions": [
+    {"doodad": "doodad.ruins-crane-runway", "parts": [{"part": "doodad.ruins-crane-runway", "kind": "fixed", "layer": "overhead", "at": [0.5, 2.0]}]},
+    {"doodad": "doodad.ruins-cable-tray", "parts": [{"part": "doodad.ruins-cable-tray", "kind": "fixed", "layer": "overhead", "at": [0.5, 1.0]}]},
+    {"doodad": "doodad.ruins-ladle-hook", "parts": [{"part": "doodad.ruins-ladle-hook", "kind": "fixed", "layer": "overhead", "at": [1.5, 1.5]}]},
+    {"doodad": "doodad.ruins-ladle-hook-melt", "parts": [{"part": "doodad.ruins-ladle-hook-melt", "kind": "fixed", "layer": "overhead", "at": [1.5, 1.5]}]},
+    {"doodad": "doodad.ruins-ladle-hook-tipped", "parts": [{"part": "doodad.ruins-ladle-hook-tipped", "kind": "fixed", "layer": "overhead", "at": [1.5, 1.5]}]},
+    {"doodad": "doodad.ruins-ladle-hook-tipped-pour", "parts": [{"part": "doodad.ruins-ladle-hook-tipped-pour", "kind": "fixed", "layer": "overhead", "at": [1.5, 1.5]}]}
+  ]
+}

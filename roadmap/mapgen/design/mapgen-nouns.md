@@ -2165,7 +2165,21 @@ head to the north:
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
-- the dispatch end left clear.
+- the dispatch end clear of the line: the trench runs on under covers,
+  pallet bays are marked along it, fettling and inspection benches stand by,
+  and a slag path (generic, like the feed path) leaves the slag heaps for the
+  east wall;
+- a crane girder fallen across the west aisle as cover;
+- wear laid under it all: scorch round the spout and the core's flank,
+  coolant by the racks, a floor drain in each aisle, oil and skid marks at
+  dispatch. Markings, wear and overhead pieces are not work, so they never
+  turn a floor zone to deck plate.
+
+The hall's overhead structure (crane runways, cable trays, crane ladles) is
+authored to draw above units (`ruins-forge-motions`) but not yet laid: the
+roof pass draws overhead props after the roofs, so inside a roofed hall they
+would show on top of its shut roof. They wait until overhead props under a
+roof draw beneath it and show as it fades.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
