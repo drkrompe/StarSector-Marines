@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ae-4dd0-7c40-afae-7306d21611cf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ae-4dd0-7c40-afae-7306d21611cf\\exec-5932d356-3090-4697-83f9-3887803279cc.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\tt-hover\\skimmer-heavy-hull-raw.png",
+    "sha256": "bb697289e676f0670118e532430776496a17d13382a8fb24246bcbf112b24dd2",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\tt-hover\\skimmer-heavy-hull-prompt.txt",
+  "promptSha256": "5cda5b5c8292cc77f407ddf513d89c55e3cc3a7c7e40cf76028e99b1eb69b8fc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: fill in, never move\nImage 2: Identity reference: design language only, draw no gun\nImage 3: Material/style only; not layout\n\nPaint image 1, a flat grey geometry guide, as a finished top-down game sprite of the heavy skimmer, a long armoured hull that carries a heavy lance turret on its spine. The dark disc on the live hull is an EMPTY round turret ring, a recessed socket with a bearing race and no gun in it, because the gun is a separate layer drawn later. It is a Tri-Tachyon HIGH-TECH SKIMMER, a combat hover vehicle that floats a hand's breadth off the ground on grav-lift drives, with no wheels, tracks, legs or skirt: round lift rings sunk into the underside edges show past the hull rim as soft blue glowing rings, and a ribbed thruster bank sits at the stern.\n\nImage 1 is the exact silhouette authority: fill each grey shape exactly, never move, rotate, rescale or add to it; you may only smooth its stepped edges into clean curves. Keep the empty canvas empty.\n\nImage 2 is the IDENTITY reference: the same machine from the owner's chosen concept, with its gun painted in. Copy its design (armour lobe layout, sockets, glow rings, engine bank) onto the guide's outline, but draw NO gun, barrel, lance or turret anywhere on the hull: the vehicle is modular and every weapon is a separate layer.\n\nImage 3 is material and style reference only, never layout: Starsector's high-tech hulls (Tempest, Aurora, Medusa, Paragon). Match their finish: pale steel-blue and blue-grey armour shells, rounded, bulging and layered like carapace, over dark busy gunmetal machinery (ribbed conduits, actuators, heat-sink fins, small blue-lit ports) in the gaps; small blue glow slots; a little wear and grime in the recesses; light from the upper left. Grounded and believable, a tank-sized ground machine.\n\nThe right panel is the same skimmer WRECKED: armour scorched and blackened, a burn-through hole, a cracked lobe, machinery exposed and charred, every glow dark and cold, no lights.\n\nStrict 90-degree overhead orthographic view, no perspective tilt. Both machines face LEFT (nose toward the left edge), exactly where the guide puts them, at exactly the guide's size. True transparent background with genuine alpha outside the silhouettes; no ground, cast-shadow slab, halo, labels, text, border or checkerboard. Same canvas size and 2:1 aspect as the guide.\n\nAvoid: any gun, barrel or turret on the hull, a cockpit canopy, a pilot, clean white plastic, long glowing light strips, tan or olive paint, perspective, side view.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tt-hover\\skimmer-heavy-guide.png",
+      "sha256": "10f5fa885018e1a87bc5e37aa26955423fa1fedada96bfa8d41877f7ff552452",
+      "dimensions": [
+        1792,
+        896
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: fill in, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\tt-hover\\skimmer-heavy-concept.png",
+      "sha256": "779aa9f73b809165b2c91d6b8362f326e417d80944a58898acb4ee26441b7152",
+      "dimensions": [
+        768,
+        422
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference: design language only, draw no gun"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\hightech\\ref-tt-hulls.png",
+      "sha256": "b10a47b5f2b0ba381be2fddeec826f6dd7fdaecfd2c3e3aa008c2498ba7ce5c1",
+      "dimensions": [
+        1938,
+        600
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, preserving the guide’s silhouettes and empty turret socket, with a cold, damaged wreck on the right."
+  ],
+  "usage": {
+    "input_tokens": 46243,
+    "cached_input_tokens": 38528,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 758,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.2
+}
