@@ -41,9 +41,10 @@ the ruins and guesses what is inside before committing the company.
    - Art made for a theme where the shipped props fall short: frost and vats
      are built (props and floor patches), with the plant kit every theme's
      halls share and every theme's product, each whole, half-built and
-     wrecked (armory and depot keep existing props). The foundry hall's pieces
-     (crucibles, mould grid, catwalk deck, `FOUNDRY` lip and firebrick wall)
-     and hoist gear with a shaft head (mantle bore) are still owed. Concepts: `art-source/ruins-themes/raw/ruins-forge-concept.png`.
+     wrecked (armory and depot keep existing props). The foundry hall's pieces are
+     built too (crucibles with melt overlays, mould grid, catwalk deck, loose
+     props, and the `FOUNDRY` lip strip and firebrick wall textures); hoist
+     gear with a shaft head (mantle bore) is still owed. Concepts: `art-source/ruins-themes/raw/ruins-forge-concept.png`.
    - Theme on the approach outside.
 
 ## Constraints
