@@ -36,8 +36,12 @@ has not taken, and when the two disagree `origin` wins.
 ## Integrating by hand
 
 `tools/integrate.ps1` (`tools/integrate.sh` on the Mac) is the normal path; it
-stops at the first failure. Use the manual steps only when the script cannot
-run. From the main workspace, check it is on `main` and clean, then:
+stops at the first failure. It runs one at a time (a lock in the git common
+dir) and moves `main` before checking its tree out, so a run that loses a race
+leaves the main workspace clean. Use the manual steps only when the script
+cannot run, and never while another session may be integrating: a bare
+`git merge --ff-only` checks out first and moves the ref last, and a race
+between two of them leaves one session's tree on the other's HEAD. From the main workspace, check it is on `main` and clean, then:
 
 ```powershell
 git merge --ff-only session/<unique-name>
