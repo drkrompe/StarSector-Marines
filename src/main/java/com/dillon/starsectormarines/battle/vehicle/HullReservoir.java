@@ -46,20 +46,28 @@ public final class HullReservoir {
      */
     static final float LASER_TANK_PLANT_DISSIPATION = 10f;
 
-    /** What {@code type}'s hull sheds a second of its own, beside its rack's parts: the laser tank's plant, none elsewhere. */
-    public static float plantDissipation(VehicleType type) {
-        return type == VehicleType.LASER_TANK ? LASER_TANK_PLANT_DISSIPATION : 0f;
+    /**
+     * Whether {@code type} is built round the laser tank's power plant, bank and vent arrays: the laser tank, and the
+     * heavy skimmer, which carries the same PL-3 carriage and feeds its shield from the same pool (first-pass, UNTUNED).
+     */
+    private static boolean laserPlant(VehicleType type) {
+        return type == VehicleType.LASER_TANK || type == VehicleType.HEAVY_SKIMMER;
     }
 
-    /** The bank {@code type} is built with: the laser tank's own, the factory bank on every other armed hull. */
+    /** What {@code type}'s hull sheds a second of its own, beside its rack's parts: the laser plant's, none elsewhere. */
+    public static float plantDissipation(VehicleType type) {
+        return laserPlant(type) ? LASER_TANK_PLANT_DISSIPATION : 0f;
+    }
+
+    /** The bank {@code type} is built with: the laser plant's own, the factory bank on every other armed hull. */
     public static Frame stockBank(VehicleType type) {
         if (type == null || !type.hasTurretWeapon()) return null;
-        return type == VehicleType.LASER_TANK ? LASER_TANK_STOCK_BANK : FACTORY_BANK;
+        return laserPlant(type) ? LASER_TANK_STOCK_BANK : FACTORY_BANK;
     }
 
-    /** Vent arrays {@code type} is built with beside its bank: the laser tank's, none on any other hull. */
+    /** Vent arrays {@code type} is built with beside its bank: the laser plant's, none on any other hull. */
     public static int stockVentArrays(VehicleType type) {
-        return type == VehicleType.LASER_TANK ? LASER_TANK_STOCK_VENT_ARRAYS : 0;
+        return laserPlant(type) ? LASER_TANK_STOCK_VENT_ARRAYS : 0;
     }
 
     /**

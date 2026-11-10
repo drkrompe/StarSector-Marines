@@ -40,7 +40,8 @@ public final class MechPatternPicker {
                     MechPattern.of(MechWeaponComponent.SRM_15),
                     MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.HOVER_SCOUT),
-                    MechPattern.of(VehicleType.DRONE_SKIMMER)),
+                    MechPattern.of(VehicleType.DRONE_SKIMMER),
+                    MechPattern.of(VehicleType.HEAVY_SKIMMER)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
                     MechPattern.of(MechWeaponComponent.AC_6),
