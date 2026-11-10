@@ -40,8 +40,7 @@ public final class StormDrift {
 
     /** Banks drifts against every wall's face toward {@code wind}. Returns how many cells were drifted. */
     public static int paint(CellTopology topology, SurfaceField field, StormWind.Side wind) {
-        int dx = wind == StormWind.Side.WEST ? -1 : wind == StormWind.Side.EAST ? 1 : 0;
-        int dy = wind == StormWind.Side.NORTH ? -1 : wind == StormWind.Side.SOUTH ? 1 : 0;
+        int dx = wind.dx, dy = wind.dy;
         int w = topology.getWidth(), h = topology.getHeight(), drifted = 0;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {

@@ -110,7 +110,7 @@ public final class TargetProfileResolver {
     private static Climate climate(MarketAPI m) {
         List<String> ids = new ArrayList<>();
         if (m.getConditions() != null) for (MarketConditionAPI condition : m.getConditions()) ids.add(condition.getId());
-        return ClimateZoning.forConditions(ids, surface(m));
+        return ClimateZoning.forConditions(ids, surface(m), m.getId() == null ? 0L : m.getId().hashCode());
     }
 
     /**

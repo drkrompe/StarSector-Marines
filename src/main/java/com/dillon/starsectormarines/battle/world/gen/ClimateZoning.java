@@ -26,6 +26,14 @@ public final class ClimateZoning {
      * @param surface      what the world's ground is made of, from {@link SurfaceZoning}
      */
     public static Climate forConditions(Collection<String> conditionIds, SurfacePalette surface) {
+        return forConditions(conditionIds, surface, 0L);
+    }
+
+    /**
+     * The climate a world reads as, its prevailing wind drawn from {@code place}: any stable number for the planet
+     * (its market's id hashed), so every battle on that world faces the same way.
+     */
+    public static Climate forConditions(Collection<String> conditionIds, SurfacePalette surface, long place) {
         Set<String> ids = conditionIds == null ? Set.of() : Set.copyOf(conditionIds);
         EnumSet<Hazard> hazards = EnumSet.noneOf(Hazard.class);
         boolean airless = ids.contains("no_atmosphere");
@@ -37,6 +45,6 @@ public final class ClimateZoning {
                 || surface == SurfacePalette.ARID
                 || surface == SurfacePalette.FROZEN && ids.contains("very_cold");
         if (storms && !airless) hazards.add(Hazard.STORMS);
-        return new Climate(hazards);
+        return new Climate(hazards, StormWind.windward(place));
     }
 }
