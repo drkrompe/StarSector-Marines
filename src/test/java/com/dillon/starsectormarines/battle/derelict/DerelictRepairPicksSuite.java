@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.derelict;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite.CLOSE;
 import static com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite.FIXTURE;
@@ -59,6 +61,14 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             if (w.frame() == DerelictWalkerFrame.TENDER && sim.squadMemberCount(w.squadId()) > 0) tender = w;
             if (tender != null) break;
+        }
+        RuinsDelve.Area works = sim.getRuinsWorks() == null ? null
+                : DerelictSecurity.worksHall(sim.getRuinsWorks().delve());
+        log("works hall %s", works);
+        for (Map.Entry<Integer, Long> node : director.nodes().entrySet()) {
+            long id = node.getValue();
+            log("zone %d node at (%d, %d)%s", node.getKey(), world.cellX(id), world.cellY(id),
+                    works != null && works.contains(world.cellX(id), world.cellY(id)) ? " in the works hall" : "");
         }
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             log("walker lance %d %s zone %d post (%d, %d) members %d", w.squadId(), w.frame(), w.zoneId(), w.postX(),

@@ -170,17 +170,25 @@ between them.
   keeps the derived map. Every other mission's map is unchanged; the glacis is
   the standard 3 cells for every place but a Raid site's works.
 
+Each industry is a class of its own (`RaidIndustry`, listed in `RaidIndustries`):
+its works program, where its works and district stand, the ground it lays
+beside the works (a mine's pit), and how it dresses the built works
+(`RaidWorksDressingStage`, before the landscape pass). `RaidSiteTemplate` is
+the seam they share: the landing, homes, garrison, roads, walls and the seed's
+turn of the map, the same for every industry. The plan names its industry
+(`PrecinctPlan.raidIndustry`).
+
 The sites so far, each the same districts with the industry's own works:
 
 | Industry | Works (its machines first) | Industry round it |
 |---|---|---|
-| Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`FortressProgram.works`) | a dense industrial quarter and yards |
-| Mining (`mining`, `techmining`) | the head works as an ore-processing chain: the receiving house the pit's ore line lands on, the stockpile shed, a mill line per machine, the smelter, the loadout, stores (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
-| Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RaidWorksPrograms.refinery`) | a dense industrial quarter |
-| Light industry (`lightindustry`) | shop floors, a loading shed, stores (`RaidWorksPrograms.shops`) | a dense industrial quarter |
-| Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`RaidWorksPrograms.farmPlant`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
-| Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`RaidWorksPrograms.cargoTerminal`) | a dense industrial quarter |
-| Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`RaidWorksPrograms.motorPool`); the barracks are the garrison beside it | depots |
+| Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`HeavyIndustryWorks`, `FortressProgram.works`) | a dense industrial quarter and yards |
+| Mining (`mining`, `techmining`) | the head works as an ore-processing chain: the receiving house the pit's ore line lands on, the stockpile shed, a mill line per machine, the smelter, the loadout, stores (`MiningWorks`) | sparse ore yards and a railhead |
+| Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RefiningWorks`) | a dense industrial quarter |
+| Light industry (`lightindustry`) | the planet's fabrication works laid as its process (`LightIndustryWorks`): receiving dock and parts stores at the rear by the feeders, a fabrication shop per machine, assembly and a canteen in the yard, finishing and two dispatch sheds at the frontage by the haul road; its yard dressed by `FabricationYard` (an overhead parts line hall to hall in process order, the feeders' trucks at the dock, the work outside each hall's doors (lathes and mills at the shops, a roller line at assembly, racks at the stores, cased pallets at dispatch), stock yards of pallets on the open ground, the shifts' walkways from the canteen kept clear) | a dense industrial quarter |
+| Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`FarmingWorks`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
+| Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`PortWorks`) | a dense industrial quarter |
+| Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`MilitaryWorks`); the barracks are the garrison beside it | depots |
 
 The owner accepted heavy industry's site and asked for the rest in order
 (2026-11-09); every industry a raid can name now has a site, each awaiting the

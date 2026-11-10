@@ -102,17 +102,75 @@ public final class DerelictSecurity {
         for (int i = 0; i < count; i++) {
             int index = Math.round(i * step);
             int perimeter = Math.max(8, spacing * 3 / 4 + 2);
-            List<int[]> posts = new ArrayList<>();
-            List<Integer> used = new ArrayList<>();
-            for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
-                int at = Math.max(0, Math.min(cells - 1, index + offset));
-                if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
-                used.add(at);
-                posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
-            }
-            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, posts));
+            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, postsAround(route, index)));
         }
         return out;
+    }
+
+    /** A zone's walker posts: its node's route cell and a few cells either way along the route. */
+    static List<int[]> postsAround(int[] route, int index) {
+        int cells = route.length / 2;
+        List<int[]> posts = new ArrayList<>();
+        List<Integer> used = new ArrayList<>();
+        for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
+            int at = Math.max(0, Math.min(cells - 1, index + offset));
+            if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
+            used.add(at);
+            posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
+        }
+        return posts;
+    }
+
+    /**
+     * The layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): where the route runs through a works
+     * hall, the zone nearest it along the route (never the vault's) keeps its node in the hall, on the route cell
+     * nearest the hall's middle, with its posts round that cell and its perimeter over the whole hall. Its service
+     * bay and repair drone stand by the node, so the hall is where the zone is kept. Unchanged with no works hall, or
+     * none the route crosses.
+     */
+    public static List<ZonePlan> anchorAt(List<ZonePlan> plans, int[] route, RuinsDelve.Area hall) {
+        if (hall == null || plans.size() < 2) return plans;
+        int cells = route.length / 2;
+        int stand = -1;
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < cells; i++) {
+            int x = route[i * 2], y = route[i * 2 + 1];
+            if (!hall.contains(x, y)) continue;
+            int d = Math.abs(x - hall.centreX()) + Math.abs(y - hall.centreY());
+            if (d < best) {
+                best = d;
+                stand = i;
+            }
+        }
+        if (stand < 0) return plans;
+        int zone = 1;
+        for (int z = 1; z < plans.size(); z++) {
+            if (Math.abs(indexOf(route, plans.get(z)) - stand) < Math.abs(indexOf(route, plans.get(zone)) - stand)) {
+                zone = z;
+            }
+        }
+        ZonePlan was = plans.get(zone);
+        int perimeter = Math.max(was.perimeterCells(), Math.max(hall.width(), hall.height()) / 2 + 2);
+        List<ZonePlan> out = new ArrayList<>(plans);
+        out.set(zone, new ZonePlan(was.id(), route[stand * 2], route[stand * 2 + 1], perimeter,
+                postsAround(route, stand)));
+        return out;
+    }
+
+    private static int indexOf(int[] route, ZonePlan plan) {
+        for (int i = 0; i < route.length / 2; i++) {
+            if (route[i * 2] == plan.nodeX() && route[i * 2 + 1] == plan.nodeY()) return i;
+        }
+        return 0;
+    }
+
+    /** The interior's works hall, or null where the site has none. */
+    static RuinsDelve.Area worksHall(RuinsDelve delve) {
+        if (delve == null || delve.interior() == null) return null;
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+            if (hall.stage() == RuinsDelve.PlantStage.WORKS) return hall.footprint();
+        }
+        return null;
     }
 
     /** Route cells the heavies hold in the contingency: the way out, short of the landing. */
@@ -167,8 +225,18 @@ public final class DerelictSecurity {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
         }
         if (vault == null || vault.liftPoints().isEmpty()) return null;
-        int[] route = vault.liftPoints().get(0).route();
-        List<ZonePlan> plans = zonesAlong(route, zones(grade));
+        return install(sim, grade, delve, livery, vault.liftPoints().get(0).route(), vault.sourceCellX(),
+                vault.sourceCellY());
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, RuinsGrade, RuinsDelve, FlockLivery)}, on ground with no ruins vault: the
+     * zones are laid along {@code route} (cell pairs, the guarded place first) and the haul's escort is read round
+     * {@code sourceX, sourceY}. A battle with no {@code RuinsVaultObjective} never calls the contingency.
+     */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
+                                                   FlockLivery livery, int[] route, int sourceX, int sourceY) {
+        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksHall(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));
@@ -249,7 +317,7 @@ public final class DerelictSecurity {
                     heavy.postX(), heavy.postY()));
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
-                vault.sourceCellX(), vault.sourceCellY());
+                sourceX, sourceY);
         for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
             director.walkRound(round.getKey(), round.getValue());
         }
@@ -531,7 +599,10 @@ public final class DerelictSecurity {
         List<RuinsDelve.Area> halls = new ArrayList<>();
         for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
         if (halls.isEmpty()) halls.addAll(delve.interior().chambers());
-        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
+        RuinsDelve.Area works = worksHall(delve);
+        // A works hall is the layer's stand: its frame comes first, then the largest halls.
+        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> a.equals(works) ? 0 : 1)
+                .thenComparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
                 .thenComparingInt(RuinsDelve.Area::left).thenComparingInt(RuinsDelve.Area::bottom));
         List<int[]> out = new ArrayList<>();
         for (int i = 0; i < Math.min(count, halls.size()); i++) {

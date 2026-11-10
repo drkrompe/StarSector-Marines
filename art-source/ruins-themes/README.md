@@ -128,6 +128,26 @@ step down to the hall floor behind a trim, `mod/graphics/battle/floors/raised-fl
 top rows transparent so the panel shows through and their joints on the floors' panel grid (`art-source/floors/trims/`:
 `make_guide.py`, `derive.py`).
 
+The mega forge's transfer bridge over the breakout's lava pool (`RuinsDelveStage.transferBridge`) ships on its own
+sheet, `ruins-forge-bridge` (`_atlas-bridge.json`), from the `forge-bridge` family drawn by `bridge_kinds.py` at
+160 px a cell: `transfer-bridge-span` (2x4, healed along the span so copies join end to end east-west),
+`transfer-bridge-end` (the west abutment on its cast footing, mirrored for the east bank) and
+`transfer-bridge-span-damaged` (railing torn, deck split over the melt). All are floor: cover none.
+
+The rooms' furniture (`ruins-theme-rooms`, `RuinsRoom`) ships on `ruins-rooms` (`_atlas-rooms.json`): 61 pieces in
+ten families (`rooms-control`, `-lab`, `-shop`, `-crew`, `-boards-a/b`, `-instruments-a/b`, `-stocks-a/b`), listed
+once in `rooms_list.py` (id, footprint, block-out kind, layer, name, what) and drawn by `rooms_kinds.py` at 160 px a
+cell. Every piece stands against the north wall, its working face to the room; the ground turns it with its room.
+`stand` pieces block with medium cover, `floor` and `overhead` (the rework stand and its hoist) do not.
+`rooms_prompts.py` writes the briefs. The raws come back at their own aspect, so `export.register` fits the guide's
+frames to each raw's alpha bounds before cutting.
+
+The delve's weather (`RuinsWeather`) ships on its own sheet, `ruins-delve-weather` (`_atlas-weather.json`), from the
+`delve-weather` family, whose block-outs are drawn by `weather_kinds.py`: fallen ceiling and chips, a seep stain, the
+tongues of a world's ground blown in through a mouth (dust, sand, snow, ash, sulphur; each widest along its south edge,
+which is laid against the doorway), a root mat and a root run. They are cut at their frames and faded as the forge's
+stains are. The crack network and crack run came back as thorny twigs and do not ship.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

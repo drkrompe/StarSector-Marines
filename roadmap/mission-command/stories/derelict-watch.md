@@ -4,7 +4,8 @@ Status: IN PROGRESS — the owner picked (a) on `derelict-movement`,
 `derelict-waking`, `derelict-walker-sizes`, `derelict-repair` and
 `hall-frame-ram` ("It should tear and we should have wider doors as well for
 these facilities": the facility's doors and ways are widened by the ground).
-Open, built on (a) meanwhile: `derelict-tender` and `derelict-rearm`.
+The owner also picked (a) on `derelict-tender` and `derelict-rearm` (the
+zone-0 tender may keep the vault frame).
 What is built is listed under each mechanic.
 
 Written: 2026-11-10
@@ -218,7 +219,7 @@ that gives the company targets to deny.
 
 ## 5. Field repair: the tender
 
-Pick `derelict-tender` (open; building (a) meanwhile).
+Picked `derelict-tender`: (a), by the owner.
 
 The owner (2026-11-10): "crawlers or drones patching walkers". The repair drone
 keeps the site up between fights: it mends charges and raises wrecks, and it
@@ -252,7 +253,7 @@ a walker whose job is to do that.
 
 ## 6. Re-arming: racks fill at the service bay
 
-Pick `derelict-rearm` (open; building (a) meanwhile).
+Picked `derelict-rearm`: (a), by the owner.
 
 The owner: "the facility re-arming". Today a derelict walker's missile racks
 recharge in the field like any mech's, so the facility's supply never matters.
@@ -369,6 +370,14 @@ of each pick, slice 3's comms lines.
   director's `rearm` sends a walker to stand just off its bay (`bayStand`, the
   bay's own cell being the housing's) and puts packs in with
   `MechWeaponMount.resupplyOne`.
+
+- **The works hall is the layer's stand** (`ruins-expedition.md`, pick
+  `ruins-facility-beats` (a)). Where the route crosses a works hall, the zone
+  nearest it along the route (never the vault's) keeps its node in the hall on
+  the route cell nearest its middle, its posts round that cell and its perimeter
+  over the hall (`DerelictSecurity.anchorAt`); its service bay and repair drone
+  stand by the node as anywhere. `hallPosts` takes a works hall first, so a hall
+  frame keeps its middle (the transfer bridge, where the ground lays one).
 
 Not built yet:
 the vent and wreck markers and the drone's sparks over a wreck; the housings'

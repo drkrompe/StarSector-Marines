@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The breakthrough hull and its variants side by side, live and wrecked, then the same
+ * The Onager and its variants side by side, live and wrecked, then the same
  * line in a short gun-range fight. Art review: the Parapet's active protection, the laser
  * tank's ship-mounted emitter and the medium tank must read as different tanks at game scale, and their
  * guns must leave from the drawn muzzle.
@@ -165,7 +165,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             MechWeaponComponent.BL_1, MechWeaponComponent.LIGHT_MACHINE_GUN,
             MechWeaponComponent.PL_3);
     private static final List<String> STYLE_NAMES = List.of("GREEN (low): ESCORT APC", "GREEN: MILITIA TECHNICAL",
-            "GREEN: BREAKTHROUGH TANK", "SILVER (mid): HOVER SCOUT", "GREEN: UP-ARMORED APC", "WHITE (top): LASER TANK");
+            "GREEN: ONAGER", "SILVER (mid): HOVER SCOUT", "GREEN: UP-ARMORED APC", "WHITE (top): LASER TANK");
 
     /** One hull of each mount style, each carrying a part in its gun card, labelled by the style of its ring. */
     private static void mountStyles(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
@@ -345,7 +345,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                     labels.label(body.x, body.y - 3.2f, NAMES.get(i), ReviewStyle.NOTE);
                 }
                 BufferedImage frame = renderer.render(sim,
-                        "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | breakthrough, "
+                        "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | Onager, "
                                 + " Parapet, burst laser, medium tank against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
                         labels.build(), impacts);
                 frames.add(frame);

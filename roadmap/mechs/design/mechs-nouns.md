@@ -277,7 +277,7 @@ increasing an encounter's total armored threat.
   access tier: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige (the three are first stand-ins for a grid of mech lines, tech family by
   weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
-  the APC Common, militia technical Advanced, breakthrough tank
+  the APC Common, militia technical Advanced, Onager
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
   what the drop will need; the two usually agree, and where they do not (the
@@ -307,7 +307,7 @@ increasing an encounter's total armored threat.
   fire-support APC (a 120 mm mortar in a ballistic card where the troop bay was, no seats, spotted indirect fire,
   Medium lift) is Advanced, as is the LRM carrier (an LRM-15 anti-armor rack in a missile card
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (the laser tank)
+  `convoy-nouns.md`, the missile carriers); the Onager's variants (the laser tank)
   is Prestige and Heavy lift; the Parapet, once a variant, is the Onager with the
   active-protection kit (`VehicleStockFit.PARAPET`, owner 2026-10-30: one tank). A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
@@ -1221,9 +1221,10 @@ them, go round.
   of at most the heavy **ceiling**, 100 (`WallCrush.HEAVY_CEILING`; `convoy-nouns.md`, weight crushes walls). That is
   the medium tier: ordinary city walls (100), gated-housing, factory and yard walls (80), window cells and window bays
   in them, sandbag, fence and crate barricades, and registered equipment, furniture and drum clusters up to 100.
-  Fortified (150), fortress (240) and fort-building (300) walls, heavier equipment (130 and up), hardened walls, a
-  fort's or objective's works, natural obstructions and fixtures with no damage art hold it, until fire has worn a
-  wall under the ceiling.
+  Fortified (150), fortress (240) and fort-building (300) walls, a ruins plant's walls and the doors shut as them
+  (240, `ruins-expedition.md`), heavier equipment (130 and up), hardened walls, a fort's or objective's works,
+  natural obstructions and fixtures with no damage art (a dead door's leaves) hold it, until fire has worn a wall
+  under the ceiling.
 - **How fast**: it stands at the wall and grinds every pushable cell and bay in the strip just ahead of it, toward
   its next waypoint, as wide as it is, at 50 structure a second (`WallCrush.HEAVY_PER_SECOND`): a city wall in two
   seconds. The Pilgrim, by its blade, and the MG-70, by its weight, push at 80 (`MechVariant.crushesFast`,

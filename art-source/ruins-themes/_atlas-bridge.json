@@ -1,0 +1,52 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "transfer-bridge-span.png": {
+      "id": "doodad.ruins-transfer-bridge-span",
+      "name": "Transfer bridge span",
+      "description": "A heavy deck on box girders over the melt, railings both sides; laid end to end east-west. Floor.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1
+    },
+    "transfer-bridge-end.png": {
+      "id": "doodad.ruins-transfer-bridge-end",
+      "name": "Transfer bridge end",
+      "description": "The bridge's abutment on a cast footing at the west bank, deck to the east; mirrored for the east bank. Floor.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2
+    },
+    "transfer-bridge-span-damaged.png": {
+      "id": "doodad.ruins-transfer-bridge-span-damaged",
+      "name": "Transfer bridge span, damaged",
+      "description": "A span with its north railing torn and the deck buckled and split over the melt. Floor.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3
+    }
+  }
+}

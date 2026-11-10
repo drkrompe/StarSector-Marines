@@ -224,15 +224,24 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * forecourt as a roofed hall; or, when {@code firstLayer} is the layer count, only the bunker round the vault.
      * {@code entrances} are the ways in from open ground (the first interior layer's open ways, or the bunker's
      * door). A court inside is a light well open to the sky, so every lift point is under open sky.
+     * {@code worksStand} is where the works hall's zone is held from ({@code ruins-expedition.md}, Beats through the
+     * facility): a floor cell by the mega forge's pour pulpit, or at the east end of a works hall's transfer aisle;
+     * null on a site with no works hall.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
-                           List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors) {
+                           List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand) {
         public Interior {
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
             halls = halls == null ? List.of() : List.copyOf(halls);
             doors = doors == null ? List.of() : List.copyOf(doors);
+        }
+
+        /** An interior with no works hall's stand. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, null);
         }
 
         /** An interior whose ways in and joins carry no doors. */
