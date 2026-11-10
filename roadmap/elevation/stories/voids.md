@@ -615,6 +615,20 @@ Laws):
      A broken first storey left standing was tried: under the 120 m eye it
      stands only a few pixels deep at play zoom, so it was dropped.
 
+   **Cutaway** (owner: "a bit unclear how it will play when we cutaway
+   reveal into structures"). A building's roof fades when the player sees
+   inside it (`BuildingVisibilityPass`). With the fade:
+   - the walls turned to the camera drop to knee height
+     (`BuildingFaces.standing`, 0.6 m);
+   - the far walls' inner sides come up to frame the rooms;
+   - nothing pops, and the walls stay opaque.
+
+   A stood-up roof, or a far wall, is drawn over the street just past its
+   building. A unit standing there, outside any building, gets a small mark
+   in its side's colour over the roofs, and fog of war still hides enemies.
+   A ghosted near wall (whole height, faded) is the A/B against the knee stub
+   (`battle.render.cutawayWalls`, picks question voids-cutaway-walls). Look
+   suite: `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
    topology change. Windows and doors are drawn only where a cell spans
    10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);

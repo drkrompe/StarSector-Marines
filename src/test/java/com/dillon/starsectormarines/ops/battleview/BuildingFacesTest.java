@@ -84,6 +84,30 @@ class BuildingFacesTest {
     }
 
     @Test
+    void aCutAwayBuildingsNearWallsDropToKneeHeightWithItsRoofsFade() {
+        float h = BuildingFaces.HEIGHTS[BuildingFaces.TWO];
+        assertEquals(1f, BuildingFaces.standing(h, 0f), 1e-6f, "roof on: the wall stands whole");
+        assertEquals(BuildingFaces.KNEE_METERS, BuildingFaces.standing(h, 1f) * h, 1e-4f, "roof gone: knee high");
+        float last = 1f;
+        for (int k = 1; k <= 20; k++) {
+            float now = BuildingFaces.standing(h, k / 20f);
+            assertTrue(now < last && last - now < .06f, "it falls step by step with the fade, never a pop");
+            last = now;
+        }
+    }
+
+    @Test
+    void theStreetJustPastATallBuildingIsHiddenUnderItButTheNearStreetIsNot() {
+        // A tall building from x = 20 to 30, the view's centre at x = 0.
+        float lift = BuildingFaces.lift(BuildingFaces.HEIGHTS[BuildingFaces.TALL]);
+        float pastFarSide = BuildingFaces.unlifted(31f, 0f, lift);
+        float nearSide = BuildingFaces.unlifted(19f, 0f, lift);
+        assertTrue(pastFarSide >= 20f && pastFarSide < 30f, "a cell past the far wall shows the roof: " + pastFarSide);
+        assertTrue(nearSide < 20f, "the street before the near wall stays in sight");
+        assertEquals(31f, BuildingFaces.lifted(pastFarSide, 0f, lift), 1e-4f, "unlifting undoes the lift");
+    }
+
+    @Test
     void aStreetsHomesStepUpAndDownByTheirOwnNumber() {
         assertEquals(BuildingFaces.ONE, BuildingFaces.heightClass(built(BuildingKind.RESIDENTIAL, 80, .1f)));
         assertEquals(BuildingFaces.TWO, BuildingFaces.heightClass(built(BuildingKind.RESIDENTIAL, 80, .5f)));

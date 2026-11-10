@@ -30,6 +30,22 @@ final class BuildingFaces {
     static final float[] HEIGHTS = {3.2f, 4.5f, 8f, 11.5f, 15f, 0f};
     /** Height classes by name ({@link #HEIGHTS}). */
     static final int SHED = 0, ONE = 1, TWO = 2, THREE = 3, TALL = 4, RAZED = 5;
+    /**
+     * How a cut-away building's near walls read while the owner picks ({@code voids.md}, buildings in depth; picks
+     * question voids-cutaway-walls): {@code stub} (default), dropped to knee height, or {@code ghost}, standing whole
+     * and faded. A temporary A/B switch: remove it, and the losing arm, once the owner picks.
+     */
+    static final String CUTAWAY_SWITCH = "battle.render.cutawayWalls";
+    /** How much of a ghosted near wall still shows with its building cut away ({@link #CUTAWAY_SWITCH}). UNTUNED. */
+    static final float GHOST_ALPHA = .28f;
+
+    /** Whether cut-away near walls stand whole and faded rather than drop to a stub ({@link #CUTAWAY_SWITCH}). */
+    static boolean ghostCutaway() {
+        return "ghost".equals(System.getProperty(CUTAWAY_SWITCH));
+    }
+
+    /** How high a cut-away building's near walls still stand, metres: about knee height. UNTUNED. */
+    static final float KNEE_METERS = .6f;
     /** The share of a building's roof fallen in or burnt away past which it is destroyed. UNTUNED. */
     static final float DESTROYED_SHARE = .5f;
 
@@ -170,6 +186,19 @@ final class BuildingFaces {
     }
 
 
+    /**
+     * How much of a wall turned to the camera still stands, as a share of its height, while its building is cut
+     * away to show the rooms inside: all of it with the roof on, down to about knee height ({@link #KNEE_METERS}) with
+     * the roof gone, following the roof's own fade so it never pops.
+     *
+     * @param cut how far the building is cut away, 0 with its roof on and 1 with it gone
+     */
+    static float standing(float heightMeters, float cut) {
+        float knee = Math.min(1f, KNEE_METERS / heightMeters);
+        float c = Math.max(0f, Math.min(1f, cut));
+        return 1f - (1f - knee) * c;
+    }
+
     /** Storeys of windows a wall of this height carries. */
     static int storeys(float heightMeters) {
         return Math.max(1, (int) (heightMeters / 3.6f));
@@ -183,6 +212,14 @@ final class BuildingFaces {
     /** Where a point {@code p} of a plan lifted by {@code lift} stands, the view's centre at {@code c}. */
     static float lifted(float p, float c, float lift) {
         return c + (p - c) * lift;
+    }
+
+    /**
+     * The ground point a plan lifted by {@code lift} shows at {@code p}: what of a building {@code h} metres up is
+     * drawn over a ground point, so whether a unit standing there is hidden behind it.
+     */
+    static float unlifted(float p, float c, float lift) {
+        return c + (p - c) / lift;
     }
 
     /**
