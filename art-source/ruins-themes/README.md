@@ -128,6 +128,18 @@ step down to the hall floor behind a trim, `mod/graphics/battle/floors/raised-fl
 top rows transparent so the panel shows through and their joints on the floors' panel grid (`art-source/floors/trims/`:
 `make_guide.py`, `derive.py`).
 
+The mega forge's transfer bridge over the breakout's lava pool (`RuinsDelveStage.transferBridge`) ships on its own
+sheet, `ruins-forge-bridge` (`_atlas-bridge.json`), from the `forge-bridge` family drawn by `bridge_kinds.py` at
+160 px a cell: `transfer-bridge-span` (2x4, healed along the span so copies join end to end east-west),
+`transfer-bridge-end` (the west abutment on its cast footing, mirrored for the east bank) and
+`transfer-bridge-span-damaged` (railing torn, deck split over the melt). All are floor: cover none.
+
+The delve's weather (`RuinsWeather`) ships on its own sheet, `ruins-delve-weather` (`_atlas-weather.json`), from the
+`delve-weather` family, whose block-outs are drawn by `weather_kinds.py`: fallen ceiling and chips, a seep stain, the
+tongues of a world's ground blown in through a mouth (dust, sand, snow, ash, sulphur; each widest along its south edge,
+which is laid against the doorway), a root mat and a root run. They are cut at their frames and faded as the forge's
+stains are. The crack network and crack run came back as thorny twigs and do not ship.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

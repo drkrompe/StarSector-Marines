@@ -121,7 +121,8 @@ final class FreestandingWalls {
      * ({@code x + y * gridW}) and the outline of their union cut by cell ({@link BuildingFaces#segments}' layout,
      * the spare slot unused).
      */
-    record Run(Kind kind, float meters, int minX, int minY, int maxX, int maxY, int[] cells, float[] segments) { }
+    record Run(Kind kind, float meters, int minX, int minY, int maxX, int maxY, int[] cells, float[] segments,
+               float[] strokes) { }
 
     /**
      * Every run of freestanding wall on a {@code gridW} by {@code gridH} map, lowest first, so a taller wall drawn
@@ -168,10 +169,97 @@ final class FreestandingWalls {
             cells = Arrays.copyOf(cells, count);
             Arrays.sort(cells);
             Kind of = KINDS[k - 1];
-            runs.add(new Run(of, height(of, count), minX, minY, maxX, maxY, cells, outline(cells, gridW, kind, -k)));
+            int mark = -k;
+            runs.add(new Run(of, height(of, count), minX, minY, maxX, maxY, cells, outline(cells, gridW, kind, mark),
+                    strokes(cells, gridW, gridH, at -> kind[at] == mark)));
         }
         runs.sort((a, b) -> Float.compare(a.meters(), b.meters()));
         return runs;
+    }
+
+    /** Floats per stroke: its first and last cells' centres, then whether each end is free (1) or joins (0). */
+    static final int STROKE = 6;
+    /** The directions a stroke runs: east, north, north-east, north-west. */
+    private static final int[] SDX = {1, 0, 1, -1}, SDY = {0, 1, 1, 1};
+
+    /**
+     * A run's cells laid out as straight strokes, so a wall stands as the line it was built along rather than as a
+     * staircase of cells: every chain of two or more cells in a line east, north or diagonally is a stroke from its
+     * first cell's centre to its last's, and a cell in no chain is a stroke of its own (a post). A diagonal step only
+     * counts where no cell beside it already joins the two orthogonally; a diagonal runs from its first cell's centre
+     * to its last's, ends joined, with a pier (a post) on each end cell. Each end is free where no other cell of the
+     * run touches its cell from outside the stroke. {@link #STROKE} floats each.
+     */
+    static float[] strokes(int[] cells, int gridW, int gridH, IntPredicate inRun) {
+        float[] out = new float[STROKE * 8];
+        int n = 0;
+        boolean[] covered = new boolean[cells.length];
+        for (int dir = 0; dir < 4; dir++) {
+            int dx = SDX[dir], dy = SDY[dir];
+            for (int i = 0; i < cells.length; i++) {
+                int x = cells[i] % gridW, y = cells[i] / gridW;
+                if (step(x - dx, y - dy, dx, dy, gridW, gridH, inRun)) continue;
+                int len = 0;
+                while (step(x + len * dx, y + len * dy, dx, dy, gridW, gridH, inRun)) len++;
+                if (len == 0) continue;
+                for (int k = 0; k <= len; k++) {
+                    int at = Arrays.binarySearch(cells, x + k * dx + (y + k * dy) * gridW);
+                    if (at >= 0) covered[at] = true;
+                }
+                if (n + 3 * STROKE > out.length) out = Arrays.copyOf(out, out.length * 2 + 3 * STROKE);
+                n = stroke(out, n, x, y, x + len * dx, y + len * dy, dx, dy, gridW, gridH, inRun);
+                if (dx != 0 && dy != 0) {
+                    // A diagonal runs centre to centre and a square pier stands on each end cell, so it meets a
+                    // straight wall, or ends, on the grid rather than on a slanted cut.
+                    out[n - 2] = 0f;
+                    out[n - 1] = 0f;
+                    n = stroke(out, n, x, y, x, y, 0, 0, gridW, gridH, inRun);
+                    n = stroke(out, n, x + len * dx, y + len * dy, x + len * dx, y + len * dy, 0, 0, gridW, gridH,
+                            inRun);
+                }
+            }
+        }
+        for (int i = 0; i < cells.length; i++) {
+            if (covered[i]) continue;
+            int x = cells[i] % gridW, y = cells[i] / gridW;
+            if (n + STROKE > out.length) out = Arrays.copyOf(out, out.length * 2);
+            n = stroke(out, n, x, y, x, y, 0, 0, gridW, gridH, inRun);
+        }
+        return Arrays.copyOf(out, n);
+    }
+
+    /** Whether the run steps on from {@code (x, y)} by {@code (dx, dy)}: both cells in it, a diagonal unbridged. */
+    private static boolean step(int x, int y, int dx, int dy, int gridW, int gridH, IntPredicate inRun) {
+        if (!in(x, y, gridW, gridH, inRun) || !in(x + dx, y + dy, gridW, gridH, inRun)) return false;
+        return dx == 0 || dy == 0
+                || !in(x + dx, y, gridW, gridH, inRun) && !in(x, y + dy, gridW, gridH, inRun);
+    }
+
+    private static boolean in(int x, int y, int gridW, int gridH, IntPredicate inRun) {
+        return x >= 0 && y >= 0 && x < gridW && y < gridH && inRun.test(x + y * gridW);
+    }
+
+    private static int stroke(float[] out, int n, int x0, int y0, int x1, int y1, int dx, int dy, int gridW,
+                              int gridH, IntPredicate inRun) {
+        out[n] = x0 + .5f;
+        out[n + 1] = y0 + .5f;
+        out[n + 2] = x1 + .5f;
+        out[n + 3] = y1 + .5f;
+        out[n + 4] = free(x0, y0, dx, dy, gridW, gridH, inRun) ? 1f : 0f;
+        out[n + 5] = free(x1, y1, -dx, -dy, gridW, gridH, inRun) ? 1f : 0f;
+        return n + STROKE;
+    }
+
+    /**
+     * Whether a stroke's end cell {@code (x, y)} stands free: no other cell of the run touches it except the stroke's
+     * own next cell, along {@code (bx, by)}. A post ({@code (0, 0)}) is free only if alone.
+     */
+    private static boolean free(int x, int y, int bx, int by, int gridW, int gridH, IntPredicate inRun) {
+        for (int s = 0; s < 8; s++) {
+            if (RX[s] == bx && RY[s] == by && (bx != 0 || by != 0)) continue;
+            if (in(x + RX[s], y + RY[s], gridW, gridH, inRun)) return false;
+        }
+        return true;
     }
 
     private static final int[] DX = {1, 0, -1, 0}, DY = {0, 1, 0, -1};

@@ -53,7 +53,7 @@ public final class SideObjective {
      * {@code sideObjectiveFailed}), {@code Timer} for a timed job, {@code Target} and {@code Destination} for its beacons,
      * and {@code Debrief} plus the final state's part for the debrief line ({@code DebriefMissed} is optional: a hidden
      * job never found says nothing unless the mission authors it). {@code Reward}, if authored, is what the job earns
-     * beyond credits, such as "Harrow will remember".
+     * beyond credits, such as "Wayline will remember".
      *
      * @param offererKey story key naming the offerer, a contact or a faction
      * @param lines      the field line spoken when the job reaches a state: a narration catalog event, or absent
@@ -151,7 +151,7 @@ public final class SideObjective {
     }
 
     /**
-     * What the campaign keeps: a mark per final state that earns one, such as {@code corvus.harrow.coupling_delivered},
+     * What the campaign keeps: a mark per final state that earns one, such as {@code corvus.teague.delivered},
      * and the credits the job pays when done, both written at settlement from the outcome ({@link CampaignMarks}). A
      * job may pay either, both or neither; its effect in the battle is its own reward.
      */

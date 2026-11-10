@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c71f-021b-7eb3-8d2a-a17c420c3b8a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c71f-021b-7eb3-8d2a-a17c420c3b8a\\exec-1994f723-00f3-412b-9302-d464551d2662.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\stripper.png",
+    "sha256": "7ca6440faef09f83ea90ed7a7bb40a000f5acde6cfa751ec777ca7846f8334a0",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\stripper.prompt.txt",
+  "promptSha256": "3f3e0373061e953aec2b7989bb7aa229a9e24ea624baa74b4fa5fa29bc2e624c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Family and identity: the accepted derelict walker of this line (its material, plating, colour, detail and part language); not this machine's layout or design\nImage 3: Material and rendering style only (vanilla derelict_rampart, 4x Lanczos); not layout or subject\n\nGame sprite sheet for a top-down tactical game: an unpiloted Domain-era derelict WALKER of the same machine line as reference image 2 (the accepted security walker, the 'sentinel'): it must read as the same family and maker, its own build at its own size, never a recolour or copy of it. No cockpit, canopy or pilot.\n\nReference image 1 is the GEOMETRY AUTHORITY (a grey block-in). Keep its layout exactly: on the LEFT the whole walker assembled, the torso in the middle and four legs reaching out in an X; on the RIGHT the same machine's parts drawn apart, upright: the torso alone (top), one thigh segment (bottom left: hip joint at its lower end, knee end at its top) and one shin segment (bottom right: knee joint at its lower end, a heavy three-toed clamp foot at its top). Keep every part's position, size, outline and orientation as in the guide, so the parts can be cut out by their boxes; keep the gaps between parts empty. The torso on the right must be the same design as on the left, and every leg on the left uses the parts on the right.\n\nDESIGN: a STRIPPER, an unarmed salvage walker that cuts up buildings, fences, vehicles and wrecks for scrap: a low, long, light-plated body with a small rounded sensor head between two heavy cutting arms that reach forward, each ending in a big circular cutting saw disc with a guard; a two-section armoured back and a coolant pack behind. Legs a little lighter than the guide's sentinel. Smaller than the sentinel: a working machine, not a warrior. No guns. \n\nSURFACE: like image 2 and the vanilla derelict ships (image 3): never smooth, clean, rounded or toy-like. Many small overlapping armour plates with hard bevelled edges and dark seams, exposed machinery, pipes, cable bundles and pistons between plates, rivet rows, vents, dents, scrapes, chipped paint, grime in every recess; dense detail that still reads at sprite scale, crisp edges. COLOUR: sage-green and khaki plate, yellow diagonal hazard bands, bone-white and brass machinery, rust-brown grime, red sensor lamps; the saw discs and cutting edges bare worn steel. Muted, old and gritty. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. \n\nStrict overhead orthographic view, the camera straight down, the machine facing the TOP of the canvas. Plain flat light grey background (#b4b4b4) everywhere around and between the parts; no ground, no cast shadow, no shadow slab, no border, no labels.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\stripper-guide.png",
+      "sha256": "1041648d7f7aee96c3e689a8eb02d2fa285f0f99913c162e7f8ed573a5a629a7",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\derelict-walker\\raw\\walker-sentinel-v3.png",
+      "sha256": "d4d5f89cc8cce3790dbe42618c4c6067251765b72c4806667b762f8e93a55e4a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Family and identity: the accepted derelict walker of this line (its material, plating, colour, detail and part language); not this machine's layout or design"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\build\\fallen-hull-refs\\derelict_rampart.png",
+      "sha256": "b06e2077778ae9b11dc4d2d68ea065d0934e10ac28ede9d964e43f14c62b99d8",
+      "dimensions": [
+        788,
+        760
+      ],
+      "mode": "RGBA",
+      "role": "Material and rendering style only (vanilla derelict_rampart, 4x Lanczos); not layout or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using the first image for exact geometry and the other two for family and surface style."
+  ],
+  "usage": {
+    "input_tokens": 47793,
+    "cached_input_tokens": 39296,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 742,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.0
+}

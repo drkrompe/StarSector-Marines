@@ -2002,8 +2002,7 @@ public final class BattleSetup {
     /**
      * The Dust Ledger on Saltwell Cross ({@code dust-ledger-crossing.md}): the company lands openly as Wayline's
      * freight drop, Sable's finite crew holds the pump house, and the Raid on the ledger room runs under the
-     * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
-     * for the alarm.
+     * quiet phase.
      */
     /**
      * Sable's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
@@ -2090,8 +2089,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, air);
         }
         // A Low-quality crew of plain militia: elite clerks in the pump house's rooms cost a two-squad company all 24
-        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm; the
-        // cantina's drinkers spawn then, if at all.
+        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm. The
+        // cantina's posts stand empty: the town keeps out of the fight.
         // The pillboxes are manned from the posts that stand at their slits: each is its own garrison squad, holding
         // its node and firing from the slits, while the rest of that role's posts stay one squad as before.
         Set<Integer> mobile = new TreeSet<>();
@@ -2136,21 +2135,13 @@ public final class BattleSetup {
             squad.originalSize = cells.size();
         }
         claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable crawler crew");
-        List<EntitySpec> drinkers = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.posts().get(DustLedgerCrossing.PostRole.CANTINA))
-            drinkers.add(makeDefender("sable-wake-drinker-" + drinkers.size(), UnitType.MILITIA, cell.x(), cell.y(),
-                    risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(UnitRole.PATROL));
-        List<EntitySpec> salvageTeam = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.salvageTeam())
-            salvageTeam.add(makeOpeningMilitia("harrow-salvager-" + salvageTeam.size(), Faction.ALLY, cell.x(), cell.y(), rng)
-                    .role(UnitRole.PATROL));
         // Townsfolk live in the market, never in the compound's bunkhouse or the south ruins.
         spawnAmbientCivilians(sim, map.grid, layout.homes(), rng);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), layout.warehouses().size(),
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid);
         ledger.defences(sim, nests, pillboxSquads);
         // The road reserve: two plain-militia squads who come with a Hound when the company steps into the ring.
         List<List<EntitySpec>> reserve = new ArrayList<>();
@@ -3352,8 +3343,25 @@ public final class BattleSetup {
         StoryMapPool.Entry pooled = isColonyBreachColony(risk, stressTest) && StoryMapPools.installed()
                 ? StoryMapPools.pool(StoryMap.COLONY_BREACH).entry(surfaceOrRock(profile), seed) : null;
         return civilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest, posture,
-                liftHardpoints, pooled);
+                liftHardpoints, pooled, null);
     }
+
+    /**
+     * The Fall, chapter 1 of *The Long Survey* ({@code long-survey-arc.md}): the Colony Breach rescue on its owned
+     * map, its swarm director replaced by the derelict watch ({@code derelict-security-network.md}). No swarm, no
+     * eruption and no bores: the hull's zones are laid from where the colony's deep bore would stand toward the
+     * shelter, at {@code grade}, its flocks in {@code livery}. Played on {@code map}'s owned seed alone, never re-rolled.
+     */
+    public static BattleSimulation createHullFall(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                  StoryMap map, RuinsGrade grade, FlockLivery livery) {
+        StoryMapPool.Entry pooled = StoryMapPools.installed()
+                ? StoryMapPools.pool(map).entry(surfaceOrRock(profile), seed) : null;
+        return civilianRescue(seed, manifest, false, RiskLevel.HIGH, 0, profile, false, HivePosture.DEFAULT, 0,
+                pooled, new HullWatch(map, grade, livery));
+    }
+
+    /** The derelict watch a rescue fields in place of the swarm: the hull's grade and livery, on its map's pool. */
+    private record HullWatch(StoryMap map, RuinsGrade grade, FlockLivery livery) { }
 
     /**
      * The seed a Colony Breach on a world of {@code biome} plays ({@code story-map-pools.md}): the pool's entry for
@@ -3372,7 +3380,7 @@ public final class BattleSetup {
     public static BattleSimulation createPooledColonyBreach(SurfacePalette biome, StoryMapPool.Entry entry,
                                                             List<ShuttleAssignment> manifest) {
         return civilianRescue(entry.seed(), manifest, false, RiskLevel.HIGH, SwarmDefenseRoster.countFor(RiskLevel.HIGH),
-                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry);
+                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry, null);
     }
 
     private static SurfacePalette surfaceOrRock(TargetProfile profile) {
@@ -3388,7 +3396,7 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
-            StoryMapPool.Entry pooled) {
+            StoryMapPool.Entry pooled, HullWatch hull) {
         boolean colony = isColonyBreachColony(risk, stressTest);
         // A pooled colony's patch places its lift, bores and holdouts; it pins no precinct and ruins nothing yet.
         MapPatch patch = pooled == null ? MapPatch.NONE : pooled.patch();
@@ -3397,7 +3405,8 @@ public final class BattleSetup {
         }
         // A pooled colony is the mission's one map: laid out on its home palette, then skinned for this world.
         SurfacePalette home = pooled != null
-                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile)) : null;
+                ? StoryMapPools.pool(hull != null ? hull.map() : StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile))
+                : null;
         TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(home) : profile;
         if (colony && mapProfile != null) {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
@@ -3515,6 +3524,15 @@ public final class BattleSetup {
                     risk, scale.width, scale.height, dugIn);
             // On the colony the pickup's allied line fights from works thrown up round it.
             if (dugIn) sim.fortifyRescuePickup(payload.placement, battleSeed);
+            if (hull != null) {
+                // The hull's watch stands where the deep bore would: its zones from there toward the shelter.
+                why = "the hull's watch does not seat";
+                if (!installHullWatch(sim, hull, eruption, payload.placement)) continue;
+                sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                        SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
+                        () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
+                return sim;
+            }
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
                             sim, payload.placement, swarmCount, battleSeed)
@@ -3565,6 +3583,20 @@ public final class BattleSetup {
         }
         throw new IllegalStateException(
                 "unable to place civilian rescue payload after 8 map attempts");
+    }
+
+    /**
+     * Lays the hull's derelict watch on a rescue: the zones along the walk from the deep bore's place (the eruption
+     * plan's mother, else its first site) to the shelter's approach. False when there is no place or no walk.
+     */
+    private static boolean installHullWatch(BattleSimulation sim, HullWatch hull, ColonyEruptionPlan eruption,
+                                            CivilianEvacuationPlacement placement) {
+        if (eruption == null || eruption.sites().isEmpty()) return false;
+        ColonyEruptionPlan.Site site = eruption.mother() != null ? eruption.mother() : eruption.sites().get(0);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), site.x(), site.y(),
+                placement.shelterApproachX, placement.shelterApproachY);
+        if (route.length < 4) return false;
+        return DerelictSecurity.install(sim, hull.grade(), null, hull.livery(), route, site.x(), site.y()) != null;
     }
 
     /** Salt for the eruption-site draw, so it is not the battle stream read again. */

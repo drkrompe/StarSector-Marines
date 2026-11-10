@@ -138,6 +138,10 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                                         f.top() - 12f, f.width() + 14f).render(sim, "")));
                         roof.currentAlpha = was;
                     }
+                    // The breakout and its transfer bridge at the hall's middle, close.
+                    out.add(new SnapshotArtifact("inside/" + name + "-foundry-bridge.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f, CLOSE_CELLS * 1.5f)
+                            .withoutRoofs().render(sim, "")));
                     // The south half: the feed and slag lanes running to the dispatch end.
                     out.add(new SnapshotArtifact("inside/" + name + "-foundry-lanes.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, f.centreX() + 0.5f, f.bottom() + f.height() * 0.3f,
