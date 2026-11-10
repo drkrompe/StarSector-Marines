@@ -1,0 +1,10 @@
+Asset: a sheet of separate top-down tactical-game props for an abandoned Domain-era automated factory: the products it built, each in three states, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.
+Style: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.
+Background: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.
+
+Each row is one product, left to right: whole (an intact finished unit, dusty but complete), half-built (the same unit's frame and chassis with only its lower part plated, upper part open showing bare struts, cable looms and empty mounting points, no grey or white fill left in it), wrecked (the same unit smashed and torn open, a part ripped away, its broken fragments lying beside it, scorch and dust). All three must read as the same product model.
+
+Rows:
+1. drone-frame: a heavy military combat drone airframe, quad-rotor: an armoured central fuselage with a sensor block, four arms out to four ducted rotor rings with rotor hubs; the half-built one has bare arm spars and empty ducts on its upper half; the wrecked one has bent arms, a crushed duct and a rotor ring lying apart.
+2. forge-core: a nanoforge cradle core: a heavy square armoured housing with a deep dark circular assembly chamber in its centre ringed by eight emitter heads, bolted corners, a faint dead amber glow inside the chamber.
