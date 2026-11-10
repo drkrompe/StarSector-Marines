@@ -352,6 +352,300 @@
       "order": 26,
       "preserveCanvas": true,
       "padding": 0
+    },
+    "core-cabinet-whole.png": {
+      "id": "doodad.ruins-core-cabinet-whole",
+      "name": "Sealed AI core cabinet",
+      "description": "An AI core's armoured cabinet, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 27
+    },
+    "core-cabinet-half.png": {
+      "id": "doodad.ruins-core-cabinet-half",
+      "name": "Half-built AI core cabinet",
+      "description": "An AI core's armoured cabinet, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 28
+    },
+    "core-cabinet-wrecked.png": {
+      "id": "doodad.ruins-core-cabinet-wrecked",
+      "name": "Wrecked AI core cabinet",
+      "description": "An AI core's armoured cabinet, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 29
+    },
+    "field-housing-whole.png": {
+      "id": "doodad.ruins-field-housing-whole",
+      "name": "Sealed field housing",
+      "description": "A fusion lamp's field housing, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 30
+    },
+    "field-housing-half.png": {
+      "id": "doodad.ruins-field-housing-half",
+      "name": "Half-built field housing",
+      "description": "A fusion lamp's field housing, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 31
+    },
+    "field-housing-wrecked.png": {
+      "id": "doodad.ruins-field-housing-wrecked",
+      "name": "Wrecked field housing",
+      "description": "A fusion lamp's field housing, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 32
+    },
+    "magnet-segment-whole.png": {
+      "id": "doodad.ruins-magnet-segment-whole",
+      "name": "Sealed synchrotron magnet segment",
+      "description": "A curved synchrotron ring magnet segment, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 33
+    },
+    "magnet-segment-half.png": {
+      "id": "doodad.ruins-magnet-segment-half",
+      "name": "Half-built synchrotron magnet segment",
+      "description": "A curved synchrotron ring magnet segment, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 34
+    },
+    "magnet-segment-wrecked.png": {
+      "id": "doodad.ruins-magnet-segment-wrecked",
+      "name": "Wrecked synchrotron magnet segment",
+      "description": "A curved synchrotron ring magnet segment, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 35
+    },
+    "catalyst-bed-whole.png": {
+      "id": "doodad.ruins-catalyst-bed-whole",
+      "name": "Sealed catalyst bed",
+      "description": "A catalytic core's cartridge bed, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 36
+    },
+    "catalyst-bed-half.png": {
+      "id": "doodad.ruins-catalyst-bed-half",
+      "name": "Half-built catalyst bed",
+      "description": "A catalytic core's cartridge bed, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 37
+    },
+    "catalyst-bed-wrecked.png": {
+      "id": "doodad.ruins-catalyst-bed-wrecked",
+      "name": "Wrecked catalyst bed",
+      "description": "A catalytic core's cartridge bed, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 38
+    },
+    "spool-drum-whole.png": {
+      "id": "doodad.ruins-spool-drum-whole",
+      "name": "Sealed fullerene spool drum",
+      "description": "A drum of wound fullerene cable, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 39
+    },
+    "spool-drum-half.png": {
+      "id": "doodad.ruins-spool-drum-half",
+      "name": "Half-built fullerene spool drum",
+      "description": "A drum of wound fullerene cable, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 40
+    },
+    "spool-drum-wrecked.png": {
+      "id": "doodad.ruins-spool-drum-wrecked",
+      "name": "Wrecked fullerene spool drum",
+      "description": "A drum of wound fullerene cable, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 41
+    },
+    "bore-head-whole.png": {
+      "id": "doodad.ruins-bore-head-whole",
+      "name": "Sealed bore head",
+      "description": "A mantle bore's cutter head, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 42
+    },
+    "bore-head-half.png": {
+      "id": "doodad.ruins-bore-head-half",
+      "name": "Half-built bore head",
+      "description": "A mantle bore's cutter head, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 43
+    },
+    "bore-head-wrecked.png": {
+      "id": "doodad.ruins-bore-head-wrecked",
+      "name": "Wrecked bore head",
+      "description": "A mantle bore's cutter head, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 44
+    },
+    "projector-stack-whole.png": {
+      "id": "doodad.ruins-projector-stack-whole",
+      "name": "Sealed projector stack",
+      "description": "A holosuite projector stack, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 45
+    },
+    "projector-stack-half.png": {
+      "id": "doodad.ruins-projector-stack-half",
+      "name": "Half-built projector stack",
+      "description": "A holosuite projector stack, left half-built on the line.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 46
+    },
+    "projector-stack-wrecked.png": {
+      "id": "doodad.ruins-projector-stack-wrecked",
+      "name": "Wrecked projector stack",
+      "description": "A holosuite projector stack, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 47
     }
   }
 }
