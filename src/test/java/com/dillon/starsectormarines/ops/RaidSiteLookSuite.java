@@ -63,22 +63,19 @@ public class RaidSiteLookSuite implements SnapshotSuite {
 
     @Override public String id() { return id; }
 
-    /** The works shot's centre and width in cells: on the machines, a little wider than play zoom. */
-    protected float[] worksFrame(RaidObjective works) {
-        float sx = 0, sy = 0;
-        for (RaidObjective.Site site : works.sites()) {
-            sx += site.cellX();
-            sy += site.cellY();
-        }
-        int n = works.sites().size();
-        return new float[]{sx / n + .5f, sy / n + .5f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
-    }
-
     @Override public String label() {
         return "The " + industry + " Raid site across seeds and market sizes, look preset";
     }
 
     @Override public boolean inAll() { return false; }
+
+    /**
+     * The works close-up's centre and width in cells, given the machines' centre: at play zoom on the machines, for
+     * a site whose works is its machines. A site whose process runs past them (a port's apron) frames the whole.
+     */
+    protected float[] closeUp(BattleSimulation sim, float machinesX, float machinesY) {
+        return new float[]{machinesX, machinesY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
+    }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -98,15 +95,19 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                         if (objective instanceof RaidObjective raid && raid.works()) works = raid;
                     }
                     if (works == null) throw new IllegalStateException(c.id() + ": the site laid no works");
+                    float sx = 0, sy = 0;
                     for (RaidObjective.Site site : works.sites()) {
                         System.out.printf(Locale.ROOT, "[%s] %s machine at %d,%d%n", id(), c.id(),
                                 site.cellX(), site.cellY());
+                        sx += site.cellX();
+                        sy += site.cellY();
                     }
+                    int n = works.sites().size();
                     int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
                     out.add(new SnapshotArtifact(c.id() + "-whole.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
                             .withMissionMarkers().render(sim, "")));
-                    float[] frame = worksFrame(works);
+                    float[] frame = closeUp(sim, sx / n + .5f, sy / n + .5f);
                     out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, frame[0], frame[1], frame[2])
                             .withMissionMarkers().render(sim, "")));

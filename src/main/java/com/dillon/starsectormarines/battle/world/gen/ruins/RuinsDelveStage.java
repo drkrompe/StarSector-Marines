@@ -271,6 +271,13 @@ public final class RuinsDelveStage implements GenStage {
          * ({@code ruins-expedition.md}, The works hall is the trunk); null on a site without one.
          */
         Area trunkHall;
+        /**
+         * A stretch of the trunk's spine a band's ways may not meet while they are joined, so that every way from the
+         * west meets the spine on one side of the works hall and every way to the east on the other; null when none.
+         */
+        Area keepOff;
+        /** {@link #keepOff} for the vault apron's ways, when the trunk's band is the last. */
+        Area apronKeepOff;
         /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
         Cell worksStand;
 
@@ -1432,16 +1439,27 @@ public final class RuinsDelveStage implements GenStage {
                         freightNet[i(x, y)] = true;
                     }
                 }
+                // On the trunk's band, the ways in from the west meet the spine south of the works hall and the ways
+                // on to the east north of it, so the route through the band runs through the hall.
+                keepOff = works == null ? null : new Area(spine - 3, works.top() + 1, spine + 3, h - 1);
                 for (Way way : drafts.get(k).ways) connect(way.far(), k, null, FREIGHT_WIDTH);
+                keepOff = works == null ? null : new Area(spine - 3, 0, spine + 3, works.bottom() - 1);
                 if (k + 1 < drafts.size()) {
                     for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null, FREIGHT_WIDTH);
+                } else {
+                    apronKeepOff = keepOff;
                 }
+                keepOff = null;
                 if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
                 connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
             }
             int last = drafts.size() - 1;
+            // A trunk's band that is also the last: the vault's apron is its way on, so it too meets the spine north
+            // of the works hall.
+            keepOff = apronKeepOff;
             connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron, FREIGHT_WIDTH);
             connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron, FREIGHT_WIDTH);
+            keepOff = null;
             List<Area> entrances = new ArrayList<>();
             for (Way way : face.ways) if (way.open()) entrances.add(way.span());
             return entrances;
@@ -2607,7 +2625,8 @@ public final class RuinsDelveStage implements GenStage {
                 int cx = at % w, cy = at / w;
                 for (int dy = lo; dy < lo + width; dy++) {
                     for (int dx = lo; dx < lo + width; dx++) {
-                        if (!corridorCell(cx + dx, cy + dy, avoid) || inTrunk(cx + dx, cy + dy)) continue;
+                        if (!corridorCell(cx + dx, cy + dy, avoid) || inTrunk(cx + dx, cy + dy)
+                                || keptOff(cx + dx, cy + dy)) continue;
                         carve(cx + dx, cy + dy, band);
                         if (freight) freightNet[i(cx + dx, cy + dy)] = true;
                     }
@@ -2624,7 +2643,9 @@ public final class RuinsDelveStage implements GenStage {
             int lo = stampLow(width);
             for (int dy = lo; dy < lo + width; dy++) {
                 for (int dx = lo; dx < lo + width; dx++) {
-                    if (!corridorCell(x + dx, y + dy, avoid) || inTrunk(x + dx, y + dy)) return false;
+                    if (!corridorCell(x + dx, y + dy, avoid) || inTrunk(x + dx, y + dy) || keptOff(x + dx, y + dy)) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -2637,6 +2658,11 @@ public final class RuinsDelveStage implements GenStage {
         boolean inTrunk(int x, int y) {
             return trunkHall != null && x >= trunkHall.left() - 1 && x <= trunkHall.right() + 1
                     && y >= trunkHall.bottom() - 1 && y <= trunkHall.top() + 1;
+        }
+
+        /** Whether a cell is in the stretch of spine the ways being joined may not meet ({@link #keepOff}). */
+        boolean keptOff(int x, int y) {
+            return keepOff != null && keepOff.contains(x, y);
         }
 
         /**

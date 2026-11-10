@@ -25,6 +25,11 @@ public final class LandingPad {
          * reads a garrison field reads it.
          */
         ALLIED_AIRFIELD,
+        /**
+         * A lighter's stand on a port's apron (a port's Raid site, {@code raid-site-templates.md}): the planet's own
+         * traffic stands on it, the defender's, so no lift or company lands on it; setup parks a lighter there.
+         */
+        PORT_LIGHTER,
         FALLBACK
     }
 
