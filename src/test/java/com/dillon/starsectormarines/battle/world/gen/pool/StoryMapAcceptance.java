@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
+import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
+import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
@@ -30,7 +32,9 @@ import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartLayout;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -201,6 +205,18 @@ public final class StoryMapAcceptance {
             rings = Math.max(rings, p.ring());
             if (site.road(p.index()) == null) roadless++;
         }
+        // The rules' reading of it: every starting stake chains back to the hull through linked lattice points.
+        FallenHullSite rules = LongSurveyGround.rulesSite(site, List.of(), List.of(), 0f);
+        ClaimLattice links = new ClaimLattice(rules.hull(), rules.lattice(), rules.linkCells());
+        Set<Integer> chained = new HashSet<>();
+        ArrayDeque<ClaimLattice.Point> frontier = new ArrayDeque<>();
+        for (ClaimLattice.Point p : links.points()) if (links.linksToHull(p) && chained.add(p.id())) frontier.add(p);
+        while (!frontier.isEmpty()) {
+            for (ClaimLattice.Point q : links.neighbours(frontier.poll())) if (chained.add(q.id())) frontier.add(q);
+        }
+        for (HullSite.Stake stake : site.stakes()) {
+            if (!chained.contains(stake.point())) throw new AssertionError("the stake on point " + stake.point() + " links to nothing");
+        }
         StringBuilder stakes = new StringBuilder();
         for (HullSite.Stake stake : site.stakes()) {
             HullSite.LatticePoint p = site.point(stake.point());
@@ -209,9 +225,9 @@ public final class StoryMapAcceptance {
                     .append(" (road ").append(site.road(p.index()).cells().size()).append(')');
         }
         return (base.isEmpty() ? "" : base + "; ") + String.format(Locale.ROOT,
-                "hull %d,%d heading %s; lattice %d points over %d rings (%d without a road home); %d haul roads; %d debris; stakes [%s]",
+                "hull %d,%d heading %s; lattice %d points over %d rings (%d without a road home, %d chained to the hull); %d haul roads; %d debris; stakes [%s]",
                 site.footprint().centreX(), site.footprint().centreY(), site.heading(), site.lattice().size(), rings,
-                roadless, site.roads().size(), site.debris().size(), stakes);
+                roadless, chained.size(), site.roads().size(), site.debris().size(), stakes);
     }
 
     private static RaidObjective raidObjective(BattleSimulation sim) {

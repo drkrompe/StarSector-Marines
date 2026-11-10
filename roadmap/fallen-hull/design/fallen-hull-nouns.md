@@ -163,6 +163,14 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   point. `HullSiteCheck` holds the laws on the finished grid (every way in
   open, the forge, halls and aprons reached, a hall frame walking hall to
   hall), and a story map's acceptance fails on any problem the site reports.
+- **The rules' reading.** `LongSurveyGround.rulesSite` fills `FallenHullSite`
+  from it: the hull and its trench as the root zone's footprint, the forge, the
+  bay's apron berth as the mouth, the lattice with `linkCells` a lattice step
+  and a quarter (so neighbours that moved to their stake ground still link, and
+  a stake's zone, half of it, meets its neighbours'), each haul road from the
+  hull outward, the starting stakes and the ways in as egress. The chapter
+  supplies the salvage, the walkers out and the store. Acceptance holds that
+  every starting stake chains back to the hull.
 
 ## Campaign (later, not work)
 

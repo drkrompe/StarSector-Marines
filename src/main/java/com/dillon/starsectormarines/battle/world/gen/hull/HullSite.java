@@ -31,6 +31,9 @@ public record HullSite(Area footprint, Direction heading, Interior interior, Are
     public static final String HULL = "hull", TRENCH = "hull.trench", FORGE = "hull.forge", BAY = "hull.bay",
             INTERIOR = "hull.interior";
 
+    /** Cells between neighbouring lattice points before each moves to its stake ground ({@link ClaimLattice#SPACING}). */
+    public static final int LATTICE_SPACING = ClaimLattice.SPACING;
+
     /** How far a stake has risen ({@code fallen-hull-nouns.md}, A stake's stages). */
     public enum StakeStage { PLANTED, RAISED, ESTABLISHED }
 
