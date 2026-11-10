@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 /**
  * Paints a {@link RuralLayout} onto the map: each plot by its use, every road
@@ -146,30 +147,46 @@ public final class RuralGround {
             }
         }
         List<Plot> fields = TownFields.plan(w, h, open, town, roads, ctx.seed);
+        for (Plot plot : fields) paint(ctx, plot, (x, y) -> true);
+        ctx.doodads.removeIf(d -> fields.stream().anyMatch(p -> p.contains(d.cellX, d.cellY)
+                && p.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1)));
+        return fields;
+    }
+
+    /**
+     * Paints one field the colony works ({@link #worked}): each cell of the plot that {@code paint} allows takes the
+     * plot's ground (crop rows, tramlines, headland grass, a hedge where it is hedged) and is made ground, so nothing
+     * is raised on it later. Appearance only. Returns how many cells were painted.
+     */
+    public static int paint(GenContext ctx, Plot plot, BiPredicate<Integer, Integer> paint) {
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         int grass = surface(ctx, mapping, GroundKind.GRASS);
         int dirt = surface(ctx, mapping, GroundKind.DIRT);
         int sand = surface(ctx, mapping, GroundKind.SAND);
         int[] hedge = hedgePlants();
-        for (Plot plot : fields) {
-            worked(ctx, plot);
-            for (int x = plot.x0(); x <= plot.x1(); x++) {
-                for (int y = plot.y0(); y <= plot.y1(); y++) {
-                    GroundKind kind = plotGround(plot, x, y);
-                    ctx.topology.setGroundKind(x, y, kind);
-                    ctx.topology.setSurface(x, y, kind == GroundKind.DIRT ? dirt : kind == GroundKind.SAND ? sand : grass);
-                    int plant = -1;
-                    if (plot.hedged() && hedge.length > 0 && kind == GroundKind.GRASS && fieldHedge(plot, x, y)) {
-                        plant = hedge[(int) Math.floorMod(hash(ctx.seed, x, y), (long) hedge.length)];
-                    }
-                    ctx.topology.setNatureOverlayIndex(x, y, plant);
-                    ctx.markMadeGround(x, y);
+        int painted = 0;
+        for (int x = plot.x0(); x <= plot.x1(); x++) {
+            for (int y = plot.y0(); y <= plot.y1(); y++) {
+                if (!ctx.topology.inBounds(x, y) || !paint.test(x, y)) continue;
+                GroundKind kind = plotGround(plot, x, y);
+                ctx.topology.setGroundKind(x, y, kind);
+                ctx.topology.setSurface(x, y, kind == GroundKind.DIRT ? dirt : kind == GroundKind.SAND ? sand : grass);
+                int plant = -1;
+                if (plot.hedged() && hedge.length > 0 && kind == GroundKind.GRASS && fieldHedge(plot, x, y)) {
+                    plant = hedge[(int) Math.floorMod(hash(ctx.seed, x, y), (long) hedge.length)];
                 }
+                ctx.topology.setNatureOverlayIndex(x, y, plant);
+                ctx.markMadeGround(x, y);
+                painted++;
             }
         }
-        ctx.doodads.removeIf(d -> fields.stream().anyMatch(p -> p.contains(d.cellX, d.cellY)
-                && p.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1)));
-        return fields;
+        if (painted > 0) worked(ctx, plot);
+        return painted;
+    }
+
+    /** The surface index of a ground kind on this map, for a pass that paints ground of its own. */
+    public static int surface(GenContext ctx, GroundKind kind) {
+        return surface(ctx, GenMappingRegistry.installed(), kind);
     }
 
     /** Ground a field may be laid on: the planet's own surface, not anything made or paved. */

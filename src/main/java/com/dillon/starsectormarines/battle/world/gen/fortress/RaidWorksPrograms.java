@@ -56,12 +56,6 @@ public final class RaidWorksPrograms {
     /** Yard a light-industry works keeps per shop: lanes and loading, closer set than a heavy works. UNTUNED. */
     static final int SHOPS_YARD_PER_SHOP = 150;
 
-    /** A farm plant's silo: a bin on its pad, square for the same reason as a still. */
-    private static final RoomShape SILO = RoomShape.rectangle(7, 7);
-    private static final RoomShape PACKING_SHED = RoomShape.rectangle(16, 7);
-    /** Yard a farm plant keeps per silo: the threshing floor and the trucks' turning ground. UNTUNED. */
-    static final int FARM_YARD_PER_SILO = 240;
-
     /** A cargo terminal's shed: a bonded warehouse the lighters unload into. */
     private static final RoomShape CARGO_SHED = RoomShape.rectangle(14, 8);
     private static final RoomShape TOWER = RoomShape.rectangle(6, 6);
@@ -102,18 +96,6 @@ public final class RaidWorksPrograms {
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 2)),
                 0, shops * SHOPS_YARD_PER_SHOP, true);
-    }
-
-    /** A farm plant: a silo per machine, the packing shed the harvest goes through, a stores and one post. */
-    public static FortressProgram farmPlant(int silos) {
-        if (silos < 1) throw new IllegalArgumentException("a farm plant has at least one silo");
-        return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, SILO, Ward.YARD, silos),
-                new FortressBuilding(RoomPurpose.PRODUCTION_FLOOR, PACKING_SHED, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 1)),
-                0, silos * FARM_YARD_PER_SILO, true);
     }
 
     /**

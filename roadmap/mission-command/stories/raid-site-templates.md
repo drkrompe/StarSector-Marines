@@ -61,7 +61,7 @@ rest of the planet's sites feed. Three things carry that.
 | Mining | the central concentrator, which every dig feeds | the open pit beside the head works (`RaidSiteTemplate.PIT`); ore lines in from the other digs; ore stockpiles |
 | Refining | the only cracking and distillation plant | pipelines in; stills; a tank farm |
 | Light industry | the central fabrication works | feeder lines; shop floors; loading sheds |
-| Farming | the central grain elevator and processing hub | farm roads in; silos; packing sheds |
+| Farming | the central grain elevator and processing hub | farm roads in off the edges through the fields; haulers queued at the intake; the grain gallery from intake through dryer, silo battery and mill to cold store and loadout; spilt grain; fish ponds among the fields (`GrainHub`) |
 | Spaceport | the only orbital lift | the lighter apron; bonded sheds; roads in from the planet's towns |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
 

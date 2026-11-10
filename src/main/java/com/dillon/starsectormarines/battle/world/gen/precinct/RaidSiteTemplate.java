@@ -49,7 +49,7 @@ import java.util.function.UnaryOperator;
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
  * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
  * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
- * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
+ * the grain hub its harvest passes through ({@link GrainHub}) among farmsteads and fields; a port's its cargo terminal; a base's its motor pool and magazine
  * among depots, with the garrison beside it as on every site.
  *
  * <p>Raid only. Every other mission's map is derived as it was.
@@ -172,6 +172,10 @@ public final class RaidSiteTemplate {
     private static final Set<String> REFINING = Set.of("refining", "fuelprod");
     private static final Set<String> LIGHT_INDUSTRY = Set.of("lightindustry");
     private static final Set<String> FARMING = Set.of("farming", "aquaculture");
+    private static final String AQUACULTURE = "aquaculture";
+
+    /** A works whose ground is laid round it once it stands ({@link GrainHub}): none, or a farm world's hub. */
+    enum Hub { NONE, GRAIN, AQUACULTURE }
     private static final Set<String> PORT = Set.of("spaceport", "megaport");
     private static final Set<String> MILITARY = Set.of("militarybase", "patrolhq", "highcommand");
 
@@ -181,6 +185,7 @@ public final class RaidSiteTemplate {
     private final GrownTrunkPlan.Profile industryGrowth;
     private final PrecinctCharacter industryCharacter;
     private final boolean pit;
+    private final Hub hub;
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth) {
@@ -195,6 +200,13 @@ public final class RaidSiteTemplate {
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
                              boolean pit) {
+        this(key, works, worksFit, industryGrowth, industryCharacter, pit, Hub.NONE);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
+                             boolean pit, Hub hub) {
+        this.hub = hub;
         this.key = key;
         this.works = works;
         this.worksFit = worksFit;
@@ -221,8 +233,11 @@ public final class RaidSiteTemplate {
             return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
         }
         if (FARMING.contains(id)) {
-            return new RaidSiteTemplate("farming", RaidWorksPrograms::farmPlant, WORKS_FIT, ORE_YARDS,
-                    PrecinctCharacter.FARMSTEAD);
+            boolean fish = AQUACULTURE.equals(id);
+            // One site, one owned map: a fish-farming world plays the farm hub's map with tank halls and ponds.
+            return new RaidSiteTemplate("farming",
+                    fish ? GrainHub::aquaculture : GrainHub::grain, MINE_FIT, ORE_YARDS, PrecinctCharacter.FARMSTEAD,
+                    false, fish ? Hub.AQUACULTURE : Hub.GRAIN);
         }
         if (PORT.contains(id)) {
             return new RaidSiteTemplate("spaceport", RaidWorksPrograms::cargoTerminal, MINE_FIT, INDUSTRY_GROWTH);
@@ -315,6 +330,10 @@ public final class RaidSiteTemplate {
             pieces.add(banked ? clearOfBank(pitSite, wind, width, height) : pitSite);
         }
         pieces.addAll(lines(mirrorX, mirrorY, pit));
+        if (hub != Hub.NONE) {
+            pieces.add(GrainHub.ground(mirrorY ? Side.SOUTH : Side.NORTH, mirrorX ? Side.WEST : Side.EAST,
+                    hub == Hub.AQUACULTURE));
+        }
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, pit, width, height));
         return plan.withLayout(new MissionLayout(pieces));
     }
