@@ -601,7 +601,11 @@ production hall and the secure store in its one interior band. Extensive adds
 storage bays and a second production hall across two bands. Vast widens every
 hall and runs two lines per production hall. The secure store is built: a
 cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
-(`mapgen-nouns.md`, Ruins ground). The plant's other halls are still owed.
+(`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
+`RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
+vast) and storage bays (18x14), furnished with stand-ins until the plant kit's
+art lands. Slots for that kit, the control room and the substation as plant
+halls, and the outdoor yards are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its

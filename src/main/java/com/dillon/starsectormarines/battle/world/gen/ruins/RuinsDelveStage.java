@@ -138,6 +138,11 @@ public final class RuinsDelveStage implements GenStage {
     /** The ruined-lot wall that reads as a hedge from above; a long-dead town's walls are masonry. */
     static final String HEDGE_WALL = "colony.olive-wall";
     static final String DEAD_WALL = "colony.masonry-wall";
+    /** Stand-ins for the plant kit until its art lands: a line module, a rack, a dock's stock. */
+    static final String LINE_STAND_IN = "doodad.industrial-machine-tool";
+    static final String RACK_STAND_IN = "doodad.industrial-crate-stack";
+    static final String DOCK_STAND_IN = "doodad.industrial-pallet-stack";
+
     /** Hull cells per chamber tried in an interior layer's band, besides its published rooms; at least four. UNTUNED. */
     static final int HULL_PER_CHAMBER = 220;
 
@@ -245,6 +250,7 @@ public final class RuinsDelveStage implements GenStage {
             List<Layer> laid = new ArrayList<>();
             List<Junction> junctions = new ArrayList<>();
             List<Area> chambers = new ArrayList<>();
+            List<RuinsDelve.PlantHall> plantHalls = new ArrayList<>();
             PowerHall hall = null;
             RecordsTerminal records = null;
             for (int i = 0; i < layers; i++) {
@@ -268,6 +274,15 @@ public final class RuinsDelveStage implements GenStage {
                 }
                 if (rooms.isEmpty()) throw new IllegalStateException(RuinsDelve.layerName(i) + " seats no side room");
                 if (in) {
+                    // The plant's halls first, in its own order: intake and lines in the outer band, storage deeper.
+                    for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
+                        Area floor = plantHall(region, stage);
+                        if (floor == null) continue;
+                        connect(new Cell(floor.centreX(), floor.centreY()), i, null);
+                        chambers.add(floor);
+                        plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
+                                stage, floor));
+                    }
                     int tries = Math.max(4, region.width() * region.height() / HULL_PER_CHAMBER);
                     for (int c = 0; c < tries; c++) {
                         Area chamber = chamber(region);
@@ -282,6 +297,7 @@ public final class RuinsDelveStage implements GenStage {
                 laid.add(new Layer(RuinsDelve.layerName(i), i, d.kind, ground, d.lineLeft, d.lineRight,
                         d.ways, rooms, court));
             }
+            for (RuinsDelve.PlantHall plantHall : plantHalls) furnish(plantHall);
             dress(plan.dressing(), vault, chambers);
             finishMasks();
             repairPockets(landing.get(0).berth(0));
@@ -291,7 +307,7 @@ public final class RuinsDelveStage implements GenStage {
             for (Way way : last.ways) if (way.kind() == WayKind.COLLAPSE) shortWay = way;
             Collapse collapse = new Collapse(RuinsDelve.COLLAPSE, layers - 1, shortWay);
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers);
+                    entrances, aprons, chambers, plantHalls);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }
@@ -1276,6 +1292,87 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /** A chamber off an interior band: plain hull floor in the solid, its walls the hull round it. */
+        /**
+         * The plant halls an interior band holds, by its place among the interior's bands: the outer band takes the
+         * intake docks and the lines, the deeper band storage and one more line; a lone band takes intake and lines.
+         * Vast ground lays one more of each.
+         */
+        List<RuinsDelve.PlantStage> stages(int band, int bands) {
+            List<RuinsDelve.PlantStage> out = new ArrayList<>();
+            boolean outer = band == 0;
+            if (outer) {
+                out.add(RuinsDelve.PlantStage.INTAKE);
+                out.add(RuinsDelve.PlantStage.PRODUCTION);
+                out.add(RuinsDelve.PlantStage.PRODUCTION);
+            }
+            if (!outer || bands == 1) {
+                if (bands > 1) {
+                    out.add(RuinsDelve.PlantStage.STORAGE);
+                    out.add(RuinsDelve.PlantStage.STORAGE);
+                }
+                out.add(RuinsDelve.PlantStage.PRODUCTION);
+            }
+            if (plan.layers() >= 4) out.addAll(List.copyOf(out));
+            return out;
+        }
+
+        /** A plant hall of {@code stage}'s size laid in {@code region}, its floor carved; null where none fits. */
+        Area plantHall(Area region, RuinsDelve.PlantStage stage) {
+            boolean vast = plan.layers() >= 4;
+            int cw = switch (stage) {
+                case INTAKE -> 16;
+                case PRODUCTION -> vast ? 30 : 26;
+                case STORAGE -> 18;
+            };
+            int ch = switch (stage) {
+                case INTAKE -> 12;
+                case PRODUCTION -> vast ? 18 : 16;
+                case STORAGE -> 14;
+            };
+            cw = Math.min(cw, region.width() - 6);
+            if (cw < 12) return null;
+            int[] at = spot(region, cw, ch, 2);
+            if (at == null) return null;
+            Area room = new Area(at[0], at[1], at[0] + cw - 1, at[1] + ch - 1);
+            for (int y = room.bottom(); y <= room.top(); y++) {
+                for (int x = room.left(); x <= room.right(); x++) interiorFloor(x, y);
+            }
+            reserve(room, 2);
+            return room;
+        }
+
+        /**
+         * A plant hall's stage furniture in stand-ins: line runs down a production hall, rack rows across a storage
+         * bay, stock left on an intake dock's floor. Each run leaves gaps, every piece stands only where the hall stays
+         * one floor, and pieces are drawn by coordinate hash, not from the layout's stream.
+         */
+        void furnish(RuinsDelve.PlantHall plantHall) {
+            TileRegistry registry = TileRegistry.installed();
+            if (registry == null) return;
+            Area hall = plantHall.footprint();
+            Cell centre = new Cell(hall.centreX(), hall.centreY());
+            int step = plantHall.stage() == RuinsDelve.PlantStage.INTAKE ? 5 : 4;
+            for (int y = hall.bottom() + 3; y <= hall.top() - 3; y += step) {
+                for (int x = hall.left() + 3; x <= hall.right() - 3; x++) {
+                    // Gaps: a cell open every fourth along a run, so a run is never a wall.
+                    if ((x - hall.left()) % 4 == 2) continue;
+                    long hash = (x * 73_856_093L) ^ (y * 19_349_663L) ^ (ctx.seed * 83_492_791L) ^ 0x9A11L;
+                    int roll = (int) Math.floorMod(hash ^ (hash >>> 17), 6L);
+                    String id = switch (plantHall.stage()) {
+                        // A line: modules, some wrecked where they stood.
+                        case PRODUCTION -> roll == 0 ? WRECK : LINE_STAND_IN;
+                        // Racks, mostly stripped: a few still stocked.
+                        case STORAGE -> roll < 2 ? RACK_STAND_IN : roll == 2 ? PULLED : null;
+                        // Docks: stock left on the floor here and there.
+                        case INTAKE -> roll == 0 ? DOCK_STAND_IN : null;
+                    };
+                    if (id == null) continue;
+                    DoodadDef def = registry.doodad(id);
+                    if (def != null) dressProp(def, x, y, 1, 1, hall, centre);
+                }
+            }
+        }
+
         Area chamber(Area region) {
             int cw = 6 + rng.nextInt(5), ch = 5 + rng.nextInt(4);
             int[] at = spot(region, cw, ch, 1);
