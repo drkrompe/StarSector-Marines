@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c607-152c-7a03-b7be-2af827003255",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c607-152c-7a03-b7be-2af827003255\\exec-2c89d535-ac56-4b5f-87f3-82ac112faa25.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\greenhouses.raw.png",
+    "sha256": "a53d9e1440560ad433c968a82c5bc451c374968e55db156d5188c79c9f2c8044",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\greenhouses.prompt.txt",
+  "promptSha256": "d1174fdc48387893051244ab7e6c45aa1a23f10e0752608dd65a14392d8c6576",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact edit target, keep every outline, position and size\nImage 2: Material/style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1152 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground or soil around the objects.\n\nPaint a frontier colony's covered farm, grown under cover because the planet outside is frozen, airless or poisonous. Four pieces, in reading order:\n1. Top left, a long arched greenhouse polytunnel seen from above: milky, slightly frosted translucent plastic film stretched over evenly spaced steel hoops exactly where the guide draws its ribs, a ridge line down its length, and through the film two long beds of dense green leafy crops either side of a narrow central walkway; a small steel door frame at each short end.\n2. Top right, a low steel skid carrying two round white water and nutrient tanks seen from above (each with a hatch on top), a small blue-grey pump at the right end and a pipe joining them.\n3. Bottom left, the same greenhouse polytunnel, half as long, with the same hoops, film, crop beds, walkway and end doors.\n4. Bottom right, a sealed geodesic grow dome seen from above: a thick dark steel ring at its base, triangulated glass panels on the strut pattern the guide draws, and through the glass a round hydroponic bed of green crops in concentric rings around a small central hub; a short boxy steel airlock porch on its south side.\n\nThe film and glass must read as translucent covers with the plants visible beneath, slightly hazed, never as paving, concrete or solid roofs. Grounded painted Starsector-style sprite aesthetic: restrained colour, credible materials, worn steel, bolts and seams, a little grime and frost on the film edges, soft neutral overhead light with shallow local shading only. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.\n\nTrue alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no watermark. Paint only these four objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\greenhouses-guide.png",
+      "sha256": "58b9e649ad1129f7640062a403b06a0136865afcf7030207a5ffc39dd5866c16",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact edit target, keep every outline, position and size"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\street-dressing.png",
+      "sha256": "92db899d8e76ee4e2071ef8608d359bd7a20f43d66e1181f74e3d26ed352a566",
+      "dimensions": [
+        1152,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact geometry and the second for materials and rendering style."
+  ],
+  "usage": {
+    "input_tokens": 63905,
+    "cached_input_tokens": 47744,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 641,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.7
+}
