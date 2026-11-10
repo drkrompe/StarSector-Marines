@@ -6532,6 +6532,7 @@ public final class BattleSetup {
             if (post.droneHubCellX != null && post.droneHubCellY != null) {
                 long hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER,
                         post.droneHubCellX, post.droneHubCellY));
+                sim.setStructureStyle(hub, post.style); // its drones are built in the post's tech family
                 spawned.add(hub);
             }
         }

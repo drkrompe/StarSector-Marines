@@ -44,7 +44,8 @@ public final class DroneSpawner {
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return 0L;
         String id = "drone-" + sim.identity().name(hub) + "-" + sim.hubState().incrementDronesLaunched(hub);
-        EntitySpec droneSpec = Drone.create(id, sim.identity().faction(hub), cell[0], cell[1], hub);
+        EntitySpec droneSpec = Drone.create(id, sim.identity().faction(hub), cell[0], cell[1], hub,
+                DroneLook.forHub(sim.structureStyle(hub)));
 
         // Resolve the hub's drone squad (mint one on first launch) BEFORE the spawn
         // so the squad id can be stamped on the spec — allocate then seeds the SQUAD

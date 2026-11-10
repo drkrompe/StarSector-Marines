@@ -1750,8 +1750,11 @@ hull. The rule belongs to the wing, so a sensor pair is rebuilt too, on any host
 When the hull is wrecked or leaves, the anchor dies, and
 every drone still out is destroyed where it flies and falls through the ordinary drone
 crash. Bay drones carry a sturdier airframe than a hub's disposable screen, because they
-are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Tachyon
-drone (`DroneLook`; `art-source/drones/tt-drones/`).
+are part of the hull's armament. Each role is drawn as its own Tri-Tachyon vectored-thrust
+pod, its outline taken from its job and never from a fan (`DroneLook`;
+`art-source/drones/fanless-drones/`): the escort a long pod built along its emitter, the
+sensor a teardrop behind one large aperture, the point-defence drone an octagonal turret
+pod, the strike drone a loitering missile.
 
 The **hover scout** (`HOVER_SCOUT`, Light lift) carries a sensor mast on the spotter pickup's
 terms (`HullSightings`). It also carries a Twin PE-1, two pulse emitters of the Wisp drone's PE-1 family,

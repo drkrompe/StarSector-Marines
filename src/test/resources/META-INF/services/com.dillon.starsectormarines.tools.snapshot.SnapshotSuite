@@ -437,6 +437,7 @@ com.dillon.starsectormarines.ops.RaidMilitarySiteLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite
 com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
+com.dillon.starsectormarines.battle.drone.DroneHubLookSuite
 com.dillon.starsectormarines.ops.RuinsBriefingSnapshotSuite
 com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
