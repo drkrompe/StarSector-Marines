@@ -98,6 +98,80 @@ public final class PrecinctInterconnect {
         return new Result(components, components - cut, cut, cells);
     }
 
+    /**
+     * Takes up each leg of {@code welded} road (cells an earlier weld laid) that a road laid since has made
+     * redundant: one whose removal leaves the map in no more networks than it is in. A weld is laid only where
+     * nothing else joins two networks; left in place once a later road joins them, it is a second road beside
+     * that one, two carriageways where one carries the traffic. A weld is straight legs joined by bends, and a
+     * later road may meet one leg and run beside another, so legs are tried one at a time, the longest first,
+     * until none more can go. Returns the cells taken up.
+     */
+    public static int untie(int[][] owner, boolean[][] welded, int width, int height) {
+        int before = components(owner, width, height), taken = 0;
+        for (boolean changed = true; changed; ) {
+            changed = false;
+            List<List<int[]>> legs = legs(owner, welded, width, height);
+            legs.sort((a, b) -> Integer.compare(b.size(), a.size()));
+            for (List<int[]> leg : legs) {
+                int[] was = new int[leg.size()];
+                for (int i = 0; i < leg.size(); i++) {
+                    int[] c = leg.get(i);
+                    was[i] = owner[c[0]][c[1]];
+                    owner[c[0]][c[1]] = GrownTrunkPlan.UNOWNED;
+                }
+                if (components(owner, width, height) <= before) {
+                    taken += leg.size();
+                    changed = true;
+                    continue;
+                }
+                for (int i = 0; i < leg.size(); i++) owner[leg.get(i)[0]][leg.get(i)[1]] = was[i];
+            }
+        }
+        return taken;
+    }
+
+    /**
+     * The straight legs of the welded road still standing: each cell joins the way its welded run is longer (along
+     * its column or its row), and a leg is the cells of one way joined edge to edge.
+     */
+    private static List<List<int[]>> legs(int[][] owner, boolean[][] welded, int width, int height) {
+        boolean[][] on = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++)
+            on[x][y] = welded[x][y] && owner[x][y] != GrownTrunkPlan.UNOWNED;
+        boolean[][] vertical = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) {
+            if (!on[x][y]) continue;
+            int across = 1, along = 1;
+            for (int i = x - 1; i >= 0 && on[i][y]; i--) across++;
+            for (int i = x + 1; i < width && on[i][y]; i++) across++;
+            for (int j = y - 1; j >= 0 && on[x][j]; j--) along++;
+            for (int j = y + 1; j < height && on[x][j]; j++) along++;
+            vertical[x][y] = along >= across;
+        }
+        boolean[][] seen = new boolean[width][height];
+        List<List<int[]>> legs = new ArrayList<>();
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) {
+            if (!on[x][y] || seen[x][y]) continue;
+            List<int[]> leg = new ArrayList<>();
+            Deque<int[]> open = new ArrayDeque<>();
+            seen[x][y] = true;
+            open.add(new int[]{x, y});
+            while (!open.isEmpty()) {
+                int[] c = open.poll();
+                leg.add(c);
+                for (int[] step : STEPS) {
+                    int nx = c[0] + step[0], ny = c[1] + step[1];
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height || seen[nx][ny] || !on[nx][ny]
+                            || vertical[nx][ny] != vertical[x][y]) continue;
+                    seen[nx][ny] = true;
+                    open.add(new int[]{nx, ny});
+                }
+            }
+            legs.add(leg);
+        }
+        return legs;
+    }
+
     /** How many separate road networks a map has. */
     public static int components(int[][] owner, int width, int height) {
         return count(label(owner, width, height), width, height);

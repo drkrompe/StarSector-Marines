@@ -193,6 +193,7 @@ import com.dillon.starsectormarines.battle.command.reinforcement.ShuttleMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
+import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
@@ -1521,13 +1522,15 @@ public final class BattleSetup {
                     groundRoster.primaryFactionId()));
         } else if (raidWorksLayout != null) {
             List<RaidObjective.Site> machines = new ArrayList<>();
+            List<List<int[]>> halls = new ArrayList<>();
             for (int[] cell : raidWorksLayout.machines()) {
                 machines.add(new RaidObjective.Site(cell[0], cell[1],
                         Math.max(0, sim.getZoneGraph().zoneIdAt(cell[0], cell[1]))));
+                halls.add(BuildingStanding.outlineAt(sim.getTopology(), sim.getBuildings(), cell[0], cell[1]));
             }
             sim.addObjective(RaidObjective.works(raidWorksLayout.targetId(),
                     raidTargetName == null ? raidWorksLayout.targetName() : raidTargetName, machines,
-                    raidWorksLayout.egressCellX(), raidWorksLayout.egressCellY()));
+                    raidWorksLayout.egressCellX(), raidWorksLayout.egressCellY()).withHalls(halls));
         } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
@@ -1642,6 +1645,8 @@ public final class BattleSetup {
         } else if (ruinsDefence == null) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
+            // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
+            if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();

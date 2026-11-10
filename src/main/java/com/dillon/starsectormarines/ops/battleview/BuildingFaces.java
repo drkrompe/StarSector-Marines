@@ -33,7 +33,11 @@ final class BuildingFaces {
     static final int SHED = 0, ONE = 1, TWO = 2, THREE = 3, TALL = 4, RAZED = 5;
     /** How high a cut-away building's near walls still stand, metres: about knee height. UNTUNED. */
     static final float KNEE_METERS = .6f;
-    /** The share of a building's roof fallen in or burnt away past which it is destroyed. UNTUNED. */
+    /**
+     * The share of a building's walls breached to rubble past which it is destroyed. A roof fallen in or burnt away
+     * leaves its walls standing as a gutted shell (a creep's cave-in, a fire's), so only the walls going down razes it.
+     * UNTUNED.
+     */
     static final float DESTROYED_SHARE = .5f;
 
     /** How a town is built to live where it stands, as its walls show it: the renderer's view of its habitat. */
@@ -50,14 +54,14 @@ final class BuildingFaces {
     private BuildingFaces() { }
 
     /**
-     * A building's height class now ({@link #HEIGHTS}): what it was built as, until enough of its roof has fallen in
-     * or burnt away ({@link #DESTROYED_SHARE}) that it drops flat with its rubble. The one place a building's height
-     * is decided; an author's height for a building, when the map patch carries one, belongs here.
+     * A building's height class now ({@link #HEIGHTS}): what it was built as, until enough of its walls have been
+     * breached ({@link #DESTROYED_SHARE}) that it drops flat with its rubble. The one place a building's height is
+     * decided; an author's height for a building, when the map patch carries one, belongs here.
      *
-     * @param ruinedShare the share of its roof cells fallen in or burnt away
+     * @param breachedShare the share of its outer walls breached to rubble
      */
-    static int heightClass(Built built, float ruinedShare) {
-        if (ruinedShare >= DESTROYED_SHARE) return RAZED;
+    static int heightClass(Built built, float breachedShare) {
+        if (breachedShare >= DESTROYED_SHARE) return RAZED;
         return heightClass(built);
     }
 

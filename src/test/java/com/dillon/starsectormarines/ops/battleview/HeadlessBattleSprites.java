@@ -127,6 +127,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteAPI road;
     private final SpriteAPI floors;
     private final SpriteAPI roofs;
+    private final SpriteAPI hullRoof;
     private final SpriteAPI water;
     private final SpriteAPI urban3;
     private final SpriteAPI nature;
@@ -179,6 +180,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         road = sprite(TileManifest.ROAD_SHEET);
         floors = sprite(TileManifest.FLOORS_SHEET);
         roofs = sprite(RoofTiles.SHEET);
+        hullRoof = sprite(HullRoof.TEXTURE);
         water = sprite(TileManifest.WATER_SHEET);
         urban3 = sprite(TileManifest.STREET3_SHEET);
         nature = sprite(TileManifest.NATURE_SHEET);
@@ -399,6 +401,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI roofSheet() { return roofs; }
     @Override public int roofSheetPxW() { return asset(roofs).width(); }
     @Override public int roofSheetPxH() { return asset(roofs).height(); }
+    @Override public SpriteAPI hullRoofSheet() { return hullRoof; }
+    @Override public int hullRoofSheetPxW() { return asset(hullRoof).width(); }
+    @Override public int hullRoofSheetPxH() { return asset(hullRoof).height(); }
     @Override public SpriteAPI waterSheet() { return water; }
     @Override public int waterSheetPxW() { return asset(water).width(); }
     @Override public int waterSheetPxH() { return asset(water).height(); }

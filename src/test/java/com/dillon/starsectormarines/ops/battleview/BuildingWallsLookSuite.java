@@ -35,7 +35,9 @@ import java.util.Random;
  * buildings in frame damaged by their own number, some scorched and holed, some with storeys fallen in, some razed
  * ({@code -damaged.png}); each also zoomed in, 40 cells across ({@code -close}). Look preset; nothing is played. Opt-in.
  *
- * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds.
+ * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
+ * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
+ * instead of the buildings.
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
 
@@ -78,7 +80,8 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     for (Doodad d : map.doodads) sim.addDoodad(d);
                     sim.setBuildings(map.buildings);
                     sim.setSurface(world.palette());
-                    List<float[]> frames = frames(sim, 2);
+                    List<float[]> frames = "curtain".equals(System.getProperty("snapshot.walls.frame"))
+                            ? curtainFrames(sim, 2) : frames(sim, 2);
                     BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
                             FRAME_H, frames.get(0)[0], frames.get(0)[1], PLAY);
                     for (int f = 0; f < frames.size(); f++) {
@@ -153,6 +156,43 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
         }
         if (picked.isEmpty()) picked.add(new float[]{w / 2f, h / 2f, 1f, 1f});
         return picked;
+    }
+
+    /**
+     * Frames on the joints where a diagonal freestanding wall runs into a straight one, each set a few cells off its
+     * joint so the faces there stand toward the view's centre; falls back on {@link #frames} where there are none.
+     */
+    static List<float[]> curtainFrames(BattleSimulation sim, int count) {
+        List<float[]> joints = new ArrayList<>();
+        for (FreestandingWalls.Run run : FreestandingWallFaces.runs(sim.getTopology())) {
+            if (run.kind() == FreestandingWalls.Kind.ENVELOPE || run.kind() == FreestandingWalls.Kind.ENVELOPE_PLINTH)
+                continue;
+            float[] st = run.strokes();
+            for (int o = 0; o < st.length; o += FreestandingWalls.STROKE) {
+                if (st[o] == st[o + 2] || st[o + 1] == st[o + 3]) continue;
+                for (int end = 0; end < 2; end++) {
+                    float x = st[o + end * 2], y = st[o + end * 2 + 1];
+                    for (int c = 0; c < st.length; c += FreestandingWalls.STROKE) {
+                        float x0 = st[c], y0 = st[c + 1], x1 = st[c + 2], y1 = st[c + 3];
+                        boolean straight = (x0 == x1) != (y0 == y1);
+                        if (straight && x >= Math.min(x0, x1) && x <= Math.max(x0, x1) && y >= Math.min(y0, y1)
+                                && y <= Math.max(y0, y1)) {
+                            joints.add(new float[]{x, y});
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        List<float[]> picked = new ArrayList<>();
+        for (float[] j : joints) {
+            if (picked.size() == count) break;
+            boolean far = true;
+            for (float[] p : picked) far &= Math.abs(p[0] - j[0]) > 20 || Math.abs(p[1] - j[1]) > 12;
+            if (far) picked.add(new float[]{j[0] - 7f, j[1] - 4f, 1f, 1f});
+        }
+        System.out.printf(Locale.ROOT, "building-walls-look: %d curtain-wall joints%n", joints.size());
+        return picked.isEmpty() ? frames(sim, count) : picked;
     }
 
     /** The building nearest a frame's centre, by its bounds. */

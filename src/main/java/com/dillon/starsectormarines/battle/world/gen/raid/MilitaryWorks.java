@@ -230,7 +230,8 @@ public final class MilitaryWorks implements RaidIndustry {
         int[] bounds = claimBounds(c, plan.precincts().indexOf(works));
         if (bounds != null) MilitaryGround.watchtowers(c, bounds);
         for (int i = 0; i < plan.precincts().size(); i++) {
-            if (RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) MilitaryGround.paradeSquare(c, i);
+            if (!RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) continue;
+            MilitaryGround.drillYards(c, i, MilitaryGround.paradeSquare(c, i));
         }
         vehiclePark(c, plan, works);
         // The base's buildings and its garrison's are built alike, so the two read as one cantonment: olive sheet
@@ -401,11 +402,13 @@ public final class MilitaryWorks implements RaidIndustry {
                 x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
             }
         }
-        int placed = 0;
-        for (int y = y0 + PARK_CLEAR; y <= y1 - PARK_CLEAR && placed < PARK_MOST; y += PARK_RANKS) {
+        // A rank is one kind: the tanks drawn up together, the carriers in the next rank.
+        int placed = 0, rank = 0;
+        for (int y = y0 + PARK_CLEAR; y <= y1 - PARK_CLEAR && placed < PARK_MOST; y += PARK_RANKS, rank++) {
+            String vehicle = ARMOUR.get(rank % ARMOUR.size());
             for (int x = x0 + PARK_CLEAR; x <= x1 - PARK_CLEAR && placed < PARK_MOST; x += PARK_FILE) {
                 if (claim[x][y] != index || nearBuilding(c, x, y, PARK_CLEAR)) continue;
-                if (WorksProps.place(c, x, y, ARMOUR.get(placed % ARMOUR.size()), 1)) placed++;
+                if (WorksProps.place(c, x, y, vehicle, 1)) placed++;
             }
         }
     }
@@ -421,10 +424,10 @@ public final class MilitaryWorks implements RaidIndustry {
         return false;
     }
 
-    /** The patrols' own vehicles: armoured personnel carriers, the base's whole fleet but its logistics trucks. */
-    private static final List<String> ARMOUR = List.of("doodad.parked-armored-apc");
+    /** The base's own vehicles, the whole fleet but its logistics trucks: tanks and armoured personnel carriers. */
+    private static final List<String> ARMOUR = List.of("doodad.parked-tank", "doodad.parked-apc-army");
 
-    /** A row of patrol trucks along a motor shed's long side, and drums at its corner. */
+    /** A row of the base's vehicles along a motor shed's long side, and drums at its corner. */
     private static void motorPark(GenContext c, PointOfInterest shed, int n) {
         List<String> row = new ArrayList<>();
         for (int i = 0; i < 3; i++) row.add(ARMOUR.get((n + i) % ARMOUR.size()));

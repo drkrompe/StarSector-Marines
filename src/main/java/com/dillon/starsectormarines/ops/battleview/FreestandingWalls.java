@@ -122,7 +122,7 @@ final class FreestandingWalls {
      * the spare slot unused).
      */
     record Run(Kind kind, float meters, int minX, int minY, int maxX, int maxY, int[] cells, float[] segments,
-               float[] strokes) { }
+               float[] strokes, float[] edges, float[] joints) { }
 
     /**
      * Every run of freestanding wall on a {@code gridW} by {@code gridH} map, lowest first, so a taller wall drawn
@@ -170,8 +170,9 @@ final class FreestandingWalls {
             Arrays.sort(cells);
             Kind of = KINDS[k - 1];
             int mark = -k;
+            float[] strokes = strokes(cells, gridW, gridH, at -> kind[at] == mark);
             runs.add(new Run(of, height(of, count), minX, minY, maxX, maxY, cells, outline(cells, gridW, kind, mark),
-                    strokes(cells, gridW, gridH, at -> kind[at] == mark)));
+                    strokes, edges(strokes, gridW), joints(strokes)));
         }
         runs.sort((a, b) -> Float.compare(a.meters(), b.meters()));
         return runs;
@@ -258,6 +259,185 @@ final class FreestandingWalls {
         for (int s = 0; s < 8; s++) {
             if (RX[s] == bx && RY[s] == by && (bx != 0 || by != 0)) continue;
             if (in(x + RX[s], y + RY[s], gridW, gridH, inRun)) return false;
+        }
+        return true;
+    }
+
+    /** A wall's half-thickness, in cells: a diagonal stands as thick as a straight wall. */
+    static final float HALF = .5f;
+
+    /**
+     * A stroke's footprint from {@code (x0, y0)} to {@code (x1, y1)}, {@code half} either side of its line, a straight
+     * one reaching a half cell past each end and a diagonal stopping at its end cells' centres, as four corners into
+     * {@code out}: start and end on one side, then end and start on the other. A post (no length) is a square.
+     */
+    static void corners(float x0, float y0, float x1, float y1, float half, float[] out) {
+        float dx = x1 - x0, dy = y1 - y0, len = (float) Math.hypot(dx, dy);
+        if (len < 1e-4f) {
+            dx = 1f;
+            dy = 0f;
+        } else {
+            dx /= len;
+            dy /= len;
+        }
+        float nx = dy, ny = -dx;
+        // A straight wall reaches its end cells' edges; a diagonal stops at their centres, inside their piers.
+        float reach = dx != 0f && dy != 0f ? 0f : .5f;
+        float sx = x0 - dx * reach, sy = y0 - dy * reach, ex = x1 + dx * reach, ey = y1 + dy * reach;
+        out[0] = sx + nx * half; out[1] = sy + ny * half;
+        out[2] = ex + nx * half; out[3] = ey + ny * half;
+        out[4] = ex - nx * half; out[5] = ey - ny * half;
+        out[6] = sx - nx * half; out[7] = sy - ny * half;
+    }
+
+    /** Floats per outline edge: its ends in cells, its outward normal, and the wall cell it stands on. */
+    static final int EDGE = 7;
+    /** How far either side of an edge its open ground and its wall are probed, cells. */
+    private static final float PROBE = 1e-3f;
+
+    /**
+     * The outline of a run's strokes taken together, so where strokes meet (a diagonal into a straight wall, a pier,
+     * a jog) the run stands as one wall: every side of every stroke's footprint ({@link #corners}), cut where another
+     * footprint crosses it, keeping only the pieces with open ground outside them. A piece two footprints share is
+     * kept once, for the first. {@link #EDGE} floats each, the normal pointing out to the open ground.
+     */
+    static float[] edges(float[] strokes, int gridW) {
+        int count = strokes.length / STROKE;
+        float[][] quads = new float[count][8];
+        for (int i = 0; i < count; i++) {
+            int o = i * STROKE;
+            corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3], HALF, quads[i]);
+        }
+        float[] out = new float[EDGE * 8];
+        int n = 0;
+        float[] cuts = new float[16];
+        for (int i = 0; i < count; i++) {
+            float[] q = quads[i];
+            float cx = (q[0] + q[2] + q[4] + q[6]) / 4f, cy = (q[1] + q[3] + q[5] + q[7]) / 4f;
+            for (int side = 0; side < 4; side++) {
+                int a = side * 2, b = (a + 2) % 8;
+                float ax = q[a], ay = q[a + 1], bx = q[b], by = q[b + 1];
+                float ex = bx - ax, ey = by - ay, len = (float) Math.hypot(ex, ey);
+                if (len < 1e-4f) continue;
+                float nx = ey / len, ny = -ex / len;
+                if (nx * ((ax + bx) / 2f - cx) + ny * ((ay + by) / 2f - cy) < 0f) {
+                    nx = -nx;
+                    ny = -ny;
+                }
+                int cutCount = 0;
+                cuts[cutCount++] = 0f;
+                cuts[cutCount++] = 1f;
+                for (int j = 0; j < count; j++) {
+                    if (j == i) continue;
+                    float[] r = quads[j];
+                    for (int k = 0; k < 8; k += 2) {
+                        float px = r[k], py = r[k + 1], qx = r[(k + 2) % 8], qy = r[(k + 3) % 8];
+                        if (cutCount + 2 > cuts.length) cuts = Arrays.copyOf(cuts, cuts.length * 2);
+                        // Where the other side crosses this one, and where its corner lies on it.
+                        float fx = qx - px, fy = qy - py, den = ex * fy - ey * fx;
+                        if (Math.abs(den) > 1e-9f) {
+                            float t = ((px - ax) * fy - (py - ay) * fx) / den;
+                            float u = ((px - ax) * ey - (py - ay) * ex) / den;
+                            if (t > 0f && t < 1f && u >= -1e-5f && u <= 1f + 1e-5f) cuts[cutCount++] = t;
+                        }
+                        float off = ((px - ax) * ey - (py - ay) * ex) / len;
+                        float t = ((px - ax) * ex + (py - ay) * ey) / (len * len);
+                        if (Math.abs(off) < 1e-4f && t > 0f && t < 1f) cuts[cutCount++] = t;
+                    }
+                }
+                Arrays.sort(cuts, 0, cutCount);
+                int open = -1;
+                for (int c = 0; c + 1 < cutCount; c++) {
+                    float t0 = cuts[c], t1 = cuts[c + 1];
+                    if (t1 - t0 < 1e-4f) continue;
+                    float mx = ax + ex * (t0 + t1) / 2f, my = ay + ey * (t0 + t1) / 2f;
+                    boolean keep = true;
+                    for (int j = 0; j < count && keep; j++) {
+                        if (j == i) continue;
+                        if (contains(quads[j], mx + nx * PROBE, my + ny * PROBE)) keep = false;
+                        else if (j < i && contains(quads[j], mx - nx * PROBE, my - ny * PROBE)) keep = false;
+                    }
+                    if (!keep) {
+                        open = -1;
+                        continue;
+                    }
+                    float x0 = ax + ex * t0, y0 = ay + ey * t0, x1 = ax + ex * t1, y1 = ay + ey * t1;
+                    if (open >= 0) {
+                        // Runs on from the piece before it: one piece.
+                        out[open + 2] = x1;
+                        out[open + 3] = y1;
+                        continue;
+                    }
+                    if (n + EDGE > out.length) out = Arrays.copyOf(out, out.length * 2);
+                    out[n] = x0; out[n + 1] = y0; out[n + 2] = x1; out[n + 3] = y1;
+                    out[n + 4] = nx; out[n + 5] = ny;
+                    out[n + 6] = (int) Math.floor(mx - nx * .25f) + (int) Math.floor(my - ny * .25f) * gridW;
+                    open = n;
+                    n += EDGE;
+                }
+            }
+        }
+        for (int e = 0; e < n; e += EDGE) {
+            // A piece's wall cell, from its middle once merged.
+            float mx = (out[e] + out[e + 2]) / 2f, my = (out[e + 1] + out[e + 3]) / 2f;
+            out[e + 6] = (int) Math.floor(mx - out[e + 4] * .25f) + (int) Math.floor(my - out[e + 5] * .25f) * gridW;
+        }
+        return Arrays.copyOf(out, n);
+    }
+
+    /** A joint across a cap's stroke, as a quad's four corners: its width, cells. */
+    static final float JOINT_WIDE = .05f;
+
+    /**
+     * The joints across a run's cap: one across each stroke at every second cell, as quads of eight floats, but none
+     * where another stroke's footprint covers it, so a joint never crosses where strokes meet.
+     */
+    static float[] joints(float[] strokes) {
+        int count = strokes.length / STROKE;
+        float[][] quads = new float[count][8];
+        for (int i = 0; i < count; i++) {
+            int o = i * STROKE;
+            corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3], HALF, quads[i]);
+        }
+        float[] out = new float[64];
+        int n = 0;
+        for (int i = 0; i < count; i++) {
+            int o = i * STROKE;
+            float x0 = strokes[o], y0 = strokes[o + 1], x1 = strokes[o + 2], y1 = strokes[o + 3];
+            int cells = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) + 1);
+            float[] q = quads[i];
+            float len = (float) Math.hypot(q[2] - q[0], q[3] - q[1]);
+            if (len < 1e-4f) continue;
+            float w = JOINT_WIDE / len / 2f;
+            for (int k = 2; k < cells; k += 2) {
+                float t = k / (float) cells;
+                float mx = (q[0] + (q[2] - q[0]) * t + q[6] + (q[4] - q[6]) * t) / 2f;
+                float my = (q[1] + (q[3] - q[1]) * t + q[7] + (q[5] - q[7]) * t) / 2f;
+                boolean covered = false;
+                for (int j = 0; j < count && !covered; j++) covered = j != i && contains(quads[j], mx, my);
+                if (covered) continue;
+                if (n + 8 > out.length) out = Arrays.copyOf(out, out.length * 2);
+                float t0 = t - w, t1 = t + w;
+                out[n] = q[0] + (q[2] - q[0]) * t0; out[n + 1] = q[1] + (q[3] - q[1]) * t0;
+                out[n + 2] = q[0] + (q[2] - q[0]) * t1; out[n + 3] = q[1] + (q[3] - q[1]) * t1;
+                out[n + 4] = q[6] + (q[4] - q[6]) * t1; out[n + 5] = q[7] + (q[5] - q[7]) * t1;
+                out[n + 6] = q[6] + (q[4] - q[6]) * t0; out[n + 7] = q[7] + (q[5] - q[7]) * t0;
+                n += 8;
+            }
+        }
+        return Arrays.copyOf(out, n);
+    }
+
+    /** Whether {@code (x, y)} lies strictly inside a convex quad of four corners in order. */
+    static boolean contains(float[] q, float x, float y) {
+        int sign = 0;
+        for (int k = 0; k < 8; k += 2) {
+            float ax = q[k], ay = q[k + 1], bx = q[(k + 2) % 8], by = q[(k + 3) % 8];
+            float cross = (bx - ax) * (y - ay) - (by - ay) * (x - ax);
+            if (Math.abs(cross) < 1e-7f) return false;
+            int s = cross > 0f ? 1 : -1;
+            if (sign == 0) sign = s;
+            else if (s != sign) return false;
         }
         return true;
     }

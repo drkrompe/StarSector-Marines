@@ -55,4 +55,27 @@ class PrecinctArteryTest {
                         + " a vehicle needs: the ray ran off the map inside the claim "
                         + "instead of crossing its outline");
     }
+
+    /**
+     * A way out carved beside a road the place already has runs on down that road instead: the place's own street
+     * stops short of its boundary a cell off the ray's line, and the artery extends it out of the claim rather than
+     * laying a second carriageway beside it.
+     */
+    @Test
+    void aWayOutBesideThePlacesOwnRoadRunsOnDownIt() {
+        int[][] claim = new int[W][H];
+        int[][] owner = new int[W][H];
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) {
+                claim[x][y] = x <= 20 ? 1 : GrownTrunkPlan.UNOWNED;
+                owner[x][y] = x >= 5 && x <= 17 && y >= 11 && y <= 13 ? 1 : GrownTrunkPlan.UNOWNED;
+            }
+        }
+        assertTrue(PrecinctArtery.ensure(claim, owner, 1, 10, 14, W, H));
+        for (int x = 10; x <= 23; x++) {
+            assertTrue(owner[x][12] == 1, "the way out runs on down the street at " + x);
+            assertTrue(owner[x][15] == GrownTrunkPlan.UNOWNED, "a second road beside the street at " + x);
+        }
+        assertTrue(PrecinctBoundary.gates(claim, owner, 1, W, H).stream().anyMatch(PrecinctBoundary.Gate::drivable));
+    }
 }

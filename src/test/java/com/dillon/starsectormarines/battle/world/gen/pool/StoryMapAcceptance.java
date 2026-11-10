@@ -155,17 +155,21 @@ public final class StoryMapAcceptance {
                 throw new AssertionError("works holds " + works.sites().size() + " of " + ground.machines() + " machines");
             }
             // The works' own guard (raid-works-guard a): a squad posted at each of its guard posts from the start.
-            int posts = 0;
+            int posts = 0, guns = 0;
             for (TacticalNode post : sim.getTacticalMap().ofKind(TacticalNode.Kind.GUARDPOST)) {
                 if (!RaidSiteTemplate.WORKS.equals(post.place())) continue;
                 posts++;
                 boolean held = false;
-                for (Squad squad : sim.getSquads()) held |= squad.assignedNode == post && squad.originalSize > 0;
+                for (Squad squad : sim.getSquads()) {
+                    if (squad.assignedNode != post || squad.originalSize <= 0) continue;
+                    held = true;
+                    if (squad.defensePost != null) guns++;
+                }
                 if (!held) throw new AssertionError("the works' guard post at " + post.anchorX + "," + post.anchorY
                         + " has nobody posted");
             }
             if (map != StoryMap.RAID && posts == 0) throw new AssertionError("the works has no guard post");
-            detail.append(String.format(Locale.ROOT, "; %d works guard posts held", posts));
+            detail.append(String.format(Locale.ROOT, "; %d works guard posts held, %d of them crewing a gun", posts, guns));
             detail.append(String.format(Locale.ROOT, "; works %d machines, egress %d,%d; map %dx%d",
                     works.sites().size(), works.egressCellX(), works.egressCellY(),
                     sim.getTopology().getWidth(), sim.getTopology().getHeight()));
