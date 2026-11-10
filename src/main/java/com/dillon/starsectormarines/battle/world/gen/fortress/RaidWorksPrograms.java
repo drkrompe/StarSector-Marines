@@ -147,7 +147,8 @@ public final class RaidWorksPrograms {
 
     /**
      * A mine's head works as an ore-processing chain ({@code raid-site-templates.md}; {@code voids.md}, the open pit):
-     * the receiving house the ore line from the pit lands on, the stockpile shed, one concentrator mill line per
+     * the receiving house the ore line from the pit lands on (in the rear, toward the pit at the deep end, so the line
+     * need not wrap round the compound), the stockpile shed, one concentrator mill line per
      * machine (the machines a raid wrecks), the smelter whose burners fire the concentrate, the loadout by the gate,
      * and the posts its gates are watched from. The ore line links them in that order. No keep and no airfield: the
      * garrison beside it holds the market.
@@ -157,10 +158,10 @@ public final class RaidWorksPrograms {
     public static FortressProgram mine(int mills) {
         if (mills < 1) throw new IllegalArgumentException("a mine has at least one mill line");
         return new FortressProgram(List.of(
-                new FortressBuilding(MINE_RECEIVING, RECEIVING, Ward.YARD, 1),
+                new FortressBuilding(MINE_RECEIVING, RECEIVING, Ward.REAR, 1),
                 new FortressBuilding(MINE_STOCKPILE, STOCKPILE, Ward.YARD, 1),
                 new FortressBuilding(MINE_MILL, MILL_LINE, Ward.YARD, mills),
-                new FortressBuilding(MINE_SMELTER, SMELTER, Ward.REAR, 1),
+                new FortressBuilding(MINE_SMELTER, SMELTER, Ward.YARD, 1),
                 new FortressBuilding(MINE_LOADOUT, LOADOUT, Ward.FRONTAGE, 1),
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 2)),

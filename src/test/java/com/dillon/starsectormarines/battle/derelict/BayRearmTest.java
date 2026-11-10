@@ -45,7 +45,7 @@ class BayRearmTest {
         assertEquals(0, rearm.packs(BayRearm.PACK_SECONDS * 0.5f));
         assertEquals(1, rearm.packs(BayRearm.PACK_SECONDS * 0.6f));
         assertEquals(2, rearm.packs(BayRearm.PACK_SECONDS * 2f));
-        assertTrue(BayRearm.atBay(10f, 10f, 13.5f, 6.5f));
-        assertFalse(BayRearm.atBay(10f, 10f, 14.5f, 10f));
+        assertTrue(BayRearm.atBay(10f, 10f, 10f + BayRearm.REARM_REACH, 10f - BayRearm.REARM_REACH));
+        assertFalse(BayRearm.atBay(10f, 10f, 10.5f + BayRearm.REARM_REACH, 10f));
     }
 }
