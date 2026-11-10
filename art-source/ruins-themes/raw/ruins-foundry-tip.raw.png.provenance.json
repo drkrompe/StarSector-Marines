@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5b1-f4f4-7800-98c6-5fd220afa4eb",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5b1-f4f4-7800-98c6-5fd220afa4eb\\exec-1cbe254d-1868-4086-8286-6b81c0ecd99f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-foundry-tip.raw.png",
+    "sha256": "aa64a443274c6adbe5f6810ae08090498b546ddd8dbd75b8c22db6a7fc1a0aa1",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\foundry-tip.prompt.txt",
+  "promptSha256": "d963e2da7bef5d1bf02497b44b7fcad19518e6556fe3046059e6ed22cf345979",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity: the crucible vessel design (upper left); material/style only otherwise; not layout\nImage 3: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for the foundry hall of an abandoned Domain-era automated nanoforge works, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective, never a look into an opening at an angle, never steps or windows seen from the front. Light from the upper left, object-local, as on the references.\nBackground: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubject: crucible-tipped (3x3 frame): the foundry crucible of reference 2 (its upper-left vessel is the identity: same steel, same rim, same trunnion blocks), toppled and lying on its side, seen straight down: its long rounded body, the mouth's thick rim the dark band across its right end, a trunnion block standing out of each long side; no view into the mouth.\nOut of the mouth, spilled metal has run across the floor and spread thin, the dark grey area of reference 1: a FLAT, low puddle lying on the floor, no thicker than a hand, its surface wrinkled and folded like cooled ropy lava skin with flow lines running away from the mouth, black and dark rust-brown, its edges thin, lobed and slightly raised like a dried spill. It is not a rock, not a mound, not a boulder: no tall relief and no strong shading on it.\nThe orange area of reference 1, inside the puddle, is the part still molten: dull orange to yellow light glowing up through a network of cracks in a thin dark crust, brightest at the mouth; never a flat bright ribbon. Keep the molten part exactly inside the orange area.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-foundry-tip-guide.png",
+      "sha256": "6972bc1294c112f7d1b965224101cfcad0892716c736823150c9bd3cc13aee3c",
+      "dimensions": [
+        1088,
+        1088
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-foundry-a.raw.png",
+      "sha256": "09ac4ddf8af750c6bf98f724815f2fb6860eb43bdcba2e70f7bbbc178dbfadd4",
+      "dimensions": [
+        1479,
+        1063
+      ],
+      "mode": "RGBA",
+      "role": "Identity: the crucible vessel design (upper left); material/style only otherwise; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
+      "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the block-out as the exact layout and the other references for the crucible’s design and materials."
+  ],
+  "usage": {
+    "input_tokens": 49575,
+    "cached_input_tokens": 37632,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 910,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 84.6
+}
