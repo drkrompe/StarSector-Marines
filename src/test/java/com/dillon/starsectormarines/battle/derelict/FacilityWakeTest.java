@@ -30,6 +30,22 @@ class FacilityWakeTest {
         assertTrue(Stage.ROUSED.baysOpen());
         assertFalse(Stage.ROUSED.bulkheadsOpen());
         assertTrue(Stage.HUNTING.bulkheadsOpen());
+        assertEquals(null, Stage.QUIET.commsKey(), "a quiet site says nothing");
+        assertEquals("derelictWakeBays", Stage.ROUSED.commsKey());
+    }
+
+    @Test
+    void aReleasedFlockSweepsItsSleepingZoneACornerAtATime() {
+        SecurityZone zone = new SecurityZone(0, 20, 20, 10);
+        int[] first = FacilityWake.sweepPoint(zone, 0);
+        int[] second = FacilityWake.sweepPoint(zone, FacilityWake.SWEEP_TICKS);
+        assertEquals(26, first[0]);
+        assertEquals(26, first[1]);
+        assertEquals(14, second[0], "on to the next corner, counter-clockwise");
+        assertEquals(26, second[1]);
+        assertTrue(zone.inside(first[0], first[1]), "the sweep stays inside the perimeter");
+        int[] round = FacilityWake.sweepPoint(zone, 4 * FacilityWake.SWEEP_TICKS);
+        assertEquals(first[0], round[0], "and round again");
     }
 
     @Test

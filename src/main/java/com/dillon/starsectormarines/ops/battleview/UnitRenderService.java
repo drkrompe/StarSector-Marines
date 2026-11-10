@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -824,7 +825,9 @@ public final class UnitRenderService implements RenderSystem {
                 continue;
             }
             // A flock's cradle wears its lineage's housing; a plain hub, or a cradle whose art did not load, the hub's.
+            // A zone's sealed reserve bay wears the cradle housing it opens into (stand-in, `derelict-watch.md`).
             FlockLivery livery = ctx.sim.flocks().cradleLivery(u);
+            if (livery == null) livery = derelictReserveLivery(ctx, u);
             ShuttleSpriteCache cradle = livery == null ? null : sprites.spriteByPath(livery.cradleSpritePath());
             if (cradle != null) {
                 float tall = FlockLivery.CRADLE_VISUAL_CELLS * cellPx / Math.max(1f, cradle.aspect);
@@ -837,10 +840,21 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
-    /** The look of a derelict security network whose node {@code id} is, or null when it is no network's node. */
+    /**
+     * The look of a derelict security network whose node {@code id} is, or null when it is no network's node. A zone's
+     * service bay wears the node's cabinet until it has its own (stand-in, `derelict-watch.md`).
+     */
     private static DerelictLook derelictNodeLook(RenderContext ctx, long id) {
         DerelictSecurityDirector director = ctx.sim.derelictSecurity();
-        return director != null && director.nodes().containsValue(id) ? director.look() : null;
+        if (director == null) return null;
+        return director.nodes().containsValue(id) || director.serviceBays().containsValue(id) ? director.look() : null;
+    }
+
+    /** The cradle livery a derelict zone's sealed reserve bay {@code id} is drawn in, or null when it is none. */
+    private static FlockLivery derelictReserveLivery(RenderContext ctx, long id) {
+        DerelictSecurityDirector director = ctx.sim.derelictSecurity();
+        if (director == null || !director.reserveBays().containsValue(id)) return null;
+        return director.look() == DerelictLook.CONTINGENCY ? FlockLivery.CONTINGENCY : FlockLivery.DOMAIN;
     }
 
     /** The look of a derelict security network whose gun post {@code id} is, or null when it is no network's post. */
@@ -1734,7 +1748,10 @@ public final class UnitRenderService implements RenderSystem {
                         ? sprites.derelictWalkerSprites() : null;
                 if (walkerArt != null) {
                     // The derelict walker is its own chassis: a torso on reaching legs, drawn from its own rig.
-                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> new DerelictLegRig());
+                    // The line's sizes are the walker's rig at their own scale (`derelict-watch.md`).
+                    float size = roster.renderScale(entityId) / MechVariant.SECURITY_WALKER.renderScale;
+                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> new DerelictLegRig(
+                            Math.abs(size - 1f) < 0.01f ? DerelictLegRig.WALKER : DerelictLegRig.WALKER.scaled(size)));
                     int tick = ctx.sim.getSimTickIndex();
                     Integer last = derelictRigTicks.put(entityId, tick);
                     float dt = last == null ? 0f
@@ -1747,7 +1764,7 @@ public final class UnitRenderService implements RenderSystem {
                             (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
-                            walkerArt, rig, cam, roster.renderScale(entityId), unitAlpha);
+                            walkerArt, rig, cam, roster.renderScale(entityId), size, unitAlpha);
                     DerelictWalkerComposer.marker(out, rig, cam, unitAlpha);
                     continue;
                 }

@@ -22,13 +22,14 @@ final class BuildingFaces {
     /** The eye's height over the ground, metres: the natural drops' camera. */
     static final float EYE_METERS = 120f;
     /**
-     * Height classes, metres: one, two and three storeys standing, then a destroyed building's rubble, flat
-     * ({@link #RAZED}). A broken first storey left standing was tried: under this eye its walls stand a few pixels
-     * deep at play zoom, so a destroyed building lies flat. UNTUNED.
+     * Height classes, metres: a shed's or hut's low storey ({@link #SHED}), one, two and three storeys, a tower's
+     * or tall works' ({@link #TALL}), then a destroyed building's rubble, flat ({@link #RAZED}). A broken first storey
+     * left standing was tried: under this eye its walls stand a few pixels deep at play zoom, so a destroyed building
+     * lies flat. UNTUNED.
      */
-    static final float[] HEIGHTS = {4.5f, 8f, 11.5f, 0f};
-    /** The height class of a destroyed building. */
-    static final int RAZED = 3;
+    static final float[] HEIGHTS = {3.2f, 4.5f, 8f, 11.5f, 15f, 0f};
+    /** Height classes by name ({@link #HEIGHTS}). */
+    static final int SHED = 0, ONE = 1, TWO = 2, THREE = 3, TALL = 4, RAZED = 5;
     /** The share of a building's roof fallen in or burnt away past which it is destroyed. UNTUNED. */
     static final float DESTROYED_SHARE = .5f;
 
@@ -46,14 +47,54 @@ final class BuildingFaces {
     private BuildingFaces() { }
 
     /**
-     * A building's height class now: its storeys by its size, until enough of its roof has fallen in or burnt away
-     * ({@link #DESTROYED_SHARE}) that it is destroyed, when it drops flat with its rubble.
+     * A building's height class now ({@link #HEIGHTS}): what it was built as, until enough of its roof has fallen in
+     * or burnt away ({@link #DESTROYED_SHARE}) that it drops flat with its rubble. The one place a building's height
+     * is decided; an author's height for a building, when the map patch carries one, belongs here.
      *
      * @param ruinedShare the share of its roof cells fallen in or burnt away
      */
-    static int heightClass(int floorCells, float ruinedShare) {
+    static int heightClass(Built built, float ruinedShare) {
         if (ruinedShare >= DESTROYED_SHARE) return RAZED;
-        return heightClass(floorCells);
+        return heightClass(built);
+    }
+
+    /**
+     * What a building was built as, as far as its height goes: its kind, its floor's size, whether it is a sealed
+     * town's block, whether it holds a tower's room, and a number in [0, 1) of its own that steps a street's
+     * buildings up and down ({@link #hash} of its id).
+     */
+    record Built(BuildingKind kind, int floorCells, boolean sealed, boolean tower, float variation) { }
+
+    /**
+     * A building's height class from what it was built as. A small footprint is a shed, a hut, a pump house or a
+     * pillbox, one low storey. Homes stand one to three storeys, mostly two; shops and stores one or two, a big
+     * one three; works and warehouses one tall bay, the biggest a tall works or a silo; civic halls and clinics two
+     * or three; forts' blocks one to three by size. A sealed town's blocks stack a storey higher, and a tower's room
+     * makes a tower. UNTUNED.
+     */
+    static int heightClass(Built b) {
+        if (b.tower()) return TALL;
+        int n = b.floorCells();
+        float v = b.variation();
+        int at;
+        if (n <= 12) return SHED;
+        switch (b.kind()) {
+            case INDUSTRIAL:
+                at = n <= 40 ? (v < .5f ? SHED : ONE) : n <= 200 ? TWO : v < .35f ? TALL : THREE;
+                break;
+            case RESIDENTIAL:
+                at = n <= 30 ? ONE : v < .25f ? ONE : v > .7f && n >= 60 ? THREE : TWO;
+                break;
+            case COMMERCIAL:
+                at = n <= 24 ? ONE : v > .75f && n >= 80 ? THREE : v < .3f ? ONE : TWO;
+                break;
+            case FORTIFIED:
+                at = n <= 40 ? ONE : n >= 200 ? THREE : TWO;
+                break;
+            default:
+                at = n <= 24 ? ONE : v > .5f && n >= 120 ? THREE : TWO;
+        }
+        return b.sealed() ? Math.min(TALL, at + 1) : at;
     }
 
     /** The habitat a building's walls show: its wall's surface, and a frozen world's ground for the insulated town. */
@@ -128,16 +169,10 @@ final class BuildingFaces {
         return (h >>> 40) / (float) (1L << 24);
     }
 
-    /** A building's storey class ({@link #HEIGHTS}), from its floor's cells. UNTUNED. */
-    static int heightClass(int floorCells) {
-        if (floorCells <= 36) return 0;
-        if (floorCells <= 150) return 1;
-        return 2;
-    }
 
     /** Storeys of windows a wall of this height carries. */
     static int storeys(float heightMeters) {
-        return Math.max(1, Math.round(heightMeters / 3.8f));
+        return Math.max(1, (int) (heightMeters / 3.6f));
     }
 
     /** How much a plan {@code h} metres up is scaled about the view's centre. */

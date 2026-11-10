@@ -8,6 +8,10 @@ package com.dillon.starsectormarines.battle.derelict;
  */
 public final class ServiceBay {
 
+    /** The bay's structure and plate: a squad's work to bring down, lighter than the node. UNTUNED. */
+    public static final float MAX_STRUCTURE = 260f;
+    public static final float ARMOR_CAPACITY = 200f;
+
     /** The stock a bay holds for the battle: about four loads. UNTUNED. */
     public static final float STOCK = 600f;
     /** How near the bay, in cells, a drone takes on a load. */
