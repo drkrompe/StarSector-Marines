@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
@@ -15,6 +16,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
@@ -91,6 +93,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         openPits(c, plan, reserved);
+        chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
@@ -130,8 +133,17 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                 i -> c.grid.isWalkable(i % w, i / w), (int) c.seed);
         if (pit == null) return;
-        for (int i = 0; i < pit.length; i++) {
-            if (!pit[i]) continue;
+        cutDrop(c, pit, reserved);
+        float[] works = pitWorks(c, plan, box);
+        NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
+        c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
+    }
+
+    /** Stamps a drop's cells: void ground, unwalkable, seen and shot across, and reserved from growth. */
+    private static void cutDrop(GenContext c, boolean[] drop, boolean[] reserved) {
+        int w = c.width;
+        for (int i = 0; i < drop.length; i++) {
+            if (!drop[i]) continue;
             int x = i % w, y = i / w;
             c.grid.setWalkable(x, y, false);
             c.grid.setTag(x, y, NavigationGrid.CellTag.SEE_THROUGH, true);
@@ -142,9 +154,56 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setNatureOverlayIndex(x, y, -1);
             reserved[i] = true;
         }
-        float[] works = pitWorks(c, plan, box);
-        NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
-        c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
+    }
+
+    /** The surface a crossing's footbridge is decked with. */
+    static final String DECK_SURFACE = "colony.timber";
+
+    /** The share of generated outdoor maps a natural drop is cut across, short of the switch. UNTUNED. */
+    static final float CHASM_CHANCE = .35f;
+    /** The smallest map side a drop is cut across. */
+    static final int CHASM_MIN_SIDE = 64;
+
+    /**
+     * Whether this map is cut by a natural drop: {@code battle.mapgen.naturalVoids} (a share from 0 to 1) when set,
+     * else {@link #CHASM_CHANCE}, drawn on the map's own substream so asking changes no other draw.
+     */
+    static boolean chasmWanted(long seed) {
+        String asked = System.getProperty("battle.mapgen.naturalVoids");
+        float chance = asked == null || asked.isBlank() ? CHASM_CHANCE : Float.parseFloat(asked.trim());
+        return new Random(seed ^ 0x43484153_4d4c4cL).nextFloat() < chance;
+    }
+
+    /**
+     * Cuts a natural drop across open country ({@code voids.md}, placement in generated maps): a gorge, canyon or
+     * crevasse by the world's palette ({@link NaturalVoidZoning}), run edge to edge over the ground the reservations
+     * leave, every road and route crossing it left standing as a bridge and natural crossings between, and proved
+     * to strand nothing ({@link NaturalChasm}). After the open pit, before anything is grown. A map that already
+     * draws a drop or a backdrop, or that no line fits, keeps none.
+     */
+    private static void chasm(GenContext c, SurfaceField field, boolean[] reserved) {
+        if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
+        if (Math.min(c.width, c.height) < CHASM_MIN_SIDE || !chasmWanted(c.seed)) return;
+        int w = c.width;
+        NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height,
+                i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
+        if (cut == null) return;
+        cutDrop(c, cut.drop(), reserved);
+        NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
+        // Each crossing is decked as a timber footbridge. A snow bridge on ice was tried: plain snow over the
+        // crevasse read as two pits with ground between them, not as a way across.
+        int timber = c.topology.surfaceIndex(DECK_SURFACE);
+        boolean[] decks = cut.decks();
+        for (int i = 0; i < decks.length; i++) {
+            if (!decks[i]) continue;
+            reserved[i] = true;
+            int x = i % w, y = i / w;
+            c.topology.setNatureOverlayIndex(x, y, -1);
+            c.topology.setGroundKind(x, y, GroundKind.DIRT);
+            c.topology.setSurface(x, y, timber);
+        }
+        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
     }
 
     /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
