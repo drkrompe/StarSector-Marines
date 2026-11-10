@@ -1440,7 +1440,8 @@ public final class BattleSetup {
         RiskLevel mapRisk = ownedRaid != null ? RaidOwnedMap.RISK : risk;
         PrecinctPlan.Sprawl mapSprawl = ownedRaid != null ? null : sprawl;
         RaidSiteTemplate mapSite = ownedRaid != null ? ownedRaid.site() : raidSite;
-        MapScale scale = type == MissionType.RAID ? MapScale.forRaid(mapTier) : MapScale.forTier(mapTier);
+        MapScale scale = ownedRaid != null ? ownedRaid.scale()
+                : type == MissionType.RAID ? MapScale.forRaid(mapTier) : MapScale.forTier(mapTier);
         PrecinctPlan precincts = mapSite != null && mapProfile != null && mapProfile.marketSize() > 0
                 ? raidSitePlanFor(mapSite, mapTier, mapRisk, mapProfile, scale, seed, raidWorks)
                 : precinctPlanFor(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl);

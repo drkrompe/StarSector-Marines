@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -28,17 +30,17 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * A squad inside a stood-up building as its roof is cut away ({@code voids.md}, buildings in depth): a home in an open
- * verdant town with a garrison squad set in its rooms and three more in the street behind it, at play zoom with the roof on
+ * A squad inside a stood-up building as its roof is cut away ({@code voids.md}, buildings in depth): the windowed
+ * building with the most windows (homes first) in an open verdant town, seen from its windows' side, with a garrison squad set in its rooms and three more in the street behind it, at play zoom with the roof on
  * ({@code cutaway-roof.png}), half faded ({@code cutaway-half.png}) and gone ({@code cutaway-open.png}),
- * then a pan past it cut away ({@code cutaway-pan-NN.png}). The roof's fade is set on the building as the visibility pass would;
+ * with every window shot out and the roof on ({@code cutaway-windows-out.png}), then a pan past it cut away ({@code cutaway-pan-NN.png}). The roof's fade is set on the building as the visibility pass would;
  * nothing is played. Look preset.
  */
 public final class BuildingCutawayLookSuite implements SnapshotSuite {
 
     private static final int PAN_FRAMES = 60;
-    /** Cells the view stands off the home, so its near walls turn to the camera. */
-    private static final float OFF_X = 19f, OFF_Y = 9f;
+    /** Cells the view stands off the home, on its windows' side, so those walls turn to the camera. */
+    private static final float OFF_X = 17f;
     private static final float PAN_CELLS = 12f;
 
     @Override public String id() { return "building-cutaway-look"; }
@@ -58,7 +60,14 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
                 if (home == null) return out;
                 place(sim, home);
                 float cx = (home.minX + home.maxX + 1) / 2f, cy = (home.minY + home.maxY + 1) / 2f;
-                float vx = cx - OFF_X, vy = cy - OFF_Y;
+                // Stand the view off on the side most of its windows look out of, so those faces turn to the camera.
+                List<int[]> windows = windows(sim, home);
+                float ox = 0f, oy = 0f;
+                for (int[] wdw : windows) { ox += wdw[2] - wdw[0]; oy += wdw[3] - wdw[1]; }
+                float len = (float) Math.sqrt(ox * ox + oy * oy);
+                if (len < 1e-3f) { ox = -1f; oy = -.5f; len = (float) Math.sqrt(1.25f); }
+                float vx = cx + ox / len * OFF_X, vy = cy + oy / len * OFF_X;
+                System.out.println("    [cutaway] " + windows.size() + " windows");
                 System.out.println("    [cutaway] home " + home.id + " " + home.kind + " " + home.cellsX.length
                         + " cells at " + cx + "," + cy);
                 String[] names = {"roof", "half", "open"};
@@ -69,6 +78,14 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact("cutaway-" + names[k] + ".png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, vx, vy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
                 }
+                // Every window shot out: the frames stand empty, open to a body as the simulation now has them.
+                for (int[] wdw : windows) {
+                    sim.damageEdgeBarrier(wdw[0], wdw[1], direction(wdw[2] - wdw[0], wdw[3] - wdw[1]), 100000);
+                }
+                home.currentAlpha = home.targetAlpha = 1f;
+                out.add(new SnapshotArtifact("cutaway-windows-out.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                        1920, 1080, vx, vy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
+                home.currentAlpha = home.targetAlpha = 0f;
                 for (int f = 0; f < PAN_FRAMES; f++) {
                     float t = f / (PAN_FRAMES - 1f) * 2f - 1f;
                     out.add(new SnapshotArtifact(String.format(Locale.ROOT, "cutaway-pan-%02d.png", f),
@@ -81,6 +98,10 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
         }
     }
 
+    private static Direction direction(int dx, int dy) {
+        return dx > 0 ? Direction.E : dx < 0 ? Direction.W : dy > 0 ? Direction.N : Direction.S;
+    }
+
     private static BattleSimulation create(long seed) {
         TargetProfile market = new TargetProfile(5, 5, 2, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.MINING), SurfacePalette.VERDANT,
@@ -90,21 +111,39 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
                 PrecinctPlan.Sprawl.BALANCED, (Landform) null);
     }
 
-    /** A home with rooms to stand a squad in, else any block with rooms, nearest the map's middle. */
+    /** The windowed building nearest the map's middle with the most windows, homes first. */
     private static Building home(BattleSimulation sim) {
         int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
         Building best = null;
-        float bestScore = Float.MAX_VALUE;
+        float bestScore = -Float.MAX_VALUE;
         for (Building b : sim.getBuildings().all()) {
             if (b.kind == BuildingKind.INDUSTRIAL) continue;
-            if (b.cellsX.length < 50 || b.cellsX.length > 400) continue;
-            if (b.minX < 12 || b.minY < 7 || b.maxX > w - 4 || b.maxY > h - 4) continue;
+            if (b.cellsX.length < 12 || b.cellsX.length > 400) continue;
+            if (b.minX < 6 || b.minY < 6 || b.maxX > w - 6 || b.maxY > h - 6) continue;
+            int windows = windows(sim, b).size();
+            if (windows == 0) continue;
             float dx = (b.minX + b.maxX) / 2f - w / 2f, dy = (b.minY + b.maxY) / 2f - h / 2f;
-            // A home first, then any block with rooms.
-            float score = dx * dx + dy * dy + (b.kind == BuildingKind.RESIDENTIAL ? 0f : 1e6f);
-            if (score < bestScore) { bestScore = score; best = b; }
+            float score = windows * 40f - (float) Math.sqrt(dx * dx + dy * dy)
+                    + (b.kind == BuildingKind.RESIDENTIAL ? 1e4f : 0f);
+            if (score > bestScore) { bestScore = score; best = b; }
         }
         return best;
+    }
+
+    /** A building's windows: each as the cell inside it, the cell it looks out on, and its edge facing out. */
+    private static List<int[]> windows(BattleSimulation sim, Building b) {
+        List<int[]> out = new ArrayList<>();
+        for (SharedEdgeBarrier e : sim.getGrid().getEdgeBarriers()) {
+            if (e.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+            int ax = e.cellX(), ay = e.cellY(), bx = ax + e.direction().dx, by = ay + e.direction().dy;
+            if (sim.getTopology().inBounds(ax, ay) && within(b, ax, ay)) out.add(new int[]{ax, ay, bx, by});
+            else if (sim.getTopology().inBounds(bx, by) && within(b, bx, by)) out.add(new int[]{bx, by, ax, ay});
+        }
+        return out;
+    }
+
+    private static boolean within(Building b, int x, int y) {
+        return x >= b.minX - 1 && x <= b.maxX + 1 && y >= b.minY - 1 && y <= b.maxY + 1;
     }
 
     /** Eight of the garrison spread over the home's floor, and three in the street just past its far side. */
