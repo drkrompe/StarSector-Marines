@@ -605,8 +605,7 @@ cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
 (`mapgen-nouns.md`, Ruins ground). The plant's halls are built as
 `RuinsDelve.PlantHall`s: intake docks (16x12), line halls (26x16, 30x18 at
 vast) and storage bays (18x14), furnished from the plant kit. The control room
-and the substation as plant halls, and the products of the themes still without
-one, are still owed.
+and the substation as plant halls are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its
@@ -615,11 +614,12 @@ kit itself (line runs, cradle grids, rack rows, dock doors); the theme's
 `RuinsDressing` names its product, a 3x3 unit in three states
 (`doodad.ruins-<product>-whole`, `-half`, `-wrecked`): whole only in the prize's
 cradle, half-built on some line modules, wrecked on others and in a few cradles.
-So far the cryo unit (cryoarithmetic engine), the vat unit (soil nanites,
-biofactory embryo), the forge core (nanoforges) and the drone frame (drone
-replicator); a theme without one keeps a crate in the prize's cradle and scrap
-in its wrecked cradles. The product's size is the art session's open pick
-`ruins-products-size`, building on 3x3. Placement is a coordinate
+Every theme but the depot, the armory and the hypershunt tap has one: cryo
+unit, vat unit, forge core, drone frame, core cabinet (AI core), field housing
+(fusion lamp, plasma dynamo), magnet segment, catalyst bed, spool drum, bore
+head and projector stack. A theme without one keeps a crate in the prize's
+cradle and scrap in its wrecked cradles. Products fill the cradle, 3x3 (owner
+pick `ruins-products-size` fill). Placement is a coordinate
 hash, so the layout never changes with the theme.
 
 **A forge works has a foundry** (owner, with pick `ruins-products-size` fill:

@@ -88,8 +88,8 @@
     },
     {
       "id": "doodad.ruins-line-module",
-      "col": 0,
-      "row": 2,
+      "col": 15,
+      "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.6,
       "footprintCells": [
@@ -99,8 +99,8 @@
     },
     {
       "id": "doodad.ruins-line-end",
-      "col": 6,
-      "row": 2,
+      "col": 21,
+      "row": 0,
       "cover": "heavy",
       "ballisticHalfHeight": 0.9,
       "footprintCells": [
@@ -110,7 +110,7 @@
     },
     {
       "id": "doodad.ruins-empty-cradle",
-      "col": 9,
+      "col": 0,
       "row": 2,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
@@ -121,8 +121,8 @@
     },
     {
       "id": "doodad.ruins-rack-stripped",
-      "col": 0,
-      "row": 5,
+      "col": 3,
+      "row": 2,
       "cover": "heavy",
       "ballisticHalfHeight": 1.0,
       "footprintCells": [
@@ -132,8 +132,8 @@
     },
     {
       "id": "doodad.ruins-rack-crates",
-      "col": 6,
-      "row": 5,
+      "col": 9,
+      "row": 2,
       "cover": "heavy",
       "ballisticHalfHeight": 1.0,
       "footprintCells": [
@@ -143,8 +143,8 @@
     },
     {
       "id": "doodad.ruins-dock-door",
-      "col": 12,
-      "row": 2,
+      "col": 15,
+      "row": 3,
       "cover": "none",
       "footprintCells": [
         4,
@@ -153,8 +153,8 @@
     },
     {
       "id": "doodad.ruins-cryo-unit-whole",
-      "col": 12,
-      "row": 4,
+      "col": 19,
+      "row": 3,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -164,8 +164,8 @@
     },
     {
       "id": "doodad.ruins-cryo-unit-half",
-      "col": 0,
-      "row": 7,
+      "col": 3,
+      "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -175,8 +175,8 @@
     },
     {
       "id": "doodad.ruins-cryo-unit-wrecked",
-      "col": 3,
-      "row": 7,
+      "col": 6,
+      "row": 4,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -186,8 +186,8 @@
     },
     {
       "id": "doodad.ruins-vat-unit-whole",
-      "col": 6,
-      "row": 7,
+      "col": 9,
+      "row": 4,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -197,8 +197,8 @@
     },
     {
       "id": "doodad.ruins-vat-unit-half",
-      "col": 9,
-      "row": 7,
+      "col": 12,
+      "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -208,8 +208,8 @@
     },
     {
       "id": "doodad.ruins-vat-unit-wrecked",
-      "col": 12,
-      "row": 7,
+      "col": 0,
+      "row": 5,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -219,8 +219,8 @@
     },
     {
       "id": "doodad.ruins-drone-frame-whole",
-      "col": 0,
-      "row": 10,
+      "col": 15,
+      "row": 5,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -230,8 +230,8 @@
     },
     {
       "id": "doodad.ruins-drone-frame-half",
-      "col": 3,
-      "row": 10,
+      "col": 18,
+      "row": 6,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -241,8 +241,8 @@
     },
     {
       "id": "doodad.ruins-drone-frame-wrecked",
-      "col": 6,
-      "row": 10,
+      "col": 21,
+      "row": 6,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -252,8 +252,8 @@
     },
     {
       "id": "doodad.ruins-forge-core-whole",
-      "col": 9,
-      "row": 10,
+      "col": 3,
+      "row": 7,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -263,8 +263,8 @@
     },
     {
       "id": "doodad.ruins-forge-core-half",
-      "col": 12,
-      "row": 10,
+      "col": 6,
+      "row": 7,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -274,8 +274,8 @@
     },
     {
       "id": "doodad.ruins-forge-core-wrecked",
-      "col": 0,
-      "row": 13,
+      "col": 9,
+      "row": 7,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -285,8 +285,8 @@
     },
     {
       "id": "doodad.ruins-core-cabinet-whole",
-      "col": 3,
-      "row": 13,
+      "col": 12,
+      "row": 7,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -296,8 +296,8 @@
     },
     {
       "id": "doodad.ruins-core-cabinet-half",
-      "col": 6,
-      "row": 13,
+      "col": 0,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -307,8 +307,8 @@
     },
     {
       "id": "doodad.ruins-core-cabinet-wrecked",
-      "col": 9,
-      "row": 13,
+      "col": 15,
+      "row": 8,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -318,8 +318,8 @@
     },
     {
       "id": "doodad.ruins-field-housing-whole",
-      "col": 12,
-      "row": 13,
+      "col": 18,
+      "row": 9,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -329,8 +329,8 @@
     },
     {
       "id": "doodad.ruins-field-housing-half",
-      "col": 0,
-      "row": 16,
+      "col": 21,
+      "row": 9,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -341,7 +341,7 @@
     {
       "id": "doodad.ruins-field-housing-wrecked",
       "col": 3,
-      "row": 16,
+      "row": 10,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -352,7 +352,7 @@
     {
       "id": "doodad.ruins-magnet-segment-whole",
       "col": 6,
-      "row": 16,
+      "row": 10,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -363,7 +363,7 @@
     {
       "id": "doodad.ruins-magnet-segment-half",
       "col": 9,
-      "row": 16,
+      "row": 10,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -374,7 +374,7 @@
     {
       "id": "doodad.ruins-magnet-segment-wrecked",
       "col": 12,
-      "row": 16,
+      "row": 10,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -385,7 +385,7 @@
     {
       "id": "doodad.ruins-catalyst-bed-whole",
       "col": 0,
-      "row": 19,
+      "row": 11,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -395,8 +395,8 @@
     },
     {
       "id": "doodad.ruins-catalyst-bed-half",
-      "col": 3,
-      "row": 19,
+      "col": 15,
+      "row": 11,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -406,8 +406,8 @@
     },
     {
       "id": "doodad.ruins-catalyst-bed-wrecked",
-      "col": 6,
-      "row": 19,
+      "col": 18,
+      "row": 12,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -417,8 +417,8 @@
     },
     {
       "id": "doodad.ruins-spool-drum-whole",
-      "col": 9,
-      "row": 19,
+      "col": 21,
+      "row": 12,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -428,8 +428,8 @@
     },
     {
       "id": "doodad.ruins-spool-drum-half",
-      "col": 12,
-      "row": 19,
+      "col": 3,
+      "row": 13,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -439,8 +439,8 @@
     },
     {
       "id": "doodad.ruins-spool-drum-wrecked",
-      "col": 0,
-      "row": 22,
+      "col": 6,
+      "row": 13,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -450,8 +450,8 @@
     },
     {
       "id": "doodad.ruins-bore-head-whole",
-      "col": 3,
-      "row": 22,
+      "col": 9,
+      "row": 13,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -461,8 +461,8 @@
     },
     {
       "id": "doodad.ruins-bore-head-half",
-      "col": 6,
-      "row": 22,
+      "col": 12,
+      "row": 13,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -472,8 +472,8 @@
     },
     {
       "id": "doodad.ruins-bore-head-wrecked",
-      "col": 9,
-      "row": 22,
+      "col": 0,
+      "row": 14,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -483,8 +483,8 @@
     },
     {
       "id": "doodad.ruins-projector-stack-whole",
-      "col": 12,
-      "row": 22,
+      "col": 15,
+      "row": 14,
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -494,8 +494,8 @@
     },
     {
       "id": "doodad.ruins-projector-stack-half",
-      "col": 0,
-      "row": 25,
+      "col": 18,
+      "row": 15,
       "cover": "med",
       "ballisticHalfHeight": 0.55,
       "footprintCells": [
@@ -505,13 +505,108 @@
     },
     {
       "id": "doodad.ruins-projector-stack-wrecked",
-      "col": 3,
-      "row": 25,
+      "col": 21,
+      "row": 15,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
         3,
         3
+      ]
+    },
+    {
+      "id": "doodad.ruins-crucible",
+      "col": 3,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-crucible-melt",
+      "col": 6,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-crucible-tipped",
+      "col": 9,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-crucible-tipped-spill",
+      "col": 12,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-fallen-ladle",
+      "col": 0,
+      "row": 17,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-slag-heap",
+      "col": 22,
+      "row": 3,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-pour-pulpit",
+      "col": 15,
+      "row": 17,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-mould-grid",
+      "col": 0,
+      "row": 19,
+      "cover": "none",
+      "footprintCells": [
+        8,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-grate-catwalk",
+      "col": 17,
+      "row": 18,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
       ]
     }
   ],
@@ -565,238 +660,292 @@
       "description": "Floor decal: an uneven stain of slime and moss with root threads. Walkable, no cover."
     },
     {
-      "col": 0,
-      "row": 2,
+      "col": 15,
+      "row": 0,
       "name": "Assembly line module",
       "description": "A straight 6x3 section of a dead assembly line: roller bed flush to both short ends so sections join end to end (long axis east-west), a work station either side."
     },
     {
-      "col": 6,
-      "row": 2,
+      "col": 21,
+      "row": 0,
       "name": "Line intake",
       "description": "The 3x3 end of an assembly line: a feed hopper housing, the line's bed leaving by its east edge with the module's cross-section."
     },
     {
-      "col": 9,
+      "col": 0,
       "row": 2,
       "name": "Empty product cradle",
       "description": "A 3x3 floor cradle, clamps open, its product long pulled; the middle is open floor where a product stands."
     },
     {
-      "col": 0,
-      "row": 5,
+      "col": 3,
+      "row": 2,
       "name": "Stripped rack row",
       "description": "A 6x2 pallet rack row, every bay empty."
     },
     {
-      "col": 6,
-      "row": 5,
+      "col": 9,
+      "row": 2,
       "name": "Rack row, a few crates",
       "description": "The same 6x2 rack row with three crates left in it."
     },
     {
-      "col": 12,
-      "row": 2,
+      "col": 15,
+      "row": 3,
       "name": "Dock door",
       "description": "A 4x2 loading dock: the armoured roll door along the north edge, set in the hall wall, and its leveler plate on the floor south of it."
     },
     {
-      "col": 12,
-      "row": 4,
+      "col": 19,
+      "row": 3,
       "name": "Sealed cryo rack unit",
       "description": "A cryoarithmetic engine's computing rack unit, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 0,
-      "row": 7,
+      "col": 3,
+      "row": 4,
       "name": "Half-built cryo rack unit",
       "description": "A cryoarithmetic engine's computing rack unit, left half-built on the line: bare frame above, plating below."
     },
     {
-      "col": 3,
-      "row": 7,
+      "col": 6,
+      "row": 4,
       "name": "Wrecked cryo rack unit",
       "description": "A cryoarithmetic engine's computing rack unit, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 6,
-      "row": 7,
+      "col": 9,
+      "row": 4,
       "name": "Sealed culture vat module",
       "description": "A sealed bio-culture vat module, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 9,
-      "row": 7,
+      "col": 12,
+      "row": 4,
       "name": "Half-built culture vat module",
       "description": "A sealed bio-culture vat module, left half-built on the line: bare frame above, plating below."
     },
     {
-      "col": 12,
-      "row": 7,
+      "col": 0,
+      "row": 5,
       "name": "Wrecked culture vat module",
       "description": "A sealed bio-culture vat module, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 0,
-      "row": 10,
+      "col": 15,
+      "row": 5,
       "name": "Sealed drone frame",
       "description": "A quad-rotor combat drone airframe, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 3,
-      "row": 10,
+      "col": 18,
+      "row": 6,
       "name": "Half-built drone frame",
       "description": "A quad-rotor combat drone airframe, left half-built on the line: bare frame above, plating below."
     },
     {
-      "col": 6,
-      "row": 10,
+      "col": 21,
+      "row": 6,
       "name": "Wrecked drone frame",
       "description": "A quad-rotor combat drone airframe, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 9,
-      "row": 10,
+      "col": 3,
+      "row": 7,
       "name": "Sealed forge cradle core",
       "description": "A nanoforge cradle core, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 12,
-      "row": 10,
+      "col": 6,
+      "row": 7,
       "name": "Half-built forge cradle core",
       "description": "A nanoforge cradle core, left half-built on the line: bare frame above, plating below."
     },
     {
-      "col": 0,
-      "row": 13,
+      "col": 9,
+      "row": 7,
       "name": "Wrecked forge cradle core",
       "description": "A nanoforge cradle core, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 3,
-      "row": 13,
+      "col": 12,
+      "row": 7,
       "name": "Sealed AI core cabinet",
       "description": "An AI core's armoured cabinet, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 6,
-      "row": 13,
+      "col": 0,
+      "row": 8,
       "name": "Half-built AI core cabinet",
       "description": "An AI core's armoured cabinet, left half-built on the line."
     },
     {
-      "col": 9,
-      "row": 13,
+      "col": 15,
+      "row": 8,
       "name": "Wrecked AI core cabinet",
       "description": "An AI core's armoured cabinet, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 12,
-      "row": 13,
+      "col": 18,
+      "row": 9,
       "name": "Sealed field housing",
       "description": "A fusion lamp's field housing, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 0,
-      "row": 16,
+      "col": 21,
+      "row": 9,
       "name": "Half-built field housing",
       "description": "A fusion lamp's field housing, left half-built on the line."
     },
     {
       "col": 3,
-      "row": 16,
+      "row": 10,
       "name": "Wrecked field housing",
       "description": "A fusion lamp's field housing, smashed and torn open, its pieces on the floor."
     },
     {
       "col": 6,
-      "row": 16,
+      "row": 10,
       "name": "Sealed synchrotron magnet segment",
       "description": "A curved synchrotron ring magnet segment, finished and sealed, the one the plant never shipped."
     },
     {
       "col": 9,
-      "row": 16,
+      "row": 10,
       "name": "Half-built synchrotron magnet segment",
       "description": "A curved synchrotron ring magnet segment, left half-built on the line."
     },
     {
       "col": 12,
-      "row": 16,
+      "row": 10,
       "name": "Wrecked synchrotron magnet segment",
       "description": "A curved synchrotron ring magnet segment, smashed and torn open, its pieces on the floor."
     },
     {
       "col": 0,
-      "row": 19,
+      "row": 11,
       "name": "Sealed catalyst bed",
       "description": "A catalytic core's cartridge bed, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 3,
-      "row": 19,
+      "col": 15,
+      "row": 11,
       "name": "Half-built catalyst bed",
       "description": "A catalytic core's cartridge bed, left half-built on the line."
     },
     {
-      "col": 6,
-      "row": 19,
+      "col": 18,
+      "row": 12,
       "name": "Wrecked catalyst bed",
       "description": "A catalytic core's cartridge bed, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 9,
-      "row": 19,
+      "col": 21,
+      "row": 12,
       "name": "Sealed fullerene spool drum",
       "description": "A drum of wound fullerene cable, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 12,
-      "row": 19,
+      "col": 3,
+      "row": 13,
       "name": "Half-built fullerene spool drum",
       "description": "A drum of wound fullerene cable, left half-built on the line."
     },
     {
-      "col": 0,
-      "row": 22,
+      "col": 6,
+      "row": 13,
       "name": "Wrecked fullerene spool drum",
       "description": "A drum of wound fullerene cable, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 3,
-      "row": 22,
+      "col": 9,
+      "row": 13,
       "name": "Sealed bore head",
       "description": "A mantle bore's cutter head, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 6,
-      "row": 22,
+      "col": 12,
+      "row": 13,
       "name": "Half-built bore head",
       "description": "A mantle bore's cutter head, left half-built on the line."
     },
     {
-      "col": 9,
-      "row": 22,
+      "col": 0,
+      "row": 14,
       "name": "Wrecked bore head",
       "description": "A mantle bore's cutter head, smashed and torn open, its pieces on the floor."
     },
     {
-      "col": 12,
-      "row": 22,
+      "col": 15,
+      "row": 14,
       "name": "Sealed projector stack",
       "description": "A holosuite projector stack, finished and sealed, the one the plant never shipped."
     },
     {
-      "col": 0,
-      "row": 25,
+      "col": 18,
+      "row": 15,
       "name": "Half-built projector stack",
       "description": "A holosuite projector stack, left half-built on the line."
     },
     {
-      "col": 3,
-      "row": 25,
+      "col": 21,
+      "row": 15,
       "name": "Wrecked projector stack",
       "description": "A holosuite projector stack, smashed and torn open, its pieces on the floor."
+    },
+    {
+      "col": 3,
+      "row": 16,
+      "name": "Foundry crucible",
+      "description": "A huge refractory-lined crucible on its pad, its melt still lit."
+    },
+    {
+      "col": 6,
+      "row": 16,
+      "name": "Crucible melt",
+      "description": "Overlay: the crucible's melt, drawn over its body so the engine can pulse it."
+    },
+    {
+      "col": 9,
+      "row": 16,
+      "name": "Toppled crucible",
+      "description": "A crucible fallen on its side, its mouth spilling across the floor."
+    },
+    {
+      "col": 12,
+      "row": 16,
+      "name": "Crucible spill",
+      "description": "Overlay: the molten tongue spilling from a toppled crucible."
+    },
+    {
+      "col": 0,
+      "row": 17,
+      "name": "Fallen ladle",
+      "description": "A pouring ladle down on the floor, its bowl crusted with slag."
+    },
+    {
+      "col": 22,
+      "row": 3,
+      "name": "Slag heap",
+      "description": "A heap of cooled glassy slag under a crust of ash."
+    },
+    {
+      "col": 15,
+      "row": 17,
+      "name": "Pour pulpit",
+      "description": "An armoured pour-control booth with a heat-shielded window."
+    },
+    {
+      "col": 0,
+      "row": 19,
+      "name": "Casting mould grid",
+      "description": "Overlay: a casting bed's mould frame, the melt showing through its cells."
+    },
+    {
+      "col": 17,
+      "row": 18,
+      "name": "Grate catwalk",
+      "description": "A steel grate deck across a pour channel; decks join end to end."
     }
   ]
 }
