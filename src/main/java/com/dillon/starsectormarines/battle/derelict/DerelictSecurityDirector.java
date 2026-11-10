@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,10 @@ public final class DerelictSecurityDirector {
     static final int EGRESS_RADIUS = 4;
     /** How near a place of its round a rounds walker stands before it counts as there. */
     static final int ROUND_RADIUS = 1;
+    /** How near a dead door's middle a forcing frame holds. */
+    static final int FORCE_RADIUS = 1;
+    /** How near a dead door's middle, in cells, a hall frame stands pressed against it. */
+    static final float RAM_CELLS = 3f;
     /** Confidence a relayed sighting is handed to a siege frame at. */
     static final float SPOT_CONFIDENCE = 0.9f;
 
@@ -88,6 +93,13 @@ public final class DerelictSecurityDirector {
     private final List<Tender> tenders = new ArrayList<>();
     /** Each rounds walker's round, by lance (`derelict-watch.md`, Movement). */
     private final Map<Integer, PatrolRound> rounds = new TreeMap<>();
+    /** Each hall-bound frame's dead door, and its ram against it (`derelict-watch.md`, Medium and large walkers). */
+    private final Map<Integer, RuinsDelve.LeafDoor> deadDoors = new TreeMap<>();
+    private final Map<Integer, DerelictWalkerClass.Ram> rams = new TreeMap<>();
+    private final List<RuinsDelve.LeafDoor> forced = new ArrayList<>();
+    /** The security bulkheads, shut until the hunting stage. */
+    private List<Bulkheads.Bulkhead> bulkheads = List.of();
+    private boolean bulkheadsOpened;
     /** Hall frames whose way to the egress is too narrow: they keep their hall in the contingency. */
     private final Set<Integer> hallBound = new TreeSet<>();
 
@@ -445,6 +457,35 @@ public final class DerelictSecurityDirector {
         hallBound.add(squadId);
     }
 
+    /**
+     * Gives a hall-bound frame the dead door it forces once awake: its leaves give way after
+     * {@link DerelictWalkerClass#FORCE_SECONDS} pressed against it, and the frame is bound no longer.
+     */
+    public void forceDoor(int squadId, RuinsDelve.LeafDoor door) {
+        if (door.stance() != RuinsDelve.DoorStance.DEAD) throw new IllegalArgumentException("only a dead door is forced");
+        deadDoors.put(squadId, door);
+        rams.put(squadId, new DerelictWalkerClass.Ram());
+    }
+
+    /** The dead doors hall frames have forced, in the order they gave way. */
+    public List<RuinsDelve.LeafDoor> forcedDoors() {
+        return Collections.unmodifiableList(forced);
+    }
+
+    /** Lays the site's security bulkheads, shut until the hunting stage. */
+    public void layBulkheads(List<Bulkheads.Bulkhead> laid) {
+        bulkheads = List.copyOf(laid);
+    }
+
+    public List<Bulkheads.Bulkhead> bulkheads() {
+        return bulkheads;
+    }
+
+    /** Whether the bulkheads stand open. */
+    public boolean bulkheadsOpened() {
+        return bulkheadsOpened;
+    }
+
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
     public void standNode(int zoneId, long entityId) {
         nodes.put(zoneId, entityId);
@@ -596,6 +637,7 @@ public final class DerelictSecurityDirector {
                     walker.postX(), walker.postY(), place, !hallBound.contains(walker.squadId()),
                     blind ? merge(pins, own) : pins,
                     blind ? all : flockSeen, haulIds, egress, walker.frame().maxWeaponRange());
+            order = ram(sim, walker, zone, order);
             apply(sim, walker, order, tick);
         }
         for (Tender tender : tenders) directTender(sim, tender, all, tick);
@@ -768,6 +810,36 @@ public final class DerelictSecurityDirector {
             if (flock >= 0) sweeping.add(flock);
         }
         wake.sound(network);
+        if (wake.stage().bulkheadsOpen() && !bulkheadsOpened) {
+            bulkheadsOpened = true;
+            for (Bulkheads.Bulkhead bulkhead : bulkheads) {
+                for (int[] c : bulkhead.cells()) sim.mapEditor().openPassage(c[0], c[1], bulkhead.likeX(), bulkhead.likeY());
+            }
+        }
+    }
+
+    /**
+     * A hall-bound frame, awake and with nothing to close on or fire at, goes to its dead door and presses against it;
+     * once forced, the door's end cells open and the frame is bound no longer.
+     */
+    private Order ram(BattleSimulation sim, Walker walker, SecurityZone zone, Order order) {
+        RuinsDelve.LeafDoor door = deadDoors.get(walker.squadId());
+        if (door == null || !hallBound.contains(walker.squadId())) return order;
+        boolean roused = network.contingency() || zone.state() == SecurityZone.State.AWAKE;
+        if (!roused || (order.kind() != Kind.HOLD && order.kind() != Kind.HOLD_EGRESS)) return order;
+        RuinsDelve.Area span = door.span();
+        long lead = sim.squadMemberAt(walker.squadId(), 0);
+        boolean against = Math.max(Math.abs(sim.world().x(lead) - (span.centreX() + 0.5f)),
+                Math.abs(sim.world().y(lead) - (span.centreY() + 0.5f))) <= RAM_CELLS;
+        if (rams.get(walker.squadId()).tick(PULSE_TICKS * BattleSimulation.TICK_DT, against)) {
+            int likeX = span.centreX(), likeY = span.centreY();
+            sim.mapEditor().openPassage(span.left(), span.bottom(), likeX, likeY);
+            sim.mapEditor().openPassage(span.right(), span.top(), likeX, likeY);
+            forced.add(door);
+            hallBound.remove(walker.squadId());
+            return order;
+        }
+        return new Order(Kind.FORCE, span.centreX(), span.centreY(), -1L);
     }
 
     /**
@@ -919,6 +991,7 @@ public final class DerelictSecurityDirector {
         return switch (stand.kind()) {
             case HOLD_EGRESS -> EGRESS_RADIUS;
             case ROUND -> ROUND_RADIUS;
+            case FORCE -> FORCE_RADIUS;
             default -> HOLD_RADIUS;
         };
     }
@@ -941,6 +1014,7 @@ public final class DerelictSecurityDirector {
             case FIRE -> walker.frame() + " fires on what the watch sees";
             case HOLD_EGRESS -> walker.frame() + " holds the egress in the contingency";
             case ROUND -> walker.frame() + " walks its zone's round";
+            case FORCE -> walker.frame() + " forces the dead door shutting it in its hall";
         };
     }
 

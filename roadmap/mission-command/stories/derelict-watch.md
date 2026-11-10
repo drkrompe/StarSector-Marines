@@ -109,8 +109,7 @@ there. That keeps the watch apart from the Rav.
   must hold without them). Hunting opens them for both sides: the watch's way to
   the company gets shorter, and so does the company's way to the vault. A
   bulkhead is a leaf door (`ruins-expedition.md`, The ruins' doors are leaf
-  doors) in the sealed state until its stage, then answers. Built on the doors
-  session's leaf door; until that lands, a bulkhead's cells stay wall.
+  doors) in the sealed state until its stage, then answers.
 - **Pushes stay pushes.** A stir step still sends its push out of the reserve
   (line frames at a wake point). The wake is separate: a push is never a flock,
   and a reserve bay is never part of the reserve.
@@ -274,8 +273,17 @@ of each pick, slice 3's comms lines.
   stage the wake rises to. Stand-in looks: a service bay draws as the node's
   cabinet, a sealed reserve bay as its lineage's cradle housing.
 
-Not built yet: bulkheads (slice 5, on the doors session's leaf door); the hall
-frame forcing a dead door (the `Ram` rule waits for door states in the grid);
+- **Bulkheads and forcing (slice 5, part).** `Bulkheads.lay`: at most one a
+  plant hall, two cells through its hull ring (up to four thick) to floor a walk
+  of twenty cells or more round, never into floor the hall cannot reach, never
+  beside a leaf door; each a `RuinsDelve.LeafDoor` across its face. Wall until
+  hunting, then opened (`MapEditor.openPassage`). A hall-bound frame is given
+  the dead door on its hall's face (`deadDoorOf`); once its zone is awake it
+  walks there (`Kind.FORCE`) and its `Ram` opens the door's end cells, freeing
+  it. Drawing a forced door as forced and a bulkhead as a hall door waits on a
+  runtime door-state hook from the doors' owner.
+
+Not built yet: the drawing of forced doors and bulkheads (above);
 the vent and wreck markers and the drone's sparks over a wreck; the housings'
 own looks.
 
