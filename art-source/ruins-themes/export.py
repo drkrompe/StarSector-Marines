@@ -90,6 +90,44 @@ def split_melt(piece, guide_frame):
     return body, over
 
 
+# Grades applied after the cut, piece by piece, where a raw read wrong in the hall (the art audit):
+# - hazard striping on the spool drum and drone frame was the loudest thing on them at play zoom: its yellow is pulled
+#   down to a worn ochre, kept as a mark but no longer a band of colour;
+# - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
+#   the engine's pulse rides from dull orange to orange rather than from yellow to white.
+MUTE_HAZARD = ("spool-drum", "drone-frame")
+MELT_GRADE = (0.80, 0.62, 0.50)
+
+
+def mute_hazard(piece):
+    a = np.asarray(piece.convert("RGBA")).astype(np.float32)
+    rgb = a[..., :3] / 255
+    mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    # Yellow to amber: red and green both high, blue well below them.
+    yellow = (sat > 0.35) & (r > 0.35) & (g > 0.6 * r) & (b < 0.6 * g)
+    grey = rgb.mean(axis=2, keepdims=True)
+    muted = (grey + (rgb - grey) * 0.35) * 0.82
+    rgb = np.where(yellow[..., None], muted, rgb)
+    a[..., :3] = np.clip(rgb * 255, 0, 255)
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+def grade_melt(piece):
+    a = np.asarray(piece).astype(np.float32)
+    a[..., :3] *= np.array(MELT_GRADE, dtype=np.float32)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
+
+
+def grade(pid, piece):
+    if pid.startswith(MUTE_HAZARD):
+        return mute_hazard(piece)
+    if pid == "crucible-melt":
+        return grade_melt(piece)
+    return piece
+
+
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
@@ -125,7 +163,7 @@ def main() -> None:
         staged = Path(scratch)
         for family in RAWS:
             for pid, piece in cut(family):
-                piece.save(staged / f"{pid}.png")
+                grade(pid, piece).save(staged / f"{pid}.png")
         for pid, piece in cut_plant_line():
             piece.save(staged / f"{pid}.png")
         image, manifest, count = build_atlas(BuildOptions(
