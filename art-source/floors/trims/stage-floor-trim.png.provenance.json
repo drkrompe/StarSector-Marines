@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c701-734d-7262-8104-deca19fc6ad2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c701-734d-7262-8104-deca19fc6ad2\\exec-cca1f30e-ac87-44b3-a49b-c25b8b62bd07.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\floors\\trims\\stage-floor-trim.png",
+    "sha256": "b2803a6c50af49a50eefcc2587db3196d118565a82bf0b91f98e9e1a810289d7",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\floors\\trims\\stage-floor-trim.prompt.txt",
+  "promptSha256": "0370d21080c9986307161ad755bb37cef4f11f74158a6eb55d794cf270cd1e55",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every band, joint and transparent area exactly as drawn\nImage 2: Material/style only; not layout\n\nA seamless, horizontally tileable texture strip for a top-down tactical game, seen from directly above (orthographic, 90 degrees): the edge of a holographic stage's raised deck in an abandoned Domain-era factory hall in a spacefaring civilization, where the stage steps down to the hall's concrete floor. The top of the image lies on the stage deck; the bottom edge is where the stage steps down.\nGeometry: reference 1 is the layout authority: keep every band at its height and position: the top part fully transparent (the deck shows through there), a dark joint, a recessed edge-light channel holding four frosted lens segments, each with a small round emitter lens in its middle, all unlit and dusty, a dark joint, and a black chamfered nosing along the bottom with a worn amber edge-warning stripe. The dark vertical panel joint sits exactly where shown at both short ends, so identical copies join end to end seamlessly.\nStyle: reference 2 is material only: the stage's own near-black blue-grey polished resin deck. Crisp painterly-pixel game texture, polished dark composite, dead frosted lenses with grime in their seams, the amber stripe chipped and scuffed. Heavy, grounded, adult military sci-fi. Not cartoon, no thick outlines.\nLight: flat even light, no baked lighting gradient, no cast shadow, the lenses do not glow. The transparent top stays fully transparent. Wide 2:1 canvas. No text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\floors\\trims\\stage-floor-trim-guide.png",
+      "sha256": "18475b1136b08c566e781be95765707d0a8a8443e52e17e8e9d521d03570d1d9",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every band, joint and transparent area exactly as drawn"
+    },
+    {
+      "path": "art-source\\tilesets\\ruins-ground\\stage-floor-master.png",
+      "sha256": "60b3b7eef9d2bcbca8bded87290d819f9ca2c418c1ab238cbc4558792b7ffad9",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’m using the imagegen skill to create one texture strip from your layout and material references."
+  ],
+  "usage": {
+    "input_tokens": 77032,
+    "cached_input_tokens": 55168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 735,
+    "reasoning_output_tokens": 54
+  },
+  "elapsedSeconds": 57.1
+}
