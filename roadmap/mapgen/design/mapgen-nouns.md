@@ -2372,10 +2372,12 @@ metal flecks glinting in the rock.
 
 **A signature is detail, never a rule.** Crater rims are terrain the stock hills' plan
 takes under the same fit and detour proof: raised rock, open by at least a third of the
-way round so it seals no island. Fissures are cracks drawn in the ground, jagged lines
-opening widest in the middle with hairline branches, walked over like the ground round
-them; the first pass cut them as narrow trench excavations, which read as trenches, and
-that arm stays behind `battle.signature.fissureTrench` until the owner picks. Everything
+way round so it seals no island. Fissures are cracks drawn in the ground at a marine's
+scale, walked over like the ground round them: most a boot wide at their widest and a
+hairline elsewhere, one in five a wider split, closing at their ends and spreading by
+branching. Trench excavations were tried first and read as trenches, and cracks a band
+wide read as impassable (owner); a crack that would be an obstacle is terrain, not a
+signature. Everything
 else is presentation: crater bowls, vent mounds and cracks are marks the renderer draws
 (`CellTopology.signatureMarks`), cracked fissure banks are the ground's cosmetic blast
 skin, ejecta and rubble are

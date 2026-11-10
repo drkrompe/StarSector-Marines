@@ -53,6 +53,13 @@ public final class NaturalVoidZoning {
     public static final Drop LAVA_RIFT = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(27f, 1.2f), new NaturalVoid.Step(40f, 1.7f)),
             "graphics/battle/voids/basalt-wall.png", 12f);
+    /**
+     * A shallow lava river: a low bank of cooled crust and the melt 4 m down, running so its crust is seen to travel
+     * (owner pick, 2026-11-09, of 2.5, 4 and 8 m). A volcanic world's rift is {@link #LAVA_RIFT}; this is its river.
+     */
+    public static final Drop LAVA_RIVER = new Drop(NaturalVoid.Style.LAVA, List.of(
+            new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
+            "graphics/battle/voids/basalt-wall.png", 12f);
 
     private NaturalVoidZoning() { }
 

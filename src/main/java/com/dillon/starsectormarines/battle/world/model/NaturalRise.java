@@ -30,7 +30,12 @@ public record NaturalRise(Style style, List<Step> steps, float eyeMeters, String
     /** A natural rise style: what the cliffs and the top are, and where a generator lays it. */
     public enum Style {
         /** A ravine's walls: rock strata cliffs with mossy ledges up to scrub and woods along the rim. */
-        RAVINE_WALL
+        RAVINE_WALL,
+        /**
+         * A great crevasse's walls seen from its floor: blue-white ice banks with snow drifted on every terrace, up
+         * to the wind-scoured snowfield, the gale streaming snow over the lip far above while the floor lies calm.
+         */
+        ICE_WALL
     }
 
     /** A ledge: its height above the walkable ground, and how far into the rise from the foot it begins. */

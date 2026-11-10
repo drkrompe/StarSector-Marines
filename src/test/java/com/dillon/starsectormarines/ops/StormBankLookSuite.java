@@ -39,22 +39,17 @@ public final class StormBankLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            // world, wind, variant suffix, facing switch, standoff switch (null: the default), industry, size, seed
+            // world, wind, variant suffix, (unused), (unused), industry, size, seed
             Object[][] cases = {
                     {SurfacePalette.ARID, StormWind.Side.EAST, "-mine-size7", null, null, "mining", 7, 7L},
                     {SurfacePalette.ARID, StormWind.Side.NORTH, "-mine-size7", null, null, "mining", 7, 7L},
                     {SurfacePalette.ARID, StormWind.Side.EAST, "", null, null},
                     {SurfacePalette.ARID, StormWind.Side.NORTH, "", null, null},
                     {SurfacePalette.ARID, StormWind.Side.SOUTH, "", null, null},
-                    {SurfacePalette.ROCK, StormWind.Side.WEST, "", null, null},
-                    {SurfacePalette.ARID, StormWind.Side.WEST, "-facing-any", "ANY", null},
-                    {SurfacePalette.ARID, StormWind.Side.EAST, "-facing-any", "ANY", null},
-                    {SurfacePalette.ARID, StormWind.Side.NORTH, "-standoff-20", null, "20"}};
+                    {SurfacePalette.ROCK, StormWind.Side.WEST, "", null, null}};
             for (Object[] k : cases) {
                 SurfacePalette palette = (SurfacePalette) k[0];
                 StormWind.Side wind = (StormWind.Side) k[1];
-                set(StormBank.FACING_PROPERTY, (String) k[3]);
-                set(StormBank.STANDOFF_PROPERTY, (String) k[4]);
                 Climate climate = new Climate(EnumSet.of(Climate.Hazard.STORMS), wind);
                 boolean other = k.length > 5;
                 try (BattleSimulation sim = PlanetGroundLookSuite.site(palette, climate, other ? (Long) k[7] : SEED,
@@ -94,14 +89,7 @@ public final class StormBankLookSuite implements SnapshotSuite {
                             .render(sim, "")));
                 }
             }
-            set(StormBank.FACING_PROPERTY, null);
-            set(StormBank.STANDOFF_PROPERTY, null);
             return out;
         }
-    }
-
-    private static void set(String property, String value) {
-        if (value == null) System.clearProperty(property);
-        else System.setProperty(property, value);
     }
 }
