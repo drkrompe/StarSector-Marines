@@ -2083,6 +2083,22 @@ six cells short of every edge, trunks included, so the road graph has no perimet
 and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
 
+**The world takes the ruin back** (`RuinsWeather`, the last stage of the
+ruins recipe). A site long dead is not a bare concrete block on any world: its
+own ground (sand, snow, basalt, sulphur, or grass on a living world) lies over
+the dead town's earth, rubble bed and lot floors in drifts and banks against
+every standing wall; it blows in through each mouth of the megastructure in a
+tongue that thins out within twelve cells down the corridor; dust, rime, ash or
+growth banks along the corridor walls, thicker near the mouths; water stands
+(ice on a frozen world) where the roof leaks; and ceiling has fallen here and
+there. It is look only: surface skins over cells that keep their ground kind,
+and flat decals with no cover (`ruins-delve-weather`), by coordinate noise on the
+site's seed. It leaves the landing ground, the courts, the aprons, the vault and
+the themed halls alone. The skins feather onto the megastructure's cast concrete
+(ground feather, `battle-render-nouns.md`), so a drift ends soft, never in a step
+of cells. Pick `ruins-weather` open, building on it; `battle.ruins.weather` is
+its control.
+
 **A line stands only inside.** Inside the megastructure a layer line is a
 hull wall edge to edge, so its ways are the only crossings, and it sheds a bed
 of rubble against both faces, thinning over three cells (four for a collapsed

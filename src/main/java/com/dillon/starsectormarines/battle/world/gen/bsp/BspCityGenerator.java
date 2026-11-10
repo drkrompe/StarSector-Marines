@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.DelveCheck;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinedLotsStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelveStage;
@@ -531,7 +532,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new RuinsLandingStage(),                    // the landing's berths and the spawns
                 new OutdoorLandscapeStage(),
                 new RoadSurfaceStage(),
-                new InteriorAnchorFitStage()));
+                new InteriorAnchorFitStage(),
+                new RuinsWeatherStage()));                  // the world and the years: the last skin
     }
 
     /**

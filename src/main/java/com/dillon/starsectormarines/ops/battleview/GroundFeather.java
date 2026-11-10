@@ -63,7 +63,12 @@ public final class GroundFeather {
             "floors.dirt", "kind:DIRT", "pavement.dirt.worn",
             "floors.sand", "pavement.gravel.cracked", "floors.stone", "floors.snow",
             // A toxic world's own ground (SAND and STONE there): its sulphur flats spill onto the stained rock.
-            "toxic-ground.sulphur", "toxic-ground.crust");
+            "toxic-ground.sulphur", "toxic-ground.crust",
+            // A volcanic world's own ground, and what a dead site's weather lays over a ruin's floors (RuinsWeather):
+            // the world's ground frays out over the megastructure's cast concrete, the weakest of all, so a drift
+            // blown in through a mouth ends in a soft edge rather than a step of cells.
+            "volcanic.basalt", "volcanic.ash", "ruins-ground.rime", "ruins-ground.ice-sheet", "ruins-ground.biofilm",
+            "ruins-ground.wet-floor", "installation.concrete-floor");
 
     /** Noise fields a tile can sit in: one per combination of its four edge colours. */
     public static final int EDGE_CODES = 16;

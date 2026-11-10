@@ -484,3 +484,4 @@ com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWorksHallLookSuite
 com.dillon.starsectormarines.battle.derelict.WalkerTurnLookSuite
 com.dillon.starsectormarines.battle.derelict.WalkerMotionLookSuite
 com.dillon.starsectormarines.battle.setup.WallMountsLookSuite
+com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherLookSuite

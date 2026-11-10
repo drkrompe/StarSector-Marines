@@ -94,7 +94,8 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   every other reading, and walls, paved road, ruins, interiors and authored
   surfaces outside the feathering list neither give nor take one. A fixed
   priority decides who bleeds into whom (green growth over bare earth, earth
-  over sand and gravel, every one of them into lying snow); a road's soft shoulder feathers as the ground it is
+  over sand and gravel, every one of them into lying snow, and every one into the cast concrete floor a ruin's
+  weather lies on, `mapgen-nouns.md`, The world takes the ruin back); a road's soft shoulder feathers as the ground it is
   drawn as. The bleed is one field over the map — opacity falling off with
   distance from the stronger ground's cells, wobbled by a noise fixed edge by
   edge so neighbours always agree — and it reaches less than half a cell, so
