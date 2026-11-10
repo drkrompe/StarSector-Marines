@@ -25,11 +25,10 @@ import java.util.Objects;
 
 /**
  * One settled map on every surface palette: the size-4 heavy-industry Raid site (seed 7) built on a rock, a desert,
- * a frozen and a living world, so the colony's own ground can be judged against the planet's
+ * a frozen, an irradiated and a living world, so the colony's own ground can be judged against the planet's
  * ({@code mapgen-nouns.md}, cultivated ground). Each palette is framed whole ({@code <palette>-whole.png}) and at
  * play zoom on the town by the landing ({@code <palette>-town.png}), look preset; a desert and a frozen world under
- * storms add {@code <palette>-storm-*} with their drifts. Close on the drifts, a desert, a dust-blown rock and a
- * frozen world under storms are framed at {@link #DRIFT_CELLS} across on the stretch of town with the most drifted
+ * storms add {@code <palette>-storm-*} with their drifts. Close on the drifts, a frozen world under storms is framed at {@link #DRIFT_CELLS} across on the stretch of town with the most drifted
  * cells, once with their storms ({@code <palette>-drift-on.png}) and once the same map without
  * ({@code <palette>-drift-off.png}), so the drift is the only difference. A toxic world adds {@code toxic-pool.png},
  * play zoom on the sludge pool nearest the map's centre. {@code -Dsnapshot.planetGround.palettes=TOXIC,ROCK}
@@ -84,8 +83,9 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
                             .withMissionMarkers().render(sim, "")));
                 }
             }
-            for (SurfacePalette palette : new SurfacePalette[] {SurfacePalette.ARID, SurfacePalette.ROCK,
-                    SurfacePalette.FROZEN}) {
+            // A frozen world only: a desert or a rock under storms also banks earth and sets its town leeward
+            // (StormBank), so without its storms it is a different map and no control for its drifts.
+            for (SurfacePalette palette : new SurfacePalette[] {SurfacePalette.FROZEN}) {
                 try (BattleSimulation on = site(palette, storms, SEED, 4, 3, OperationTier.ESTABLISHED);
                      BattleSimulation off = site(palette, Climate.NONE, SEED, 4, 3, OperationTier.ESTABLISHED)) {
                     float[] at = mostDrifted(on.getTopology(), off.getTopology());
@@ -114,13 +114,19 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
         return best;
     }
 
-    private static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
-                                         OperationTier tier) {
+    static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
+                                 OperationTier tier) {
+        return site(palette, climate, seed, size, defence, tier, "heavyindustry");
+    }
+
+    /** The Raid site of {@code industry} on this world. */
+    static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
+                                 OperationTier tier, String industry) {
         TargetProfile market = new TargetProfile(size, 5, defence, 2, "independent",
                 EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT, EconomicFunction.HABITATION),
                 palette, SettlementLink.ROAD).withClimate(climate);
         return BattleSetup.createRaidWorks(seed, BattleSetup.defaultManifest(), false, tier, RiskLevel.MEDIUM, market,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier), "heavyindustry");
+                FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier), industry);
     }
 
     /** The centre of the close-up window holding the most cells whose surface the storm changed. */

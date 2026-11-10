@@ -64,8 +64,9 @@ public final class NaturalVoidZoning {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
             case ARID -> CANYON;
-            // A toxic world is cut as rock is until it has a rift of its own (acid floor, vapour).
-            case ROCK, TOXIC -> DRY_GORGE;
+            // An irradiated world's drop is rock's dry gorge until a glassed wall of its own exists; a toxic world
+            // is cut as rock is until it has a rift of its own (acid floor, vapour).
+            case ROCK, IRRADIATED, TOXIC -> DRY_GORGE;
             // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
             case VOLCANIC -> LAVA_RIFT;
         };

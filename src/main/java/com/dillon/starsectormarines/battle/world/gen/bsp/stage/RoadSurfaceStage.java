@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.GeneratedRoads;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadJoins;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
@@ -46,6 +47,9 @@ import java.util.List;
  * Each street carries a dashed centre line, broken at junctions;
  * {@code -Dbattle.mapgen.cityLaneMarkings=false} leaves it unpainted;
  * precinct roads keep round ends and no sidewalk either way.
+ *
+ * <p>What is drawn is one network wherever the road under it is: pieces the
+ * sweep leaves apart are joined down that road ({@link RoadJoins}).
  *
  * <p>This is a finish, not a repaving: no cell's ground kind, surface,
  * walkability or tag other than {@link Tag#ROAD_EDGE_BLEND} changes, and no
@@ -145,6 +149,26 @@ public final class RoadSurfaceStage implements GenStage {
             allowed[x][y] = new RoadSurface.Underlay(kind, underlay, false, false);
         }
         var surface = RoadSurface.generated(routes, network.markings(), ctx.topology, allowed);
+        // The sweep draws a band only where it makes a street, so a weld across a town's ground or a band refused as
+        // a pill is left bare and the drawn roads fall into pieces; they are joined along the road under them.
+        boolean[][] under = new boolean[ctx.width][ctx.height];
+        for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
+            boolean onRoad = road[x][y] || street[x][y] || footway[x][y]
+                    || precinct && owner[x][y] != GrownTrunkPlan.UNOWNED
+                    || ctx.topology.getGroundKind(x, y) == GroundKind.STREET;
+            under[x][y] = onRoad && streetGround(ctx, x, y);
+        }
+        List<RoadPlan.Route> joins = RoadJoins.joins(under, RoadJoins.drawn(surface), ctx.seed);
+        if (!joins.isEmpty()) {
+            routes.addAll(joins);
+            boolean[][] joined = RoadJoins.covered(joins, ctx.width, ctx.height);
+            for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
+                if (!joined[x][y] || allowed[x][y] != null || !under[x][y]) continue;
+                allowed[x][y] = new RoadSurface.Underlay(ctx.topology.getGroundKind(x, y), ctx.topology.getSurface(x, y),
+                        false, false);
+            }
+            surface = RoadSurface.generated(routes, network.markings(), ctx.topology, allowed);
+        }
         if (anyStreet && style.sidewalks()) surface = surface.withUnderlays(sidewalks(ctx, surface, footway));
         ctx.topology.setRoadSurface(surface);
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++)

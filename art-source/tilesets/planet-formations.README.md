@@ -27,6 +27,16 @@ Both sheets were made with the **built-in ImageGen tool**, following
   correction takes the first output as its reference. The accepted
   `ice-terrain.raw.png` is 1254x1254. Quiet granular detail avoids obvious
   repetition when the terrain renderer repeats a material across large masses.
+- `GlassedTerrainTemplate` reuses that registration for the glassed escarpment
+  (`TerrainPlan.Finish.GLASSED`, blocks `terrain.glassed.*`) on irradiated
+  worlds: a bleached cracked summit crust with small fused-glass patches, ash
+  and glass talus, then seven heat-crazed faces from scorched grey to pale
+  bone, flat luminance only. It was made through `codex-imagegen`: the first
+  prompt/output are `glassed-terrain.prompt.txt` and
+  `planet-landscape-sources/glassed-terrain-first.png` (an embossed, plastic
+  grain); the correction `glassed-terrain.correction.prompt.txt` takes the
+  guide and that pass and gives the accepted 1254x1254
+  `glassed-terrain.raw.png`. Each master keeps its `.provenance.json`.
 
 The corresponding `.tileset-authoring.json` files are the export authority.
 Generated output can shift registration as well as resolution. Formation cuts
@@ -43,13 +53,15 @@ With the configured `JAVA_HOME`, run from the repository root in PowerShell:
 ```powershell
 '{"name":"planet-formations"}' | tools/authoring.cmd tileset_export -
 '{"name":"ice-terrain"}' | tools/authoring.cmd tileset_export -
+'{"name":"glassed-terrain"}' | tools/authoring.cmd tileset_export -
 .\gradlew.bat :test --tests '*FormationBrushTest' --tests '*MineralDamageTest'
 .\gradlew.bat createSnapshots '-Psnapshot=planet-landscapes'
 ```
 
 The exporter owns `mod/graphics/doodads/planet-formations.png`,
-`mod/graphics/tilesets/ice-terrain.png` and their runtime tileset catalogs.
-Both sheets are registered in the built-in registry and provider catalog.
+`mod/graphics/tilesets/ice-terrain.png`,
+`mod/graphics/tilesets/glassed-terrain.png` and their runtime tileset catalogs.
+All three sheets are registered in the built-in registry and provider catalog.
 Fog masks come from the code-owned silhouettes; destroyed variants have none.
 
 The art test checks every visible exported pixel against the actual collision

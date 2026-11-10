@@ -26,6 +26,11 @@
       { "seed": 3, "note": "two mothers" },
       { "seed": 5, "note": "two mothers" }
     ],
+    "IRRADIATED": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
+    ],
     "TOXIC": [
       { "seed": 2, "note": "research origin; 11 bores (2 mothers)" },
       { "seed": 3, "note": "park origin; 11 bores (2 mothers)" },

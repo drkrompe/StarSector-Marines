@@ -22,6 +22,11 @@
       { "seed": 10, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
       { "seed": 22, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" }
     ],
+    "IRRADIATED": [
+      { "seed": 15, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 22, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest" },
+      { "seed": 9, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest" }
+    ],
     "TOXIC": [
       { "seed": 15, "note": "rear south; redoubt guns 7-7-7-7" },
       { "seed": 22, "note": "rear north; redoubt guns 7-7-7-7" },

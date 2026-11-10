@@ -38,7 +38,7 @@ class PrecinctDefenceTest {
     private static final int H = 90;
     /** The claim: a rectangle, big enough to hold a citadel's worth of guns. */
     private static final int LEFT = 40, RIGHT = 99, BOTTOM = 20, TOP = 69;
-    /** The road: a band clean across the map, so it leaves by two ways. */
+    /** The road: a band clean across the map, so it leaves by two ways, joined round the outside. */
     private static final int ROAD_LOW = 43, ROAD_HIGH = 45;
 
     private record Built(GenContext ctx, int[][] claim, int[][] road,
@@ -81,6 +81,14 @@ class PrecinctDefenceTest {
         }
         for (int x = 0; x < W; x++) {
             for (int y = ROAD_LOW; y <= ROAD_HIGH; y++) road[x][y] = 0;
+        }
+        // Its two ends joined round the outside, so they are one road and the cap decides which way in stays open.
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) {
+                boolean ring = y >= H - 4 && y <= H - 2 || (x >= 1 && x <= 3 || x >= W - 4 && x <= W - 2)
+                        && y >= ROAD_LOW && y <= H - 2;
+                if (ring) road[x][y] = 0;
+            }
         }
 
         // The wall, stamped the way the ward stamps it, because the placer

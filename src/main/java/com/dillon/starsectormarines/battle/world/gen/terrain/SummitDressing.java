@@ -38,6 +38,8 @@ public final class SummitDressing {
         var pool = palette == SurfacePalette.FROZEN
                 ? new MineralFormation[]{MineralFormation.BOULDERS, MineralFormation.SPIRES,
                     MineralFormation.BOULDERS, MineralFormation.ICE_PINNACLES}
+                : palette == SurfacePalette.IRRADIATED
+                ? new MineralFormation[]{MineralFormation.HUSKS, MineralFormation.HUSK_SPIRES}
                 : palette == SurfacePalette.VOLCANIC
                 ? new MineralFormation[]{MineralFormation.BASALT_BOULDERS, MineralFormation.BASALT_SPIRES}
                 : new MineralFormation[]{MineralFormation.BOULDERS, MineralFormation.SPIRES};

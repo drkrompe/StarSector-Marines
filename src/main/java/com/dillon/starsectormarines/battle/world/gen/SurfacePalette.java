@@ -56,6 +56,16 @@ public enum SurfacePalette {
     VOLCANIC(false, GroundKind.STONE),
 
     /**
+     * Scorched, bleached and glassed: cracked hardpan fused to glass in patches, with the dead husks of whatever
+     * stood on it. Rocks scatter; nothing grows.
+     *
+     * <p>Vanilla's {@code irradiated} type used to fall through to {@link #ROCK} and read as the same grey regolith
+     * as a barren moon. Hard radiation at the surface is a different picture: the ground has been burnt white and
+     * the light is pale and harsh. It bears no open water.
+     */
+    IRRADIATED(false, GroundKind.HARDPAN),
+
+    /**
      * A toxic world: corroded, chemically stained rock with crusted sulphur flats and pools of acid sludge. Rocks
      * scatter; nothing grows.
      *
@@ -127,6 +137,7 @@ public enum SurfacePalette {
             case ROCK -> RockDamage.Biome.BASALT;
             case FROZEN -> RockDamage.Biome.FROST;
             case VOLCANIC -> RockDamage.Biome.SCORIA;
+            case IRRADIATED -> RockDamage.Biome.GLASSED;
             case TOXIC -> RockDamage.Biome.TOXIC;
         };
     }

@@ -151,6 +151,12 @@ public class CellTopology {
         RUBBLE,
         /** Curb-side sidewalk strip (urban-tileset-3 SIDEWALK / SIDEWALK_CORNER). Used for wide-road flanks where {@code STREET} cells aren't wall-adjacent and the render-time auto-detection can't pick them. Routes through the same urban-3 corner-aware picker the STREET-wall-adjacent path uses, so explicit {@code SIDEWALK} cells and implicit STREET-sidewalk cells join into one contiguous strip. */
         SIDEWALK,
+        /**
+         * Bleached, cracked hardpan, fused to glass in patches. An irradiated world's wild ground
+         * ({@code SurfacePalette.IRRADIATED}): bare and burnt like {@link #STONE}, but its own material, so it draws
+         * as scorched glassed ground rather than grey regolith. Appended last: ordinals are stored per cell.
+         */
+        HARDPAN,
     }
 
     /**

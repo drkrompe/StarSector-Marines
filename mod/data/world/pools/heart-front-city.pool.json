@@ -58,6 +58,20 @@
         "note": "two mothers; landing 279,30"
       }
     ],
+    "IRRADIATED": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
+    ],
     "TOXIC": [
       { "seed": 2, "note": "workings origin; 11 bores (2 mothers)" },
       { "seed": 3, "note": "freight origin; 11 bores (2 mothers)" },

@@ -56,16 +56,16 @@ class AShedBuildsItsOwnFactionsMachinesTest {
      *
      * <p>Two factions rather than one, because a single list proves only that
      * <em>a</em> list was read. The Path fields Hounds and nothing else;
-     * Tri-Tachyon leads with the Warden. Both drop the Bulwark, which is a yard
-     * job wherever it appears — so the weight rule and the doctrine rule are
-     * visible as separate filters rather than as one lucky coincidence.
+     * Tri-Tachyon fields its crawler and nothing else. Hegemony's list carries
+     * the Bulwark, which is a yard job wherever it appears and never on a
+     * shed's stocks, so the weight rule shows as a filter of its own.
      */
     @Test
     void aShedIsTooledForTheFactionWhoseShedItIs() {
         assertEquals(List.of(MechVariant.HOUND), tooling("luddic_path"),
                 "a Luddic Path motor pool is building something the Path does not field");
-        assertEquals(List.of(MechVariant.WARDEN, MechVariant.HOUND), tooling("tritachyon"),
-                "a Tri-Tachyon motor pool is not building the Tri-Tachyon cycle in order");
+        assertEquals(List.of(MechVariant.CRAWLER), tooling("tritachyon"),
+                "a Tri-Tachyon motor pool is building something Tri-Tachyon does not field");
 
         for (MechVariant chassis : tooling("hegemony")) {
             assertTrue(chassis.maxStructure <= FabricationService.FIELD_SHED_STRUCTURE_LIMIT,

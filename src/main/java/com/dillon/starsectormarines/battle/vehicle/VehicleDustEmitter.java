@@ -49,7 +49,7 @@ public final class VehicleDustEmitter {
     /** Whether a wheel or track raises dust from this ground: earth, sand, snow and rubble, never paving or floor. */
     static boolean loose(GroundKind kind) {
         return kind == GroundKind.DIRT || kind == GroundKind.GRASS || kind == GroundKind.SAND
-                || kind == GroundKind.SNOW || kind == GroundKind.RUBBLE;
+                || kind == GroundKind.SNOW || kind == GroundKind.HARDPAN || kind == GroundKind.RUBBLE;
     }
 
     /** What a hover skirt blows off this ground: spray off water, haze off anything open, nothing indoors. */

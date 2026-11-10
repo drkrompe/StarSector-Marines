@@ -42,10 +42,11 @@ PLANTS = [
 ROCKS = ["small-1", "small-2", "medium-1", "medium-2", "large-1", "large-2", "large-3"]
 STONES = HERE / "field-stones"
 # The stone sets, one per biome: each as (id infix after "nature.rock-", subfolder of field-stones/, grade). The
-# unprefixed ids are the verdant set; RockDamage.Biome names the same six. A grade is (value, contrast, saturation,
+# unprefixed ids are the verdant set; RockDamage.Biome names the same sets. A grade is (value, contrast, saturation,
 # tint) about the opaque pixels' mean luminance. The first set can be overridden from the command line to compare.
 STONE_SETS = [("", "mossed", "quiet"), ("sandstone-", "sandstone", "dusty"), ("basalt-", "basalt", "weathered"),
-              ("frost-", "frost", "none"), ("scoria-", "basalt", "scoria"), ("toxic-", "toxic", "none")]
+              ("frost-", "frost", "none"), ("scoria-", "basalt", "scoria"), ("glassed-", "glassed", "none"),
+              ("toxic-", "toxic", "none")]
 GRADES = {
     "none": (1, 1, 1, (1, 1, 1)),
     "quiet": (.86, .85, .8, (1, 1, .96)),     # a mossed set taken down a step, keeping its greens

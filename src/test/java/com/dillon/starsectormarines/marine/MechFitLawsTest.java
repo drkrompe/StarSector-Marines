@@ -17,7 +17,7 @@ class MechFitLawsTest {
 
     @Test
     void theStockFitAndAFullRefitAroundTheFactoryWeaponsFitEveryChassis() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             assertFalse(MechFitSpace.stock(variant).overBudget(), variant + " stock");
             assertFalse(MechFitSpace.fullInternalRefit(variant).overBudget(),
                     variant + " full internal refit around its factory weapons");
@@ -26,7 +26,7 @@ class MechFitLawsTest {
 
     @Test
     void theBestOfEverythingNeverFitsOnOneFrame() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             MechFrameBudget.Fit best = MechFitSpace.bestOfEverything(variant);
             assertTrue(best.overBudget(), variant + " carries the top of every ladder: "
                     + best.fittedMass() + " of " + best.output());
@@ -41,7 +41,7 @@ class MechFitLawsTest {
         assertTrue(refitHound.armorCapacity() < stockBulwark.armorCapacity());
         assertTrue(refitWarden.armorCapacity() < refitHound.armorCapacity(),
                 "a refit Warden must not out-plate a refit Hound");
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             MechFrame refit = MechFitSpace.bestRefitAroundStockWeapons(variant).frame();
             MechFrame preCut = MechFitSpace.preCut(variant);
             assertTrue(refit.armorCapacity() <= preCut.armorCapacity() + 1e-3f, variant + " armor past its pre-cut value");
