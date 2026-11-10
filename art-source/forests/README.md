@@ -131,6 +131,26 @@ each with `tools/authoring.cmd tileset_export -` and `{"name":"dry-scrub-canopie
 `dry-scrub-blight` and `dry-scrub-blight-felled` beside the green ones.
 `review_export.py <dir>` draws the review sheets.
 
+### Living-world floras (jungle and taiga)
+
+A jungle world's rainforest (kapok, banana, strangler fig, tree fern, feather
+palm, liana-draped mahogany; vine tangle, elephant ear, fern, reed bed, palm
+seedlings) and a tundra world's taiga (larch, dwarf willow, dwarf birch, black
+and white spruce, wind-bent fir; heath, lichen hummock, sedge tussock, spruce
+seedlings) are reskins of every green state, as the dry scrub is: the same
+silhouettes, footprints and states under the green id with `-jungle` or
+`-taiga` (`Flora`, chosen per map by its `LivingWorld`). Raws, prompts and
+provenance are in `art-source/living-worlds/` (`generate.sh <jungle|taiga>`).
+Two raws came back on an opaque backdrop, so `fit_sheets.py` clips every raw's
+alpha to its guide (the guide's own alpha for those two) before dry-woodland's
+fit and flatten, into `fitted/`, which the
+`art-source/tilesets/{jungle,taiga}-*.tileset-authoring.json` documents cut.
+Export each with `tools/authoring.cmd tileset_export -` and
+`{"name":"jungle-canopies"}` (or `-damaged`, `-destroyed`, `-undergrowth`,
+`-undergrowth-damaged`, `-undergrowth-destroyed`, and the same for `taiga`),
+then `gradlew.bat bakeCreepBlight`. `createSnapshots -Psnapshot=living-world-look`
+shows each look on a colony map beside the temperate control.
+
 ## Outdoor map adoption
 
 Outdoor city recipes (including precinct maps) and Relief, Counterattack,

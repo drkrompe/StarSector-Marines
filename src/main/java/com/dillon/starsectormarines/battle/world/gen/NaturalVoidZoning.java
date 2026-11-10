@@ -38,13 +38,17 @@ public final class NaturalVoidZoning {
     public static final Drop CREVASSE = new Drop(NaturalVoid.Style.ICE, List.of(
             new NaturalVoid.Step(11f, .5f), new NaturalVoid.Step(23f, 1.1f), new NaturalVoid.Step(36f, 1.6f)),
             "graphics/battle/voids/ice-wall.png", 10f);
-    /**
-     * The gorge's dry sister: banded sandstone walls, sand on the ledges and a dry wash 42 m down. Barren rock takes
-     * it too until it has a dry gorge of its own; the basalt wall was tried there and read as holes at a wide zoom.
-     */
+    /** The gorge's dry sister on a desert: banded sandstone walls, sand on the ledges and a dry wash 42 m down. */
     public static final Drop CANYON = new Drop(NaturalVoid.Style.CANYON, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(28f, 1.25f), new NaturalVoid.Step(42f, 1.8f)),
             "graphics/battle/voids/canyon-wall.png", 12f);
+    /**
+     * A barren world's dry gorge: grey regolith strata, grit on the ledges and a rubble floor 40 m down. Its own
+     * regolith wall: the basalt wall was tried on rock and read as holes at a wide zoom.
+     */
+    public static final Drop DRY_GORGE = new Drop(NaturalVoid.Style.DRY_GORGE, List.of(
+            new NaturalVoid.Step(13f, .6f), new NaturalVoid.Step(27f, 1.3f), new NaturalVoid.Step(40f, 1.9f)),
+            "graphics/battle/voids/regolith-wall.png", 12f);
     /** A volcanic rift: basalt walls lit from below by a river of molten rock 40 m down. */
     public static final Drop LAVA_RIFT = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(27f, 1.2f), new NaturalVoid.Step(40f, 1.7f)),
@@ -59,8 +63,9 @@ public final class NaturalVoidZoning {
         return switch (palette) {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
-            // An irradiated world's dry drop is the canyon until a glassed wall of its own exists.
-            case ROCK, ARID, IRRADIATED -> CANYON;
+            case ARID -> CANYON;
+            // An irradiated world's drop is rock's dry gorge until a glassed wall of its own exists.
+            case ROCK, IRRADIATED -> DRY_GORGE;
             // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
             case VOLCANIC -> LAVA_RIFT;
         };

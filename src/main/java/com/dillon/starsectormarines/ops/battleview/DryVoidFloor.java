@@ -15,8 +15,8 @@ final class DryVoidFloor {
 
     /** The haze over the floor: metres above it, puff size in cells, its drift along the drop, cells a second. */
     static final float HAZE_METERS = 4f, HAZE_PUFF = 3.6f, HAZE_DRIFT = .25f;
-    /** Stones: the grid they are scattered on, in cells, and the share of its points that hold one. */
-    static final float STONE_SPACING = 2.2f, STONE_SHARE = .3f;
+    /** Stones: the grid they are scattered on, in cells. */
+    static final float STONE_SPACING = 2.2f;
     /** A stone's size in cells, smallest to largest, and how far its shadow falls from it, in its own sizes. */
     static final float STONE_MIN = .9f, STONE_MAX = 2.1f, STONE_SHADOW = .18f;
     /** The field stones in a set: two medium then three large, from the set's first frame. */
@@ -34,11 +34,12 @@ final class DryVoidFloor {
     }
 
     /**
-     * Whether a stone lies at grid point {@code (i, j)} of a floor {@code in} cells from its walls and {@code channel}
-     * in a channel: never in a channel, nor in the talus against a wall, where the fall would have buried it.
+     * Whether a stone lies at a grid point whose hash is {@code hash}, {@code share} of the points holding one, on a
+     * floor {@code in} cells from its walls and {@code channel} in a channel: never in a channel, nor in the talus
+     * against a wall, where the fall would have buried it.
      */
-    static boolean stoneAt(int hash, float in, float channel) {
-        return (hash & 1023) / 1023f < STONE_SHARE && in > 1f && channel < .3f;
+    static boolean stoneAt(int hash, float share, float in, float channel) {
+        return (hash & 1023) / 1023f < share && in > 1f && channel < .3f;
     }
 
     void draw(DryVoidLook.Palette p, NaturalVoidField.Band band, float time) {
@@ -124,7 +125,7 @@ final class DryVoidFloor {
                 int ix = (int) Math.floor(x), iy = (int) Math.floor(y);
                 if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h || !overFloor[iy * field.w + ix]) continue;
                 float in = field.sample(field.reach[n], x, y);
-                if (!stoneAt(hsh, in, channel(x, y, in, drop.seed()))) continue;
+                if (!stoneAt(hsh, p.stoneShare(), in, channel(x, y, in, drop.seed()))) continue;
                 if (field.nearBridge(x, y, 1.5f)) continue;
                 float z = field.stepDepth(n, x, y);
                 float zs = drop.scale(z);

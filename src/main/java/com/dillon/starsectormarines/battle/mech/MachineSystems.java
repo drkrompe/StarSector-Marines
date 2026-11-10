@@ -51,6 +51,12 @@ public record MachineSystems(float structureFactor, float ammoFactor, float spee
         this(structureFactor, ammoFactor, 1f, List.of(), false, false);
     }
 
+    /** These systems with a shield emitter besides. */
+    public MachineSystems withShieldEmitter() {
+        return shieldEmitter ? this
+                : new MachineSystems(structureFactor, ammoFactor, speedFactor, droneBay, activeProtection, true);
+    }
+
     private static boolean positive(float value) {
         return value > 0f && Float.isFinite(value);
     }

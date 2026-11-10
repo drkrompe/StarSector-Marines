@@ -61,4 +61,13 @@ class SurfaceFieldTest {
         assertFalse(Basin.ravBloom(SurfacePalette.VERDANT, 1f, 1f).present());
         assertTrue(Basin.ravBloom(SurfacePalette.ARID, 1f, 1f).present());
     }
+
+    /** The look is the living world's own: a desert's green basin floor is temperate whatever the profile says. */
+    @Test
+    void aLivingLookBelongsToALivingWorldOnly() {
+        assertEquals(LivingWorld.JUNGLE,
+                new SurfaceField(SurfacePalette.VERDANT, Basin.NONE, W, H, 7, LivingWorld.JUNGLE).living());
+        assertEquals(LivingWorld.TEMPERATE, new SurfaceField(SurfacePalette.ARID,
+                new Basin(SurfacePalette.VERDANT, .7f, .7f), W, H, 7, LivingWorld.JUNGLE).living());
+    }
 }

@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.bramble-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "forest.bramble-small-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.thicket-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "forest.thicket-small-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "forest.bracken-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "forest.saplings-taiga-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "forest.bramble-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "forest.bramble-small-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.thicket-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.thicket-small-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "forest.bracken-taiga-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.saplings-taiga-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/taiga-undergrowth-destroyed.png"
+}
