@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6df-7dc2-70e3-9c6b-537aa43e180a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6df-7dc2-70e3-9c6b-537aa43e180a\\exec-98c73090-fc99-42ec-85e8-755b808078b7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\wet-floor-master.png",
+    "sha256": "cefe3373189a6bf066caadce67cb4cefc706fcb3454d581300868801bd122a67",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\wet-floor-master.prompt.txt",
+  "promptSha256": "acf906013ab000e59e92e64a05774dd516d401fe0a885a36444524ea26942e0c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: the hall's grey concrete deck standing wet under a film of water: darkened wet concrete with faint soft reflections, thin water sheens, fine grit and a little silt, a few hairline cracks. Average colour a dark wet grey around RGB (92, 96, 98). No puddle edges, no ripples, no light reflections of objects.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, fine-grained wet concrete texture using the reference’s scale and low contrast."
+  ],
+  "usage": {
+    "input_tokens": 36346,
+    "cached_input_tokens": 30848,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 409,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 31.2
+}

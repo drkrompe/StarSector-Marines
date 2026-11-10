@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6df-7dfd-7d42-9be1-9729db9257e6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6df-7dfd-7d42-9be1-9729db9257e6\\exec-c22bf232-3056-4eab-bb67-57f38ec1747c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\stage-floor-master.png",
+    "sha256": "60b3b7eef9d2bcbca8bded87290d819f9ca2c418c1ab238cbc4558792b7ffad9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\stage-floor-master.prompt.txt",
+  "promptSha256": "d0b68c2d04d22d183e0b6ed4a5f2c72ea193c4010434b8d406d5b5121d8ac65e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: the dark polished composite deck of a holographic stage: near-black blue-grey resin with a faint fine metallic fleck, light dust and a few fine scuffs. Average colour a dark blue-grey around RGB (58, 62, 70). No grid lines, no patterns, no glow.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, finely textured floor image using the reference for scale and surface uniformity."
+  ],
+  "usage": {
+    "input_tokens": 36303,
+    "cached_input_tokens": 30720,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 394,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 30.7
+}
