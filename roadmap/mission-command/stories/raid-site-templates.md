@@ -62,7 +62,7 @@ rest of the planet's sites feed. Three things carry that.
 | Refining | the only cracking and distillation plant | pipelines in; stills; a tank farm |
 | Light industry | the central fabrication works | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road |
 | Farming | the central grain elevator and processing hub | farm roads in; silos; packing sheds |
-| Spaceport | the only orbital lift | the lighter apron; bonded sheds; roads in from the planet's towns |
+| Spaceport | the only orbital lift | the lighter apron held at the deep end (pads, blast walls, scorch, fuel main, container staging, a freighter mid-turnaround); bonded sheds; haulers queued on the roads in from the planet's towns |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
 
 **The pit.** A mine holds its pit's ground beside the head works: a held
