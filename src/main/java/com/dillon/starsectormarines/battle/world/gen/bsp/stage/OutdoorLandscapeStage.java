@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.model.WallMasks;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
+import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseTerraces;
 import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -52,6 +57,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.SludgeGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.CrevasseTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -117,7 +123,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
         openPits(c, plan, reserved);
-        if (!crevasseTown(c, reserved)) chasm(c, field, reserved);
+        if (!crevasseTown(c, field, reserved)) chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
@@ -365,17 +371,21 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
-    /** The crevasse town's walls: how high they stand, in metres. UNTUNED: the owner's pick of the bank. */
+    /** A sheltered town's walls: how high they stand, in metres. UNTUNED. */
     static final float CREVASSE_WALL_METERS = 36f;
+    /** The houses set into a sheltered town's walls, longest first. */
+    private static final List<BuildingStamp> TERRACES = List.of(BuildingStamp.TERRACE_ROW, BuildingStamp.TERRACE_BLOCK);
 
     /**
-     * Raises a crevasse town's walls ({@code voids.md}, the crevasse town): where the plan held the crevasse's wall
-     * bands ({@link CrevasseTown}), so the town grew on the floor between them, terraced ice banks on the open ground
-     * the town left there ({@link CrevasseShelter}). The walls are a rise: unwalkable, natural solid, and blocking
-     * sight as high ground does. A map whose plan holds no walls, that already draws a drop, a rise or a backdrop, or
-     * that has too little open ground along its edges, is none. Returns whether it raised them.
+     * Raises a sheltered town's walls ({@code voids.md}, the crevasse town): where the plan held the walls' bands
+     * ({@link CrevasseTown}, placed by the map's design), so the town grew on the floor between them, terraced banks
+     * on the open ground the town left there ({@link CrevasseShelter}), in the world's skin: ice on a frozen world,
+     * the ravine's rock elsewhere. The walls are a rise: unwalkable, natural solid, and blocking sight as high ground
+     * does. Then the town builds its terrace houses into their feet ({@link CrevasseTerraces}). A map whose plan holds
+     * no walls, that already draws a drop, a rise or a backdrop, or that has too little open ground along its edges,
+     * is none. Returns whether it raised them.
      */
-    private boolean crevasseTown(GenContext c, boolean[] reserved) {
+    private boolean crevasseTown(GenContext c, SurfaceField field, boolean[] reserved) {
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         List<RidgePlanner.Band> bands = plan == null ? List.of() : CrevasseTown.wallsOf(plan.landscape());
         if (bands.isEmpty() || c.topology.naturalVoid() != null || c.topology.naturalRise() != null
@@ -390,8 +400,78 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i -> c.grid.isWalkable(i % w, i / w),
                 (int) (c.seed ^ 0x4357L));
         if (walls == null) return false;
-        for (int i = 0; i < walls.length; i++) {
-            if (!walls[i]) continue;
+        raise(c, walls, reserved);
+        int[] lengths = new int[TERRACES.size()];
+        for (int k = 0; k < lengths.length; k++) lengths[k] = TERRACES.get(k).footprintWidth(0);
+        boolean[] houses = new boolean[w * c.height];
+        boolean built = false;
+        for (CrevasseTerraces.Site site : CrevasseTerraces.plan(w, c.height, CrevasseTown.alongX(bands), walls, lengths,
+                i -> !held[i] && !reserved[i] && shelterGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w))) {
+            raise(c, site.fill(), reserved);
+            dig(c, site.dig());
+            BuildingStamp stamp = TERRACES.get(lengths[0] == site.length() ? 0 : 1);
+            stamp.place(c, site.left(), site.bottom(), site.turns());
+            for (int x = site.left(); x < site.left() + stamp.footprintWidth(site.turns()); x++) {
+                for (int y = site.bottom(); y < site.bottom() + stamp.footprintHeight(site.turns()); y++) {
+                    reserved[y * w + x] = true;
+                    houses[y * w + x] = true;
+                }
+            }
+            built = true;
+        }
+        // The houses came after the town was finalized: finish them as it finished its own.
+        if (built) finishLateBuildings(c, houses);
+        boolean frozen = field.world() == SurfacePalette.FROZEN;
+        NaturalVoidZoning.Drop skin = frozen ? NaturalVoidZoning.CREVASSE : NaturalVoidZoning.forPalette(field.world());
+        c.topology.setNaturalRise(new NaturalRise(frozen ? NaturalRise.Style.ICE_WALL : NaturalRise.Style.RAVINE_WALL,
+                NaturalRise.bank(CREVASSE_WALL_METERS), NaturalVoidZoning.EYE_METERS, skin.wallTexture(),
+                skin.wallTileMeters(), (int) (c.seed ^ 0x4954L)));
+        return true;
+    }
+
+    /**
+     * Finishes buildings stamped after {@code FinalizeStage}: their walls' hit points, cover and tags, and their
+     * entries in the town's buildings, numbered on so no earlier building's id moves.
+     */
+    private static void finishLateBuildings(GenContext c, boolean[] houses) {
+        // Hit points on their own walls only: the rise round them is natural ground, not a wall to breach.
+        for (int i = 0; i < houses.length; i++) {
+            if (!houses[i]) continue;
+            int x = i % c.width, y = i / c.width;
+            if (!c.grid.isWalkable(x, y) && !c.topology.isFixture(x, y) && c.grid.getWallHp(x, y) == 0) {
+                c.grid.setWallHp(x, y, FinalizeStage.WALL_HP_DEFAULT);
+            }
+        }
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) c.grid.recomputeCoverAt(x, y);
+        c.topology.tagDefaultWalls(c.grid);
+        FinalizeStage.dressUnstyledWalls(c.topology);
+        WallMasks.stampUnclaimed(c.topology);
+        Buildings buildings = c.get(BspKeys.BUILDINGS);
+        if (buildings == null) {
+            c.put(BspKeys.BUILDINGS, BuildingFloodFill.populate(c.topology, c.seed));
+        } else {
+            BuildingFloodFill.populate(c.topology, c.seed, buildings);
+        }
+    }
+
+    /** Gives cells of a rise back to the ground, for a building to be stamped on: no longer natural solid. */
+    private static void dig(GenContext c, boolean[] cells) {
+        int w = c.width;
+        for (int i = 0; i < cells.length; i++) {
+            if (!cells[i]) continue;
+            int x = i % w, y = i / w;
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NO_EDGE_COVER, false);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, false);
+            c.topology.setGroundKind(x, y, GroundKind.DIRT);
+        }
+    }
+
+    /** Stamps a rise's cells: unwalkable, natural solid, blocking sight, and reserved from growth. */
+    private static void raise(GenContext c, boolean[] cells, boolean[] reserved) {
+        int w = c.width;
+        for (int i = 0; i < cells.length; i++) {
+            if (!cells[i]) continue;
             int x = i % w, y = i / w;
             c.grid.setWalkable(x, y, false);
             c.grid.setTag(x, y, NavigationGrid.CellTag.NO_EDGE_COVER, true);
@@ -401,42 +481,26 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setNatureOverlayIndex(x, y, -1);
             reserved[i] = true;
         }
-        c.topology.setNaturalRise(new NaturalRise(NaturalRise.Style.ICE_WALL, NaturalRise.bank(CREVASSE_WALL_METERS),
-                NaturalVoidZoning.EYE_METERS, NaturalVoidZoning.CREVASSE.wallTexture(),
-                NaturalVoidZoning.CREVASSE.wallTileMeters(), (int) (c.seed ^ 0x4954L)));
-        return true;
     }
 
     /** The surface a crossing's footbridge is decked with. */
     static final String DECK_SURFACE = "colony.timber";
 
-    /** The share of generated outdoor maps a natural drop is cut across, short of the switch. UNTUNED. */
-    static final float CHASM_CHANCE = .35f;
-    /** The smallest map side a drop is cut across. */
-    static final int CHASM_MIN_SIDE = 64;
-
     /**
-     * Whether this map is cut by a natural drop: {@code battle.mapgen.naturalVoids} (a share from 0 to 1) when set,
-     * else {@link #CHASM_CHANCE}, drawn on the map's own substream so asking changes no other draw.
-     */
-    static boolean chasmWanted(long seed) {
-        String asked = System.getProperty("battle.mapgen.naturalVoids");
-        float chance = asked == null || asked.isBlank() ? CHASM_CHANCE : Float.parseFloat(asked.trim());
-        return new Random(seed ^ 0x43484153_4d4c4cL).nextFloat() < chance;
-    }
-
-    /**
-     * Cuts a natural drop across open country ({@code voids.md}, placement in generated maps): a gorge, canyon or
-     * crevasse by the world's palette ({@link NaturalVoidZoning}), run edge to edge over the ground the reservations
-     * leave, every road and route crossing it left standing as a bridge and natural crossings between, and proved
-     * to strand nothing ({@link NaturalChasm}). After the open pit, before anything is grown. A map that already
-     * draws a drop or a backdrop, or that no line fits, keeps none.
+     * Cuts a natural drop across open country where the map's design placed one ({@code voids.md}, placed by design;
+     * {@link Landform.Drop}): a gorge, canyon, crevasse or rift by the world's palette ({@link NaturalVoidZoning}),
+     * run edge to edge along the design's line over the ground the reservations leave, every road and route crossing
+     * it left standing as a bridge and natural crossings between, and proved to strand nothing ({@link NaturalChasm}).
+     * After the open pit, before anything is grown. A map whose design places none, that already draws a drop or a
+     * backdrop, or whose line does not fit, keeps none.
      */
     private static void chasm(GenContext c, SurfaceField field, boolean[] reserved) {
         if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
-        if (Math.min(c.width, c.height) < CHASM_MIN_SIDE || !chasmWanted(c.seed)) return;
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        Landform.Drop design = plan == null ? null : Landform.Drop.of(plan.landscape(), c.width, c.height);
+        if (design == null) return;
         int w = c.width;
-        NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height,
+        NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height, design.alongX(), design.across(),
                 i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                 i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
         if (cut == null) return;
@@ -525,8 +589,10 @@ public final class OutdoorLandscapeStage implements GenStage {
         // The held and sealed bands and the valleys first: proved a segment at a time in order, so the ground the
         // mission holds open is taken before anything else can come within a gap of it.
         List<RidgePlanner.Band> bands = new ArrayList<>(landscape.allHeld());
-        // A crevasse town's walls are held like a ridge but raised as an ice rise, never as hills.
-        bands.removeIf(band -> band.relief() == RidgePlanner.Relief.ICE_WALL);
+        // A sheltered town's walls and a designed drop's line are held like a ridge, but raised as a rise or cut as a
+        // drop, never as hills.
+        bands.removeIf(band -> band.relief() == RidgePlanner.Relief.SHELTER_WALL
+                || band.relief() == RidgePlanner.Relief.DROP);
         bands.addAll(valleySides(c, landscape));
         bands.addAll(landscape.ridges());
         return bands;

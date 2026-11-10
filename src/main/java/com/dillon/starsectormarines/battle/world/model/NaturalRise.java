@@ -41,10 +41,10 @@ public record NaturalRise(Style style, List<Step> steps, float eyeMeters, String
     /** A ledge: its height above the walkable ground, and how far into the rise from the foot it begins. */
     public record Step(float heightMeters, float insetCells) { }
 
-    /** How many terraces a bank climbs in, the top among them. UNTUNED. */
-    public static final int BANK_TERRACES = 6;
-    /** How far the top stands back from the bank's foot, in cells. UNTUNED. */
-    public static final float BANK_CELLS = 10f;
+    /** How many terraces a bank climbs in, the top among them: the owner's pick (voids-bank-width, 16 cells and 8). */
+    public static final int BANK_TERRACES = 8;
+    /** How far the top stands back from the bank's foot, in cells: the owner's pick. */
+    public static final float BANK_CELLS = 16f;
     /** The first terrace's set-back from the foot, in cells. */
     static final float BANK_FIRST_CELLS = .6f;
 

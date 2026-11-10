@@ -1140,6 +1140,12 @@ represented by an opaque raised mass merely to obtain impassability. A place
 requiring traversable banks or a playable lower floor needs a separate access
 and elevation model; an excavation supplies neither.
 
+A **landform** is a natural drop across a map, or walls sheltering its town,
+that the map's design places (`Landform`; `voids.md`, placed by design). It is
+never rolled: a map has one because its design states it, and the world's
+palette only picks its skin. It is stated with the plan as held ground, so the
+places grow round it, and the landscape pass cuts or raises it on what was held.
+
 ## City, station, and ship families
 
 An opening-operation facility publishes an interior destination from its
