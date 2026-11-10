@@ -905,6 +905,230 @@
       ]
     },
     {
+      "id": "nature.rock-scoria-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        7146,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        8033,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        7150,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        8037,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        7156,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        8043,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        7162,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        8049,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        7583,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        8470,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        7599,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        8486,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        7610,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        8497,
+        375,
+        325
+      ]
+    },
+    {
       "id": "nature.rock-toxic-small-1-damaged",
       "included": true,
       "cover": "none",
@@ -915,7 +1139,7 @@
       ],
       "rect": [
         30,
-        7150,
+        8924,
         286,
         357
       ]
@@ -931,7 +1155,7 @@
       ],
       "rect": [
         30,
-        8037,
+        9811,
         286,
         357
       ]
@@ -947,7 +1171,7 @@
       ],
       "rect": [
         525,
-        7151,
+        8925,
         311,
         356
       ]
@@ -963,7 +1187,7 @@
       ],
       "rect": [
         525,
-        8038,
+        9812,
         311,
         356
       ]
@@ -979,7 +1203,7 @@
       ],
       "rect": [
         934,
-        7155,
+        8929,
         365,
         356
       ]
@@ -995,7 +1219,7 @@
       ],
       "rect": [
         934,
-        8042,
+        9816,
         365,
         356
       ]
@@ -1011,7 +1235,7 @@
       ],
       "rect": [
         1387,
-        7163,
+        8937,
         345,
         340
       ]
@@ -1027,7 +1251,7 @@
       ],
       "rect": [
         1387,
-        8050,
+        9824,
         345,
         340
       ]
@@ -1043,7 +1267,7 @@
       ],
       "rect": [
         23,
-        7584,
+        9358,
         392,
         360
       ]
@@ -1059,7 +1283,7 @@
       ],
       "rect": [
         23,
-        8471,
+        10245,
         392,
         360
       ]
@@ -1075,7 +1299,7 @@
       ],
       "rect": [
         478,
-        7599,
+        9373,
         372,
         322
       ]
@@ -1091,7 +1315,7 @@
       ],
       "rect": [
         478,
-        8486,
+        10260,
         372,
         322
       ]
@@ -1107,7 +1331,7 @@
       ],
       "rect": [
         922,
-        7610,
+        9384,
         378,
         328
       ]
@@ -1123,7 +1347,7 @@
       ],
       "rect": [
         922,
-        8497,
+        10271,
         378,
         328
       ]

@@ -87,6 +87,20 @@ public class CellTopology {
     /** The land's own high ground seen through the rise cells (a ravine's walls), or null. */
     public NaturalRise naturalRise() { return naturalRise; }
     public void setNaturalRise(NaturalRise value) { naturalRise = value; }
+    /**
+     * The detail the planet type wears over its palette, for the renderer: presentation only, written once at
+     * generation ({@link SurfaceSignature}). Never null.
+     */
+    private SurfaceSignature signature = SurfaceSignature.NONE;
+    public SurfaceSignature signature() { return signature; }
+    public void setSignature(SurfaceSignature value) { signature = value == null ? SurfaceSignature.NONE : value; }
+    /**
+     * The signature's marks on the ground, {@code {x, y, size}} triples in cells: a cryovolcanic world's vents, a
+     * bombarded world's craters. Empty unless a generator placed some; presentation only.
+     */
+    private float[] signatureMarks = new float[0];
+    public float[] signatureMarks() { return signatureMarks; }
+    public void setSignatureMarks(float[] value) { signatureMarks = value == null ? new float[0] : value.clone(); }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {

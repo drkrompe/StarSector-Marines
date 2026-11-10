@@ -48,6 +48,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     static final int MARGIN = 24;
     /** Water: how fast it runs, metres a second, and how long one pattern lasts before it fades into the next. */
     static final float FLOW_SPEED = 1.6f, FLOW_PERIOD = 5f;
+    /**
+     * The water's pace against an even reach's ({@link ChannelFlow}'s speed): past {@code RAPIDS} it breaks white,
+     * and it is carried no faster than {@code FLOW_FASTEST}, so a pinch does not smear its pattern.
+     */
+    static final float RAPIDS = 1.5f, FLOW_FASTEST = 2.5f;
     /** How dark a rise's shadow lies on the floor at its foot, at its fullest. */
     static final float FLOOR_SHADE = .32f;
 
@@ -68,8 +73,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private List<PitMachines.Machine> machines = List.of();
     /** The drop this instance draws is a glacial crevasse. */
     private boolean ice;
-    /** The drop this instance draws is a dry canyon. */
-    private boolean canyon;
+    /** A dry drop's colours (a canyon, a dry gorge), or null for a drop with water, lava or ice in it. */
+    private DryVoidLook.Palette dry;
+    /** A dry drop's floor, drawn into this drop's order. */
+    private final DryVoidFloor dryFloor;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -99,6 +106,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.rising = rising;
         this.molten = new MoltenVoidRenderSystem(this, sprites);
         this.glacial = new GlacialVoidRenderSystem(this, sprites);
+        this.dryFloor = new DryVoidFloor(this, sprites);
     }
 
     /** A lava rift's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
@@ -118,6 +126,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
 
     void useSun(SunLight sun) {
         this.sun = sun;
+    }
+
+    /** The battle's sun, or null when it has none. */
+    SunLight sun() {
+        return sun;
     }
 
     @Override public RenderLayer layer() { return RenderLayer.GROUND; }
@@ -192,7 +205,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         pit = !rising && PitVoidLook.pit((NaturalVoid) look);
         belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
-        canyon = !rising && CanyonVoidLook.canyon((NaturalVoid) look);
+        dry = rising ? null : DryVoidLook.of((NaturalVoid) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -223,7 +236,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 else if (lava) LavaVoidLook.rock(band, q, k, seed, field, c);
                 else if (pit) PitVoidLook.rock(band, q, k, seed, c);
                 else if (ice) IceVoidLook.ice(band, q, k, seed, c);
-                else if (canyon) CanyonVoidLook.rock(band, q, k, seed, c);
+                else if (dry != null) DryVoidLook.rock(dry, band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
@@ -234,7 +247,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             if (lava) LavaVoidLook.rock(fray, q, 0, seed, field, frayColours);
             else if (pit) PitVoidLook.rock(fray, q, 0, seed, frayColours);
             else if (ice) IceVoidLook.ice(fray, q, 0, seed, frayColours);
-            else if (canyon) CanyonVoidLook.rock(fray, q, 0, seed, frayColours);
+            else if (dry != null) DryVoidLook.rock(dry, fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
         ramps = pit ? PitVoidLook.ramps(field) : List.of();
@@ -266,9 +279,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 int o = q * 8;
                 if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
                 // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it; a
-                // crevasse's cornice goes over to the snowfield's own tone, so its end needs no fading. A partly
-                // covering piece would also thin the ground target's alpha, which the composite reads as shade.
-                if ((lava || ice) && at[o + 7] < 1f) continue;
+                // crevasse's cornice and a dry drop's rim go over to the plain's own tone, so their end needs no
+                // fading. A partly covering piece would also thin the ground target's alpha, read as shade.
+                if ((lava || ice || dry != null) && at[o + 7] < 1f) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
@@ -430,10 +443,16 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             glacial.drawFloor(band, time);
             return;
         }
+        if (floor && dry != null) {
+            dryFloor.draw(dry, band, time);
+            return;
+        }
         float floorDepth = Math.max(1f, field.depth[field.steps()]);
-        float deepR = ice ? IceVoidLook.DEEP_R : canyon ? CanyonVoidLook.DEEP_R : DEEP_R;
-        float deepG = ice ? IceVoidLook.DEEP_G : canyon ? CanyonVoidLook.DEEP_G : DEEP_G;
-        float deepB = ice ? IceVoidLook.DEEP_B : canyon ? CanyonVoidLook.DEEP_B : DEEP_B;
+        float deepR = ice ? IceVoidLook.DEEP_R : DEEP_R, deepG = ice ? IceVoidLook.DEEP_G : DEEP_G;
+        float deepB = ice ? IceVoidLook.DEEP_B : DEEP_B, deepMix = DEEP_MIX;
+        if (dry != null) {
+            deepR = dry.deep().r(); deepG = dry.deep().g(); deepB = dry.deep().b(); deepMix = dry.deepMix();
+        }
         float margin = cam.cellPxSize() * 2f;
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
@@ -446,19 +465,19 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float zc = band.z(q, 4);
             if (!inView(at[o], at[o + 1], scale(zc), margin)) continue;
             if (band.step == 0 && !onMap(at[o], at[o + 1])) continue;
-            float tint = rising ? 0f : ice ? IceVoidLook.deepTint(zc, floorDepth) : DEEP_MIX * zc / floorDepth;
+            float tint = rising ? 0f : ice ? IceVoidLook.deepTint(zc, floorDepth) : deepMix * zc / floorDepth;
             float r, g, b;
             if (floor && pit) {
                 float[] f = PitVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], at[o + 6], seed);
                 r = f[0]; g = f[1]; b = f[2];
-            } else if (floor && canyon) {
-                float[] f = CanyonVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], seed);
-                r = f[0]; g = f[1]; b = f[2];
             } else if (floor) {
                 float x = at[o], y = at[o + 1], light = at[o + 2], edge = at[o + 3];
-                float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6], sunlit = at[o + 7];
-                float along = x * fx + y * fy, across = -x * fy + y * fx;
-                float run = FLOW_SPEED * FLOW_PERIOD;
+                float sky = at[o + 6], sunlit = at[o + 7];
+                // Laid along the channel's own flow (ChannelFlow): its streamlines bend with the gorge, and the
+                // pattern is carried down them as fast as the water runs there, faster through a narrows.
+                float[] fl = band.flow;
+                float along = fl[q * 5], across = fl[q * 5 + 1], speed = Math.min(FLOW_FASTEST, fl[q * 5 + 4]);
+                float run = FLOW_SPEED * FLOW_PERIOD * speed * speed;
                 float s1 = NaturalVoidField.Noise.fbm((along - p1 * run) * .28f, across * 1.5f, seed + 3);
                 float s2 = NaturalVoidField.Noise.fbm((along - p2 * run) * .28f + 17f, across * 1.5f, seed + 5);
                 float streak = w1 * s1 + (1f - w1) * s2;
@@ -469,7 +488,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 r *= bright; g *= bright; b *= bright;
                 // White water along the walls and where the stream breaks.
                 float foam = clamp01((.75f - edge) * 1.6f) * (.55f + .45f * streak)
-                        + clamp01(streak - .45f) * .8f;
+                        + clamp01(streak - .45f) * .8f
+                        + clamp01((speed - RAPIDS) * .9f) * (.4f + .6f * streak);
                 foam = clamp01(foam) * (.5f + .5f * light);
                 r = lerp(r, .80f, foam * .75f); g = lerp(g, .84f, foam * .75f); b = lerp(b, .82f, foam * .75f);
                 if (sunlit > 0f && streak > .3f) { r += .08f; g += .08f; b += .07f; }
@@ -533,14 +553,19 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     float tint = IceVoidLook.deepTint(zm, floorDepth);
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.DEEP_R,
                             IceVoidLook.DEEP_G, IceVoidLook.DEEP_B, tint * alpha);
+                } else if (dry != null) {
+                    // Rock in shade takes the light the drop's own rock throws back across it.
+                    DryVoidLook.Rgb sh = dry.shade(), dp = dry.deep();
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, sh.r(), sh.g(), sh.b(),
+                            dark * dry.shadeMix() * alpha);
+                    float tint = dry.deepMix() * zm / floorDepth;
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, dp.r(), dp.g(), dp.b(), tint * alpha);
                 } else {
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, dark * alpha);
                 }
-                if (!rising && !ice) {
+                if (!rising && !ice && dry == null) {
                     float tint = DEEP_MIX * zm / floorDepth;
-                    if (canyon) shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, CanyonVoidLook.DEEP_R,
-                            CanyonVoidLook.DEEP_G, CanyonVoidLook.DEEP_B, tint * alpha);
-                    else shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
                 }
                 if (lava) {
                     float glow = LavaVoidLook.wallGlow((floorDepth - (za + zb) / 2f) * gm);
@@ -765,6 +790,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             // A crevasse's bridges are snow: packed snow over the drop, not a timber or stone edge.
             float r = ice ? IceVoidLook.BRIDGE_R : .30f, g = ice ? IceVoidLook.BRIDGE_G : .23f;
             float b = ice ? IceVoidLook.BRIDGE_B : .16f;
+            if (dry != null) { r = dry.bridge().r(); g = dry.bridge().g(); b = dry.bridge().b(); }
             mesh.appendQuad(sx(side[0], s0), sy(side[1], s0), sx(side[2], s0), sy(side[3], s0),
                     sx(side[2], s1), sy(side[3], s1), sx(side[0], s1), sy(side[1], s1),
                     r * lit, g * lit, b * lit, alpha);

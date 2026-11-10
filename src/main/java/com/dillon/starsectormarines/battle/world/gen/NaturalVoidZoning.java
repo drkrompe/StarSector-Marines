@@ -39,12 +39,12 @@ public final class NaturalVoidZoning {
             new NaturalVoid.Step(11f, .5f), new NaturalVoid.Step(23f, 1.1f), new NaturalVoid.Step(36f, 1.6f)),
             "graphics/battle/voids/ice-wall.png", 10f);
     /**
-     * The gorge's dry sister: warm strata walls, dusty ledges and a dry wash of sand and scree 42 m down. The gorge's
-     * own wall for now: the basalt was tried and read as holes at a wide zoom; a dry wall of its own is to come.
+     * The gorge's dry sister: banded sandstone walls, sand on the ledges and a dry wash 42 m down. Barren rock takes
+     * it too until it has a dry gorge of its own; the basalt wall was tried there and read as holes at a wide zoom.
      */
     public static final Drop CANYON = new Drop(NaturalVoid.Style.CANYON, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(28f, 1.25f), new NaturalVoid.Step(42f, 1.8f)),
-            "graphics/battle/voids/gorge-wall.png", 14f);
+            "graphics/battle/voids/canyon-wall.png", 12f);
     /** A volcanic rift: basalt walls lit from below by a river of molten rock 40 m down. */
     public static final Drop LAVA_RIFT = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(27f, 1.2f), new NaturalVoid.Step(40f, 1.7f)),

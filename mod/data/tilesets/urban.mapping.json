@@ -91,6 +91,26 @@
         "rockPool": ["nature.rock-basalt-small-1", "nature.rock-basalt-small-2", "nature.rock-basalt-medium-1", "nature.rock-basalt-medium-2"]
       }
     },
+    "VOLCANIC": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.20,
+        "plantPool": [],
+        "rockPool": ["nature.rock-scoria-small-1", "nature.rock-scoria-small-2", "nature.rock-scoria-medium-1", "nature.rock-scoria-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.22,
+        "plantPool": [],
+        "rockPool": ["nature.rock-scoria-small-1", "nature.rock-scoria-small-2", "nature.rock-scoria-medium-1", "nature.rock-scoria-medium-2"]
+      }
+    },
     "ARID": {
       "NATURE_GRASSLAND": {
         "groundPool": [

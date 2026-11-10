@@ -624,6 +624,101 @@
     {
       "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
       "frame": 53,
+      "id": "nature.rock-scoria-small-1",
+      "layer": "rock",
+      "name": "rocks-small-scoria",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-1",
+      "frame": 54,
+      "id": "nature.rock-scoria-small-2",
+      "layer": "rock",
+      "name": "rocks-small-2-scoria",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "description": "a boulder with two stones at its foot \u2014 light cover, still walkable",
+      "frame": 55,
+      "id": "nature.rock-scoria-medium-1",
+      "layer": "rock",
+      "name": "rock-medium-scoria",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "description": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
+      "frame": 56,
+      "id": "nature.rock-scoria-medium-2",
+      "layer": "rock",
+      "name": "rock-medium-2-scoria",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "crushable": true,
+      "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "frame": 57,
+      "id": "nature.rock-scoria-large-1",
+      "layer": "rock",
+      "name": "rock-large-scoria",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "crushable": true,
+      "description": "a leaning slab over a low stone \u2014 heavy cover, impassable",
+      "frame": 58,
+      "id": "nature.rock-scoria-large-2",
+      "layer": "rock",
+      "name": "rock-large-2-scoria",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "crushable": true,
+      "description": "the tallest stack on the sheet \u2014 heavy cover, impassable",
+      "frame": 59,
+      "id": "nature.rock-scoria-large-3",
+      "layer": "rock",
+      "name": "rock-large-3-scoria",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "frame": 60,
       "id": "nature.rock-toxic-small-1",
       "layer": "rock",
       "name": "rocks-small-toxic",
@@ -635,7 +730,7 @@
     },
     {
       "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-1",
-      "frame": 54,
+      "frame": 61,
       "id": "nature.rock-toxic-small-2",
       "layer": "rock",
       "name": "rocks-small-2-toxic",
@@ -648,7 +743,7 @@
     {
       "cover": "light",
       "description": "a boulder with two stones at its foot \u2014 light cover, still walkable",
-      "frame": 55,
+      "frame": 62,
       "id": "nature.rock-toxic-medium-1",
       "layer": "rock",
       "name": "rock-medium-toxic",
@@ -661,7 +756,7 @@
     {
       "cover": "light",
       "description": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
-      "frame": 56,
+      "frame": 63,
       "id": "nature.rock-toxic-medium-2",
       "layer": "rock",
       "name": "rock-medium-2-toxic",
@@ -675,7 +770,7 @@
       "cover": "heavy",
       "crushable": true,
       "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
-      "frame": 57,
+      "frame": 64,
       "id": "nature.rock-toxic-large-1",
       "layer": "rock",
       "name": "rock-large-toxic",
@@ -690,7 +785,7 @@
       "cover": "heavy",
       "crushable": true,
       "description": "a leaning slab over a low stone \u2014 heavy cover, impassable",
-      "frame": 58,
+      "frame": 65,
       "id": "nature.rock-toxic-large-2",
       "layer": "rock",
       "name": "rock-large-2-toxic",
@@ -705,7 +800,7 @@
       "cover": "heavy",
       "crushable": true,
       "description": "the tallest stack on the sheet \u2014 heavy cover, impassable",
-      "frame": 59,
+      "frame": 66,
       "id": "nature.rock-toxic-large-3",
       "layer": "rock",
       "name": "rock-large-3-toxic",

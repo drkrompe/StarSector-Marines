@@ -24,11 +24,11 @@ public final class RockDamage {
 
     /**
      * The field-stone sets, one per kind of wild ground: mossed stone on a living world (the unprefixed ids), sun-
-     * bleached sandstone on arid ones, dark basalt on bare rock, frost-capped stone on frozen worlds and acid-stained,
+     * bleached sandstone on arid ones, dark basalt on bare rock, frost-capped stone on frozen worlds, scoria on volcanic ones and acid-stained,
      * sulphur-crusted stone on toxic ones.
      */
     public enum Biome {
-        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-"), TOXIC("toxic-");
+        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-"), SCORIA("scoria-"), TOXIC("toxic-");
 
         private final String prefix;
 

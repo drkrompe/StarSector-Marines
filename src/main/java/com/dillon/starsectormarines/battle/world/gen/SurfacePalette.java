@@ -51,7 +51,7 @@ public enum SurfacePalette {
      * respect but the picture: the mapping draws its stone from the volcanic material
      * ({@code paletteGroundRender}), and every generation decision that reads the palette treats it as {@link #ROCK},
      * so a seed makes the same map on either ({@link #layoutOf}). What differs is art: the basalt finish, the basalt
-     * formations and the fissures and ash drawn over the ground.
+     * formations, the dark scoria field stones and the fissures and ash drawn over the ground.
      */
     VOLCANIC(false, GroundKind.STONE),
 
@@ -126,7 +126,7 @@ public enum SurfacePalette {
             case ARID -> RockDamage.Biome.SANDSTONE;
             case ROCK -> RockDamage.Biome.BASALT;
             case FROZEN -> RockDamage.Biome.FROST;
-            case VOLCANIC -> RockDamage.Biome.BASALT;
+            case VOLCANIC -> RockDamage.Biome.SCORIA;
             case TOXIC -> RockDamage.Biome.TOXIC;
         };
     }
