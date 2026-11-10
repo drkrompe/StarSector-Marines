@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileCover;
@@ -17,8 +18,8 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -82,6 +83,9 @@ public final class PlanetSkin {
         }
         Habitat habitat = new BiomeSkin(to, living, world.signature(), climateOf(world)).habitat();
         if (habitat != Habitat.OPEN) HabitatStage.rebuild(topology, habitat);
+        NightLighting night = topology.nightLighting();
+        List<NightLighting.Lamp> grow = growLights(map.doodads);
+        if (night != null && !grow.isEmpty()) topology.setNightLighting(lit(night, grow));
         return map;
     }
 
@@ -310,44 +314,14 @@ public final class PlanetSkin {
     public record Piece(String id, int along, int across) { }
 
     /**
-     * What a covered farm is built as: a long piece the rows are made of, a short one that ends a row or fills a plot
-     * too short for a long one, and a plant piece (pumps, tanks, a boiler) that ends a row where only it fits. The
-     * owner rejected polytunnels ("They don't read like hydroponics", 2026-11-10); these three are the question put
-     * back, every piece lit by grow-light and piped.
+     * The covered farm's pieces: pressurised hydroponic sheds lit by amber grow-light skylights (owner's pick of
+     * planet-skin-farm, 2026-11-10, over domes and glass halls; polytunnels "don't read like hydroponics"). Rows are
+     * long sheds, a short shed ends a row or fills a plot too short for a long one, and a pump house ends a row where
+     * only it fits.
      */
-    public enum FarmLook {
-        /** Pressurised sheds with lit grow-light skylights in rows, a pump house to finish a row. */
-        SHEDS(new Piece("doodad.hydro-shed", 6, 3), new Piece("doodad.hydro-shed-short", 3, 3),
-                new Piece("doodad.hydro-pumphouse", 2, 3)),
-        /** Geodesic domes lit inside, in linked pairs, a tank station to finish a row. */
-        DOMES(new Piece("doodad.hydro-dome-pair", 9, 4), new Piece("doodad.hydro-dome", 4, 4),
-                new Piece("doodad.hydro-dome-tanks", 2, 4)),
-        /** Rigid glass halls over crop rows under grow-light bars, a boiler house to finish a row. */
-        GLASSHOUSES(new Piece("doodad.glasshouse", 8, 4), new Piece("doodad.glasshouse-short", 4, 4),
-                new Piece("doodad.glasshouse-boiler", 2, 4)),
-        /** No farm: the plot left as the planet's ground. The control the looks are judged against. */
-        BARE(null, null, null);
-
-        public final Piece row, end, plant;
-
-        FarmLook(Piece row, Piece end, Piece plant) {
-            this.row = row;
-            this.end = end;
-            this.plant = plant;
-        }
-    }
-
-    /**
-     * Which covered farm stands on a cleared field: the look {@code -Dbattle.planetSkin.farm=sheds|domes|glasshouses|bare}
-     * names, sheds by default.
-     * Temporary, for the owner's pick of hydroponics look (picks page, planet-skin-farm): remove it, with the looks
-     * not picked and their sheets, once the owner picks one.
-     */
-    static FarmLook farmLook() {
-        String v = System.getProperty("battle.planetSkin.farm", "sheds").trim().toUpperCase(Locale.ROOT);
-        for (FarmLook look : FarmLook.values()) if (look.name().equals(v)) return look;
-        return FarmLook.SHEDS;
-    }
+    public static final Piece SHED = new Piece("doodad.hydro-shed", 6, 3),
+            SHED_SHORT = new Piece("doodad.hydro-shed-short", 3, 3),
+            PUMPHOUSE = new Piece("doodad.hydro-pumphouse", 2, 3);
 
     /** One piece stood on a plot: its footprint's corner and quarter turns (1 when the rows run along y). */
     public record Placed(Piece piece, int x, int y, int turns) {
@@ -359,19 +333,18 @@ public final class PlanetSkin {
     static final int LANE = 1;
 
     /**
-     * The covered farm of {@code look} on a plot: inside a one-cell headland, rows as deep as the long piece along the
-     * plot's crop rows with a {@link #LANE} between them, each row long pieces a lane apart finished with a short
-     * piece, or the plant piece where only that fits. A plot too short for a long piece along its rows takes short
-     * pieces on a grid instead, where one fits. Pure: what stands where depends on the plot and the look alone.
+     * The covered farm on a plot: inside a one-cell headland, rows of sheds along the plot's crop rows with a
+     * {@link #LANE} between them, each row long sheds a lane apart finished with a short shed, or a pump house where
+     * only that fits. A plot too short for a long shed along its rows takes short sheds on a grid instead, where one
+     * fits. Pure: what stands where depends on the plot alone.
      */
-    public static List<Placed> covered(RuralLayout.Plot plot, FarmLook look) {
+    public static List<Placed> covered(RuralLayout.Plot plot) {
         List<Placed> out = new ArrayList<>();
-        if (look.row == null) return out;
         int x0 = plot.x0() + 1, y0 = plot.y0() + 1, x1 = plot.x1() - 1, y1 = plot.y1() - 1;
         boolean alongX = plot.rowsAlongX();
         int length = alongX ? x1 - x0 + 1 : y1 - y0 + 1, depth = alongX ? y1 - y0 + 1 : x1 - x0 + 1;
         int turns = alongX ? 0 : 1;
-        Piece row = look.row, end = look.end, plant = look.plant;
+        Piece row = SHED, end = SHED_SHORT, plant = PUMPHOUSE;
         if (length < row.along() && length >= end.along() && depth >= end.across()) {
             for (int a = 0; a + end.across() <= depth; a += end.across() + LANE)
                 for (int l = 0; l + end.along() <= length; l += end.along() + LANE)
@@ -390,6 +363,49 @@ public final class PlanetSkin {
         return out;
     }
 
+    /** The circuit a covered farm's grow-lights are on: always powered, a farm's lights never go out for a battle. */
+    public static final String GROW_LIGHT = "grow-light";
+    /** Sodium amber, the grow-light the sheds' skylights are painted with (owner: "Warm amber"). */
+    private static final float AMBER_R = 1f, AMBER_G = 0.70f, AMBER_B = 0.36f;
+    /** How far a shed's light spills from a point under its skylights, in cells. */
+    static final float GROW_REACH = 2.6f;
+    /** Cells between grow-light points along a shed. */
+    private static final float GROW_STEP = 1.5f;
+
+    /**
+     * The grow-light a covered farm gives a dark map: points down the middle of every shed, one each
+     * {@link #GROW_STEP} cells along its length, so the roof glows end to end and spills onto the lanes. No fixture is
+     * drawn ({@link NightLighting.Fixture#GLOW}): the lit skylights are the shed's own art. Pure: read from the
+     * doodads alone, so a night laid after the skin lights the same farm.
+     */
+    public static List<NightLighting.Lamp> growLights(List<Doodad> doodads) {
+        List<NightLighting.Lamp> out = new ArrayList<>();
+        for (Doodad d : doodads) {
+            String id = d.definitionId();
+            if (!SHED.id().equals(id) && !SHED_SHORT.id().equals(id)) continue;
+            boolean alongX = d.footprintCellsX >= d.footprintCellsY;
+            int length = alongX ? d.footprintCellsX : d.footprintCellsY;
+            float midAcross = (alongX ? d.cellY + d.footprintCellsY / 2f : d.cellX + d.footprintCellsX / 2f);
+            int points = Math.max(1, Math.round(length / GROW_STEP) - 1);
+            for (int k = 1; k <= points; k++) {
+                float along = (alongX ? d.cellX : d.cellY) + length * k / (points + 1f);
+                float x = alongX ? along : midAcross, y = alongX ? midAcross : along;
+                out.add(new NightLighting.Lamp(x, y, GROW_REACH, AMBER_R, AMBER_G, AMBER_B, GROW_LIGHT,
+                        NightLighting.Fixture.GLOW, 0f));
+            }
+        }
+        return out;
+    }
+
+    /** {@code night} with {@code lamps} added and their circuit powered. */
+    public static NightLighting lit(NightLighting night, List<NightLighting.Lamp> lamps) {
+        List<NightLighting.Lamp> all = new ArrayList<>(night.lamps());
+        all.addAll(lamps);
+        Set<String> powered = new HashSet<>(night.poweredCircuits());
+        powered.add(GROW_LIGHT);
+        return new NightLighting(night.darkness(), all, powered);
+    }
+
     private static Placed at(Piece piece, boolean alongX, int x0, int y0, int along, int across, int turns) {
         return alongX ? new Placed(piece, x0 + along, y0 + across, turns) : new Placed(piece, x0 + across, y0 + along, turns);
     }
@@ -398,9 +414,8 @@ public final class PlanetSkin {
     private static void farm(MapResult map, boolean[] mask, TileRegistry tiles) {
         int w = map.topology.getWidth(), h = map.topology.getHeight();
         boolean[] taken = new boolean[w * h];
-        FarmLook look = farmLook();
         for (RuralLayout.Plot plot : map.fields) {
-            for (Placed p : covered(plot, look)) {
+            for (Placed p : covered(plot)) {
                 DoodadDef def = tiles.doodad(p.piece().id);
                 if (def == null || !clear(p, mask, taken, w, h)) continue;
                 for (int y = p.y(); y < p.y() + p.height(); y++)

@@ -6,7 +6,11 @@ import java.util.Set;
 
 /** Authored environmental lighting. Power changes presentation, never sight or navigation. */
 public record NightLighting(float darkness, List<Lamp> lamps, Set<String> poweredCircuits) {
-    public enum Fixture { STRIP, TRIPOD_FLOODLIGHT }
+    public enum Fixture {
+        STRIP, TRIPOD_FLOODLIGHT,
+        /** No fixture drawn: the light belongs to its own art, as a hydroponic shed's lit roof does; only its pool. */
+        GLOW
+    }
 
     public record Lamp(float x, float y, float radius, float red, float green, float blue,
                        String circuit, Fixture fixture, float bearingDegrees) {
