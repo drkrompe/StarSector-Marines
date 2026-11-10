@@ -66,6 +66,18 @@ class OreLineTest {
         assertEquals(3, OreLine.pieces(path, 3, 5, false).get(3).quarterTurns());
     }
 
+    /** A link fed from a hall's wall beside its first cell turns there: the ore leaves the wall, then runs on. */
+    @Test
+    void aLinkLeavingAWallSidewaysStartsWithACorner() {
+        // Fed from the wall cell south of (2, 2), the course runs east.
+        List<int[]> path = List.of(new int[]{2, 2}, new int[]{3, 2}, new int[]{4, 2});
+        List<OreLine.Piece> pieces = OreLine.pieces(path, 2, 1, 5, 2, true);
+        assertEquals(OreLine.Shape.CORNER, pieces.get(0).shape(), "in from the south, out to the east");
+        assertEquals(OreLine.Shape.STRAIGHT, pieces.get(1).shape());
+        // Fed from straight behind, it runs straight.
+        assertEquals(OreLine.Shape.STRAIGHT, OreLine.pieces(path, 1, 2, 5, 2, true).get(0).shape());
+    }
+
     /** Legs stand on straight pieces a run apart, and only where a leg may stand. */
     @Test
     void legsStandAlongStraightRunsWhereTheyMay() {

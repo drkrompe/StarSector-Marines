@@ -28,6 +28,12 @@ class HabitatZoningTest {
     }
 
     @Test
+    void aFrozenWorldInsulatesUnlessItsAirSealsIt() {
+        assertEquals(Habitat.INSULATED, HabitatZoning.forWorld(SurfacePalette.FROZEN, null));
+        assertEquals(Habitat.SEALED, HabitatZoning.forWorld(SurfacePalette.FROZEN, air(Hazard.AIRLESS)));
+    }
+
+    @Test
     void aWorldWithNoHazardOrNoMarketBuildsTheOpenTown() {
         assertEquals(Habitat.OPEN, HabitatZoning.forWorld(SurfacePalette.ARID, air(Hazard.STORMS, Hazard.QUAKES)));
         assertEquals(Habitat.OPEN, HabitatZoning.forWorld(SurfacePalette.ROCK, null));
