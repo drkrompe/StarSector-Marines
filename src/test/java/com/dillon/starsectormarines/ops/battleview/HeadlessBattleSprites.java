@@ -153,6 +153,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<String, LayeredSpriteCache> gunDrawings = new LinkedHashMap<>();
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
+    private SpriteAPI rubble;
     private SpriteAPI warshipEngineFlame;
     private SpriteAPI warshipEngineGlow;
     private SpriteAPI engineFlame;
@@ -211,6 +212,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadEngineFx();
         ensureObjectiveIcons();
         loadDecals();
+        rubble = spriteOrNull(BattleSprites.SPRITE_WALL_RUBBLE);
         mech = loadMech();
         derelictWalker = DerelictWalkerAssets.load(path -> {
             try {
@@ -475,6 +477,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI decalSheet() { return decals; }
     @Override public SpriteSheetFrames decalFrames() { return decalFrames; }
     @Override public void ensureDecalSheet() { }
+    @Override public SpriteAPI rubbleSheet() { return rubble; }
+    @Override public SpriteSheetFrames rubbleFrames() { return rubble == null ? null : WallRubble.frames(); }
+    @Override public void ensureRubbleSheet() { }
 
     @Override public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlame; }
     @Override public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlow; }

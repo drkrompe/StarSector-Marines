@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -290,9 +291,10 @@ class MechVariantTest {
     }
 
     @Test
-    void onlyThePilgrimCrushesWalls() {
+    void everyHeavyLiftWalkerCrushesWallsAndNoLighterOne() {
         for (MechVariant variant : MechVariant.values()) {
-            assertEquals(variant == MechVariant.PILGRIM, variant.crushesWalls(), variant.name());
+            assertEquals(variant.liftClass() == LiftClass.HEAVY, variant.crushesWalls(), variant.name());
+            if (variant.crushesFast()) assertTrue(variant.crushesWalls(), variant.name() + " crushes fast, so crushes");
         }
     }
 

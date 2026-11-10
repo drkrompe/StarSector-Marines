@@ -3340,8 +3340,25 @@ public final class BattleSetup {
         StoryMapPool.Entry pooled = isColonyBreachColony(risk, stressTest) && StoryMapPools.installed()
                 ? StoryMapPools.pool(StoryMap.COLONY_BREACH).entry(surfaceOrRock(profile), seed) : null;
         return civilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest, posture,
-                liftHardpoints, pooled);
+                liftHardpoints, pooled, null);
     }
+
+    /**
+     * The Fall, chapter 1 of *The Long Survey* ({@code long-survey-arc.md}): the Colony Breach rescue on its owned
+     * map, its swarm director replaced by the derelict watch ({@code derelict-security-network.md}). No swarm, no
+     * eruption and no bores: the hull's zones are laid from where the colony's deep bore would stand toward the
+     * shelter, at {@code grade}, its flocks in {@code livery}. Played on {@code map}'s owned seed alone, never re-rolled.
+     */
+    public static BattleSimulation createHullFall(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                                  StoryMap map, RuinsGrade grade, FlockLivery livery) {
+        StoryMapPool.Entry pooled = StoryMapPools.installed()
+                ? StoryMapPools.pool(map).entry(surfaceOrRock(profile), seed) : null;
+        return civilianRescue(seed, manifest, false, RiskLevel.HIGH, 0, profile, false, HivePosture.DEFAULT, 0,
+                pooled, new HullWatch(map, grade, livery));
+    }
+
+    /** The derelict watch a rescue fields in place of the swarm: the hull's grade and livery, on its map's pool. */
+    private record HullWatch(StoryMap map, RuinsGrade grade, FlockLivery livery) { }
 
     /**
      * The seed a Colony Breach on a world of {@code biome} plays ({@code story-map-pools.md}): the pool's entry for
@@ -3360,7 +3377,7 @@ public final class BattleSetup {
     public static BattleSimulation createPooledColonyBreach(SurfacePalette biome, StoryMapPool.Entry entry,
                                                             List<ShuttleAssignment> manifest) {
         return civilianRescue(entry.seed(), manifest, false, RiskLevel.HIGH, SwarmDefenseRoster.countFor(RiskLevel.HIGH),
-                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry);
+                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry, null);
     }
 
     private static SurfacePalette surfaceOrRock(TargetProfile profile) {
@@ -3376,7 +3393,7 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
-            StoryMapPool.Entry pooled) {
+            StoryMapPool.Entry pooled, HullWatch hull) {
         boolean colony = isColonyBreachColony(risk, stressTest);
         // A pooled colony's patch places its lift, bores and holdouts; it pins no precinct and ruins nothing yet.
         MapPatch patch = pooled == null ? MapPatch.NONE : pooled.patch();
@@ -3385,7 +3402,8 @@ public final class BattleSetup {
         }
         // A pooled colony is the mission's one map: laid out on its home palette, then skinned for this world.
         SurfacePalette home = pooled != null
-                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile)) : null;
+                ? StoryMapPools.pool(hull != null ? hull.map() : StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile))
+                : null;
         TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(home) : profile;
         if (colony && mapProfile != null) {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
@@ -3503,6 +3521,15 @@ public final class BattleSetup {
                     risk, scale.width, scale.height, dugIn);
             // On the colony the pickup's allied line fights from works thrown up round it.
             if (dugIn) sim.fortifyRescuePickup(payload.placement, battleSeed);
+            if (hull != null) {
+                // The hull's watch stands where the deep bore would: its zones from there toward the shelter.
+                why = "the hull's watch does not seat";
+                if (!installHullWatch(sim, hull, eruption, payload.placement)) continue;
+                sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                        SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
+                        () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
+                return sim;
+            }
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
                             sim, payload.placement, swarmCount, battleSeed)
@@ -3553,6 +3580,20 @@ public final class BattleSetup {
         }
         throw new IllegalStateException(
                 "unable to place civilian rescue payload after 8 map attempts");
+    }
+
+    /**
+     * Lays the hull's derelict watch on a rescue: the zones along the walk from the deep bore's place (the eruption
+     * plan's mother, else its first site) to the shelter's approach. False when there is no place or no walk.
+     */
+    private static boolean installHullWatch(BattleSimulation sim, HullWatch hull, ColonyEruptionPlan eruption,
+                                            CivilianEvacuationPlacement placement) {
+        if (eruption == null || eruption.sites().isEmpty()) return false;
+        ColonyEruptionPlan.Site site = eruption.mother() != null ? eruption.mother() : eruption.sites().get(0);
+        int[] route = GridPathfinder.findPath(sim.getGrid(), site.x(), site.y(),
+                placement.shelterApproachX, placement.shelterApproachY);
+        if (route.length < 4) return false;
+        return DerelictSecurity.install(sim, hull.grade(), null, hull.livery(), route, site.x(), site.y()) != null;
     }
 
     /** Salt for the eruption-site draw, so it is not the battle stream read again. */

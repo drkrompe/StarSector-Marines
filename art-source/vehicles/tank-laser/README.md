@@ -1,6 +1,6 @@
 # Laser tank (Tri-Tachyon)
 
-The breakthrough hull (`art-source/vehicles/tank/`) in Tri-Tachyon's white livery, carrying the
+The retired tracked hull the Onager first wore (`art-source/vehicles/tank/`) in Tri-Tachyon's white livery, carrying the
 vanilla red PD laser as its turret on a ship's turret mount. The owner's direction (2026-10-22): the
 turret is the space game's own PD laser, up-res'd, so a player recognises it from fleet combat;
 its shutter opens on the lens while it fires. Output:
