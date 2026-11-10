@@ -541,7 +541,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
      * so it stretches across the outside of a bend and presses together on the inside
      * ({@link TrailerKinematic#hingeEdges}); then the plates, the rearmost first so each tucks under the one ahead.
      * A plate is its segment's frame cut at its own edges, kept in the straight hull's registration and turned with
-     * its segment ({@link TrailerKinematic#toWorld}), so plate and section always meet.
+     * its segment ({@link TrailerKinematic#toWorld}), so plate and section always meet. A live plate's tyres roll with
+     * the hull's travel ({@link VehicleTreadRender}).
      */
     private void collectSegments(VehicleType type, Articulation joints, TrailerKinematic train, UnitSpriteCache cache,
                                  SpriteSheetFrames frames, SpriteSheetFrames.Frame hull, GroundBody body,
@@ -587,6 +588,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet, sf.x + x0, sf.y, x1 - x0, sf.h,
                     cam.cellToScreenX(point[0]), cam.cellToScreenY(point[1]), (noseY - tailY) * cellPx, drawShort,
                     train.headingDeg(s) + type.spriteFacingOffsetDeg, tint[0], tint[1], tint[2], alphaMult);
+            // Its tyres roll on it, under the plate of the segment ahead.
+            if (!wrecked) VehicleTreadRender.collectCarrierSegment(type, cache, train, s, body, cam, alphaMult, out, point);
         }
     }
 
