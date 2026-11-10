@@ -48,7 +48,11 @@ RAWS = {
 }
 
 # The mega forge hall's head ships on a sheet of its own (``ruins-forge``): the great crucible alone is 12x16 cells.
-FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "furnace-core"))}
+FORGE_LINE = ("tapping-furnace", "ladle-hook", "ladle-hook-tipped", "ore-car", "ore-car-derailed", "cooling-rack",
+              "cooling-rack-castings", "fettling-bench", "inspection-table", "pour-head", "mould-master",
+              "fallen-girder")
+FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "furnace-core")),
+              "forge-line": ("ruins-forge-line.raw.png", FORGE_LINE)}
 
 # The ruins' leaf doors ship as single images beside the ship's (``graphics/doors/``), at the leaves' 160 px a cell,
 # for ``LeafDoorArt``. A leaf must be solid to its ends, since the game cuts it from its meeting end: it is cut a
@@ -63,7 +67,7 @@ LEAF_INSET = 0.03
 # Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
 # scale and the wrecked one's fallen fragments stay where they lie.
 TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
-         "great-crucible", "furnace-core"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+         "great-crucible", "furnace-core", *FORGE_LINE}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -88,7 +92,8 @@ def cut_plant_line():
 # pixels, carried to the raw's scale and feathered a little, go to the overlay and the rest to the body; the two
 # alphas sum to the piece's own, so laid together they are the piece as drawn.
 MELT_SPLIT = {"crucible": "crucible-melt", "crucible-tipped": "crucible-tipped-spill",
-              "great-crucible": "great-crucible-melt"}
+              "great-crucible": "great-crucible-melt", "tapping-furnace": "tapping-furnace-melt",
+              "ladle-hook": "ladle-hook-melt", "ladle-hook-tipped": "ladle-hook-tipped-pour"}
 MELT_FEATHER = 2.5
 
 
@@ -108,7 +113,10 @@ def split_melt(piece, guide_frame):
 #   down to a worn ochre, kept as a mark but no longer a band of colour;
 # - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
 #   the engine's pulse rides from dull orange to orange rather than from yellow to white.
-MUTE_HAZARD = ("spool-drum", "drone-frame")
+# - the forge line came back with the same bright trim, and its melt as bright as the crucible's was.
+MUTE_HAZARD = ("spool-drum", "drone-frame", *FORGE_LINE)
+GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "ladle-hook-melt",
+              "ladle-hook-tipped-pour")
 MELT_GRADE = (0.80, 0.62, 0.50)
 
 
@@ -134,10 +142,10 @@ def grade_melt(piece):
 
 
 def grade(pid, piece):
+    if pid in GRADE_MELT:
+        return grade_melt(piece)
     if pid.startswith(MUTE_HAZARD):
         return mute_hazard(piece)
-    if pid in ("crucible-melt", "great-crucible-melt"):
-        return grade_melt(piece)
     return piece
 
 
