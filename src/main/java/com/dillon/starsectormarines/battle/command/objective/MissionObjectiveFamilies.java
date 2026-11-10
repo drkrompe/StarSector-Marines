@@ -111,7 +111,9 @@ public final class MissionObjectiveFamilies {
 
     /**
      * A disrupting raid's works ({@code raid-mission.md}, Break): one marker per machine, wrecked or standing, the
-     * tally of machines wrecked, and the landing zone open from the first.
+     * tally of machines wrecked, and the landing zone open from the first. A machine in a hall is marked by the
+     * hall's footprint with its own ring, filled by its charge or the hall's fall, whichever is further along
+     * ({@code raid-demolish-the-works.md}); one in the open by its pocket.
      */
     static Item raidWorks(RaidObjective raid) {
         State state = state(raid);
@@ -126,9 +128,18 @@ public final class MissionObjectiveFamilies {
             boolean done = raid.siteDone(i);
             String id = "raid-" + raid.targetId() + "-machine-" + (i + 1);
             if (!done && firstStanding == null) firstStanding = id;
-            markers.add(new Marker(id, Strings.format("objectiveRaidWorksMachine", i + 1), site.cellX(), site.cellY(),
-                    done ? Strings.get("objectiveRaidWorksWrecked") : phase, done ? State.COMPLETE : state, List.of(),
-                    RaidObjective.TARGET_RADIUS));
+            String name = Strings.format("objectiveRaidWorksMachine", i + 1);
+            String status = done ? Strings.get("objectiveRaidWorksWrecked") : phase;
+            State markerState = done ? State.COMPLETE : state;
+            if (raid.hasHall(i)) {
+                List<MissionObjectiveSnapshot.Cell> footprint = new ArrayList<>();
+                for (int[] cell : raid.hall(i).floor()) footprint.add(new MissionObjectiveSnapshot.Cell(cell[0], cell[1]));
+                markers.add(new Marker(id, name, site.cellX(), site.cellY(), status, markerState, footprint, 0,
+                        raid.siteProgress(i)));
+            } else {
+                markers.add(new Marker(id, name, site.cellX(), site.cellY(), status, markerState, List.of(),
+                        RaidObjective.TARGET_RADIUS));
+            }
         }
         markers.add(new Marker(pickupId, Strings.get("objectiveRaidLandingZone"), raid.egressCellX(),
                 raid.egressCellY(), open ? Strings.get("objectiveMarkerReturnHere") : phase, state, List.of(),

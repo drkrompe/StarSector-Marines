@@ -853,8 +853,7 @@ each runs on past the other (a *jog* from one line onto the next, or the arms
 of a crossing that do not line up), the shorter is trimmed to end one breadth
 past the longer's start, so the road steps across square at one street's width
 rather than drawing the stretch they share as a slab twice as broad; a road
-turns only at a corner, never on a diagonal. (`-Dbattle.mapgen.streetJogs=taper`
-restores the six-cell diagonal taper until the owner picks between them.) A
+turns only at a corner, never on a diagonal. A
 town street lying beside a country road, running its way within two cells, is
 that road's verge and keeps its paving, so the town's edge does not read as a
 double road; so is a shorter street lying one or two cells beside a longer

@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.breach;
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -51,6 +53,9 @@ import java.util.Set;
  * assault named the wall sheltering a believed occupant this tick, and the chassis has no body to fight, its mounts
  * that do wall damage fire at that wall exactly as they would at an ordered breach.
  *
+ * <p>On a Raid on a works, a squad of the raiding side with no wall of its own to open works the works' halls the
+ * same way while none of its members has a body to fight ({@link WorksDemolition}, {@code raid-demolish-the-works.md}).
+ *
  * <p>Untuned simplification: a marine's launcher or tool is used without the aim or channel animation an ordinary
  * special goes through, on its ordinary cooldown.
  */
@@ -76,9 +81,13 @@ public final class WallBreachSystem {
         NavigationGrid grid = sim.getGrid();
         World world = sim.world();
         Set<Long> aimedNow = new HashSet<>();
+        RaidObjective works = works(sim);
         for (Squad squad : sim.getSquads()) {
             ObjectiveAssignment order = squad.assignmentForExecution();
-            if (order == null || !order.breaches()) continue;
+            if (order == null || !order.breaches()) {
+                if (works != null && squad.faction == works.owningFaction()) workHalls(sim, grid, world, squad, works, aimedNow);
+                continue;
+            }
             int cellX = order.breachCellX();
             int cellY = order.breachCellY();
             if (!grid.inBounds(cellX, cellY)) continue;
@@ -117,6 +126,42 @@ public final class WallBreachSystem {
             world.mechLoadout(member).setBreachAim(null);
         }
         aiming = aimedNow;
+    }
+
+    /** The battle's Raid on a works with halls to bring down, or null. */
+    private static RaidObjective works(BattleSimulation sim) {
+        for (Objective objective : sim.getObjectives()) {
+            if (objective instanceof RaidObjective raid && raid.works()) return raid;
+        }
+        return null;
+    }
+
+    /**
+     * A squad with no wall of its own to open works the raid's halls while it has nothing else to fight
+     * ({@link WorksDemolition}): each member's kit on the nearest standing wall of a hall in his reach.
+     */
+    private void workHalls(BattleSimulation sim, NavigationGrid grid, World world, Squad squad, RaidObjective works,
+                           Set<Long> aimedNow) {
+        int count = sim.squadMemberCount(squad.id);
+        boolean engaged = false;
+        for (int i = 0; i < count && !engaged; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            engaged = member != 0L && world.isAlive(member) && world.targetId(member) != 0L;
+        }
+        if (engaged) return;
+        for (int i = 0; i < count; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (member == 0L || !world.isAlive(member)) continue;
+            long cell = WorksDemolition.cell(works, sim.getTopology()::isWall, world.renderX(member),
+                    world.renderY(member), false);
+            if (cell < 0) continue;
+            int cellX = (int) cell, cellY = (int) (cell >>> 32);
+            if (world.hasMechLoadout(member)) {
+                if (breachWithMech(sim, grid, world, member, cellX, cellY)) aimedNow.add(member);
+            } else {
+                breachWithKit(sim, grid, world, member, cellX, cellY);
+            }
+        }
     }
 
     /** A hardened hostile body standing on the cell, or 0. */
