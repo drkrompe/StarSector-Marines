@@ -155,6 +155,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
+| `battle.signature.fissureTrench` | experiment | 2026-11-09 | Planet signatures (mapgen-nouns.md, surface signatures): remove with the losing arm once the owner picks crack or trench fissures on the picks page. |
 | `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |
