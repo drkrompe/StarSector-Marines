@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,6 +29,16 @@ final class FreestandingWallFaces {
     private List<FreestandingWalls.Run> runs = List.of();
     /** Each cell's part of a sealed town's envelope ({@link FreestandingWalls#part}), its ordinal + 1; 0 where none. */
     private byte[] parts = new byte[0];
+    private final CreepPalette creepPalette = CreepPalette.active();
+    private final float[] capTone = new float[3];
+    /** The share of the face now held that the cell being painted spans, and the creep's alpha. */
+    private float cu0, cu1, calpha;
+    private final float[] creepTone = new float[3];
+    /** Creep up the stroke's side now held in {@link #face} ({@link CreepClimb}), within one cell's share of it. */
+    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, r, g, b) -> {
+        creepTone[0] = r; creepTone[1] = g; creepTone[2] = b;
+        this.face.band(cu0 + (cu1 - cu0) * t0, cu0 + (cu1 - cu0) * t1, z0, z1, creepTone, 1f, calpha);
+    };
 
     /**
      * This frame's walls into the roof layer.
@@ -53,6 +65,9 @@ final class FreestandingWallFaces {
         VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6, gridW,
                 topology.getHeight());
         mesh.reset();
+        CreepField creep = sim.creepFieldIfPresent();
+        if (creep != null && creep.isEmpty()) creep = null;
+        boolean detail = Math.abs(camera.cellToScreenX(1f) - camera.cellToScreenX(0f)) >= 10f;
         footing.reset();
         for (FreestandingWalls.Run run : runs) {
             if (!view.intersects(run.minX(), run.maxX(), run.minY(), run.maxY())) continue;
@@ -62,29 +77,29 @@ final class FreestandingWallFaces {
                 envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
                 continue;
             }
-            strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
+            strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.ROOFS, mesh);
         if (!footing.isEmpty()) out.addPoly(RenderLayer.DECALS, footing);
     }
 
     // A freestanding wall's dress, by its kind. UNTUNED, all of it.
-    /** A wall's half-thickness, in cells: a diagonal stands as thick as a straight wall. */
-    static final float HALF = .5f;
     /** The footing's half-width along a diagonal: a cell's half-diagonal, so it covers every corner of its cells. */
     private static final float FOOTING_HALF = .71f;
     /** A plinth's and a coping's height, metres; a coping's width on the cap, cells. */
     private static final float PLINTH_METERS = .35f, COPING_METERS = .2f, CAP_COPING = .14f;
 
     /**
-     * One run of freestanding wall as the straight strokes it was built along ({@link FreestandingWalls#strokes}):
-     * a diagonal wall stands as one slanted wall, not a staircase of cubes. Every stroke's faces turned to the view
-     * first, each from a dark plinth through the body, shaded up to a light coping, with the kind's joints and weather
-     * streaks; then every stroke's cap, coping-edged, so a cap covers the inner ends where strokes meet. Along a
-     * diagonal a footing on the ground covers its cells' corners.
+     * One run of freestanding wall as the straight strokes it was built along ({@link FreestandingWalls#strokes}),
+     * stood up as one wall round their joint outline ({@link FreestandingWalls#edges}): a diagonal wall stands as one
+     * slanted wall, and where it meets a straight wall, a pier or a jog, the two run into each other with no face or
+     * coping crossing the joint. The outline's faces turned to the view first, farthest first, each from a dark plinth
+     * through the body, shaded up to a light coping, with the kind's joints and weather streaks; then the cap: every
+     * stroke's top, the coping round the outline, the joints across. Along a diagonal a footing on the ground covers
+     * its cells' corners.
      */
     private void strokes(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
-                         int gridW, int gridH, float unseen, float alphaMult) {
+                         int gridW, int gridH, float unseen, float alphaMult, CreepField creep, boolean detail) {
         float meters = run.meters(), lift = BuildingFaces.lift(meters);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
@@ -92,98 +107,114 @@ final class FreestandingWallFaces {
         float[] base = {kind.r, kind.g, kind.b};
         float[] st = run.strokes();
         float[] q = strokeQuad;
-        Cap c = new Cap(camera, sx, sy, lift);
-        for (int pass = 0; pass < 2; pass++) {
-            for (int o = 0; o < st.length; o += FreestandingWalls.STROKE) {
-                float x0 = st[o], y0 = st[o + 1], x1 = st[o + 2], y1 = st[o + 3];
-                if (!view.intersects((int) Math.min(x0, x1) - 1, (int) Math.max(x0, x1) + 1,
-                        (int) Math.min(y0, y1) - 1, (int) Math.max(y0, y1) + 1)) continue;
-                int cell = (int) x0 + (int) y0 * gridW;
-                float fog = seen(shown, cell, gridW, gridH) ? 1f : unseen;
-                boolean diagonal = x0 != x1 && y0 != y1;
-                corners(x0, y0, x1, y1, HALF, q);
-                // The stroke's length in cells of wall, for its joints: one per cell it crosses.
-                int cells = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) + 1);
-                if (pass == 0) {
-                    if (diagonal) {
-                        footing(x0, y0, x1, y1, foot);
-                        footing.appendQuad(camera.cellToScreenX(foot[0]), camera.cellToScreenY(foot[1]),
-                                camera.cellToScreenX(foot[2]), camera.cellToScreenY(foot[3]),
-                                camera.cellToScreenX(foot[4]), camera.cellToScreenY(foot[5]),
-                                camera.cellToScreenX(foot[6]), camera.cellToScreenY(foot[7]),
-                                base[0] * .72f * fog, base[1] * .72f * fog, base[2] * .72f * fog, alphaMult);
-                    }
-                    // Its sides, corner to corner round the quad: the two long sides, and each end that stands free.
-                    for (int side = 0; side < 4; side++) {
-                        boolean end = side == 1 || side == 3;
-                        if (end && st[o + (side == 3 ? 4 : 5)] == 0f) continue;
-                        int a = side * 2, b = (side * 2 + 2) % 8;
-                        float ax = q[a], ay = q[a + 1], bx = q[b], by = q[b + 1];
-                        float len = (float) Math.hypot(bx - ax, by - ay);
-                        if (len < 1e-4f) continue;
-                        float nx = outwardX(q, a, b, len), ny = outwardY(q, a, b, len);
-                        if (!BuildingFaces.facing(nx, ny, (ax + bx) / 2f, (ay + by) / 2f, viewX, viewY)) continue;
-                        float light = BuildingFaces.shade(nx, ny) * fog;
-                        face.set(camera, sx, sy, ax, ay, bx, by, meters);
-                        dressFace(kind, base, end ? 1 : cells, cell * 4 + side, light, alphaMult);
-                    }
-                } else {
-                    c.quad(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], scale(base, 1.06f), fog, alphaMult);
-                    // The coping along both long sides, and a joint across the cap at every cell.
-                    float half = HALF, in = Math.min(CAP_COPING / (2f * half), .45f);
-                    c.strip(q, 0, in, scale(base, 1.22f), fog, alphaMult);
-                    c.strip(q, 4, in, scale(base, 1.22f), fog, alphaMult);
-                    if (joints(kind)) {
-                        for (int k = 2; k < cells; k += 2) {
-                            c.across(q, k / (float) cells, .02f, scale(base, .86f), fog, alphaMult);
-                        }
-                    }
+        for (int o = 0; o < st.length; o += FreestandingWalls.STROKE) {
+            float x0 = st[o], y0 = st[o + 1], x1 = st[o + 2], y1 = st[o + 3];
+            if (x0 == x1 || y0 == y1 || !near(view, x0, y0, x1, y1)) continue;
+            float fog = fog(shown, (int) x0 + (int) y0 * gridW, gridW, gridH, unseen);
+            footing(x0, y0, x1, y1, foot);
+            footing.appendQuad(camera.cellToScreenX(foot[0]), camera.cellToScreenY(foot[1]),
+                    camera.cellToScreenX(foot[2]), camera.cellToScreenY(foot[3]),
+                    camera.cellToScreenX(foot[4]), camera.cellToScreenY(foot[5]),
+                    camera.cellToScreenX(foot[6]), camera.cellToScreenY(foot[7]),
+                    base[0] * .72f * fog, base[1] * .72f * fog, base[2] * .72f * fog, alphaMult);
+        }
+        // The faces turned to the view, farthest first, so a nearer face stands over a farther one where they meet.
+        float[] ed = run.edges();
+        int shownFaces = 0;
+        if (order.length < ed.length / FreestandingWalls.EDGE) {
+            order = new long[ed.length / FreestandingWalls.EDGE];
+        }
+        for (int e = 0; e < ed.length; e += FreestandingWalls.EDGE) {
+            float ax = ed[e], ay = ed[e + 1], bx = ed[e + 2], by = ed[e + 3];
+            if (!near(view, ax, ay, bx, by)) continue;
+            float mx = (ax + bx) / 2f, my = (ay + by) / 2f;
+            if (!BuildingFaces.facing(ed[e + 4], ed[e + 5], mx, my, viewX, viewY)) continue;
+            float far = (mx - viewX) * (mx - viewX) + (my - viewY) * (my - viewY);
+            order[shownFaces++] = (long) Float.floatToIntBits(far) << 32 | e;
+        }
+        Arrays.sort(order, 0, shownFaces);
+        for (int k = shownFaces - 1; k >= 0; k--) {
+            int e = (int) order[k];
+            float ax = ed[e], ay = ed[e + 1], bx = ed[e + 2], by = ed[e + 3];
+            int cell = (int) ed[e + 6];
+            float light = BuildingFaces.shade(ed[e + 4], ed[e + 5]) * fog(shown, cell, gridW, gridH, unseen);
+            int cells = Math.max(1, Math.round((float) Math.hypot(bx - ax, by - ay)));
+            face.set(camera, sx, sy, ax, ay, bx, by, meters);
+            dressFace(kind, base, cells, cell * 4 + e % 4, light, alphaMult);
+            if (creep != null) {
+                // Cell by cell along the face, each the coverage of the wall cell just inside it.
+                calpha = alphaMult;
+                for (int slice = 0; slice < cells; slice++) {
+                    float t = (slice + .5f) / cells;
+                    int at = cellAt(ax + (bx - ax) * t - ed[e + 4] * .3f, ay + (by - ay) * t - ed[e + 5] * .3f,
+                            gridW, gridH);
+                    if (at < 0) continue;
+                    cu0 = slice / (float) cells;
+                    cu1 = (slice + 1) / (float) cells;
+                    CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette, light,
+                            detail, creepOnFace);
                 }
+            }
+        }
+        Cap c = new Cap(camera, sx, sy, lift);
+        float[] top = scale(base, 1.06f), coping = scale(base, 1.22f), joint = scale(base, .86f);
+        for (int o = 0; o < st.length; o += FreestandingWalls.STROKE) {
+            float x0 = st[o], y0 = st[o + 1], x1 = st[o + 2], y1 = st[o + 3];
+            if (!near(view, x0, y0, x1, y1)) continue;
+            float fog = fog(shown, (int) x0 + (int) y0 * gridW, gridW, gridH, unseen);
+            FreestandingWalls.corners(x0, y0, x1, y1, FreestandingWalls.HALF, q);
+            c.quad(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], top, fog, alphaMult);
+            int cells = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) + 1);
+            for (int k = 0; creep != null && k < cells; k++) {
+                // An old creep crusts over the wall's top too, as it did the wall cell on the ground.
+                float f = cells <= 1 ? 0f : k / (float) (cells - 1);
+                int at = cellAt(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, gridW, gridH);
+                float crust = at < 0 ? 0f : CreepClimb.crust(creep.coverageAt(at));
+                if (crust <= 0f) continue;
+                CreepClimb.tone(creepPalette.flesh(), creepPalette.dead(), creep.vitalityAt(at), 1f, capTone);
+                float u0 = k / (float) cells, u1 = (k + 1) / (float) cells;
+                c.quad(q[0] + (q[2] - q[0]) * u0, q[1] + (q[3] - q[1]) * u0,
+                        q[0] + (q[2] - q[0]) * u1, q[1] + (q[3] - q[1]) * u1,
+                        q[6] + (q[4] - q[6]) * u1, q[7] + (q[5] - q[7]) * u1,
+                        q[6] + (q[4] - q[6]) * u0, q[7] + (q[5] - q[7]) * u0, capTone, fog, alphaMult * crust);
+            }
+        }
+        // The coping round the outline, so it turns every joint where strokes meet.
+        for (int e = 0; e < ed.length; e += FreestandingWalls.EDGE) {
+            float ax = ed[e], ay = ed[e + 1], bx = ed[e + 2], by = ed[e + 3];
+            if (!near(view, ax, ay, bx, by)) continue;
+            float ix = -ed[e + 4] * CAP_COPING, iy = -ed[e + 5] * CAP_COPING;
+            float fog = fog(shown, (int) ed[e + 6], gridW, gridH, unseen);
+            c.quad(ax, ay, bx, by, bx + ix, by + iy, ax + ix, ay + iy, coping, fog, alphaMult);
+        }
+        if (joints(kind)) {
+            float[] jt = run.joints();
+            for (int j = 0; j < jt.length; j += 8) {
+                if (!near(view, jt[j], jt[j + 1], jt[j + 4], jt[j + 5])) continue;
+                float fog = fog(shown, (int) jt[j] + (int) jt[j + 1] * gridW, gridW, gridH, unseen);
+                c.quad(jt[j], jt[j + 1], jt[j + 2], jt[j + 3], jt[j + 4], jt[j + 5], jt[j + 6], jt[j + 7], joint, fog,
+                        alphaMult);
             }
         }
     }
 
     private final float[] strokeQuad = new float[8], foot = new float[8];
+    private long[] order = new long[64];
 
-    /** The outward normal of a quad's side from corner {@code a} to {@code b}: away from the quad's centre. */
-    private static float outwardX(float[] q, int a, int b, float len) {
-        float nx = (q[b + 1] - q[a + 1]) / len, ny = -(q[b] - q[a]) / len;
-        return flips(q, a, b, nx, ny) ? -nx : nx;
+    /** The cell holding the point {@code (x, y)}, as an index, or -1 off the map. */
+    private static int cellAt(float x, float y, int gridW, int gridH) {
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        return cx < 0 || cy < 0 || cx >= gridW || cy >= gridH ? -1 : cx + cy * gridW;
     }
 
-    private static float outwardY(float[] q, int a, int b, float len) {
-        float nx = (q[b + 1] - q[a + 1]) / len, ny = -(q[b] - q[a]) / len;
-        return flips(q, a, b, nx, ny) ? -ny : ny;
+    private static boolean near(VisibleCellRect view, float x0, float y0, float x1, float y1) {
+        return view.intersects((int) Math.min(x0, x1) - 1, (int) Math.max(x0, x1) + 1,
+                (int) Math.min(y0, y1) - 1, (int) Math.max(y0, y1) + 1);
     }
 
-    private static boolean flips(float[] q, int a, int b, float nx, float ny) {
-        float cx = (q[0] + q[2] + q[4] + q[6]) / 4f, cy = (q[1] + q[3] + q[5] + q[7]) / 4f;
-        float mx = (q[a] + q[b]) / 2f, my = (q[a + 1] + q[b + 1]) / 2f;
-        return nx * (mx - cx) + ny * (my - cy) < 0f;
-    }
-
-    /**
-     * A stroke's footprint from {@code (x0, y0)} to {@code (x1, y1)}, {@code half} either side of its line, a straight
-     * one reaching a half cell past each end and a diagonal stopping at its end cells' centres, as four corners into
-     * {@code out}: start and end on one side, then end and start on the other. A post (no length) is a square.
-     */
-    static void corners(float x0, float y0, float x1, float y1, float half, float[] out) {
-        float dx = x1 - x0, dy = y1 - y0, len = (float) Math.hypot(dx, dy);
-        if (len < 1e-4f) {
-            dx = 1f;
-            dy = 0f;
-        } else {
-            dx /= len;
-            dy /= len;
-        }
-        float nx = dy, ny = -dx;
-        // A straight wall reaches its end cells' edges; a diagonal stops at their centres, inside their piers.
-        float reach = dx != 0f && dy != 0f ? 0f : .5f;
-        float sx = x0 - dx * reach, sy = y0 - dy * reach, ex = x1 + dx * reach, ey = y1 + dy * reach;
-        out[0] = sx + nx * half; out[1] = sy + ny * half;
-        out[2] = ex + nx * half; out[3] = ey + ny * half;
-        out[4] = ex - nx * half; out[5] = ey - ny * half;
-        out[6] = sx - nx * half; out[7] = sy - ny * half;
+    private static float fog(boolean[] shown, int cell, int gridW, int gridH, float unseen) {
+        if (cell < 0 || cell >= gridW * gridH) return 1f;
+        return seen(shown, cell, gridW, gridH) ? 1f : unseen;
     }
 
     /** A diagonal's footing on the ground, centre to centre, {@link #FOOTING_HALF} either side: under its piers. */
@@ -483,7 +514,7 @@ final class FreestandingWallFaces {
     }
 
     /** The map's runs of freestanding wall: wall cells no building owns, not out over the void. */
-    private static List<FreestandingWalls.Run> runs(CellTopology topology) {
+    static List<FreestandingWalls.Run> runs(CellTopology topology) {
         int gridW = topology.getWidth();
         return FreestandingWalls.runs(gridW, topology.getHeight(), at -> {
             int x = at % gridW, y = at / gridW;

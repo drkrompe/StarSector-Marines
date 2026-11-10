@@ -118,8 +118,10 @@ class BuildingFacesTest {
     void aDestroyedBuildingDropsItsLiftToRubble() {
         BuildingFaces.Built works = built(BuildingKind.INDUSTRIAL, 400, .5f);
         assertEquals(BuildingFaces.heightClass(works), BuildingFaces.heightClass(works, .2f),
-                "a damaged building still stands");
-        assertEquals(BuildingFaces.RAZED, BuildingFaces.heightClass(works, .6f));
+                "a building with a few walls breached still stands");
+        assertEquals(BuildingFaces.heightClass(works), BuildingFaces.heightClass(works, 0f),
+                "one whose roof fell in with its walls standing stands as a shell");
+        assertEquals(BuildingFaces.RAZED, BuildingFaces.heightClass(works, .6f), "most walls down razes it");
         assertEquals(1f, BuildingFaces.lift(BuildingFaces.HEIGHTS[BuildingFaces.RAZED]), 1e-6f, "rubble lies flat");
     }
 

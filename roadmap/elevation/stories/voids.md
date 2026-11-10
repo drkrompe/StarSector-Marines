@@ -607,9 +607,11 @@ Laws):
    diagonal is one slanted wall exactly as thick as a straight one, from its
    end cells' centres, with a square pier on each end cell so it meets
    straight walls on the grid, and a low footing on the ground covering its
-   cells' corners. Each face is dressed by kind (plinth, shaded body, coping,
-   panel joints or masonry courses and piers, weather streaks), each cap
-   coping-edged. The ground shadow still comes from the cells, so a diagonal's
+   cells' corners. The strokes stand as one wall round their joint outline
+   (`FreestandingWalls.edges`): faces only along it, farthest first, and the
+   cap's coping round it, so a diagonal runs into a straight wall, a pier or a
+   jog with no seam. Each face is dressed by kind (plinth, shaded body, coping,
+   panel joints or masonry courses and piers, weather streaks). The ground shadow still comes from the cells, so a diagonal's
    shadow steps.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
@@ -689,10 +691,14 @@ Laws):
      breach, never a doorway.
    - Where a room's roof has fallen in or burnt, the wall over it loses its
      upper storeys to a ragged, charred edge, with rubble at its foot.
-   - Once half a building's roof has fallen in or burnt
-     (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
-     than a storey high, its corners tallest, drawn over its roof's
-     remnants, with rubble heaped round it.
+   - A roof fallen in or burnt away (a shell, a fire, the creep's weight)
+     leaves the walls standing as a gutted shell. Once half a building's
+     outer walls are breached to rubble (`BuildingFaces.DESTROYED_SHARE`),
+     it stands as a broken shell no more than a storey high, its corners
+     tallest, drawn over its roof's remnants, with rubble heaped round it.
+   - Hive creep climbs the faces it holds, veins then crust, living to dying
+     (`CreepClimb`; `colony-breach-nouns.md`, Creep). Look suite:
+     `createSnapshots -Psnapshot=building-creep-look`.
    - **Rubble** (`WallRubble`, sheet `graphics/decals/wall-rubble.png` from
      `art-source/wall-rubble`): a breached or razed wall heaps a long pile
      against its foot with blocks and scattered fragments beyond it; a wall
