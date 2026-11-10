@@ -370,12 +370,15 @@ of each pick, slice 3's comms lines.
   `MechWeaponMount.resupplyOne`.
 
 - **The works hall is the layer's stand** (`ruins-expedition.md`, pick
-  `ruins-facility-beats` (a)). Where the route crosses a works hall, the zone
-  nearest it along the route (never the vault's) keeps its node in the hall on
-  the route cell nearest its middle, its posts round that cell and its perimeter
-  over the hall (`DerelictSecurity.anchorAt`); its service bay and repair drone
-  stand by the node as anywhere. `hallPosts` takes a works hall first, so a hall
-  frame keeps its middle (the transfer bridge, where the ground lays one).
+  `ruins-facility-beats` (a)). On a site whose interior publishes a works stand
+  (`RuinsDelve.Interior.worksStand`: by the mega forge's pour pulpit, or at the
+  east end of a works hall's transfer aisle), the zone nearest it along the
+  route (never the vault's) keeps its node there, its posts round the route
+  cell nearest it and its perimeter over the hall (`DerelictSecurity.anchorAt`);
+  its service bay and repair drone stand by the node as anywhere. `hallPosts`
+  takes a works hall first, so a hall frame keeps its middle (the transfer
+  bridge); where a heavy already holds that cell the frame stands at the nearest
+  cell round it that it fits (`beside`), its post still the middle.
 
 Not built yet:
 the vent and wreck markers and the drone's sparks over a wreck; the housings'
