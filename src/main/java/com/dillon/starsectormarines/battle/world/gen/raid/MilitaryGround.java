@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 final class MilitaryGround {
 
     /** The paving the parade square is laid in. */
-    static final String PARADE_PAVING = "pavement.concrete.worn";
+    static final String PARADE_PAVING = "pavement.asphalt.worn";
     /** The smallest open yard a parade square is marked on, cells. UNTUNED. */
     static final int PARADE_MIN_ALONG = 12, PARADE_MIN_DEEP = 8;
     /** The largest parade square, cells; a wider yard keeps the rest as it is. UNTUNED. */
@@ -68,29 +68,32 @@ final class MilitaryGround {
         return new int[]{x0, y0, x1, y1};
     }
 
-    /** The square's lines, corners, marching marks, saluting base and flag mast. */
+    /**
+     * The square's border line (corner pieces, which turn clockwise from the north-west, and four-long runs end to
+     * end between them), a dashed rank row every {@link #MARK_STEP} cells across it, the ring at its middle, and the
+     * saluting base with the flag mast beside it at the middle of its south side.
+     */
     private static void markOut(GenContext c, int x0, int y0, int x1, int y1) {
-        WorksProps.decal(c, x0, y0, "doodad.parade-corner", 0);
-        WorksProps.decal(c, x1 - 1, y0, "doodad.parade-corner", 1);
-        WorksProps.decal(c, x1 - 1, y1 - 1, "doodad.parade-corner", 2);
-        WorksProps.decal(c, x0, y1 - 1, "doodad.parade-corner", 3);
-        // A line is a run four long, laid end to end along each side between the corners.
+        WorksProps.decal(c, x0, y1 - 1, "doodad.parade-corner", 0);
+        WorksProps.decal(c, x1 - 1, y1 - 1, "doodad.parade-corner", 1);
+        WorksProps.decal(c, x1 - 1, y0, "doodad.parade-corner", 2);
+        WorksProps.decal(c, x0, y0, "doodad.parade-corner", 3);
         for (int x = x0 + 2; x + 3 <= x1 - 2; x += 4) {
-            WorksProps.decal(c, x, y0, "doodad.parade-line", 1);
-            WorksProps.decal(c, x, y1, "doodad.parade-line", 1);
+            WorksProps.decal(c, x, y0, "doodad.parade-line", 0);
+            WorksProps.decal(c, x, y1, "doodad.parade-line", 0);
         }
         for (int y = y0 + 2; y + 3 <= y1 - 2; y += 4) {
-            WorksProps.decal(c, x0, y, "doodad.parade-line", 0);
-            WorksProps.decal(c, x1, y, "doodad.parade-line", 0);
+            WorksProps.decal(c, x0, y, "doodad.parade-line", 1);
+            WorksProps.decal(c, x1, y, "doodad.parade-line", 1);
         }
-        for (int x = x0 + MARK_STEP; x + 1 <= x1 - MARK_STEP + 1; x += MARK_STEP) {
-            for (int y = y0 + MARK_STEP; y + 1 <= y1 - MARK_STEP + 1; y += MARK_STEP) {
-                WorksProps.decal(c, x, y, "doodad.parade-centre", 0);
-            }
+        int midX = (x0 + x1) / 2, midY = (y0 + y1) / 2;
+        for (int y = y0 + MARK_STEP; y <= y1 - MARK_STEP; y += MARK_STEP) {
+            if (Math.abs(y - midY) <= 1) continue;
+            for (int x = x0 + 3; x + 3 <= x1 - 3; x += 5) WorksProps.decal(c, x, y, "doodad.parade-ranks", 0);
         }
-        int mid = (x0 + x1) / 2;
-        WorksProps.decal(c, mid - 1, y0 + 2, "doodad.parade-saluting-base", 0);
-        WorksProps.place(c, mid + 3, y0 + 2, "doodad.flag-mast", 0);
+        WorksProps.decal(c, midX, midY, "doodad.parade-centre", 0);
+        WorksProps.place(c, midX - 1, y0 - 3, "doodad.saluting-base", 0);
+        WorksProps.place(c, midX + 3, y0 - 2, "doodad.flag-mast", 0);
     }
 
     /**

@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -232,11 +233,23 @@ public final class MilitaryWorks implements RaidIndustry {
             if (RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) MilitaryGround.paradeSquare(c, i);
         }
         vehiclePark(c, plan, works);
-        // The base's buildings and its garrison's are built alike, so the two read as one cantonment.
-        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) oliveWalls(c, b);
+        // The base's buildings and its garrison's are built alike, so the two read as one cantonment: olive sheet
+        // walls, hangar roofs over the sheds, the depot and the fuel house, hut roofs over dispatch and the barracks.
+        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
+            oliveWalls(c, b);
+            RoomPurpose purpose = WorksProps.purposeOf(c, b);
+            if (purpose == MOTOR_POOL || purpose == SUPPLY_DEPOT || purpose == FUEL_POINT) {
+                roof(c, b, CellTopology.RoofKind.HANGAR);
+            } else if (purpose == DISPATCH) {
+                roof(c, b, CellTopology.RoofKind.HUT);
+            }
+        }
         for (Precinct p : plan.precincts()) {
             if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
-            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) oliveWalls(c, b);
+            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) {
+                oliveWalls(c, b);
+                roof(c, b, CellTopology.RoofKind.HUT);
+            }
         }
         int n = 0;
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
@@ -342,6 +355,18 @@ public final class MilitaryWorks implements RaidIndustry {
             }
         }
         return x1 < 0 ? null : new int[]{x0, y0, x1, y1};
+    }
+
+    /** Marks a building's roof {@code kind}; a gun lot's building keeps its fort works roof. */
+    private static void roof(GenContext c, PointOfInterest b, CellTopology.RoofKind kind) {
+        for (int x = b.left; x <= b.right; x++) {
+            for (int y = b.top; y <= b.bottom; y++) {
+                if (c.topology.getWorksStyle(x, y) != 0) return;
+            }
+        }
+        for (int x = b.left; x <= b.right; x++) {
+            for (int y = b.top; y <= b.bottom; y++) c.topology.setRoofKind(x, y, kind);
+        }
     }
 
     /** Rebuilds a building's walls in {@link #BASE_WALL}. */

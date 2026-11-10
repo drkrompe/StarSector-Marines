@@ -360,6 +360,8 @@ public class CellTopology {
     private int highestPlinthTiers;
     /** Each cell's fortification works style, by {@link #getWorksStyle}; null until a lot is marked. */
     private byte[] worksStyle;
+    /** Each cell's roof kind as a {@link RoofKind} ordinal + 1, by {@link #getRoofKind}; null until one is marked. */
+    private byte[] roofKind;
     /** Each cell's roof damage as a {@link RoofDamage} ordinal, by {@link #getRoofDamage}; null until a roof is hit. */
     private byte[] roofDamage;
 
@@ -766,6 +768,41 @@ public class CellTopology {
     /** The tallest plinth ever raised on this map, in tiers; zero on a map that never had one. */
     public int highestPlinthTiers() {
         return highestPlinthTiers;
+    }
+
+    // ----- Roof kind -----
+
+    /**
+     * What a building was built to be roofed as, where its builder says so rather than its walls or kind: a military
+     * base's vehicle hangars and its huts. Presentation only: the renderer roofs a building whose cells carry one in
+     * that kind's roof, and no rule reads it.
+     */
+    public enum RoofKind {
+        /** An arched ribbed hangar roof: motor sheds, depots, the fuel house. */
+        HANGAR,
+        /** A low ridged hut roof: barracks, dispatch, stores huts. */
+        HUT
+    }
+
+    /** The roof kind marked on the cell, or null where none is. */
+    public RoofKind getRoofKind(int x, int y) {
+        if (roofKind == null || !inBounds(x, y)) return null;
+        int value = roofKind[index(x, y)];
+        return value == 0 ? null : RoofKind.values()[value - 1];
+    }
+
+    /** Marks the cell's roof kind; null clears it. See {@link #getRoofKind}. */
+    public void setRoofKind(int x, int y, RoofKind kind) {
+        if (!inBounds(x, y)) return;
+        int value = kind == null ? 0 : kind.ordinal() + 1;
+        if (roofKind == null) {
+            if (value == 0) return;
+            roofKind = new byte[width * height];
+        }
+        int idx = index(x, y);
+        if (roofKind[idx] == value) return;
+        roofKind[idx] = (byte) value;
+        markChanged(idx);
     }
 
     // ----- Works style -----
