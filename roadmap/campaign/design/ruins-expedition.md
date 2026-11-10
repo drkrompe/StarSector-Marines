@@ -674,8 +674,9 @@ still just so boring and doesn't make sense... it just feels like a random
 assortment of doodads"; "where does it's metal come from? Where do the parts
 go?"; "a much larger mega facility room... a huge furnace crucible with
 production lines set down it's pour line. The "part" where here to steal is a
-large thing or even the entire room itself is the "tech""; pick
-`ruins-forge-process` open). Every piece in a hall answers where its input comes
+large thing or even the entire room itself is the "tech""; owner pick
+`ruins-forge-process` b1, built: `mapgen-nouns.md`, A forge works has a mega
+forge hall). Every piece in a hall answers where its input comes
 from and where its output goes. A hall lays its chain as one line from its feed
 door to its dispatch door, and the next hall's feed is this hall's dispatch. The
 floor is zoned from that line: deck plate under the work, grating over the
@@ -691,7 +692,11 @@ case:
 | b2 | The same hall | The line is the tech: hold its pulpit while each line's recorder runs, then carry the record cores out |
 | b3 | The same hall | The line is stripped: each key module is a haul and a Hermes load of its own |
 
-The Hermes is the player's only lift, so no variant lifts the room itself. The
+The Hermes is the player's only lift, so no variant lifts the room itself.
+As built, the furnace core is the forge works' prize where it always was: the
+forge core in the vault's cradle, pulled from the great crucible when the plant
+died. The breach and the haul are unchanged. Plant hall floors are zoned by the
+work: deck plate under it, painted walkways, and concrete only in the aisles. The
 plan, the other halls' chains and the art list are in
 `ruins-themed-environments.md` in the shared notes. Picture cards:
 `createSnapshots -Psnapshot=ruins-mega-forge-picks`.
