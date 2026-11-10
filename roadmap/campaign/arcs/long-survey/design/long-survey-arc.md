@@ -1,8 +1,9 @@
 # The Long Survey
 
-Status: DRAFT — authored fallen-hull arc: four story chapters on owned seeds,
-built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). Nothing
-built; the fan-out is in `stories.md`.
+Status: IN PROGRESS — authored fallen-hull arc: four story chapters on owned
+seeds, built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). The
+campaign scaffolding and The Fall are built (What is built); chapters 2 to 4,
+the hull rules and the hull's ground are open in `stories.md`.
 
 Written: 2026-11-10
 
@@ -107,6 +108,35 @@ Briefings as `MissionDialogue` exchanges between the garrison commander and
 Castle, a retry and a replay line each, a board row with "Survey 2 of 4", the
 debrief's story line, a portrait for the commander and one location banner per
 chapter (pick through the art session), voiced later as the Khettara is.
+
+## What is built
+
+- **The ledger.** `LongSurveyProgress` (`CampaignState.longSurvey`): the four
+  chapters in order, each unlocked by the last one's victory; a loss leaves it
+  on offer with its retry line and no fee; a won chapter replays at half fee
+  with no unlock; one active attempt, settled once by its own receipt. A
+  chapter not yet built (`Chapter.built`) is never matched, offered or launched.
+- **The contact.** `LongSurveyCampaign`: the district garrison commander on the
+  arc's world's board (`SYSTEM`, `PLANET_ID`: Chicomoztoc in Aztlan meanwhile,
+  one constant for the `long-survey-world` pick), opening when Morrow departs at
+  the end of A Working Ship, as the Khettara does. Rows read "Survey N of 4";
+  never the event gate, no clock. Briefings are unvoiced stub exchanges between
+  the commander and Castle (`longSurvey*` in `strings.json`), with a retry and a
+  replay line; the commander's name and portrait wait on the owner.
+- **The Fall.** `HullFallBattleFixture` builds `BattleSetup.createHullFall`:
+  the Colony Breach rescue on the owned `colony-breach` seed (`THE_FALL_MAP`,
+  its pool's owned seed, 38), with no swarm, eruption or bores. The derelict
+  watch stands in their place: `DerelictSecurity.install` on a route (the
+  route-and-source overload, no ruins vault) from where the colony's deep bore
+  would stand (the eruption plan's mother site) toward the shelter, at
+  `THE_FALL_GRADE` (EXTENSIVE, UNTUNED) in the Domain livery. Every attempt,
+  retry, replay and debug run plays that one seed. When the hull site lands,
+  `THE_FALL_MAP` and the install move to the hull-site seam; the forward-bay
+  bonus objective follows the hull rules.
+- **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
+  under Chicomoztoc, each on its chapter's seed with the challenge force (a
+  Veteran Company, seven squads, four machines); a chapter is listed once
+  built, so only LS1 shows yet.
 
 ## Open picks
 

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
 import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.DelveCheck;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinedLotsStage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelveStage;
@@ -76,6 +77,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RaidWorksDressingStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HabitatStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
@@ -350,6 +352,7 @@ public final class BspCityGenerator implements MapGenerator {
                 landingAreaStage,                           // precinct-only; null omits it
                 frontStage,                                 // precinct-only; null omits it
                 laneRouteStage,                             // precinct-only; the road each lane runs on
+                new RaidWorksDressingStage(),               // a Raid site's works dressed by its industry
                 new OutdoorLandscapeStage(),                // retain those finished lane routes
                 new HabitatStage(),                         // the town built for the world it stands on
                 new RoadSurfaceStage(),                     // finish kept roads and street carriageways over the placed city
@@ -534,7 +537,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new RuinsLandingStage(),                    // the landing's berths and the spawns
                 new OutdoorLandscapeStage(),
                 new RoadSurfaceStage(),
-                new InteriorAnchorFitStage()));
+                new InteriorAnchorFitStage(),
+                new RuinsWeatherStage()));                  // the world and the years: the last skin
     }
 
     /**

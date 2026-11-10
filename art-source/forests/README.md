@@ -111,7 +111,7 @@ and re-run `gradlew.bat :asset-pipeline:deriveTileMaps`.
 
 `createSnapshots -Psnapshot=undergrowth-look` shows the guides, every species in
 its three states and four turns, and look shots: a wood whose tank lane is grown
-over, crossed by a breakthrough tank, and open ground with the floor plants and
+over, crossed by an Onager, and open ground with the floor plants and
 field stones in all three states.
 
 ### Dry scrub (a desert basin's rim)

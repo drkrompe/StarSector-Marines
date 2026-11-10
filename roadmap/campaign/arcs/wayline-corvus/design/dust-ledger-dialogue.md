@@ -35,36 +35,27 @@ authority and the Warion listening post are named in every victory debrief.
 
 ## Briefing (`briefing.01`–`briefing.14`, mission `story_corvus_dust_ledger`)
 
-Zoey (01, 03, 05, 07, 09, 11) and Castle (02, 04, 06, 08, 10, 12) alternate:
-the post and the broker; who might stop us; the Hegemony's indifference; the
-warden's price; the broker's lift-off; the burn rule; the two favours; the
-ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Zoey: gun nests, pillboxes, generator parts in Wayline's manifests but no word of where the current comes from) and 14 (Castle: find their power first; rockets or the Hound answer live nests; pillboxes by hand). The feed is a hidden side objective, so the briefing never names the tap or the box play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
+Zoey (01, 03, 05, 07, 11) and Castle (02, 04, 06, 08, 12) alternate: the post
+and the broker; who might stop us; the Hegemony's indifference; the warden's
+price; the broker's lift-off and the chase for him once the alarm goes (the one
+bonus, with Wayline's price on him); the burn rule; the ledger and strongbox;
+orders. Keys `corvusDustLedgerBrief01`–`Brief14`, with 09 and 10 (the two
+favours) cut. Turns 13 (Zoey: gun nests and manned pillboxes) and 14 (Castle:
+rockets or the Hound answer the nests; pillboxes by hand) play after turn 08, so
+catalog order is 01–08, 13, 14, 11, 12.
 
 ## Field calls (events `corvus.dust_ledger.*`)
 
 | Event | Speaker | Trigger |
 |---|---|---|
-| `harrow_crate` | Zoey | the coupling crate is picked up |
-| `harrow_delivered` | Zoey | the crate reaches the Harrow yard |
-| `warden_approach` | Castle | a squad leader nears the well house |
-| `warden_nod` | Zoey | the stay at the well house completes |
 | `clock_short` | Castle | lift-off clock nearly out, once |
 | `alarm_shot` | Castle | alarm by a shot |
 | `alarm_sighted` | Castle | alarm by sentry sighting inside the ring |
 | `alarm_clock` | Zoey | alarm by lift-off; broker gone |
-| `cantina_joins` | Morgan | alarm, warden's nod NOT earned |
-| `cantina_held` | Morgan | alarm, warden's nod earned |
 | `ledger_burning` | Castle | burn starts (at alarm) |
 | `ledger_half` | Castle | burn reaches half |
 | `ledger_seized` | Castle | ledger room seized with books remaining |
 | `ledger_burned` | Zoey | burn completes unseized |
-| `salvage_team` | Castle | alarm, coupling delivered |
-| `spotters` | Morgan | alarm, warden's nod earned (yard revealed before alarm) |
-| `feed_found` | Castle | a company combatant sights or reaches the junction box (first discovery) |
-| `feed_approach` | Castle | a squad starts working the junction box |
-| `feed_cut` | Zoey | the tap is cut before the alarm |
-| `nests_dark` | Castle | alarm, feed was cut |
-| `feed_lapsed` | Castle | alarm, feed was not cut (nests live) |
 | `nest_destroyed` | Castle | a gun nest is destroyed |
 | `pillbox_contact` | Castle | first fire from a pillbox, once |
 | `broker_flees` | Castle | alarm, broker still on site |

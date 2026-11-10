@@ -1,0 +1,30 @@
+A sheet of sixteen pieces of building rubble for a top-down tactical ground-combat game: what a shot-up or collapsed
+building wall leaves lying on the ground at its foot.
+
+Rows, top to bottom (each row is one kind of debris; the four columns are variants of it):
+1. Heaps. A long, low pile of broken wall heaped against where the wall stood, along the top of its cell: broken
+   blocks, plaster slabs, splintered timber and bent rebar, piled highest along its top edge and thinning toward the
+   bottom, where loose chunks have rolled off. Clearly a three-dimensional heap with lit tops and shadowed undersides.
+2. Slabs. One or two large broken pieces of wall lying flat: a chunk of masonry or cast wall with ragged broken
+   edges, a few courses or a reinforcing bar showing at the break, chipped corners.
+3. Clusters. A handful of mid-sized broken blocks and wall fragments lying together, each with a small contact shadow.
+4. Scatter. Small fragments, grit and pebbles thrown out across the ground, over a faint pale dust patch (the blurred
+   grey) that fades out to nothing at its edges.
+
+Layout: reference 1 is the exact layout. It is a 4 x 4 grid of equal square cells on a transparent canvas, and each
+flat grey shape is the footprint of one piece of debris (blurred grey means a soft, feathered dust edge). Fill every
+grey footprint with its debris, keeping its position, size and outline. Do not move, merge, add or remove pieces.
+Keep every cell's empty space fully transparent.
+
+Colour: the game tints each piece by the wall it fell from (plaster, brick, timber, concrete, ceramic panel), so
+paint every piece in neutral, light warm greys: broken faces pale, the old wall surface a little darker, cracks and
+undersides dark charcoal, rebar and timber only slightly darker grey. No strong hue anywhere: never red brick, green,
+sand yellow or blue.
+
+Style: painted, slightly gritty realistic game art, seen from straight overhead, lit from the upper left, matching
+reference 2. Read clearly at small size: strong light-and-shadow on every chunk so it reads as solid.
+
+Output: a true transparent background, including every gap between and inside pieces; no ground, no floor, no wall,
+no cast shadow slab, no grid lines, no border, no text or labels. Each piece must stay inside its own cell.
+
+Reference 2 is material and style only: rubble from the same game. Do not copy its layout, shapes or colours.

@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockField;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
@@ -103,17 +102,75 @@ public final class DerelictSecurity {
         for (int i = 0; i < count; i++) {
             int index = Math.round(i * step);
             int perimeter = Math.max(8, spacing * 3 / 4 + 2);
-            List<int[]> posts = new ArrayList<>();
-            List<Integer> used = new ArrayList<>();
-            for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
-                int at = Math.max(0, Math.min(cells - 1, index + offset));
-                if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
-                used.add(at);
-                posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
-            }
-            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, posts));
+            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, postsAround(route, index)));
         }
         return out;
+    }
+
+    /** A zone's walker posts: its node's route cell and a few cells either way along the route. */
+    static List<int[]> postsAround(int[] route, int index) {
+        int cells = route.length / 2;
+        List<int[]> posts = new ArrayList<>();
+        List<Integer> used = new ArrayList<>();
+        for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
+            int at = Math.max(0, Math.min(cells - 1, index + offset));
+            if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
+            used.add(at);
+            posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
+        }
+        return posts;
+    }
+
+    /**
+     * The layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): where the route runs through a works
+     * hall, the zone nearest it along the route (never the vault's) keeps its node in the hall, on the route cell
+     * nearest the hall's middle, with its posts round that cell and its perimeter over the whole hall. Its service
+     * bay and repair drone stand by the node, so the hall is where the zone is kept. Unchanged with no works hall, or
+     * none the route crosses.
+     */
+    public static List<ZonePlan> anchorAt(List<ZonePlan> plans, int[] route, RuinsDelve.Area hall) {
+        if (hall == null || plans.size() < 2) return plans;
+        int cells = route.length / 2;
+        int stand = -1;
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < cells; i++) {
+            int x = route[i * 2], y = route[i * 2 + 1];
+            if (!hall.contains(x, y)) continue;
+            int d = Math.abs(x - hall.centreX()) + Math.abs(y - hall.centreY());
+            if (d < best) {
+                best = d;
+                stand = i;
+            }
+        }
+        if (stand < 0) return plans;
+        int zone = 1;
+        for (int z = 1; z < plans.size(); z++) {
+            if (Math.abs(indexOf(route, plans.get(z)) - stand) < Math.abs(indexOf(route, plans.get(zone)) - stand)) {
+                zone = z;
+            }
+        }
+        ZonePlan was = plans.get(zone);
+        int perimeter = Math.max(was.perimeterCells(), Math.max(hall.width(), hall.height()) / 2 + 2);
+        List<ZonePlan> out = new ArrayList<>(plans);
+        out.set(zone, new ZonePlan(was.id(), route[stand * 2], route[stand * 2 + 1], perimeter,
+                postsAround(route, stand)));
+        return out;
+    }
+
+    private static int indexOf(int[] route, ZonePlan plan) {
+        for (int i = 0; i < route.length / 2; i++) {
+            if (route[i * 2] == plan.nodeX() && route[i * 2 + 1] == plan.nodeY()) return i;
+        }
+        return 0;
+    }
+
+    /** The interior's works hall, or null where the site has none. */
+    static RuinsDelve.Area worksHall(RuinsDelve delve) {
+        if (delve == null || delve.interior() == null) return null;
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+            if (hall.stage() == RuinsDelve.PlantStage.WORKS) return hall.footprint();
+        }
+        return null;
     }
 
     /** Route cells the heavies hold in the contingency: the way out, short of the landing. */
@@ -168,8 +225,18 @@ public final class DerelictSecurity {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
         }
         if (vault == null || vault.liftPoints().isEmpty()) return null;
-        int[] route = vault.liftPoints().get(0).route();
-        List<ZonePlan> plans = zonesAlong(route, zones(grade));
+        return install(sim, grade, delve, livery, vault.liftPoints().get(0).route(), vault.sourceCellX(),
+                vault.sourceCellY());
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, RuinsGrade, RuinsDelve, FlockLivery)}, on ground with no ruins vault: the
+     * zones are laid along {@code route} (cell pairs, the guarded place first) and the haul's escort is read round
+     * {@code sourceX, sourceY}. A battle with no {@code RuinsVaultObjective} never calls the contingency.
+     */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
+                                                   FlockLivery livery, int[] route, int sourceX, int sourceY) {
+        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksHall(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));
@@ -238,7 +305,11 @@ public final class DerelictSecurity {
         int tenders = DerelictWalkerClass.tenders(grade, heavyOf.size());
         for (DerelictSecurityDirector.Walker heavy : heavyOf.values()) {
             if (tenders-- <= 0) break;
-            int squad = spawn(sim, DerelictWalkerFrame.TENDER, heavy.postX(), heavy.postY());
+            long heavyId = sim.squadMemberCount(heavy.squadId()) > 0 ? sim.squadMemberAt(heavy.squadId(), 0) : 0L;
+            int[] at = heavyId == 0L ? null : beside(sim, DerelictWalkerFrame.TENDER.chassis.radius,
+                    sim.world().cellX(heavyId), sim.world().cellY(heavyId));
+            if (at == null) continue;
+            int squad = spawn(sim, DerelictWalkerFrame.TENDER, at[0], at[1]);
             if (squad < 0) continue;
             sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
                     "derelict tender beside its zone's heavy");
@@ -246,7 +317,7 @@ public final class DerelictSecurity {
                     heavy.postX(), heavy.postY()));
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
-                vault.sourceCellX(), vault.sourceCellY());
+                sourceX, sourceY);
         for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
             director.walkRound(round.getKey(), round.getValue());
         }
@@ -301,7 +372,7 @@ public final class DerelictSecurity {
         }
         standPosts(sim, route, plans, network, delve, director);
         standWatchHousings(sim, route, plans, delve, port, livery, director);
-        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
+        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director, livery);
         if (delve != null && !delve.layers().isEmpty()) {
             for (ZonePlan plan : plans) {
                 director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
@@ -528,7 +599,10 @@ public final class DerelictSecurity {
         List<RuinsDelve.Area> halls = new ArrayList<>();
         for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
         if (halls.isEmpty()) halls.addAll(delve.interior().chambers());
-        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
+        RuinsDelve.Area works = worksHall(delve);
+        // A works hall is the layer's stand: its frame comes first, then the largest halls.
+        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> a.equals(works) ? 0 : 1)
+                .thenComparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
                 .thenComparingInt(RuinsDelve.Area::left).thenComparingInt(RuinsDelve.Area::bottom));
         List<int[]> out = new ArrayList<>();
         for (int i = 0; i < Math.min(count, halls.size()); i++) {
@@ -657,13 +731,14 @@ public final class DerelictSecurity {
     }
 
     /** Puts a zone's repair drone up over its node, homed there. */
-    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director) {
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director,
+                                 FlockLivery livery) {
         Long node = director.nodes().get(zoneId);
         if (node == null) return 0L;
         float hx = sim.world().x(node);
         float hy = sim.world().y(node);
         EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
-                (int) Math.floor(hy), 0L, DroneLook.TENDER).role(UnitRole.STRUCTURE);
+                (int) Math.floor(hy), 0L, livery.repairDrone()).role(UnitRole.STRUCTURE);
         long id = sim.spawn(drone);
         if (id == 0L) return 0L;
         AirBody body = sim.world().kinematics(id);
@@ -779,6 +854,30 @@ public final class DerelictSecurity {
     }
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
+    /** Cells out from a walker a smaller one may stand at, nearest ring first. */
+    static final int BESIDE_RINGS = 4;
+
+    /**
+     * The nearest cell to {@code (x, y)}, a ring at a time out to {@link #BESIDE_RINGS}, where a walker of
+     * {@code radius} stands clear of the ground and of every unit; null when none does.
+     */
+    static int[] beside(BattleSimulation sim, float radius, int x, int y) {
+        for (int ring = 1; ring <= BESIDE_RINGS; ring++) {
+            for (int dy = -ring; dy <= ring; dy++) {
+                for (int dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                    int cx = x + dx, cy = y + dy;
+                    if (!sim.getGrid().inBounds(cx, cy)) continue;
+                    if (MechSpawnPlacement.nearCell(sim.getGrid(), radius, cx, cy, (px, py) -> true,
+                            (px, py) -> MechSpawnPlacement.unoccupied(sim.getRoster(), px, py, radius, 0L)) != null) {
+                        return new int[] {cx, cy};
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
         if (spawnInto(sim, frame, postX, postY, squad) == 0L) return -1;

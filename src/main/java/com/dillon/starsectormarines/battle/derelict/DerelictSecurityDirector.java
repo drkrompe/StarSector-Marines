@@ -68,6 +68,8 @@ public final class DerelictSecurityDirector {
     static final int ROUND_RADIUS = 1;
     /** How near a dead door's middle a forcing frame holds. */
     static final int FORCE_RADIUS = 1;
+    /** How far off its bay, in cells, a walker is sent to stand to re-arm or reload. */
+    static final float BAY_STAND_CELLS = 2f;
     /** How near a dead door's middle, in cells, a hall frame stands pressed against it. */
     static final float RAM_CELLS = 3f;
     /** Confidence a relayed sighting is handed to a siege frame at. */
@@ -1024,8 +1026,11 @@ public final class DerelictSecurityDirector {
         } else if (goal.kind() == FieldTender.Kind.RELOAD) {
             rules.reload(bay.rules);
         }
-        Order order = goal.kind() == FieldTender.Kind.STAND_BY ? Order.hold(walker.postX(), walker.postY())
-                : Order.hold((int) Math.floor(goal.x()), (int) Math.floor(goal.y()));
+        Order order;
+        if (goal.kind() == FieldTender.Kind.STAND_BY) order = Order.hold(walker.postX(), walker.postY());
+        else if (goal.entityId() == 0L && at != null && goal.x() == at.x() && goal.y() == at.y()) {
+            order = bayStand(at.x(), at.y(), world.x(self), world.y(self));
+        } else order = Order.hold((int) Math.floor(goal.x()), (int) Math.floor(goal.y()));
         String why = switch (goal.kind()) {
             case STAND_BY -> "tender stands by its post";
             case FOLLOW -> "tender walks to the walker it keeps";
@@ -1067,7 +1072,19 @@ public final class DerelictSecurityDirector {
             int packs = rules.packs(PULSE_TICKS * BattleSimulation.TICK_DT);
             for (MechWeaponMount rack : racks) for (int k = 0; k < packs; k++) rack.resupplyOne();
         }
-        return Order.hold((int) Math.floor(bayX), (int) Math.floor(bayY));
+        return bayStand(bayX, bayY, world.x(lead), world.y(lead));
+    }
+
+    /**
+     * Where a walker stands to take on stock or packs at a bay: {@link #BAY_STAND_CELLS} off it toward the walker, since
+     * the bay's own cell is the housing's.
+     */
+    static Order bayStand(float bayX, float bayY, float fromX, float fromY) {
+        float dx = fromX - bayX;
+        float dy = fromY - bayY;
+        float d = (float) Math.max(1e-3, Math.hypot(dx, dy));
+        float k = Math.min(d, BAY_STAND_CELLS) / d;
+        return Order.hold((int) Math.floor(bayX + dx * k), (int) Math.floor(bayY + dy * k));
     }
 
     /** A walker's missile racks: the mounts a loader would refill. */

@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * Wolf Strike in the look preset (`command-powers-nouns.md`, Wolf Strike): two fly-bys along a 60-cell line over an
- * enemy column on open ground, two breakthrough tanks, two militia technicals, a heavy APC and two rifle squads strung
+ * enemy column on open ground, two Onagers, two militia technicals, a heavy APC and two rifle squads strung
  * along it, with a flak position beside the line, a missile tower off it and, before the second run, two more towers
  * and a Rav flier pack over it, so the first run comes home hurt and the second is shot down. The first run flies west
  * to east; once it has climbed out a second comes back east to west. Play zoom over the whole line, and a camera

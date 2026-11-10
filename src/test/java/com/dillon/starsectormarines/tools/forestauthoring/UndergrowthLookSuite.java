@@ -37,7 +37,7 @@ import java.util.Random;
 
 /**
  * Forest-floor growth, drawn. Look shots on real verdant ground: a mature wood with its gaps grown over in
- * undergrowth, crossed by a breakthrough tank that flattens it; and open ground scattered with the floor plants, field
+ * undergrowth, crossed by an Onager that flattens it; and open ground scattered with the floor plants, field
  * stones in all three states, a few undergrowth patches and a fire team for scale. Plus a catalog frame of every species in its three states and
  * four turns, and the three reskin guides.
  */

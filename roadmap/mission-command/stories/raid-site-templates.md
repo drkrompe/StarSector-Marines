@@ -60,7 +60,7 @@ rest of the planet's sites feed. Three things carry that.
 | Heavy industry | the planet's assembly works, which every foundry ships into | feeder lines in; machine halls; yards beyond |
 | Mining | the central concentrator, which every dig feeds | the open pit beside the head works (`RaidSiteTemplate.PIT`); ore lines in from the other digs; ore stockpiles |
 | Refining | the only cracking and distillation plant | pipelines in; stills; a tank farm |
-| Light industry | the central fabrication works | feeder lines; shop floors; loading sheds |
+| Light industry | the central fabrication works | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road |
 | Farming | the central grain elevator and processing hub | farm roads in; silos; packing sheds |
 | Spaceport | the only orbital lift | the lighter apron; bonded sheds; roads in from the planet's towns |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
@@ -92,7 +92,9 @@ road.
   (`createSnapshots -Psnapshot=raid-mine-site-look`).
 - [x] A site for every industry a raid can name: refining, light industry,
   farming, spaceport and military too (`raid-<industry>-site-look` suites).
-- [ ] The owner's verdict on each, with fixes folded in.
+- [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
+  as its process after the owner rejected the generic shops (`LightIndustryWorks`,
+  `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`).
 
 ## Constraints
 
