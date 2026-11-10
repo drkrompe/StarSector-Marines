@@ -5,7 +5,8 @@ line is pinned; lava worlds have their own ground; toxic and irradiated worlds
 are open.
 
 Written: 2026-08-31
-Updated: 2026-11-09 — toxic worlds have their own ground; irradiated, volcanic and ash material families remain.
+Updated: 2026-11-09 — lava and toxic worlds have their own ground and the living worlds looks of their own (`LivingWorld`);
+remaining work is a distinct irradiated material family.
 
 ## What this is
 
@@ -114,9 +115,14 @@ What differs, all presentation:
 
 Known left: raised ground from `ElevationBrush` picks its finish from the
 ground kinds and so stays rock on a lava world; no glow feathering at the ground
-target's edge, since the basalt joins no feathered material, as snow does not.
+target's edge, since the basalt joins no feathered material.
 
 ## What is open
+
+**Living worlds are one palette with four looks.** Jungle, tundra and ocean
+worlds are `VERDANT` with a `LivingWorld` look rather than palettes of their own
+(`mapgen-nouns.md`, a living world has a look): every rule the palette owns is
+the same for them, and only what grows and how wet the ground is differs.
 
 **Irradiated worlds still use `ROCK`.** Splitting one is a palette plus a material
 family; where its layout is rock's, `layoutOf` and `paletteGroundRender` make it an

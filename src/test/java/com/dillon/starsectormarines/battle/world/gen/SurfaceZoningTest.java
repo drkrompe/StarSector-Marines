@@ -108,6 +108,25 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, TargetProfile.NEUTRAL.surface());
     }
 
+    /** Each living type reads as its own look of the one living palette; the terran family is the temperate one. */
+    @Test
+    void livingTypesHaveTheirOwnLook() {
+        assertEquals(LivingWorld.TEMPERATE, SurfaceZoning.livingWorld("terran"));
+        assertEquals(LivingWorld.TEMPERATE, SurfaceZoning.livingWorld("terran-eccentric"));
+        assertEquals(LivingWorld.JUNGLE, SurfaceZoning.livingWorld("jungle"));
+        assertEquals(LivingWorld.TUNDRA, SurfaceZoning.livingWorld("tundra"));
+        assertEquals(LivingWorld.OCEAN, SurfaceZoning.livingWorld("water"));
+        assertEquals(LivingWorld.OCEAN, SurfaceZoning.livingWorld("US_ocean"));
+    }
+
+    /** A world that is not living has no living look, however its id reads: rocky_ice holds "ice", not "water". */
+    @Test
+    void deadAndUnknownWorldsAreTemperateLooks() {
+        assertEquals(LivingWorld.TEMPERATE, SurfaceZoning.livingWorld(null));
+        assertEquals(LivingWorld.TEMPERATE, SurfaceZoning.livingWorld("rocky_ice"));
+        assertEquals(LivingWorld.TEMPERATE, SurfaceZoning.livingWorld("desert"));
+    }
+
     /**
      * Types that share a palette are told apart by their signature, chosen beside the palette rather than as one:
      * the signature never changes which palette a type reads as.

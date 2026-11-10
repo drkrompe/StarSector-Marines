@@ -68,6 +68,9 @@ final class SignatureLook {
     static final float SHADOW_ALPHA = .6f, SHADOW_LIFT = 2.5f;
     /** The vent mound's size in cells. */
     static final float MOUND_CELLS = 6.5f;
+    /** A crack: its opening's colour, its depth's, and the lit lip beside it (its shift by widths, and strength). */
+    static final float[] CRACK_OPEN_RGB = {.2f, .18f, .17f}, CRACK_DEEP_RGB = {.05f, .045f, .04f};
+    static final float CRACK_LIP_SHIFT = .35f, CRACK_LIP_ALPHA = .22f;
     /** The crater decal's bowl spans this share of its width. */
     static final float CRATER_BOWL_SHARE = .52f;
 

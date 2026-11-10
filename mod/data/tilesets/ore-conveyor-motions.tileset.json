@@ -1,0 +1,62 @@
+{
+  "note": "The raised ore conveyor of an open pit (OreLine, voids.md the open pit): each piece draws in the overhead layer above the people walking under it, the straight run's belt scrolling toward the works with its ore. The pieces carry no cover and are never fixtures; only the trestle leg, a ground prop of its own, is solid. Hand-authored: tileset exports rewrite their own documents, so motions live here. See PropMotion.",
+  "motions": [
+    {
+      "doodad": "ore-conveyor.straight",
+      "runs": "always",
+      "parts": [
+        {
+          "part": "ore-conveyor.belt",
+          "kind": "scroll",
+          "layer": "overhead",
+          "window": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "axis": "x",
+          "period": 1,
+          "speed": 0.9
+        },
+        {
+          "part": "ore-conveyor.straight",
+          "kind": "fixed",
+          "layer": "overhead",
+          "at": [
+            0.5,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "doodad": "ore-conveyor.corner",
+      "parts": [
+        {
+          "part": "ore-conveyor.corner",
+          "kind": "fixed",
+          "layer": "overhead",
+          "at": [
+            0.5,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "doodad": "ore-conveyor.drive",
+      "parts": [
+        {
+          "part": "ore-conveyor.drive",
+          "kind": "fixed",
+          "layer": "overhead",
+          "at": [
+            0.5,
+            0.5
+          ]
+        }
+      ]
+    }
+  ]
+}
