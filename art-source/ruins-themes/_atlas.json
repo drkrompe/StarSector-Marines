@@ -184,6 +184,174 @@
       ],
       "padding": 0,
       "order": 14
+    },
+    "cryo-unit-whole.png": {
+      "id": "doodad.ruins-cryo-unit-whole",
+      "name": "Sealed cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 15,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "cryo-unit-half.png": {
+      "id": "doodad.ruins-cryo-unit-half",
+      "name": "Half-built cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, left half-built on the line: bare frame above, plating below.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 16,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "cryo-unit-wrecked.png": {
+      "id": "doodad.ruins-cryo-unit-wrecked",
+      "name": "Wrecked cryo rack unit",
+      "description": "A cryoarithmetic engine's computing rack unit, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 17,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "vat-unit-whole.png": {
+      "id": "doodad.ruins-vat-unit-whole",
+      "name": "Sealed culture vat module",
+      "description": "A sealed bio-culture vat module, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 18,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "vat-unit-half.png": {
+      "id": "doodad.ruins-vat-unit-half",
+      "name": "Half-built culture vat module",
+      "description": "A sealed bio-culture vat module, left half-built on the line: bare frame above, plating below.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 19,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "vat-unit-wrecked.png": {
+      "id": "doodad.ruins-vat-unit-wrecked",
+      "name": "Wrecked culture vat module",
+      "description": "A sealed bio-culture vat module, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 20,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "drone-frame-whole.png": {
+      "id": "doodad.ruins-drone-frame-whole",
+      "name": "Sealed drone frame",
+      "description": "A quad-rotor combat drone airframe, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 21,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "drone-frame-half.png": {
+      "id": "doodad.ruins-drone-frame-half",
+      "name": "Half-built drone frame",
+      "description": "A quad-rotor combat drone airframe, left half-built on the line: bare frame above, plating below.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 22,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "drone-frame-wrecked.png": {
+      "id": "doodad.ruins-drone-frame-wrecked",
+      "name": "Wrecked drone frame",
+      "description": "A quad-rotor combat drone airframe, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 23,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "forge-core-whole.png": {
+      "id": "doodad.ruins-forge-core-whole",
+      "name": "Sealed forge cradle core",
+      "description": "A nanoforge cradle core, finished and sealed, the one the plant never shipped.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 24,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "forge-core-half.png": {
+      "id": "doodad.ruins-forge-core-half",
+      "name": "Half-built forge cradle core",
+      "description": "A nanoforge cradle core, left half-built on the line: bare frame above, plating below.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 25,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "forge-core-wrecked.png": {
+      "id": "doodad.ruins-forge-core-wrecked",
+      "name": "Wrecked forge cradle core",
+      "description": "A nanoforge cradle core, smashed and torn open, its pieces on the floor.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 26,
+      "preserveCanvas": true,
+      "padding": 0
     }
   }
 }

@@ -2,7 +2,7 @@
 
 Each piece is cut mechanically from its raw at its guide frame (``make_guide.py``) carried through the raw's measured
 scale, widened by half a gutter so a piece that bled past its block keeps its edge, then packed by
-``art-source/doodads/stitch_atlas.py`` at 128 px a cell, which crops to the visible pixels and fits each piece to its
+``art-source/doodads/stitch_atlas.py`` at 128 px a cell, 16 cells wide, which crops to the visible pixels and fits each piece to its
 footprint. Floor patches lose their faint outer ring (the near-white feather ImageGen drew round every spill, which
 reads as a halo on the floor) and are capped below opaque so the floor shows through. Run from the repository root:
 
@@ -31,11 +31,17 @@ RAWS = {
     "vats": ("ruins-vats.raw.png", ("culture-vat", "grow-bed")),
     "patches": ("ruins-patches.raw.png", ("frost-patch-a", "frost-patch-b", "growth-patch-a", "growth-patch-b")),
     "plant-store": ("ruins-plant-store.raw.png", ("rack-stripped", "rack-crates", "dock-door")),
+    "products-a": ("ruins-products-a.raw.png", tuple(f"{p}-{s}" for p in ("cryo-unit", "vat-unit")
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-b": ("ruins-products-b.raw.png", tuple(f"{p}-{s}" for p in ("drone-frame", "forge-core")
+                                                     for s in ("whole", "half", "wrecked"))),
 }
 
 # Pieces cut at their exact guide frame instead of half a gutter wider: the dock door bled into the gutter beside
 # the racks, so a wider rack cut picks up its edge.
-TIGHT = {"rack-stripped", "rack-crates"}
+# Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
+# scale and the wrecked one's fallen fragments stay where they lie.
+TIGHT = {"rack-stripped", "rack-crates"} | set(RAWS["products-a"][1]) | set(RAWS["products-b"][1])
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -95,7 +101,7 @@ def main() -> None:
             output_manifest=ROOT / "mod" / "data" / "tilesets" / "ruins-themes.tileset.json",
             sheet_path="graphics/doodads/ruins-themes.png",
             metadata_path=HERE / "_atlas.json",
-            columns=8,
+            columns=16,
             cell_size=CELL_PX,
             padding=4,
             id_prefix="doodad.",
