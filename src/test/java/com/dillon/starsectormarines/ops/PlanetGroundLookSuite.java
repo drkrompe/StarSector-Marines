@@ -23,7 +23,7 @@ import java.util.Locale;
 
 /**
  * One settled map on every surface palette: the size-4 heavy-industry Raid site (seed 7) built on a rock, a desert,
- * a frozen and a living world, so the colony's own ground can be judged against the planet's
+ * a frozen, an irradiated and a living world, so the colony's own ground can be judged against the planet's
  * ({@code mapgen-nouns.md}, cultivated ground). Each palette is framed whole ({@code <palette>-whole.png}) and at
  * play zoom on the town by the landing ({@code <palette>-town.png}), look preset; a desert and a frozen world under
  * storms add {@code <palette>-storm-*} with their drifts. Nothing is played.
