@@ -38,7 +38,12 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */
-        OPEN_PIT
+        OPEN_PIT,
+        /**
+         * The gorge river's dry sister on barren and desert worlds: rock walls, dusty ledges, and a dry wash of sand
+         * and scree on the floor.
+         */
+        CANYON
     }
 
     /**

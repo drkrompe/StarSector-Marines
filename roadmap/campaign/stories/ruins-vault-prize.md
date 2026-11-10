@@ -15,6 +15,8 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
 - Tech caches along the delve (sealed stores, the guardian's court, the vault
   store's deepest layer) settled as rolls of vanilla equipment, and the prize's
   row on the results screen.
+- One works twist per theme (`RuinsWorksTwist`), built on the recommended set
+  while the owner's pick on it is open.
 
 The slices below are what is left.
 
@@ -39,7 +41,6 @@ the ruins and guesses what is inside before committing the company.
    through the occupant's own instruments (`RuinsSurvey`).
 3. **Themed works and art.** Furniture and the close reading are built. Still
    owed, through picks with look shots:
-   - The works' twist per theme (heat valves, magnet gates, coolant junctions).
    - Art made for a theme where the shipped props fall short: frost, vats,
      a forge floor.
    - Theme on the approach outside.
