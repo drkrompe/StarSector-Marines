@@ -30,15 +30,13 @@ import java.util.Locale;
 /**
  * A squad inside a stood-up building as its roof is cut away ({@code voids.md}, buildings in depth): a home in an open
  * verdant town with a garrison squad set in its rooms and three more in the street behind it, at play zoom with the roof on
- * ({@code cutaway-roof.png}), half faded ({@code cutaway-half.png}) and gone ({@code cutaway-open.png}), the same with
- * the near walls ghosted rather than dropped ({@code cutaway-ghost-*.png}, {@code battle.render.cutawayWalls=ghost}),
+ * ({@code cutaway-roof.png}), half faded ({@code cutaway-half.png}) and gone ({@code cutaway-open.png}),
  * then a pan past it cut away ({@code cutaway-pan-NN.png}). The roof's fade is set on the building as the visibility pass would;
  * nothing is played. Look preset.
  */
 public final class BuildingCutawayLookSuite implements SnapshotSuite {
 
     private static final int PAN_FRAMES = 60;
-    private static final String CUTAWAY = "battle.render.cutawayWalls";
     /** Cells the view stands off the home, so its near walls turn to the camera. */
     private static final float OFF_X = 19f, OFF_Y = 9f;
     private static final float PAN_CELLS = 12f;
@@ -65,22 +63,11 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
                         + " cells at " + cx + "," + cy);
                 String[] names = {"roof", "half", "open"};
                 float[] alphas = {1f, .5f, 0f};
-                String was = System.getProperty(CUTAWAY);
-                try {
-                    for (String style : new String[]{"stub", "ghost"}) {
-                        System.setProperty(CUTAWAY, style);
-                        for (int k = 0; k < names.length; k++) {
-                            if (style.equals("ghost") && k == 0) continue;
-                            home.currentAlpha = home.targetAlpha = alphas[k];
-                            home.currentFog = home.targetFog = 0f;
-                            String name = style.equals("stub") ? "cutaway-" + names[k] : "cutaway-ghost-" + names[k];
-                            out.add(new SnapshotArtifact(name + ".png", BattleReviewFrameRenderer.look(context.modRoot(),
-                                    1920, 1080, vx, vy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
-                        }
-                    }
-                } finally {
-                    if (was == null) System.clearProperty(CUTAWAY);
-                    else System.setProperty(CUTAWAY, was);
+                for (int k = 0; k < names.length; k++) {
+                    home.currentAlpha = home.targetAlpha = alphas[k];
+                    home.currentFog = home.targetFog = 0f;
+                    out.add(new SnapshotArtifact("cutaway-" + names[k] + ".png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, vx, vy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
                 }
                 for (int f = 0; f < PAN_FRAMES; f++) {
                     float t = f / (PAN_FRAMES - 1f) * 2f - 1f;

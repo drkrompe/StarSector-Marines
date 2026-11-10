@@ -636,9 +636,8 @@ Laws):
    A stood-up roof, or a far wall, is drawn over the street just past its
    building. A unit standing there, outside any building, gets a small mark
    in its side's colour over the roofs, and fog of war still hides enemies.
-   A ghosted near wall (whole height, faded) is the A/B against the knee stub
-   (`battle.render.cutawayWalls`, picks question voids-cutaway-walls). Look
-   suite: `createSnapshots -Psnapshot=building-cutaway-look`.
+   The owner chose the knee stub over a ghosted full-height wall. Look suite:
+   `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
    topology change. Windows and doors are drawn only where a cell spans
    10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);
