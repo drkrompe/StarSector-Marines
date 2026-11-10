@@ -45,5 +45,18 @@ class HeldPlacesTest {
     @Test
     void aLandingSiteIsOpenGroundNotABuilding() {
         assertTrue(HeldPlaces.fromBuildings(List.of(BERTH), poi -> Faction.ALLY).isEmpty());
+        assertFalse(HeldPlaces.heldOncePublished(BERTH, List.of()));
+    }
+
+    @Test
+    void aBuildingIsHeldOncePublishedUnlessAnotherNodeAlreadyStandsOnIt() {
+        assertTrue(HeldPlaces.heldOncePublished(DEPOT, List.of()), "no node yet: publishing makes it one");
+        TacticalNode atAnchor = new TacticalNode(TacticalNode.Kind.BARRACKS, 14, 24, 10, 20, 18, 27,
+                Faction.DEFENDER, 60, 4);
+        assertTrue(HeldPlaces.heldOncePublished(DEPOT, List.of(atAnchor)), "a node at its interior anchor holds it");
+        TacticalNode elsewhere = new TacticalNode(TacticalNode.Kind.BARRACKS, 11, 21, 10, 20, 18, 27,
+                Faction.DEFENDER, 60, 4);
+        assertFalse(HeldPlaces.heldOncePublished(DEPOT, List.of(elsewhere)),
+                "left to a node anchored elsewhere on it, so nothing is entered at its interior anchor");
     }
 }
