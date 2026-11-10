@@ -2267,15 +2267,21 @@ world's town is not a garden world's open town on grey ground (owner). `Habitat`
 says how the town lives where it stands, and `HabitatZoning` decides it from the
 hazards, which are the campaign's own statement of what the air does: hard
 radiation **shields** a town, and air that kills or is not there **seals** it.
-Shielding answers both, so radiation wins; every other world, and every battle
-with no market behind it (`Climate.NONE`), builds the **open** town it always did.
+Shielding answers both, so radiation wins. Where the air does nothing to its
+people the town is still built for its ground, read from the palette so a site
+with no market behind it adapts too: a frozen world **insulates**. Every other
+world builds the **open** town it always did.
 
 - **Shielded.** Every town building's shell is poured concrete (the installation
   wall's brutalist look, a block of its own, so the town is never marked as a
   fort's lot) under a flat slab roof.
 - **Sealed.** Masonry houses are rebuilt as white ceramic panel blocks; the olive
   prefabs stay as they are.
-- **Both** mark a striped threshold on open ground outside every outside door, the
+- **Insulated.** Brick and steel that hold heat: the white ceramic blocks are
+  rebuilt in brick. Its people still walk between buildings, so its parks and
+  doors are the open town's. A site that lays its own town (the frozen crevasse
+  town) calls `HabitatStage.apply` after stamping it.
+- **Shielded and sealed** mark a striped threshold on open ground outside every outside door, the
   decontamination or airlock apron, and pave each park as a service court whose
   edge holds oxygen spheres, the life support kept outside where a leak vents to
   nothing, instead of benches (`ParkFiller`, on the park's own draws).
@@ -2289,7 +2295,7 @@ which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
 Still to come, in this vocabulary: enclosed walkways linking a sealed town's
-blocks; frozen towns insulated and compact, volcanic towns raised and heat
+blocks; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.

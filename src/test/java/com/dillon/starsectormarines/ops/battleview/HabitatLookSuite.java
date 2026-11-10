@@ -44,12 +44,17 @@ public final class HabitatLookSuite implements SnapshotSuite {
 
     @Override public String label() { return "Towns built for their world: open, sealed, shielded, same seed"; }
 
-    private record Take(String tag, Climate climate, String shieldWall) { }
+    private record Take(String tag, SurfacePalette ground, Climate climate, String shieldWall) {
+        Take(String tag, Climate climate, String shieldWall) {
+            this(tag, SurfacePalette.ROCK, climate, shieldWall);
+        }
+    }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         List<Take> takes = List.of(
                 new Take("open", Climate.NONE, null),
+                new Take("frozen-insulated", SurfacePalette.FROZEN, Climate.NONE, null),
                 new Take("sealed", new Climate(EnumSet.of(Climate.Hazard.TOXIC)), null),
                 new Take("shielded", new Climate(EnumSet.of(Climate.Hazard.RADIATION)), null),
                 new Take("shielded-earthwork", new Climate(EnumSet.of(Climate.Hazard.RADIATION)),
@@ -63,13 +68,13 @@ public final class HabitatLookSuite implements SnapshotSuite {
                 float[] focus = null;
                 for (Take take : takes) {
                     TargetProfile profile = new TargetProfile(5, 5, 1, 1, "independent",
-                            EnumSet.of(EconomicFunction.HABITATION), SurfacePalette.ROCK, SettlementLink.ROAD)
+                            EnumSet.of(EconomicFunction.HABITATION), take.ground(), SettlementLink.ROAD)
                             .withClimate(take.climate());
                     MapResult map = new BspCityGenerator().generate(MAP_W, MAP_H, seed, null, profile);
                     if (take.shieldWall() != null) resurface(map.topology, Habitat.SHIELD_WALL, take.shieldWall());
                     try (BattleSimulation sim = new BattleSimulation(map.grid, map.topology)) {
                         for (Doodad d : map.doodads) sim.addDoodad(d);
-                        sim.setSurface(SurfacePalette.ROCK);
+                        sim.setSurface(take.ground());
                         if (focus == null) focus = busiest(map.topology, (int) PLAY_ZOOM_CELLS);
                         String tag = "habitat-seed" + seed + "-" + take.tag() + "-";
                         int w = map.topology.getWidth(), h = map.topology.getHeight();
