@@ -328,15 +328,17 @@ public final class RaidSiteTemplate {
         Side deep = mirrorX ? Side.WEST : Side.EAST;
         Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
         List<Road> out = new ArrayList<>();
-        // Each runs to the works' gate: a carved road is kept only where it joins the network, and beside a walled
-        // place's gate is where it does. Through a district's ground it is that district's streets.
+        // Each runs to the works' gate, where its wall opens onto it and the road carries on to the works' streets.
+        // Each is laid through the districts on its course, as their street, so the line shows across them.
         out.add(new Road(HAUL_ROAD, Endpoint.beside(INDUSTRY, deep, 0, 0), Endpoint.gate(WORKS, deep.opposite()),
-                LINE_WIDTH, false));
+                LINE_WIDTH, false).laidThrough());
         out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT),
-                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false));
+                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false)
+                .laidThrough());
         if (!pit) {
             out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT),
-                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false));
+                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false)
+                    .laidThrough());
         }
         return out;
     }
