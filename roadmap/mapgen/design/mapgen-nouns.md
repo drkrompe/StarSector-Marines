@@ -831,6 +831,17 @@ beside the other, meeting no crossing street, *tapers* into it over six cells
 with a diagonal stroke instead of stepping square across the carriageway.
 The `city-junctions` snapshot suite frames the junctions as generated.
 
+**A street graph** (`StreetGraph`) reads a road mask as a planner reads it:
+*streets*, maximal straight bands three or more cells broad and at least two
+breadths long, each one width; *junctions* where a horizontal and a vertical
+street share cells, typed by the arms that leave them (bend, tee, cross); and
+*dead ends*, street ends meeting no crossing street, no street running on and
+not the map's edge. It counts what reads as unplanned: dead ends, *offset tees*
+(two tees on one street a few cells apart with side streets on opposite sides,
+a cross pulled apart) and *width steps* (a street running on into one of
+another breadth). It changes no ground; it is the measure street rules are
+judged by.
+
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
 asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
