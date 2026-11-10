@@ -2515,7 +2515,10 @@ pairing makes: streets, blocks and courts inside, ordinary doors on its building
 and a wall drawn on the outline of what grew, like a garrison's. Its wall keeps two
 locks, where its widest roads meet it, any more the map's road network needs to
 stay connected, and one onto every stretch of open ground it borders that no road
-reaches (`SealedTown.groundLocks`), so it never seals a field off. The wall is an
+reaches (`SealedTown.groundLocks`), so it never seals a field off. A lock is
+sited where its way in reaches the town's streets (`SealedTown.streetward`), not
+into a yard shut in by buildings, and the defences build nothing across its way
+in or out (`SealedTown.lockWays`). The wall is an
 envelope, not a line (`SealedTown.envelope`): a one-cell outline read as a thin
 line wrapped round the town (owner). It stands three cells through on the town's
 own outermost ground (`SealedTown.band`), which is held back from the town's
@@ -2535,9 +2538,9 @@ capped top, and a service pipe along its inner face (`FreestandingWalls`, Part).
 It owns no emplacements. Outside is bare
 ground with no outlying places. The garrison stays its own walled compound. Radiation
 is answered the same way: the wall stands for the whole shielded envelope, roof
-included, as it does for air. A story map on such a world plays its mission's
-sealed layout (`story-map-pools.md`, Sealed layout): every town the mission names
-sealed where it stands.
+included, as it does for air. An owned map on such a world, a story mission's
+or the Raid's, plays its sealed layout (`story-map-pools.md`, Sealed layout):
+every town it names sealed where it stands.
 
 A habitat is presentation only and never moves a wall, door, window or road: the
 town plan, walkability, sight and every rule are the open town's on the same seed,

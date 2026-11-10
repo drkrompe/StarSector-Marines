@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6a5-2349-7111-b21a-a691d3ea8a2b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6a5-2349-7111-b21a-a691d3ea8a2b\\exec-535c47f2-dae5-42e5-9a29-3a6ad56cc4a3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-works-vessels-a.raw.png",
+    "sha256": "06f18004aa73a2c348836711f2eb6ba1d48001ff74d87f54edb1ea9f28425933",
+    "dimensions": [
+      1600,
+      983
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\works-vessels-a.prompt.txt",
+  "promptSha256": "014aeffe9d8cfa027851dde86e28fde96b1d3eed2a8706836de85d8c56b16f53",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same complex's machinery; not layout\nImage 3: Machinery design and era: the same world's mass driver; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: big process vessels seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white area is frost; the pale beige area is spilled feedstock powder lying on the floor.\nStyle: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.\nView: strictly top-down. Only the roofs and top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. A round vessel reads as a circle with its domed or conical roof. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. feedstock-silo (5x5): a big round powder feedstock silo seen from above: its conical roof plated in twelve ribbed segments, a fill hatch at the apex, a walkway rail round the rim.\n2. feedstock-silo-split (5x5): the same silo split open down its east side: a torn black gash in the roof, a fan of pale feedstock powder spilled out to the east edge.\n3. reactor-column (5x5): a catalytic reactor column seen from above standing in a square grated platform: a heavy round top head with a ring of big flange bolts, a central nozzle and manway.\nBottom row left to right:\n4. product-tank (3x3): a round product tank on a square grated platform: domed roof, a manway, two nozzles.\n5. lattice-tank (2x2): a square cryogenic lattice tank, frost on its inspection window, a central port.\n6. coating-chamber (4x4): a square vacuum coating chamber on its plinth: a big round sealed door ring on its top, a heavy hinge block on its east side, four corner pumps.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-works-vessels-a-guide.png",
+      "sha256": "190d23b53956653b3a597896133b494372741984529886429378d5275706961e",
+      "dimensions": [
+        2656,
+        1632
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-kit.raw.png",
+      "sha256": "b3bbc9d846deb6733ae98397748ecc6d1d9ef1fb363033d0609271536a06ccbe",
+      "dimensions": [
+        1654,
+        951
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's machinery; not layout"
+    },
+    {
+      "path": "art-source\\voids\\open-pit\\pit-massdriver.png",
+      "sha256": "4829e1c0e1d407e665d92e7138fdb83e53deb80c20aa290eeb46cc23a832f60e",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Machinery design and era: the same world's mass driver; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using the first image’s exact layout and the other two images’ machinery style."
+  ],
+  "usage": {
+    "input_tokens": 52559,
+    "cached_input_tokens": 39040,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 807,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.4
+}

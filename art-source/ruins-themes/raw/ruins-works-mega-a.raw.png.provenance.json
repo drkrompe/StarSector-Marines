@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6ab-c099-7780-92ca-936ff355e791",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6ab-c099-7780-92ca-936ff355e791\\exec-1b9241a5-d224-4a99-af49-4d81f1609fd7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-works-mega-a.raw.png",
+    "sha256": "737bd9d76c4d517234baab0db48d9fbaadcf04df56e173ba38d1a992fd4caf2b",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\works-mega-a.prompt.txt",
+  "promptSha256": "c575805ba500af286249f8e24f4164d9671c9546101b6492788a8c04a3696aeb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same complex's machinery; not layout\nImage 3: Identity and material: the same complex's plant; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide; these pieces are giant: the headframe is twelve cells across.\nEra: spacefaring industry, automated and robot- or field-handled, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. Colour keys in the block-out: pale blue-white is frost or glass; dull green is grown culture; brown is earth and rock spoil; copper-brown squares are copper windings; pale gold is a faint dying glow.\nStyle: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.\nView: strictly top-down. Only the top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, left to right:\n1. headframe (12x12): a mine shaft headframe seen straight down from above: a heavy steel lattice frame round all four sides with four massive corner towers, two big sheave wheels on their axle beams across it. Its middle between the beams is open and fully transparent: the shaft below shows through it.\n2. print-gantry (6x6): an overhead print gantry seen from above: two runway rails along its north and south edges, a bridge beam across them north-south with the print head carriage at its middle. Everything else is open and fully transparent.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-works-mega-a-guide.png",
+      "sha256": "d0c4d8b34f55df518164d36e9369a7e838bd1186689b77a12b71bfd7f702ead5",
+      "dimensions": [
+        2208,
+        1472
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-kit.raw.png",
+      "sha256": "b3bbc9d846deb6733ae98397748ecc6d1d9ef1fb363033d0609271536a06ccbe",
+      "dimensions": [
+        1654,
+        951
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's machinery; not layout"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-plant-a.raw.png",
+      "sha256": "1ac4b15e27d4ce337ea77082bbd6cf8c4d8e183de49a7192e2e2c8428a9f8048",
+      "dimensions": [
+        1805,
+        871
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's plant; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, preserving Image 1’s geometry and matching the machinery materials in Images 2 and 3."
+  ],
+  "usage": {
+    "input_tokens": 52310,
+    "cached_input_tokens": 39040,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 916,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.9
+}

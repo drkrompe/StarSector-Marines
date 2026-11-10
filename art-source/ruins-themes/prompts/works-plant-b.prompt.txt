@@ -1,0 +1,17 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: winders, a particle beam dump, accelerator ring pieces and racks seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper magnet windings; the pale blue-white areas are frost. The pale grey bars running out of the ring segment, RF cavity, linac and beam dump are the beam pipe: keep them in line, north-south, flush to the block edges.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. hoist-winder (4x4): a mine shaft hoist winder: a big grooved winding drum east-west between two heavy bearing pedestals on a bedplate, two hoist cables leaving its north edge.
+2. winder (4x4): a fibre spool winder: a square machine bed with a large round dark turntable in its middle and a spindle hub at its centre (a spool drum is mounted on it separately, so leave the turntable bare), a traverse guide on its east side.
+3. beam-dump (4x4): a particle beam dump: a massive shielded block, the beam pipe entering from the north edge into its armoured core plug, cooling channels across it.
+Bottom row left to right:
+4. ring-segment (3x3): a storage ring dipole magnet segment: a heavy iron yoke with copper windings down both sides, the beam pipe running north-south through its middle, flush to both edges.
+5. rf-cavity (2x3): an RF accelerating cavity: two round copper-cored cavity cells on the beam pipe, a waveguide stub on its east side.
+6. linac-section (2x3): a linear accelerator section: a frosted cryomodule on the beam pipe, stiffener rings across it.
+7. cutter-rack (2x4): a rack of spare bore cutter discs: four shelves, two heavy cutter discs on each.
+8. drum-rack (2x4): a rack of full fibre spool drums: four shelves, one dark-wound drum on each.

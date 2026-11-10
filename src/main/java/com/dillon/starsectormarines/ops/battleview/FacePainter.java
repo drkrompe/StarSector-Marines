@@ -77,10 +77,8 @@ final class FacePainter {
      * ground and its top at the lift about the view's centre.
      */
     private void point(float t, float z, int at) {
-        float fx = fax + (fbx - fax) * t, fy = fay + (fby - fay) * t;
-        float tx = sx + (ax + (bx - ax) * t - sx) * lift, ty = sy + (ay + (by - ay) * t - sy) * lift;
-        xy[at] = fx + (tx - fx) * z;
-        xy[at + 1] = fy + (ty - fy) * z;
+        xy[at] = BuildingFaces.onFace(fax + (fbx - fax) * t, ax + (bx - ax) * t, sx, lift, z);
+        xy[at + 1] = BuildingFaces.onFace(fay + (fby - fay) * t, ay + (by - ay) * t, sy, lift, z);
     }
 
     /** A chunk of rubble on the ground {@code out} cells from the wall's foot at {@code t}, {@code size} cells across. */

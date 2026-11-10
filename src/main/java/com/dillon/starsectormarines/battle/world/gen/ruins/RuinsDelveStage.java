@@ -1804,21 +1804,26 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
-         * Lays one planned piece at the hall's corner {@code (x0, y0)}: its own art when it has shipped, else its
-         * stand-in tiled over its footprint, centred. A standing piece blocks where the hall stays one floor; any
+         * Lays one planned piece at the hall's corner {@code (x0, y0)}: its own art when it has shipped and fits, else
+         * its stand-in, either tiled at its own size over the piece's footprint, centred. A standing piece blocks where the hall stays one floor; any
          * other is drawn, at {@code under} when that is not negative.
          */
         private void tile(TileRegistry registry, WorksHallPlan.Piece p, int x0, int y0, int under, Area hall,
                           Cell centre) {
-            DoodadDef def = registry.doodad(p.id());
-            if (def == null && p.standIn() != null) def = registry.doodad(p.standIn());
-            if (def == null) return;
-            int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
-            if (def.id.equals(p.id())) {
-                fx = p.w();
-                fy = p.h();
+            // Its own art where it fits the planned footprint, else its stand-in; each tiled at its own size.
+            DoodadDef def = null;
+            int fx = 0, fy = 0;
+            for (String id : new String[]{p.id(), p.standIn()}) {
+                DoodadDef d = id == null ? null : registry.doodad(id);
+                if (d == null) continue;
+                int dx = Math.max(1, d.footprintCellsX), dy = Math.max(1, d.footprintCellsY);
+                if (dx > p.w() || dy > p.h()) continue;
+                def = d;
+                fx = dx;
+                fy = dy;
+                break;
             }
-            if (fx > p.w() || fy > p.h()) return;
+            if (def == null) return;
             int nx = p.w() / fx, ny = p.h() / fy;
             int ox = x0 + p.x() + (p.w() - nx * fx) / 2, oy = y0 + p.y() + (p.h() - ny * fy) / 2;
             for (int ty = 0; ty < ny; ty++) {

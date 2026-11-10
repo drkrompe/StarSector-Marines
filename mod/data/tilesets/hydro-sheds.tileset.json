@@ -3,13 +3,13 @@
   "cells": [
     {
       "col": 0,
-      "description": "Pressurised hydroponic shed: ribbed steel roof split by two lit grow-light skylights over crop racks, roof fans, airlock west, pipes on the south eave. Covered farm on a hostile world; walk-in, no cover.",
+      "description": "Hydroponic shed sunk into the ground: a low roof ridge with two amber grow-light skylights above grade, earth banked up all four sides (owner: \"embed them into the earth\"). The bank is shading only, so it takes the planet's ground. Walkable earth mound: light cover, half height 0.18; vehicles pass.",
       "name": "doodad.hydro-shed",
       "row": 0
     },
     {
       "col": 6,
-      "description": "The hydroponic shed half as long, to end a row or fill a short plot.",
+      "description": "The sunken shed half as long, to end a row or fill a short plot. Walkable earth mound: light cover, half height 0.18.",
       "name": "doodad.hydro-shed-short",
       "row": 0
     },
@@ -22,9 +22,9 @@
   ],
   "doodads": [
     {
-      "ballisticHalfHeight": 0.3,
+      "ballisticHalfHeight": 0.18,
       "col": 0,
-      "cover": "none",
+      "cover": "light",
       "footprintCells": [
         6,
         3
@@ -33,9 +33,9 @@
       "row": 0
     },
     {
-      "ballisticHalfHeight": 0.3,
+      "ballisticHalfHeight": 0.18,
       "col": 6,
-      "cover": "none",
+      "cover": "light",
       "footprintCells": [
         3,
         3

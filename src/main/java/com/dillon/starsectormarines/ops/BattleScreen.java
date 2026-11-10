@@ -2385,7 +2385,19 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
-        BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt);
+        BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), dt, peekBuilding(sim));
+    }
+
+    /**
+     * The building the pointer is over, opened as a peek while it stays there ({@link BuildingVisibilityPass}), or 0
+     * when the pointer is off the world or over the battle's chrome.
+     */
+    private int peekBuilding(BattleSimulation sim) {
+        if (camera == null || renderer == null || !directControlInput.pointerKnown()) return 0;
+        float px = directControlInput.pointerX(), py = directControlInput.pointerY();
+        if (!camera.containsScreen(px, py) || battleChromeBlocksWorldPointer(px, py)) return 0;
+        return renderer.buildingUnderPointer(sim, camera.screenToCellX(px), camera.screenToCellY(py),
+                camera.panCellX(), camera.panCellY());
     }
 
     /**

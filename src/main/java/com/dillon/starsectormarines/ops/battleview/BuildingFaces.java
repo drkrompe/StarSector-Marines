@@ -271,6 +271,15 @@ final class BuildingFaces {
     }
 
     /**
+     * Where a face shows the point {@code z} of the way up it (a share of its height), along one axis: between its
+     * foot {@code foot} on the ground and its eave {@code eave} lifted by {@code lift} about the view's centre
+     * {@code c}. The face is painted so ({@code FacePainter}), and whatever hangs on it is fixed to it so.
+     */
+    static float onFace(float foot, float eave, float c, float lift, float z) {
+        return foot + (lifted(eave, c, lift) - foot) * z;
+    }
+
+    /**
      * The ground point a plan lifted by {@code lift} shows at {@code p}: what of a building {@code h} metres up is
      * drawn over a ground point, so whether a unit standing there is hidden behind it.
      */

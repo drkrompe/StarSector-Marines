@@ -73,8 +73,10 @@ final class ShaftHall {
             p.wear("doodad.ruins-oil-stain", f.cx - 3, y0 - 3, 2, 2);
         }
         // The crane's runways either side of the line; the head it dropped short of the shaft.
-        f.tray("doodad.ruins-crane-runway", "doodad.ruins-fallen-girder", f.cx - 3, HallFrame.DISPATCH + 2, sb - 3, -1);
-        f.tray("doodad.ruins-crane-runway", "doodad.ruins-fallen-girder", f.cx + 2, HallFrame.DISPATCH + 2, sb - 3, -1);
+        for (int y = HallFrame.DISPATCH + 2; y + 3 <= sb - 3; y += 4) {
+            p.overhead("doodad.ruins-crane-runway", null, f.cx - 3, y, 1, 4);
+            p.overhead("doodad.ruins-crane-runway", null, f.cx + 2, y, 1, 4);
+        }
         if (f.stand("doodad.ruins-bore-head-wrecked", null, f.cx - 1, f.headY - 6, 3, 3, WorksHallPlan.COLLAPSE)) {
             p.wear("doodad.ruins-scorch-arc", f.cx - 3, f.headY - 5, 2, 2);
             spoil.add(new int[]{f.cx, f.headY - 5});
