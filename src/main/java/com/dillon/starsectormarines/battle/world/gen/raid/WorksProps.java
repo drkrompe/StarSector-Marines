@@ -68,6 +68,29 @@ public final class WorksProps {
         return true;
     }
 
+    /**
+     * A floor marking ({@code id}, a prop of no cover painted on the ground) with its corner at {@code (x, y)}, turned
+     * {@code turns} quarter turns, if every cell under it is open outdoor ground; returns whether it was laid. Unlike
+     * {@link #place} it blocks nothing: the cells stay walkable and are no fixture.
+     */
+    public static boolean decal(GenContext c, int x, int y, String id, int turns) {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return false;
+        DoodadDef def = registry.doodad(id.startsWith("doodad.") ? id : "doodad." + id);
+        if (def == null) return false;
+        Doodad mark = new Doodad(x, y, def, turns);
+        for (int yy = y; yy < y + mark.footprintCellsY; yy++) {
+            for (int xx = x; xx < x + mark.footprintCellsX; xx++) {
+                if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)
+                        || c.topology.isWall(xx, yy) || c.topology.getBuildingId(xx, yy) != 0) {
+                    return false;
+                }
+            }
+        }
+        c.doodads.add(mark);
+        return true;
+    }
+
     /** Whether a {@code w} by {@code h} footprint with its corner at {@code (x, y)} may take a prop. */
     public static boolean open(GenContext c, int x, int y, int w, int h) {
         LayoutGround ground = new LayoutGround(c);
