@@ -142,7 +142,9 @@ three builds).
 
 - **The hall frame and the doors.** It cannot pass a corridor or a two-cell
   door. A dead door (stuck part-open, the cells under its leaves wall) narrows a
-  join below its width; a hall frame that must pass one **forces** it, standing
+  join below its width; a hall frame that must pass one **forces** it (the dead
+  door on the edge of the ground it reaches, nearest its way out, even past its
+  own hall's face: `DerelictSecurity.blockingDoor`), standing
   against it for `FORCE_SECONDS` until a leaf tears out, and the door is forced
   for good, open to everyone (`DerelictWalkerClass.FORCE_SECONDS`). A sealed
   door holds it. So the company can keep a hall frame in its hall by leaving a
