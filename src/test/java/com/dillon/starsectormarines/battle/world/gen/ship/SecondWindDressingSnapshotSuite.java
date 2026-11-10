@@ -156,6 +156,20 @@ public final class SecondWindDressingSnapshotSuite implements SnapshotSuite {
                     name + "/0" + index++ + "-" + purpose.name().toLowerCase().replace('_', '-') + ".png",
                     caption + " - " + purpose.name().toLowerCase().replace('_', ' ') + " and passages"));
         }
+        // Close on the compartment doors: one across x, one across y, one sealed, at near the closest zoom.
+        RoomDoor alongX = null, alongY = null, sealed = null;
+        for (RoomDoor door : scene.roomDoors()) {
+            if (door.locked()) { if (sealed == null) sealed = door; }
+            else if (door.spanX()) { if (alongX == null) alongX = door; }
+            else if (alongY == null) alongY = door;
+        }
+        String[] names = {"door-along-x", "door-along-y", "door-sealed"};
+        RoomDoor[] doors = {alongX, alongY, sealed};
+        for (int i = 0; i < doors.length; i++) {
+            if (doors[i] == null) continue;
+            out.add(frame(renderer, scene, new ShipDeckBattleScene.DeckView(doors[i].centerX(), doors[i].centerY(), 160f),
+                    name + "/0" + index++ + "-" + names[i] + ".png", caption + " - " + names[i].replace('-', ' ')));
+        }
         return out;
     }
 
