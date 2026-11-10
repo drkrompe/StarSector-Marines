@@ -34,7 +34,6 @@ final class PrintHall {
 
         // The frame conveyor down the line, from the head to the cage.
         for (int y = cageT + 2; y + 1 <= f.headY - 1; y += 2) {
-            if (f.middle(f.cx, y) || f.middle(f.cx, y + 1)) continue;
             p.floor("doodad.ruins-frame-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "print");
         }
         p.zone(f.cx, cageT + 2, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);

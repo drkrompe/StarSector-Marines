@@ -11,7 +11,8 @@ import java.util.List;
  * The feed comes up the west rail from the intake to the head; the work runs down the line from the head to the
  * dispatch end; the east lane carries the hall's waste or return. Every aisle is a frame's way wide
  * ({@link WorksHallPlan#FRAME_WAY}), the stations take the width that is left, and bays repeat down the line every
- * {@link #PERIOD} rows with a cross aisle between. The hall's middle is kept clear, where its corridor arrives.
+ * {@link #PERIOD} rows with a cross aisle between. A transfer aisle across the middle is kept clear from wall to wall,
+ * where the corridor arrives and a hall frame stands its post.
  */
 final class HallFrame {
 
@@ -55,18 +56,35 @@ final class HallFrame {
         return bays(DISPATCH + 4);
     }
 
-    /** {@link #bays()}, the lowest no lower than row {@code lo}. */
+    /**
+     * {@link #bays()}, the lowest no lower than row {@code lo}: spread above the transfer aisle and below it, so no bay
+     * is cut by it.
+     */
     List<Integer> bays(int lo) {
         int hi = headY - 2 - BAY;
         List<Integer> out = new ArrayList<>();
-        if (hi < lo) return out;
-        int n = (hi - lo) / PERIOD + 1;
-        for (int k = 0; k < n; k++) out.add(n == 1 ? hi : hi - Math.round((float) k * (hi - lo) / (n - 1)));
+        int aisleTop = l / 2 + 2, aisleBottom = l / 2 - 1;
+        if (aisleBottom > hi || aisleTop < lo) {
+            spread(out, lo, hi);
+        } else {
+            spread(out, Math.max(lo, aisleTop + 2), hi);
+            spread(out, lo, Math.min(hi, aisleBottom - 2 - BAY));
+        }
         return out;
     }
 
-    /** Whether a cell is the hall's middle, kept clear where the corridor arrives. */
-    boolean middle(int x, int y) { return Math.abs(x - w / 2) <= 2 && Math.abs(y - l / 2) <= 2; }
+    /** Bays a period or more apart from {@code hi} down to {@code lo}, the ends on both. */
+    private static void spread(List<Integer> out, int lo, int hi) {
+        if (hi < lo) return;
+        int n = (hi - lo) / PERIOD + 1;
+        for (int k = 0; k < n; k++) out.add(n == 1 ? hi : hi - Math.round((float) k * (hi - lo) / (n - 1)));
+    }
+
+    /**
+     * Whether a cell is in the hall's transfer aisle: four rows across its whole width through the middle, where its
+     * corridor arrives and a hall frame stands its post, kept clear from wall to wall.
+     */
+    boolean middle(int x, int y) { return y >= l / 2 - 1 && y <= l / 2 + 2; }
 
     /** Stands a piece unless it would cover the hall's middle or its edge ring. */
     boolean stand(String id, String standIn, int x, int y, int fw, int fh, String station) {

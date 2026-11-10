@@ -128,11 +128,12 @@ class PlanetSkinTest {
 
     @Test
     void theCoveredFarmStandsInsideItsHeadlandInRowsWithALaneRoundEveryPiece() {
+        for (PlanetSkin.FarmLook look : EnumSet.complementOf(EnumSet.of(PlanetSkin.FarmLook.BARE)))
         for (boolean alongX : new boolean[]{true, false}) {
             RuralLayout.Plot plot = alongX ? new RuralLayout.Plot(10, 20, 40, 33, RuralLayout.Use.ROW_CROP, true, false)
                     : new RuralLayout.Plot(10, 20, 23, 50, RuralLayout.Use.GRAIN, false, false);
-            List<PlanetSkin.Placed> farm = PlanetSkin.covered(plot);
-            assertTrue(farm.stream().anyMatch(p -> p.piece() == PlanetSkin.Cover.TUNNEL));
+            List<PlanetSkin.Placed> farm = PlanetSkin.covered(plot, look);
+            assertTrue(farm.stream().anyMatch(p -> p.piece() == look.row), look.name());
             for (PlanetSkin.Placed p : farm) {
                 assertEquals(alongX ? 0 : 1, p.turns());
                 assertTrue(p.x() > plot.x0() && p.y() > plot.y0()
@@ -148,10 +149,16 @@ class PlanetSkinTest {
     }
 
     @Test
-    void aPlotTooShortForATunnelTakesGrowDomes() {
+    void aPlotTooShortForALongPieceTakesShortOnes() {
         List<PlanetSkin.Placed> farm = PlanetSkin.covered(
-                new RuralLayout.Plot(0, 0, 5, 9, RuralLayout.Use.ROW_CROP, true, false));
-        assertTrue(!farm.isEmpty() && farm.stream().allMatch(p -> p.piece() == PlanetSkin.Cover.DOME));
+                new RuralLayout.Plot(0, 0, 6, 9, RuralLayout.Use.ROW_CROP, true, false), PlanetSkin.FarmLook.SHEDS);
+        assertTrue(!farm.isEmpty() && farm.stream().allMatch(p -> p.piece() == PlanetSkin.FarmLook.SHEDS.end));
+    }
+
+    @Test
+    void theBareControlStandsNothing() {
+        assertTrue(PlanetSkin.covered(new RuralLayout.Plot(0, 0, 40, 40, RuralLayout.Use.ROW_CROP, true, false),
+                PlanetSkin.FarmLook.BARE).isEmpty());
     }
 }
 

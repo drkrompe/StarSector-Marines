@@ -37,7 +37,6 @@ final class HighBayHall {
 
         // The transfer rail down the middle.
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= top - 6; y += 2) {
-            if (f.middle(f.cx, y) || f.middle(f.cx, y + 1)) continue;
             p.floor("doodad.ruins-mag-rail", null, f.cx, y, 2, 2, "transfer");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, top - 6, WorksHallPlan.Zone.LANE);

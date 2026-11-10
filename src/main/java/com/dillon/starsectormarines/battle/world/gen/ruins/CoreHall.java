@@ -30,7 +30,6 @@ final class CoreHall {
         int top = length - 2, sw = f.stationWidth();
 
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            if (f.middle(f.cx, y) || f.middle(f.cx, y + 1)) continue;
             p.floor("doodad.ruins-core-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);

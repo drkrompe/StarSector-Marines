@@ -78,7 +78,6 @@ final class FillingHall {
             f.stand("doodad.armoury-rifle-rack", null, ml, y0 + 5, Math.min(3, mr - ml), 1, "magazines");
         }
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            if (f.middle(f.cx, y) || f.middle(f.cx, y + 1)) continue;
             p.floor("doodad.ruins-shell-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "filling");
         }
         for (int[] s : blast) p.wear("doodad.ruins-scorch-arc", s[0], s[1], 2, 2);

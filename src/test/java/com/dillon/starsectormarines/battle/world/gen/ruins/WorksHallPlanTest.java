@@ -44,11 +44,10 @@ class WorksHallPlanTest {
     }
 
     @Test
-    void theMiddleWhereTheCorridorArrivesIsOpen() {
+    void theTransferAisleAcrossTheMiddleIsOpenWallToWall() {
         for (WorksHallPlan plan : plans()) {
-            int mx = plan.width() / 2, my = plan.length() / 2;
-            for (int dy = -1; dy <= 1; dy++) {
-                for (int dx = -1; dx <= 1; dx++) assertTrue(plan.open(mx + dx, my + dy), plan.kind() + " middle");
+            for (int y = plan.length() / 2 - 1; y <= plan.length() / 2 + 2; y++) {
+                for (int x = 0; x < plan.width(); x++) assertTrue(plan.open(x, y), plan.kind() + " " + x + "," + y);
             }
         }
     }
@@ -98,10 +97,13 @@ class WorksHallPlanTest {
 
     @Test
     void coverIsNeverFarAcrossTheWorkingFloor() {
-        // Above the dispatch end, nobody runs more than a few cells in the open: cover comes from the work.
+        // Above the dispatch end, nobody runs more than nine cells in the open, the transfer aisle included: cover
+        // comes from the work.
+        List<String> far = new ArrayList<>();
         for (WorksHallPlan plan : plans()) {
-            assertTrue(plan.widestOpen(HallFrame.DISPATCH + 2) <= 8, plan.kind() + " " + plan.width() + "x" + plan.length()
-                    + " open " + plan.widestOpen(HallFrame.DISPATCH + 2));
+            int open = plan.widestOpen(HallFrame.DISPATCH + 2);
+            if (open > 9) far.add(plan.kind() + " " + plan.width() + "x" + plan.length() + " " + open);
         }
+        assertTrue(far.isEmpty(), far.toString());
     }
 }

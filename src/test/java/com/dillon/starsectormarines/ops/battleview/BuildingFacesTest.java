@@ -135,6 +135,27 @@ class BuildingFacesTest {
     }
 
     @Test
+    void anUpperStoreysWindowStandsOnlyOverARealOne() {
+        BuildingFaces.Segment w = BuildingFaces.Segment.WINDOW, p = BuildingFaces.Segment.PANE;
+        BuildingFaces.Segment blind = BuildingFaces.Segment.BLIND;
+        assertEquals(w, BuildingFaces.storeyFeature(w, 0, false), "the ground storey is what stands there");
+        assertEquals(BuildingFaces.Segment.DOOR, BuildingFaces.storeyFeature(BuildingFaces.Segment.DOOR, 0, true));
+        assertEquals(w, BuildingFaces.storeyFeature(w, 2, true), "stacked over a window");
+        assertEquals(p, BuildingFaces.storeyFeature(p, 1, true), "a slit over a slit");
+        assertEquals(blind, BuildingFaces.storeyFeature(BuildingFaces.Segment.DOOR, 1, true), "nothing over a door");
+        assertEquals(blind, BuildingFaces.storeyFeature(blind, 1, true), "nothing over a blind wall");
+        assertEquals(blind, BuildingFaces.storeyFeature(w, 1, false), "works show no upper windows");
+    }
+
+    @Test
+    void aWindowsHurtFollowsItsFrameAndAGoneOneIsShotOut() {
+        assertEquals(0f, BuildingFaces.windowHurt(40, 40), 1e-6f);
+        assertEquals(.5f, BuildingFaces.windowHurt(20, 40), 1e-6f);
+        assertEquals(1f, BuildingFaces.windowHurt(0, 40), 1e-6f);
+        assertEquals(1f, BuildingFaces.windowHurt(0, 0), 1e-6f, "no frame stands");
+    }
+
+    @Test
     void aRunIsCutAtEachCellAndEachPieceReadsTheCellUnderIt() {
         // The roof's south edge, from 3.3 to 4.7 along y = 3.3, facing south: two pieces over cells (3,3) and (4,3).
         float[] segs = BuildingFaces.segments(new float[]{3.3f, 3.3f, 4.7f, 3.3f, 0f, -1f}, GRID_W);
@@ -142,6 +163,40 @@ class BuildingFacesTest {
         assertEquals(4f, segs[2], 1e-4f);
         assertEquals(33, (int) segs[6]);
         assertEquals(34, (int) segs[BuildingFaces.SEG + 6]);
+    }
+
+    @Test
+    void aFaceStandsOnItsWallsOuterSideAndItsCornersReachTheWallsCorners() {
+        // The 2x2 block's roof stops 0.3 inside its walls' outer sides (3.3 to 4.7); the walls stand from 3 to 5.
+        float[] segs = BuildingFaces.segments(BuildingFaces.outline(CELLS, GRID_W, BuildingFacesTest::rects), GRID_W);
+        assertEquals(8 * BuildingFaces.SEG, segs.length, "two pieces a side");
+        int corners = 0;
+        for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
+            for (int k = 8; k < 12; k++) {
+                float v = segs[e + k];
+                assertTrue(near(v, 3f) || near(v, 4f) || near(v, 5f), "the foot on a cell boundary: " + v);
+            }
+            float nx = segs[e + 4], ny = segs[e + 5];
+            float across = nx != 0f ? segs[e + 8] : segs[e + 9];
+            assertEquals(nx + ny > 0f ? 5f : 3f, across, 1e-4f, "the foot on the wall's outer side");
+            corners += Integer.bitCount((int) segs[e + 7]);
+        }
+        assertEquals(0, corners, "a run under 1.5 cells marks no corner post");
+    }
+
+    @Test
+    void anInsideCornersFootDrawsBackAndAnOutsideOnesReachesOut() {
+        // An L: a north run whose west end turns down (outside corner) and east end turns up (inside corner).
+        float[] outline = {3.3f, 5.7f, 7f, 5.7f, 0f, 1f,
+                3.3f, 2f, 3.3f, 5.7f, -1f, 0f,
+                7f, 5.7f, 7f, 9f, -1f, 0f};
+        float[] segs = BuildingFaces.segments(outline, GRID_W);
+        assertEquals(3f, segs[8], 1e-4f, "the outside corner reaches the wall's corner");
+        assertEquals(6f, segs[9], 1e-4f);
+        assertEquals(BuildingFaces.CORNER_START, (int) segs[7] & BuildingFaces.CORNER_START);
+        int last = 3 * BuildingFaces.SEG;
+        assertEquals(7f, segs[last + 10], 1e-4f, "the inside corner's end stays on the boundary it already meets");
+        assertEquals(0, (int) segs[last + 7] & BuildingFaces.CORNER_END, "no post at an inside corner");
     }
 
     private static boolean near(float a, float b) {

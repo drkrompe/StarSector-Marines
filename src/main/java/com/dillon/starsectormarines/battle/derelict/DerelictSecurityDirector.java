@@ -455,6 +455,11 @@ public final class DerelictSecurityDirector {
         return rounds.get(squadId);
     }
 
+    /** The cells along the vault's lift route the walkers hold in the contingency. */
+    public List<int[]> egress() {
+        return egress;
+    }
+
     /** Keeps a hall frame on its hall in the contingency: its way to the egress does not fit it. */
     public void keepHall(int squadId) {
         hallBound.add(squadId);

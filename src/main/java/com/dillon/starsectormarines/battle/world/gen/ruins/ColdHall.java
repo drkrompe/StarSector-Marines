@@ -36,7 +36,6 @@ final class ColdHall {
 
         // The floor first: the line's conveyor and the return trench are lanes.
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            if (f.middle(f.cx, y) || f.middle(f.cx, y + 1)) continue;
             p.floor("doodad.ruins-unit-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "charge");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);

@@ -74,6 +74,12 @@ public final class RuinsDelveStage implements GenStage {
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
+    /**
+     * Corridor widths ({@code ruins-expedition.md}, Ways sized for machines): a service corridor two cells wide, which
+     * a derelict hall frame cannot follow, and a freight way four wide, which joins the plant halls, the ways through
+     * the lines and the entrances to the spine, so a hall frame travels the plant.
+     */
+    static final int SERVICE_WIDTH = 2, FREIGHT_WIDTH = 4;
     /** A mega forge hall's breadth and length, cells; vast's larger. Its pour line runs along its length. */
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
@@ -204,6 +210,8 @@ public final class RuinsDelveStage implements GenStage {
         final boolean[] feed;
         /** Each works hall's plan by its footprint, for its floor's zones and skins. */
         final Map<Long, WorksHallPlan> worksPlans = new HashMap<>();
+        /** A plant hall's freight aisles: kept clear of furniture and melt, so a hall frame reaches its post. */
+        final boolean[] aisle;
         /** Shell cells stamped here, for their wall and door masks. */
         final boolean[] drafted;
         /** Every layer line's cells, ways included: no interior corridor crosses one. */
@@ -212,6 +220,8 @@ public final class RuinsDelveStage implements GenStage {
         final boolean[] hull;
         /** The interior band (+1) whose corridor network a carved cell belongs to; 0 off every network. */
         final int[] network;
+        /** Network cells a hall frame travels: the spines and the freight ways ({@link #FREIGHT_WIDTH}). */
+        final boolean[] freightNet;
         /** The vault's apron: its forecourt and the open ground round it. */
         Area apron;
         PointOfInterest vaultPoi;
@@ -235,10 +245,12 @@ public final class RuinsDelveStage implements GenStage {
             kept = new boolean[w * h];
             kitFloor = new boolean[w * h];
             feed = new boolean[w * h];
+            aisle = new boolean[w * h];
             drafted = new boolean[w * h];
             lineCell = new boolean[w * h];
             hull = new boolean[w * h];
             network = new int[w * h];
+            freightNet = new boolean[w * h];
         }
 
         RuinsDelve lay() {
@@ -475,7 +487,7 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             int plate = topology.surfaceIndex(HALL_PLATE), walkway = topology.surfaceIndex(HALL_WALKWAY);
-            int aisle = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
+            int worn = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
             int feedLane = topology.surfaceIndex(HALL_FEED);
             WorksHallPlan works = worksPlans.get(key(hall));
             boolean longX = hw >= hh;
@@ -491,8 +503,8 @@ public final class RuinsDelveStage implements GenStage {
                     }
                     boolean wallSide = longX ? (y == hall.bottom() || y == hall.top())
                             : (x == hall.left() || x == hall.right());
-                    int surface = feed[i(x, y)] ? feedLane : near ? plate : wallSide ? walkway
-                            : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : aisle;
+                    int surface = feed[i(x, y)] ? feedLane : aisle[i(x, y)] ? walkway : near ? plate
+                            : wallSide ? walkway : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : worn;
                     if (works != null) {
                         int lx = x - hall.left(), ly = y - hall.bottom();
                         switch (works.zone(lx, ly)) {
@@ -507,6 +519,43 @@ public final class RuinsDelveStage implements GenStage {
                     }
                     topology.setSurface(x, y, surface);
                 }
+            }
+        }
+
+        /**
+         * A plant hall's freight aisles ({@code ruins-expedition.md}, Ways sized for machines): from every freight way
+         * that meets the hall, an aisle {@link #FREIGHT_WIDTH} wide runs straight in to the hall's middle row or column
+         * and along it to the middle, where a hall frame stands its post. Furniture and melt keep off it, and its floor
+         * is painted as a walkway, so the frame reaches its post from every freight way. Service corridors get none.
+         */
+        void frameAisles(Area hall) {
+            int cx = hall.centreX(), cy = hall.centreY();
+            for (int side = 0; side < 4; side++) {
+                boolean alongX = side < 2;
+                int line = side == 0 ? hall.bottom() - 1 : side == 1 ? hall.top() + 1 : side == 2 ? hall.left() - 1
+                        : hall.right() + 1;
+                int from = alongX ? hall.left() : hall.bottom(), to = alongX ? hall.right() : hall.top();
+                int run = -1;
+                for (int a = from; a <= to + 1; a++) {
+                    int x = alongX ? a : line, y = alongX ? line : a;
+                    boolean open = a <= to && grid.inBounds(x, y) && grid.isWalkable(x, y) && !topology.isWall(x, y);
+                    if (open && run < 0) run = a;
+                    if (open || run < 0) continue;
+                    if (a - run > SERVICE_WIDTH) {
+                        int mid = (run + a - 1) / 2;
+                        if (alongX) aisleBox(hall, mid - 1, Math.min(line, cy), mid + 2, Math.max(line, cy));
+                        else aisleBox(hall, Math.min(line, cx), mid - 1, Math.max(line, cx), mid + 2);
+                        if (alongX) aisleBox(hall, Math.min(mid, cx) - 1, cy - 1, Math.max(mid, cx) + 2, cy + 2);
+                        else aisleBox(hall, cx - 1, Math.min(mid, cy) - 1, cx + 2, Math.max(mid, cy) + 2);
+                    }
+                    run = -1;
+                }
+            }
+        }
+
+        private void aisleBox(Area hall, int l, int b, int r, int t) {
+            for (int y = b; y <= t; y++) {
+                for (int x = l; x <= r; x++) if (hall.contains(x, y)) aisle[i(x, y)] = true;
             }
         }
 
@@ -1276,15 +1325,22 @@ public final class RuinsDelveStage implements GenStage {
                 Court well = court(k, region);
                 wells.put(k, well);
                 int spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
-                for (int y = 2; y <= h - 3; y++) for (int x = spine - 1; x <= spine + 1; x++) carve(x, y, k);
-                for (Way way : drafts.get(k).ways) connect(way.far(), k, null);
-                if (k + 1 < drafts.size()) for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null);
+                for (int y = 2; y <= h - 3; y++) {
+                    for (int x = spine - 1; x <= spine + 1; x++) {
+                        carve(x, y, k);
+                        freightNet[i(x, y)] = true;
+                    }
+                }
+                for (Way way : drafts.get(k).ways) connect(way.far(), k, null, FREIGHT_WIDTH);
+                if (k + 1 < drafts.size()) {
+                    for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null, FREIGHT_WIDTH);
+                }
                 if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
                 connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
             }
             int last = drafts.size() - 1;
-            connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron);
-            connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron);
+            connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron, FREIGHT_WIDTH);
+            connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron, FREIGHT_WIDTH);
             List<Area> entrances = new ArrayList<>();
             for (Way way : face.ways) if (way.open()) entrances.add(way.span());
             return entrances;
@@ -1411,7 +1467,7 @@ public final class RuinsDelveStage implements GenStage {
             for (int y = ay; y < ay + fy; y++) {
                 for (int x = ax; x < ax + fx; x++) {
                     if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
-                    if (kitFloor[i(x, y)]) return false;
+                    if (kitFloor[i(x, y)] || aisle[i(x, y)]) return false;
                     if (Math.abs(x - keepClear.x()) <= 1 && Math.abs(y - keepClear.y()) <= 1) return false;
                 }
             }
@@ -1458,7 +1514,7 @@ public final class RuinsDelveStage implements GenStage {
             for (int y = ay; y < ay + fy; y++) {
                 for (int x = ax; x < ax + fx; x++) {
                     if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
-                    if (kitFloor[i(x, y)]) return false;
+                    if (kitFloor[i(x, y)] || aisle[i(x, y)]) return false;
                     if (Math.abs(x - keepClear.x()) <= 1 && Math.abs(y - keepClear.y()) <= 1) return false;
                     // Never in the mouth of a way in: no open cell outside the room beside it.
                     for (Direction side : Direction.CARDINALS) {
@@ -1552,7 +1608,7 @@ public final class RuinsDelveStage implements GenStage {
                         && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
                 Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
                 if (floor == null) continue;
-                connect(new Cell(floor.centreX(), floor.centreY()), i, null);
+                connect(new Cell(floor.centreX(), floor.centreY()), i, null, FREIGHT_WIDTH);
                 chambers.add(floor);
                 plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
                         stage, floor));
@@ -1629,6 +1685,12 @@ public final class RuinsDelveStage implements GenStage {
             if (registry == null) return;
             Area hall = plantHall.footprint();
             Cell centre = new Cell(hall.centreX(), hall.centreY());
+            boolean mega = plantHall.stage() == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()
+                    && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG;
+            // The mega forge and every works hall keep their process layout: one transfer aisle across the middle,
+            // over the line, joins the frame's post to the floor round its walls (WorksHallPlan keeps it clear).
+            if (mega || plantHall.stage() == RuinsDelve.PlantStage.WORKS) aisleBox(hall, hall.left(), centre.y() - 1, hall.right(), centre.y() + 2);
+            else frameAisles(hall);
             switch (plantHall.stage()) {
                 case FOUNDRY -> {
                     if (plan.dressing().foundry() && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG) {
@@ -1822,7 +1884,7 @@ public final class RuinsDelveStage implements GenStage {
                         if (channel && (y == crossing || y == crossing + 1)) continue;
                         if (!hall.contains(x, y) || x <= hall.left() || x >= hall.right()) continue;
                         if (Math.abs(x - centre.x()) <= 1 && Math.abs(y - centre.y()) <= 1) continue;
-                        if (!grid.isWalkable(x, y) || nearDoorway(x, y)) continue;
+                        if (!grid.isWalkable(x, y) || nearDoorway(x, y) || aisle[i(x, y)]) continue;
                         melt[i(x, y)] = true;
                         any = true;
                     }
@@ -2079,7 +2141,7 @@ public final class RuinsDelveStage implements GenStage {
                     if (!hall.contains(x, y) || x <= hall.left() || x >= hall.right() || y <= hall.bottom()
                             || y >= hall.top()) continue;
                     if (Math.abs(x - centre.x()) <= 1 && Math.abs(y - centre.y()) <= 1) continue;
-                    if (!grid.isWalkable(x, y) || nearDoorway(x, y)) continue;
+                    if (!grid.isWalkable(x, y) || nearDoorway(x, y) || aisle[i(x, y)]) continue;
                     melt[i(x, y)] = true;
                 }
             }
@@ -2208,13 +2270,25 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
-         * Joins {@code from} to interior band {@code band}'s corridor network by the shortest way through the
-         * hull, carving a corridor two cells wide; it never crosses a layer line, leaves the interior, or enters
-         * {@code avoid}. Every cell it carves joins the network and is kept clear of later pieces.
+         * Joins {@code from} to interior band {@code band}'s corridor network by a service corridor two cells wide
+         * ({@link #connect(Cell, int, Area, int)}): side rooms and chambers, where a hall frame cannot follow.
          */
         void connect(Cell from, int band, Area avoid) {
+            connect(from, band, avoid, SERVICE_WIDTH);
+        }
+
+        /**
+         * Joins {@code from} to interior band {@code band}'s corridor network by the shortest way through the
+         * hull, carving a corridor {@code width} cells wide; it never crosses a layer line, leaves the interior, or
+         * enters {@code avoid}. Every cell it carves joins the network and is kept clear of later pieces. A way wider
+         * than a service corridor ends on a spine or another freight way, never on a service corridor, so a hall
+         * frame on it reaches the spine. A way that cannot run {@code width} wide anywhere runs narrower rather than
+         * not at all.
+         */
+        void connect(Cell from, int band, Area avoid, int width) {
             int start = i(from.x(), from.y());
-            if (network[start] == band + 1) return;
+            boolean freight = width > SERVICE_WIDTH;
+            if (network[start] == band + 1 && (!freight || freightNet[start])) return;
             int[] prev = new int[w * h];
             Arrays.fill(prev, -2);
             int[] queue = new int[w * h];
@@ -2225,22 +2299,58 @@ public final class RuinsDelveStage implements GenStage {
                 int at = queue[head++], cx = at % w, cy = at / w;
                 for (Direction side : Direction.CARDINALS) {
                     int nx = cx + side.dx, ny = cy + side.dy;
-                    if (!grid.inBounds(nx, ny) || prev[i(nx, ny)] != -2 || !corridorCell(nx, ny, avoid)) continue;
+                    if (!grid.inBounds(nx, ny) || prev[i(nx, ny)] != -2 || !corridorStamp(nx, ny, avoid, width)) continue;
                     if (!hull[i(nx, ny)] && !hull[at] && !grid.canTraverseCellStep(cx, cy, nx, ny)) continue;
                     prev[i(nx, ny)] = at;
-                    if (network[i(nx, ny)] == band + 1) { goal = i(nx, ny); break; }
+                    if (network[i(nx, ny)] == band + 1 && (!freight || freightNet[i(nx, ny)])) {
+                        goal = i(nx, ny);
+                        break;
+                    }
                     queue[tail++] = i(nx, ny);
                 }
             }
             if (goal < 0) {
+                if (width > SERVICE_WIDTH) {
+                    connect(from, band, avoid, width - 1);
+                    return;
+                }
                 throw new IllegalStateException("no corridor from " + from + " to " + RuinsDelve.layerName(band));
             }
+            int lo = stampLow(width);
             for (int at = goal; at >= 0; at = prev[at]) {
                 int cx = at % w, cy = at / w;
-                carve(cx, cy, band);
-                if (corridorCell(cx + 1, cy, avoid)) carve(cx + 1, cy, band);
-                if (corridorCell(cx, cy + 1, avoid)) carve(cx, cy + 1, band);
+                for (int dy = lo; dy < lo + width; dy++) {
+                    for (int dx = lo; dx < lo + width; dx++) {
+                        if (!corridorCell(cx + dx, cy + dy, avoid)) continue;
+                        carve(cx + dx, cy + dy, band);
+                        if (freight) freightNet[i(cx + dx, cy + dy)] = true;
+                    }
+                }
             }
+        }
+
+        /**
+         * Whether a corridor {@code width} wide may run through a cell: every cell of the square it sweeps there
+         * ({@link #stampLow}) is one a corridor may take.
+         */
+        boolean corridorStamp(int x, int y, Area avoid, int width) {
+            if (!corridorCell(x, y, avoid)) return false;
+            int lo = stampLow(width);
+            for (int dy = lo; dy < lo + width; dy++) {
+                for (int dx = lo; dx < lo + width; dx++) {
+                    if (!corridorCell(x + dx, y + dy, avoid)) return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * The first offset of a corridor {@code width} wide from its path: the square is centred on the path, so a
+         * way {@link #FREIGHT_WIDTH} wide covers a three-cell way through a line centred on the same row, never one
+         * row off it. A service corridor, two wide, runs up and right of its path.
+         */
+        int stampLow(int width) {
+            return -(width - 1) / 2;
         }
 
         /** Whether a corridor may run through a cell: inside, off the lines, outside {@code avoid}, open or hull. */

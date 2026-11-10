@@ -54,6 +54,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.counterattack` | control | 2026-10-20 | Standing control: the commander-evidence counter-attack control (commander-evidence-missions.md). Its composed .<knob> evidence knobs (reserveShare, minStrength, ...) fold into constants when the counter-attack balance pass closes. |
 | `battle.creep.feedMultiplier` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
 | `battle.creep.spreadScale` | tuning | 2026-10-22 | Creep-speed pass (owner picks 2026-10-23): fold into constants once the owner confirms the rates in play. |
+| `battle.derelictRounds.mounts` | experiment | 2026-11-10 | Owner pick `derelict-rounds-mounts`: the MG-25's two-gun layout (`flank-pair` default, `dorsal-pair`, `twin-front`; `MechBodyHardpoints.RoundsLayout`). Remove with the losing layouts once answered. |
 | `battle.elevation.firingReveal` | experiment | 2026-10-22 | Elevation pass (elevation-nouns.md): remove once the elevation behaviour scenes accept it. |
 | `battle.elevation.sight` | experiment | 2026-10-22 | Elevation pass (elevation-nouns.md): remove once the elevation behaviour scenes accept it. |
 | `battle.fire` | control | 2026-10-22 | Standing control: master fire cost control that renderEvidence and the fire-colony/burn readings are measured against. |
@@ -131,6 +132,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.pathfinding.clearanceFailureBackoff` | experiment | 2026-10-14 | Mech clearance routing (mechs-nouns.md, 2026-10-14): remove once profileConvoyRoute has been read against it. |
 | `battle.pathfinding.fireRouteCost` | control | 2026-10-22 | Standing control: FireFearScene and FireHarmScene compare against the off arm. Fire-system session; retire with those loops. |
 | `battle.pathfinding.shareExhaustedFlood` | experiment | 2026-10-14 | As clearanceFailureBackoff. |
+| `battle.planetSkin.farm` | experiment | 2026-11-10 | Covered farm look on hostile worlds (`PlanetSkin.FarmLook`): remove it, with the looks not picked and their sheets, once the owner picks one on the picks page (planet-skin-farm). |
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
