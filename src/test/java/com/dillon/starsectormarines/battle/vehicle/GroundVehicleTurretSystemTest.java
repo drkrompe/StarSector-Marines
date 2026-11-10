@@ -472,6 +472,20 @@ class GroundVehicleTurretSystemTest {
         assertEquals(0L, f.turret.targetId);
     }
 
+    @Test
+    void aShotAwayTurretSilencesItsCoax() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
+        if (f.turret.section == null) return;
+        f.turret.secondaries.add(MountedGun.of(
+                VehicleType.BREAKTHROUGH_TANK.coaxMount().withPart(MechWeaponComponent.LIGHT_MACHINE_GUN)));
+        f.turret.section.strike(10000f, 100f, f.type.armorRating, 1f, new DurabilityModel.Resolution(),
+                new HullTurretSection.Hit());
+        assertTrue(f.turret.destroyed());
+        f.enemy(20, 26);
+        for (int i = 0; i < 120; i++) f.auto();
+        assertTrue(f.shots.getActiveShots().isEmpty(), "the coax went with the turret");
+    }
+
     private static final class Fixture {
         final NavigationGrid grid = new NavigationGrid(96, 96);
         final UnitSpatialIndex index = new UnitSpatialIndex(96, 96);
@@ -500,6 +514,8 @@ class GroundVehicleTurretSystemTest {
             body = roster.convoy().body(id);
             body.facingDegrees = 0f;
             turret = roster.convoy().turret(id);
+            // These fixtures ask about the turret's own gun; the stock coax (the Onager's) would want a scorer.
+            turret.secondaries.removeIf(mounted -> mounted.mount().part() != null);
             if (gun == null) {
                 // The burst-fed carriage on its own, its weapon the structure's: a hull's own gun is a fitted mech
                 // weapon now (VehicleType#ownGun), and these fixtures ask about the burst and magazine law.
@@ -527,7 +543,8 @@ class GroundVehicleTurretSystemTest {
         long hostileHull(VehicleType hull, float x, float y) {
             long other = roster.convoy().spawn(hull, Faction.DEFENDER, VehicleMission.deployed(x, y));
             roster.convoy().body(other).teleport(x, y, 180f);
-            // Its own gun stays silent: these fixtures ask about the launcher, and the bare fixture has no scorer.
+            // Its own guns stay silent: these fixtures ask about the launcher, and the bare fixture has no scorer.
+            roster.convoy().turret(other).secondaries.clear();
             roster.convoy().turret(other).ammo = 0;
             roster.convoy().turret(other).unlimited = false;
             roster.convoy().turret(other).loaderSeconds = Float.POSITIVE_INFINITY;

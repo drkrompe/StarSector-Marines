@@ -186,6 +186,14 @@ is what a way out is. A neighbour whose network lies across the route is met on
 the way rather than aimed at, and only a claim that spans the whole map in every
 direction is left to the edge.
 
+**A way out beside the place's own road runs on down that road.** A ray from the
+centroid that misses a grown arm by a few cells paints a three-wide strip
+alongside it, two roads one cell apart running out of the same gate (long-survey
+stakes seed 1). When the place's own road lies within six cells of the ray,
+parallel to it, along at least half the ray's run inside the claim, the ray is
+moved onto that road (`PrecinctArtery.alongOwnRoad`), so the way out is the arm
+carried on rather than a second road beside it.
+
 ## What this collapses
 
 | Today | Becomes |
@@ -294,9 +302,8 @@ bend, six cells' worth, so the way back is straight runs along the grid's axes
 joined by a few deliberate bends; it still bends round whatever it must. The
 way a layout road is carried in through a gate (`LayoutRoads.enter`, which also
 starts outside the gate's middle so it runs straight in rather than turning
-along the wall's inside) and the drawn joins take it. The weld does not yet:
-taking it moved welds so that four pooled Cordon seeds lost a crest redoubt's
-terrace to built ground, and that seam is open.
+along the wall's inside), the drawn joins and the weld itself
+(`PrecinctInterconnect`) take it.
 
 **Connected underneath is not connected on screen, and both are owed.** The
 road-owner grid came out whole, yet raid maps read as islands of road: the
@@ -319,6 +326,14 @@ road from the edge to a wall with nothing behind it. A layout road that ends
 against a walled square place is now carried through the gate its wall opens
 there to the place's own roads (`LayoutRoads.enter`), and the network is welded
 once more after the layout's roads are carved.
+
+**A weld a later road does the work of is taken up.** The first weld runs before
+the layout's roads are carved, so a road laid afterwards can join the same
+networks a few cells from it, and the map gets two roads side by side where one
+was owed (heart front seed 5). After the second weld, each straight leg of the
+welds that is not under a layout road or in the country is lifted, largest
+first, and stays lifted only if the network has no more pieces without it
+(`PrecinctInterconnect.untie`).
 
 **A line the mission draws across the map is laid through the quarters on its
 course.** A layout road is carved on open country only, and across a settled

@@ -1,0 +1,39 @@
+{
+  "version": 3,
+  "map": "long-survey-line",
+  "home": "ARID",
+  "entry": {
+    "seed": 3,
+    "note": "The Line: the Cordon's line (cordon-line seed 3) with the Surveyor down in the north-east beyond the redoubts, bow west toward the colony, its trench run in from the map's east edge; an established chain of stakes reaching toward redoubts 3 and 4",
+    "patch": {
+      "hull": {
+        "x": 462,
+        "y": 292,
+        "heading": "west",
+        "trench": 52,
+        "stakes": [
+          {
+            "x": 422,
+            "y": 252,
+            "stage": "established"
+          },
+          {
+            "x": 382,
+            "y": 252,
+            "stage": "established"
+          },
+          {
+            "x": 382,
+            "y": 212,
+            "stage": "established"
+          },
+          {
+            "x": 422,
+            "y": 212,
+            "stage": "raised"
+          }
+        ]
+      }
+    }
+  }
+}

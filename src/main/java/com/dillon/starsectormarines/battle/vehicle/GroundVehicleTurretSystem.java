@@ -194,6 +194,8 @@ public final class GroundVehicleTurretSystem {
     private void tickSecondary(long id, GroundTurret main, int i, GroundBody body, float dt, boolean controlled,
                                PointFireAim point, int held) {
         MountedGun gun = main.secondaries.get(i);
+        // A coax card's gun goes with its turret: a shot-away turret silences it too.
+        if (gun.mount().part() != null && main.destroyed()) return;
         GroundTurret turret = gun.turret();
         StructureDef structure = gun.mount().structure();
         TurretMountGeometry.Point at = mountPoint(body, gun.mount().mountX(), gun.mount().mountY());

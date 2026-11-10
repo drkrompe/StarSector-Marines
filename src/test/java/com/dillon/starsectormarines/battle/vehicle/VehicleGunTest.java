@@ -32,6 +32,19 @@ class VehicleGunTest {
     }
 
     @Test
+    void onlyTheOnagerHasACoaxCardAndItIsOneBallisticRow() {
+        assertSame(VehicleGunCard.COAX, VehicleGunCard.coaxOf(VehicleType.BREAKTHROUGH_TANK));
+        assertNull(VehicleGunCard.coaxOf(VehicleType.MEDIUM_TANK));
+        assertNull(VehicleGunCard.coaxOf(VehicleType.HEAVY_CARRIER), "a carrier's secondary mounts are not cards");
+        assertTrue(VehicleGunCard.COAX.accepts(MechWeaponComponent.LIGHT_MACHINE_GUN));
+        assertTrue(VehicleGunCard.COAX.accepts(MechWeaponComponent.FL_1), "any one-row ballistic part");
+        assertFalse(VehicleGunCard.COAX.accepts(MechWeaponComponent.SRM_3_QS), "locked to ballistic");
+        assertFalse(VehicleGunCard.COAX.accepts(MechWeaponComponent.CHAINGUN), "one row");
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN, VehicleType.BREAKTHROUGH_TANK.standardCoax());
+        assertNull(VehicleType.MEDIUM_TANK.standardCoax());
+    }
+
+    @Test
     void theGunTanksCardsAreOmniAndCappedOnlyByHeight() {
         VehicleGunCard heavy = VehicleGunCard.of(VehicleType.BREAKTHROUGH_TANK);
         assertSame(VehicleGunCard.HEAVY, heavy);

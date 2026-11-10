@@ -9,10 +9,12 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -204,6 +206,21 @@ public abstract class ArmorDropPower extends AirDeliveryPower {
     @Override
     public void resolve(int cellX, int cellY, CommandPowerService service, BattleControl battle) {
         // An armor drop always names its machine; there is no default order.
+    }
+
+    /** A machine is never set down inside a ruins facility: the landing zone is sought outside it. */
+    @Override
+    protected boolean setsDownMachines() {
+        return true;
+    }
+
+    /** Aimed inside a facility with no open ground outside it in reach: no drop inside. */
+    @Override
+    public String targetRefusal(int cellX, int cellY, BattleView battle, List<Integer> selection) {
+        if (battle == null || !battle.getGrid().hasTag(cellX, cellY, NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+            return null;
+        }
+        return landingZoneNear(cellX, cellY, battle) == null ? Strings.get("battleMarkerNoDropInside") : null;
     }
 
     @Override

@@ -127,6 +127,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteAPI road;
     private final SpriteAPI floors;
     private final SpriteAPI roofs;
+    private final SpriteAPI hullRoof;
     private final SpriteAPI water;
     private final SpriteAPI urban3;
     private final SpriteAPI nature;
@@ -138,6 +139,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final DerelictWalkerAssets crawler;
+    private final DerelictWalkerAssets stripper;
+    private final DerelictWalkerAssets hauler;
     private Map<MechVariant, LayeredSpriteCache> variantBodies;
     private final LayeredSpriteCache derelictPortHead;
     private final LayeredSpriteCache derelictRackHead;
@@ -177,6 +180,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         road = sprite(TileManifest.ROAD_SHEET);
         floors = sprite(TileManifest.FLOORS_SHEET);
         roofs = sprite(RoofTiles.SHEET);
+        hullRoof = sprite(HullRoof.TEXTURE);
         water = sprite(TileManifest.WATER_SHEET);
         urban3 = sprite(TileManifest.STREET3_SHEET);
         nature = sprite(TileManifest.NATURE_SHEET);
@@ -222,6 +226,20 @@ final class HeadlessBattleSprites extends BattleSprites {
             }
         });
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, path -> {
             try {
                 return optionalLayer(path);
             } catch (IOException missing) {
@@ -383,6 +401,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI roofSheet() { return roofs; }
     @Override public int roofSheetPxW() { return asset(roofs).width(); }
     @Override public int roofSheetPxH() { return asset(roofs).height(); }
+    @Override public SpriteAPI hullRoofSheet() { return hullRoof; }
+    @Override public int hullRoofSheetPxW() { return asset(hullRoof).width(); }
+    @Override public int hullRoofSheetPxH() { return asset(hullRoof).height(); }
     @Override public SpriteAPI waterSheet() { return water; }
     @Override public int waterSheetPxW() { return asset(water).width(); }
     @Override public int waterSheetPxH() { return asset(water).height(); }
@@ -411,6 +432,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
+    @Override public DerelictWalkerAssets stripperSprites() { return stripper; }
+    @Override public DerelictWalkerAssets haulerSprites() { return hauler; }
 
     @Override public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() {
         if (variantBodies == null) {

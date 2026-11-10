@@ -54,6 +54,35 @@ public final class GeneratedRoads {
                     ? left <= b.left && right >= b.right && bottom <= b.top && top >= b.bottom
                     : bottom <= b.bottom && top >= b.top && left <= b.right && right >= b.left;
         }
+        /**
+         * A road, holding no city street, running the same way as the street band {@code b} along all its length but
+         * a breadth at either end, and no more than {@link #BESIDE} cells across from it: {@code b} swept too would be a
+         * second carriageway laid beside the road, a double road.
+         */
+        boolean beside(Band b, boolean[][] city) {
+            if (this == b || horizontal() != b.horizontal() || holds(city)) return false;
+            boolean horizontal = horizontal();
+            int gap = horizontal ? Math.max(bottom - b.top, b.bottom - top) - 1 : Math.max(left - b.right, b.left - right) - 1;
+            if (gap < 0 || gap > BESIDE) return false;
+            int along = horizontal ? Math.min(right, b.right) - Math.max(left, b.left) + 1
+                    : Math.min(top, b.top) - Math.max(bottom, b.bottom) + 1;
+            return along >= b.length() - 2 * b.breadth();
+        }
+        /**
+         * A longer street or road running the same way as the street band {@code b}, one to {@link #BESIDE} cells across from
+         * it, over all of {@code b}'s length but up to a breadth at either end: {@code b} swept too would be a second
+         * carriageway beside it with a strip of paving between, a double road. One running on past this band's end
+         * is a jog ({@link #jogs}), not a verge.
+         */
+        boolean flanks(Band b, boolean[][] city) {
+            if (this == b || horizontal() != b.horizontal() || length() <= b.length()) return false;
+            boolean horizontal = horizontal();
+            int gap = horizontal ? Math.max(bottom - b.top, b.bottom - top) - 1 : Math.max(left - b.right, b.left - right) - 1;
+            if (gap < 1 || gap > BESIDE) return false;
+            int slack = (int) b.breadth();
+            return horizontal ? b.left >= left - slack && b.right <= right + slack
+                    : b.bottom >= bottom - slack && b.top <= top + slack;
+        }
         /** Whether the first (or last) cell line of this band meets another band or the map's edge. */
         boolean endMet(boolean first, List<Band> others, int mapW, int mapH) {
             Band end = end(first);
@@ -145,6 +174,8 @@ public final class GeneratedRoads {
      * is a blob of asphalt stepping out of the kerb line.
      */
     static final int SPUR_REACH = 2;
+    /** Cells across between a laid road and a street beside it that make the two one double road. */
+    static final int BESIDE = 2;
     /** Cells along a street within which two spurs off its opposite sides read as one crossing pulled apart. */
     static final int SPUR_OFFSET = 10;
     /** Points along a junction turn's quarter arc, past its two ends. */
@@ -161,7 +192,7 @@ public final class GeneratedRoads {
      * rather than becoming a square of carriageway.
      */
     public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
-        return routes(road, null, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE).routes();
+        return routes(road, null, null, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE).routes();
     }
 
     /**
@@ -170,7 +201,7 @@ public final class GeneratedRoads {
      * {@link #streets(boolean[][], boolean[][], boolean[][], boolean[][], long, int, StreetStyle)}).
      */
     public static List<Route> routes(boolean[][] road, boolean[][] paved, long seed) {
-        return routes(road, null, null, paved, seed, MAX_BREADTH, StreetStyle.ROUND_BARE).routes();
+        return routes(road, null, null, paved, null, seed, MAX_BREADTH, StreetStyle.ROUND_BARE).routes();
     }
 
     /**
@@ -214,7 +245,7 @@ public final class GeneratedRoads {
      */
     public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway,
                                   long seed, int maxBreadth, StreetStyle style) {
-        return routes(road, city, footway, null, seed, maxBreadth, style);
+        return routes(road, city, footway, null, null, seed, maxBreadth, style);
     }
 
     /**
@@ -227,17 +258,32 @@ public final class GeneratedRoads {
      */
     public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
                                   long seed, int maxBreadth, StreetStyle style) {
-        return routes(road, city, footway, paved, seed, maxBreadth, style);
+        return routes(road, city, footway, paved, null, seed, maxBreadth, style);
+    }
+
+    /**
+     * As {@link #streets(boolean[][], boolean[][], boolean[][], boolean[][], long, int, StreetStyle)}, beside roads
+     * already {@code laid} outside the network (the country's): a street lying beside one of them, running its way,
+     * is that road's verge and keeps its paving rather than being swept as a second carriageway beside it.
+     */
+    public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
+                                  boolean[][] laid, long seed, int maxBreadth, StreetStyle style) {
+        return routes(road, city, footway, paved, laid, seed, maxBreadth, style);
     }
 
     private static Network routes(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
-                                  long seed, int maxBreadth, StreetStyle style) {
+                                  boolean[][] laid, long seed, int maxBreadth, StreetStyle style) {
         if (road.length == 0 || road[0].length == 0) return new Network(List.of(), List.of());
         Set<Band> candidates = new LinkedHashSet<>();
         int cap = city == null ? Math.min(maxBreadth, MAX_BREADTH) : MAX_BREADTH;
         bands(road, null, false, cap, candidates);
         bands(road, null, true, cap, candidates);
-        Kept kept = keep(candidates, road, city, maxBreadth);
+        Set<Band> beside = new LinkedHashSet<>();
+        if (laid != null && city != null) {
+            bands(laid, null, false, MAX_BREADTH, beside);
+            bands(laid, null, true, MAX_BREADTH, beside);
+        }
+        Kept kept = keep(candidates, road, city, maxBreadth, beside);
         List<Band> bands = kept.bands();
         Set<Band> spurs = kept.spurs();
         if (paved != null) {
@@ -260,7 +306,7 @@ public final class GeneratedRoads {
                 Set<Band> all = new LinkedHashSet<>(candidates);
                 all.addAll(jogged);
                 List<Band> swept = bands, joined = new ArrayList<>(bands);
-                for (Band b : keep(all, road, city, maxBreadth).bands()) {
+                for (Band b : keep(all, road, city, maxBreadth, beside).bands()) {
                     if (jogged.contains(b) && b.joined(true, swept) && b.joined(false, swept)) joined.add(b);
                 }
                 bands = joined;
@@ -273,6 +319,7 @@ public final class GeneratedRoads {
             lanes.put(b, street ? Carriageway.of(b, footway, style.sidewalks()) : Carriageway.whole(b));
         }
         Map<Band, int[]> ends = city == null ? Map.of() : junctionEnds(bands, lanes);
+        if (city != null && squareJogs()) jogs(bands, city, ends);
         for (Band b : bands) {
             boolean street = city != null && b.holds(city);
             Carriageway c = lanes.get(b);
@@ -319,7 +366,7 @@ public final class GeneratedRoads {
                 add(routes, turn, width, seed, Material.ASPHALT, EndCap.ROUND);
             }
         }
-        if (city != null) for (Band b : bands) if (b.holds(city)) tapers(b, bands, lanes, ends, routes, seed);
+        if (city != null && !squareJogs()) for (Band b : bands) if (b.holds(city)) tapers(b, bands, lanes, ends, routes, seed);
         List<Marking> paint = new ArrayList<>();
         if (city != null && style.markings())
             for (Band b : bands) if (b.holds(city) && b.width() != b.height()) centreLine(b, lanes.get(b), bands, ends, paint);
@@ -408,6 +455,43 @@ public final class GeneratedRoads {
         return out;
     }
 
+    /**
+     * {@code -Dbattle.mapgen.streetJogs=taper} restores the diagonal taper where two streets grown side by side jog
+     * one into the other; square, the default, trims the shorter. Temporary, for the owner's pick between the two
+     * (picks question {@code street-jogs}): remove it, with the losing path, once the owner has chosen.
+     */
+    static boolean squareJogs() {
+        return !"taper".equalsIgnoreCase(System.getProperty("battle.mapgen.streetJogs", "square"));
+    }
+
+    /**
+     * Where two streets grown side by side touch, or stand a kerb cell apart, and each runs on past the other, a jog
+     * from one line onto the next (or the arms of a crossing that do not line up, the one running on past the
+     * crossing beside the other), both swept would draw the stretch they share as one slab of road twice a street's
+     * width. The shorter, where it is a street, is trimmed
+     * to end one breadth past the longer's start, so the road steps across square, a breadth long, and runs on at
+     * one street's width; the longer keeps its length. Of two of one length, the later in {@code bands} is trimmed.
+     */
+    private static void jogs(List<Band> bands, boolean[][] city, Map<Band, int[]> ends) {
+        for (int i = 0; i < bands.size(); i++) {
+            Band s = bands.get(i);
+            if (!s.holds(city)) continue;
+            boolean horizontal = s.horizontal();
+            int sideLo = horizontal ? s.bottom : s.left, sideHi = horizontal ? s.top : s.right;
+            int step = (int) s.breadth();
+            for (int j = 0; j < bands.size(); j++) {
+                Band l = bands.get(j);
+                if (l == s || l.horizontal() != horizontal) continue;
+                int lSideLo = horizontal ? l.bottom : l.left, lSideHi = horizontal ? l.top : l.right;
+                if (lSideLo != sideHi + 1 && lSideLo != sideHi + 2 && lSideHi != sideLo - 1 && lSideHi != sideLo - 2) continue;
+                int sLo = lo(s, ends), sHi = hi(s, ends), lLo = lo(l, ends), lHi = hi(l, ends);
+                if (sHi - sLo > lHi - lLo || sHi - sLo == lHi - lLo && i < j) continue;
+                if (sLo < lLo && sHi > lLo + step - 1 && sHi < lHi) ends.put(s, new int[]{sLo, lLo + step - 1});
+                else if (sHi > lHi && sLo < lHi - step + 1 && sLo > lLo) ends.put(s, new int[]{lHi - step + 1, sHi});
+            }
+        }
+    }
+
     /** Cells along which a street that widens beside another merges into it. */
     static final int TAPER = 6;
 
@@ -485,7 +569,7 @@ public final class GeneratedRoads {
     private record Kept(List<Band> bands, Set<Band> spurs) {}
 
     /** The city's rules over {@code candidates}: no broad street, no band held by another, no bulge or pill. */
-    private static Kept keep(Set<Band> found, boolean[][] road, boolean[][] city, int maxBreadth) {
+    private static Kept keep(Set<Band> found, boolean[][] road, boolean[][] city, int maxBreadth, Set<Band> laid) {
         Set<Band> broad = new LinkedHashSet<>(found);
         if (city != null) broad.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
         Set<Band> candidates = city == null ? broad : oneWidth(broad, city);
@@ -499,6 +583,11 @@ public final class GeneratedRoads {
             // street seen from a jogged cell line: swept, it is a lip of asphalt along the street's edge.
             List<Band> lined = bands;
             bands = lined.stream().filter(b -> !b.holds(city) || lined.stream().noneMatch(a -> a.shadows(b, city))).toList();
+            // A street beside a road laid outside the network, running its way, is that road's verge.
+            bands = bands.stream().filter(b -> !b.holds(city) || laid.stream().noneMatch(a -> a.beside(b, city))).toList();
+            // So is a shorter street beside a longer one, along all its length: swept, the two are a double road.
+            List<Band> flanked = bands;
+            bands = flanked.stream().filter(b -> !b.holds(city) || flanked.stream().noneMatch(a -> a.flanks(b, city))).toList();
             // A short band is a through street when each of its ends meets
             // another street. One met at a single end by a street that stands on
             // its own is a dead end off that street, a spur: it runs into a yard

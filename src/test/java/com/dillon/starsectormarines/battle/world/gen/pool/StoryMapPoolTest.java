@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSitePlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
@@ -50,6 +53,19 @@ class StoryMapPoolTest {
         assertNull(MapPatch.NONE.lift());
         assertThrows(IllegalArgumentException.class, () -> MapPatch.read(new JSONObject(
                 "{\"bores\":[{\"x\":30,\"y\":40},{\"x\":50,\"y\":60}]}")));
+    }
+
+    @Test
+    void aHullPatchReadsItsHeadingAndStakesAndRidesThePlansLayout() throws Exception {
+        MapPatch patch = MapPatch.read(new JSONObject("{\"hull\":{\"x\":80,\"y\":60,\"heading\":\"west\",\"trench\":40,"
+                + "\"stakes\":[{\"x\":40,\"y\":60,\"stage\":\"planted\"}]}}"));
+        HullSitePlan hull = patch.hull();
+        assertEquals(Direction.W, hull.heading());
+        assertEquals(List.of(new HullSitePlan.StakeAt(40, 60, HullSite.StakeStage.PLANTED)), hull.stakes());
+        PrecinctPlan plan = new PrecinctPlan(List.of(place("base", 10, 10)));
+        assertSame(hull, patch.pinned(plan).layout().crash());
+        assertThrows(Exception.class, () -> MapPatch.read(new JSONObject(
+                "{\"hull\":{\"x\":80,\"y\":60,\"heading\":\"up\"}}")));
     }
 
     private static String pool(String map, String home, String entry) {

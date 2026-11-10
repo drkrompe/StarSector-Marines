@@ -19,14 +19,15 @@ class RaidWorksGuardTest {
     }
 
     @Test
-    void theWorksGuardPostsAreTheWorksOwnDefenderGuardRoomsAndNothingElse() {
+    void theWorksGuardPostsAreTheWorksOwnDefenderGuardRoomsAndEmplacementsAndNothingElse() {
         TacticalNode worksPost = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 40, RaidSiteTemplate.WORKS);
+        TacticalNode worksGun = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 70, RaidSiteTemplate.WORKS);
         TacticalNode garrisonPost = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 40, RaidSiteTemplate.GARRISON);
         TacticalNode emplacementPost = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 70, null);
         TacticalNode worksArmory = node(TacticalNode.Kind.ARMORY, Faction.DEFENDER, 70, RaidSiteTemplate.WORKS);
         TacticalNode marinePost = node(TacticalNode.Kind.GUARDPOST, Faction.MARINE, 40, RaidSiteTemplate.WORKS);
-        assertEquals(List.of(worksPost),
-                RaidWorksGuard.posts(List.of(garrisonPost, worksPost, emplacementPost, worksArmory, marinePost)));
+        assertEquals(List.of(worksPost, worksGun),
+                RaidWorksGuard.posts(List.of(garrisonPost, worksPost, emplacementPost, worksArmory, worksGun, marinePost)));
     }
 
     @Test

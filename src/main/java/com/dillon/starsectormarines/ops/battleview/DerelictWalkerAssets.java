@@ -13,6 +13,10 @@ import java.util.function.Function;
 public final class DerelictWalkerAssets {
 
     public static final String ROOT = "graphics/battle/derelict-walker/";
+    /** The fallen hull's MG-18 stripper's own parts ({@code art-source/fallen-hull}). */
+    public static final String STRIPPER_ROOT = "graphics/battle/derelict-stripper/";
+    /** The fallen hull's MG-30 hauler's own parts ({@code art-source/fallen-hull}). */
+    public static final String HAULER_ROOT = "graphics/battle/derelict-hauler/";
     /** Tri-Tachyon's light crawler's parts (`mech-lines.md`, high-tech light). */
     public static final String CRAWLER_ROOT = "graphics/battle/tt-crawler/";
     /** The parts' authored density: a part's pixels over this are its size in cells. */

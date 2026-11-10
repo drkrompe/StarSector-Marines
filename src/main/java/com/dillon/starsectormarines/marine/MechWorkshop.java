@@ -52,7 +52,7 @@ public final class MechWorkshop {
     public Result fitWeapon(String mechId, MechMountSlot slot,
                             MechWeaponComponent component) {
         if (bay.vehicleById(mechId) != null) {
-            return slot == MechMountSlot.ARMS ? fitGun(mechId, component) : Result.of(Status.INCOMPATIBLE);
+            return fitVehicleWeapon(mechId, slot, component);
         }
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || slot == null || component == null) return Result.of(Status.INVALID);
@@ -239,21 +239,35 @@ public final class MechWorkshop {
      * The weapon it replaces goes back to stores.
      */
     public Result fitGun(String vehicleId, MechWeaponComponent gun) {
+        return fitVehicleWeapon(vehicleId, MechMountSlot.ARMS, gun);
+    }
+
+    /**
+     * Puts a weapon in the vehicle's card at {@code mount} from stores: its gun card at the centreline mount, its coax
+     * card at the right arm. The weapon it replaces goes back to stores.
+     */
+    private Result fitVehicleWeapon(String vehicleId, MechMountSlot mount, MechWeaponComponent weapon) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
-        if (vehicle == null || gun == null) return Result.of(Status.INVALID);
-        if (vehicle.gun() == gun) return Result.of(Status.ALREADY_INSTALLED);
-        if (!bay.canFitGun(vehicleId, gun)) return Result.of(Status.INCOMPATIBLE);
-        if (bay.availableWeapon(gun.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
-        return bay.fitGun(vehicleId, gun) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+        if (vehicle == null || mount == null || weapon == null) return Result.of(Status.INVALID);
+        if (vehicle.weaponAt(mount) == weapon) return Result.of(Status.ALREADY_INSTALLED);
+        if (!bay.canFitVehicleWeapon(vehicleId, mount, weapon)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableWeapon(weapon.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitVehicleWeapon(vehicleId, mount, weapon) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
                 : Result.of(Status.INVALID);
     }
 
     /** Takes the weapon out of a vehicle's gun card back to stores. */
     public Result stripGun(String vehicleId) {
+        return stripVehicleWeapon(vehicleId, MechMountSlot.ARMS);
+    }
+
+    /** Takes the weapon out of the vehicle's card at {@code mount} back to stores. */
+    private Result stripVehicleWeapon(String vehicleId, MechMountSlot mount) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
-        if (vehicle == null) return Result.of(Status.INVALID);
-        if (vehicle.gun() == null) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripGun(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
+        if (vehicle == null || mount == null) return Result.of(Status.INVALID);
+        if (vehicle.weaponAt(mount) == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripVehicleWeapon(vehicleId, mount) ? new Result(Status.STRIPPED, null, vehicle)
+                : Result.of(Status.INVALID);
     }
 
     /** Takes the first vent array out of the compartment. */
@@ -295,7 +309,7 @@ public final class MechWorkshop {
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {
         if (bay.vehicleById(mechId) != null) {
-            return slot == MechMountSlot.ARMS ? stripGun(mechId) : Result.of(Status.INCOMPATIBLE);
+            return stripVehicleWeapon(mechId, slot);
         }
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null || slot == null) return Result.of(Status.INVALID);

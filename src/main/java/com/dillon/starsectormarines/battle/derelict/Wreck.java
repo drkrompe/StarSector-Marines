@@ -100,6 +100,16 @@ public final class Wreck {
         return true;
     }
 
+    /**
+     * A fallen hull's stripper has cut the wreck into feedstock (`fallen-hull-nouns.md`, Stripper): it is scrap and
+     * never raised. Returns whether it was still lying.
+     */
+    public boolean strip() {
+        if (state != State.LYING) return false;
+        state = State.SCRAPPED;
+        return true;
+    }
+
     /** A charge goes off at a cell: within twice {@link #REACH_CELLS}, the wreck is scrap. Returns whether it scrapped it now. */
     public boolean blast(float bx, float by) {
         if (state != State.LYING) return false;

@@ -1,0 +1,865 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "control-desk.png": {
+      "id": "doodad.ruins-control-desk",
+      "name": "Control desk",
+      "description": "A run of three operator consoles, screens to the room.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "control-desk-burnt.png": {
+      "id": "doodad.ruins-control-desk-burnt",
+      "name": "Control desk, burnt",
+      "description": "The console run burned out, its screens blown.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "mimic-board.png": {
+      "id": "doodad.ruins-mimic-board",
+      "name": "Mimic board",
+      "description": "A generic plant mimic board on the wall.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "shift-desk.png": {
+      "id": "doodad.ruins-shift-desk",
+      "name": "Shift desk",
+      "description": "The shift lead's desk, a terminal on it.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "ceiling-panel.png": {
+      "id": "doodad.ruins-ceiling-panel",
+      "name": "Fallen ceiling panel",
+      "description": "A fallen ceiling panel with its cable loom.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "sample-hatch.png": {
+      "id": "doodad.ruins-sample-hatch",
+      "name": "Sample hatch",
+      "description": "A pass-through hatch in the hall-side wall, a tray in front.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "tally-terminal.png": {
+      "id": "doodad.ruins-tally-terminal",
+      "name": "Tally terminal",
+      "description": "A stores tally terminal on a post.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "fume-hood.png": {
+      "id": "doodad.ruins-fume-hood",
+      "name": "Fume hood",
+      "description": "A lab fume hood, sash half down.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "lab-bench.png": {
+      "id": "doodad.ruins-lab-bench",
+      "name": "Lab bench",
+      "description": "A lab bench with glassware and a scope.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "shelf-toppled.png": {
+      "id": "doodad.ruins-shelf-toppled",
+      "name": "Toppled shelf",
+      "description": "A toppled lab shelf, its contents spilled.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "sample-store.png": {
+      "id": "doodad.ruins-sample-store",
+      "name": "Sample store",
+      "description": "A tall chilled sample cabinet.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "reject-bin.png": {
+      "id": "doodad.ruins-reject-bin",
+      "name": "Reject bin",
+      "description": "A lidded reject bin, hazard-banded.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "parts-rack.png": {
+      "id": "doodad.ruins-parts-rack",
+      "name": "Parts rack",
+      "description": "A narrow spares rack, bins of parts.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "parts-trolley.png": {
+      "id": "doodad.ruins-parts-trolley",
+      "name": "Parts trolley",
+      "description": "A parts trolley.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "rework-stand.png": {
+      "id": "doodad.ruins-rework-stand",
+      "name": "Rework stand",
+      "description": "A low frame a unit is bolted to for rework; open for the unit laid on it.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15,
+      "cover": "none"
+    },
+    "workshop-hoist.png": {
+      "id": "doodad.ruins-workshop-hoist",
+      "name": "Workshop hoist",
+      "description": "A small gantry hoist over the stand, open in the middle. Drawn above units.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16,
+      "cover": "none"
+    },
+    "hoist-fallen.png": {
+      "id": "doodad.ruins-hoist-fallen",
+      "name": "Hoist's fallen load",
+      "description": "The hoist's dropped load and chain.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "tool-wall.png": {
+      "id": "doodad.ruins-tool-wall",
+      "name": "Tool wall",
+      "description": "A tool board and bench against the wall.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "crew-locker.png": {
+      "id": "doodad.ruins-crew-locker",
+      "name": "Crew lockers",
+      "description": "A pair of crew lockers.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 19,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "crew-locker-open.png": {
+      "id": "doodad.ruins-crew-locker-open",
+      "name": "Crew lockers, open",
+      "description": "The lockers, doors open, kit spilled.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 20,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "crew-bunk.png": {
+      "id": "doodad.ruins-crew-bunk",
+      "name": "Crew bunk",
+      "description": "A crew bunk, bedding rumpled.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 21,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "store-rack.png": {
+      "id": "doodad.ruins-store-rack",
+      "name": "Store rack",
+      "description": "A tall store rack.",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 22,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "mess-table-tipped.png": {
+      "id": "doodad.ruins-mess-table-tipped",
+      "name": "Tipped mess table",
+      "description": "A mess table on its side as a barricade, scorch-marked.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 23,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "store-shelf.png": {
+      "id": "doodad.ruins-store-shelf",
+      "name": "Store shelf",
+      "description": "Steel store shelving, mostly stripped.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 24,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "cold-loop-board.png": {
+      "id": "doodad.ruins-cold-loop-board",
+      "name": "Cold loop board",
+      "description": "The control room's mimic board of its hall's line: cryostat loop temperatures.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 25,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "culture-board.png": {
+      "id": "doodad.ruins-culture-board",
+      "name": "Culture board",
+      "description": "The control room's mimic board of its hall's line: culture vat states.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 26,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "print-queue-board.png": {
+      "id": "doodad.ruins-print-queue-board",
+      "name": "Print queue board",
+      "description": "The control room's mimic board of its hall's line: the print queue.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 27,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "lattice-board.png": {
+      "id": "doodad.ruins-lattice-board",
+      "name": "Lattice board",
+      "description": "The control room's mimic board of its hall's line: AI core burn-in states.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 28,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "field-board.png": {
+      "id": "doodad.ruins-field-board",
+      "name": "Field board",
+      "description": "The control room's mimic board of its hall's line: the fusion torus field.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 29,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "beam-board.png": {
+      "id": "doodad.ruins-beam-board",
+      "name": "Beam board",
+      "description": "The control room's mimic board of its hall's line: the synchrotron beam position.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 30,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "bore-board.png": {
+      "id": "doodad.ruins-bore-board",
+      "name": "Bore board",
+      "description": "The control room's mimic board of its hall's line: bore depth and torque.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 31,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "reactor-board.png": {
+      "id": "doodad.ruins-reactor-board",
+      "name": "Reactor board",
+      "description": "The control room's mimic board of its hall's line: reactor column temperatures.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 32,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "draw-board.png": {
+      "id": "doodad.ruins-draw-board",
+      "name": "Draw board",
+      "description": "The control room's mimic board of its hall's line: fibre draw speed and tension.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 33,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "director-board.png": {
+      "id": "doodad.ruins-director-board",
+      "name": "Director board",
+      "description": "The control room's mimic board of its hall's line: holostage calibration.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 34,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "dispatch-board.png": {
+      "id": "doodad.ruins-dispatch-board",
+      "name": "Dispatch board",
+      "description": "The control room's mimic board of its hall's line: the dispatch schedule.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 35,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "range-board.png": {
+      "id": "doodad.ruins-range-board",
+      "name": "Range board",
+      "description": "The control room's mimic board of its hall's line: the proof range.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 36,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "pour-board.png": {
+      "id": "doodad.ruins-pour-board",
+      "name": "Pour board",
+      "description": "The control room's mimic board of its hall's line: the foundry pour.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 37,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "qubit-dewar.png": {
+      "id": "doodad.ruins-qubit-dewar",
+      "name": "Qubit dewar rig",
+      "description": "A dewar test rig for cryo units.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 38,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "incubator.png": {
+      "id": "doodad.ruins-incubator",
+      "name": "Sample incubator",
+      "description": "A culture sample incubator.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 39,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "core-probe.png": {
+      "id": "doodad.ruins-core-probe",
+      "name": "Core probe station",
+      "description": "A probe station for AI core lattices.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 40,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "coil-test-rig.png": {
+      "id": "doodad.ruins-coil-test-rig",
+      "name": "Coil test rig",
+      "description": "A field coil on a test frame.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 41,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "magnet-bench.png": {
+      "id": "doodad.ruins-magnet-bench",
+      "name": "Magnet bench",
+      "description": "A magnet segment on a measuring bench.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 42,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "core-sample-rack.png": {
+      "id": "doodad.ruins-core-sample-rack",
+      "name": "Core sample rack",
+      "description": "Rock cores from the bore, racked.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 43,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "assay-bench.png": {
+      "id": "doodad.ruins-assay-bench",
+      "name": "Assay bench",
+      "description": "A reagent assay bench.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 44,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "tally-bench.png": {
+      "id": "doodad.ruins-tally-bench",
+      "name": "Inspection bench",
+      "description": "An inspection and tally bench.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 45,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "charge-test-cell.png": {
+      "id": "doodad.ruins-charge-test-cell",
+      "name": "Charge test cell",
+      "description": "A small armoured test cell.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 46,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "assay-furnace.png": {
+      "id": "doodad.ruins-assay-furnace",
+      "name": "Assay furnace",
+      "description": "A small assay furnace.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 47,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "sorter-module.png": {
+      "id": "doodad.ruins-sorter-module",
+      "name": "Sorter module",
+      "description": "A sorter head, the high bay's spare on the rework stand.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 48,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "cryogen-dewars.png": {
+      "id": "doodad.ruins-cryogen-dewars",
+      "name": "Cryogen dewars",
+      "description": "A store shelf's load: cryogen dewars.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 49,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "nutrient-drums.png": {
+      "id": "doodad.ruins-nutrient-drums",
+      "name": "Nutrient drums",
+      "description": "A store shelf's load: nutrient drums.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 50,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "feedstock-canisters.png": {
+      "id": "doodad.ruins-feedstock-canisters",
+      "name": "Feedstock canisters",
+      "description": "A store shelf's load: print feedstock canisters.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 51,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "rack-module-crates.png": {
+      "id": "doodad.ruins-rack-module-crates",
+      "name": "Rack module crates",
+      "description": "A store shelf's load: AI rack module crates.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 52,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "coolant-drums.png": {
+      "id": "doodad.ruins-coolant-drums",
+      "name": "Coolant drums",
+      "description": "A store shelf's load: coolant drums.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 53,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "cable-drums.png": {
+      "id": "doodad.ruins-cable-drums",
+      "name": "Cable drums",
+      "description": "A store shelf's load: superconducting cable drums.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 54,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "drill-rods.png": {
+      "id": "doodad.ruins-drill-rods",
+      "name": "Drill rods",
+      "description": "A store shelf's load: drill rods.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 55,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "reagent-drums.png": {
+      "id": "doodad.ruins-reagent-drums",
+      "name": "Reagent drums",
+      "description": "A store shelf's load: reagent drums.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 56,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "spool-cores.png": {
+      "id": "doodad.ruins-spool-cores",
+      "name": "Spool cores",
+      "description": "A store shelf's load: empty fibre spool cores.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 57,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "emitter-cases.png": {
+      "id": "doodad.ruins-emitter-cases",
+      "name": "Emitter cases",
+      "description": "A store shelf's load: holo emitter cases.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 58,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "tote-stacks.png": {
+      "id": "doodad.ruins-tote-stacks",
+      "name": "Tote stacks",
+      "description": "A store shelf's load: dispatch totes.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 59,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "charge-cases.png": {
+      "id": "doodad.ruins-charge-cases",
+      "name": "Charge cases",
+      "description": "A store shelf's load: charge cases.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 60,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "ingot-stacks.png": {
+      "id": "doodad.ruins-ingot-stacks",
+      "name": "Ingot stacks",
+      "description": "A store shelf's load: cast ingots.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 61,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    }
+  }
+}

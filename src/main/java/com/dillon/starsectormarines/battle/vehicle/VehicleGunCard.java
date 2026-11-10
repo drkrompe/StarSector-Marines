@@ -24,7 +24,12 @@ public enum VehicleGunCard {
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
     /** The LRM carrier's: three rows, missile, room for a fifteen-tube rack. */
-    LRM(HardpointType.MISSILE, 3);
+    LRM(HardpointType.MISSILE, 3),
+    /**
+     * A hull's second card, beside its turret ({@link VehicleType#coaxMount}): one row, ballistic, for a machine gun
+     * or another one-row ballistic part (owner, 2026-11-10). Only the Onager carries one.
+     */
+    COAX(HardpointType.BALLISTIC, 1);
 
     /** Every gun card is two columns wide, as every mech weapon is. */
     public static final int COLUMNS = 2;
@@ -55,6 +60,11 @@ public enum VehicleGunCard {
     /** The card on {@code type}'s doll; null for an unarmed hull, which has none. */
     public static VehicleGunCard of(VehicleType type) {
         return type != null && type.hasTurretWeapon() ? of(type.turretStructureId) : null;
+    }
+
+    /** The coax card on {@code type}'s doll; null for a hull with no coax mount, which is every hull but the Onager. */
+    public static VehicleGunCard coaxOf(VehicleType type) {
+        return type != null && type.coaxMount() != null ? COAX : null;
     }
 
     /** Whether {@code weapon} goes in this card: the lock's hardpoint type if any, no wider or taller than the card. */

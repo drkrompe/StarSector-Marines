@@ -163,6 +163,8 @@ public class BattleSprites {
     private boolean layeredMechSpritesLoadAttempted;
     private DerelictWalkerAssets derelictWalker;
     private DerelictWalkerAssets crawler;
+    private DerelictWalkerAssets stripper;
+    private DerelictWalkerAssets hauler;
     /** The hardware variants' own bodies, drawn over their frames' legs and mounts ({@link MechVariantBodies}). */
     private Map<MechVariant, LayeredSpriteCache> mechVariantBodies = Map.of();
     /** The machine flamers' drawings, the same in every livery ({@link LayeredMechAssets#withFlamers}). */
@@ -227,6 +229,7 @@ public class BattleSprites {
     private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
     private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
     private final SheetTexture roofTex       = SheetTexture.grid(RoofTiles.SHEET);
+    private final SheetTexture hullRoofTex   = SheetTexture.grid(HullRoof.TEXTURE);
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
@@ -332,6 +335,30 @@ public class BattleSprites {
     }
     /** The derelict security walker's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
+
+    /**
+     * The parts a derelict chassis is drawn from: the fallen hull's stripper and hauler their own builds where they
+     * loaded, every other size the sentinel's at its scale.
+     */
+    public DerelictWalkerAssets derelictWalkerSprites(MechVariant variant) {
+        DerelictWalkerAssets own = variant == MechVariant.SECURITY_STRIPPER ? stripperSprites()
+                : variant == MechVariant.SECURITY_HAULER ? haulerSprites() : null;
+        return own != null ? own : derelictWalkerSprites();
+    }
+
+    /** The fallen hull's stripper's own parts, or null when incomplete. */
+    public DerelictWalkerAssets stripperSprites() { return stripper; }
+
+    /** The fallen hull's hauler's own parts, or null when incomplete. */
+    public DerelictWalkerAssets haulerSprites() { return hauler; }
+
+    /** The stripper's and hauler's own parts that loaded. */
+    public List<DerelictWalkerAssets> salvageWalkerSprites() {
+        List<DerelictWalkerAssets> out = new ArrayList<>();
+        if (stripperSprites() != null) out.add(stripperSprites());
+        if (haulerSprites() != null) out.add(haulerSprites());
+        return out;
+    }
     /** Tri-Tachyon's light crawler's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets crawlerSprites() { return crawler; }
     /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
@@ -510,6 +537,10 @@ public class BattleSprites {
     public SpriteAPI roofSheet()                   { return roofTex.sprite(); }
     public int roofSheetPxW()                      { return roofTex.pxW(); }
     public int roofSheetPxH()                      { return roofTex.pxH(); }
+    /** The fallen hull's roof painting ({@link HullRoof}); null when not loaded. */
+    public SpriteAPI hullRoofSheet()               { return hullRoofTex.sprite(); }
+    public int hullRoofSheetPxW()                  { return hullRoofTex.pxW(); }
+    public int hullRoofSheetPxH()                  { return hullRoofTex.pxH(); }
     public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
     public int waterSheetPxW()                     { return waterTex.pxW(); }
     public int waterSheetPxH()                     { return waterTex.pxH(); }
@@ -770,7 +801,10 @@ public class BattleSprites {
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
 
     /** Lazy-loads the roof sheet ({@link RoofTiles}): a row of field, eave trims and damage frames per roof style. */
-    public void ensureRoofSheet()       { roofTex.ensureLoaded(lease); }
+    public void ensureRoofSheet() {
+        roofTex.ensureLoaded(lease);
+        hullRoofTex.ensureLoaded(lease);
+    }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
@@ -1463,6 +1497,8 @@ public class BattleSprites {
         layeredMechSpritesLoadAttempted = true;
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, this::loadLayeredSprite);
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, this::loadLayeredSprite);
         mechVariantBodies = MechVariantBodies.load(this::loadLayeredSprite);
         mechFlamerBurner = loadLayeredSprite(MECH_ROOT + "fl-1.png");
         mechFlamerLance = loadLayeredSprite(MECH_ROOT + "fl-2.png");

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c76e-7797-7ab2-a1cc-b5fe0f26063d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c76e-7797-7ab2-a1cc-b5fe0f26063d\\exec-1d823405-8223-4d99-becc-ccdef0dcac7b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\raid-sites\\military\\raw\\military-base.raw.png",
+    "sha256": "936901abe2e06a1dbff6e3d2358533ad16843686570e3534eb304b1ceff496dd",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\raid-sites\\military\\prompts\\military-base.prompt.txt",
+  "promptSha256": "f594886295abd81546eeeb053cf90fcdedb3f1183334c159f800e5b7b4ef13b0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target\n\nUse case: sketch-to-render, game doodad sheet. Image 1 is the authoritative geometry guide: keep every piece exactly where it is, at its size and silhouette, on the same 1536x768 canvas; do not move, rescale, rotate, merge or add pieces. Output on a TRUE TRANSPARENT background, including every negative space; no ground, floor, border, slab or text. Each piece's soft cast shadow (the grey shape in the guide, falling to the lower right) is painted as a translucent dark shadow, kept inside the guide's grey shape.\nThree pieces of scenery for a dusty frontier colony outpost in a science-fiction strategy game, seen from directly overhead, for a top-down map.\nPIECE 1 (left), RAISED PLATFORM: a tall square platform on four steel legs seen from above (the legs' dark feet at the corners), its deck of worn steel grating ringed by a low rim of stacked olive and khaki canvas sacks; in the middle a small cabin's flat roof of olive-drab sheet with a ridge cross; a round floodlight lamp at the north-west corner; a steel ladder down the south side; its tall cast shadow to the lower right.\nPIECE 2 (middle), REVIEWING STAND: a low concrete stage dais at the head of an assembly square: sun-bleached pale concrete with a dark steel hand rail along its back (north) edge, a small lectern, three shallow steps down on its south side, a faded olive trim band, dust in the corners; its short shadow to the lower right.\nPIECE 3 (right), FLAG MAST: a tall flag mast seen from straight above: its round concrete plinth with the mast's dark foot in the middle, a plain olive and ochre pennant streaming east from the masthead (no emblem, insignia, text or real-world flag), and the mast's long thin shadow running to the lower right with the pennant's shadow at its end.\nPalette: olive drab, khaki, sun-bleached grey concrete, dust and worn paint.\nStraight 90-degree overhead orthographic camera, no perspective. Sun from the upper left. Hand-painted gritty science-fiction game art like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 32 to 64 pixels per cell. No text, letters, numbers, labels, watermark, UI, people or extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\raid-sites\\military\\guide.png",
+      "sha256": "ab61dd20ab06b8055ad2a78e2513eaafab164a4bfeec419462f5d35f4373bed6",
+      "dimensions": [
+        1536,
+        768
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority and edit target"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using your guide’s exact layout, with a transparent background and shadows confined to the indicated shapes."
+  ],
+  "usage": {
+    "input_tokens": 41042,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 546,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.0
+}

@@ -102,17 +102,88 @@ public final class DerelictSecurity {
         for (int i = 0; i < count; i++) {
             int index = Math.round(i * step);
             int perimeter = Math.max(8, spacing * 3 / 4 + 2);
-            List<int[]> posts = new ArrayList<>();
-            List<Integer> used = new ArrayList<>();
-            for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
-                int at = Math.max(0, Math.min(cells - 1, index + offset));
-                if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
-                used.add(at);
-                posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
-            }
-            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, posts));
+            out.add(new ZonePlan(i, route[index * 2], route[index * 2 + 1], perimeter, postsAround(route, index)));
         }
         return out;
+    }
+
+    /** A zone's walker posts: its node's route cell and a few cells either way along the route. */
+    static List<int[]> postsAround(int[] route, int index) {
+        int cells = route.length / 2;
+        List<int[]> posts = new ArrayList<>();
+        List<Integer> used = new ArrayList<>();
+        for (int offset : new int[] {0, -4, 4, -8, 8, 12, 16}) {
+            int at = Math.max(0, Math.min(cells - 1, index + offset));
+            if (used.contains(at) || posts.size() == POSTS_PER_ZONE) continue;
+            used.add(at);
+            posts.add(new int[] {route[at * 2], route[at * 2 + 1]});
+        }
+        return posts;
+    }
+
+    /**
+     * The layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): on a site whose interior publishes a
+     * works stand ({@link RuinsDelve.Interior#worksStand}, by the mega forge's pour pulpit or at the end of a works
+     * hall's transfer aisle), the zone nearest it along the route (never the vault's) keeps its node there, its posts
+     * round the route cell nearest it and its perimeter over the hall that holds it. Its service bay and repair drone
+     * stand by the node, so the hall is where the zone is kept. Unchanged with no stand.
+     *
+     * @param hall the hall holding the stand, for the perimeter; null keeps the zone's own
+     */
+    public static List<ZonePlan> anchorAt(List<ZonePlan> plans, int[] route, RuinsDelve.Cell stand,
+                                          RuinsDelve.Area hall) {
+        if (stand == null || plans.size() < 2) return plans;
+        int cells = route.length / 2;
+        int near = 0;
+        int best = Integer.MAX_VALUE;
+        for (int i = 0; i < cells; i++) {
+            int d = Math.abs(route[i * 2] - stand.x()) + Math.abs(route[i * 2 + 1] - stand.y());
+            if (d < best) {
+                best = d;
+                near = i;
+            }
+        }
+        int zone = 1;
+        for (int z = 1; z < plans.size(); z++) {
+            if (Math.abs(indexOf(route, plans.get(z)) - near) < Math.abs(indexOf(route, plans.get(zone)) - near)) {
+                zone = z;
+            }
+        }
+        ZonePlan was = plans.get(zone);
+        int perimeter = hall == null ? was.perimeterCells()
+                : Math.max(was.perimeterCells(), Math.max(hall.width(), hall.height()) / 2 + 2);
+        List<ZonePlan> out = new ArrayList<>(plans);
+        out.set(zone, new ZonePlan(was.id(), stand.x(), stand.y(), perimeter, postsAround(route, near)));
+        return out;
+    }
+
+    private static int indexOf(int[] route, ZonePlan plan) {
+        for (int i = 0; i < route.length / 2; i++) {
+            if (route[i * 2] == plan.nodeX() && route[i * 2 + 1] == plan.nodeY()) return i;
+        }
+        return 0;
+    }
+
+    /**
+     * The interior's works hall (a theme's works hall or a forge works' mega forge): the hall holding its works stand,
+     * which is published exactly when one is laid; null where the site has none.
+     */
+    static RuinsDelve.Area worksHall(RuinsDelve delve) {
+        return hallAt(delve, worksStand(delve));
+    }
+
+    /** The interior's works stand, or null where the site has none. */
+    static RuinsDelve.Cell worksStand(RuinsDelve delve) {
+        return delve == null || delve.interior() == null ? null : delve.interior().worksStand();
+    }
+
+    /** The plant hall holding a cell, or null. */
+    static RuinsDelve.Area hallAt(RuinsDelve delve, RuinsDelve.Cell cell) {
+        if (cell == null || delve == null || delve.interior() == null) return null;
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+            if (hall.footprint().contains(cell.x(), cell.y())) return hall.footprint();
+        }
+        return null;
     }
 
     /** Route cells the heavies hold in the contingency: the way out, short of the landing. */
@@ -178,7 +249,7 @@ public final class DerelictSecurity {
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
                                                    FlockLivery livery, int[] route, int sourceX, int sourceY) {
-        List<ZonePlan> plans = zonesAlong(route, zones(grade));
+        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve), worksHall(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));
@@ -230,7 +301,13 @@ public final class DerelictSecurity {
         }
         List<int[]> egress = egressAlong(route);
         for (int[] post : hallPosts(delve, DerelictWalkerClass.hallFrames(grade))) {
-            int squad = spawn(sim, DerelictWalkerFrame.HALL, post[0], post[1]);
+            // A heavy may already hold the hall's middle: the frame stands at the nearest cell round it that it fits.
+            int[] at = MechSpawnPlacement.nearCell(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius, post[0],
+                    post[1], (x, y) -> true, (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y,
+                            DerelictWalkerFrame.HALL.chassis.radius, 0L)) != null ? post
+                    : beside(sim, DerelictWalkerFrame.HALL.chassis.radius, post[0], post[1]);
+            if (at == null) continue;
+            int squad = spawn(sim, DerelictWalkerFrame.HALL, at[0], at[1]);
             if (squad < 0) continue;
             sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
                     "derelict hall frame in its hall");
@@ -541,7 +618,10 @@ public final class DerelictSecurity {
         List<RuinsDelve.Area> halls = new ArrayList<>();
         for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
         if (halls.isEmpty()) halls.addAll(delve.interior().chambers());
-        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
+        RuinsDelve.Area works = worksHall(delve);
+        // A works hall is the layer's stand: its frame comes first, then the largest halls.
+        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> a.equals(works) ? 0 : 1)
+                .thenComparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
                 .thenComparingInt(RuinsDelve.Area::left).thenComparingInt(RuinsDelve.Area::bottom));
         List<int[]> out = new ArrayList<>();
         for (int i = 0; i < Math.min(count, halls.size()); i++) {
@@ -815,6 +895,13 @@ public final class DerelictSecurity {
             }
         }
         return null;
+    }
+
+    /** Whether a walker of {@code frame} could be stood near {@code (postX, postY)} now, as {@link #spawn} would. */
+    static boolean standable(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
+        float radius = frame.chassis.radius;
+        return MechSpawnPlacement.nearCell(sim.getGrid(), radius, postX, postY, (x, y) -> true,
+                (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L)) != null;
     }
 
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {

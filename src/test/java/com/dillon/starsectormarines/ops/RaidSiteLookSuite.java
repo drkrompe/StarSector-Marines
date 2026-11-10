@@ -43,15 +43,22 @@ public class RaidSiteLookSuite implements SnapshotSuite {
     private final String id;
     private final String industry;
     private final EconomicFunction function;
+    private final SurfacePalette palette;
 
     public RaidSiteLookSuite() {
         this("raid-site-look", "heavyindustry", EconomicFunction.HEAVY_INDUSTRY);
     }
 
     protected RaidSiteLookSuite(String id, String industry, EconomicFunction function) {
+        this(id, industry, function, SurfacePalette.ROCK);
+    }
+
+    /** A site shown on the world it belongs on: a farm on living ground rather than bare rock. */
+    protected RaidSiteLookSuite(String id, String industry, EconomicFunction function, SurfacePalette palette) {
         this.id = id;
         this.industry = industry;
         this.function = function;
+        this.palette = palette;
     }
 
     @Override public String id() { return id; }
@@ -62,6 +69,14 @@ public class RaidSiteLookSuite implements SnapshotSuite {
 
     @Override public boolean inAll() { return false; }
 
+    /**
+     * The works close-up's centre and width in cells, given the machines' centre: at play zoom on the machines, for
+     * a site whose works is its machines. A site whose process runs past them (a port's apron) frames the whole.
+     */
+    protected float[] closeUp(BattleSimulation sim, float machinesX, float machinesY) {
+        return new float[]{machinesX, machinesY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
@@ -71,7 +86,7 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                 TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
                         EnumSet.of(function, EconomicFunction.SPACEPORT,
                                 EconomicFunction.HABITATION),
-                        SurfacePalette.ROCK, SettlementLink.ROAD);
+                        palette, SettlementLink.ROAD);
                 try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
                         false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
                         RaidWorksLayout.machinesFor(c.tier()), industry)) {
@@ -92,9 +107,9 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(c.id() + "-whole.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
                             .withMissionMarkers().render(sim, "")));
+                    float[] frame = closeUp(sim, sx / n + .5f, sy / n + .5f);
                     out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), 1920, 1080, sx / n + .5f, sy / n + .5f,
-                            BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
+                            context.modRoot(), 1920, 1080, frame[0], frame[1], frame[2])
                             .withMissionMarkers().render(sim, "")));
                 }
             }

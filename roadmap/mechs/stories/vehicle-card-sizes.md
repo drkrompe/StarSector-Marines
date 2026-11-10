@@ -26,7 +26,7 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 | Medium | 2x2 | omni | medium tank (Scorpion) |
 | Medium | 2x2 | yellow (ballistic) | fire-support (mortar) APC |
 | Large | 3x2 | green (missile) | LRM carrier |
-| Large | 3x2 | omni | Onager |
+| Large | 3x2 | omni | Onager (and a 1x2 ballistic coax card beside it) |
 | Large | 3x2 | red (energy) | laser tank |
 
 The gun tanks' cards are omni (owner, 2026-11-05: rather than yellow, green and red builds of one tank), so only the

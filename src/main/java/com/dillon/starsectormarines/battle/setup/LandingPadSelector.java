@@ -21,7 +21,9 @@ final class LandingPadSelector {
         List<LandingPad> selected = new ArrayList<>();
         List<LandingPad> authored = new ArrayList<>(map.landingPads);
         // An allied airbase's stands are its wing's, never a company's landing.
-        authored.removeIf(p -> p.purpose == LandingPad.Purpose.ALLIED_AIRFIELD);
+        // A port's lighter stands are the planet's traffic's, never a company's landing either.
+        authored.removeIf(p -> p.purpose == LandingPad.Purpose.ALLIED_AIRFIELD
+                || p.purpose == LandingPad.Purpose.PORT_LIGHTER);
         authored.sort(Comparator
                 .comparingInt((LandingPad p) -> distanceSq(
                         p.centerX, p.centerY, map.marineSpawnX, map.marineSpawnY))
