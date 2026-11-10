@@ -100,6 +100,34 @@
       "padding": 0,
       "order": 7,
       "cover": "none"
+    },
+    "parked-tank.png": {
+      "id": "doodad.parked-tank",
+      "name": "Parked tank",
+      "description": "A Hegemony medium tank parked in the vehicle park, turret and gun forward (west).",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
+    },
+    "parked-apc-army.png": {
+      "id": "doodad.parked-apc-army",
+      "name": "Parked APC",
+      "description": "An army APC parked in the vehicle park, nose and turret forward (west).",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55
     }
   }
 }

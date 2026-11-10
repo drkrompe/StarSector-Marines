@@ -68,6 +68,28 @@
         2,
         2
       ]
+    },
+    {
+      "id": "doodad.parked-tank",
+      "col": 8,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "doodad.parked-apc-army",
+      "col": 0,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        2
+      ]
     }
   ],
   "cells": [
@@ -112,6 +134,18 @@
       "row": 2,
       "name": "Parade centre",
       "description": "The square's painted centre mark: a cross in a ring."
+    },
+    {
+      "col": 8,
+      "row": 2,
+      "name": "Parked tank",
+      "description": "A Hegemony medium tank parked in the vehicle park, turret and gun forward (west)."
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "name": "Parked APC",
+      "description": "An army APC parked in the vehicle park, nose and turret forward (west)."
     }
   ]
 }
