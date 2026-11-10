@@ -104,6 +104,20 @@ class DerelictSecurityTest {
     }
 
     @Test
+    void aLineFrameTakesAChamberItsOwnZoneKeepsBeforeTheListsTurn() {
+        List<DerelictWalkerFrame> heavies = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.LINE,
+                DerelictWalkerFrame.LINE);
+        List<DerelictSecurity.ZonePlan> plans = List.of(new DerelictSecurity.ZonePlan(0, 74, 24, 8, List.of()),
+                new DerelictSecurity.ZonePlan(1, 74, 74, 12, List.of()));
+        // The list runs west to east, but the first frame's zone keeps only the last chamber.
+        int[][] posts = DerelictSecurity.interiorPosts(heavies, withInterior(List.of(new Area(60, 70, 65, 79),
+                new Area(70, 70, 79, 79), new Area(70, 20, 79, 29))), plans, new int[] {0, 1, 1});
+        assertArrayEquals(new int[] {74, 24}, posts[0]);
+        assertArrayEquals(new int[] {74, 74}, posts[1]);
+        assertArrayEquals(new int[] {62, 74}, posts[2], "zone 1's other chamber, though further from its node");
+    }
+
+    @Test
     void groundWithNoInteriorLeavesTheRoutesPosts() {
         assertNull(DerelictSecurity.interiorPosts(List.of(DerelictWalkerFrame.LINE), null));
     }
