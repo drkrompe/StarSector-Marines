@@ -28,10 +28,17 @@ public final class HabitatStage implements GenStage {
     static final String THRESHOLD = "doodad.fl-striped-yellow";
 
     @Override public void run(GenContext c) {
-        Habitat habitat = HabitatZoning.forProfile(c.get(BspKeys.MARKET_PROFILE));
-        if (habitat == Habitat.OPEN) return;
+        apply(c, HabitatZoning.forProfile(c.get(BspKeys.MARKET_PROFILE)));
+    }
+
+    /**
+     * Builds a placed town in {@code habitat}: the call for a site that lays its own buildings with its own recipe, after
+     * they are stamped. Inert for the open town.
+     */
+    public static void apply(GenContext c, Habitat habitat) {
+        if (habitat == null || habitat == Habitat.OPEN) return;
         rebuild(c.topology, habitat);
-        markThresholds(c);
+        if (habitat.enclosed()) markThresholds(c);
     }
 
     /** Every town wall, in the habitat's material. */

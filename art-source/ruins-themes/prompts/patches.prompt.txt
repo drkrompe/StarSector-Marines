@@ -1,0 +1,10 @@
+Asset: a sheet of four flat floor decals for a top-down tactical game set in a sci-fi colony ruin, seen from directly above (orthographic, 90 degrees), for the Starsector Marines battle map. Decals lie on the floor; they are not objects.
+Geometry: reference 1 is the layout authority. Each translucent grey blob is one decal's exact outline: keep each decal inside its blob, at its size, position and soft irregular shape. The edges must stay organic and lopsided, never star points, spikes, zigzags or a circle. The space between blobs stays fully transparent.
+Material: reference 2 is the material reference for the two frost decals, reference 3 for the two growth decals (their right-hand patches); they are not layout. Match the painterly game-sprite finish of the props in those references: restrained, weathered, adult military sci-fi, not cartoon.
+Subjects, left to right:
+1. frost-patch-a: a thin sheet of white-blue hoar frost and cracked clear ice spread over the floor, denser near one side, a few fine frost feathers, edges feathering out to transparent.
+2. frost-patch-b: the same frost, a different spill: a frozen coolant puddle with a glassy pale-cyan middle and a crust of rime round it, feathered edges.
+3. growth-patch-a: a flat mat of dark-green and ochre biofilm and lichen with fine creeping tendrils spreading over the floor, a few tiny pale fungal caps, feathered edges.
+4. growth-patch-b: the same growth, a different spill: a damp stain of olive slime and moss in uneven lobes with root threads reaching out, feathered edges.
+Every decal is semi-transparent so the floor shows through, flat with no raised geometry, no objects, no cast shadow.
+Background: true transparent background with clean alpha; no floor tile, border, labels or text.

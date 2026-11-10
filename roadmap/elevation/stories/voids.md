@@ -791,7 +791,7 @@ Laws):
    - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
      and also built onto the grid system", its legs giving cover). From the
      first ground cell past the tower, `OreLine` finds a course on the grid to
-     the ore mill's wall: straight runs turning only at right angles, over open
+     the receiving house's wall: straight runs turning only at right angles, over open
      ground, roads and walls but never a building or the pit, a turn costing
      eight cells of run. Its pieces (`ore-conveyor` sheet: straight, corner,
      drive) are overhead props drawn in the roof pass above the people walking
@@ -800,6 +800,18 @@ Laws):
      straight run, where a solid prop blocks no road, doorway, route or ground
      (the landscape pass's reservations and `PlacementGuards`): a fixture
      giving medium cover.
+   - **The processing chain** (owner, 2026-11-09: the belt "pulling ore to a
+     processing facility with burners to refine the ore", the facility "a
+     series of buildings that again plausibly make sense"; real buildings,
+     dressed). The head works is the chain the ore passes through
+     (`RaidWorksPrograms.mine`): receiving, stockpile, one mill line per
+     machine (the raid's machines), smelter, loadout, each a real building the
+     battle enters. The ore line links them in that order, each link from the
+     wall of one hall nearest the next, never through a hall or a link already
+     laid; a link that would wander more than twice its straight distance plus
+     twelve cells is left out. Inside the works its legs keep off roads and
+     doorways. Next: roof dressing by role (stacker and heaps, mill drums,
+     furnace grilles and stacks), the smelter's burner glow and stack smoke.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -829,7 +841,10 @@ Laws):
      concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
-   (to the stores, or from the shafts); dust over the working bench.
+   (to the stores, or from the shafts); dust over the working bench; the
+   receiving house on the pit's side of the works, so the pit's line need not
+   wrap round the compound; a shared trunk where one hall feeds several, not a
+   line each.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:

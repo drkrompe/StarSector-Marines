@@ -23,6 +23,8 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseShelter;
 import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import java.util.Locale;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -112,6 +114,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
         openPits(c, plan, reserved);
         if (!crevasseTown(c, reserved)) chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
@@ -166,34 +169,41 @@ public final class OutdoorLandscapeStage implements GenStage {
                 i -> c.grid.isWalkable(i % w, i / w), (int) c.seed);
         if (pit == null) return;
         cutDrop(c, pit, reserved);
-        PointOfInterest mill = pitWorksBuilding(c, plan);
-        float[] works = mill == null ? null : pitWorks(mill, box);
+        // The ore goes to the works' receiving house, the first step of its processing chain; a works without one
+        // takes it at its largest building.
+        List<List<PointOfInterest>> chain = processingChain(c, plan);
+        PointOfInterest receiving = !chain.isEmpty() && chain.get(0).size() == 1
+                && c.topology.getRoomPurpose(chain.get(0).get(0).interiorAnchorX, chain.get(0).get(0).interiorAnchorY)
+                == RaidWorksPrograms.MINE_RECEIVING ? chain.get(0).get(0) : pitWorksBuilding(c, plan);
+        float[] works = receiving == null ? null : pitWorks(receiving, box);
         NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
-        if (belt != null) belt = oreLine(c, pit, belt, mill, reserved);
+        if (belt != null) belt = oreLine(c, pit, belt, receiving, chain, reserved);
         c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
     }
 
     /**
-     * Lays the raised ore conveyor from the pit's rim to the works ({@code voids.md}, the open pit; {@link OreLine}):
-     * from the first ground cell past the rim on the spine's line, a course on the grid to the ore mill's wall,
-     * crossing open ground, roads and walls but never a building or the pit. Its pieces are overhead props people
-     * walk under; a trestle leg every few cells stands where a solid prop blocks no road, doorway, route or ground, and
-     * gives cover. Returns the spine, now ending at the line's first cell, where the transfer tower hands its ore on;
-     * unchanged when no course reaches the mill or the conveyor's art is not installed.
+     * Lays the raised ore conveyor ({@code voids.md}, the open pit; {@link OreLine}): from the first ground cell past
+     * the pit's rim on the spine's line to the works' receiving house, then the works' processing chain linked in the
+     * order the ore passes (receiving, stockpile, each mill line, smelter, loadout). Each link is a course on the
+     * grid over open ground, roads and walls but never a building, the pit or a link already laid. Its pieces are
+     * overhead props people walk under; a trestle leg every few cells stands where a solid prop blocks no road,
+     * doorway or ground, and gives cover. Returns the spine, now ending at the line's first cell, where the transfer
+     * tower hands its ore on; unchanged when no course reaches the works or the conveyor's art is not installed.
      */
-    private static NaturalVoid.Belt oreLine(GenContext c, boolean[] pit, NaturalVoid.Belt belt, PointOfInterest mill,
+    private static NaturalVoid.Belt oreLine(GenContext c, boolean[] pit, NaturalVoid.Belt belt,
+                                            PointOfInterest receiving, List<List<PointOfInterest>> chain,
                                             boolean[] reserved) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null || registry.doodad("ore-conveyor.straight") == null) return belt;
         int w = c.width, h = c.height;
-        boolean[] building = new boolean[w * h];
+        boolean[] blocked = new boolean[w * h];
+        for (int i = 0; i < blocked.length; i++) blocked[i] = pit[i];
         for (PointOfInterest poi : c.pois) {
             for (int y = Math.max(0, poi.top); y <= Math.min(h - 1, poi.bottom); y++) {
-                for (int x = Math.max(0, poi.left); x <= Math.min(w - 1, poi.right); x++) building[y * w + x] = true;
+                for (int x = Math.max(0, poi.left); x <= Math.min(w - 1, poi.right); x++) blocked[y * w + x] = true;
             }
         }
-        IntPredicate passable = i -> !pit[i] && !building[i] && i % w > 0 && i / w > 0 && i % w < w - 1
-                && i / w < h - 1;
+        IntPredicate passable = i -> !blocked[i] && i % w > 0 && i / w > 0 && i % w < w - 1 && i / w < h - 1;
         float dx = belt.endX() - belt.rimX(), dy = belt.endY() - belt.rimY();
         float len = (float) Math.hypot(dx, dy);
         if (len < 1e-3f) return belt;
@@ -205,23 +215,56 @@ public final class OutdoorLandscapeStage implements GenStage {
             break;
         }
         if (sx < 0) return belt;
-        IntPredicate inMill = i -> i % w >= mill.left && i % w <= mill.right && i / w >= mill.top
-                && i / w <= mill.bottom;
-        IntPredicate goal = i -> passable.test(i) && ((i % w > 0 && inMill.test(i - 1))
-                || (i % w < w - 1 && inMill.test(i + 1)) || (i >= w && inMill.test(i - w))
-                || (i + w < w * h && inMill.test(i + w)));
+        // The pit's line is fed by the tower on the rim, behind its first cell.
+        int fromX = (int) Math.floor(belt.rimX()), fromY = (int) Math.floor(belt.rimY());
+        if (!layLink(c, registry, blocked, passable, sx, sy, fromX, fromY, receiving, reserved, true)) return belt;
+        for (int k = 0; k + 1 < chain.size(); k++) {
+            for (PointOfInterest from : chain.get(k)) {
+                for (PointOfInterest to : chain.get(k + 1)) {
+                    int[] start = beside(from, to, passable, w, h);
+                    if (start == null) continue;
+                    layLink(c, registry, blocked, passable, start[0], start[1], start[2], start[3], to, reserved,
+                            false);
+                }
+            }
+        }
+        return new NaturalVoid.Belt(belt.floorX(), belt.floorY(), belt.rimX(), belt.rimY(), sx + .5f, sy + .5f);
+    }
+
+    /** Cells a link inside the works may run beyond twice its straight distance before it is left out. UNTUNED. */
+    private static final int LINK_SLACK = 12;
+
+    /**
+     * Lays one link of the ore line from {@code (sx, sy)}, fed from {@code (fromX, fromY)}, to the wall of {@code to}:
+     * its pieces, and its legs where they may stand (on the open country by the landscape's reservations, inside the
+     * works off roads and doorways). Its cells are blocked to later links. False when no course reaches {@code to}.
+     */
+    private static boolean layLink(GenContext c, TileRegistry registry, boolean[] blocked, IntPredicate passable,
+                                   int sx, int sy, int fromX, int fromY, PointOfInterest to, boolean[] reserved,
+                                   boolean open) {
+        int w = c.width, h = c.height;
+        IntPredicate inTo = i -> i % w >= to.left && i % w <= to.right && i / w >= to.top && i / w <= to.bottom;
+        IntPredicate goal = i -> passable.test(i) && ((i % w > 0 && inTo.test(i - 1))
+                || (i % w < w - 1 && inTo.test(i + 1)) || (i >= w && inTo.test(i - w))
+                || (i + w < w * h && inTo.test(i + w)));
         List<int[]> path = OreLine.route(w, h, sx, sy, passable, goal);
-        if (path.isEmpty()) return belt;
+        if (path.isEmpty()) return false;
+        // A link that must wander round the works to reach the next hall is no link: the halls stand apart.
+        int gx = Math.max(to.left - sx, Math.max(0, sx - to.right));
+        int gy = Math.max(to.top - sy, Math.max(0, sy - to.bottom));
+        if (!open && path.size() > 2 * (gx + gy) + LINK_SLACK) return false;
         int[] last = path.get(path.size() - 1);
         int intoX = last[0], intoY = last[1];
         for (int d = 0; d < 4; d++) {
             int nx = last[0] + (d == 0 ? 1 : d == 2 ? -1 : 0), ny = last[1] + (d == 1 ? 1 : d == 3 ? -1 : 0);
-            if (nx >= 0 && ny >= 0 && nx < w && ny < h && inMill.test(ny * w + nx)) { intoX = nx; intoY = ny; break; }
+            if (nx >= 0 && ny >= 0 && nx < w && ny < h && inTo.test(ny * w + nx)) { intoX = nx; intoY = ny; break; }
         }
-        List<OreLine.Piece> pieces = OreLine.pieces(path, intoX, intoY, true);
+        boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION);
+        List<OreLine.Piece> pieces = OreLine.pieces(path, fromX, fromY, intoX, intoY, true);
         List<int[]> legs = OreLine.legs(pieces, i -> {
             int x = i % w, y = i / w;
-            return !reserved[i] && c.grid.isWalkable(x, y) && !c.topology.isFixture(x, y)
+            if (open ? reserved[i] : roads != null && roads[x][y]) return false;
+            return c.grid.isWalkable(x, y) && !c.topology.isFixture(x, y)
                     && !PlacementGuards.touchesDoorway(c.grid, x, y) && !PlacementGuards.wouldStrandGround(c.grid, x, y);
         }, w);
         for (OreLine.Piece piece : pieces) {
@@ -229,6 +272,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             if (def == null) continue;
             c.doodads.add(new Doodad(piece.x(), piece.y(), def, piece.quarterTurns()));
             reserved[piece.y() * w + piece.x()] = true;
+            blocked[piece.y() * w + piece.x()] = true;
         }
         DoodadDef leg = registry.doodad("ore-conveyor.leg");
         if (leg != null) {
@@ -244,7 +288,63 @@ public final class OutdoorLandscapeStage implements GenStage {
                 c.doodads.add(new Doodad(at[0], at[1], leg, turns));
             }
         }
-        return new NaturalVoid.Belt(belt.floorX(), belt.floorY(), belt.rimX(), belt.rimY(), sx + .5f, sy + .5f);
+        return true;
+    }
+
+    /**
+     * Where a link from building {@code from} to building {@code to} starts: the open cell against {@code from}'s
+     * wall nearest {@code to}, with the wall cell behind it that feeds it, as {@code {x, y, fromX, fromY}}; null
+     * when none is open.
+     */
+    private static int[] beside(PointOfInterest from, PointOfInterest to, IntPredicate passable, int w, int h) {
+        float tx = (to.left + to.right) / 2f, ty = (to.top + to.bottom) / 2f;
+        int[] best = null;
+        float bestD = Float.MAX_VALUE;
+        for (int y = from.top - 1; y <= from.bottom + 1; y++) {
+            for (int x = from.left - 1; x <= from.right + 1; x++) {
+                boolean side = x == from.left - 1 || x == from.right + 1, end = y == from.top - 1 || y == from.bottom + 1;
+                if (side == end || x < 0 || y < 0 || x >= w || y >= h || !passable.test(y * w + x)) continue;
+                float d = Math.abs(x - tx) + Math.abs(y - ty);
+                if (d >= bestD) continue;
+                bestD = d;
+                int fx = x < from.left ? x + 1 : x > from.right ? x - 1 : x;
+                int fy = y < from.top ? y + 1 : y > from.bottom ? y - 1 : y;
+                best = new int[]{x, y, fx, fy};
+            }
+        }
+        return best;
+    }
+
+    /**
+     * The works' processing chain in the plan's objective, step by step in the order the ore passes
+     * ({@code RaidWorksPrograms.mine}): each step the buildings whose room is that step's, nearest the objective
+     * first. A step with no building is left out.
+     */
+    private static List<List<PointOfInterest>> processingChain(GenContext c, PrecinctPlan plan) {
+        Precinct works = plan.objective();
+        List<List<PointOfInterest>> out = new ArrayList<>();
+        if (works == null) return out;
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+        int index = plan.precincts().indexOf(works);
+        int reach = PIT_WORKS_REACH * PIT_WORKS_REACH * 2;
+        for (RoomPurpose step : List.of(RaidWorksPrograms.MINE_RECEIVING, RaidWorksPrograms.MINE_STOCKPILE,
+                RaidWorksPrograms.MINE_MILL, RaidWorksPrograms.MINE_SMELTER, RaidWorksPrograms.MINE_LOADOUT)) {
+            List<PointOfInterest> found = new ArrayList<>();
+            for (PointOfInterest poi : c.pois) {
+                if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;
+                int ax = poi.interiorAnchorX, ay = poi.interiorAnchorY;
+                if (claim != null && index >= 0) {
+                    boolean inside = ax >= 0 && ay >= 0 && ax < claim.length && ay < claim[0].length;
+                    if (!inside || claim[ax][ay] != index) continue;
+                } else {
+                    int dx = ax - works.seedX(), dy = ay - works.seedY();
+                    if (dx * dx + dy * dy > reach) continue;
+                }
+                if (c.topology.getRoomPurpose(poi.interiorAnchorX, poi.interiorAnchorY) == step) found.add(poi);
+            }
+            if (!found.isEmpty()) out.add(found);
+        }
+        return out;
     }
 
     /** Stamps a drop's cells: void ground, unwalkable, seen and shot across, and reserved from growth. */
@@ -354,6 +454,24 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setSurface(x, y, timber);
         }
         c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+    }
+
+    /**
+     * Keeps the landscape's features out of every walled place ({@link Precinct.Boundary#WALLED}: a garrison's
+     * cantonment, a works compound): its whole claim is reserved before the pit, the drop, the hills, the rises, the
+     * ridges and the formations are laid, so no ravine, void or hill stands inside a wall. A walled place's yard is
+     * made country, not open country, whatever its ground. {@code claim} is the plan's per-cell owner
+     * ({@code BspKeys.PRECINCT_CLAIM}); null reserves nothing.
+     */
+    static void reserveWalled(boolean[] reserved, List<Precinct> precincts, int[][] claim, int width, int height) {
+        if (claim == null) return;
+        for (int x = 0; x < Math.min(width, claim.length); x++) {
+            for (int y = 0; y < Math.min(height, claim[x].length); y++) {
+                int owner = claim[x][y];
+                if (owner < 0 || owner >= precincts.size()) continue;
+                if (precincts.get(owner).boundary() == Precinct.Boundary.WALLED) reserved[y * width + x] = true;
+            }
+        }
     }
 
     /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
