@@ -277,7 +277,7 @@ increasing an encounter's total armored threat.
   access tier: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige (the three are first stand-ins for a grid of mech lines, tech family by
   weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
-  the APC Common, militia technical Advanced, breakthrough tank
+  the APC Common, militia technical Advanced, Onager
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
   what the drop will need; the two usually agree, and where they do not (the
@@ -307,7 +307,7 @@ increasing an encounter's total armored threat.
   fire-support APC (a 120 mm mortar in a ballistic card where the troop bay was, no seats, spotted indirect fire,
   Medium lift) is Advanced, as is the LRM carrier (an LRM-15 anti-armor rack in a missile card
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (the laser tank)
+  `convoy-nouns.md`, the missile carriers); the Onager's variants (the laser tank)
   is Prestige and Heavy lift; the Parapet, once a variant, is the Onager with the
   active-protection kit (`VehicleStockFit.PARAPET`, owner 2026-10-30: one tank). A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good

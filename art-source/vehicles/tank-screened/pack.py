@@ -5,8 +5,8 @@ The Parapet was a hull of its own until active protection became a rack kit (own
 (army-tank-screened.png) no longer ships, and only its live turret frame is still used.
 
 Four 768x768 frames: live hull, live turret, wreck hull, wreck turret, all facing LEFT.
-Hull frames are copied verbatim from the breakthrough sheet: the screened tank is that hull.
-Turret frames come from the ImageGen raws (turret-only canvases in the breakthrough masters'
+Hull frames are copied verbatim from the retired tracked hull's sheet: the screened tank is that hull.
+Turret frames come from the ImageGen raws (turret-only canvases in the tracked hull masters'
 coordinates, the interceptor fit painted over guide.py's blocks), then:
   * alphaFloor: generator haze at or below this alpha is cleared;
   * registration: the bearing lands on the frame center at the stated uniform scale

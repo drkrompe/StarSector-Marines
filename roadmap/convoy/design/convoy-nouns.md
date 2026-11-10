@@ -1290,7 +1290,7 @@ rolling-turn envelope shared by route proof and body motion; where no rolling tu
 fits it pivots like any hull (Neutral pivot); slip and player-owned tank logistics
 are not modeled.
 
-The **Onager** (`BREAKTHROUGH_TANK`, Prestige, Heavy lift) is the Hegemony's **heavy repulsor tank** (owner,
+The **Onager** (`BREAKTHROUGH_TANK`, Prestige, Heavy lift; the id is its first name, kept so saves, patterns and string keys resolve, and everything else calls it the Onager) is the Hegemony's **heavy repulsor tank** (owner,
 `hegemony-armor-line.md`): an ultra-heavy hull on a repulsor skirt, broad and short, its footprint 3.38 by 2.21
 cells fitted to its painted hull. Tan and olive plate with orange hazard panels, a layered prow, slab side
 pods, exposed pipework between them, and the round turret ring a little forward of centre. It hovers, so it
@@ -1327,7 +1327,7 @@ modular turret with heads painted on its own sheet (`VehicleType.hasModularTurre
 
 The laser tank draws from its own sheet with the four registered slots. There is no long-gun tank: the heavy-gun
 variant was removed (owner, 2026-10-22) because its single long barrel read as goofy at game scale; the tank line's
-anti-armor answer is the breakthrough cannon. **The dozer breacher is retired** (owner, `hegemony-armor-line.md`):
+anti-armor answer is the Onager's HC-20, the Breach Cannon. **The dozer breacher is retired** (owner, `hegemony-armor-line.md`):
 there is no blade on any hull, and what it opened is the weight rule below. A save, a learned pattern or a card that
 names it is carried to the Onager (`VehicleType.fromSavedName`, `VehicleTypeSaveConverter`).
 
@@ -1583,8 +1583,8 @@ Evidence: `createSnapshots -Psnapshot=medium-tank`.
 
 ### The laser tanks
 
-The **pulse-laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the breakthrough hull with
-a ship's burst laser where the twin cannons were, the PL-3 pulse laser on the ground (`mechs-nouns.md`, Weapon names). In orbit that emitter is point
+The **pulse-laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the Onager's hull with
+a ship's burst laser where its cannon was, the PL-3 pulse laser on the ground (`mechs-nouns.md`, Weapon names). In orbit that emitter is point
 defence, because it barely marks a warship's plate; on the ground almost nothing it
 meets is plate like that. It is a rung of the tank line, not a point-defence system:
 it does not engage rounds in flight. Hostile rocket and shell interception stays
@@ -1617,10 +1617,10 @@ haze thickens over the hull's radiator fins as it builds
 off them. A mech's reservoir shows in the same look (`FluxHaze`, `mechs-nouns.md`).
 
 The power plant takes the shell stowage's room and weight, so the hull is a little
-faster than the breakthrough tank and carries a little less plate.
+faster than the Onager and carries a little less plate.
 
 It is Tri-Tachyon's tank, and it looks it (`art-source/vehicles/tank-laser/`): the
-breakthrough hull in the company's white livery, a sloped glacis under a crew window,
+retired tracked hull the Onager first wore (`art-source/vehicles/tank/`), in the company's white livery, a sloped glacis under a crew window,
 and a bank of ten capacitor cells over the rear deck where the engine grilles were. Its
 turret is the space game's own PD laser, up-res'd from the vanilla sprite and set on a
 ship's turret mount in the deck, small for a tank turret, so a player recognises the
