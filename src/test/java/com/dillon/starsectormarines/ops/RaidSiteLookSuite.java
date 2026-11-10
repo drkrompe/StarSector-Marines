@@ -62,6 +62,14 @@ public class RaidSiteLookSuite implements SnapshotSuite {
 
     @Override public boolean inAll() { return false; }
 
+    /**
+     * The works close-up's centre and width in cells, given the machines' centre: at play zoom on the machines, for
+     * a site whose works is its machines. A site whose process runs past them (a port's apron) frames the whole.
+     */
+    protected float[] closeUp(BattleSimulation sim, float machinesX, float machinesY) {
+        return new float[]{machinesX, machinesY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
@@ -92,9 +100,9 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(c.id() + "-whole.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
                             .withMissionMarkers().render(sim, "")));
+                    float[] frame = closeUp(sim, sx / n + .5f, sy / n + .5f);
                     out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), 1920, 1080, sx / n + .5f, sy / n + .5f,
-                            BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
+                            context.modRoot(), 1920, 1080, frame[0], frame[1], frame[2])
                             .withMissionMarkers().render(sim, "")));
                 }
             }
