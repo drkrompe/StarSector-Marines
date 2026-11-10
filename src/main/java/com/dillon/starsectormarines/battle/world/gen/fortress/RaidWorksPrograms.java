@@ -8,7 +8,8 @@ import java.util.List;
 
 /**
  * The works programs of the Raid sites after heavy industry's ({@code raid-mission.md}, Site templates): what each
- * industry's compound holds. Heavy industry's is {@link FortressProgram#works}. Each is {@link FortressProgram#detached()
+ * industry's compound holds. Heavy industry's is {@link FortressProgram#works}; the
+ * refinery's is {@code RefinerySite.program}. Each is {@link FortressProgram#detached()
  * detached}, so every machine stands as a building of its own, and its machines are its
  * {@link RoomPurpose#PARTS_CAGE parts cages}, which is how the raid finds them.
  */
@@ -40,16 +41,6 @@ public final class RaidWorksPrograms {
     public static final RoomPurpose MINE_SMELTER = RoomPurpose.ENGINE_ROOM;
     public static final RoomPurpose MINE_LOADOUT = RoomPurpose.VEHICLE_BAY;
 
-    /**
-     * A refinery's still: a cracking column on its plinth. Square: cut corners let two columns touch diagonally,
-     * which the detached packing does not count as a shared wall.
-     */
-    private static final RoomShape STILL = RoomShape.rectangle(10, 10);
-    private static final RoomShape PUMP_HOUSE = RoomShape.rectangle(8, 6);
-    private static final RoomShape CONTROL_HOUSE = RoomShape.rectangle(6, 5);
-    /** Ground a refinery keeps per still: pipe runs and the fire gaps between columns. UNTUNED. */
-    static final int REFINERY_YARD_PER_STILL = 320;
-
     /** A light-industry shop: a long, low production floor. */
     private static final RoomShape SHOP = RoomShape.rectangle(11, 7);
     private static final RoomShape LOADING_SHED = RoomShape.rectangle(14, 6);
@@ -76,21 +67,6 @@ public final class RaidWorksPrograms {
     static final int MOTOR_POOL_PER_SHED = 170;
 
     private RaidWorksPrograms() { }
-
-    /**
-     * A refinery: a still per machine, the pump house that moves the stock between them, the control house that runs
-     * them, and the posts at its gates.
-     */
-    public static FortressProgram refinery(int stills) {
-        if (stills < 1) throw new IllegalArgumentException("a refinery has at least one still");
-        return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, STILL, Ward.YARD, stills),
-                new FortressBuilding(RoomPurpose.ENGINE_ROOM, PUMP_HOUSE, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, CONTROL_HOUSE, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 2)),
-                0, stills * REFINERY_YARD_PER_STILL, true);
-    }
 
     /** Light industry: a shop floor per machine, the loading shed they ship from, a stores and the posts. */
     public static FortressProgram shops(int shops) {

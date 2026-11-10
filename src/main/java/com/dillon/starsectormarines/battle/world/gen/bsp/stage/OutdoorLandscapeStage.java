@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OreLine;
+import com.dillon.starsectormarines.battle.world.gen.refinery.RefineryGround;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
@@ -128,6 +129,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (firm != null) reserveLaid(c, landscape, plan, brookCells, firm);
         boolean[] beforePits = firm == null ? null : reserved.clone();
         openPits(c, plan, reserved);
+        // A refinery's tank farm, racks, columns and flare (RefinerySite), before anything wild grows on its ground.
+        int fw = c.width;
+        RefineryGround.dress(c, plan, reserved, i -> naturalGround(c, i % fw, i / fw) && !terrainVisible(c, i % fw, i / fw));
         if (firm != null) for (int i = 0; i < firm.length; i++) firm[i] |= reserved[i] && !beforePits[i];
         RidgePlanner.Band berm = crevasseTown(c, field, reserved) ? null : chasm(c, field, reserved, firm, routeLines);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.

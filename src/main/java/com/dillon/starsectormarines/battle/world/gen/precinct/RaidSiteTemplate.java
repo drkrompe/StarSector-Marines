@@ -48,8 +48,8 @@ import java.util.function.UnaryOperator;
  *
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
  * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
- * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
- * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
+ * with a mill line per machine, in sparse ore yards; a refinery's is its units, fed by pipe racks and emptied into a
+ * tank farm held before it ({@link RefinerySite}); light industry's its shop floors; a farm's its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
  * among depots, with the garrison beside it as on every site.
  *
  * <p>Raid only. Every other mission's map is derived as it was.
@@ -181,6 +181,8 @@ public final class RaidSiteTemplate {
     private final GrownTrunkPlan.Profile industryGrowth;
     private final PrecinctCharacter industryCharacter;
     private final boolean pit;
+    /** A refinery: its works deeper, its industrial quarter nearer the homes, its tank farm held between them. */
+    private final boolean refinery;
 
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth) {
@@ -195,12 +197,19 @@ public final class RaidSiteTemplate {
     private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
                              GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
                              boolean pit) {
+        this(key, works, worksFit, industryGrowth, industryCharacter, pit, false);
+    }
+
+    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
+                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
+                             boolean pit, boolean refinery) {
         this.key = key;
         this.works = works;
         this.worksFit = worksFit;
         this.industryGrowth = industryGrowth;
         this.industryCharacter = industryCharacter;
         this.pit = pit;
+        this.refinery = refinery;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
@@ -215,7 +224,8 @@ public final class RaidSiteTemplate {
                     PrecinctCharacter.INDUSTRY, true);
         }
         if (REFINING.contains(id)) {
-            return new RaidSiteTemplate("refining", RaidWorksPrograms::refinery, MINE_FIT, INDUSTRY_GROWTH);
+            return new RaidSiteTemplate("refining", RefinerySite::program, RefinerySite.WORKS_FIT, INDUSTRY_GROWTH,
+                    PrecinctCharacter.INDUSTRY, false, true);
         }
         if (LIGHT_INDUSTRY.contains(id)) {
             return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
@@ -281,7 +291,8 @@ public final class RaidSiteTemplate {
                 ? StormBank.leeward(oriented(p, mirrorX, mirrorY), wind, width, height) : oriented(p, mirrorX, mirrorY);
         Security security = Security.of(profile);
         List<PrecinctBrief> briefs = new ArrayList<>();
-        briefs.add(PrecinctBrief.garrison(WORKS, at.apply(pit ? MINE_WORKS_AT : WORKS_AT),
+        briefs.add(PrecinctBrief.garrison(WORKS,
+                at.apply(pit ? MINE_WORKS_AT : refinery ? RefinerySite.WORKS_AT : WORKS_AT),
                 WORKS_GROWTH,
                 works.apply(machines).fittedTo(Math.round(worksFit * width * height)),
                 worksWall(security, demand)));
@@ -295,8 +306,9 @@ public final class RaidSiteTemplate {
         briefs.add(PrecinctBrief.settlement(HOMES, at.apply(HOMES_AT), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY,
-                at.apply(pit ? MINE_INDUSTRY_AT : INDUSTRY_AT), industryGrowth, industryCharacter));
-        if (!pit) {
+                at.apply(pit ? MINE_INDUSTRY_AT : refinery ? RefinerySite.INDUSTRY_AT : INDUSTRY_AT),
+                industryGrowth, industryCharacter));
+        if (!pit && !refinery) {
             briefs.add(PrecinctBrief.settlement(YARDS, at.apply(YARDS_AT),
                     industryGrowth, industryCharacter));
         }
@@ -313,6 +325,16 @@ public final class RaidSiteTemplate {
             Site pitSite = pitSite(head.seedX(), head.seedY(), worksReach(worksFit, security, width, height),
                     mirrorX, mirrorY, width, height);
             pieces.add(banked ? clearOfBank(pitSite, wind, width, height) : pitSite);
+        }
+        if (refinery) {
+            Precinct works = null, industry = null;
+            for (Precinct p : plan.precincts()) {
+                if (WORKS.equals(p.name())) works = p;
+                if (INDUSTRY.equals(p.name())) industry = p;
+            }
+            Site farm = RefinerySite.tankFarm(works.seedX(), works.seedY(), industry.seedX(), industry.seedY(),
+                    worksReach(worksFit, security, width, height), mirrorX, mirrorY, width, height);
+            pieces.add(banked ? clearOfBank(farm, wind, width, height) : farm);
         }
         pieces.addAll(lines(mirrorX, mirrorY, pit));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, pit, width, height));
@@ -449,6 +471,9 @@ public final class RaidSiteTemplate {
 
     /** A mine's ore yards and railhead: a hamlet's few roads, sheds and stockpiles with open ground between. */
     private static final GrownTrunkPlan.Profile ORE_YARDS = shortArms(GrownTrunkPlan.Profile.hamlet());
+
+    /** Whether this is the refinery's site, which holds a tank farm ({@link RefinerySite}). */
+    boolean refinery() { return refinery; }
 
     /** The kind of district round the works, for evidence. */
     PrecinctCharacter industryCharacter() { return industryCharacter; }
