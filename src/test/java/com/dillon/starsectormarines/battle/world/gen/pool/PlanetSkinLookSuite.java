@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,8 @@ import java.util.function.BiPredicate;
  * Each story mission's one owned map under every world's skin ({@code story-map-pools.md}, Planet skin), built as the
  * campaign builds it and framed through the look preset at 1920x1080: the whole map per world
  * ({@code <map>/<nn>-<world>-1-whole.png}), and close frames on the same two spots in every world, where the land use
- * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}). Nothing is played. Opt-in.
+ * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}), and on a world that plays the
+ * sealed layout a town's lock ({@code -4-lock.png}). Nothing is played. Opt-in.
  * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} narrows the maps, {@code .worlds=frozen,toxic} the worlds.
  */
 public final class PlanetSkinLookSuite implements SnapshotSuite {
@@ -53,10 +56,14 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
             if (!maps.isEmpty() && !maps.contains(map.id)) continue;
             StoryMapPool pool = StoryMapPools.pool(map);
             // The spots are found once on a world whose fields are beds and whose woods stand, and framed in every world.
-            float[] fields, woods;
+            float[] fields, woods, lock;
             try (BattleSimulation probe = sim(map, SurfacePalette.FROZEN, pool.owned())) {
                 fields = densest(probe.getTopology(), (x, y) -> probe.getTopology().getGroundKind(x, y) == GroundKind.TILE);
                 woods = densestDoodad(probe, "forest.");
+            }
+            // A lock is found on bare rock, which is airless and plays the sealed layout.
+            try (BattleSimulation probe = sim(map, SurfacePalette.ROCK, pool.owned())) {
+                lock = densestDoodad(probe, PrecinctWardStage.LOCK_MARKING);
             }
             for (SurfacePalette world : SurfacePalette.values()) {
                 String tag = world.name().toLowerCase(Locale.ROOT);
@@ -74,6 +81,10 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                     if (woods != null) {
                         look.refocus(woods[0], woods[1], CLOSE_CELLS);
                         out.add(new SnapshotArtifact(base + "3-woods.png", look.render(sim, "")));
+                    }
+                    if (lock != null && PlanetSkin.sealsTowns(BloomHeartSetup.world(world))) {
+                        look.refocus(lock[0], lock[1], CLOSE_CELLS);
+                        out.add(new SnapshotArtifact(base + "4-lock.png", look.render(sim, "")));
                     }
                 }
                 System.out.printf(Locale.ROOT, "[%s] %s %s (home %s, seed %d)%n", id(), map.id, tag, pool.home(),

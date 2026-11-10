@@ -252,6 +252,7 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -3298,17 +3299,20 @@ public final class BattleSetup {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
         }
         int attempts = pooled != null ? 1 : 8;
+        // The world the colony is fought on: a world nobody lives on in the open plays the sealed layout.
+        TargetProfile world = home != null ? (profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK))
+                : profile;
+        boolean sealed = colony && PlanetSkin.sealsTowns(world);
         String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
             PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
+            if (sealed) colonyPlan = SealedTown.seal(colonyPlan);
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
-            if (home != null) {
-                map = PlanetSkin.apply(map, home, profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK));
-            }
+            if (home != null) map = PlanetSkin.apply(map, home, world);
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
                 why = "missing " + missing;
