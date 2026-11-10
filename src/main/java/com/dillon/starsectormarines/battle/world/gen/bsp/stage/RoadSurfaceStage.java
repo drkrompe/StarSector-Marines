@@ -118,9 +118,9 @@ public final class RoadSurfaceStage implements GenStage {
         if (routes.isEmpty()) return;
         var field = SurfaceField.of(ctx);
         var mapping = GenMappingRegistry.installed();
-        int rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(field.world().inlandGround()));
+        int rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(field.world().inlandGround(), field.world()));
         int floorSurface = mapping == null || field.uniform() ? rimSurface
-                : ctx.topology.surfaceIndex(mapping.groundBlockId(field.floor().inlandGround()));
+                : ctx.topology.surfaceIndex(mapping.groundBlockId(field.floor().inlandGround(), field.floor()));
         var allowed = new RoadSurface.Underlay[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             var kind = ctx.topology.getGroundKind(x, y);

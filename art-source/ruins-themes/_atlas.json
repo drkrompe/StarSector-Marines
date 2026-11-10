@@ -1,0 +1,82 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [0, 0]
+  },
+  "assets": {
+    "cryo-rack.png": {
+      "id": "doodad.ruins-cryo-rack",
+      "name": "Frozen cryo rack",
+      "description": "A cryoarithmetic engine's computing cabinet, rimed over and still leaking cold light.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.75,
+      "footprintCells": [1, 2],
+      "order": 1
+    },
+    "frost-heatsink.png": {
+      "id": "doodad.ruins-frost-heatsink",
+      "name": "Frosted heatsink bank",
+      "description": "Upright heat-exchanger fins on a manifold, furred with hoar frost.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [2, 1],
+      "order": 2
+    },
+    "culture-vat.png": {
+      "id": "doodad.ruins-culture-vat",
+      "name": "Culture vat",
+      "description": "An armoured bio-culture vat under a clouded, cracked dome, something pale still in the fluid.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [2, 2],
+      "order": 3
+    },
+    "grow-bed.png": {
+      "id": "doodad.ruins-grow-bed",
+      "name": "Overgrown grow bed",
+      "description": "A hydroponic trough gone wild, pale stalks and fungus spilling over its rims.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [2, 1],
+      "order": 4
+    },
+    "frost-patch-a.png": {
+      "id": "doodad.ruins-frost-patch-a",
+      "name": "Frost patch",
+      "description": "Floor decal: a thin sheet of hoar frost and cracked ice. Walkable, no cover.",
+      "cover": "none",
+      "footprintCells": [2, 2],
+      "padding": 0,
+      "order": 5
+    },
+    "frost-patch-b.png": {
+      "id": "doodad.ruins-frost-patch-b",
+      "name": "Frozen spill",
+      "description": "Floor decal: a frozen coolant puddle crusted with rime. Walkable, no cover.",
+      "cover": "none",
+      "footprintCells": [2, 2],
+      "padding": 0,
+      "order": 6
+    },
+    "growth-patch-a.png": {
+      "id": "doodad.ruins-growth-patch-a",
+      "name": "Biofilm patch",
+      "description": "Floor decal: a mat of biofilm, lichen and creeping tendrils. Walkable, no cover.",
+      "cover": "none",
+      "footprintCells": [2, 2],
+      "padding": 0,
+      "order": 7
+    },
+    "growth-patch-b.png": {
+      "id": "doodad.ruins-growth-patch-b",
+      "name": "Moss stain",
+      "description": "Floor decal: an uneven stain of slime and moss with root threads. Walkable, no cover.",
+      "cover": "none",
+      "footprintCells": [2, 2],
+      "padding": 0,
+      "order": 8
+    }
+  }
+}

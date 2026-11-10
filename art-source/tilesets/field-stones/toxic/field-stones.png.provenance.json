@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a2-e8ae-7681-b0b4-064a1b94831f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a2-e8ae-7681-b0b4-064a1b94831f\\exec-6b25a03a-1394-43f3-8e78-71c6fae5a605.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\field-stones\\toxic\\field-stones.png",
+    "sha256": "ea068edfdf4f677b813fbe53ba29d10ff4bcc55cb445ef339d4d77dbf0d373af",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\field-stones\\toxic\\field-stones.prompt.txt",
+  "promptSha256": "8c74ebf5a1b10ee73c1014d914f372de9a43cfc8ca3afc85391dc20736b8ea41",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every stone's place, size and outline\nImage 2: Form only: the stones' shapes and light; not their colour\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into seven separate overhead field-stone sprites for a top-down tactical game. Image 2 is the FORM reference: these exact stones, their rounded weathered shapes and soft upper-left light; their pale grey colour is NOT the colour to use. The world is a toxic planet under a sulphurous atmosphere, its ground stained olive-grey regolith.\nPreserve image 1 exactly: 2:1 canvas, 4 columns x 2 rows, the eighth frame (bottom right) EMPTY. Keep every stone where the guide puts it, at its size and outline. Do not add, merge, move or enlarge stones.\nCamera STRAIGHT DOWN, orthographic plan view; tops lit softly from the upper left, lower-right sides in gentle shade.\nCorroded, chemically stained boulders: dark olive-grey and brown-grey stone eaten into by acid, a matte pitted surface, mottled yellow-green and ochre stains, pale greenish-yellow sulphur crust in the pits and along a few hairline cracks, faint rust-brown leaching streaks down the sides. Dark and low contrast, a step darker than the stained ground they lie on.\nSmooth rounded forms, NOT faceted, NOT low-poly. Must read at about 50 pixels across: clear masses, gentle value contrast, no fine noise. Muted: the stones sit in their ground rather than pop out of it; no bright highlights, nothing neon or glowing.\nNo ground, soil, puddle, sludge or cast shadow outside the stones, no labels, no text, no border. True transparent background around and between every stone. Keep the 2:1 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\field-stones-guide.png",
+      "sha256": "0d51964348542e2a94422d7b523731e3473cb77cd2b4fc7d03ae5ce4bafee7d5",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every stone's place, size and outline"
+    },
+    {
+      "path": "art-source\\tilesets\\field-stones\\field-stones.png",
+      "sha256": "926d51953713b30977d8e463350acbc1a67ad8e57da7e6e275f896f10bd07a23",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Form only: the stones' shapes and light; not their colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image 1 for the exact layout and silhouettes, and image 2 for form and lighting, with muted sulphur-stained olive-grey surfaces.\n"
+  ],
+  "usage": {
+    "input_tokens": 46744,
+    "cached_input_tokens": 38656,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 487,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.6
+}

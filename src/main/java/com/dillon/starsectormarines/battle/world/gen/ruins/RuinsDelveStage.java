@@ -1074,16 +1074,70 @@ public final class RuinsDelveStage implements GenStage {
 
         /**
          * Furnishes the vault room and the interior's chambers from the site's dressing ({@link RuinsDressing}): props
-         * against each room's walls, drawn by a coordinate hash and never from the layout's stream.
+         * against each room's walls and patches on its floor, drawn by a coordinate hash and never from the layout's
+         * stream.
          */
         void dress(RuinsDressing dressing, Vault vault, List<Area> chambers) {
             if (dressing == null || dressing.none()) return;
             Area room = new Area(vault.innerDoor().x() + 1, vault.footprint().bottom() + 1,
                     vault.footprint().right() - 1, vault.footprint().top() - 1);
+            // The floor first, so a prop that stands on a patch is drawn over it.
+            dressFloor(room, dressing.floor(), vault.source(), 0x7C);
+            for (Area chamber : chambers) {
+                dressFloor(chamber, dressing.floor(), new Cell(chamber.centreX(), chamber.centreY()), 0x7D);
+            }
             dressRoom(room, dressing.vault(), vault.source(), 0x7A);
             for (Area chamber : chambers) {
                 dressRoom(chamber, dressing.chambers(), new Cell(chamber.centreX(), chamber.centreY()), 0x7B);
             }
+        }
+
+        /** How many floor patches a room takes at most: one per sixteen cells of floor, never more than three. */
+        static int patchesFor(Area room) {
+            return Math.min(3, Math.max(1, room.width() * room.height() / 16));
+        }
+
+        /**
+         * Flat patches on a room's open floor at hashed cells: each wholly on open room floor, off every doorway and
+         * the kept cell, and off every piece already standing, other patches included. A patch is walkable and closes
+         * nothing, so the grid is left as it was found.
+         */
+        void dressFloor(Area room, List<String> patches, Cell keepClear, int salt) {
+            TileRegistry registry = TileRegistry.installed();
+            if (registry == null || patches.isEmpty()) return;
+            int limit = patchesFor(room), laid = 0;
+            for (int k = 0; k < 4 * limit && laid < limit; k++) {
+                DoodadDef def = registry.doodad(patches.get(hash(room.left() + k, room.top(), salt + 1) % patches.size()));
+                if (def == null) continue;
+                int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
+                int spanX = room.width() - fx + 1, spanY = room.height() - fy + 1;
+                if (spanX <= 0 || spanY <= 0) return;
+                int ax = room.left() + hash(room.left(), room.bottom() + k, salt) % spanX;
+                int ay = room.bottom() + hash(room.right() + k, room.bottom(), salt + 2) % spanY;
+                if (!openFloor(ax, ay, fx, fy, keepClear) || onDoodad(ax, ay, fx, fy)) continue;
+                ctx.doodads.add(new Doodad(ax, ay, def));
+                laid++;
+            }
+        }
+
+        /** Whether a footprint is all open floor, off every doorway and clear of the kept cell. */
+        boolean openFloor(int ax, int ay, int fx, int fy, Cell keepClear) {
+            for (int y = ay; y < ay + fy; y++) {
+                for (int x = ax; x < ax + fx; x++) {
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
+                    if (Math.abs(x - keepClear.x()) <= 1 && Math.abs(y - keepClear.y()) <= 1) return false;
+                }
+            }
+            return true;
+        }
+
+        /** Whether a footprint meets a piece already standing (scrap, another patch), which a flat patch must not cover. */
+        boolean onDoodad(int ax, int ay, int fx, int fy) {
+            for (Doodad d : ctx.doodads) {
+                int dx = Math.max(1, d.footprintCellsX), dy = Math.max(1, d.footprintCellsY);
+                if (ax < d.cellX + dx && d.cellX < ax + fx && ay < d.cellY + dy && d.cellY < ay + fy) return true;
+            }
+            return false;
         }
 
         /** Props round one room's walls, clockwise from a hashed start, each kept only if the room stays one floor. */

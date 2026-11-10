@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2e2-03df-7ad1-9a50-b14ea97f520d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2e2-03df-7ad1-9a50-b14ea97f520d\\exec-22a2d355-9b91-40b3-8993-a0f5f3ab55c6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-forge-concept.png",
+    "sha256": "0d22867ce2476f6d6081b5457ddac2cd690cf0d12bbd875fb7c0951773c19ed2",
+    "dimensions": [
+      1895,
+      830
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\forge.prompt.txt",
+  "promptSha256": "6c26a056e6b1de6ca8c4d053a560ed31b94a5e9859a42b3041ea80883884dda5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\nImage 4: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game props for a sci-fi colony ruin, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every prop exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add props. The transparent space between blocks stays fully transparent.\nStyle: match references 2-4 exactly: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate with olive panels, dark recessed seams, bolted edges, small amber and cyan status lamps, restrained yellow-black hazard trim, soft upper-left object-local light. Grounded, industrial, weathered, adult military sci-fi; detail that still reads when shrunk to 64 px a cell. Not cartoon, not toy-like, no thick outlines, no bright saturated flat colours.\nBackground: true transparent background with clean alpha, including between props; no floor, base tile, cast shadow slab, border, labels or text.\n\nSubjects, left to right:\n1. assembly-cradle (2x2 open frame block): a heavy automated assembly cradle: a square gunmetal gantry frame with robotic arm stubs at the corners, holding a half-built combat drone frame (bare ribs, exposed actuators, no shell) in the middle, a nanoforge feed nozzle above it, sparks of amber light.\n2. shaft-head (3x3 block): the head of a deep mantle bore shaft seen from above: a square armoured collar and grated deck around a black open shaft hole, the X is a steel headframe straddling the hole with a pulley wheel hub where the beams cross, hazard-striped rim, cable running down into the dark.\n3. hoist-winch (wide 2x1 block): a heavy hoist winch: a large cable drum wound with thick steel cable between two olive motor housings, brake band, mounting rails.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-forge-guide.png",
+      "sha256": "9252ee8f4b961f8c0a7f70a4bed1a78b4db90f7edcb36f6b6bed1b4fc85f1187",
+      "dimensions": [
+        2496,
+        1088
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\civic-server-rack.png",
+      "sha256": "de5938131334e6634aeedc2804463f68672bddf375dd8af456b3c3dd21ad1db3",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\galley-cold-store.png",
+      "sha256": "dfc6bed519119245ebb23188f2a6ca002d6cb79807ce479e9d669a4cf8628014",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\industrial-reactor-housing.png",
+      "sha256": "ca0fef2fb390826050a66d4d00e46bcbb8e1db5dd33ebe1636c13d3b1bdfa21f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent prop sheet, using Image 1 for the exact layout and Images 2–4 for the material style."
+  ],
+  "usage": {
+    "input_tokens": 54547,
+    "cached_input_tokens": 40192,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 955,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 82.0
+}

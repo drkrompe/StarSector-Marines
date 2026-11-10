@@ -20,7 +20,7 @@ final class GroundDamageTiles {
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         if (mapping == null) return null;
         // A cell without an explicit surface still has a mapped base material.
-        material = registry.block(mapping.groundBlockId(kind));
+        material = registry.block(mapping.groundBlockId(kind, topology.groundPalette()));
         if (material != null && material.damageBlockId != null) return registry.block(material.damageBlockId);
         return registry.block(mapping.groundDamageBlockId(kind));
     }
