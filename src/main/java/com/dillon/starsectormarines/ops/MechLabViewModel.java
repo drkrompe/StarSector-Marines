@@ -657,6 +657,7 @@ public final class MechLabViewModel {
             case WARDEN -> Strings.get("gearCatalogWardenDescription");
             case BULWARK -> Strings.get("gearCatalogBulwarkDescription");
             case SECURITY_WALKER -> Strings.get("gearCatalogSecurityWalkerDescription");
+            case CRAWLER -> Strings.get("gearCatalogCrawlerDescription");
             default -> "";
         };
     }

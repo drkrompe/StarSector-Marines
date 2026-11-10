@@ -1,6 +1,11 @@
 """Cuts a derelict walker master (raw/walker-<design>[-<version>].png) into the parts DerelictWalkerComposer draws.
 
   python art-source/derelict-walker/export.py <design> <out-root>
+  python art-source/derelict-walker/export.py --master <png> --layout <parts.json> --part-dir <name> <out-root>
+
+The second form cuts another four-legged machine laid out the same way (Tri-Tachyon's crawler:
+art-source/mech-modular-topdown/sources/hightech/crawler), from its own master and parts layout into
+<out-root>/graphics/battle/<name>/.
 
 The master is drawn over guides/<design>-guide.png (guide.py): the parts sit apart on its right panel, upright, on a
 flat grey ground. Each part is keyed off the ground, taken from its guide box (scaled to the raw's size if ImageGen
@@ -66,14 +71,25 @@ def joint(shin):
 
 
 def main():
-    design, root = sys.argv[1], sys.argv[2]
-    layout = json.load(open(os.path.join(HERE, "guides", "parts.json")))
-    # "dome-v2" is drawn over the dome guide; every guide shares one parts layout.
-    raw = os.path.join(HERE, "raw", "walker-" + design + ".png")
+    args = sys.argv[1:]
+    opts = {}
+    while args and args[0].startswith("--"):
+        opts[args[0][2:]] = args[1]
+        args = args[2:]
+    if "master" in opts:
+        raw, root = opts["master"], args[0]
+        layout = json.load(open(opts["layout"]))
+        folder = opts["part-dir"]
+    else:
+        design, root = args[0], args[1]
+        layout = json.load(open(os.path.join(HERE, "guides", "parts.json")))
+        # "dome-v2" is drawn over the dome guide; every guide shares one parts layout.
+        raw = os.path.join(HERE, "raw", "walker-" + design + ".png")
+        folder = "derelict-walker"
     rgba = keyed(raw)
     sx = rgba.shape[1] / layout["canvas"][0]
     sy = rgba.shape[0] / layout["canvas"][1]
-    out = os.path.join(root, "graphics", "battle", "derelict-walker")
+    out = os.path.join(root, "graphics", "battle", folder)
     os.makedirs(out, exist_ok=True)
     parts = layout["parts"]
     cut(rgba, parts["torso"], sx, sy, False).save(os.path.join(out, "torso.png"))

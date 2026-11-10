@@ -1742,6 +1742,26 @@ public final class UnitRenderService implements RenderSystem {
                     DerelictWalkerComposer.marker(out, rig, cam, unitAlpha);
                     continue;
                 }
+                DerelictWalkerAssets crawlerArt = mechAssets != null
+                        && mechChassis[r] == LayeredMechAppearance.CHASSIS_CRAWLER
+                        ? sprites.crawlerSprites() : null;
+                if (crawlerArt != null) {
+                    // Tri-Tachyon's crawler: the walker's rig at its own size, its gun a layer on the front socket.
+                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId,
+                            id -> new DerelictLegRig(DerelictLegRig.CRAWLER));
+                    int tick = ctx.sim.getSimTickIndex();
+                    Integer last = derelictRigTicks.put(entityId, tick);
+                    float dt = last == null ? 0f
+                            : Math.min(0.25f, Math.max(0, tick - last) * BattleSimulation.TICK_DT);
+                    NavigationGrid grid = ctx.sim.getGrid();
+                    rig.advance(rx[r], ry[r], mechHipFacing[r], dt,
+                            (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
+                    CrawlerComposer.emit(out, crawlerArt, mechAssets, rig, cam, roster.renderScale(entityId),
+                            mechFacing[r], mechArms[r],
+                            0.025f * LayeredMechAppearance.recoil(mechChaingunPhase[r]),
+                            (mechFlags[r] & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0, unitAlpha);
+                    continue;
+                }
                 if (mechAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
