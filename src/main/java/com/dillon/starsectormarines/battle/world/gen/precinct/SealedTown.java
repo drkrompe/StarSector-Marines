@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.HabitatZoning;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 
@@ -132,6 +133,54 @@ public final class SealedTown {
                     Precinct.Boundary.WALLED, LOCKS, p.character(), p.landing()));
         }
         return plan.withPrecincts(out);
+    }
+
+    /**
+     * The plan for a map that would lay its town with no plan (a market's town grown alone, as an extraction or a
+     * rescue lays it), on a world whose town is sealed ({@link #on}): that one town, grown as the plan-less map grows
+     * it and at the map's middle, sealed, and nothing else, so the map gains its wall and locks and no other place.
+     * {@code null} where there is no town to seal: no market, or a world people live on in the open.
+     */
+    public static PrecinctPlan alone(TargetProfile profile, int width, int height) {
+        if (profile == null || profile.marketSize() <= 0 || !on(profile)) return null;
+        GrownTrunkPlan.Profile growth = GrownTrunkPlan.Profile.of(
+                SettlementZoning.densityFor(profile.marketSize()), profile.link());
+        return seal(new PrecinctPlan(List.of(Precinct.settlement("settlement", width / 2, height / 2, growth))));
+    }
+
+    /**
+     * Unclaimed ground the town closes round: every cell no place holds that the map's edge cannot be reached from
+     * without crossing the town's own ground ({@code who}). It is the town's, so the envelope runs round the town
+     * and never round a pocket inside it.
+     */
+    public static boolean[][] enclosedGround(int[][] claim, int who) {
+        int width = claim.length, height = claim[0].length;
+        boolean[][] outside = new boolean[width][height];
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                boolean edge = x == 0 || y == 0 || x == width - 1 || y == height - 1;
+                if (edge && claim[x][y] != who) {
+                    outside[x][y] = true;
+                    queue.add(new int[]{x, y});
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            for (int[] s : SIDES) {
+                int nx = c[0] + s[0], ny = c[1] + s[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || outside[nx][ny] || claim[nx][ny] == who)
+                    continue;
+                outside[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) out[x][y] = !outside[x][y] && claim[x][y] < 0;
+        }
+        return out;
     }
 
     /** The world's town, sealed. Its character is decided with every other place's, after placement. */
