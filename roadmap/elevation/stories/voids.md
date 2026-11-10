@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge; a toxic gorge waits for the toxic palette.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -85,6 +85,7 @@ generation, never a battle rule, as an emplacement style is
 | **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
 | **Arid canyon** | Desert worlds, where a living world lays a gorge river: a canyon cut through a sand plain | Banded red and ochre sandstone in terraces, sand lying on the ledges | A dry wash: pale sand braided between gravel bars, boulders fallen from the walls, a dust haze | A stone bridge or a laid plank span |
 | **Dry gorge** | Barren rock worlds, where a living world lays a gorge river: a gorge cut through a stone plain | Grey regolith and bedrock strata, grit on the ledges | Dust and rubble thick with fallen basalt blocks; no water, no haze | A rock bridge or a laid plank span |
+| **Toxic gorge** | Toxic worlds, where a living world lays a gorge river | Corroded olive rock in strata, sulphur crusted on the ledges, weeping stains | Acid sludge creeping down the gorge, crust along the walls, bubbles, yellow-green fumes | A rock bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
@@ -689,6 +690,29 @@ Laws):
    First pass: three ledges to a floor 40 m down, a gorge 9 to 21 cells
    across. Left: the owner's pick of depth; dust sifting off the lip;
    impact-shattered blocks bigger than the field stones.
+
+   **Toxic gorge** (owner, 2026-11-09: a drop for every ground palette,
+   including the new toxic one): style `TOXIC`. Look suite:
+   `createSnapshots -Psnapshot=toxic-void-look` (`-Dsnapshot.toxic.depth`,
+   `.eyes`, `.stillsOnly`), its plain the toxic ground's crust where that
+   tileset is in the mod and plain stone until then.
+   - Wall image `toxic-wall.png`: acid-pitted olive and khaki strata, sulphur
+     crusts caked along the ledges, chartreuse and rust stains weeping down,
+     pale efflorescence (`art-source/voids/toxic/`).
+   - The walls and ledges are the dry rules with the toxic palette
+     (`DryVoidLook.TOXIC`): olive strata, sulphur on the ledges, the lip going
+     over to the crust's own tone.
+   - **The floor** (`ToxicVoidFloor`): acid sludge creeping down the gorge
+     along the channel's own flow (`ChannelFlow`), far slower than water, scum
+     drifting on it; dried sulphur crust along the walls' feet with a wet rim
+     where the sludge laps it; bubbles swelling and bursting out in the
+     sludge, never in the crust. Two decks of yellow-green fumes lie over it,
+     drifting different ways.
+   - **Battle.** Unchanged: no hazard (as the lava rift's heat, undecided).
+   First pass: three ledges to sludge 34 m down, a gorge 10 to 22 cells
+   across. Left: the owner's look against the real toxic ground, once it is
+   on main; the zoning row (`NaturalVoidZoning`) when the TOXIC palette lands;
+   fumes rising off the lip; a faint glow off the sludge at dusk.
 
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more

@@ -45,6 +45,11 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          */
         DRY_GORGE,
         /**
+         * A toxic gorge on a toxic world: corroded, chemically stained rock walls with sulphur crusted on the
+         * ledges, acid sludge creeping along the floor with bubbles bursting on it, and yellow-green fumes.
+         */
+        TOXIC,
+        /**
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */
