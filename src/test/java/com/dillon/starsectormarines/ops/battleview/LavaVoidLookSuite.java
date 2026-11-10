@@ -28,7 +28,9 @@ import java.util.Locale;
  * the drifting crust, the embers and the smoke can be seen moving. Opt-in: a look review, not part of {@code all}.
  *
  * <p>{@code -Dsnapshot.lava.depth=40} sets the melt's depth in metres, the ledges scaled with it; {@code
- * -Dsnapshot.lava.eyes=120} the camera heights to compare.
+ * -Dsnapshot.lava.eyes=120} the camera heights to compare. {@code -Dsnapshot.lava.setup} picks the rift: {@code
+ * rift} (the default, the 40 m rift), {@code river} (a shallow lava river a few metres down, running), or {@code
+ * vary} (the rift deep at the west, shallowing to a channel past the bridge and running out shallow in the east).
  */
 public final class LavaVoidLookSuite implements SnapshotSuite {
 
@@ -49,6 +51,22 @@ public final class LavaVoidLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
     }
 
+    /** A shallow lava river: a low bank of cooled crust and the running melt, four metres down. */
+    static NaturalVoid river(float eye) {
+        return new NaturalVoid(NaturalVoid.Style.LAVA, List.of(
+                new NaturalVoid.Step(1.6f, .45f),
+                new NaturalVoid.Step(4f, .9f)),
+                eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
+    }
+
+    /** The rift deepening and shallowing along its length: 40 m in the west, 12 m by the bridge, 4 m in the east. */
+    static NaturalVoid varying(float eye) {
+        return rift(40f, eye).withMarks(List.of(
+                new NaturalVoid.DepthMark(20f, centre(20), 40f),
+                new NaturalVoid.DepthMark(BRIDGE_X + 14f, centre(BRIDGE_X + 14), 12f),
+                new NaturalVoid.DepthMark(185f, centre(185), 4f)));
+    }
+
     @Override public String id() { return "lava-void-look"; }
 
     @Override public String label() { return "Lava rift through a basalt plain (natural void look experiment)"; }
@@ -61,10 +79,20 @@ public final class LavaVoidLookSuite implements SnapshotSuite {
         boolean video = FfmpegVideo.executable() != null && !Boolean.getBoolean("snapshot.lava.stillsOnly");
         List<SnapshotArtifact> out = new ArrayList<>();
         float depth = Float.parseFloat(System.getProperty("snapshot.lava.depth", "40"));
+        String setup = System.getProperty("snapshot.lava.setup", "rift");
         for (String eyeText : System.getProperty("snapshot.lava.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
-            String tag = String.format(Locale.ROOT, "lava-%03dm-eye%03dm", Math.round(depth), Math.round(eye));
-            try (BattleSimulation sim = plain(rift(depth, eye))) {
+            NaturalVoid look = switch (setup) {
+                case "river" -> river(eye);
+                case "vary" -> varying(eye);
+                default -> rift(depth, eye);
+            };
+            String tag = switch (setup) {
+                case "river" -> String.format(Locale.ROOT, "lava-river-eye%03dm", Math.round(eye));
+                case "vary" -> String.format(Locale.ROOT, "lava-vary-eye%03dm", Math.round(eye));
+                default -> String.format(Locale.ROOT, "lava-%03dm-eye%03dm", Math.round(depth), Math.round(eye));
+            };
+            try (BattleSimulation sim = plain(look)) {
                 out.add(shot(context, sim, tag + "-1-bridge.png", BRIDGE_X + 4f, centre(BRIDGE_X) + 3f, PLAY));
                 out.add(shot(context, sim, tag + "-2-bend.png", 52f, centre(52) - 2f, PLAY));
                 out.add(shot(context, sim, tag + "-3-straight.png", 150f, centre(150) + 2f, PLAY));

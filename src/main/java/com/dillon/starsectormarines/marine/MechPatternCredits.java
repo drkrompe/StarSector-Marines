@@ -38,6 +38,7 @@ public final class MechPatternCredits {
         chassis(MechVariant.HOUND, hegemony, HEGEMONY, "patternCreditHound");
         chassis(MechVariant.WARDEN, hegemony, HEGEMONY, "patternCreditWarden");
         chassis(MechVariant.BULWARK, hegemony, HEGEMONY, "patternCreditBulwark");
+        chassis(MechVariant.CRAWLER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON, "patternCreditCrawler");
 
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);
@@ -46,6 +47,7 @@ public final class MechPatternCredits {
         vehicle(VehicleType.FIRE_SUPPORT_APC, FactionMechLoadouts.LIONS_GUARD_ID, LIONS_GUARD);
         vehicle(VehicleType.HOVER_SCOUT, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.DRONE_SKIMMER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
+        vehicle(VehicleType.HEAVY_SKIMMER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.LASER_TANK, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);
         vehicle(VehicleType.MILITIA_TECHNICAL, "independent", INDEPENDENT);
         vehicle(VehicleType.SUPPLY_TRUCK, "independent", INDEPENDENT);

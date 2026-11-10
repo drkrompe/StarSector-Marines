@@ -26,4 +26,11 @@ class LavaVoidLookTest {
         assertEquals(0f, LavaVoidLook.crustCover(0f));
         assertEquals(1f, LavaVoidLook.crustCover(LavaVoidLook.CRUST_FULL));
     }
+
+    @Test
+    void aShallowChannelRunsAndADeepRiftCrawls() {
+        assertEquals(MoltenVoidRenderSystem.CRUST_SPEED, MoltenVoidRenderSystem.crustSpeed(40f));
+        assertEquals(MoltenVoidRenderSystem.CHANNEL_CRUST_SPEED, MoltenVoidRenderSystem.crustSpeed(3f), 1e-6f);
+        assertTrue(MoltenVoidRenderSystem.meltSpeed(10f) > MoltenVoidRenderSystem.meltSpeed(20f));
+    }
 }

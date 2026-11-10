@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LayoutRoads;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.CantonmentRoads;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -83,6 +84,17 @@ public final class PrecinctSkeletonStage implements GenStage {
         }
         boolean[][] weldBlocked = FortReservations.weldBlocked(ctx, plan);
 
+        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up and one
+        // road laid in from the town's nearest, and no weld is cut back across it (Raid garrisons only).
+        boolean[][] weldAround = weldBlocked;
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            Precinct precinct = plan.precincts().get(i);
+            if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height);
+            if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
+            CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
+        }
+
         // A walled place owes a way out, and growth does not always leave one.
         // Do this after highway pruning: pruning may erase the exterior end
         // of a short gate approach. The wall must read the final road network.
@@ -102,7 +114,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         // Measured over four derived maps, three came out whole and one came
         // out in three pieces, which is the kind of intermittent structural
         // fault that has to be solved for rather than hoped about.
-        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
 
         // An open-field landing's country is surveyed, not grown.
         RuralLayout rural = survey(plan, grown, ctx, weldBlocked);

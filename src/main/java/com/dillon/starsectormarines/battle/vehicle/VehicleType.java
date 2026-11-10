@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
+import com.dillon.starsectormarines.battle.turret.FluxShieldSpec;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -190,11 +191,13 @@ public enum VehicleType {
      * sleek composite shell, a sensor cluster that reports to its side as the spotter pickup's mast does
      * ({@link HullSightings}), and a light twin pulse emitter of the Wisp family for screening. Hover is a real
      * trade ({@link HoverSkirt}): it crosses water and rubble no wheel can, and it cannot shove a body aside.
-     * It pays in plate — thinner than the technical — and it is slower than the stripped pickup. Its sheet draws the
-     * emitter at the hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover).
+     * It pays in plate — thinner than the technical — and it is slower than the stripped pickup. It is the skimmer
+     * line's light hull ({@code convoy-nouns.md}, the hover line): a slim dart in the heavy shell, drawn bare with an
+     * empty turret ring 0.15 cells aft of its centre, on which the emitter turns. Its sheet draws the emitter at the
+     * hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover, pack.py).
      */
     HOVER_SCOUT("graphics/battle/vehicles/tt-hover-scout.png", 0, 4, -90f,
-            0, 2.625f, 2.55f, 1.5f, 4.6f, 3.2f, 4.2f, .8f, 2.2f,
+            0, 2.625f, 2.5f, 1.15f, 4.6f, 3.2f, 4.2f, .8f, 2.2f,
             1, 0f, -.15f, 0f, 0f, 2.625f, -90f,
             TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID, 240f, 50f, 6f, 1.15f, .55f) {
         @Override public GroundBody createBody() {
@@ -205,21 +208,48 @@ public enum VehicleType {
         @Override public List<DroneRole> droneBay() { return List.of(DroneRole.SENSOR, DroneRole.SENSOR); }
     },
     /**
-     * The hover scout's hull stretched over a drone bay: a Tri-Tachyon carrier whose drones are its weapon. It
+     * A Tri-Tachyon skimmer over a drone bay: a carrier whose drones are its weapon. It
      * carries no gun of its own; it launches a tethered flight, crewed remote control rather than free autonomy:
      * two escorts, two point-defence halo drones and a strike drone the bay rebuilds. They fall when the carrier
-     * is wrecked, and other drones lost stay lost.
-     * Its sheet has no turret frames (art-source/vehicles/tt-hover).
+     * is wrecked, and other drones lost stay lost. It is the skimmer line's medium hull, short and broad: wider than
+     * it is long, two drone wells either side of its spine. Its sheet has no turret frames
+     * (art-source/vehicles/tt-hover, pack.py).
      */
     DRONE_SKIMMER("graphics/battle/vehicles/tt-drone-skimmer.png", 0, 4, -90f,
-            0, 3.25f, 3.15f, 1.9f, 3.6f, 2.4f, 3.8f, .8f, 2.6f,
+            0, 2.3125f, 2.2f, 2.3f, 3.6f, 2.4f, 3.8f, .8f, 2.6f,
             -1, 0, 0, 0, 0, 0, 0, null, 360f, 110f, 8f, 1.25f, .6f) {
         @Override public GroundBody createBody() {
-            return new BicycleBody(1.7f, 34f, 220f, accel, brakingAccel, maxSpeed);
+            return new BicycleBody(1.5f, 34f, 220f, accel, brakingAccel, maxSpeed);
         }
         @Override public List<DroneRole> droneBay() {
             return List.of(DroneRole.ESCORT, DroneRole.ESCORT, DroneRole.HALO, DroneRole.HALO, DroneRole.STRIKE);
         }
+    },
+    /**
+     * Tri-Tachyon's heavy skimmer, the top of the skimmer line ({@code convoy-nouns.md}, the hover line) and the
+     * company's heavy machine in place of a heavy walker ({@code mech-lines.md}): a long armoured hull in the heavy
+     * shell on grav-lift drives, a Heavy lift. Its body has no gun of its own (law 4: machines are modular): its
+     * turret is the laser tank's, the {@link TurretCatalogRegistry#TANK_PL_3_STRUCTURE_ID} carriage with its
+     * locked three-row energy card, fitted with the PL-3 as stock and drawn as a fitted weapon standing in its base on
+     * the white ring, over the empty ring its sheet paints at the hull's centre. A frontal flux shield
+     * ({@link HullShield}) runs on the hull's one flux pool ({@link HullReservoir}), which it shares with the laser:
+     * every round it stops charges the pool the laser fires from, and a full pool overloads both. It is a heavy hull,
+     * so it opens ordinary walls by its weight. Every figure is first-pass and UNTUNED. Its sheet has no turret
+     * frames (art-source/vehicles/tt-hover, pack.py).
+     */
+    HEAVY_SKIMMER("graphics/battle/vehicles/tt-heavy-skimmer.png", 0, 4, -90f,
+            0, 3.375f, 3.25f, 1.95f, 3.4f, 1.6f, 3.2f, .8f, 3.0f,
+            1, 0f, 0f, 0f, 0f, 1.6f, -90f,
+            TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID, 700f, 480f, 16f, 1.35f, 1.0f) {
+        @Override public GroundBody createBody() {
+            // A skirt slews its heading faster than tracks steer; bounded curvature stays the planners' contract.
+            return new BicycleBody(2.2f, 36f, 200f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float turretHitShare() { return TANK_TURRET_HIT_SHARE; }
+        @Override public float turretPoolShare() { return TANK_TURRET_POOL_SHARE; }
+        /** The painted ring, 0.84 cells across, against the hull's width. */
+        @Override public float turretRingShareOfWidth() { return .84f / 1.95f; }
+        @Override public FluxShieldSpec shieldSpec() { return HullShield.FRONTAL; }
     },
     /**
      * The APC chassis with the troop bay given over to a launcher, a missile gun card two rows tall: one mech LRM-15
@@ -272,6 +302,12 @@ public enum VehicleType {
      * for every hull that carries none.
      */
     public int supplyStock() { return 0; }
+
+    /**
+     * The flux shield this hull's emitter raises on its reservoir ({@link HullShield}), or null for every hull that
+     * carries none.
+     */
+    public FluxShieldSpec shieldSpec() { return null; }
 
     /** The roles of the drones this hull launches and tethers to itself, in launch order; empty for most hulls. */
     public List<DroneRole> droneBay() { return List.of(); }
@@ -526,7 +562,9 @@ public enum VehicleType {
      * weighs, go by its {@link #weight()}, so a heavy repulsor shoves and crushes as a tracked hull of its weight
      * does: Tri-Tachyon's light skirts are light, the Onager's repulsor ultra-heavy.
      */
-    public boolean isHover() { return this == HOVER_SCOUT || this == DRONE_SKIMMER || this == BREAKTHROUGH_TANK; }
+    public boolean isHover() {
+        return this == HOVER_SCOUT || this == DRONE_SKIMMER || this == HEAVY_SKIMMER || this == BREAKTHROUGH_TANK;
+    }
 
     /**
      * Whether this hull shoves bodies out of its way, by contact and by bow wave: by its weight
@@ -603,12 +641,13 @@ public enum VehicleType {
     }
 
     /**
-     * The hull's weight class: the pickups, Tri-Tachyon's hover hulls and haulers are light, the APC lines and the
-     * missile carriers medium, the laser and medium tanks heavy, and the Onager ultra-heavy.
+     * The hull's weight class: the pickups, Tri-Tachyon's light and medium skimmers and haulers are light, the APC
+     * lines and the missile carriers medium, the laser and medium tanks and the heavy skimmer heavy, and the Onager
+     * ultra-heavy.
      */
     public Weight weight() {
         if (this == BREAKTHROUGH_TANK) return Weight.ULTRA_HEAVY;
-        if (this == LASER_TANK || this == MEDIUM_TANK) return Weight.HEAVY;
+        if (this == LASER_TANK || this == MEDIUM_TANK || this == HEAVY_SKIMMER) return Weight.HEAVY;
         if (isApc() || this == SRM_TECHNICAL) return Weight.MEDIUM;
         return Weight.LIGHT;
     }
@@ -666,11 +705,12 @@ public enum VehicleType {
 
     /**
      * Whether this hull's turret is a modular head on an exposed turret ring ({@code vehicle-card-sizes.md}): a hull
-     * with no part in its gun card has the bare ring and no gun. The laser tank alone; a hull with a closed head
+     * with no part in its gun card has the bare ring and no gun. The laser tank and the heavy skimmer, which carries
+     * the laser tank's carriage; a hull with a closed head
      * ({@link #turretHead}) shows the head with nothing in its slot, and every other hull still carries the gun its
      * sheet was drawn with.
      */
-    public boolean hasModularTurret() { return this == LASER_TANK; }
+    public boolean hasModularTurret() { return this == LASER_TANK || this == HEAVY_SKIMMER; }
 
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
     /**
@@ -696,7 +736,7 @@ public enum VehicleType {
 
     public TurretMountStyle mountStyle() {
         return switch (this) {
-            case LASER_TANK -> TurretMountStyle.WHITE;
+            case LASER_TANK, HEAVY_SKIMMER -> TurretMountStyle.WHITE;
             case HOVER_SCOUT, DRONE_SKIMMER -> TurretMountStyle.SILVER;
             default -> TurretMountStyle.GREEN;
         };
@@ -709,7 +749,7 @@ public enum VehicleType {
      */
     public MechWeaponComponent standardPart() {
         return switch (this) {
-            case LASER_TANK -> MechWeaponComponent.PL_3;
+            case LASER_TANK, HEAVY_SKIMMER -> MechWeaponComponent.PL_3;
             case BREAKTHROUGH_TANK -> MechWeaponComponent.HC_20;
             case MEDIUM_TANK -> MechWeaponComponent.HC_10;
             default -> ownGun();
@@ -994,7 +1034,7 @@ public enum VehicleType {
         return switch (this) {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
             case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER, MEDIUM_TANK -> LiftClass.MEDIUM;
-            case BREAKTHROUGH_TANK, LASER_TANK -> LiftClass.HEAVY;
+            case BREAKTHROUGH_TANK, LASER_TANK, HEAVY_SKIMMER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };
     }

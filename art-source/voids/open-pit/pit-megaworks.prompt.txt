@@ -1,0 +1,21 @@
+Use case: style-transfer. Asset type: production transparent sprite sheet of eight pieces of a spacefaring colony's open-pit mining megaproject, for a gritty science-fiction overhead tactical game, seen from straight above.
+
+Image 1 is the authoritative geometry guide and edit target: paint onto these EIGHT exact overhead silhouettes, keeping the 4 columns x 2 rows layout, each piece's position, size, outline and heading (fronts and runs face east, to the right). Do not move, rotate, enlarge or shrink anything.
+Image 2 is the approved concept for this mine: design identity of the machines (the cutting crawler, the crushing station, the ore crawlers, the drilling gantry, the covered conveyor gallery and its transfer tower) and their finish. Not layout or camera.
+Image 3 is the game's existing painted vehicle sprites: rendering finish and detail density at game scale only.
+
+Eight pieces in reading order:
+1. Cutting crawler: a building-sized excavator on four heavy track units, a plated main hull with power house and a slewing housing, a heavy boom reaching forward to a wide toothed cutting drum across its front, a discharge boom reaching back.
+2. In-pit crushing station on two long tracks: an open hopper at the front with broken ore in its dark mouth, a heavy crusher housing behind, a discharge chute at the back where the conveyor leaves.
+3. Tracked ore crawler, LOADED: two tracks, a low armoured drive-and-sensor block at the front (no Earth-style truck cab), a big ore bin heaped with broken rust-brown and grey ore.
+4. The same ore crawler EMPTY: its bin's scuffed steel floor showing.
+5. Drilling gantry: a beam on four tracked leg bogies, a row of five drill masts down the beam seen from above as round drill heads, a hazard-striped power cabinet.
+6. Transfer tower: a square plated tower top with a roof, a central head-pulley housing, the covered gallery entering on the west side and leaving on the east.
+7. Covered conveyor gallery bay: one module of a long covered conveyor, ribbed roof panels between two walkway rails, cut flush and square at both ends so modules join end to end.
+8. Bench hopper: a square steel dump hopper with a dark mouth holding ore, a hazard-striped edge where crawlers back up to tip.
+
+Domain-era spacefaring industry, as in image 2: heavy, worn, repaired and hard-used; plated and ribbed hulls, lattice members, thick hydraulic rams and cable runs, grime, rust streaks, faded hazard striping, small sodium-orange work lights. Grey-brown steel with rust and ochre accents; no glossy paint, no modern Earth trucks or excavators.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight DOWN: no visible vertical side walls, no perspective or isometric view. Tracks show only their tread tops. Grounded painted Starsector-style sprite aesthetic: no chunky pixel-art outlines, no cartoon style. Keep broad readable forms at small game scale. Soft neutral overhead light, shallow local contact shading only, no cast shadow.
+
+True alpha transparency around every piece, including the gaps between tracks, legs and booms; no ground, no dirt patch, no shadow slab, no background, no border, no labels, no text, no watermark. Paint only the eight pieces; nothing outside their silhouettes.

@@ -68,7 +68,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.dustLedger.sideObjectives` | control | 2026-10-25 | Permanent evidence lever: grants the Dust Ledger's side objectives before play (`coupling`, `warden`, `feed` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (dust-ledger-crossing.md, Defences). |
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
-| `battle.garrison.plan` | experiment | 2026-11-09 | Raid garrison layout cards (`raid-garrison`): `PARADE` (default, recommended), `QUADRANGLE` or `QUADRANTS`. Remove with the losing plans in `Cantonment` once the owner picks. |
+| `battle.garrison.plan` | experiment | 2026-11-09 | Raid garrison layout cards (`raid-garrison`): `YARD` (default, recommended) or `APRON`. Remove with the losing plan in `Cantonment` once the owner picks. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.heart.airbase` | control | 2026-10-31 | Broad Front's air wing is the bays of the two airbases its layout lays and flies from them, with a standing patrol of fighters over the lanes (`BloomHeartSetup.AIRBASE`, `heart-nouns.md` Allied airbase); `false` is the old edge-only wing. Remove it and the heart's edge-only path once the owner has seen the based wing and its Broad Front evidence has been read. |
 | `battle.heart.boreAssault` | control | 2026-10-25 | The Burn's lanes assault each bore in phases (`BoreAssault`, `heart-bore-assault.md`); remove it and the posts ahead of the aim once the owner has seen it on The Burn and its evidence has been read. |
@@ -111,6 +111,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.cityRoads` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.citySidewalks` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.compoundPreparedGround` | experiment | 2026-10-20 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
+| `battle.mapgen.naturalVoids` | control | 2026-11-09 | Permanent evidence lever: the share (0 to 1) of generated outdoor maps cut by a natural drop, in place of `CHASM_CHANCE`; 1 lays one on every map that fits, for look suites and evidence (voids.md, placement in generated maps). |
 | `battle.mapgen.outdoorLandscape` | experiment | 2026-10-11 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |

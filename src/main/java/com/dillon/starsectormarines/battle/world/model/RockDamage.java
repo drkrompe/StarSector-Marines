@@ -27,7 +27,7 @@ public final class RockDamage {
      * bleached sandstone on arid ones, dark basalt on bare rock and frost-capped stone on frozen worlds.
      */
     public enum Biome {
-        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-");
+        MOSSED(""), SANDSTONE("sandstone-"), BASALT("basalt-"), FROST("frost-"), SCORIA("scoria-");
 
         private final String prefix;
 

@@ -31,9 +31,6 @@ final class GlacialVoidRenderSystem implements RenderSystem {
 
     /** A soft round light, white, as the city drop's lamps; drawn composited here, not added. */
     static final String DOT_SPRITE = VoidBackdropRenderSystem.LIGHT_SPRITE;
-    /** Vanilla's fog sheet, four puffs across and down, as the city drop's fog and the lava rift's smoke. */
-    static final String MIST_SHEET = MoltenVoidRenderSystem.SMOKE_SHEET;
-    static final int MIST_SHEET_CELLS = MoltenVoidRenderSystem.SMOKE_SHEET_CELLS;
     /** The wind over the ice: its bearing and how fast it carries mist and snow, cells a second. */
     static final float WIND_X = .87f, WIND_Y = .49f, WIND_SPEED = 2.4f;
     /** The low mist over the floor: metres above it, puff size in cells and thickness. */
@@ -82,17 +79,14 @@ final class GlacialVoidRenderSystem implements RenderSystem {
 
     private void build(NaturalVoidField field) {
         builtFrom = field;
-        int w = field.w, h = field.h, n = field.steps();
+        int w = field.w, h = field.h;
         lipCount = 0;
-        overFloor = new boolean[w * h];
+        overFloor = VoidHaze.overFloor(field);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int i = y * w + x;
                 float cx = x + .5f, cy = y + .5f;
-                if (field.open[i]) {
-                    overFloor[i] = !field.bridge[i] && field.sample(field.reach[n], cx, cy) > 0f;
-                    continue;
-                }
+                if (field.open[i]) continue;
                 float out = -field.sample(field.edge, cx, cy);
                 if (out < 0f || out > 1f) continue;
                 // A bridge's end is road onto the deck, not the lip: no snow blows off it.
@@ -120,22 +114,23 @@ final class GlacialVoidRenderSystem implements RenderSystem {
         if (builtFrom != field) build(field);
         BattleCamera cam = drop.camera();
         float alpha = drop.alpha();
-        float s = drop.scale(band.depth);
         float margin = cam.cellPxSize() * 2f;
         int seed = drop.seed();
-        float floorDepth = Math.max(1f, band.depth);
-        float tint = IceVoidLook.deepTint(floorDepth, floorDepth);
         PolyMesh mesh = drop.poly();
         float[] qd = band.quads, at = band.attrs;
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
-            if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
+            // Each piece at its own depth along the crevasse, as blue as that depth is against the crevasse's steps:
+            // a floor the crevasse shallows to takes less of the deep.
+            float tint = IceVoidLook.deepTint(Math.max(1f, band.z(q, 4)), Math.max(1f, band.depth));
+            if (!drop.inView(at[o], at[o + 1], drop.scale(band.z(q, 4)), margin)) continue;
             float x = at[o], y = at[o + 1], light = at[o + 2];
             // Cells in from the floor's edge, from the smooth field rather than the piece's own figure, which steps
             // between neighbouring pieces and would speckle the pools and drifts.
             float in = field.sample(field.reach[field.steps()], x, y);
-            float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6];
-            float along = x * fx + y * fy, across = -x * fy + y * fx;
+            float sky = at[o + 6];
+            // The glint drifts along the crevasse's own streamlines (ChannelFlow), bending with it.
+            float along = band.flow[q * 5], across = band.flow[q * 5 + 1];
             float pool = NaturalVoidField.Noise.fbm(x * .2f, y * .2f, seed + 61);
             float crack = NaturalVoidField.Noise.fbm(x * .35f, y * .35f, seed + 63);
             float glint = NaturalVoidField.Noise.value(along * .22f - time * .2f, across * .6f, seed + 67);
@@ -143,12 +138,15 @@ final class GlacialVoidRenderSystem implements RenderSystem {
             float r = IceVoidLook.lerp(rgb[0], IceVoidLook.DEEP_R, tint * .6f);
             float g = IceVoidLook.lerp(rgb[1], IceVoidLook.DEEP_G, tint * .6f);
             float b = IceVoidLook.lerp(rgb[2], IceVoidLook.DEEP_B, tint * .6f);
-            mesh.appendQuad(drop.sx(qd[o], s), drop.sy(qd[o + 1], s), drop.sx(qd[o + 2], s), drop.sy(qd[o + 3], s),
-                    drop.sx(qd[o + 4], s), drop.sy(qd[o + 5], s), drop.sx(qd[o + 6], s), drop.sy(qd[o + 7], s),
+            float s0 = drop.scale(band.z(q, 0)), s1 = drop.scale(band.z(q, 1));
+            float s2 = drop.scale(band.z(q, 2)), s3 = drop.scale(band.z(q, 3));
+            mesh.appendQuad(drop.sx(qd[o], s0), drop.sy(qd[o + 1], s0), drop.sx(qd[o + 2], s1), drop.sy(qd[o + 3], s1),
+                    drop.sx(qd[o + 4], s2), drop.sy(qd[o + 5], s2), drop.sx(qd[o + 6], s3), drop.sy(qd[o + 7], s3),
                     r, g, b, alpha);
         }
         if (!mesh.isEmpty()) drop.drawList().addPoly(RenderLayer.GROUND, mesh);
-        mist(field, band.depth - MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, time);
+        VoidHaze.draw(drop, sprites, overFloor, MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, WIND_X, WIND_Y,
+                WIND_SPEED * .12f, IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B, time);
     }
 
     // ----- over the ground -----
@@ -161,48 +159,6 @@ final class GlacialVoidRenderSystem implements RenderSystem {
         float time = FireLight.clock(ctx.animationTimeSeconds);
         spindrift(field, time);
         snowfall(time);
-    }
-
-    /**
-     * A deck of mist {@code z} metres down, over the floor: soft puffs on a grid drifting with the wind, thick where a
-     * slow noise says so, standing only over the floor, never under a bridge's deck.
-     */
-    private void mist(NaturalVoidField field, float z, float puffCells, float thick, float time) {
-        ShuttleSpriteCache sheet = sprites.spriteByPath(MIST_SHEET);
-        if (sheet == null || sheet.pxW <= 0) return;
-        BattleCamera cam = drop.camera();
-        float s = drop.scale(z);
-        float cellPx = cam.cellPxSize();
-        float step = puffCells * .55f;
-        float drift = time * WIND_SPEED * .12f;
-        float dx = WIND_X * drift, dy = WIND_Y * drift;
-        float ccx = cam.panCellX() + NaturalVoidRenderSystem.MARGIN, ccy = cam.panCellY() + NaturalVoidRenderSystem.MARGIN;
-        float half = cam.vpW() / cellPx / s * .5f + puffCells, halfY = cam.vpH() / cellPx / s * .5f + puffCells;
-        int i0 = (int) Math.floor((ccx - half - dx) / step), i1 = (int) Math.ceil((ccx + half - dx) / step);
-        int j0 = (int) Math.floor((ccy - halfY - dy) / step), j1 = (int) Math.ceil((ccy + halfY - dy) / step);
-        if ((long) (i1 - i0) * (j1 - j0) > 8000) return;
-        int cells = MIST_SHEET_CELLS, cw = sheet.pxW / cells, ch = sheet.pxH / cells;
-        int seed = drop.seed() * 17;
-        float alpha = drop.alpha();
-        for (int j = j0; j <= j1; j++) {
-            for (int i = i0; i <= i1; i++) {
-                int hsh = hash(i, j, seed);
-                float x = i * step + dx + ((hsh & 255) / 255f - .5f) * step;
-                float y = j * step + dy + (((hsh >> 8) & 255) / 255f - .5f) * step;
-                int ix = (int) Math.floor(x), iy = (int) Math.floor(y);
-                if (ix < 0 || iy < 0 || ix >= field.w || iy >= field.h || !overFloor[iy * field.w + ix]) continue;
-                if (field.nearBridge(x, y, puffCells * .75f)) continue;
-                float n = .5f + .5f * NaturalVoidField.Noise.fbm(i * .19f, j * .19f, seed);
-                if (n < .34f) continue;
-                float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * s;
-                float a = thick * Math.min(1f, (n - .34f) / .3f) * alpha;
-                int cell = (hsh >>> 24) % (cells * cells);
-                drop.drawList().addImageRegion(RenderLayer.GROUND, sheet.sprite, sheet.pxW, sheet.pxH,
-                        cell % cells * cw, cell / cells * ch, cw, ch, drop.sx(x, s), drop.sy(y, s), size, size,
-                        (hsh >> 4 & 1023) * .35f + time * (hsh % 2 == 0 ? 1f : -1f),
-                        IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B, a);
-            }
-        }
     }
 
     /**

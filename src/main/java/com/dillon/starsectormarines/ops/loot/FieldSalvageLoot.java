@@ -19,7 +19,8 @@ public final class FieldSalvageLoot {
         var stacks = new ArrayList<>(negotiated.stacks);
         var ids = new HashSet<String>();
         for (var find : finds) {
-            if (!ids.add(find.id())) continue;
+            // A tech cache is no commodity: it settles as a roll of the game's equipment (RuinsPrizeSettlement).
+            if (find.tech() || !ids.add(find.id())) continue;
             var candidate = catalog.apply(find.resource());
             if (candidate != null) stacks.add(new LootStack(candidate, find.quantity(), true));
         }

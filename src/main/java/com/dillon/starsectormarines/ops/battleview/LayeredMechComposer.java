@@ -318,6 +318,30 @@ final class LayeredMechComposer {
     }
 
     /**
+     * One arm gun on a body that is not a layered mech's (Tri-Tachyon's crawler, `mech-lines.md`, law 4): seated on
+     * the mount {@code (mountX, mountY)} (screen px) as on a turret ring, {@code seat} of its length behind the
+     * mount's centre, turned to {@code facingDeg}, with its muzzle flash at its tip while {@code flash}.
+     * {@code hullWidth} sizes it as on a mech of that hull width. The centreline's own placement (lined up under a
+     * mech's nose, {@link MechHardpointGeometry#centrelineDrawingShift}) is not used: the mount here is the socket.
+     */
+    static void emitMountedGun(DrawList out, LayeredMechAssets assets, int gun, float mountX, float mountY,
+                               float hullWidth, float facingDeg, float seat, float kick, boolean flash, float alpha) {
+        LayeredSpriteCache sprite = armSprite(assets, gun);
+        if (sprite == null || hullWidth <= 0f) return;
+        Sink sink = drawListSink(out);
+        sink.section(MechSection.ARMS);
+        float length = sprite.pxHeight / SOURCE_REFERENCE_PX;
+        float recoil = armRecoils(gun) ? kick : 0f;
+        emitFromRearPivot(sink, sprite, mountX, mountY, hullWidth, facingDeg, 0f, -seat * length - recoil,
+                centrelineWidthScale(gun), 0f, alpha);
+        sink.section(null);
+        if (flash && assets.muzzleFlash != null) {
+            emitCentered(sink, assets.muzzleFlash, mountX, mountY, hullWidth, facingDeg, 0f,
+                    (1f - seat) * length - recoil, 0f, alpha);
+        }
+    }
+
+    /**
      * How wide a centreline gun is drawn, as a share of its drawing: the chaingun's six-barrel drawing at full width is
      * as broad as the Hound's whole nose (owner: ridiculously wide), so on the centreline it is drawn at the half width
      * the Bulwark's arms draw it at; every other gun at its own width.

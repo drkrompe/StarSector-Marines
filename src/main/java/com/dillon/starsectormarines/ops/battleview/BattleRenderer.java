@@ -305,6 +305,7 @@ public class BattleRenderer {
         naturalVoid.useSun(sun);
         NaturalVoidRenderSystem naturalRise = new NaturalVoidRenderSystem(sprites, true);
         naturalRise.useSun(sun);
+        SignatureRenderSystem signature = new SignatureRenderSystem(sprites);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -331,6 +332,8 @@ public class BattleRenderer {
                 // The land falling away below a map's void cells: a gorge, a crevasse, a sea cliff.
                 naturalVoid,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
+                // A volcanic world's ash drifts and glowing cracks, vents and embers, over its basalt tiles.
+                new VolcanicGroundRenderSystem(sprites),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
                 naturalVoid.fray(),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
@@ -346,6 +349,8 @@ public class BattleRenderer {
                 cliffArt,
                 // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.
                 new BuiltStairRenderSystem(),
+                // The planet type's grade over its wild ground and hills, and a metal world's flecks.
+                signature,
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
@@ -357,6 +362,8 @@ public class BattleRenderer {
                     else DecalRenderSystem.collect(ctx.sim.getDecals(),sprites.decalSheet(),sprites.decalFrames(),
                             ctx.camera,ctx.alphaMult,out);
                 }),
+                // A cryovolcanic world's vent mounds and a bombarded world's craters lie on the ground with the decals.
+                signature.marks(),
                 // A nest's clutter lies on the creep with the decals, under everything that stands on it.
                 new NestClutterRenderSystem(sprites),
                 new ParkedAircraftRenderSystem(sprites),
@@ -364,6 +371,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
+                // A hot world's haze and the vents' vapour, over the props and under the fog and the units.
+                signature.air(),
                 // Compartment doors stand in their doorways, over the floor and under the crew.
                 new RoomDoorRenderSystem(),
                 // A battle map's one-cell doorways hang hinged doors that swing for whoever walks through.

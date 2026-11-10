@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2b9-2f6c-7931-a7b9-339a47958441",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2b9-2f6c-7931-a7b9-339a47958441\\exec-b9979353-f7eb-429c-ad32-12c53427beae.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\canyon\\canyon-wall.png",
+    "sha256": "bd94eebe315f5311217df85712beb0d4924ceaa76ba230a92146b69ef7f9b7ad",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\canyon\\canyon-wall.prompt.txt",
+  "promptSha256": "9906c2d78e9e4e3fb91d9dca1a8aa86e2aa8306de6df67ca22cb1d002708b9fe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of the sheer wall of a\ndesert canyon, as it would be mapped onto a vertical cliff of sandstone.\nLayered sedimentary sandstone: horizontal strata running across the tile in\nbands of uneven thickness, alternating rust red, burnt orange, ochre, pale\ncream and a few thin dark maroon and chocolate-brown shale bands; some bands\ncross-bedded with fine slanted laminations, some harder bands standing out\nas small overhanging ledges with a crumbling lip, softer bands weathered\nback. Dark desert-varnish streaks staining down across the strata in\nplaces, fine vertical joints and cracks, a few honeycomb weathering pits,\na little loose sand caught on the ledges. Lit evenly by soft neutral light\nfrom straight in front, no cast shadows from outside the tile, no bright\nglare. Even density across the whole tile with no focal point, so it\nrepeats horizontally and vertically. Palette: rust red, terracotta, ochre,\nsand cream, maroon, dusty brown. No sky, no plants, no people, no text, no\nborder, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one seamless sandstone cliff texture using the imagegen skill.\n"
+  ],
+  "usage": {
+    "input_tokens": 37400,
+    "cached_input_tokens": 33920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 304,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.9
+}

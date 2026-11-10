@@ -77,13 +77,13 @@ These follow vanilla fleet doctrine. They are leanings, not ownership.
 |---|---|---|---|
 | Materials | Bolted and welded plate, castings, exposed cable and hydraulics | Pressed modular panels, sealed seams, standard fittings | Seamless composite, sealed shells, nothing exposed |
 | Silhouette | Slab-sided, boxy, heavy, a lot of mass | Clean but practical; panelled, with access hatches | Smooth curves and low profiles; hover skirts instead of tracks |
-| Livery | Drab, worn, faction paint over primer | Painted standard schemes with unit markings | White, graphite and accent cyan on the hover line; pale steel-blue armour lobes over dark machinery on the walkers, after vanilla's high-tech hulls (Tri-Tachyon) |
+| Livery | Drab, worn, faction paint over primer | Painted standard schemes with unit markings | Pale steel-blue armour lobes over dark machinery, after vanilla's high-tech hulls, on the skimmers and the walkers (Tri-Tachyon's heavy shell); white, graphite and accent cyan on the burst laser tank and its laser mounts |
 | Light | Caged amber lamps strung on cable | Recessed strip light (open) | Luminous panels and emitter glow (open) |
 | Engine flame | Vanilla low-tech orange | Vanilla midline amber | Vanilla high-tech blue (`EngineStylePalette`) |
 | Wear | Rust, patches and replaced plates; reads as old | Scuffed paint, clean repairs; reads as serviced | Scorching and cracked panels; damage reads as failure, not age |
 
 Low-tech is established. The low-tech interiors, the Breakthrough tank and the APCs
-define it. High-tech has a start in the Tri-Tachyon hover line and the burst laser tank.
+define it. High-tech has a start in Tri-Tachyon's skimmer line and the burst laser tank.
 **Midline has no defined language yet.** The rows above are a direction to look-develop
 from, not a finished design.
 
@@ -117,7 +117,7 @@ Correct it here when a pattern's lore says otherwise.
 | Medium tank (Scorpion) | Low-tech | The medium schedule's Domain-era escort tank, kept in production for its running cost |
 | Burst laser tank | High-tech refit of a low-tech hull | Tri-Tachyon emitter, livery and power plant |
 | Militia technical, SRM technical, Supply truck, Scout car | Low-tech | Field rigs on workshop pickups |
-| Hover scout, Drone skimmer | High-tech | Tri-Tachyon Asset Protection |
+| Hover scout, Drone skimmer, Heavy skimmer (Skate, Shoal, Manta) | High-tech | Tri-Tachyon Asset Protection's skimmer line, light, medium and heavy, in the heavy shell; hulls drawn bare, every gun on its own mount. The heavy carries the laser tank's carriage and a frontal flux shield on its one flux pool (`convoy-nouns.md`, the hover line) |
 | Wayline cargo hauler | Midline (reading) | Commercial industrial standard; unowned |
 
 ### Mechs
@@ -135,7 +135,9 @@ All three are drawn as low-tech machines for the Hegemony, Independents and pira
 (`mechs-nouns.md`, livery: the low-tech bodies). The other factions' sleek bodies are
 those powers' shells hung on the same frames, stand-ins for their own lines
 (`mech-lines.md`). Tri-Tachyon's stand-in is the high-tech row's own look: lobed
-steel-blue bodies on the same frames, ahead of the row's rules.
+steel-blue bodies on the same frames. Its own force is skimmers, the hover vehicle line
+from light to heavy (Vehicles, above), and light crawlers, with no heavy walker
+(`mech-lines.md`, order of work).
 
 ### Infantry armor
 

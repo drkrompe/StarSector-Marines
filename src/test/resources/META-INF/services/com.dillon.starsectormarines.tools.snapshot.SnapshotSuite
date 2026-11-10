@@ -396,6 +396,7 @@ com.dillon.starsectormarines.ops.ReticleAmmoSnapshotSuite
 com.dillon.starsectormarines.ops.CounterattackDepotLookSuite
 com.dillon.starsectormarines.ops.JunctionLookSuite
 com.dillon.starsectormarines.battle.world.gen.BloomPaletteLookSuite
+com.dillon.starsectormarines.battle.world.gen.LivingWorldLookSuite
 com.dillon.starsectormarines.ops.WellhollowArtSnapshotSuite
 com.dillon.starsectormarines.ops.StoreSnapshotSuite
 com.dillon.starsectormarines.ops.SideObjectivePromptSuite
@@ -422,6 +423,7 @@ com.dillon.starsectormarines.ops.RaidWorksLookSuite
 com.dillon.starsectormarines.ops.RaidGarrisonLookSuite
 com.dillon.starsectormarines.ops.RaidSiteLookSuite
 com.dillon.starsectormarines.ops.PlanetGroundLookSuite
+com.dillon.starsectormarines.ops.PlanetSignatureLookSuite
 com.dillon.starsectormarines.ops.RaidMineSiteLookSuite
 com.dillon.starsectormarines.ops.RaidMinePitLookSuite
 com.dillon.starsectormarines.ops.RaidRefinerySiteLookSuite
@@ -443,7 +445,11 @@ com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite
 com.dillon.starsectormarines.ops.battleview.LavaVoidLookSuite
 com.dillon.starsectormarines.ops.battleview.IceVoidLookSuite
+com.dillon.starsectormarines.ops.battleview.CanyonVoidLookSuite
+com.dillon.starsectormarines.ops.battleview.DryGorgeVoidLookSuite
 com.dillon.starsectormarines.ops.RuinsRailLookSuite
 com.dillon.starsectormarines.battle.setup.RaidMapgenReviewSuite
 com.dillon.starsectormarines.ops.battleview.RavineRiseLookSuite
 com.dillon.starsectormarines.ops.RuinsPushCueLookSuite
+com.dillon.starsectormarines.ops.battleview.VolcanicGroundLookSuite
+com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite

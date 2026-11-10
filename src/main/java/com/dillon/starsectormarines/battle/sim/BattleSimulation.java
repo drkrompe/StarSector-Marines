@@ -205,6 +205,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleDamageFxSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
 import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullShield;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
@@ -755,6 +758,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         occupantStash = stash;
     }
 
+    private final List<SalvageCache> guardianCaches = new ArrayList<>();
+
+    /**
+     * Adds a guardian room's tech cache ({@code RuinsFindTier.Place.GUARDIAN_ROOM}): a field find held like any other,
+     * which nobody secures while its guardian's side stands over it.
+     */
+    public void addGuardianCache(SalvageCache cache) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place a guardian's cache before launch installs finds");
+        guardianCaches.add(cache);
+    }
+
     private List<SalvageCache> vaultStore = List.of();
 
     /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
@@ -774,6 +789,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
+        finds.addAll(guardianCaches);
         fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
         // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
         vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
@@ -2007,8 +2023,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun on a turning hull shakes the way a moving shooter's does, and so does a crew caught in crossfire;
         // the gun is never shakier than a moving shooter's.
         HullPivot pivot = new HullPivot(rosterService.convoy());
+        // The Mech Lab's calibration steadies a company hull's guns as it does its mechs'.
         turretFire.setShooterAccuracy(id -> Math.min(pivot.multiplier(id),
-                Crossfire.accuracyMultiplier(rosterService.convoy(), id)));
+                Crossfire.accuracyMultiplier(rosterService.convoy(), id)) * rosterService.convoy().refitAccuracy(id));
         // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
         turretFire.setRoundHeat(id -> {
             FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
@@ -2959,6 +2976,21 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             pointDefense.mountMachine(id, rosterService.identity().faction(id), structureId);
         }
         fitMechShields();
+        fitHullShields();
+    }
+
+    /**
+     * Gives every hull whose type carries a shield emitter its shield, once: run on the hull's own flux reservoir
+     * ({@link HullShield}), facing its nose. The shield goes when the hull is wrecked ({@link #tickTurretShields}).
+     */
+    private void fitHullShields() {
+        ConvoyService convoy = convoy();
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long id = convoy.vehicleAt(i);
+            GroundTurret turret = convoy.turret(id);
+            if (turret == null || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) continue;
+            HullShield.fit(turretShields, id, convoy.vehicleType(id), convoy.body(id).facingDegrees, turret.reservoir);
+        }
     }
 
     /**
@@ -5019,7 +5051,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private void tickTurretShields() {
         for (int i = turretShields.size() - 1; i >= 0; i--) {
             long id = turretShields.at(i).id;
-            if (!world.isAlive(id) || boatShieldLost(id)) turretShields.remove(id);
+            if (!world.isAlive(id) || boatShieldLost(id) || hullShieldLost(id)) turretShields.remove(id);
         }
         turretShields.tick(TICK_DT, shieldPositions, this::shieldThreatOf);
     }
@@ -5031,8 +5063,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return mission != null && (mission.state == ShuttleState.CRASHING || mission.state == ShuttleState.GONE);
     }
 
-    /** What a shield faces: a hardpoint's target, or the first thing a boat's guns are on. */
+    /** A hull's shield goes when the hull is wrecked. */
+    private boolean hullShieldLost(long id) {
+        VehicleMission mission = convoy().mission(id);
+        return mission != null && mission.state == VehicleState.WRECKED;
+    }
+
+    /** What a shield faces: a hardpoint's target, a hull gun's, or the first thing a boat's guns are on. */
     private long shieldThreatOf(long id) {
+        GroundTurret hullGun = convoy().turret(id);
+        if (hullGun != null) return resolveUnit(hullGun.targetId);
         AirTurrets guns = world.airTurrets(id);
         if (guns == null) return targetOf(id);
         for (MountedTurret mount : guns.mounts) {
