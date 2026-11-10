@@ -459,3 +459,4 @@ com.dillon.starsectormarines.ops.CrevasseTownLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedComplexLookSuite
+com.dillon.starsectormarines.tools.mapauthoring.MapsEditorSnapshotSuite

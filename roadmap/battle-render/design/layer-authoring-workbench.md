@@ -4,7 +4,9 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Page-by-page detail of the `gradlew.bat layerAuthoring` workbench (Layers, Turrets, Rooms, Map damage, Tilesets), moved verbatim from `CLAUDE.md` (Build & deploy). Read it when working on or with a workbench page.
+Updated: 2026-11-10 — the Maps page, the editor for owned mission maps.
+
+Page-by-page detail of the `gradlew.bat layerAuthoring` workbench (Layers, Turrets, Rooms, Map damage, Maps, Tilesets), moved verbatim from `CLAUDE.md` (Build & deploy). Read it when working on or with a workbench page.
 
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
 Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -99,6 +101,39 @@ Save writes `mod/data/world/damage/relief.damage.json` atomically. The shared
 document and brush are recipe-independent; Relief is the first linked host.
 `createSnapshots -Psnapshot=relief-damage` checks exact intact restoration,
 production destruction and editor gestures, and renders at 1920x1080 / 100%.
+The Maps page is the editor for owned mission maps (`mission-layout.md`). It
+opens an existing mission map, never an empty grid, generated as it plays and
+drawn whole by the battle renderer's look preset; the edits are drawn on that
+picture. Its tools are every terrain and settlement tool the generator has:
+**drops** (a path clicked along its course, each point at its own depth, the
+ledge count, and crossings, a timber bridge or a land bridge, clicked onto it),
+**rises** (a crest with a height at each point, banked in terraces), **roads**,
+**named places** (the landing zone, the mission's sites, landmarks) and
+**settlements by program**: town, compound or crevasse town, where it stands
+and what it is, never its building style. A drop is cut as the generator cuts a
+chasm (void, unwalkable, seen across), a rise as a crevasse town's walls (void,
+unwalkable, blocking sight). **Bridge the roads it cuts** puts a crossing
+wherever a drop meets one of the map's roads. The wheel over a point sets its
+depth or height; every edit is one undo step.
+The **world** switch redraws the same layout as each of ten worlds (rock, arid,
+verdant, jungle, tundra, ocean, frozen, volcanic, irradiated, toxic), read
+through the campaign's own zoning: the palette and signature, the drop style
+(`NaturalVoidZoning`) and the adaptation its towns get (`HabitatZoning`: open,
+insulated, sealed perimeter, shielded; a crevasse town says so). A skin repaints
+and never re-lays: walkability and edges are the same under every world. **All
+worlds sheet** draws them side by side, each labelled with its choices. The
+editor is where an author checks that a map works on every world.
+**Checks run with every redraw** and a save is refused while one fails: every
+named place reachable on foot from the landing zone through edges as the
+pathfinder honours them; every crossing joins its banks over its own cells;
+nothing built on a way (a settlement on a road, crossing, drop or rise; a drop
+or rise through a building; a road cut with no crossing). The saved form is the
+owned-map document (`owned-maps`); until its format lands the page keeps the
+edits as a draft under `build/map-authoring/`. Headless: `map_list` and
+`map_render` (edits as JSON, one world or `ALL` for the sheet,
+`bridgeRoads`), through `tools/authoring.sh`. `createSnapshots
+-Psnapshot=maps-editor` drives the page by its gestures and captures it at
+1920x1080 / 100% with the all-worlds sheet.
 The Tilesets page opens on a question rather than on a workspace: **what are
 you doing?** Three ways in, each a walkthrough of numbered screens with Back
 and Next, and each screen holding only the controls its own step needs. The
