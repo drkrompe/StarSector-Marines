@@ -1320,7 +1320,11 @@ than about its outskirts. A ladder one rung too short does not produce slightly
 wide lanes; it produces a town whose every street is an arterial, with the
 buildings left as islands in pavement. Any new class is added at the bottom, and
 the plan's own paved share is the measure that says whether the ladder reaches
-far enough — a road network, not the ground the town stands on.
+far enough — a road network, not the ground the town stands on. The lanes a
+block partition cuts between the trunks are a class too: every cut of one pass
+carves the same lane (`Bsp`), a back street's width under a trunk pre-pass and
+five cells where none runs. A lane drawn at a random width stepped wider and
+narrower from block to block, one street changing width along its run.
 
 A **ward** is the exception to parcel-first fill, and the conquest fortress is
 the one place that has it. Rather than being filled leaf by leaf and then walled,
