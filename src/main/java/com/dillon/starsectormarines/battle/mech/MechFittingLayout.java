@@ -163,6 +163,9 @@ public final class MechFittingLayout {
         }
         MechFittingLayout layout = LAYOUTS.get(variant);
         if (layout != null) return layout;
+        // A hardware variant keeps its frame's mounts (mech-lines.md, law 2), with its own stock fit in them.
+        MechFittingLayout frame = LAYOUTS.get(variant.frame());
+        if (frame != null) return new MechFittingLayout(variant, frame.doll());
         throw new IllegalArgumentException("No layout found for " + variant);
     }
 

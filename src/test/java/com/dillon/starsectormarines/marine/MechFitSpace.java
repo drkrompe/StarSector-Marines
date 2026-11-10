@@ -178,7 +178,7 @@ public final class MechFitSpace {
             // Automated, never refitted: its stock frame is its only frame.
             case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> MechFrame.stock(variant);
             // Built after the cut: its refit ceiling is its reference.
-            case CRAWLER -> new MechFrame(MechFrameBudget.refitArmorCapacity(variant),
+            case CRAWLER, HAULER, FOUNDRY_BREAKER, PILGRIM -> new MechFrame(MechFrameBudget.refitArmorCapacity(variant),
                     MechFrameBudget.refitMoveSpeed(variant), 100f, 8f);
         };
     }

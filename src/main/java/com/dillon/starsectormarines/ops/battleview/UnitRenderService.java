@@ -1827,12 +1827,14 @@ public final class UnitRenderService implements RenderSystem {
                     World world = ctx.sim.world();
                     MechSections sections = world.hasMechLoadout(entityId)
                             ? world.mechLoadout(entityId).sections() : null;
+                    LayeredSpriteCache variantBody = world.hasMechLoadout(entityId)
+                            ? mechAssets.variantBody(world.mechLoadout(entityId).variant) : null;
                     LayeredMechComposer.emit(mechScuffs.begin(out, sections, entityId), mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
                             mechArms[r], mechLeftArm[r], mechRightArm[r],
                             mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
-                            authoredPose, gaitPose);
+                            authoredPose, gaitPose, variantBody);
                     if (world.hasMechLoadout(entityId)) {
                         sprites.ensureEngineFxSprites();
                         FluxHaze.collectMech(out, sprites.engineGlowSprite(), cam, cam.cellPxSize(),

@@ -38,6 +38,27 @@
       "description": "@gearCatalogCrawlerDescription"
     },
     {
+      "variant": "hauler",
+      "factionLogo": "graphics/factions/pirates.png",
+      "designation": "BLW-9/H",
+      "role": "@gearCatalogHaulerRole",
+      "description": "@gearCatalogHaulerDescription"
+    },
+    {
+      "variant": "foundry_breaker",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "HND-3/FB",
+      "role": "@gearCatalogFoundryBreakerRole",
+      "description": "@gearCatalogFoundryBreakerDescription"
+    },
+    {
+      "variant": "pilgrim",
+      "factionLogo": "graphics/factions/luddic_path.png",
+      "designation": "BLW-9/P",
+      "role": "@gearCatalogPilgrimRole",
+      "description": "@gearCatalogPilgrimDescription"
+    },
+    {
       "variant": "hound",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "HND-3",

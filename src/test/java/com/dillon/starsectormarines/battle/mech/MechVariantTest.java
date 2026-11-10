@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -263,5 +264,47 @@ class MechVariantTest {
         assertFalse(crawler.hasMount(MechMountSlot.RIGHT_SHOULDER));
         assertFalse(crawler.hasMount(MechMountSlot.LEFT_ARM));
         assertTrue(MechVariant.HOUND.hasMount(MechMountSlot.LEFT_SHOULDER));
+    }
+    @Test
+    void aHardwareVariantKeepsItsFramesMountsBodyAndWeightClass() {
+        for (MechVariant variant : MechVariant.values()) {
+            MechVariant frame = variant.frame();
+            assertSame(frame, frame.frame(), "a frame is its own frame");
+            if (!variant.isVariant()) continue;
+            assertEquals(frame.chassisAppearance, variant.chassisAppearance, variant + " draws on its frame's legs");
+            assertSame(frame.bodyPlan(), variant.bodyPlan(), variant + " is struck as its frame is");
+            assertSame(frame.liftClass(), variant.liftClass(), variant + " keeps its frame's weight class (law 2)");
+            assertEquals(frame.radius, variant.radius, 1e-6f, variant + " stands in its frame's footprint");
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                assertEquals(frame.hasMount(slot), variant.hasMount(slot), variant + " keeps " + slot);
+            }
+            List<MechFittingLayout.SocketId> frameSockets = MechFittingLayout.forVariant(frame).sockets().stream()
+                    .map(MechFittingLayout.SocketDef::id).toList();
+            MechFittingLayout layout = MechFittingLayout.forVariant(variant);
+            assertSame(variant, layout.variant(), "the layout carries the variant's own stock fit");
+            assertEquals(frameSockets, layout.sockets().stream().map(MechFittingLayout.SocketDef::id).toList());
+        }
+        assertSame(MechVariant.BULWARK, MechVariant.HAULER.frame());
+        assertSame(MechVariant.BULWARK, MechVariant.PILGRIM.frame());
+        assertSame(MechVariant.HOUND, MechVariant.FOUNDRY_BREAKER.frame());
+    }
+
+    @Test
+    void onlyThePilgrimCrushesWalls() {
+        for (MechVariant variant : MechVariant.values()) {
+            assertEquals(variant == MechVariant.PILGRIM, variant.crushesWalls(), variant.name());
+        }
+    }
+
+    @Test
+    void theFoundryBreakerCarriesThePathsHoundIssue() {
+        MechLoadoutComponent path = FactionMechLoadouts.create(MechVariant.HOUND, null,
+                FactionMechLoadouts.LUDDIC_PATH_ID);
+        MechLoadoutComponent breaker = MechVariant.FOUNDRY_BREAKER.createLoadout(null);
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponMount issued = path.mount(slot), stock = breaker.mount(slot);
+            assertSame(issued == null ? null : issued.component, stock == null ? null : stock.component, slot.name());
+        }
+        assertNull(MechVariant.HAULER.leftShoulder, "the Hauler's crane takes its left rack place");
     }
 }
