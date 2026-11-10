@@ -27,6 +27,12 @@ class FieldSalvageLootTest {
         assertEquals(562,plan.fencedCredits);
         assertEquals("metals",plan.lines.get(0).stack.itemId);
     }
+    @Test void aTechCacheIsNoCommodityStack() {
+        var tech = new SalvageCache.Recovered("sealed-store-1", SalvageResource.MACHINERY, 8, true);
+        var manifest = FieldSalvageLoot.append(LootManifest.EMPTY, List.of(tech), r ->
+                new LootCandidate(LootKind.COMMODITY,r.commodityId,r.displayName,null,30,1,1,1,1));
+        assertTrue(manifest.stacks.isEmpty());
+    }
     @Test void defeatAndDebugCannotTurnSecuredFindsIntoCampaignLoot() {
         var finds = List.of(new SalvageCache.Recovered("cache",SalvageResource.MACHINERY,8));
         assertTrue(LootGenerator.generate(MissionOutcome.builder().victory(false).fieldSalvage(finds).build()).isEmpty());

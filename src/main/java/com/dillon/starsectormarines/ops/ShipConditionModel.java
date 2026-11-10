@@ -276,9 +276,11 @@ public final class ShipConditionModel {
         if (titled) m.put("title", Strings.upper(RefitText.track(shown)));
         m.put("trackIcon", ShipSystemsTree.icon(shown));
         m.put("trackIconClasses", "survey-track-icon");
-        benefit = Strings.format("openingRefitNow", RefitText.effect(shown, band));
-        if (next != null) benefit += "\n" + Strings.format("openingRefitNext",
-                Strings.format("openingRefitRowState", RefitText.tier(shown, next.band), RefitText.effect(shown, next.band)));
+        // The status line is where the track stands; this says what the next tier adds, or at the
+        // top of the track what the last one gave.
+        benefit = next == null ? RefitText.effect(shown, band)
+                : Strings.format("openingRefitUpgradeTo", RefitText.band(next.band), RefitText.tier(shown, next.band))
+                        + "\n" + RefitText.effect(shown, next.band);
         reason = shown == RefitTrack.FABRICATION && !refitState.fleet() ? Strings.get("openingRefitWorkshopCard") : Strings.get("openingRefitAtCeiling");
         if (next != null && !next.requires.isEmpty()) {
             m.put("needsClasses", "survey-needs");
@@ -295,10 +297,10 @@ public final class ShipConditionModel {
             m.put("billRows", List.copyOf(rows));
             m.put("billStyle", CompanyResources.billHeight(rows));
             reason = offer.refusal() != null ? offer.refusal() : next.cores().isEmpty()
-                    ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded")
+                    ? Strings.get("openingRefitLaborIncluded")
                     : Strings.get("openingRefitMaterialsFromCargo");
             m.put("actionClasses", "restoration-action console-action");
-            m.put("actionLabel", key.equals(reviewed) ? Strings.get("openingShipConditionAuthorizeD") : Strings.get("openingShipConditionReviewRepair"));
+            m.put("actionLabel", Strings.get(key.equals(reviewed) ? "openingRefitInstallUpgrade" : "openingRefitReviewUpgrade"));
             m.put("disabled", offer.refusal() != null && key.equals(reviewed));
             m.put("order", key);
         }
@@ -326,7 +328,10 @@ public final class ShipConditionModel {
         refresh();
         String key = (String) row.get().get("order");
         if (key == null) return;
-        if (!key.equals(reviewed)) { reviewed = key; feedback = Strings.get("openingShipConditionReviewTheCostAndRestoredFacilitiesBefore"); }
+        if (!key.equals(reviewed)) {
+            reviewed = key;
+            feedback = Strings.get(key.startsWith("refit:") ? "openingRefitReviewBefore" : "openingShipConditionReviewTheCostAndRestoredFacilitiesBefore");
+        }
         else if (key.startsWith("refit:")) {
             // A refit is paid for where the player can watch it land; see RefitReveal.
             RefitOrder order = RefitOrder.valueOf(key.substring(6));
@@ -351,7 +356,7 @@ public final class ShipConditionModel {
     /** Pays for {@code order} now; the yard's refusal, or null once the work is done. */
     private String commit(RefitOrder order) {
         String refusal = refit.apply(order);
-        feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
+        feedback = refusal == null ? Strings.get("openingRefitInstalled") : refusal;
         if (refusal == null) changed.run();
         refresh();
         return refusal;

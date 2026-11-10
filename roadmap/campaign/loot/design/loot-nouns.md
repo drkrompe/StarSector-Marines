@@ -77,8 +77,11 @@ and cargo footprint but costing zero contract claim budget. They neither raise
 the negotiated budget nor refund budget when deselected. The normal capacity
 preview, overflow fencing and exactly-once settlement apply, even when contract
 entitlement is zero. The commodity catalog remains the authority for prices,
-icons and cargo use. Equipment caches are a future, explicitly gated content
-extension; current caches contain only these three materials.
+icons and cargo use. Field caches contain only these three materials, with one
+gated exception: a Ruins **tech cache** (`ruins-expedition.md`, Two tiers of
+find) holds a roll of vanilla's own ruins drop groups. It settles straight into
+cargo through vanilla's salvage roller, outside the manifest. Equipment caches
+anywhere else stay a future, explicitly gated extension.
 
 `createSnapshots -Psnapshot=field-salvage` checks placement on the two opening
 mission factories and Thunder Run geometry, then records controlled discovery,
