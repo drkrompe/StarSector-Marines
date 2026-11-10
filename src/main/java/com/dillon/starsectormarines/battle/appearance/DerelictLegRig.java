@@ -67,6 +67,12 @@ public final class DerelictLegRig {
     /** The share of a cycle a leg spends in the air. */
     static final float WALK_SWING = 0.22f;
     static final float RUN_SWING = 0.56f;
+    /** The run's swing share with no spring: each pair down a little longer than it is up, so one always stands. */
+    static final float FLAT_RUN_SWING = 0.46f;
+    /** How high a running foot lifts with no spring, as a share of its step lift. */
+    static final float FLAT_RUN_LIFT = 0.5f;
+    /** The derelict walker's run: a heavy machine's flat trot, never leaving the ground (owner: too much jump). */
+    static final float WALKER_RUN_SPRING = 0.15f;
     /** Each leg's place in the cycle: the walk's four beats, and the trot's two pairs. */
     private static final float[] WALK_OFFSET = {0.25f, 0f, 0.5f, 0.75f};
     private static final float[] RUN_OFFSET = {0f, 0.5f, 0f, 0.5f};
@@ -152,12 +158,15 @@ public final class DerelictLegRig {
      * @param turnDegreesPerSecond the fastest the body turns, degrees a second: the machine's own turn rate
      *                        ({@code MechLocomotion.turnRateDegrees}), held here too so the drawn body never outruns
      *                        its feet
+     * @param runSpring       how much spring the run has, 1 the full trot (each pair a little longer in the air than
+     *                        down, so the machine leaves the ground, a bounce twice a stride, feet lifted high) and 0 a
+     *                        flat one (a pair always down, no bounce, feet lifted low)
      */
     public record Build(float hipCells, float restCells, float gripCells, float hipHeightCells, float thighCells,
                         float shinCells, float wallFootCells, float stepLiftCells, float walkStride, float runStride,
                         float runSpeed, float walkSpeed, float stepSeconds, float scale, float motionScale,
                         float twistDegrees, float jointInsetCells, float suspensionSeconds,
-                        float turnDegreesPerSecond) {
+                        float turnDegreesPerSecond, float runSpring) {
 
         /**
          * This build at {@code k} times its size (`derelict-watch.md`, Medium and large walkers): the derelict line's
@@ -171,7 +180,7 @@ public final class DerelictLegRig {
             return new Build(hipCells * k, restCells * k, gripCells * k, hipHeightCells * k, thighCells * k,
                     shinCells * k, wallFootCells * k, stepLiftCells * k, walkStride * k, runStride * k,
                     runSpeed * slow, walkSpeed * slow, stepSeconds * slow, scale * k, motionScale * k,
-                    twistDegrees, jointInsetCells * k, suspensionSeconds, turnDegreesPerSecond / k);
+                    twistDegrees, jointInsetCells * k, suspensionSeconds, turnDegreesPerSecond / k, runSpring);
         }
     }
 
@@ -179,7 +188,7 @@ public final class DerelictLegRig {
     public static final Build WALKER = new Build(HIP_CELLS, REST_CELLS, GRIP_CELLS, DerelictLegPose.HIP_HEIGHT_CELLS,
             DerelictLegPose.THIGH_CELLS, DerelictLegPose.SHIN_CELLS, DerelictLegPose.WALL_FOOT_HEIGHT_CELLS,
             DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f, 1f,
-            WALKER_TWIST_DEGREES, 0.16f, WALKER_SUSPENSION_SECONDS, WALKER_TURN_DEGREES);
+            WALKER_TWIST_DEGREES, 0.16f, WALKER_SUSPENSION_SECONDS, WALKER_TURN_DEGREES, WALKER_RUN_SPRING);
 
     /**
      * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light): a small carapace low on four short legs, quick
@@ -189,7 +198,7 @@ public final class DerelictLegRig {
      * Its body rides a suspension (owner: the crew inside must not feel the steps), so it eases through its gait.
      */
     public static final Build CRAWLER = new Build(0.42f, 1.05f, 1.45f, 0.30f, 0.375f, 0.55f, 0.30f, 0.30f,
-            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f, 0.45f, CRAWLER_TURN_DEGREES);
+            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f, 0.45f, CRAWLER_TURN_DEGREES, 1f);
     /** The spring's integration step at most, seconds, so a long frame stays stable. */
     private static final float SPRING_STEP = 1f / 120f;
 
@@ -263,7 +272,9 @@ public final class DerelictLegRig {
     public boolean onWall(int leg) { return onWall[leg]; }
     /** How high the foot is in its step, 0 planted to 1 at the top of the arc. */
     public float lift(int leg) {
-        return swing[leg] < 0f ? 0f : (float) Math.sin(Math.PI * swing[leg]);
+        if (swing[leg] < 0f) return 0f;
+        float arc = (float) Math.sin(Math.PI * swing[leg]);
+        return gait == Gait.RUN ? arc * (FLAT_RUN_LIFT + (1f - FLAT_RUN_LIFT) * build.runSpring()) : arc;
     }
     public float hipX(int leg) { return bodyX() + dirX(bodyFacing() + hipAngle[leg]) * build.hipCells(); }
     public float hipY(int leg) { return bodyY() + dirY(bodyFacing() + hipAngle[leg]) * build.hipCells(); }
@@ -405,7 +416,7 @@ public final class DerelictLegRig {
     private void stride(float moved, float speed, Solid solid) {
         boolean run = gait == Gait.RUN;
         float strideCells = run ? build.runStride() : build.walkStride();
-        float swingShare = run ? RUN_SWING : WALK_SWING;
+        float swingShare = run ? FLAT_RUN_SWING + (RUN_SWING - FLAT_RUN_SWING) * build.runSpring() : WALK_SWING;
         float[] offset = run ? RUN_OFFSET : WALK_OFFSET;
         phase = (phase + moved / strideCells) % 1f;
         float hx = speed > 1e-4f ? velX / speed : 0f;
@@ -554,13 +565,17 @@ public final class DerelictLegRig {
         }
         tx += tiltX;
         ty += tiltY;
-        float th = downed ? -moved(DOWNED_CELLS) : -moved(DIP_CELLS) * lifted - sag;
+        // At a run a pair is always in the air, so its dip is the run's bounce: as springy as the run.
+        float dip = gait == Gait.RUN ? DIP_CELLS * build.runSpring() : DIP_CELLS;
+        float th = downed ? -moved(DOWNED_CELLS) : -moved(dip) * lifted - sag;
         if (gait != Gait.STAND && speed > 1e-4f) {
             float lean = Math.min(moved(LEAN_MAX_CELLS), moved(LEAN) * speed);
             tx += velX / speed * lean;
             ty += velY / speed * lean;
         }
-        if (gait == Gait.RUN) th += moved(RUN_BOUNCE_CELLS) * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        if (gait == Gait.RUN) {
+            th += moved(RUN_BOUNCE_CELLS) * build.runSpring() * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        }
         float tw = build.twistDegrees() * Math.max(-1f, Math.min(1f, yaw));
         if (build.suspensionSeconds() > 0f) {
             suspend(dt, movedX, movedY, tx, ty, th, tw);

@@ -90,7 +90,7 @@ public final class IndustrialZoneLookSuite implements SnapshotSuite {
     private static MapResult map(boolean colony, MapScale scale, long seed) {
         return colony
                 ? new BspCityGenerator().generate(scale.width, scale.height, seed, null, null,
-                        BattleSetup.colonyPlanFor(scale, seed))
+                        RescueColony.plan(scale, seed))
                 : new BspCityGenerator().generate(scale.width, scale.height, seed);
     }
 
