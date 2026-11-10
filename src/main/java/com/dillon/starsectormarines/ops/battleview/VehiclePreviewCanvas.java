@@ -121,7 +121,6 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                 : new Color(clamp(tint[0]), clamp(tint[1]), clamp(tint[2]), alpha);
         context.sprite(type.spritePath, null, centerX, centerY, hullWidth, hullHeight, angle, hullColor,
                 CanvasSpriteRegion.frame(type.frameCount, 1, type.spriteFrame), CanvasBlend.NORMAL);
-        drawCoax(context, centerX, centerY, cellPx, onPad, alpha);
         if (type.turretFrame >= 0) {
             float turretWidth = type.turretVisualCells * cellPx;
             // The chassis' forward (+Y) runs along the nose and its right (+X) a quarter clockwise of it:
@@ -144,37 +143,35 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             }
             if (art != null) {
                 drawFittedGun(context, weapon, art, turretX, turretY, cellPx, onPad, alpha);
-                return;
+            } else {
+                context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * aspect, angle,
+                        new Color(1f, 1f, 1f, alpha),
+                        CanvasSpriteRegion.frame(type.frameCount, 1, type.headFrame(weapon, type.turretFrame)),
+                        CanvasBlend.NORMAL);
             }
-            context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * aspect, angle,
-                    new Color(1f, 1f, 1f, alpha),
-                    CanvasSpriteRegion.frame(type.frameCount, 1, type.headFrame(weapon, type.turretFrame)),
-                    CanvasBlend.NORMAL);
+            drawCoax(context, turretX, turretY, cellPx, onPad, alpha);
         }
     }
 
     /**
-     * The coax card's part on its own ring beside the turret, pointing down the nose, as {@link ConvoyRenderSystem}
-     * draws a secondary mount; nothing with the card empty.
+     * The coax card's part riding the turret at {@code turretX, turretY}, on its cheek beside the main barrel and
+     * pointing down the nose, as {@link ConvoyRenderSystem} draws it; nothing with the card empty.
      */
-    private void drawCoax(CanvasContext context, float centerX, float centerY, float cellPx, boolean onPad,
+    private void drawCoax(CanvasContext context, float turretX, float turretY, float cellPx, boolean onPad,
                           float alpha) {
         VehicleMount mount = type.coaxMount();
         MechWeaponComponent part = mount == null ? null : coax.get();
         if (part == null) return;
-        float x = onPad ? centerX - mount.mountX() * cellPx : centerX - mount.mountY() * cellPx;
-        float y = onPad ? centerY + mount.mountY() * cellPx : centerY - mount.mountX() * cellPx;
-        float ringCells = type.secondaryRingCells();
-        Color tint = new Color(1f, 1f, 1f, alpha);
-        context.sprite(ART_ROOT + type.mountStyle().ringTexture, null, x, y, ringCells * cellPx, ringCells * cellPx, 0f,
-                tint);
         GunArt art = gunArt(context, part);
         if (art == null) return;
-        float lengthPx = (ringCells / 2f + ConvoyRenderSystem.SECONDARY_PROTRUSION_CELLS)
-                / (1f - VehicleGun.RING_FROM_REAR) * cellPx;
-        float ahead = (.5f - VehicleGun.RING_FROM_REAR) * lengthPx;
-        context.sprite(art.path(), art.live(), onPad ? x : x - ahead, onPad ? y + ahead : y,
-                lengthPx * art.widthOverLength(), lengthPx, (onPad ? ON_PAD_DEGREES : 0f) + GUN_TO_NOSE_DEGREES, tint);
+        float lengthPx = VehicleGun.coaxLengthCells(type, part) * cellPx;
+        float side = mount.mountX() * cellPx;
+        float ahead = mount.mountY() * cellPx + (.5f - VehicleGun.RING_FROM_REAR) * lengthPx;
+        // As the turret's own offset: forward left and right up on the sheet; forward down and right left when turned.
+        float x = onPad ? turretX - side : turretX - ahead;
+        float y = onPad ? turretY + ahead : turretY - side;
+        context.sprite(art.path(), art.live(), x, y, lengthPx * art.widthOverLength(), lengthPx,
+                (onPad ? ON_PAD_DEGREES : 0f) + GUN_TO_NOSE_DEGREES, new Color(1f, 1f, 1f, alpha));
     }
 
     /** The ring in the hull's roof, and the white ring's collar in it, as {@link ConvoyRenderSystem} draws them. */

@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -274,6 +275,9 @@ public class BattleRenderer {
     private final RoofStream roofStream = new RoofStream();
     /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces in their dress, and their rubble. */
     private final FacePainter facePainter = new FacePainter();
+    /** Creep up a stood-up wall's face ({@link CreepClimb}), painted onto the wall {@link #facePainter} holds. */
+    private final CreepClimb.Sink creepOnFace = facePainter::quad;
+    private final CreepPalette creepPalette = CreepPalette.active();
     /** Draws the rubble at damaged walls' feet ({@link WallRubble}). */
     private final WallRubble wallRubble = new WallRubble();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
@@ -1128,15 +1132,25 @@ public class BattleRenderer {
             buildingEdges.clear();
             classesAt = now;
         }
-        return buildingClass.computeIfAbsent(b, k -> {
-            int[] cells = roofPlans.of(topology, buildings, k).cells;
-            int ruined = 0;
-            for (int at : cells) {
-                RoofDamage d = topology.getRoofDamage(at % topology.getWidth(), at / topology.getWidth());
-                if (d == RoofDamage.COLLAPSED || d == RoofDamage.BURNT) ruined++;
+        return buildingClass.computeIfAbsent(b, k -> BuildingFaces.heightClass(built(topology, k), breachedShare(topology, k)));
+    }
+
+    /**
+     * The share of a building's outer walls breached to rubble: each wall cell beside its floor that is not its own
+     * floor, counted as standing (a wall or window) or breached (rubble). A roof fallen in (creep, a shell) or burnt
+     * away leaves the walls standing, so it counts for nothing here.
+     */
+    private static float breachedShare(CellTopology topology, Building b) {
+        int standing = 0, breached = 0;
+        for (int i = 0; i < b.cellsX.length; i++) {
+            for (int d = 0; d < 4; d++) {
+                int x = b.cellsX[i] + (d == 0 ? 1 : d == 1 ? -1 : 0), y = b.cellsY[i] + (d == 2 ? 1 : d == 3 ? -1 : 0);
+                if (!topology.inBounds(x, y) || topology.getBuildingId(x, y) == b.id) continue;
+                if (topology.isWall(x, y) || topology.isWindow(x, y)) standing++;
+                else if (topology.isRubble(x, y)) breached++;
             }
-            return BuildingFaces.heightClass(built(topology, k), cells.length == 0 ? 0f : ruined / (float) cells.length);
-        });
+        }
+        return standing + breached == 0 ? 0f : breached / (float) (standing + breached);
     }
 
     /** What a building was built as, for its height ({@link BuildingFaces#heightClass}). */
@@ -1204,8 +1218,10 @@ public class BattleRenderer {
         float cellY = rc.camera.cellToScreenY(1f) - rc.camera.cellToScreenY(0f);
         VisibleCellRect view = rc.camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6,
                 grid.getWidth(), grid.getHeight());
-        boolean detail = Math.abs(cellX) >= FACE_DETAIL_PX;
+        float cellPx = Math.abs(cellX);
         FacePainter paint = facePainter;
+        CreepField creep = sim.creepFieldIfPresent();
+        if (creep != null && creep.isEmpty()) creep = null;
         paint.reset();
         ruinShells.reset();
         for (Building b : buildings.all()) {
@@ -1258,6 +1274,9 @@ public class BattleRenderer {
                 float fax = rc.camera.cellToScreenX(segs[e + 8]), fay = rc.camera.cellToScreenY(segs[e + 9]);
                 float fbx = rc.camera.cellToScreenX(segs[e + 10]), fby = rc.camera.cellToScreenY(segs[e + 11]);
                 paint.wall(ax, ay, bx, by, fax, fay, fbx, fby, sx, sy, lift, nx * cellX, ny * cellY, roofAlpha);
+                // How tall it stands on screen: its foot's distance from the view's centre, times how far it lifts.
+                float facePx = (float) Math.hypot((ax + bx) / 2f - sx, (ay + by) / 2f - sy) * (lift - 1f);
+                boolean detail = BuildingFaces.detailed(cellPx, facePx / storeys);
                 int code = (int) segs[e + 7];
                 int corners = code & 3;
                 int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
@@ -1291,6 +1310,12 @@ public class BattleRenderer {
                                 alphaMult * Math.min(1f, cut));
                         paint.shaded(0f, 1f, 0f, 1f, ir * .8f, ig * .8f, ib * .8f, ir, ig, ib);
                         paint.quad(0f, 1f, 0f, .9f / meters, ir * .72f, ig * .72f, ib * .72f);
+                        if (creep != null) {
+                            // The creep climbs the room's side of the wall as well as the street's.
+                            int at = (int) segs[e + 6];
+                            CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette,
+                                    in, detail, creepOnFace);
+                        }
                     }
                     continue;
                 }
@@ -1320,6 +1345,10 @@ public class BattleRenderer {
                 }
                 paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
                         broken, hurt, glassHurt, upper, shade, detail);
+                if (creep != null) {
+                    CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, upright, cell,
+                            creepPalette, shade, detail, creepOnFace);
+                }
             }
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
@@ -1331,8 +1360,6 @@ public class BattleRenderer {
 
     private static final BuildingFaces.Segment[] SEGMENTS = BuildingFaces.Segment.values();
     private static final BuildingFaces.Look[] LOOKS = BuildingFaces.Look.values();
-    /** Pixels a cell must span for a face's windows and doors to be drawn. */
-    private static final float FACE_DETAIL_PX = 10f;
 
     /**
      * A building's faces cut by cell ({@link BuildingFaces#segments}), each segment's spare slot holding its corners

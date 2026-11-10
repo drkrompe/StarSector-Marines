@@ -193,6 +193,9 @@ import com.dillon.starsectormarines.battle.command.reinforcement.ShuttleMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
+import com.dillon.starsectormarines.battle.world.model.RoofDamage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
@@ -273,6 +276,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.IntConsumer;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -1521,13 +1525,25 @@ public final class BattleSetup {
                     groundRoster.primaryFactionId()));
         } else if (raidWorksLayout != null) {
             List<RaidObjective.Site> machines = new ArrayList<>();
+            List<Building> halls = new ArrayList<>();
+            List<RaidObjective.Hall> hallsAtMachines = new ArrayList<>();
             for (int[] cell : raidWorksLayout.machines()) {
                 machines.add(new RaidObjective.Site(cell[0], cell[1],
                         Math.max(0, sim.getZoneGraph().zoneIdAt(cell[0], cell[1]))));
+                Building hall = BuildingStanding.buildingAt(sim.getTopology(), sim.getBuildings(), cell[0], cell[1]);
+                halls.add(hall);
+                hallsAtMachines.add(raidHall(hall, sim.getTopology()));
             }
+            // A hall brought down caves in, so the fall reads from above (raid-demolish-the-works.md).
+            IntConsumer caveIn = site -> {
+                Building hall = halls.get(site);
+                for (int i = 0; i < hall.cellsX.length; i++) {
+                    sim.mapEditor().destroyRoof(hall.cellsX[i], hall.cellsY[i], RoofDamage.COLLAPSED);
+                }
+            };
             sim.addObjective(RaidObjective.works(raidWorksLayout.targetId(),
                     raidTargetName == null ? raidWorksLayout.targetName() : raidTargetName, machines,
-                    raidWorksLayout.egressCellX(), raidWorksLayout.egressCellY()));
+                    raidWorksLayout.egressCellX(), raidWorksLayout.egressCellY()).withHalls(hallsAtMachines, caveIn));
         } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
@@ -1642,6 +1658,8 @@ public final class BattleSetup {
         } else if (ruinsDefence == null) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
+            // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
+            if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -5289,6 +5307,15 @@ public final class BattleSetup {
         }
         return null;
     }
+
+    /** A machine's hall for the Raid objective: its outline while whole and its floor; none for a machine in the open. */
+    private static RaidObjective.Hall raidHall(Building hall, CellTopology topology) {
+        if (hall == null) return RaidObjective.Hall.NONE;
+        List<int[]> floor = new ArrayList<>(hall.cellsX.length);
+        for (int i = 0; i < hall.cellsX.length; i++) floor.add(new int[]{hall.cellsX[i], hall.cellsY[i]});
+        return new RaidObjective.Hall(BuildingStanding.outline(hall, topology), floor);
+    }
+
 
     /**
      * Post-hoc wiring of GUARDPOST defender squads to their {@link DefensePost}.

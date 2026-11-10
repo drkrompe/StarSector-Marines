@@ -35,6 +35,36 @@ def draw_kind(im, d, kind, x, y, w, h):
             for _ in range(5):
                 bx, by = x + rng.uniform(0.1, 0.9) * w, y + rng.uniform(0.15, 0.6) * h
                 d.ellipse((bx - 28, by - 22, bx + 28, by + 22), fill=DARK)
+    elif shape in ("desk-run", "desk-run-burnt", "shift"):
+        # One continuous desk along the wall: a raised back bank of screens, a deep worktop in front of it with
+        # keyboards, and a chair pulled up to each place. The run's places are one a cell; the shift desk has one.
+        burnt = shape == "desk-run-burnt"
+        places = [x + w / 2] if shape == "shift" else [x + (k + 0.5) * w / round(w / 160) for k in range(round(w / 160))]
+        _box(d, x + i, y + 0.6 * h, x + w - i, y + 0.62 * h, fill=EDGE, width=0)
+        _box(d, x + i, y + i, x + w - i, y + 0.6 * h, fill=BODY)          # the worktop, wall to front lip
+        _box(d, x + i, y + i, x + w - i, y + 0.27 * h, fill=EDGE)         # the raised back bank
+        for k, px in enumerate(places):
+            sw = 0.36 * w if shape == "shift" else 52
+            if shape == "shift":
+                px = x + 0.3 * w
+            d.rectangle((px - sw / 2 * (0.5 if shape == "shift" else 1), y + i + 6, px + sw / 2 * (0.5 if shape == "shift" else 1),
+                         y + 0.25 * h), fill=DARK if burnt else SCREEN)
+            if shape == "shift":
+                px = x + w / 2
+            d.rectangle((px - 34, y + 0.36 * h, px + 34, y + 0.46 * h), fill=LIGHT, outline=EDGE, width=3)
+            if burnt and k == 1:
+                # A chair knocked over on its side, off its place.
+                d.polygon([(px + 18, y + 0.7 * h), (px + 66, y + 0.66 * h), (px + 72, y + 0.88 * h), (px + 24, y + 0.92 * h)],
+                          fill=BODY, outline=EDGE)
+                continue
+            d.ellipse((px - 22, y + 0.66 * h, px + 22, y + 0.92 * h), fill=BODY, outline=EDGE, width=4)
+            d.arc((px - 26, y + 0.7 * h, px + 26, y + 0.98 * h), 20, 160, fill=EDGE, width=7)
+        if shape == "shift":
+            d.rectangle((x + 0.62 * w, y + 0.3 * h, x + 0.78 * w, y + 0.52 * h), fill=LIGHT)   # papers
+            d.ellipse((x + w - 54, y + i + 6, x + w - 30, y + i + 30), fill=WARM)            # the lamp
+        if burnt:
+            for bx, by in ((x + 0.2 * w, y + 0.3 * h), (x + 0.72 * w, y + 0.4 * h)):
+                d.ellipse((bx - 30, by - 20, bx + 30, by + 20), fill=DARK)
     elif shape == "board":
         # A wall board: a shallow cabinet along the wall, its face a big mimic panel with a line diagram.
         _box(d, x + i, y + i, x + w - i, y + 0.7 * h)

@@ -118,8 +118,10 @@ class BuildingFacesTest {
     void aDestroyedBuildingDropsItsLiftToRubble() {
         BuildingFaces.Built works = built(BuildingKind.INDUSTRIAL, 400, .5f);
         assertEquals(BuildingFaces.heightClass(works), BuildingFaces.heightClass(works, .2f),
-                "a damaged building still stands");
-        assertEquals(BuildingFaces.RAZED, BuildingFaces.heightClass(works, .6f));
+                "a building with a few walls breached still stands");
+        assertEquals(BuildingFaces.heightClass(works), BuildingFaces.heightClass(works, 0f),
+                "one whose roof fell in with its walls standing stands as a shell");
+        assertEquals(BuildingFaces.RAZED, BuildingFaces.heightClass(works, .6f), "most walls down razes it");
         assertEquals(1f, BuildingFaces.lift(BuildingFaces.HEIGHTS[BuildingFaces.RAZED]), 1e-6f, "rubble lies flat");
     }
 
@@ -201,5 +203,16 @@ class BuildingFacesTest {
 
     private static boolean near(float a, float b) {
         return Math.abs(a - b) < 1e-4f;
+    }
+
+    /**
+     * Zoomed out, a face far from the view's centre stands tall on narrow cells: it is dressed by its storeys' height
+     * on screen, so it is never a blank slab; a face both narrow and short stays its shaded material.
+     */
+    @Test
+    void aFaceTallOnScreenIsDressedHoweverNarrowItsCells() {
+        assertTrue(BuildingFaces.detailed(BuildingFaces.DETAIL_CELL_PX, 0f), "wide cells");
+        assertTrue(BuildingFaces.detailed(5f, BuildingFaces.DETAIL_STOREY_PX), "narrow cells, tall storeys");
+        assertFalse(BuildingFaces.detailed(5f, 3f), "narrow and short");
     }
 }

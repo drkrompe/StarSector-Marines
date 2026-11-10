@@ -147,8 +147,8 @@ class FreestandingWallsTest {
     @Test
     void aDiagonalIsAsThickAsAStraightWallAndEndsInsideItsPiers() {
         float[] straight = new float[8], diagonal = new float[8];
-        FreestandingWallFaces.corners(2.5f, 2.5f, 6.5f, 2.5f, FreestandingWallFaces.HALF, straight);
-        FreestandingWallFaces.corners(2.5f, 2.5f, 6.5f, 6.5f, FreestandingWallFaces.HALF, diagonal);
+        FreestandingWalls.corners(2.5f, 2.5f, 6.5f, 2.5f, FreestandingWalls.HALF, straight);
+        FreestandingWalls.corners(2.5f, 2.5f, 6.5f, 6.5f, FreestandingWalls.HALF, diagonal);
         assertEquals(dist(straight, 0, 6), dist(diagonal, 0, 6), 1e-5f, "same thickness");
         assertEquals(1f, dist(straight, 0, 6), 1e-5f, "a cell thick");
         for (int c = 0; c < 4; c++) {
@@ -172,6 +172,67 @@ class FreestandingWallsTest {
             else if ((cross > 0) != sign) return false;
         }
         return true;
+    }
+
+    /**
+     * Where strokes meet (an L, a T, a diagonal into a straight wall, a diagonal that jogs) the run stands as one wall:
+     * its outline closes, every piece of it has open ground outside and wall inside, and no piece is drawn twice, so
+     * no face or coping crosses a joint.
+     */
+    @Test
+    void whereStrokesMeetTheRunStandsAsOneOutline() {
+        int w = 16;
+        int[][] shapes = {
+                {0, 0, 1, 0, 2, 0, 3, 0, 0, 1, 0, 2, 0, 3},                 // an L
+                {0, 2, 1, 2, 2, 2, 3, 2, 4, 2, 2, 3, 2, 4, 2, 5},           // a T
+                {0, 0, 1, 0, 2, 0, 3, 0, 4, 1, 5, 2, 6, 3, 7, 3, 8, 3},     // straight, diagonal, straight
+                {0, 0, 1, 1, 2, 2, 3, 2, 4, 3, 5, 4},                       // a diagonal that jogs
+                {2, 2, 3, 3, 4, 4},                                         // a diagonal alone, on its piers
+        };
+        for (int[] xy : shapes) {
+            int[] cells = new int[xy.length / 2];
+            for (int k = 0; k < cells.length; k++) cells[k] = xy[2 * k] + xy[2 * k + 1] * w;
+            Arrays.sort(cells);
+            Set<Integer> in = set(cells);
+            float[] strokes = FreestandingWalls.strokes(cells, w, w, in::contains);
+            float[] edges = FreestandingWalls.edges(strokes, w);
+            String shape = Arrays.toString(xy);
+            assertTrue(edges.length > 0, shape);
+            int e = FreestandingWalls.EDGE;
+            for (int a = 0; a < edges.length; a += e) {
+                float mx = (edges[a] + edges[a + 2]) / 2f, my = (edges[a + 1] + edges[a + 3]) / 2f;
+                float nx = edges[a + 4], ny = edges[a + 5];
+                assertTrue(!wall(strokes, mx + nx * .01f, my + ny * .01f), shape + " open outside " + a);
+                assertTrue(wall(strokes, mx - nx * .01f, my - ny * .01f), shape + " wall inside " + a);
+                assertTrue(ends(edges, a, edges[a], edges[a + 1]) && ends(edges, a, edges[a + 2], edges[a + 3]),
+                        shape + " closed at " + a);
+                for (int b = a + e; b < edges.length; b += e) {
+                    float bx = (edges[b] + edges[b + 2]) / 2f, by = (edges[b + 1] + edges[b + 3]) / 2f;
+                    assertTrue(Math.hypot(mx - bx, my - by) > 1e-3, shape + " drawn twice " + a);
+                }
+            }
+        }
+    }
+
+    /** Whether a point stands on any stroke's footprint. */
+    private static boolean wall(float[] strokes, float x, float y) {
+        float[] q = new float[8];
+        for (int o = 0; o < strokes.length; o += FreestandingWalls.STROKE) {
+            FreestandingWalls.corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3],
+                    FreestandingWalls.HALF, q);
+            if (FreestandingWalls.contains(q, x, y)) return true;
+        }
+        return false;
+    }
+
+    /** Whether another piece of the outline ends where piece {@code a} does at {@code (x, y)}. */
+    private static boolean ends(float[] edges, int a, float x, float y) {
+        for (int b = 0; b < edges.length; b += FreestandingWalls.EDGE) {
+            if (b == a) continue;
+            if (Math.hypot(edges[b] - x, edges[b + 1] - y) < 1e-3 || Math.hypot(edges[b + 2] - x, edges[b + 3] - y) < 1e-3)
+                return true;
+        }
+        return false;
     }
 
     private static Set<Integer> set(int[] cells) {
