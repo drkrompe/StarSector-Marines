@@ -22,8 +22,8 @@ import java.util.Map;
 
 /**
  * A tank against men: <b>does the laser tank's turret do what it is fitted for?</b> One planted tank and a
- * twelve-strong rifle section eighteen cells east of it, inside both guns' reach, played once with the breakthrough
- * tank's twin cannon and once with the laser tank's burst laser, against a line section and against power suits.
+ * twelve-strong rifle section eighteen cells east of it, inside both guns' reach, played once with the
+ * Onager's cannon and once with the laser tank's burst laser, against a line section and against power suits.
  * The cannon tank is the control every laser row is read against.
  *
  * <p>The verdict is mechanics only: the turret fires at men. Who wins, how fast the section breaks, how many rounds it

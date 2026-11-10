@@ -64,6 +64,8 @@ public final class GroundFeather {
             "floors.sand", "pavement.gravel.cracked", "floors.stone", "floors.snow",
             // A toxic world's own ground (SAND and STONE there): its sulphur flats spill onto the stained rock.
             "toxic-ground.sulphur", "toxic-ground.crust",
+            // A volcanic world's own ground: its ash spills onto the basalt.
+            "volcanic.basalt", "volcanic.ash",
             // A ruins hall's coverings (COVERINGS), the wet floor weakest: growth and ice lie over it.
             "ruins-ground.biofilm", "ruins-ground.ice-sheet", "ruins-ground.rime", "ruins-ground.wet-floor");
 
@@ -71,11 +73,14 @@ public final class GroundFeather {
      * Coverings over an indoor floor: ice, rime, biofilm and water lying on a hall's own plate and concrete
      * ({@code ruins-expedition.md}, Themed halls are environments). Besides feathering into other materials, a
      * covering bleeds onto an indoor floor that is not a material at all ({@link #FLOOR}), so it ends in a soft edge
-     * rather than the cell's step. Nothing else bleeds onto such a floor, so paving and interiors elsewhere keep their
-     * edges.
+     * rather than the cell's step. The world's ground a dead site's weather blows in through a ruin's mouths and banks
+     * along its corridors ({@code RuinsWeather}: sand, snow, basalt, ash, sulphur and crust) covers its floor the same
+     * way. Nothing else bleeds onto such a floor, so paving and interiors elsewhere keep their edges (but for a
+     * quarter-cell of a world's drift across a doorway).
      */
     public static final List<String> COVERINGS = List.of(
-            "ruins-ground.biofilm", "ruins-ground.ice-sheet", "ruins-ground.rime", "ruins-ground.wet-floor");
+            "ruins-ground.biofilm", "ruins-ground.ice-sheet", "ruins-ground.rime", "ruins-ground.wet-floor",
+            "floors.sand", "floors.snow", "volcanic.basalt", "volcanic.ash", "toxic-ground.sulphur", "toxic-ground.crust");
 
     /** The priority of an indoor floor that is no material: weaker than every one, and taking only coverings. */
     public static final int FLOOR = MATERIALS.size();

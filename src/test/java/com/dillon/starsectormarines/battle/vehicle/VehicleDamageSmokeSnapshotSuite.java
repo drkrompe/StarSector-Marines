@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.List;
 
 /**
- * Damage smoke on live hulls ({@code VehicleDamageFxSystem}): four breakthrough tanks on real ground, west to east
+ * Damage smoke on live hulls ({@code VehicleDamageFxSystem}): four Onagers on real ground, west to east
  * a hull worn nearly through its plates (thin engine-deck smoke), one whose own structure is failing (heavier), one
  * crippled (the running gear bursts, then smokes) and one whose turret has been shot away (a burst on the ring,
  * then a smoulder), played for six seconds at play zoom and close. Owner-facing look frames only; there is no verdict.

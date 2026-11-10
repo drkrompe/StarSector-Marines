@@ -121,12 +121,12 @@ public enum VehicleType {
         @Override public float noseInsetCells() { return LIFTED_NOSE_INSET; }
     },
     /**
-     * Breakthrough hull with a ship's burst laser where the twin cannons were. A ship mounts this emitter as
+     * The Onager's hull with a ship's burst laser where its cannon was. A ship mounts this emitter as
      * point defence because it barely marks proper plate; at ground scale almost nothing is proper plate. It
      * answers each target in a short burst a second, hits nearly where it aims and turns fast, so it clears
      * infantry and drones far quicker than a cannon tank. It carries no blast and no wall damage, so it cannot open a
      * building, and its low penetration leaves it chipping at armor. The power plant takes the shell stowage's
-     * room and weight, so the hull runs a little faster. Its sheet is Tri-Tachyon's: the breakthrough hull in the
+     * room and weight, so the hull runs a little faster. Its sheet is Tri-Tachyon's: the retired tracked hull the Onager first wore, in the
      * company's white livery with a capacitor pack over the rear deck, and for a turret the vanilla PD laser's shape,
      * up-res'd and in the company's white, graphite and cyan, on a ship's turret mount, its shutter opening on the
      * lens while it fires ({@link #turretFiringFrame}; art-source/vehicles/tank-laser). Its lance is the burst PD
@@ -797,7 +797,7 @@ public enum VehicleType {
      * The sheet frame the live turret draws while its gun is engaged (a target on the ground or in the air, or a
      * burst under way), or -1 for a turret drawn the same whether or not it fires.
      */
-    /** The laser hull's radiator fins across its tail, on the breakthrough master (art-source/vehicles/tank-laser). */
+    /** The laser hull's radiator fins across its tail, on the retired tracked hull's master (art-source/vehicles/tank-laser). */
     private static final FluxVents LASER_VENTS = new FluxVents(321.5f, 98f);
 
     public int turretFiringFrame() { return -1; }
