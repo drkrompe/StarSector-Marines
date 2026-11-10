@@ -123,6 +123,10 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact("inside/" + name + "-foundry-head.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, f.centreX() + 0.5f, f.top() - 12f, f.width() + 14f)
                             .withoutRoofs().render(sim, "")));
+                    // The south half: the feed and slag lanes running to the dispatch end.
+                    out.add(new SnapshotArtifact("inside/" + name + "-foundry-lanes.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, f.centreX() + 0.5f, f.bottom() + f.height() * 0.3f,
+                            f.width() + 14f).withoutRoofs().render(sim, "")));
                 }
             }
         }
