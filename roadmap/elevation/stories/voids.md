@@ -607,9 +607,11 @@ Laws):
    diagonal is one slanted wall exactly as thick as a straight one, from its
    end cells' centres, with a square pier on each end cell so it meets
    straight walls on the grid, and a low footing on the ground covering its
-   cells' corners. Each face is dressed by kind (plinth, shaded body, coping,
-   panel joints or masonry courses and piers, weather streaks), each cap
-   coping-edged. The ground shadow still comes from the cells, so a diagonal's
+   cells' corners. The strokes stand as one wall round their joint outline
+   (`FreestandingWalls.edges`): faces only along it, farthest first, and the
+   cap's coping round it, so a diagonal runs into a straight wall, a pier or a
+   jog with no seam. Each face is dressed by kind (plinth, shaded body, coping,
+   panel joints or masonry courses and piers, weather streaks). The ground shadow still comes from the cells, so a diagonal's
    shadow steps.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
