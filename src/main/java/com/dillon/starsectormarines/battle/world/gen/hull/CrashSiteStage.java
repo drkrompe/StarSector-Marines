@@ -56,11 +56,10 @@ import java.util.Random;
 public final class CrashSiteStage implements GenStage {
 
     /**
-     * The hull's outer shell, its armour ({@code art-source/fallen-hull/tileset.py}): {@link #ARMOUR} once the art's own
-     * armour wall is in the tileset, the installation wall in the hull's plate until then. Both name
-     * {@code fallen-hull}, so a debris plate shed off the shell reads as the hull.
+     * The hull's outer shell, its armour ({@code art-source/fallen-hull/tileset.py}): the installation wall in the
+     * hull's own plate, with the armour's hatch, port and torn breach roots ({@code fallen-hull.armour-*}) as its door,
+     * window and rubble, so the breaches' broken stubs draw as torn armour. A debris plate is the same armour.
      */
-    static final String ARMOUR = "fallen-hull.armour-wall";
     static final String HULL_WALL = "installation.dark-concrete-wall@fallen-hull";
     /** The bulkheads between the ship's compartments: the ship deck's own ({@code ship-bulkheads}). */
     static final String BULKHEAD = "ship.neutral-bulkhead";
@@ -325,7 +324,7 @@ public final class CrashSiteStage implements GenStage {
         void raiseHull() {
             compartments = new int[w * h];
             Arrays.fill(compartments, -1);
-            String armour = armour();
+            String armour = HULL_WALL;
             for (int u = 0; u < HullPlan.LENGTH; u++) {
                 for (int v = 0; v < HullPlan.BREADTH; v++) {
                     HullPlan.Kind kind = hull.at(u, v);
@@ -369,7 +368,6 @@ public final class CrashSiteStage implements GenStage {
             return has(kit) ? kit : HULL_FLOOR;
         }
 
-        String armour() { return has(ARMOUR) ? ARMOUR : HULL_WALL; }
 
         boolean has(String block) {
             TileRegistry registry = TileRegistry.installed();
@@ -396,7 +394,7 @@ public final class CrashSiteStage implements GenStage {
          * broken stub of the armour in rubble about one time in two, so no breach is a clean rectangle.
          */
         void tearBreaches() {
-            String armour = armour();
+            String armour = HULL_WALL;
             for (int u = 0; u < HullPlan.LENGTH; u++) {
                 for (int v = 0; v < HullPlan.BREADTH; v++) {
                     if (!hull.shell(u, v) || !besideTorn(u, v) || besideDeck(u, v)) continue;
@@ -619,7 +617,7 @@ public final class CrashSiteStage implements GenStage {
             grid.setDoorway(x, y, false);
             topology.setFixture(x, y, false);
             topology.setWallRemnant(x, y, null);
-            topology.setSurface(x, y, topology.surfaceIndex(armour()));
+            topology.setSurface(x, y, topology.surfaceIndex(HULL_WALL));
             topology.setWallGroundSurface(x, y, RUBBLE_BED);
             ctx.markMadeGround(x, y);
         }
