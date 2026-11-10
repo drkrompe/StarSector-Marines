@@ -6,7 +6,7 @@ import java.util.Locale;
 
 /**
  * Older lava flows' fragment program: {@link LavaFlowShading} in GLSL, line for line. One quad over the flows'
- * extent, texture coordinate 0 in map cells; the smoothed flow on unit 0 (R cover, G heat), sampled linearly and
+ * extent, texture coordinate 0 in map cells; the smoothed flow on unit 0 (R cover, G heat, B melt), sampled linearly and
  * clamped at the edge, {@link CreepNoise} on unit 1, repeating, and the lava rift's crust image on unit 2, its used
  * part {@code crustExtent} of the texture.
  *
@@ -37,14 +37,16 @@ final class LavaFlowShader {
             + "void main() {\n"
             + "    vec2 p = vCell;\n"
             + "    vec4 f = texture2D(field, p / fieldSize);\n"
-            + "    if (f.r <= 0.01) discard;\n"
+            + "    float onMelt = smoothstep(" + lit(LavaFlowShading.MELT_FADE_FROM) + ", "
+            + lit(LavaFlowShading.MELT_FADE_TO) + ", f.b);\n"
+            + "    if (f.r <= 0.01 || onMelt >= 1.0) discard;\n"
             + "    vec4 lobe = texture2D(noise, p * " + lit(LavaFlowShading.LOBE_SCALE) + " / " + lit(CreepNoise.CELLS) + ");\n"
             + "    vec4 fray = texture2D(noise, (p * " + lit(LavaFlowShading.FRAY_SCALE) + " + vec2(3.7, 1.3)) / "
             + lit(CreepNoise.CELLS) + ");\n"
             + "    float m = f.r + (lobe.r - 0.5) * 2.0 * " + lit(LavaFlowShading.LOBE)
             + " + (fray.g - 0.5) * 2.0 * " + lit(LavaFlowShading.FRAY) + ";\n"
             + "    float k = smoothstep(" + lit(LavaFlowShading.EDGE - LavaFlowShading.FEATHER) + ", "
-            + lit(LavaFlowShading.EDGE + LavaFlowShading.FEATHER) + ", m);\n"
+            + lit(LavaFlowShading.EDGE + LavaFlowShading.FEATHER) + ", m) * (1.0 - onMelt);\n"
             + "    if (k <= 0.0) discard;\n"
             + "    vec3 c = texture2D(crust, fract(p / " + lit(LavaFlowShading.TILE_CELLS) + ") * crustExtent).rgb;\n"
             + "    if (mode < 0.5) {\n"

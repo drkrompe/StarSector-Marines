@@ -301,6 +301,7 @@ com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleFootprintLookSuite
 com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
+com.dillon.starsectormarines.battle.vehicle.MidlineCarriersLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
