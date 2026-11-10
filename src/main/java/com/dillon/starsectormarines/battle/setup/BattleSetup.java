@@ -413,7 +413,10 @@ public final class BattleSetup {
         sim.addNatureOverlayCover(TileRegistry.installed());
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
-        sim.setMarineLandingPads(map.landingPads);
+        // A port's lighter stands are the planet's traffic's: no company lands there, so no mech drop or cache counts them.
+        List<LandingPad> marinePads = new ArrayList<>(map.landingPads);
+        marinePads.removeIf(pad -> pad.purpose == LandingPad.Purpose.PORT_LIGHTER);
+        sim.setMarineLandingPads(marinePads);
         sim.setDefensePosts(defensePosts);
         sim.setWallGates(map.wallGates);
         // The map's own statement of where the front is, so the trace can say
@@ -6417,7 +6420,12 @@ public final class BattleSetup {
                                                     Random rng) {
         Set<LandingPad> reservedSet = new HashSet<>(reserved);
         List<LandingPad> candidates = new ArrayList<>();
+        List<LandingPad> lighterStands = new ArrayList<>();
         for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.PORT_LIGHTER) {
+                lighterStands.add(pad);
+                continue;
+            }
             if (pad.purpose != LandingPad.Purpose.CIVILIAN_SPACEPORT) continue;
             if (reservedSet.contains(pad) || !pad.isClear(map.grid, map.topology)) continue;
             candidates.add(pad);
@@ -6438,6 +6446,17 @@ public final class BattleSetup {
         for (int i = 0; i < target; i++) {
             LandingPad pad = candidates.get(i);
             ShuttleType type = civilianTypes[rng.nextInt(civilianTypes.length)];
+            float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
+            stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
+            parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
+        }
+        // A port's lighter stands each hold the freighter standing on them (PortApronDressing), drawn from its own
+        // stream, and only where there are any, so every other map's draws are unchanged.
+        if (lighterStands.isEmpty()) return parked;
+        Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
+        ShuttleType[] lighterTypes = {ShuttleType.BUFFALO, ShuttleType.MULE, ShuttleType.TARSUS};
+        for (LandingPad pad : lighterStands) {
+            ShuttleType type = lighterTypes[lighters.nextInt(lighterTypes.length)];
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));

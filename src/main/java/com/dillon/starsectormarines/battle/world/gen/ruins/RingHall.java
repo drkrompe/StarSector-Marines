@@ -100,7 +100,7 @@ final class RingHall {
         f.stand("doodad.ruins-magnet-segment-whole", null, f.eastR - 3, 1, 3, 3, "dispatch");
         f.runways();
         f.serviceDrops("doodad.ruins-power-drop", "barracks-bunks.locker-worn", "ring");
-        f.stand("doodad.ruins-fallen-girder", null, 1, quench > 0 ? quench + 6 : f.l / 3, 7, 1,
+        f.stand("doodad.ruins-fallen-girder", null, HallFrame.TRUNK, quench > 0 ? quench + 6 : f.l / 3, 7, 1,
                 WorksHallPlan.COLLAPSE);
         if (quench > 0) p.wear("doodad.ruins-scorch-arc", rr + SEG, quench - 1, 2, 2);
 
