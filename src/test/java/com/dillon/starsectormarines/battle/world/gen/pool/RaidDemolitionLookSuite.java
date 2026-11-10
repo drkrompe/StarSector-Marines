@@ -10,7 +10,10 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoofDamage;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -33,7 +36,10 @@ import java.util.function.BiFunction;
  * heavy-industry works through the look preset at 1920x1080: what counts as a target, how much of a building must
  * fall, the marker's look and how much effort soldiers give a structure. The fall pictures knock real wall cells down
  * through the map-structure channel ({@link BattleSimulation#damageCell}) and cave real roofs in; the marker and effort
- * pictures are marked-up mock-ups of behaviour not built yet. Nothing is played. Opt-in.
+ * pictures are marked-up mock-ups of behaviour not built yet. The defence pictures ({@code raid-works-defences}) set
+ * the game's own props on the battle round the works' wall and halls, as mock-ups of defences not generated yet;
+ * {@code -Dsnapshot.raidDemolition.only=<prefix>} renders only the pictures whose names start with it. Nothing is
+ * played. Opt-in.
  */
 public final class RaidDemolitionLookSuite implements SnapshotSuite {
 
@@ -98,15 +104,227 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         out.add(shot(context, "effort-c-only-on-order.png", (w, m) -> effort(w, m,
                 "squads never fire on a building unless the player orders it",
                 "player's order: bring the hall down", null)));
+        // More defences for the works (mock-ups with the game's own props, set on the battle, not generated).
+        out.add(shot(context, "defences-0-now.png", (w, m) -> {
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "THE WORKS TODAY: wall, gates, emplacements, its own guard", ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "defences-a1-layered-guarded.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            belt(w, p);
+            checkpoints(w, p);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (a) GUARDED: hedgehog belt outside the wall, sandbagged checkpoint at each gate",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "defences-a2-layered-fortified.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            belt(w, p);
+            checkpoints(w, p);
+            towers(w, p);
+            hallRings(w);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (a) FORTIFIED: adds watchtowers on the wall and sandbag lines at every hall",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "defences-b-wall-line.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            belt(w, p);
+            checkpoints(w, p);
+            towers(w, p);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (b) THE WALL LINE: belt, checkpoints and towers at the wall, nothing inside",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "defences-c-hall-rings.png", (w, m) -> {
+            hallRings(w);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (c) THE HALLS: sandbag lines and barriers round every hall, the wall as it is",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.removeIf(a -> a == null);
         return out;
+    }
+
+    /** {@code w} framed on its whole wall and the ground just outside it, for the defence pictures. */
+    private static Works framedOnWall(Works w) {
+        Perimeter p = perimeter(w);
+        int margin = 9;
+        float across = Math.max(p.x1() - p.x0() + 2f * margin, (p.y1() - p.y0() + 2f * margin) * 16f / 9f);
+        return new Works(w.sim(), w.halls(), w.buildings(), (p.x0() + p.x1() + 1) / 2f, (p.y0() + p.y1() + 1) / 2f,
+                across, w.landing());
+    }
+
+    /** The works' wall: the bounds of its line and each gap in it (middle x, y, outward dx, dy, width). */
+    private record Perimeter(int x0, int y0, int x1, int y1, List<int[]> gates) { }
+
+    private static Perimeter perimeter(Works w) {
+        CellTopology t = w.sim().getTopology();
+        int cx = Math.round(w.cx()), cy = Math.round(w.cy());
+        int x0 = scan(w, cx, cy, -1, 0), x1 = scan(w, cx, cy, 1, 0);
+        int y0 = scan(w, cx, cy, 0, -1), y1 = scan(w, cx, cy, 0, 1);
+        List<int[]> gates = new ArrayList<>();
+        gaps(w, x0, y0, x0, y1, -1, 0, gates);
+        gaps(w, x1, y0, x1, y1, 1, 0, gates);
+        gaps(w, x0, y0, x1, y0, 0, -1, gates);
+        gaps(w, x0, y1, x1, y1, 0, 1, gates);
+        System.out.printf(Locale.ROOT, "[raid-demolition-look] works wall x %d..%d y %d..%d, %d gaps%n", x0, x1, y0, y1,
+                gates.size());
+        return new Perimeter(x0, y0, x1, y1, gates);
+    }
+
+    /**
+     * The works' own wall out from {@code (x, y)} along {@code (dx, dy)}: the first wall cell on a long straight line
+     * ({@link #wallLine}), the median over lines a few cells apart across the way, so a gate on one line does not
+     * lose the wall. A building's wall is short; the works' wall runs the length of the works.
+     */
+    private static int scan(Works w, int x, int y, int dx, int dy) {
+        CellTopology t = w.sim().getTopology();
+        List<Integer> found = new ArrayList<>();
+        for (int k = -12; k <= 12; k += 3) {
+            int sx = x + (dx == 0 ? k : 0), sy = y + (dy == 0 ? k : 0);
+            for (int i = 1; i < 200; i++) {
+                int cx = sx + dx * i, cy = sy + dy * i;
+                if (wallLine(t, cx, cy, dy, dx)) {
+                    found.add(dx != 0 ? cx : cy);
+                    break;
+                }
+            }
+        }
+        if (found.isEmpty()) return dx != 0 ? x + dx * 60 : y + dy * 60;
+        found.sort(Integer::compare);
+        return found.get(found.size() / 2);
+    }
+
+    /** Whether {@code (x, y)} is a wall cell with 18 or more wall cells within 15 along {@code (ax, ay)}. */
+    private static boolean wallLine(CellTopology t, int x, int y, int ax, int ay) {
+        if (!t.isWall(x, y)) return false;
+        int walls = 0;
+        for (int i = -15; i <= 15; i++) if (t.isWall(x + ax * i, y + ay * i)) walls++;
+        return walls >= 18;
+    }
+
+    /** Each run of walkable cells along a wall side, with the side's outward step. */
+    private static void gaps(Works w, int ax, int ay, int bx, int by, int ox, int oy, List<int[]> gates) {
+        var grid = w.sim().getGrid();
+        boolean alongX = ay == by;
+        int from = alongX ? ax : ay, to = alongX ? bx : by, run = -1;
+        for (int i = from; i <= to + 1; i++) {
+            int x = alongX ? i : ax, y = alongX ? ay : i;
+            boolean open = i <= to && grid.isWalkable(x, y);
+            if (open && run < 0) run = i;
+            if (!open && run >= 0) {
+                int mid = (run + i - 1) / 2;
+                gates.add(new int[]{alongX ? mid : ax, alongX ? ay : mid, ox, oy, i - run});
+                run = -1;
+            }
+        }
+    }
+
+    /** A prop with its corner at {@code (x, y)} if every cell under it is open ground; whether it stood. */
+    private static boolean prop(Works w, int x, int y, String id, int turns) {
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef def = registry == null ? null : registry.doodad(id);
+        if (def == null) throw new IllegalStateException("no prop " + id);
+        Doodad d = new Doodad(x, y, def, turns);
+        var grid = w.sim().getGrid();
+        CellTopology t = w.sim().getTopology();
+        for (int dy = 0; dy < d.footprintCellsY; dy++) {
+            for (int dx = 0; dx < d.footprintCellsX; dx++) {
+                int cx = x + dx, cy = y + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy) || t.getBuildingId(cx, cy) != 0
+                        || taken(w, cx, cy)) return false;
+            }
+        }
+        w.sim().getDoodadService().addDoodad(d);
+        return true;
+    }
+
+    private static boolean taken(Works w, int x, int y) {
+        for (Doodad d : w.sim().getDoodads()) {
+            if (x >= d.cellX && x < d.cellX + d.footprintCellsX && y >= d.cellY && y < d.cellY + d.footprintCellsY) return true;
+        }
+        return false;
+    }
+
+    /** Hedgehogs every other cell on a ring four cells outside the wall, the gates' mouths left open. */
+    private static void belt(Works w, Perimeter p) {
+        int out = 4;
+        int x0 = p.x0() - out, x1 = p.x1() + out, y0 = p.y0() - out, y1 = p.y1() + out;
+        for (int x = x0; x <= x1; x++) {
+            for (int y = y0; y <= y1; y++) {
+                if (x != x0 && x != x1 && y != y0 && y != y1) continue;
+                if ((x + y) % 2 != 0 || nearGate(p, x, y, 4)) continue;
+                prop(w, x, y, "doodad.fort-hedgehog", 0);
+            }
+        }
+    }
+
+    private static boolean nearGate(Perimeter p, int x, int y, int r) {
+        for (int[] g : p.gates()) if (Math.abs(g[0] - x) <= r + g[4] / 2 && Math.abs(g[1] - y) <= r + g[4] / 2) return true;
+        return false;
+    }
+
+    /** A sandbag run either side of each gate's mouth, three cells out, facing away from the works. */
+    private static void checkpoints(Works w, Perimeter p) {
+        for (int[] g : p.gates()) {
+            int ox = g[2], oy = g[3], half = g[4] / 2 + 1;
+            String facing = "doodad.fort-sandbag-" + (ox < 0 ? "w" : ox > 0 ? "e" : oy < 0 ? "s" : "n");
+            int lx = g[0] + ox * 3, ly = g[1] + oy * 3;
+            for (int k = 0; k < 5; k++) {
+                if (ox != 0) {
+                    prop(w, lx, g[1] - half - k, facing, 0);
+                    prop(w, lx, g[1] + half + k, facing, 0);
+                } else {
+                    prop(w, g[0] - half - k, ly, facing, 0);
+                    prop(w, g[0] + half + k, ly, facing, 0);
+                }
+            }
+        }
+    }
+
+    /** A watchtower inside each corner of the wall, moved in until it finds open ground. */
+    private static void towers(Works w, Perimeter p) {
+        int[][] corners = {{p.x0() + 1, p.y0() + 1, 1, 1}, {p.x1() - 3, p.y0() + 1, -1, 1},
+                {p.x0() + 1, p.y1() - 3, 1, -1}, {p.x1() - 3, p.y1() - 3, -1, -1}};
+        for (int[] c : corners) {
+            done:
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) if (prop(w, c[0] + c[2] * i, c[1] + c[3] * j, "doodad.watchtower", 0)) break done;
+            }
+        }
+    }
+
+    /** A sandbag parapet three cells off every side of each hall, a way through every sixth cell, with a jersey barrier at each corner. */
+    private static void hallRings(Works w) {
+        for (Building hall : w.halls()) {
+            int x0 = hall.minX - 3, x1 = hall.maxX + 3, y0 = hall.minY - 3, y1 = hall.maxY + 3;
+            for (int x = x0 + 1; x <= x1 - 1; x++) {
+                if ((x - x0) % 6 == 0) continue; // a way through every few cells
+                prop(w, x, y0, "doodad.fort-sandbag-s", 0);
+                prop(w, x, y1, "doodad.fort-sandbag-n", 0);
+            }
+            for (int y = y0 + 1; y <= y1 - 1; y++) {
+                if ((y - y0) % 6 == 0) continue;
+                prop(w, x0, y, "doodad.fort-sandbag-w", 0);
+                prop(w, x1, y, "doodad.fort-sandbag-e", 0);
+            }
+            prop(w, x0, y0, "doodad.jersey-barrier", 0);
+            prop(w, x1, y0, "doodad.jersey-barrier", 0);
+            prop(w, x0, y1, "doodad.jersey-barrier", 0);
+            prop(w, x1, y1, "doodad.jersey-barrier", 0);
+        }
     }
 
     private static SnapshotArtifact shot(SnapshotContext context, String name,
                                          BiFunction<Works, ReviewAnnotations.Builder, Void> stage) throws Exception {
+        String only = System.getProperty("snapshot.raidDemolition.only", "");
+        if (!name.startsWith(only)) return null;
         RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(MAP, StoryMapPools.pool(MAP).home());
         long seed = StoryMapPools.pool(MAP).owned().seed();
         try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, ground.home(), seed, true, List.of())) {
             Works works = works(sim);
+            if (name.startsWith("defences")) works = framedOnWall(works);
             ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
             stage.apply(works, marks);
             BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
