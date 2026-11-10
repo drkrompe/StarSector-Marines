@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import java.util.BitSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HullRoofTest {
 
@@ -52,6 +54,13 @@ class HullRoofTest {
         assertEquals(270f, south.angleDeg());
         assertEquals(0f, south.planU(10f, 20f + HullPlan.LENGTH));
         assertEquals(1f, south.planV(11f, 20f));
+    }
+
+    @Test
+    void aCompartmentIsTheShipsWhenItsRoofLiesWithinTheHull() {
+        HullRoof east = HullRoof.fit(hull(HullPlan.LENGTH, HullPlan.BREADTH, true, true), W);
+        assertTrue(east.inside(new int[]{30 * W + 40, 31 * W + 41}, W));
+        assertFalse(east.inside(new int[]{30 * W + 40, 60 * W + 41}, W));
     }
 
     @Test

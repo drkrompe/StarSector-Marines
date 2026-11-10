@@ -21,6 +21,10 @@ import java.util.Set;
  * <p>The hull is found in the roofs themselves, so nothing about the ground need reach the renderer: the largest
  * connected patch of {@link RoofStyle#HULL} roof whose bounds are the plan's, along either axis. Its bow is the end
  * whose corners are open, where the plan tapers. Any other hull roof (a debris lump) keeps the plain style.
+ *
+ * <p>The hull is entered compartment by compartment: each is its own building, so each roof lifts on its own when the
+ * compartment is boarded, and the rest keeps the ship's painting. A compartment walled only by the ship's interior
+ * bulkheads takes no hull style from its walls, so the ship also holds every roof lying wholly inside its bounds.
  */
 final class HullRoof {
 
@@ -44,6 +48,15 @@ final class HullRoof {
     /** Whether {@code b}'s roof is part of the ship. */
     boolean holds(Building b) {
         return buildings.contains(b);
+    }
+
+    /** Whether every one of {@code cells} (cell indices, {@code w} wide) lies within the hull's bounds. */
+    boolean inside(int[] cells, int w) {
+        for (int at : cells) {
+            int x = at % w, y = at / w;
+            if (x < minX || x > maxX || y < minY || y > maxY) return false;
+        }
+        return true;
     }
 
     /** Degrees counter-clockwise the painting is turned to lie along the heading. */
@@ -94,6 +107,10 @@ final class HullRoof {
         if (ship == null) return null;
         for (int at = patch.nextSetBit(0); at >= 0; at = patch.nextSetBit(at + 1)) {
             if (owner[at] > 0) ship.buildings.add(byIndex[owner[at]]);
+        }
+        for (Building b : buildings.all()) {
+            RoofPlans.Plan plan = plans.of(topology, buildings, b);
+            if (plan != null && plan.cells.length > 0 && ship.inside(plan.cells, w)) ship.buildings.add(b);
         }
         return ship;
     }

@@ -12,8 +12,10 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
  * {@code crewed} mount is a defence with its own gunner, which never joins a button and keeps firing on its own.
  *
  * <p>A mount with a {@code part} carries a fitted mech weapon ({@link #withPart}, the coax card's): its structure is
- * its catalog carriage carrying that part ({@code fitted}, {@link VehicleGun#fit(VehicleMount, MechWeaponComponent)}).
- * Without one it is the catalog structure itself.
+ * its catalog carriage carrying that part ({@code fitted},
+ * {@link VehicleGun#fit(VehicleType, VehicleMount, MechWeaponComponent)}). Without one it is the catalog structure
+ * itself. A fitted mount rides the main turret ({@link VehicleType#coaxMount}): its {@code mountX, mountY} are then
+ * cells from the turret ring in the turret's own frame, not from the hull's centre.
  */
 public record VehicleMount(String structureId, float mountX, float mountY, boolean crewed,
                            MechWeaponComponent part, StructureDef fitted) {
@@ -23,10 +25,15 @@ public record VehicleMount(String structureId, float mountX, float mountY, boole
         this(structureId, mountX, mountY, crewed, null, null);
     }
 
-    /** This mount with {@code part} fitted on its carriage; this mount itself for a null part. */
-    public VehicleMount withPart(MechWeaponComponent part) {
+    /** This mount on {@code type} with {@code part} fitted on its carriage; this mount itself for a null part. */
+    public VehicleMount withPart(VehicleType type, MechWeaponComponent part) {
         if (part == null) return this;
-        return new VehicleMount(structureId, mountX, mountY, crewed, part, VehicleGun.fit(this, part));
+        return new VehicleMount(structureId, mountX, mountY, crewed, part, VehicleGun.fit(type, this, part));
+    }
+
+    /** Whether the gun rides the main turret, turning with it beside its barrel: a coax card's fitted part. */
+    public boolean ridesTurret() {
+        return part != null;
     }
 
     /** The structure the mount fights as: the carriage with its fitted part, or the catalog structure. */

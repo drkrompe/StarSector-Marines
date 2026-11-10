@@ -37,13 +37,16 @@ import java.util.Random;
  *
  * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
  * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
- * instead of the buildings.
+ * instead of the buildings; {@code =whole} shoots each map whole ({@code -whole.png}) and its right half
+ * ({@code -half.png}).
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
 
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     private static final int MAP_W = 200, MAP_H = 128;
     private static final float PLAY = 60f, CLOSE = 40f;
+    /** The whole map across, cells, for {@code -Dsnapshot.walls.frame=whole}. */
+    private static final float WHOLE = MAP_W * 1.1f;
 
     private record World(String id, SurfacePalette palette, Climate climate) { }
 
@@ -80,6 +83,15 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     for (Doodad d : map.doodads) sim.addDoodad(d);
                     sim.setBuildings(map.buildings);
                     sim.setSurface(world.palette());
+                    if ("whole".equals(System.getProperty("snapshot.walls.frame"))) {
+                        // The whole map in one frame, as a player zoomed all the way out sees it.
+                        BattleReviewFrameRenderer whole = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                FRAME_H, MAP_W / 2f, MAP_H / 2f, WHOLE);
+                        out.add(new SnapshotArtifact(world.id() + "-whole.png", whole.render(sim, "")));
+                        whole.refocus(MAP_W * .75f, MAP_H / 2f, WHOLE / 2f);
+                        out.add(new SnapshotArtifact(world.id() + "-half.png", whole.render(sim, "")));
+                        continue;
+                    }
                     List<float[]> frames = "curtain".equals(System.getProperty("snapshot.walls.frame"))
                             ? curtainFrames(sim, 2) : frames(sim, 2);
                     BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,

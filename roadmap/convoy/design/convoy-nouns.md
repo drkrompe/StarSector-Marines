@@ -1301,8 +1301,8 @@ to stop (2.4), since a skirt holds the ground less than a track; the heavy skirt
 it coasts and drifts more than a tracked tank; a 34° bounded turn slewed at 110° a second; and a 45° a second
 neutral pivot, between tracks and a light skirt. Its sheet is the concept turned to point left with an ImageGen
 wreck registered to it (`art-source/vehicles/heavy-repulsor/`). Beside its three-row omni gun card it carries a
-one-row ballistic **coax card** (`mechs-nouns.md`, a vehicle's gun card): its gun stands on a small ring on the deck
-at the turret's right shoulder, aims on its own, and is silenced with the turret; a stock Onager's is the light
+one-row ballistic **coax card** (`mechs-nouns.md`, a vehicle's gun card): its gun rides the turret's right cheek beside
+the main barrel, points where the turret points, and is silenced with it; a stock Onager's is the light
 machine gun.
 
 A tracked tank's exposed tread tops (the laser tank's and the medium tank's) scroll separately from its fixed

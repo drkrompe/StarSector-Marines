@@ -194,11 +194,20 @@ public final class GroundVehicleTurretSystem {
     private void tickSecondary(long id, GroundTurret main, int i, GroundBody body, float dt, boolean controlled,
                                PointFireAim point, int held) {
         MountedGun gun = main.secondaries.get(i);
+        boolean rides = gun.mount().ridesTurret();
         // A coax card's gun goes with its turret: a shot-away turret silences it too.
-        if (gun.mount().part() != null && main.destroyed()) return;
+        if (rides && main.destroyed()) return;
         GroundTurret turret = gun.turret();
         StructureDef structure = gun.mount().structure();
-        TurretMountGeometry.Point at = mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
+        TurretMountGeometry.Point at = rides ? coaxPoint(convoy.vehicleType(id), body, main.facingDeg, gun.mount())
+                : mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
+        if (rides) {
+            // A coax points where the main gun points and never turns on its own, so it takes the main gun's
+            // target first and fires whatever its aim loop finds on that line.
+            turret.facingDeg = main.facingDeg;
+            turret.traverseMult = 0f;
+            if (roster.isAliveById(main.targetId)) turret.targetId = main.targetId;
+        }
         reload(turret, structure.mount, dt);
         if (turret.chainGap > 0f) turret.chainGap -= dt;
         if (controlled && !gun.mount().crewed()) {
@@ -208,6 +217,21 @@ public final class GroundVehicleTurretSystem {
             if (turret.burstPointAim != null) turret.clearQueuedFire();
             tickAutonomous(id, turret, body, structure, at.x(), at.y(), dt);
         }
+        if (rides) turret.facingDeg = main.facingDeg;
+    }
+
+    /**
+     * Where a coax ({@link VehicleMount#ridesTurret}) stands in the world: its mount offset turned by the turret's
+     * {@code turretFacing} about the turret ring, which stands where {@link #mountPoint(VehicleType, GroundBody)} puts it.
+     */
+    public static TurretMountGeometry.Point coaxPoint(VehicleType type, GroundBody body, float turretFacing,
+                                                      VehicleMount mount) {
+        TurretMountGeometry.Point ring = mountPoint(type, body);
+        float radians = (float) Math.toRadians(turretFacing);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        return new TurretMountGeometry.Point(ring.x() + mount.mountX() * cos - mount.mountY() * sin,
+                ring.y() + mount.mountX() * sin + mount.mountY() * cos);
     }
 
     /**

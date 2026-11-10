@@ -462,9 +462,11 @@ increasing an encounter's total armored threat.
   The Onager has a second card, its **coax card** (`VehicleGunCard.COAX`, `VehicleType.coaxMount`; owner,
   2026-11-10): one row by two, locked ballistic, so it takes the light machine gun or another one-row ballistic part.
   It stands right of the turret card on the doll (`SocketId.RIGHT_ARM`, `MechMountSlot.RIGHT_ARM`, a socket no hull
-  used before; `CampaignVehicle.weaponAt`). Its part fights as the hull's first secondary mount, on its own ring on
-  the deck at the turret's shoulder, with its own aim and the hull's reservoir and loader (`VehicleMount.withPart`),
-  and goes with the turret: a shot-away turret silences it. A bought hull's coax card is empty and an empty card is no
+  used before; `CampaignVehicle.weaponAt`). Its part fights as the hull's first secondary mount and rides the turret
+  (`VehicleMount.ridesTurret`; owner, 2026-11-10): a second barrel on the turret's right cheek along the main gun,
+  whatever is fitted there, drawn at least 1.1 cells long (`VehicleGun.coaxLengthCells`). It points where the turret
+  points and never turns on its own, takes the main gun's target first and otherwise fires whatever comes onto its
+  line, on the hull's reservoir and loader, and a shot-away turret silences it. A bought hull's coax card is empty and an empty card is no
   gun; a stock Onager carries the light machine gun there (`VehicleType.standardCoax`). Unlike a carrier's secondary
   mounts, which are the hull's own guns and stay locked, the coax card takes parts from stores.
   An empty gun card means no gun, as every empty socket does (owner, 2026-11-05): a bought hull stands with a bare turret ring and may still drop unarmed, as a mech with no weapons may. Only a hull from an older save keeps an own gun, no part, until a weapon first replaces it (`CampaignVehicle.hasOwnGun`), so a weapon

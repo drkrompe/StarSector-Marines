@@ -153,14 +153,28 @@ public final class VehicleGun {
     }
 
     /**
-     * {@code mount}'s carriage carrying {@code weapon} (a coax card's part, {@link VehicleType#coaxMount}), by the same
-     * rule as a turret's: the part's magazine, flux and effects. Its muzzle is the carriage's own, a short gun on its
-     * ring. The catalog structure itself for a null weapon.
+     * {@code mount}'s carriage on {@code type} carrying {@code weapon} (a coax card's part, {@link VehicleType#coaxMount}),
+     * by the same rule as a turret's: the part's magazine, flux and effects, and its muzzle at the tip of its drawing
+     * ({@link #coaxLengthCells}). The catalog structure itself for a null weapon.
      */
-    public static StructureDef fit(VehicleMount mount, MechWeaponComponent weapon) {
+    public static StructureDef fit(VehicleType type, VehicleMount mount, MechWeaponComponent weapon) {
         StructureDef stock = mount.carriage();
         if (weapon == null) return stock;
-        return carry(stock, weapon, stock.mount.muzzleOffsetCells);
+        return carry(stock, weapon, (1f - RING_FROM_REAR) * coaxLengthCells(type, weapon));
+    }
+
+    /**
+     * The least a coax's drawing runs, in cells: long enough to read as a second barrel along the main gun's at battle
+     * zoom (owner, 2026-11-10: the first coax read too small).
+     */
+    private static final float COAX_MIN_CELLS = 1.1f;
+
+    /**
+     * {@code weapon}'s length riding {@code type}'s turret as its coax, pivot share {@link #RING_FROM_REAR} from the
+     * rear to the muzzle, in cells: its own barrel at the hull's scale, never shorter than {@link #COAX_MIN_CELLS}.
+     */
+    public static float coaxLengthCells(VehicleType type, MechWeaponComponent weapon) {
+        return Math.max(COAX_MIN_CELLS, MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type));
     }
 
     private static StructureDef carry(StructureDef stock, MechWeaponComponent weapon, float muzzle) {
