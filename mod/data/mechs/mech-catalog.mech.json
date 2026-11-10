@@ -24,6 +24,13 @@
       "description": "@gearCatalogSecurityRoundsDescription"
     },
     {
+      "variant": "security_tender",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-12",
+      "role": "@gearCatalogSecurityTenderRole",
+      "description": "@gearCatalogSecurityTenderDescription"
+    },
+    {
       "variant": "security_hall",
       "factionLogo": "graphics/factions/domain_explorarium.png",
       "designation": "MG-70",

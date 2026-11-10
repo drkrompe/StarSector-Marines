@@ -32,7 +32,7 @@ public final class MechRepairs {
             case WARDEN, CENSER -> MEDIUM_DAYS_AT_FULL_WEAR;
             case BULWARK, HAULER, PILGRIM -> HEAVY_DAYS_AT_FULL_WEAR;
             // Never repaired by the company (MechVariant.automated): keeps the switch whole.
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> HEAVY_DAYS_AT_FULL_WEAR;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER -> HEAVY_DAYS_AT_FULL_WEAR;
         };
     }
 
