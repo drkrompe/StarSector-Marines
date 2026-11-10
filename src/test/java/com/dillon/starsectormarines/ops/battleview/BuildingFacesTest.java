@@ -202,4 +202,15 @@ class BuildingFacesTest {
     private static boolean near(float a, float b) {
         return Math.abs(a - b) < 1e-4f;
     }
+
+    /**
+     * Zoomed out, a face far from the view's centre stands tall on narrow cells: it is dressed by its storeys' height
+     * on screen, so it is never a blank slab; a face both narrow and short stays its shaded material.
+     */
+    @Test
+    void aFaceTallOnScreenIsDressedHoweverNarrowItsCells() {
+        assertTrue(BuildingFaces.detailed(BuildingFaces.DETAIL_CELL_PX, 0f), "wide cells");
+        assertTrue(BuildingFaces.detailed(5f, BuildingFaces.DETAIL_STOREY_PX), "narrow cells, tall storeys");
+        assertFalse(BuildingFaces.detailed(5f, 3f), "narrow and short");
+    }
 }
