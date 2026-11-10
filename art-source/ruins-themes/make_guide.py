@@ -79,7 +79,25 @@ FAMILIES["forge-floor"] = [("rail-bed", 2, 2, "rail"), ("rail-bed-curve", 4, 4, 
     ("pallet-bay", 3, 3, "palletbay"), None,
     ("trench-cover", 2, 2, "trench"), ("drain-gutter", 1, 2, "gutter"), ("floor-drain", 1, 1, "drain"),
     ("crane-runway", 1, 4, "runway"), ("cable-tray", 1, 2, "tray"), ("cable-tray-fallen", 1, 4, "trayfallen")]
-FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160}
+# The forge's wear and its b2 consoles: stains laid along the traffic (low organic blots and streaks, faded in
+# ``export.py`` as the patches are), the line pulpit's roof and the recorder console.
+FAMILIES["forge-wear"] = [("oil-stain", 2, 2, "organic"), ("oil-trail", 1, 3, "streak"),
+    ("coolant-stain", 2, 2, "organic"), ("scorch-mark", 2, 2, "organic"), ("scorch-arc", 2, 2, "organic"),
+    ("skid-marks", 2, 3, "streak"), None, ("line-pulpit", 3, 3, "linepulpit"), ("recorder-console", 1, 2, "recorder")]
+# The forge's movers in the spacefaring era (owner: an ore car "does not make sense for a space faring
+# civilization"), matching the raid mine's mass driver and hover haulers. ``forge-era-a``: the feed mag-rail (runs
+# north-south, coil rings every half module so it heals in step; the curve meets it at its south and east edges),
+# its capsule feed pods and the hover slag skid. ``forge-era-b``: the ladle in its manipulator yoke, the robot
+# finishing cell and metrology bed, and the racks, runway and girder redrawn as automated engineered plant.
+FAMILIES["forge-era-a"] = [("mag-rail", 2, 2, "maglev"), ("mag-rail-curve", 4, 4, "maglevcurve"),
+    ("mag-rail-end", 2, 2, "maglevend"), ("feed-pod", 2, 3, "pod"), ("feed-pod-derailed", 2, 3, "pod-off"), None,
+    ("slag-skid", 3, 3, "slagskid"), ("slag-skid-crashed", 3, 3, "slagcrash"), ("thrust-wash", 2, 3, "streak")]
+FAMILIES["forge-era-b"] = [("ladle-lift", 3, 3, "yoke-up"), ("ladle-lift-tipped", 3, 3, "yoke-tip"),
+    ("finishing-cell", 2, 2, "robotcell"), ("metrology-bed", 2, 2, "metrology"), None,
+    ("cooling-rack", 2, 4, "stacker"), ("cooling-rack-castings", 2, 4, "stacker-full"),
+    ("crane-runway", 1, 4, "linearbeam"), ("fallen-girder", 7, 1, "beamdown")]
+FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160, "forge-wear": 160,
+               "forge-era-a": 160, "forge-era-b": 160}
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -114,6 +132,11 @@ def frames(family):
 BODY, EDGE, DARK, LIGHT = (128, 132, 138, 255), (70, 74, 80, 255), (40, 42, 46, 255), (176, 180, 186, 255)
 # The melt in a foundry guide: a colour no other block uses, so ``export.py`` finds it in the guide.
 MELT = (214, 120, 48, 255)
+# Copper coil and a lit lens in the era guides, so the reskin knows them from plate.
+COIL = (150, 98, 64, 255)
+GLOW = (236, 200, 120, 255)
+# Painted floor marks: ``export.py`` paints these flat from the guide rather than taking ImageGen's.
+PAINT = (196, 170, 70, 255)
 
 
 def crucible_melt(x, y, w, h, kind):
@@ -601,7 +624,7 @@ def draw(family):
             d.ellipse((x + 0.3 * w, y + 0.26 * h, x + 0.66 * w, y + 0.74 * h), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 0.38 * w, y + 0.36 * h, x + 0.62 * w, y + 0.64 * h), fill=DARK)
         elif kind == "palletbay":
-            paint, t, ln = (196, 170, 70, 255), 16, 0.22 * w
+            paint, t, ln = PAINT, 16, 0.22 * w
             for cx_, cy_, sx_, sy_ in ((x + 20, y + 20, 1, 1), (x + w - 20, y + 20, -1, 1),
                                        (x + 20, y + h - 20, 1, -1), (x + w - 20, y + h - 20, -1, -1)):
                 d.rectangle((min(cx_, cx_ + sx_ * ln), min(cy_, cy_ + sy_ * t), max(cx_, cx_ + sx_ * ln),
@@ -656,6 +679,161 @@ def draw(family):
             for k in range(4):
                 d.line((x + (0.36 + 0.07 * k) * w, y + 0.1 * h, x + (0.2 + 0.2 * k) * w, y + (0.3 + 0.18 * k) * h,
                         x + (0.42 + 0.06 * k) * w, y + 0.92 * h), fill=DARK, width=12)
+        elif kind == "maglev":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            d.rectangle((x + 0.26 * w, y, x + 0.74 * w, y + h), fill=DARK)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.26 * w, sy - 6, x + 0.74 * w, sy + 6), fill=EDGE)
+            for rx in (0.2, 0.8):
+                d.rectangle((x + rx * w - 9, y, x + rx * w + 9, y + h), fill=LIGHT)
+            for cy_ in (0.25, 0.75):
+                d.rectangle((x + 0.08 * w, y + cy_ * h - 0.06 * h, x + 0.92 * w, y + cy_ * h + 0.06 * h),
+                            fill=COIL, outline=EDGE, width=4)
+        elif kind == "maglevcurve":
+            c = FAMILY_CELL[family]
+            ox, oy = x + w, y + h
+            d.pieslice((ox - 4 * c, oy - 4 * c, ox + 4 * c, oy + 4 * c), 180, 270, fill=BODY)
+            d.pieslice((ox - 3.48 * c, oy - 3.48 * c, ox + 3.48 * c, oy + 3.48 * c), 180, 270, fill=DARK)
+            d.pieslice((ox - 2.52 * c, oy - 2.52 * c, ox + 2.52 * c, oy + 2.52 * c), 180, 270, fill=BODY)
+            d.pieslice((ox - 2 * c, oy - 2 * c, ox + 2 * c, oy + 2 * c), 180, 270, fill=(0, 0, 0, 0))
+            for r in (2.4, 3.6):
+                d.arc((ox - r * c, oy - r * c, ox + r * c, oy + r * c), 180, 270, fill=LIGHT, width=18)
+            for k in range(4):
+                a = math.radians(180 + (k + 0.5) * 90 / 4)
+                d.line((ox + 2.16 * c * math.cos(a), oy + 2.16 * c * math.sin(a), ox + 3.84 * c * math.cos(a),
+                        oy + 3.84 * c * math.sin(a)), fill=COIL, width=36)
+        elif kind == "maglevend":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            d.rectangle((x + 0.26 * w, y + 0.42 * h, x + 0.74 * w, y + h), fill=DARK)
+            for rx in (0.2, 0.8):
+                d.rectangle((x + rx * w - 9, y + 0.42 * h, x + rx * w + 9, y + h), fill=LIGHT)
+            d.rectangle((x + 0.1 * w, y + 0.08 * h, x + 0.9 * w, y + 0.42 * h), fill=EDGE, outline=DARK, width=8)
+            for k in range(3):
+                d.rectangle((x + 0.16 * w, y + (0.12 + 0.1 * k) * h, x + 0.84 * w, y + (0.17 + 0.1 * k) * h),
+                            fill=COIL)
+            d.rectangle((x + 0.08 * w, y + 0.7 * h, x + 0.92 * w, y + 0.8 * h), fill=COIL, outline=EDGE, width=4)
+        elif kind in ("pod", "pod-off"):
+            pod = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            pd = ImageDraw.Draw(pod)
+            m = 0.07 if kind == "pod-off" else 0
+            pd.rounded_rectangle((w * (0.2 + m), h * (0.04 + m), w * (0.8 - m), h * (0.96 - m)), radius=0.28 * w,
+                                 fill=BODY, outline=EDGE, width=10)
+            for by in (0.3, 0.5, 0.7):
+                pd.rectangle((w * (0.18 + m), h * by - 14, w * (0.82 - m), h * by + 14), fill=EDGE)
+            pd.ellipse((w * (0.3 + m), h * (0.06 + m), w * (0.7 - m), h * (0.06 + m) + 0.4 * w), fill=GLOW)
+            if kind == "pod-off":
+                pod = pod.rotate(-18, resample=Image.BICUBIC)
+                for k in range(6):
+                    px = x + w * (0.58 + 0.06 * k)
+                    py = y + h * (0.8 + 0.025 * (k % 3))
+                    d.ellipse((px - 14, py - 14, px + 14, py + 14), fill=EDGE)
+            im.alpha_composite(pod, (x, y))
+        elif kind in ("slagskid", "slagcrash"):
+            sk = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            sd = ImageDraw.Draw(sk)
+            fans = [(0.2, 0.2), (0.8, 0.2), (0.2, 0.8), (0.8, 0.8)]
+            if kind == "slagcrash":
+                fans = fans[:3]
+            sd.rectangle((0.24 * w, 0.14 * h, 0.76 * w, 0.86 * h), fill=EDGE, outline=DARK, width=10)
+            for fx_, fy_ in fans:
+                sd.ellipse(((fx_ - 0.14) * w, (fy_ - 0.14) * h, (fx_ + 0.14) * w, (fy_ + 0.14) * h), fill=BODY,
+                           outline=EDGE, width=10)
+                sd.ellipse(((fx_ - 0.09) * w, (fy_ - 0.09) * h, (fx_ + 0.09) * w, (fy_ + 0.09) * h), fill=DARK)
+            if kind == "slagskid":
+                sd.ellipse((0.3 * w, 0.3 * h, 0.7 * w, 0.7 * h), fill=BODY, outline=EDGE, width=12)
+                sd.ellipse((0.37 * w, 0.37 * h, 0.63 * w, 0.63 * h), fill=DARK)
+                sd.ellipse((0.45 * w, 0.46 * h, 0.56 * w, 0.55 * h), fill=MELT)
+                im.alpha_composite(sk, (x, y))
+            else:
+                sk = sk.rotate(14, resample=Image.BICUBIC).resize((round(0.84 * w), round(0.84 * h)), Image.LANCZOS)
+                im.alpha_composite(sk, (x + int(0.02 * w), y + int(0.08 * h)))
+                d.polygon([(x + 0.58 * w, y + 0.38 * h), (x + 0.78 * w, y + 0.34 * h), (x + w - 6, y + 0.42 * h),
+                           (x + w - 6, y + 0.68 * h), (x + 0.8 * w, y + 0.7 * h), (x + 0.6 * w, y + 0.62 * h)],
+                          fill=MELT)
+                d.ellipse((x + 0.4 * w, y + 0.3 * h, x + 0.72 * w, y + 0.7 * h), fill=BODY, outline=EDGE, width=12)
+                d.ellipse((x + 0.47 * w, y + 0.39 * h, x + 0.68 * w, y + 0.61 * h), fill=DARK)
+        elif kind in ("yoke-up", "yoke-tip"):
+            cx, cy = x + w / 2, y + h / 2
+            d.rectangle((cx - 0.22 * w, y + 0.02 * h, cx + 0.22 * w, y + 0.16 * h), fill=EDGE, outline=DARK, width=8)
+            for sx_ in (-1, 1):
+                d.polygon([(cx + sx_ * 0.16 * w, y + 0.14 * h), (cx + sx_ * 0.24 * w, y + 0.14 * h),
+                           (cx + sx_ * 0.46 * w, cy - 0.04 * h), (cx + sx_ * 0.46 * w, cy + 0.08 * h),
+                           (cx + sx_ * 0.38 * w, cy + 0.08 * h)], fill=EDGE)
+            if kind == "yoke-up":
+                d.ellipse((cx - 0.32 * w, cy - 0.3 * w, cx + 0.32 * w, cy + 0.34 * w), fill=BODY, outline=EDGE,
+                          width=12)
+                d.ellipse((cx - 0.23 * w, cy - 0.21 * w, cx + 0.23 * w, cy + 0.25 * w), fill=MELT)
+            else:
+                d.ellipse((cx - 0.34 * w, cy - 0.24 * w, cx + 0.22 * w, cy + 0.3 * w), fill=BODY, outline=EDGE,
+                          width=12)
+                d.ellipse((cx - 0.25 * w, cy - 0.15 * w, cx + 0.12 * w, cy + 0.21 * w), fill=DARK)
+                d.polygon([(cx + 0.17 * w, cy - 0.04 * w), (cx + 0.47 * w, cy - 0.01 * w), (cx + 0.48 * w,
+                           cy + 0.1 * w), (cx + 0.17 * w, cy + 0.12 * w)], fill=MELT)
+            for sx_ in (-1, 1):
+                d.rectangle((cx + sx_ * 0.42 * w - 22, cy - 22, cx + sx_ * 0.42 * w + 22, cy + 22 + 0.04 * h),
+                            fill=LIGHT)
+        elif kind == "robotcell":
+            d.rectangle((x + 0.52 * w, y + 0.5 * h, x + 0.92 * w, y + 0.9 * h), fill=EDGE, outline=DARK, width=8)
+            d.rectangle((x + 0.6 * w, y + 0.6 * h, x + 0.84 * w, y + 0.8 * h), fill=LIGHT, outline=EDGE, width=4)
+            d.ellipse((x + 0.08 * w, y + 0.1 * h, x + 0.48 * w, y + 0.5 * h), fill=BODY, outline=EDGE, width=10)
+            d.line((x + 0.28 * w, y + 0.3 * h, x + 0.55 * w, y + 0.28 * h, x + 0.68 * w, y + 0.56 * h), fill=EDGE,
+                   width=34, joint="curve")
+            d.ellipse((x + 0.62 * w, y + 0.5 * h, x + 0.74 * w, y + 0.62 * h), fill=DARK)
+        elif kind == "metrology":
+            d.rectangle((x + 0.14 * w, y + 0.08 * h, x + 0.86 * w, y + 0.92 * h), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + 0.22 * w, y + 0.16 * h, x + 0.78 * w, y + 0.84 * h), fill=LIGHT)
+            d.rectangle((x + 0.04 * w, y + 0.4 * h, x + 0.96 * w, y + 0.52 * h), fill=EDGE, outline=DARK, width=6)
+            d.rectangle((x + 0.2 * w, y + 0.45 * h, x + 0.8 * w, y + 0.47 * h), fill=GLOW)
+        elif kind in ("stacker", "stacker-full"):
+            d.rectangle((x + 16, y + 16, x + 0.22 * w, y + h - 16), fill=DARK)
+            d.rectangle((x + 0.22 * w, y + 16, x + w - 16, y + h - 16), outline=EDGE, width=18)
+            for k in range(1, 6):
+                yy = y + k * h / 6
+                d.rectangle((x + 0.22 * w, yy - 10, x + w - 16, yy + 10), fill=EDGE)
+            d.rectangle((x + 20, y + 0.36 * h, x + 0.2 * w, y + 0.46 * h), fill=LIGHT)
+            if kind == "stacker-full":
+                for k in (0, 1, 3, 4):
+                    yy = y + k * h / 6 + h / 12
+                    d.rounded_rectangle((x + 0.3 * w, yy - 4, x + w - 40, yy + h / 6 - 34), radius=16, fill=BODY,
+                                        outline=EDGE)
+        elif kind == "linearbeam":
+            d.rectangle((x + 0.2 * w, y, x + 0.8 * w, y + h), fill=BODY)
+            d.rectangle((x + 0.42 * w, y, x + 0.58 * w, y + h), fill=COIL)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.2 * w, sy - 7, x + 0.8 * w, sy + 7), fill=EDGE)
+            d.rectangle((x + 0.06 * w, y + 0.44 * h, x + 0.94 * w, y + 0.56 * h), fill=EDGE, outline=DARK, width=6)
+        elif kind == "beamdown":
+            d.polygon([(x + 10, y + 34), (x + 0.72 * w, y + 30), (x + 0.86 * w, y + 46), (x + w - 70, y + h - 36),
+                       (x + 0.84 * w, y + h - 34), (x + 0.7 * w, y + h - 30), (x + 14, y + h - 34)], fill=BODY,
+                      outline=EDGE)
+            d.rectangle((x + 20, y + h / 2 - 12, x + 0.7 * w, y + h / 2 + 12), fill=COIL)
+            for k in range(1, 10):
+                gx = x + k * 0.07 * w
+                d.rectangle((gx - 6, y + 36, gx + 6, y + h - 36), fill=EDGE)
+            for k in range(5):
+                d.line((x + w - 80, y + h / 2, x + w - 14, y + 20 + k * (h - 40) / 4), fill=DARK, width=8)
+        elif kind == "streak":
+            lanes = (0.5,) if w < h * 0.5 else (0.3, 0.7)
+            for lx in lanes:
+                pts = [(x + lx * w + 0.06 * w * math.sin(t / 10 * math.pi * 1.3 + lx * 7), y + 40 + t / 10 * (h - 80))
+                       for t in range(11)]
+                d.line(pts, fill=(150, 154, 160, 140), width=int(0.16 * w / len(lanes)) + 10, joint="curve")
+        elif kind == "linepulpit":
+            d.rectangle((x + 16, y + 16, x + w - 16, y + h - 70), fill=BODY, outline=EDGE, width=12)
+            for vy in (0.16, 0.36):
+                d.rectangle((x + 0.12 * w, y + vy * h, x + 0.62 * w, y + vy * h + 0.1 * h), fill=DARK)
+            d.ellipse((x + 0.74 * w, y + 0.12 * h, x + 0.86 * w, y + 0.24 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.7 * w, y + 0.36 * h, x + 0.9 * w, y + 0.62 * h), fill=EDGE)
+            d.rectangle((x + 0.08 * w, y + 0.62 * h, x + 0.62 * w, y + 0.72 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.12 * w, y + h - 70, x + 0.88 * w, y + h - 16), fill=EDGE, outline=DARK, width=6)
+        elif kind == "recorder":
+            d.rectangle((x + 14, y + 14, x + w - 14, y + h - 14), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + 34, y + 40, x + w - 34, y + 0.4 * h), fill=DARK)
+            d.ellipse((x + w / 2 - 34, y + 0.55 * h, x + w / 2 + 34, y + 0.55 * h + 68), fill=EDGE, outline=DARK,
+                      width=6)
+            d.rectangle((x + 30, y + h - 60, x + w - 30, y + h - 34), fill=LIGHT)
         elif kind == "ladle":
             d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)

@@ -175,9 +175,13 @@ public final class DamageDollCanvas implements CanvasProducer {
         return ramp;
     }
 
-    /** The doll a mech chassis draws as. */
+    /** The doll a mech chassis draws as; the derelict walkers are one chassis and share one. */
     public static String dollPath(MechVariant variant) {
-        return DOLL_DIR + "mech-" + variant.id + ".svg";
+        String name = switch (variant) {
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> "derelict";
+            default -> variant.id;
+        };
+        return DOLL_DIR + "mech-" + name + ".svg";
     }
 
     /** The plan a fighter wing draws as. */
@@ -189,7 +193,8 @@ public final class DamageDollCanvas implements CanvasProducer {
     /** The doll a vehicle line draws as; variants of a family share one. */
     public static String dollPath(VehicleType type) {
         String name = switch (type) {
-            case HEAVY_APC, FIRE_SUPPORT_APC -> "apc";
+            // The midline carriers are wheeled hulls with one turret ring: the APC's doll stands in until they have one.
+            case HEAVY_APC, FIRE_SUPPORT_APC, LIGHT_CARRIER, MEDIUM_CARRIER, HEAVY_CARRIER -> "apc";
             case BREAKTHROUGH_TANK, LASER_TANK -> "tank";
             case MEDIUM_TANK -> "tank-medium";
             case MILITIA_TECHNICAL -> "technical";

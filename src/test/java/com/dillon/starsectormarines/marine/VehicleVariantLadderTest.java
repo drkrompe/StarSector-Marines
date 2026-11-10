@@ -126,7 +126,8 @@ class VehicleVariantLadderTest {
      * Priced at the game's base commodity prices (supplies 100, heavy machinery 150, metals 30, rare metals 200,
      * from {@code commodities.csv}), every hull brings at least as much structure plus armor per credit as its
      * class's mech. A role hull is bought for its job rather than its plate (the fire-support APC's mortar, the
-     * scout car's sight, the supply truck's stock), so it is held only to costing less than the mech.
+     * scout car's sight, the supply truck's stock), so it is held only to costing less than the mech. So is a
+     * shielded hull, whose flux shield stands in for plate (`machine-budgets.md`).
      */
     @Test
     void everyHullBringsAtLeastTheMechsArmorPerCredit() {
@@ -136,7 +137,7 @@ class VehicleVariantLadderTest {
             // A walker that can fight: the frame and its standard parts.
             float mechCredits = MechFabricationCatalog.standardFitCost(mech).credits();
             float vehicleCredits = MechFabricationCatalog.standardFitCost(type).credits();
-            if (ROLE_HULLS.contains(type)) {
+            if (ROLE_HULLS.contains(type) || type.shieldSpec() != null) {
                 assertTrue(vehicleCredits < mechCredits, type + " costs " + vehicleCredits + " against " + mech);
                 continue;
             }

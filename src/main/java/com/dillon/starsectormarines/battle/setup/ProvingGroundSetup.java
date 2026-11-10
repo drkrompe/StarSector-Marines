@@ -157,7 +157,8 @@ public final class ProvingGroundSetup {
             long id = convoy.spawn(type, Faction.MARINE, VehicleMission.deployed(x, y));
             convoy.body(id).teleport(x, y, FACING_NORTH);
         }
-        int file = 0;
+        // The machines that spill past two ranks stand at the head of the third; the gun ladder starts after them.
+        int file = Math.max(0, mechs.length + hulls.length - 2 * HULLS_PER_RANK);
         for (MechWeaponComponent gun : GUN_LADDER) parkFitted(convoy, site, file++, GUN_LADDER_HULL, gun);
         for (VehicleType hull : COLOUR_HULLS) {
             for (HardpointType colour : OTHER_COLOURS) parkFitted(convoy, site, file++, hull, hull.standardPart(colour));

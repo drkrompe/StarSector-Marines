@@ -15,10 +15,18 @@ public final class PatrolRound {
     public static final float PAUSE_SECONDS = 6f;
     /** How near a place, in cells, counts as there. */
     public static final float ARRIVE_CELLS = 1.5f;
+    /** The most places a round keeps: those nearest the node. UNTUNED. */
+    public static final int MAX_PLACES = 6;
+    /** How long the walker may make no headway toward a place before the round gives it up for the next. */
+    public static final float STUCK_SECONDS = 20f;
+    /** Headway, in cells, that counts as getting nearer. */
+    static final float HEADWAY_CELLS = 1f;
 
     private final List<int[]> places;
     private int index;
     private float waited;
+    private float stuck;
+    private float best = Float.MAX_VALUE;
 
     /**
      * @param places the places of the round, in the order walked (see {@link #order}); at least one
@@ -29,9 +37,9 @@ public final class PatrolRound {
     }
 
     /**
-     * The places a zone keeps, as a round: those inside its perimeter, one per cell, ordered by bearing round its node
-     * (from east, counter-clockwise) so the loop walks round the node rather than across it. Its node cell stands in
-     * when none is inside.
+     * The places a zone keeps, as a round: those inside its perimeter, one per cell, the {@link #MAX_PLACES} nearest its
+     * node, ordered by bearing round it (from east, counter-clockwise) so the loop walks round the node rather than
+     * across it. Its node cell stands in when none is inside.
      */
     public static List<int[]> order(SecurityZone zone, List<int[]> candidates) {
         List<int[]> inside = new ArrayList<>();
@@ -42,6 +50,9 @@ public final class PatrolRound {
             if (!dup) inside.add(cell);
         }
         if (inside.isEmpty()) inside.add(new int[] {zone.nodeCellX, zone.nodeCellY});
+        inside.sort(Comparator.comparingInt((int[] c) -> Math.max(Math.abs(c[0] - zone.nodeCellX),
+                Math.abs(c[1] - zone.nodeCellY))).thenComparingInt(c -> c[0]).thenComparingInt(c -> c[1]));
+        if (inside.size() > MAX_PLACES) inside = new ArrayList<>(inside.subList(0, MAX_PLACES));
         inside.sort(Comparator.comparingDouble((int[] c) -> bearing(zone, c)).thenComparingInt(c -> c[0])
                 .thenComparingInt(c -> c[1]));
         return inside;
@@ -64,7 +75,8 @@ public final class PatrolRound {
 
     /**
      * The walker stands at {@code (x, y)} after {@code dt} seconds: at its place, it waits there; once it has waited
-     * its pause, the round moves on to the next place.
+     * its pause, the round moves on to the next place. A walker that has got no nearer its place for
+     * {@link #STUCK_SECONDS} gives that place up for the next.
      *
      * @return the place to walk to now
      */
@@ -74,13 +86,25 @@ public final class PatrolRound {
         float dy = at[1] + 0.5f - y;
         if (Math.max(Math.abs(dx), Math.abs(dy)) <= ARRIVE_CELLS) {
             waited += dt;
-            if (waited >= PAUSE_SECONDS) {
-                waited = 0f;
-                index = (index + 1) % places.size();
-            }
+            if (waited >= PAUSE_SECONDS) next();
         } else {
             waited = 0f;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            if (distance < best - HEADWAY_CELLS) {
+                best = distance;
+                stuck = 0f;
+            } else {
+                stuck += dt;
+                if (stuck >= STUCK_SECONDS) next();
+            }
         }
         return places.get(index);
+    }
+
+    private void next() {
+        index = (index + 1) % places.size();
+        waited = 0f;
+        stuck = 0f;
+        best = Float.MAX_VALUE;
     }
 }

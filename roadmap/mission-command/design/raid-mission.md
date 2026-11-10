@@ -1,6 +1,6 @@
 # Raid mission: what the player came to do
 
-Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates). The slices are `raid-wreck-the-works.md` and `raid-site-templates.md`.
+Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates), and each site is one owned map laid against a reference market and skinned for the planet (The owned map; its reference, sites and scale await the owner's picks). The slices are `raid-wreck-the-works.md` and `raid-site-templates.md`.
 
 Written: 2026-11-09
 
@@ -179,6 +179,54 @@ The sites so far, each the same districts with the industry's own works:
 The owner accepted heavy industry's site and asked for the rest in order
 (2026-11-09); every industry a raid can name now has a site, each awaiting the
 owner's verdict (`raid-site-templates.md`).
+
+## The owned map
+
+The owner, 2026-11-10: "All of these should use a single seed, that we own and
+make good. They should be skinned for the planet and make sense for the
+planet." A campaign Raid does not lay its map from the raided market. Each
+Raid map **owns one seed** (`story-map-pools.md`), in
+`mod/data/world/pools/raid*.pool.json`, generated on its pool's home palette
+(ARID) against a fixed **reference market**, then re-dressed for the raided
+world by the planet skin (`PlanetSkin`), which moves no cell (`RaidOwnedMap`).
+
+- **The maps.** One per site (`raid-heavy-industry`, `raid-mining`,
+  `raid-refining`, `raid-light-industry`, `raid-farming`, `raid-spaceport`,
+  `raid-military`), and the generic `raid` for a raid for valuables, a
+  contract's Strike, and a disrupting raid on an industry with no site.
+  `RaidOwnedMap.mapFor` chooses; `BattleSetup.raidSeed` gives the campaign the
+  owned seed (`MissionLaunch`), and any other seed plays the old unvetted,
+  market-derived path, which is how a fixture or a replacement is tried.
+- **The reference market** (`RaidOwnedMap.reference`): size 6, so the homes
+  are a town's streets with an outskirts suburb; defence 3 with ground
+  defences, so security is guarded (a wall and gatehouses, a 5-cell glacis);
+  a spaceport and a market; the site's own industry, and heavy industry on the
+  generic map so a works on an industry with no site has industrial ground;
+  no climate, so no storm bank. Its faction is independent, which only the
+  emplacements' style reads.
+- **Tier and scale.** Every owned map is laid at Established: 280x168, with
+  four machines in the works whatever the raid's tier
+  (`BattleSetup.raidMachines`). The tier sizes the force, never the ground.
+- **What the raided market keeps.** Everything that is not ground: the
+  faction that defends, the tier's share of its garrison, its air, mechs and
+  support kit, and the world the skin dresses the map for.
+- **Acceptance** (`StoryMapAcceptance`, run by `storyMapPools`): on its first
+  generation the map stands a raid up; a site's map holds a works with all
+  four machines reachable; the generic map also stands a raid for a target.
+  An owned Raid entry takes no patch yet.
+
+Given up, for now, by owning the map: the market's security no longer grades
+the compound's wall and glacis (every owned map is guarded), the town no
+longer grows or shrinks with the market, and a storm world's bank is gone.
+Each is a picks question: `raid-owned-reference` (the reference market),
+`raid-owned-sites` (one map per site, or one for every raid) and
+`raid-owned-scale` (one size, or one map per Raid scale). Seeds were screened
+over 2 to 5 on the home and chosen by eye: 4 for the generic map, 3 for every
+site.
+
+`createSnapshots -Psnapshot=planet-skin-look -Dsnapshot.planetSkin.maps=raid,...`
+frames each owned map on every world; `raid-owned-look` frames candidates and
+the questions' options.
 
 ## Break: wreck the works (owner pick)
 

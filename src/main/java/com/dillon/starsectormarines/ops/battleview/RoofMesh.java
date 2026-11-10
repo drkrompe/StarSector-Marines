@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.lwjgl.BufferUtils;
 
+import java.util.function.ToIntFunction;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,13 +116,15 @@ public final class RoofMesh {
         final Building building;
         final int firstSlot;
         final int slotCount;
+        final int heightClass;
         float alpha = Float.NaN;
         float fogShade = Float.NaN;
 
-        Span(Building building, int firstSlot, int slotCount) {
+        Span(Building building, int firstSlot, int slotCount, int heightClass) {
             this.building = building;
             this.firstSlot = firstSlot;
             this.slotCount = slotCount;
+            this.heightClass = heightClass;
         }
     }
 
@@ -139,6 +142,18 @@ public final class RoofMesh {
     private static final int CLASSES = BuildingFaces.HEIGHTS.length;
     private final int[] classFirst = new int[CLASSES];
     private final int[] classSlots = new int[CLASSES];
+    /** Each building's height class ({@link BuildingFaces}), the renderer's; null bakes every building flat. */
+    private ToIntFunction<Building> classOf;
+
+    private int classOf(Building b) {
+        return classOf == null ? 0 : classOf.applyAsInt(b);
+    }
+
+    /** Whether any building's class has moved from the one its run was baked in. */
+    private boolean classMoved() {
+        for (Span span : spans) if (classOf(span.building) != span.heightClass) return true;
+        return false;
+    }
     /** The first of the slots each cell holds, or {@code -1}; sized to the grid. */
     private int[] slotOfCell;
     /** The building each slot-holding cell is roofed by, by its first slot over {@link #SLOTS}. */
@@ -224,7 +239,8 @@ public final class RoofMesh {
      */
     public boolean sync(CellTopology topology, Buildings buildings, SpriteAPI roofSheet,
                         int roofSheetPxW, int roofSheetPxH,
-                        RoofResolver resolver, float frameAlpha) {
+                        RoofResolver resolver, float frameAlpha, ToIntFunction<Building> classOf) {
+        this.classOf = classOf;
         if (!catchUp(topology, buildings, roofSheet, roofSheetPxW, roofSheetPxH,
                 resolver, frameAlpha)) {
             return false;
@@ -264,6 +280,8 @@ public final class RoofMesh {
                                 resolver);
                     } else {
                         patch(topology, resolver, now);
+                        // A building destroyed by what changed drops its lift: bake again with it in its new class.
+                        if (classMoved()) build(topology, buildings, roofSheet, roofSheetPxW, roofSheetPxH, resolver);
                     }
                 } else {
                     lastResolvedCells = 0;
@@ -394,7 +412,7 @@ public final class RoofMesh {
             int index = 0;
             for (Building b : buildings.all()) {
                 int[] own = cellsOf.get(index++);
-                if (BuildingFaces.heightClass(b.cellsX.length) != heightClass) continue;
+                if (classOf(b) != heightClass) continue;
                 slot = bakeBuilding(b, own, slot, resolver);
             }
             classSlots[heightClass] = slot - classFirst[heightClass];
@@ -410,7 +428,7 @@ public final class RoofMesh {
 
     /** One building's cells into its run of slots from {@code slot}; returns the slot after it. */
     private int bakeBuilding(Building b, int[] own, int slot, RoofResolver resolver) {
-        spans.add(new Span(b, slot, own.length * SLOTS));
+        spans.add(new Span(b, slot, own.length * SLOTS, classOf(b)));
         for (int at : own) {
             slotOfCell[at] = slot;
             buildingOfCell[slot / SLOTS] = b;

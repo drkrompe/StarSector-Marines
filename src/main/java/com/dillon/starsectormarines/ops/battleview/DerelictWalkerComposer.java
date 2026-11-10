@@ -35,10 +35,12 @@ final class DerelictWalkerComposer {
     /**
      * @param cam         converts cells to screen px
      * @param renderScale the walker's render scale (the torso's size)
+     * @param partScale   the leg parts' size against the heavy's: the line's medium and large are the heavy's art at
+     *                    their own size (`derelict-watch.md`)
      */
     static void emit(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
-                     BattleCamera cam, float renderScale, float alpha) {
-        emitBody(out, art, rig, cam, TORSO_CELLS * renderScale, alpha);
+                     BattleCamera cam, float renderScale, float partScale, float alpha) {
+        emitBody(out, art, rig, cam, TORSO_CELLS * renderScale, partScale, alpha);
     }
 
     /**
@@ -47,6 +49,12 @@ final class DerelictWalkerComposer {
      */
     static void emitBody(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
                          BattleCamera cam, float torsoCells, float alpha) {
+        emitBody(out, art, rig, cam, torsoCells, 1f, alpha);
+    }
+
+    /** As the other {@code emitBody}, its leg parts drawn at {@code partScale} times their authored size. */
+    static void emitBody(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
+                         BattleCamera cam, float torsoCells, float partScale, float alpha) {
         DerelictLegRig.Build build = rig.build();
         float inset = build.jointInsetCells();
         float[] knee = new float[3];
@@ -63,10 +71,11 @@ final class DerelictWalkerComposer {
                 // A lost leg is scorched below its broken knee.
                 float shade = rig.lost(i) ? LOST_SHADE : 1f;
                 bone(out, art.shin, cam, knee[0], knee[1], rig.footX(i), rig.footY(i), (knee[2] + footHeight) / 2f,
-                        inset, shade, alpha);
-                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, inset, 1f, alpha);
+                        inset, shade, partScale, alpha);
+                bone(out, art.thigh, cam, hx, hy, knee[0], knee[1], (hipZ + knee[2]) / 2f, inset, 1f, partScale,
+                        alpha);
                 float joint = art.joint.pxWidth / DerelictWalkerAssets.PX_PER_CELL * JOINT_SCALE * cam.cellPxSize()
-                        * (1f + HEIGHT_GROWTH * knee[2]);
+                        * (1f + HEIGHT_GROWTH * knee[2]) * partScale;
                 float legAngle = (float) Math.toDegrees(Math.atan2(-(rig.footX(i) - hx), rig.footY(i) - hy));
                 if (rig.lost(i)) {
                     out.add(art.joint, cam.cellToScreenX(knee[0]), cam.cellToScreenY(knee[1]), joint, joint, legAngle,
@@ -117,7 +126,7 @@ final class DerelictWalkerComposer {
      */
     private static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
                              float x0, float y0, float x1, float y1, float height, float inset, float shade,
-                             float alpha) {
+                             float partScale, float alpha) {
         float dx = x1 - x0;
         float dy = y1 - y0;
         float seen = (float) Math.sqrt(dx * dx + dy * dy);
@@ -125,11 +134,11 @@ final class DerelictWalkerComposer {
         float ux = dx / seen;
         float uy = dy / seen;
         float grow = 1f + HEIGHT_GROWTH * height;
-        float length = Math.min(seen + inset, part.pxHeight / DerelictWalkerAssets.PX_PER_CELL);
+        float length = Math.min(seen + inset, part.pxHeight / DerelictWalkerAssets.PX_PER_CELL * partScale);
         float cx = x0 + ux * (length / 2f - inset);
         float cy = y0 + uy * (length / 2f - inset);
         float ppc = cam.cellPxSize();
-        float width = part.pxWidth / DerelictWalkerAssets.PX_PER_CELL * ppc * grow;
+        float width = part.pxWidth / DerelictWalkerAssets.PX_PER_CELL * ppc * grow * partScale;
         // Sprites are authored head-up: turned so the part's top lies along root to far end (0 = +y, counter-clockwise).
         float angle = (float) Math.toDegrees(Math.atan2(-dx, dy));
         out.add(part, cam.cellToScreenX(cx), cam.cellToScreenY(cy), width, length * ppc * grow, angle,

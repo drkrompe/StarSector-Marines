@@ -77,90 +77,10 @@
       "padding": 0,
       "order": 5
     },
-    "ladle-hook.png": {
-      "id": "doodad.ruins-ladle-hook",
-      "name": "Ladle on its hook",
-      "description": "A pouring ladle hanging from the overhead crane hook, full of melt. Overhead: drawn above units.",
-      "cover": "none",
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 6
-    },
-    "ladle-hook-melt.png": {
-      "id": "doodad.ruins-ladle-hook-melt",
-      "name": "Ladle melt",
-      "description": "Overlay: the hanging ladle's melt.",
-      "cover": "none",
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 7
-    },
-    "ladle-hook-tipped.png": {
-      "id": "doodad.ruins-ladle-hook-tipped",
-      "name": "Ladle tipped mid-pour",
-      "description": "The same ladle on its hook, tipped mid-pour, its bowl near empty. Overhead: drawn above units.",
-      "cover": "none",
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 8
-    },
-    "ladle-hook-tipped-pour.png": {
-      "id": "doodad.ruins-ladle-hook-tipped-pour",
-      "name": "Ladle pour",
-      "description": "Overlay: the melt pouring from the tipped ladle's lip.",
-      "cover": "none",
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 9
-    },
-    "ore-car.png": {
-      "id": "doodad.ruins-ore-car",
-      "name": "Ore charge car",
-      "description": "An armoured ore charge car on its rail wheels, its hopper heaped with ore and scrap.",
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.7,
-      "footprintCells": [
-        2,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 10
-    },
-    "ore-car-derailed.png": {
-      "id": "doodad.ruins-ore-car-derailed",
-      "name": "Derailed ore car",
-      "description": "The ore charge car jumped off its rail and slewed askew, a little of its load spilled.",
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.7,
-      "footprintCells": [
-        2,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 11
-    },
     "cooling-rack.png": {
       "id": "doodad.ruins-cooling-rack",
-      "name": "Cooling rack",
-      "description": "An empty steel cooling rack: an open frame of rails and crossbars.",
+      "name": "Cooling stack",
+      "description": "An automated cooling stack: heavy shelf beams with its stacker carriage parked on the rail along its west side, empty.",
       "cover": "light",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -173,8 +93,8 @@
     },
     "cooling-rack-castings.png": {
       "id": "doodad.ruins-cooling-rack-castings",
-      "name": "Cooling rack with castings",
-      "description": "The cooling rack with castings left on four of its shelves when the work stopped.",
+      "name": "Cooling stack with castings",
+      "description": "The cooling stack with castings left in field cradles on four of its shelves when the work stopped.",
       "cover": "med",
       "ballisticHalfHeight": 0.6,
       "footprintCells": [
@@ -184,34 +104,6 @@
       "preserveCanvas": true,
       "padding": 0,
       "order": 13
-    },
-    "fettling-bench.png": {
-      "id": "doodad.ruins-fettling-bench",
-      "name": "Fettling bench",
-      "description": "A heavy fettling bench with its grinding wheel, vice and tools.",
-      "cover": "light",
-      "ballisticHalfHeight": 0.45,
-      "footprintCells": [
-        2,
-        2
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 14
-    },
-    "inspection-table.png": {
-      "id": "doodad.ruins-inspection-table",
-      "name": "Inspection table",
-      "description": "A steel inspection table with its gauge plate and scanner head.",
-      "cover": "light",
-      "ballisticHalfHeight": 0.45,
-      "footprintCells": [
-        2,
-        2
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 15
     },
     "pour-head.png": {
       "id": "doodad.ruins-pour-head",
@@ -243,8 +135,8 @@
     },
     "fallen-girder.png": {
       "id": "doodad.ruins-fallen-girder",
-      "name": "Fallen crane girder",
-      "description": "An overhead crane girder fallen across the bay floor under its runway: the hall's best cover.",
+      "name": "Fallen runway beam",
+      "description": "A gantry runway beam fallen across the bay floor under its runway, its east end sheared with torn cables: the hall's best cover.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.8,
       "footprintCells": [
@@ -254,100 +146,6 @@
       "preserveCanvas": true,
       "padding": 0,
       "order": 18
-    },
-    "rail-bed.png": {
-      "id": "doodad.ruins-rail-bed",
-      "name": "Rail bed",
-      "description": "A length of rail track sunk flush in floor plate: the ore spur and the slag car track. A run: lay copies end to end north-south (rotate for east-west); it repeats seamlessly.",
-      "cover": "none",
-      "footprintCells": [
-        2,
-        2
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 19
-    },
-    "rail-bed-curve.png": {
-      "id": "doodad.ruins-rail-bed-curve",
-      "name": "Rail bed curve",
-      "description": "The rail bed turning a quarter circle, meeting a straight bed at its south and east edges.",
-      "cover": "none",
-      "footprintCells": [
-        4,
-        4
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 20
-    },
-    "rail-buffer.png": {
-      "id": "doodad.ruins-rail-buffer",
-      "name": "Rail buffer stop",
-      "description": "The end of a rail bed: a buffer stop beam at its north end, the track running out of its south edge.",
-      "cover": "med",
-      "ballisticHalfHeight": 0.5,
-      "footprintCells": [
-        2,
-        2
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 21
-    },
-    "slag-car.png": {
-      "id": "doodad.ruins-slag-car",
-      "name": "Slag car",
-      "description": "A slag pot car on its rail wheels, cooled slag crusted in its pot.",
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.7,
-      "footprintCells": [
-        2,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 22
-    },
-    "slag-car-melt.png": {
-      "id": "doodad.ruins-slag-car-melt",
-      "name": "Slag car glow",
-      "description": "Overlay: the glowing crack in the slag car's crust.",
-      "cover": "none",
-      "footprintCells": [
-        2,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 23
-    },
-    "slag-car-tipped.png": {
-      "id": "doodad.ruins-slag-car-tipped",
-      "name": "Slag car tipped",
-      "description": "The slag car tipped over at the slag pit's lip, its pot rolled east. Lay it with its east edge on the pit's edge.",
-      "cover": "heavy",
-      "ballisticHalfHeight": 0.7,
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 24
-    },
-    "slag-car-tipped-spill.png": {
-      "id": "doodad.ruins-slag-car-tipped-spill",
-      "name": "Slag car spill",
-      "description": "Overlay: the slag running out of the tipped pot to its east edge, into the pit.",
-      "cover": "none",
-      "footprintCells": [
-        3,
-        3
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 25
     },
     "pallet-bay.png": {
       "id": "doodad.ruins-pallet-bay",
@@ -403,8 +201,8 @@
     },
     "crane-runway.png": {
       "id": "doodad.ruins-crane-runway",
-      "name": "Crane runway",
-      "description": "Overhead: a crane runway girder with its rail, a column cap at its middle. Drawn above units. A run north-south; repeats seamlessly every 4 cells.",
+      "name": "Gantry runway",
+      "description": "Overhead: a gantry runway box beam with a copper linear-drive stator strip, a column cap at its middle. Drawn above units. A run north-south; repeats seamlessly every 4 cells.",
       "cover": "none",
       "footprintCells": [
         1,
@@ -440,6 +238,314 @@
       "preserveCanvas": true,
       "padding": 0,
       "order": 32
+    },
+    "oil-stain.png": {
+      "id": "doodad.ruins-oil-stain",
+      "name": "Oil stain",
+      "description": "An old dark oil stain on the floor. Overlay, laid along the traffic.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 33
+    },
+    "oil-trail.png": {
+      "id": "doodad.ruins-oil-trail",
+      "name": "Oil trail",
+      "description": "A trail of oil drips and smears along a traffic lane, north-south.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 34
+    },
+    "coolant-stain.png": {
+      "id": "doodad.ruins-coolant-stain",
+      "name": "Coolant stain",
+      "description": "A dried coolant spill, crusted pale blue-green.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 35
+    },
+    "scorch-mark.png": {
+      "id": "doodad.ruins-scorch-mark",
+      "name": "Scorch mark",
+      "description": "A heat scorch on the floor, sooty with a burnt-steel fringe.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 36
+    },
+    "scorch-arc.png": {
+      "id": "doodad.ruins-scorch-arc",
+      "name": "Arc burn",
+      "description": "An electrical arc burn: a blast star with forked burn lines, for a blown cabinet.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 37
+    },
+    "line-pulpit.png": {
+      "id": "doodad.ruins-line-pulpit",
+      "name": "Line pulpit",
+      "description": "The line's control pulpit seen from above: its armoured roof, visor strip along its south edge. Where b2 wakes the line.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 39
+    },
+    "recorder-console.png": {
+      "id": "doodad.ruins-recorder-console",
+      "name": "Recorder console",
+      "description": "A line recorder console: dead screen at its north end, a data-core socket, an amber status bar. b2's recorder.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 40
+    },
+    "mag-rail.png": {
+      "id": "doodad.ruins-mag-rail",
+      "name": "Mag-rail",
+      "description": "The feed mag-rail sunk flush in floor plate: a ribbed trough between guide rails, copper coil rings across it. A run: lay copies end to end north-south (rotate for east-west); it repeats seamlessly. Also the slag skid's lane.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 41
+    },
+    "mag-rail-curve.png": {
+      "id": "doodad.ruins-mag-rail-curve",
+      "name": "Mag-rail curve",
+      "description": "The mag-rail turning a quarter circle, meeting a straight rail at its south and east edges.",
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 42
+    },
+    "mag-rail-end.png": {
+      "id": "doodad.ruins-mag-rail-end",
+      "name": "Mag-rail end",
+      "description": "The end of a mag-rail: a decelerator coil block at its north end, the rail running out of its south edge.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 43
+    },
+    "feed-pod.png": {
+      "id": "doodad.ruins-feed-pod",
+      "name": "Feed capsule pod",
+      "description": "A sealed feed capsule pod riding the mag-rail, its nose a dim charge window: the furnace's charge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 44
+    },
+    "feed-pod-derailed.png": {
+      "id": "doodad.ruins-feed-pod-derailed",
+      "name": "Derailed feed pod",
+      "description": "The feed capsule thrown off its rail askew, a band split, ore spilled.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 45
+    },
+    "slag-skid.png": {
+      "id": "doodad.ruins-slag-skid",
+      "name": "Hover slag skid",
+      "description": "A hover slag skid on four lift-fan rings, a slag pot on its spine.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 46
+    },
+    "slag-skid-melt.png": {
+      "id": "doodad.ruins-slag-skid-melt",
+      "name": "Slag skid glow",
+      "description": "Overlay: the glowing crack in the slag skid's crust.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 47
+    },
+    "slag-skid-crashed.png": {
+      "id": "doodad.ruins-slag-skid-crashed",
+      "name": "Crashed slag skid",
+      "description": "The slag skid crashed at the slag pit's lip, a fan ring torn off, its pot tipped east. Lay it with its east edge on the pit's edge.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 48
+    },
+    "slag-skid-crashed-spill.png": {
+      "id": "doodad.ruins-slag-skid-crashed-spill",
+      "name": "Slag skid spill",
+      "description": "Overlay: the slag running out of the tipped pot to its east edge, into the pit.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 49
+    },
+    "thrust-wash.png": {
+      "id": "doodad.ruins-thrust-wash",
+      "name": "Thrust wash",
+      "description": "Faint scorch streaks from hover skids' lift fans, north-south, laid along their lanes.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 50
+    },
+    "ladle-lift.png": {
+      "id": "doodad.ruins-ladle-lift",
+      "name": "Ladle in its manipulator",
+      "description": "A pouring ladle in the clamp yoke of an overhead manipulator, full of melt. Overhead: drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 51
+    },
+    "ladle-lift-melt.png": {
+      "id": "doodad.ruins-ladle-lift-melt",
+      "name": "Ladle melt",
+      "description": "Overlay: the ladle's melt.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 52
+    },
+    "ladle-lift-tipped.png": {
+      "id": "doodad.ruins-ladle-lift-tipped",
+      "name": "Ladle tipped mid-pour",
+      "description": "The manipulator holding the ladle tipped mid-pour, its bowl near empty. Overhead: drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 53
+    },
+    "ladle-lift-tipped-pour.png": {
+      "id": "doodad.ruins-ladle-lift-tipped-pour",
+      "name": "Ladle pour",
+      "description": "Overlay: the melt pouring from the tipped ladle's lip.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 54
+    },
+    "finishing-cell.png": {
+      "id": "doodad.ruins-finishing-cell",
+      "name": "Finishing cell",
+      "description": "A robotic finishing cell: a robot arm on its turret plinth reaching to a clamped casting.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 55
+    },
+    "metrology-bed.png": {
+      "id": "doodad.ruins-metrology-bed",
+      "name": "Metrology bed",
+      "description": "A metrology bed with its scanning arch across it.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 56
     }
   }
 }

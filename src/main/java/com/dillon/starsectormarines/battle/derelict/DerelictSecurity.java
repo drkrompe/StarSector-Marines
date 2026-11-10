@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
@@ -25,10 +26,15 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Stands a derelict site's security up in a ruins battle (`derelict-security-network.md`): its zones laid along the
@@ -186,11 +192,51 @@ public final class DerelictSecurity {
                     "derelict security walker at its post");
             walkers.add(new DerelictSecurityDirector.Walker(squad, heavies.get(i), plan.id(), post[0], post[1]));
         }
-        DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egressAlong(route),
+        // The line's medium and large (`derelict-watch.md`): a rounds walker a zone, on its round; hall frames in the
+        // plant's largest halls, bound to them where their way out is too narrow.
+        Map<Integer, PatrolRound> rounds = new TreeMap<>();
+        Set<Integer> hallBound = new TreeSet<>();
+        int roundsWalkers = Math.min(plans.size(), DerelictWalkerClass.roundsWalkers(grade, plans.size()));
+        for (int i = 0; i < roundsWalkers; i++) {
+            ZonePlan plan = plans.get(i);
+            // Only places the walker can reach from its node: a sealed store is no part of a round.
+            boolean[] reach = reachable(sim.getGrid(), DerelictWalkerFrame.ROUNDS.chassis.radius,
+                    new int[] {plan.nodeX(), plan.nodeY()});
+            List<int[]> reachablePlaces = new ArrayList<>();
+            for (int[] place : roundPlaces(plan, delve)) {
+                if (reach != null && reach[place[1] * sim.getGrid().getWidth() + place[0]]) reachablePlaces.add(place);
+            }
+            List<int[]> places = PatrolRound.order(network.zone(plan.id()), reachablePlaces);
+            int[] post = places.get(0);
+            int squad = spawn(sim, DerelictWalkerFrame.ROUNDS, post[0], post[1]);
+            if (squad < 0) continue;
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
+                    "derelict rounds walker on its round");
+            walkers.add(new DerelictSecurityDirector.Walker(squad, DerelictWalkerFrame.ROUNDS, plan.id(), post[0],
+                    post[1]));
+            rounds.put(squad, new PatrolRound(places));
+        }
+        List<int[]> egress = egressAlong(route);
+        for (int[] post : hallPosts(delve, DerelictWalkerClass.hallFrames(grade))) {
+            int squad = spawn(sim, DerelictWalkerFrame.HALL, post[0], post[1]);
+            if (squad < 0) continue;
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
+                    "derelict hall frame in its hall");
+            ZonePlan plan = plans.get(nearestZone(plans, post[0], post[1]));
+            walkers.add(new DerelictSecurityDirector.Walker(squad, DerelictWalkerFrame.HALL, plan.id(), post[0],
+                    post[1]));
+            if (!reaches(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius, post, egress)) hallBound.add(squad);
+        }
+        DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
                 vault.sourceCellX(), vault.sourceCellY());
+        for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
+            director.walkRound(round.getKey(), round.getValue());
+        }
+        for (int squad : hallBound) director.keepHall(squad);
         director.wearLook(DerelictLook.of(livery));
         director.armWalkers(sim);
         FlockSystemPort port = new FlockSystemPort();
+        port.through(sim.flocks());
         for (ZonePlan plan : plans) {
             int[] home = openSkyHome(route, plan, (x, y) -> sim.getTopology() != null
                     && sim.getTopology().isRoofIntact(x, y));
@@ -206,6 +252,7 @@ public final class DerelictSecurity {
             director.standNode(plan.id(), node);
         }
         standPosts(sim, route, plans, network, delve, director);
+        standWatchHousings(sim, route, plans, delve, port, livery, director);
         for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
         if (delve != null && !delve.layers().isEmpty()) {
             for (ZonePlan plan : plans) {
@@ -293,6 +340,125 @@ public final class DerelictSecurity {
             }
         }
         return best;
+    }
+
+    /**
+     * The places a zone's round may pass (`derelict-watch.md`, Movement): its route posts and, on ruins ground whose
+     * places are known, the interior's chambers, the layers' courts and side rooms. The rounds walker is narrow enough
+     * for a side room's door. {@link PatrolRound#order} keeps those inside the perimeter.
+     */
+    static List<int[]> roundPlaces(ZonePlan plan, RuinsDelve delve) {
+        List<int[]> out = new ArrayList<>(plan.posts());
+        if (delve == null) return out;
+        if (delve.interior() != null) {
+            for (RuinsDelve.Area chamber : delve.interior().chambers()) {
+                out.add(new int[] {chamber.centreX(), chamber.centreY()});
+            }
+        }
+        for (RuinsDelve.Layer layer : delve.layers()) {
+            if (layer.court() != null) {
+                out.add(new int[] {layer.court().ground().centreX(), layer.court().ground().centreY()});
+            }
+            for (RuinsDelve.SideRoom room : layer.rooms()) out.add(new int[] {room.interior().x(), room.interior().y()});
+        }
+        return out;
+    }
+
+    /**
+     * Where the grade's hall frames stand (`derelict-watch.md`, Medium and large walkers): the middles of the plant's
+     * largest halls, largest first, else the interior's largest chambers; none on ground without an interior.
+     */
+    static List<int[]> hallPosts(RuinsDelve delve, int count) {
+        if (count <= 0 || delve == null || delve.interior() == null) return List.of();
+        List<RuinsDelve.Area> halls = new ArrayList<>();
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
+        if (halls.isEmpty()) halls.addAll(delve.interior().chambers());
+        halls.sort(Comparator.comparingInt((RuinsDelve.Area a) -> -a.width() * a.height())
+                .thenComparingInt(RuinsDelve.Area::left).thenComparingInt(RuinsDelve.Area::bottom));
+        List<int[]> out = new ArrayList<>();
+        for (int i = 0; i < Math.min(count, halls.size()); i++) {
+            out.add(new int[] {halls.get(i).centreX(), halls.get(i).centreY()});
+        }
+        return out;
+    }
+
+    /**
+     * Whether a body of {@code radius} standing at {@code from} reaches any of {@code targets} (within two cells) over
+     * the ground it can stand on: a flood over the cells it fits at the middle or a corner of (a body as wide as a
+     * corridor stands on the seam between its rows).
+     */
+    static boolean reaches(NavigationGrid grid, float radius, int[] from, List<int[]> targets) {
+        if (targets.isEmpty()) return false;
+        boolean[] reach = reachable(grid, radius, from);
+        if (reach == null) return false;
+        int w = grid.getWidth();
+        for (int[] target : targets) {
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    int x = target[0] + dx;
+                    int y = target[1] + dy;
+                    if (grid.inBounds(x, y) && reach[y * w + x]) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The cells a body of {@code radius} standing at {@code from} can reach over the ground it fits, row-major; null
+     * when it cannot stand near {@code from}.
+     */
+    static boolean[] reachable(NavigationGrid grid, float radius, int[] from) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        boolean[] reach = new boolean[w * h];
+        boolean[] seen = new boolean[w * h];
+        ArrayDeque<int[]> open = new ArrayDeque<>();
+        int[] start = nearestStandable(grid, radius, from[0], from[1]);
+        if (start == null) return null;
+        seen[start[1] * w + start[0]] = true;
+        reach[start[1] * w + start[0]] = true;
+        open.add(start);
+        while (!open.isEmpty()) {
+            int[] cell = open.poll();
+            for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int x = cell[0] + d[0];
+                int y = cell[1] + d[1];
+                if (x < 0 || y < 0 || x >= w || y >= h || seen[y * w + x]) continue;
+                seen[y * w + x] = true;
+                if (fits(grid, x, y, radius)) {
+                    reach[y * w + x] = true;
+                    open.add(new int[] {x, y});
+                }
+            }
+        }
+        return reach;
+    }
+
+    /** Whether a body of {@code radius} stands at the middle or at a corner of cell {@code (x, y)}. */
+    private static boolean fits(NavigationGrid grid, int x, int y, float radius) {
+        if (ManualTerrainMotion.canStand(grid, x + 0.5f, y + 0.5f, radius)) return true;
+        for (int cx = 0; cx <= 1; cx++) {
+            for (int cy = 0; cy <= 1; cy++) {
+                if (ManualTerrainMotion.canStand(grid, x + cx, y + cy, radius)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static int[] nearestStandable(NavigationGrid grid, float radius, int x0, int y0) {
+        for (int r = 0; r <= 3; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    int x = x0 + dx;
+                    int y = y0 + dy;
+                    if (grid.inBounds(x, y) && fits(grid, x, y, radius)) {
+                        return new int[] {x, y};
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /** The zone whose node is nearest a cell. */
@@ -459,18 +625,108 @@ public final class DerelictSecurity {
 
     /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
+        int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
+        if (spawnInto(sim, frame, postX, postY, squad) == 0L) return -1;
+        sim.getSquad(squad).originalSize = 1;
+        return squad;
+    }
+
+    /**
+     * One walker into an existing lance at the nearest standable point to {@code (postX, postY)}, as its leader: a
+     * raised wreck stands again in its own lance (`derelict-watch.md`, Repair). Returns the walker, or 0 when no point
+     * near is standable.
+     */
+    static long spawnInto(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY, int squad) {
         float radius = frame.chassis.radius;
         MechSpawnPlacement.Point at = MechSpawnPlacement.nearCell(sim.getGrid(), radius, postX, postY,
                 (x, y) -> true, (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L));
-        if (at == null) return -1;
-        int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
-        String name = frame.designation();
-        long id = sim.spawn(frame.applyTo(new EntitySpec(name, Faction.DEFENDER, UnitType.HEAVY_MECH,
+        if (at == null) return 0L;
+        long id = sim.spawn(frame.applyTo(new EntitySpec(frame.designation(), Faction.DEFENDER, UnitType.HEAVY_MECH,
                 at.cellX(), at.cellY())).atPosition(at.x(), at.y()).squad(squad));
+        if (id == 0L) return 0L;
         sim.world().attachMechLoadout(id, frame.createLoadout());
         Squad lance = sim.getSquad(squad);
         lance.leaderId = id;
-        lance.originalSize = 1;
-        return squad;
+        return id;
+    }
+
+    /**
+     * Stands each zone's service bay beside its node and its sealed reserve bay by its flock's home, and lays the
+     * service ducts' vents: one at each zone's flock home and one in each court, the court's under the nearest zone
+     * (`derelict-watch.md`). The reserve bay opens a second flock in the zone's livery when the facility's wake calls
+     * it.
+     */
+    static void standWatchHousings(BattleSimulation sim, int[] route, List<ZonePlan> plans, RuinsDelve delve,
+                                   FlockSystemPort port, FlockLivery livery, DerelictSecurityDirector director) {
+        NavigationGrid grid = sim.getGrid();
+        Walkable walkable = (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y);
+        Roofed roofed = (x, y) -> sim.getTopology() != null && sim.getTopology().isRoofIntact(x, y);
+        Set<Long> taken = new HashSet<>();
+        for (long node : director.nodes().values()) taken.add(cellKey(sim.world().cellX(node), sim.world().cellY(node)));
+        List<ServiceDucts.Vent> vents = new ArrayList<>();
+        for (ZonePlan plan : plans) {
+            int[] bay = besideRoute(route, plan.nodeX(), plan.nodeY(), walkable, taken);
+            if (bay != null) {
+                taken.add(cellKey(bay[0], bay[1]));
+                long id = sim.spawn(DerelictNode.create("derelict-service-bay-" + plan.id(), Faction.DEFENDER,
+                        bay[0], bay[1]).health(ServiceBay.MAX_STRUCTURE).armor(ServiceBay.ARMOR_CAPACITY,
+                        DerelictNode.ARMOR_RATING));
+                if (id != 0L) director.standServiceBay(plan.id(), id);
+            }
+            int[] home = openSkyHome(route, plan, roofed);
+            vents.add(new ServiceDucts.Vent(vents.size(), home[0], home[1], plan.id()));
+            int[] reserve = nearOpen(home, RESERVE_SET_BACK_CELLS, walkable, roofed, taken);
+            if (reserve != null) {
+                taken.add(cellKey(reserve[0], reserve[1]));
+                long id = sim.spawn(DerelictNode.create("derelict-reserve-bay-" + plan.id(), Faction.DEFENDER,
+                        reserve[0], reserve[1]));
+                if (id != 0L) director.standReserveBay(plan.id(), id);
+            }
+        }
+        if (delve != null) {
+            for (RuinsDelve.Layer layer : delve.layers()) {
+                if (layer.court() == null) continue;
+                int x = layer.court().ground().centreX();
+                int y = layer.court().ground().centreY();
+                if (roofed.at(x, y) || !walkable.at(x, y)) continue;
+                vents.add(new ServiceDucts.Vent(vents.size(), x, y, plans.get(nearestZone(plans, x, y)).id()));
+            }
+        }
+        director.layDucts(new ServiceDucts(vents));
+        int[] raised = {0};
+        director.standPostsWith((zoneId, x, y) -> standPost(sim, "derelict-post-raised-" + raised[0]++, zoneId, x, y,
+                director));
+        director.launchReserves((zoneId, x, y) -> {
+            ZonePlan plan = null;
+            for (ZonePlan p : plans) if (p.id() == zoneId) plan = p;
+            if (plan == null) return -1;
+            Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, x, y, FLOCK_SIZE, FlockWeights.WASP,
+                    plan.perimeterCells() + FlockTasking.LEASH_CELLS, livery);
+            port.add(flock, zoneId);
+            return flock.id();
+        });
+    }
+
+    /** How far from a flock's home its zone's reserve bay is set back, cells. */
+    static final int RESERVE_SET_BACK_CELLS = 3;
+
+    /** The nearest open-sky, walkable cell at least {@code minCells} from {@code from} and not taken; null if none near. */
+    static int[] nearOpen(int[] from, int minCells, Walkable walkable, Roofed roofed, Set<Long> taken) {
+        for (int r = minCells; r <= minCells + 6; r++) {
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = from[0] + dx;
+                    int y = from[1] + dy;
+                    if (!walkable.at(x, y) || roofed.at(x, y) || taken.contains(cellKey(x, y))) continue;
+                    return new int[] {x, y};
+                }
+            }
+        }
+        return null;
+    }
+
+    static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
     }
 }

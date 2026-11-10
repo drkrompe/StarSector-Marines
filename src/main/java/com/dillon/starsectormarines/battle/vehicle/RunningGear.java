@@ -43,6 +43,11 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
             case SCOUT_CAR -> ofFrame(type, 640f, 146f, 225f, 180f);
             // The trailer's rear axles under its tail, the tractor's under its cab.
             case CARGO_CARRIER -> ofFrame(type, 1024f, 110f, 388f, 400f);
+            // The midline carriers' wheels, in cells off their straight hull (art-source/vehicles/midline-carriers,
+            // guide.py): the cab's axle at the front, the mission module's rearmost at the back.
+            case LIGHT_CARRIER -> new RunningGear(.62f, 1.06f, 1.14f);
+            case MEDIUM_CARRIER -> new RunningGear(.74f, 1.60f, 1.64f);
+            case HEAVY_CARRIER -> new RunningGear(.88f, 2.215f, 2.235f);
             case HOVER_SCOUT, DRONE_SKIMMER, HEAVY_SKIMMER, BREAKTHROUGH_TANK -> NONE;
         };
     }
