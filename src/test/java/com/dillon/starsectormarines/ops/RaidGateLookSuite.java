@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.setup.RaidWorksLayout;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -27,7 +28,7 @@ import java.util.Locale;
 
 /**
  * A raid garrison's main gate ({@code precincts.md}, Gates are leaf doors) in its three states, look preset,
- * 1920x1080: shut with nobody near ({@code gate-shut.png}), open for a body standing in it ({@code gate-open.png}),
+ * 1920x1080: shut with nobody near ({@code gate-shut.png}), open for a vehicle driving through ({@code gate-open.png}),
  * and forced, its jamb blown ({@code gate-forced.png}). Nothing is played: the bodies are set where the shots need
  * them and the jamb is opened as a breach would.
  */
@@ -61,8 +62,10 @@ public final class RaidGateLookSuite implements SnapshotSuite {
                         sim.wallGates().size(), gate.spanX() ? "across x" : "across y", gx, gy, gate.width());
                 clear(sim, gx, gy);
                 out.add(new SnapshotArtifact("gate-shut.png", shot(context, sim, gx, gy)));
-                UnitRosterService roster = sim.getRoster();
-                sim.world().setPos(roster.get(0), gx, gy);
+                long driver = driver(sim);
+                System.out.printf(Locale.ROOT, "[%s] driving %s through%n", id(),
+                        sim.getRoster().identity().type(driver));
+                sim.world().setPos(driver, gx, gy);
                 out.add(new SnapshotArtifact("gate-open.png", shot(context, sim, gx, gy)));
                 clear(sim, gx, gy);
                 int[] jamb = gate.jambs()[0];
@@ -90,6 +93,22 @@ public final class RaidGateLookSuite implements SnapshotSuite {
                 world.setPos(id, world.x(id) + 3 * ACROSS, world.y(id));
             }
         }
+    }
+
+    /** What drives through the gate: a ground vehicle, else a mech, else anything that moves; never an emplacement. */
+    private static long driver(BattleSimulation sim) {
+        UnitRosterService roster = sim.getRoster();
+        long mech = -1, mover = -1;
+        for (int k = 0; k < roster.liveCount(); k++) {
+            long id = roster.get(k);
+            UnitType type = roster.identity().type(id);
+            if (type.isGroundVehicle()) return id;
+            if (type.isMech() && mech < 0) mech = id;
+            if (!type.isStatic() && mover < 0) mover = id;
+        }
+        if (mech >= 0) return mech;
+        if (mover >= 0) return mover;
+        throw new IllegalStateException("nothing on the map moves");
     }
 
     private static WallGate widest(List<WallGate> gates) {
