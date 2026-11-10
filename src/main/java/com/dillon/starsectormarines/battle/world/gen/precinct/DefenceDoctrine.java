@@ -22,6 +22,8 @@ import java.util.Map;
  *   <li><b>Corners.</b> Then the wall's corners, the one facing the threat first: a corner post sees down two faces
  *       of the wall and out over the approach.</li>
  *   <li><b>Inner.</b> Then a post beside what the place exists to keep: its motor pool and its command.</li>
+ *   <li><b>Wall.</b> A loadout with posts to spare lines the wall behind its face, the face toward the threat
+ *       first.</li>
  *   <li><b>Depth.</b> Artillery and drone hubs stand deepest and furthest from the main gate, where an attacker has
  *       to get through the wall to reach them.</li>
  * </ul>
@@ -38,7 +40,7 @@ public final class DefenceDoctrine {
     private DefenceDoctrine() {}
 
     /** Why a site is where it is. */
-    public enum Role { GATE, CORNER, INNER, DEPTH }
+    public enum Role { GATE, CORNER, INNER, WALL, DEPTH }
 
     /**
      * A gate in the wall: its centre on the wall line, the unit step that leads out of the place through it, and half
@@ -100,10 +102,16 @@ public final class DefenceDoctrine {
     public static List<Site> plan(boolean[][] inside, List<Gate> gates, List<int[]> hearts, int[] threat,
                                   Map<DefensePostKind, Integer> posts, Fits fits) {
         int w = inside.length, h = inside[0].length;
-        int[] box = bounds(inside);
         List<Site> sites = new ArrayList<>();
-        if (box == null) return sites;
+        if (bounds(inside) == null) return sites;
         int[] centre = centroid(inside);
+        int[][] depth = depth(inside);
+        // The ring a corner or wall post stands on, behind the wall's face; the deepest ring there is on a thin place.
+        int deepest = 0;
+        for (int[] col : depth) for (int d : col) deepest = Math.max(deepest, d);
+        int ringDepth = Math.max(1, Math.min(CORNER_SETBACK, deepest));
+        List<int[]> ring = new ArrayList<>();
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) if (depth[x][y] == ringDepth) ring.add(new int[]{x, y});
         int[] toward = threat != null ? threat
                 : gates.isEmpty() ? null
                 : new int[]{gates.get(0).x() + gates.get(0).outX() * w, gates.get(0).y() + gates.get(0).outY() * h};
@@ -121,17 +129,27 @@ public final class DefenceDoctrine {
                         Role.GATE.ordinal(), g});
             }
         }
-        for (int[] corner : corners(box, centre, toward)) {
+        for (int[] corner : corners(ring, centre, toward)) {
             wanted.add(new int[]{corner[0], corner[1], Role.CORNER.ordinal(), -1});
         }
         for (int[] heart : hearts) wanted.add(new int[]{heart[0], heart[1], Role.INNER.ordinal(), -1});
+        // Then along the wall, the face toward the threat first.
+        List<int[]> along = new ArrayList<>(ring);
+        if (toward != null) {
+            double tx = toward[0] - centre[0], ty = toward[1] - centre[1];
+            along.sort(Comparator.comparingDouble((int[] c) -> -((c[0] - centre[0]) * tx + (c[1] - centre[1]) * ty))
+                    .thenComparingInt(c -> c[0]).thenComparingInt(c -> c[1]));
+        }
+        for (int[] cell : along) wanted.add(new int[]{cell[0], cell[1], Role.WALL.ordinal(), -1});
 
         List<DefensePostKind> perimeter = expand(posts, PERIMETER);
         int next = 0;
         for (int[] want : wanted) {
             if (next >= perimeter.size()) break;
             DefensePostKind kind = perimeter.get(next);
-            int[] at = resolve(want[0], want[1], kind, inside, sites, fits);
+            boolean exact = want[2] == Role.WALL.ordinal();   // a wall cell is itself a candidate, not a target
+            int[] at = exact ? (fits.at(want[0], want[1], kind) && !crowded(want[0], want[1], sites) ? new int[]{
+                    want[0], want[1]} : null) : resolve(want[0], want[1], kind, inside, sites, fits);
             if (at == null) continue;
             sites.add(new Site(at[0], at[1], Role.values()[want[2]], kind, want[3]));
             next++;
@@ -140,9 +158,6 @@ public final class DefenceDoctrine {
         // Depth: deepest ground, furthest from the main gate.
         List<DefensePostKind> standoff = expand(posts, STANDOFF);
         if (!standoff.isEmpty()) {
-            int[][] depth = depth(inside);
-            int deepest = 0;
-            for (int[] col : depth) for (int d : col) deepest = Math.max(deepest, d);
             int floor = Math.min(DEEP, Math.max(1, deepest - 2));
             int[] from = gates.isEmpty() ? centre : new int[]{gates.get(0).x(), gates.get(0).y()};
             List<int[]> rear = new ArrayList<>();
@@ -209,14 +224,20 @@ public final class DefenceDoctrine {
                 cells.size() / 2);
     }
 
-    /** The place's four corners, moved in by {@link #CORNER_SETBACK}, the one facing the threat first. */
-    private static List<int[]> corners(int[] box, int[] centre, int[] toward) {
+    /**
+     * The place's four corners: the cells of the ring {@link #CORNER_SETBACK} behind the wall furthest out along each
+     * diagonal, so a grown claim's corners are its own and not its bounding box's. The one facing the threat first.
+     */
+    private static List<int[]> corners(List<int[]> ring, int[] centre, int[] toward) {
         List<int[]> out = new ArrayList<>();
+        if (ring.isEmpty()) return out;
         for (int sx : new int[]{-1, 1}) {
             for (int sy : new int[]{-1, 1}) {
-                int x = sx < 0 ? box[0] + CORNER_SETBACK : box[2] - CORNER_SETBACK;
-                int y = sy < 0 ? box[1] + CORNER_SETBACK : box[3] - CORNER_SETBACK;
-                out.add(new int[]{x, y});
+                int[] best = null;
+                for (int[] c : ring) {
+                    if (best == null || sx * c[0] + sy * c[1] > sx * best[0] + sy * best[1]) best = c;
+                }
+                out.add(best);
             }
         }
         if (toward != null) {

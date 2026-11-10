@@ -1285,7 +1285,10 @@ four from size 7 (`CantonmentRoads.gates`), and each **further gate** is a
 narrower road from the patrol lane inside the wall, out across the glacis, on
 until it meets the town's road, in the middle of each further side that faces
 one, nearest first. Every gate therefore joins the map's network; a side whose
-road would only leave the map has none. The grade does not close gates: it arms
+road would only leave the map has none. Planned, not built: a further gate opens
+on the patrol lane, which walks but does not drive, so the layout is to keep a
+way three cells wide from each further gate to the nearest street once the
+motor pool plan is picked. The grade does not close gates: it arms
 them (`precincts.md`, Defences are sited by doctrine). Its parts:
 
 - the **motor pool**: vehicle sheds whose door ends open on a paved

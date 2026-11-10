@@ -1352,6 +1352,9 @@ every emplacement by role, heaviest first:
   first, each seeing down two faces and out over the approach;
 - **inner**: then beside what the place exists to keep, its motor pool and its
   command;
+- **wall**: a loadout with posts to spare lines the ring behind the wall, the
+  face toward the threat first (a grown claim's corners are the ring's own
+  extremes, not its bounding box's);
 - **depth**: artillery and drone hubs on the deepest ground furthest from the
   main gate, because their whole point is reaching past the wall from
   somewhere the attacker must get through the wall to reach.

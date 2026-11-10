@@ -91,8 +91,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
-            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height,
-                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis());
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height, 1, precinct.fortification().glacis());
             if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
             CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
         }
@@ -131,6 +130,14 @@ public final class PrecinctSkeletonStage implements GenStage {
             // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
             // piece of road on its own; the map is one network after it as before it.
             PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+        }
+
+        // A cantonment's further gates, once every road the map will have is laid, so each meets the town's road.
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            Precinct precinct = plan.precincts().get(i);
+            if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
+            CantonmentRoads.further(claim, grown.owner(), i, ctx.width, ctx.height,
+                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis());
         }
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;

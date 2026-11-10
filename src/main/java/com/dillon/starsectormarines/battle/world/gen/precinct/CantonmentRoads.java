@@ -40,14 +40,51 @@ public final class CantonmentRoads {
     static final int LANE = 3;
 
     /**
-     * How many gates a cantonment of this program owes: two, three from a market of size five, four from size seven.
-     * A garrison's barrack blocks are its market's size less one ({@link FortressProgram#cantonment}), so they stand
-     * for it here. UNTUNED.
+     * Temporary A/B lever for the gate-count cards (picks {@code raid-gates}): {@code SIZE} (default, recommended),
+     * {@code GRADE} or {@code TWO}. Removed with the losing rules once the owner picks.
      */
+    public static final String GATES_PROPERTY = "battle.garrison.gates";
+
+    /** How a cantonment's gate count is decided; the picks {@code raid-gates} choose one. */
+    public enum GateRule {
+        /** By market size: two, three from size five, four from size seven. */
+        SIZE,
+        /** By security grade: an open base four, a guarded three, a fortified two. */
+        GRADE,
+        /** Always two: the main gate and one more. */
+        TWO
+    }
+
+    /** The rule the property names, {@link GateRule#SIZE} when it names none. */
+    public static GateRule gateRule() {
+        String named = System.getProperty(GATES_PROPERTY, "");
+        for (GateRule rule : GateRule.values()) {
+            if (rule.name().equalsIgnoreCase(named.trim())) return rule;
+        }
+        return GateRule.SIZE;
+    }
+
+    /** How many gates a cantonment of this program owes under the chosen {@link #gateRule}. */
     public static int gates(FortressProgram program) {
-        int barracks = 0;
-        for (FortressBuilding b : program.buildings()) if (b.purpose() == RoomPurpose.BARRACKS) barracks += b.count();
-        return barracks >= 6 ? 4 : barracks >= 4 ? 3 : 2;
+        return gates(program, gateRule());
+    }
+
+    /**
+     * How many gates a cantonment of this program owes. A garrison's barrack blocks are its market's size less one and
+     * its magazines its security grade plus one ({@link FortressProgram#cantonment}), so they stand for both here.
+     * UNTUNED.
+     */
+    static int gates(FortressProgram program, GateRule rule) {
+        int barracks = 0, magazines = 0;
+        for (FortressBuilding b : program.buildings()) {
+            if (b.purpose() == RoomPurpose.BARRACKS) barracks += b.count();
+            if (b.purpose() == RoomPurpose.ARMORY) magazines += b.count();
+        }
+        return switch (rule) {
+            case SIZE -> barracks >= 6 ? 4 : barracks >= 4 ? 3 : 2;
+            case GRADE -> Math.max(2, 5 - magazines);
+            case TWO -> 2;
+        };
     }
 
     /**
@@ -106,13 +143,31 @@ public final class CantonmentRoads {
             }
         }
         if (out == null) out = Side.facing(width / 2 - cx, height / 2 - cy);
-        // Further gates: the other sides with a road to meet, each from the middle of its side, nearest road first,
-        // so a cap below the sides available keeps the shortest ways out.
+        run(claim, owner, who, cx, cy, out, HALF, width, height);
+        further(claim, owner, who, width, height, gates, glacis);
+    }
+
+    /**
+     * Opens {@code who}'s further gates, up to {@code gates} in all with those already open: the sides with a road to
+     * meet, each from the middle of its side, nearest road first, so a cap below the sides available keeps the
+     * shortest ways out. Run once the map's roads are all laid (after the welds and the mission's layout roads), so a
+     * road the town gets late is still a road a gate can meet.
+     */
+    public static void further(int[][] claim, int[][] owner, int who, int width, int height, int gates, int glacis) {
+        boolean[][] mine = new boolean[width][height];
+        for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) mine[x][y] = claim[x][y] == who;
+        int[] square = Cantonment.square(mine);
+        if (square == null) return;
+        int open = 0;
         List<Side> further = new ArrayList<>();
         List<int[]> starts = new ArrayList<>();
         List<Integer> reach = new ArrayList<>();
         for (Side side : Side.values()) {
-            if (side == out) continue;
+            int[] edge = sideStart(square, side, -LANE);
+            if (owner[edge[0]][edge[1]] == who) {     // a road of its own already leaves by this side
+                open++;
+                continue;
+            }
             int[] start = sideStart(square, side, glacis);
             int steps = toRoad(claim, owner, who, start[0], start[1], side, width, height);
             if (steps < 0) continue;
@@ -123,8 +178,7 @@ public final class CantonmentRoads {
         List<Integer> order = new ArrayList<>();
         for (int k = 0; k < further.size(); k++) order.add(k);
         order.sort(Comparator.comparingInt(reach::get));
-        run(claim, owner, who, cx, cy, out, HALF, width, height);
-        for (int k : order.subList(0, Math.min(order.size(), Math.max(0, gates - 1)))) {
+        for (int k : order.subList(0, Math.min(order.size(), Math.max(0, gates - open)))) {
             run(claim, owner, who, starts.get(k)[0], starts.get(k)[1], further.get(k), SIDE_HALF, width, height);
         }
     }

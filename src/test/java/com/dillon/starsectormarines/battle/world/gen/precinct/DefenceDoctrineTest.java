@@ -146,6 +146,23 @@ class DefenceDoctrineTest {
         }
     }
 
+    /**
+     * A grown claim is not a square: its corners are its own, not its bounding box's, and a loadout with posts to
+     * spare lines the wall rather than going unplaced.
+     */
+    @Test
+    void anLShapedPlaceStillTakesItsWholeLoadout() {
+        boolean[][] inside = inside();
+        for (int x = MID; x <= HI; x++) for (int y = MID; y <= HI; y++) inside[x][y] = false;   // the missing quarter
+        boolean[][] clear = DefenceDoctrine.approaches(List.of(SOUTH), W, H);
+        List<DefenceDoctrine.Site> sites = DefenceDoctrine.plan(inside, List.of(SOUTH), List.of(), null,
+                posts(DefensePostKind.MEDIUM, 2, DefensePostKind.LIGHT, 6), fits(inside, clear));
+        assertEquals(8, sites.size(), "an L-shaped place left posts unsited");
+        for (DefenceDoctrine.Site s : sites) {
+            assertTrue(inside[s.x()][s.y()], s.role() + " at " + s.x() + "," + s.y() + " stands off the place");
+        }
+    }
+
     @Test
     void groundThatTakesNothingGetsNothingRatherThanAScatter() {
         boolean[][] inside = inside();

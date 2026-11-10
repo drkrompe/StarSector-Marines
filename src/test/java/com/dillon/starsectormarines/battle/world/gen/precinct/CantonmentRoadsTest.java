@@ -71,6 +71,21 @@ class CantonmentRoadsTest {
         assertEquals(GrownTrunkPlan.UNOWNED, owner[20][10 + in + 1], "and stops there, short of the rows");
     }
 
+    /** Every gate's road meets the town's: the road grid is one network with nothing welded in. */
+    @Test
+    void everyGateJoinsTheNetwork() {
+        int[][] claim = grid(GrownTrunkPlan.UNOWNED);
+        int[][] owner = grid(GrownTrunkPlan.UNOWNED);
+        for (int x = 10; x < 30; x++) for (int y = 10; y < 30; y++) claim[x][y] = 0;
+        for (int y = 0; y < H; y++) owner[40][y] = 1;
+        for (int x = 0; x < W; x++) owner[x][2] = 1;
+        for (int x = 0; x < W; x++) owner[x][36] = 1;
+        CantonmentRoads.lay(claim, owner, 0, W, H, 4, 2);
+        int[][] copy = new int[W][];
+        for (int x = 0; x < W; x++) copy[x] = owner[x].clone();
+        assertEquals(1, PrecinctInterconnect.weld(copy, W, H).componentsBefore(), "a gate's road is an island");
+    }
+
     @Test
     void theCapKeepsTheNearestWaysOut() {
         int[][] claim = grid(GrownTrunkPlan.UNOWNED);
@@ -86,9 +101,13 @@ class CantonmentRoadsTest {
 
     @Test
     void aBigMarketOwesMoreGates() {
-        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 1, 1)));
-        assertEquals(3, CantonmentRoads.gates(FortressProgram.cantonment(5, 1, 1)));
-        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 1, 1)));
+        CantonmentRoads.GateRule size = CantonmentRoads.GateRule.SIZE;
+        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 1, 1), size));
+        assertEquals(3, CantonmentRoads.gates(FortressProgram.cantonment(5, 1, 1), size));
+        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 1, 1), size));
+        CantonmentRoads.GateRule grade = CantonmentRoads.GateRule.GRADE;
+        assertEquals(4, CantonmentRoads.gates(FortressProgram.cantonment(7, 0, 1), grade));
+        assertEquals(2, CantonmentRoads.gates(FortressProgram.cantonment(4, 2, 1), grade));
     }
 
     @Test
