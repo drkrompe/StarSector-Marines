@@ -1,0 +1,65 @@
+{
+ "alphaMin": 16,
+ "blocks": [],
+ "cellPx": 128,
+ "entries": [
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    9,
+    4
+   ],
+   "id": "doodad.hydro-dome-pair",
+   "included": true,
+   "note": "Two sealed geodesic grow domes lit violet inside over ring beds, joined by a pressurised tube. Covered farm on a hostile world; walk-in, no cover.",
+   "rect": [
+    38,
+    38,
+    1061,
+    471
+   ]
+  },
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    4,
+    4
+   ],
+   "id": "doodad.hydro-dome",
+   "included": true,
+   "note": "One lit geodesic grow dome with a south airlock, to end a row or fill a short plot.",
+   "rect": [
+    38,
+    547,
+    471,
+    471
+   ]
+  },
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    2,
+    4
+   ],
+   "id": "doodad.hydro-dome-tanks",
+   "included": true,
+   "note": "Tank station: two water and nutrient tanks on a skid with a pipe, ending a dome row.",
+   "rect": [
+    547,
+    547,
+    236,
+    471
+   ]
+  }
+ ],
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "doodad.hydro-domes",
+ "note": "A covered farm look for hostile worlds (story-map-pools.md, Planet skin; PlanetSkin.FarmLook), one of three put to the owner after the polytunnels did not read as hydroponics. Measured 1448x1086 RGBA, three alpha pieces. Geometry-first reskin of templates/hydro-domes-guide.png (hydroponics-guide.py, 125 px a cell); ImageGen returned the sheet uniformly at 0.943 of the guide and every piece within a few pixels of its guide, so each rect is its guide frame at that scale. Exact prompt in hydro-domes.prompt.txt.",
+ "outputSheet": "graphics/doodads/hydro-domes.png",
+ "sheet": "art-source/tilesets/hydro-domes.raw.png",
+ "sheetName": "hydro-domes"
+}

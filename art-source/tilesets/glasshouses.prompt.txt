@@ -1,0 +1,12 @@
+Use case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1152 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground or soil around the objects.
+
+Paint a frontier colony's hydroponic farm, grown sealed indoors under artificial light because the planet outside is frozen, irradiated or poisonous. It must read at a glance, even small, as enclosed hydroponic growing: wherever the guide paints magenta, paint glowing magenta-pink LED grow light (a bright saturated core with a soft pink bloom) shining on dense green leafy crops in hydroponic trays; never paint the magenta as paint, fabric or flat colour. Three pieces, in reading order:
+1. Top, a long rigid glass growing hall seen from above (a Venlo greenhouse): a sawtooth of narrow pale glazed ridges running north-south where the guide draws its lines, in a dark steel frame, and through the glass long rows of green crops in hydroponic gutters under glowing magenta grow-light bars running the length of the hall; a teal header pipe along the north edge and a steel door at the east end.
+2. Bottom left, the same hall, half as long, with the same glazing, crop rows, grow-light bars, header pipe and door.
+3. Bottom right, a boiler and CO2 house: an off-white steel roof with a round dark flue stack near the top and a round white CO2 tank with a hatch near the bottom, a teal header pipe along the top edge.
+
+Grounded painted Starsector-style sprite aesthetic: credible industrial materials, worn steel, bolts, seams, hazard stencils without letters, a little grime and frost on edges; soft neutral overhead light with shallow local shading only, the grow light the one saturated accent. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.
+
+True alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no watermark. Paint only these three objects and nothing outside their silhouettes.
