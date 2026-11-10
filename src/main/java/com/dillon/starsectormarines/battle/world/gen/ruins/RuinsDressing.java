@@ -16,15 +16,27 @@ import java.util.List;
  * @param chambers props along the interior chambers' walls
  * @param floor    walkable patches on the open floor of the vault room and the chambers
  */
-public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor) {
+public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product) {
 
     /** Plain ground: the ruins as they stand. */
-    public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of());
+    public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of(), null);
 
     public RuinsDressing {
         vault = List.copyOf(vault);
         chambers = List.copyOf(chambers);
         floor = List.copyOf(floor);
+    }
+
+    /**
+     * Props and floor patches, with no product of the theme's own: the secure store's last cradle holds a stand-in.
+     */
+    public RuinsDressing(List<String> vault, List<String> chambers, List<String> floor) {
+        this(vault, chambers, floor, null);
+    }
+
+    /** The same dressing whose product, the prize standing in its cradle, is {@code product}. */
+    public RuinsDressing withProduct(String product) {
+        return new RuinsDressing(vault, chambers, floor, product);
     }
 
     /** Props only, bare floors. */

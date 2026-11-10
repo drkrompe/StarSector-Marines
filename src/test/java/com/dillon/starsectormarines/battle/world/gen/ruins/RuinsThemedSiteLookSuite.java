@@ -20,8 +20,10 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * A ruins site built round a colony item ({@code ruins-expedition.md}, The vault and its prize): an extensive site
@@ -70,6 +72,15 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact("01-approach.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     W, H, frame[0] - 20f, height / 2f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 2f)
                     .render(sim, "")));
+            // The plant's halls, one of each stage, roofs off: the plant that made the prize.
+            Set<RuinsDelve.PlantStage> shown = EnumSet.noneOf(RuinsDelve.PlantStage.class);
+            for (RuinsDelve.PlantHall plantHall : sim.getRuinsWorks().delve().interior().halls()) {
+                if (!shown.add(plantHall.stage())) continue;
+                RuinsDelve.Area f = plantHall.footprint();
+                out.add(new SnapshotArtifact("plant/" + plantHall.stage().name().toLowerCase(Locale.ROOT) + ".png",
+                        BattleReviewFrameRenderer.look(context.modRoot(), W, H, f.centreX() + 0.5f, f.centreY() + 0.5f,
+                                Math.max(f.width(), f.height() * 16f / 9f) * 1.3f).withoutRoofs().render(sim, "")));
+            }
             // The company restarts the hall: the vault's power, and the guns' with it.
             sim.getRuinsWorks().graph().restart();
             // A breath after waking: the guns are on the hazard side, so the crew soon fights them.
