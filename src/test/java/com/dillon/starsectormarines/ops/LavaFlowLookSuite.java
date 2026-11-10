@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Lava flows on a volcanic world ({@code voids.md}, Lava flows): a remote volcanic Assault, its lava river and the
+ * Lava flows on a volcanic world ({@code voids.md}, Lava flows): a volcanic Assault on a town and its country, its lava river,
  * older flows that broke from it, framed whole ({@code seed<n>-whole.png}) and at play zoom on the flows nearest the
  * map's middle ({@code -play.png}). Look preset; nothing is played. {@code -Dsnapshot.lavaFlow.seeds=7,11} picks the
  * seeds.
@@ -52,8 +53,8 @@ public final class LavaFlowLookSuite implements SnapshotSuite {
                         EnumSet.of(EconomicFunction.AGRICULTURE, EconomicFunction.HABITATION),
                         SurfacePalette.VOLCANIC, SettlementLink.ROAD);
                 try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
-                        false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
-                        FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, DESIGN)) {
+                        false, OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
+                        FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.BALANCED, DESIGN)) {
                     render(context, sim, String.format(Locale.ROOT, "seed%d", seed), out);
                 }
             }
@@ -79,11 +80,28 @@ public final class LavaFlowLookSuite implements SnapshotSuite {
                 if (d < best) { best = d; px = x + .5f; py = y + .5f; }
             }
         }
-        System.out.printf(Locale.ROOT, "[%s] %s %dx%d lava %d cells, older flows %d cells, style %s%n", id(), id, w,
-                h, drop, flows, topology.naturalVoid() == null ? "none" : topology.naturalVoid().style());
+        // The town's berm: whatever the map raised (the generated volcanic map raises nothing else).
+        ElevationMap elevation = sim.getGrid().elevation();
+        int raised = 0;
+        float bx = 0, by = 0;
+        if (elevation != null) {
+            for (int i = 0; i < w * h; i++) {
+                if (elevation.sightHeightAt(i) <= 0) continue;
+                raised++;
+                bx += i % w + .5f;
+                by += i / w + .5f;
+            }
+        }
+        System.out.printf(Locale.ROOT, "[%s] %s %dx%d lava %d cells, older flows %d cells, raised %d cells, style %s%n",
+                id(), id, w, h, drop, flows, raised,
+                topology.naturalVoid() == null ? "none" : topology.naturalVoid().style());
         out.add(new SnapshotArtifact(id + "-whole.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080,
                 w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f).render(sim, "")));
         out.add(new SnapshotArtifact(id + "-play.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080,
                 px, py, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.5f).render(sim, "")));
+        if (raised > 0) {
+            out.add(new SnapshotArtifact(id + "-berm.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920,
+                    1080, bx / raised, by / raised, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 2f).render(sim, "")));
+        }
     }
 }
