@@ -42,6 +42,11 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          */
         CANYON,
         /**
+         * A dry rock gorge on a barren world: grey regolith and bedrock walls in strata, grit on the ledges, and a
+         * floor of dust and rubble thick with fallen blocks. No water and no haze.
+         */
+        DRY_GORGE,
+        /**
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */

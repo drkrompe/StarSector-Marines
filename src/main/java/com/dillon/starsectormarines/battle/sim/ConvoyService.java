@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
@@ -97,6 +98,9 @@ public final class ConvoyService implements BodyCarrier {
      */
     private final Map<Long, MachineSystems> systems = new LinkedHashMap<>();
 
+    /** The Mech Lab's aim bonus on each company hull that has one, by entity id ({@link MechRefit#accuracyMult}). */
+    private final Map<Long, Float> refitAccuracy = new LinkedHashMap<>();
+
     /** Setup-time hook run once for every hull set down, so the battle can enrol it as a fog contributor. */
     private LongConsumer spawnSink;
 
@@ -162,7 +166,7 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
         return spawn(loadout.type(), loadout.plating(), loadout.engine(), loadout.gun(),
-                loadout.compartment(), loadout.noOwnGun(), faction, mission);
+                loadout.compartment(), loadout.noOwnGun(), loadout.refit(), faction, mission);
     }
 
     /**
@@ -205,6 +209,18 @@ public final class ConvoyService implements BodyCarrier {
     public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, Faction faction,
                       VehicleMission mission) {
+        return spawn(type, plating, engine, weapon, compartment, noOwnGun, MechRefit.NEUTRAL, faction, mission);
+    }
+
+    /**
+     * As above, with the company's Mech Lab upgrades over the hull as they are over its mechs ({@link MechRefit}): the
+     * plate over every armor pool, the coolant over the reservoir's dissipation, the calibration over the turret's
+     * traverse and, through {@link #refitAccuracy}, over every gun's aim.
+     */
+    public long spawn(VehicleType type, VehiclePlating plating, VehicleEngine engine,
+                      MechWeaponComponent weapon, List<MechInternal> compartment, boolean noOwnGun, MechRefit refit,
+                      Faction faction, VehicleMission mission) {
+        if (refit == null) refit = MechRefit.NEUTRAL;
         if (weapon == null && !noOwnGun) weapon = type.ownGun();
         HullReservoir.Frame flux = VehicleRack.frame(type, compartment);
         if (flux == null) flux = HullReservoir.stockFrame(type);
@@ -212,9 +228,12 @@ public final class ConvoyService implements BodyCarrier {
         if (flux != null && engine.dissipation() != 0f) {
             flux = new HullReservoir.Frame(flux.capacity(), Math.max(0f, flux.dissipationPerSecond() + engine.dissipation()));
         }
+        if (flux != null && refit.dissipationMult() != 1f) {
+            flux = new HullReservoir.Frame(flux.capacity(), flux.dissipationPerSecond() * refit.dissipationMult());
+        }
         MissileReplenisherComponent loader = VehicleRack.loader(compartment);
         MachineSystems fittedSystems = MechCompartment.systems(compartment);
-        HullFitEffect fitted = HullFitEffect.of(plating, type).with(fittedSystems);
+        HullFitEffect fitted = HullFitEffect.of(plating, type).with(fittedSystems).withArmor(refit.armorMult());
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 
@@ -238,6 +257,7 @@ public final class ConvoyService implements BodyCarrier {
                 turret.rotary = new RotaryFeed(weapon.rotary(), loader.loaderFactor(), fitted.ammoFactor());
             }
         }
+        if (turret != null) turret.traverseMult = refit.traverseMult();
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, loader));
@@ -280,6 +300,7 @@ public final class ConvoyService implements BodyCarrier {
         world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         entityIds.add(id);
         if (!fittedSystems.equals(MachineSystems.NONE)) systems.put(id, fittedSystems);
+        if (refit.accuracyMult() != 1f) refitAccuracy.put(id, refit.accuracyMult());
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
@@ -338,6 +359,12 @@ public final class ConvoyService implements BodyCarrier {
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
         systems.remove(id);
+        refitAccuracy.remove(id);
+    }
+
+    /** The Mech Lab's aim bonus on this hull's guns; one for a hull the company did not upgrade. */
+    public float refitAccuracy(long id) {
+        return refitAccuracy.getOrDefault(id, 1f);
     }
 
     /** What this hull's compartment makes of it beyond its frame; {@link MachineSystems#NONE} for a hull of neither. */

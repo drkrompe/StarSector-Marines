@@ -54,6 +54,8 @@ public final class LayeredMechAppearance {
     public static final int CHASSIS_WARDEN = 3;
     /** The derelict security walker: a torso on reaching legs, drawn by its own rig, never a company chassis. */
     public static final int CHASSIS_DERELICT = 4;
+    /** Tri-Tachyon's light crawler: a carapace on four short legs, drawn by the walker's rig at its own size. */
+    public static final int CHASSIS_CRAWLER = 5;
     public static final int POD_NONE = 0;
     public static final int POD_SMALL_SRM = 1;
     public static final int POD_SMALL_LRM = 2;
