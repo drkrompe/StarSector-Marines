@@ -88,16 +88,24 @@ public final class BuildingCreepLookSuite implements SnapshotSuite {
                 BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, ""));
     }
 
-    /** A walkable cell in the street {@link #SOURCE_OUT} cells out from the home's middle on its windows' side. */
+    /**
+     * A walkable street cell near the home's windows' side: the nearest to the point {@link #SOURCE_OUT} cells out
+     * from its middle that way, among the cells a few cells round it.
+     */
     private static int[] source(BattleSimulation sim, Building home, float ox, float oy) {
         float cx = (home.minX + home.maxX + 1) / 2f, cy = (home.minY + home.maxY + 1) / 2f;
         float half = Math.abs(ox) * (home.maxX - home.minX + 1) / 2f + Math.abs(oy) * (home.maxY - home.minY + 1) / 2f;
-        for (int r = 0; r < 6; r++) {
-            float d = half + SOURCE_OUT + r;
-            int x = (int) Math.floor(cx + ox * d), y = (int) Math.floor(cy + oy * d);
-            if (sim.getGrid().inBounds(x, y) && sim.getGrid().isWalkable(x, y)
-                    && sim.getTopology().getBuildingId(x, y) == 0) return new int[]{x, y};
+        float px = cx + ox * (half + SOURCE_OUT), py = cy + oy * (half + SOURCE_OUT);
+        int[] best = null;
+        float bestD = Float.MAX_VALUE;
+        for (int y = (int) py - 8; y <= (int) py + 8; y++) {
+            for (int x = (int) px - 8; x <= (int) px + 8; x++) {
+                if (!sim.getGrid().inBounds(x, y) || !sim.getGrid().isWalkable(x, y)
+                        || sim.getTopology().getBuildingId(x, y) != 0) continue;
+                float d = (x + .5f - px) * (x + .5f - px) + (y + .5f - py) * (y + .5f - py);
+                if (d < bestD) { bestD = d; best = new int[]{x, y}; }
+            }
         }
-        return null;
+        return best;
     }
 }

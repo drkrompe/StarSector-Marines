@@ -111,8 +111,13 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
                 PrecinctPlan.Sprawl.BALANCED, (Landform) null);
     }
 
-    /** The windowed building nearest the map's middle with the most windows, homes first. */
+    /** The windowed building nearest the map's middle with the most windows, homes first; else the nearest home. */
     static Building home(BattleSimulation sim) {
+        Building windowed = home(sim, true);
+        return windowed != null ? windowed : home(sim, false);
+    }
+
+    private static Building home(BattleSimulation sim, boolean needWindows) {
         int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
         Building best = null;
         float bestScore = -Float.MAX_VALUE;
@@ -121,7 +126,7 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
             if (b.cellsX.length < 12 || b.cellsX.length > 400) continue;
             if (b.minX < 6 || b.minY < 6 || b.maxX > w - 6 || b.maxY > h - 6) continue;
             int windows = windows(sim, b).size();
-            if (windows == 0) continue;
+            if (needWindows && windows == 0) continue;
             float dx = (b.minX + b.maxX) / 2f - w / 2f, dy = (b.minY + b.maxY) / 2f - h / 2f;
             float score = windows * 40f - (float) Math.sqrt(dx * dx + dy * dy)
                     + (b.kind == BuildingKind.RESIDENTIAL ? 1e4f : 0f);
