@@ -1,9 +1,23 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import com.dillon.starsectormarines.battle.fixture.RuinsBattleFixture;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
+import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
+import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
+import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -14,7 +28,9 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite.CLOSE;
@@ -48,6 +64,7 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             tender(context, fixture, out);
             rearm(context, fixture, out);
+            stand(context, out);
             return out;
         }
     }
@@ -64,11 +81,13 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
         }
         RuinsDelve.Area works = sim.getRuinsWorks() == null ? null
                 : DerelictSecurity.worksHall(sim.getRuinsWorks().delve());
-        log("works hall %s", works);
+        RuinsDelve.Cell stand = sim.getRuinsWorks() == null ? null
+                : DerelictSecurity.worksStand(sim.getRuinsWorks().delve());
+        log("works hall %s, works stand %s", works, stand);
         for (Map.Entry<Integer, Long> node : director.nodes().entrySet()) {
             long id = node.getValue();
             log("zone %d node at (%d, %d)%s", node.getKey(), world.cellX(id), world.cellY(id),
-                    works != null && works.contains(world.cellX(id), world.cellY(id)) ? " in the works hall" : "");
+                    stand != null && stand.x() == world.cellX(id) && stand.y() == world.cellY(id) ? " on the works stand" : "");
         }
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             log("walker lance %d %s zone %d post (%d, %d) members %d", w.squadId(), w.frame(), w.zoneId(), w.postX(),
@@ -156,6 +175,63 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
                 (world.renderY(walker) + world.renderY(bay)) / 2f, CLOSE * 0.7f, true, "rearm-at-the-bay"));
         play(sim, 600);
         log("rearm later: racks %s, order %s", ammo(racks), director.orderOf(line.squadId()));
+    }
+
+    /**
+     * The works hall as the layer's stand (`ruins-expedition.md`, pick ruins-facility-beats a): an extensive Domain
+     * security site built round a colony item, so it lays a works hall; the zone kept from its works stand, roofs off.
+     */
+    private static void stand(SnapshotContext context, List<SnapshotArtifact> out) throws Exception {
+        TargetProfile profile = new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
+                SurfacePalette.ARID, SettlementLink.NONE, 0f, 0f, false, false, false, GroundDefences.NONE);
+        for (RuinsVaultTheme theme : new RuinsVaultTheme[] {RuinsVaultTheme.CRYOARITHMETIC_ENGINE,
+                RuinsVaultTheme.PRISTINE_NANOFORGE}) {
+            standOn(context, out, profile, new RuinsVaultPrize(RuinsVaultPrize.Family.COLONY_ITEM, theme, theme.itemId,
+                    2), theme.name().toLowerCase(Locale.ROOT));
+        }
+    }
+
+    private static void standOn(SnapshotContext context, List<SnapshotArtifact> out, TargetProfile profile,
+                                RuinsVaultPrize prize, String name) throws Exception {
+        for (long seed : new long[] {7L, 9L, 11L, 13L}) {
+            RuinsBattleFixture fixture = RuinsBattleFixture.fromFactoryInputs(seed, BattleSetup.defaultManifest(),
+                    false, OperationTier.VETERAN, RiskLevel.MEDIUM, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                    RuinsGrade.EXTENSIVE, RuinsOccupant.DOMAIN_SECURITY, List.of(), prize);
+            try (BattleSimulation sim = fixture.build()) {
+                play(sim, SETTLE_TICKS);
+                DerelictSecurityDirector director = sim.derelictSecurity();
+                RuinsDelve delve = sim.getRuinsWorks() == null ? null : sim.getRuinsWorks().delve();
+                RuinsDelve.Cell stand = DerelictSecurity.worksStand(delve);
+                log("stand %s seed %d: network %s, works stand %s, hall %s", name, seed, director != null, stand,
+                        DerelictSecurity.hallAt(delve, stand));
+                if (director == null || stand == null) continue;
+                World world = sim.world();
+                for (Map.Entry<Integer, Long> node : director.nodes().entrySet()) {
+                    long id = node.getValue();
+                    log("  zone %d node at (%d, %d)%s", node.getKey(), world.cellX(id), world.cellY(id),
+                            stand.x() == world.cellX(id) && stand.y() == world.cellY(id) ? " on the works stand" : "");
+                }
+                for (Map.Entry<Integer, Long> bay : director.serviceBays().entrySet()) {
+                    log("  zone %d bay at (%d, %d)", bay.getKey(), world.cellX(bay.getValue()),
+                            world.cellY(bay.getValue()));
+                }
+                log("  hall posts %s", DerelictSecurity.hallPosts(delve, 2).stream()
+                        .map(p -> "(" + p[0] + ", " + p[1] + ")").toList());
+                for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                    log("  %s post (%d, %d), zone %d, members %d", w.frame(), w.postX(), w.postY(), w.zoneId(),
+                            sim.squadMemberCount(w.squadId()));
+                }
+                RuinsDelve.Area hall = DerelictSecurity.hallAt(delve, stand);
+                float cx = hall == null ? stand.x() + 0.5f : (hall.left() + hall.right() + 1) / 2f;
+                float cy = hall == null ? stand.y() + 0.5f : (hall.bottom() + hall.top() + 1) / 2f;
+                float cells = hall == null ? CLOSE * 2f : Math.max(hall.width() * 1.15f, hall.height() * 1.15f * 16f / 9f);
+                add(out, "stand/" + name + "-hall-seed" + seed + ".png", look(context, sim, cx, cy, cells, true,
+                        "stand-works-hall"));
+                add(out, "stand/" + name + "-node-seed" + seed + ".png", look(context, sim, stand.x() + 0.5f, stand.y() + 0.5f,
+                        CLOSE, true, "stand-node"));
+                return;
+            }
+        }
     }
 
     private static String ammo(List<MechWeaponMount> racks) {
