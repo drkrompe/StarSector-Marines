@@ -20,6 +20,7 @@ class DryVoidLookTest {
     @Test
     void aDryStyleHasItsPaletteAndADropWithWaterOrIceHasNone() {
         assertSame(DryVoidLook.CANYON, DryVoidLook.of(drop(NaturalVoid.Style.CANYON)));
+        assertSame(DryVoidLook.REGOLITH, DryVoidLook.of(drop(NaturalVoid.Style.DRY_GORGE)));
         assertNull(DryVoidLook.of(drop(NaturalVoid.Style.GORGE_RIVER)));
         assertNull(DryVoidLook.of(drop(NaturalVoid.Style.ICE)));
     }
@@ -28,11 +29,12 @@ class DryVoidLookTest {
     void backFromTheDropTheLipIsThePlainUnderTheBattlesOwnSun() {
         float[] rgb = new float[3];
         // In the field's shade, with its noise: back from the edge none of it shows, so no seam meets the tiles.
-        DryVoidLook.rock(DryVoidLook.CANYON, 0, .7f, -.8f, .4f, DryVoidLook.PLAIN_CELLS, rgb);
-        DryVoidLook.Rgb plain = DryVoidLook.CANYON.plain();
-        assertEquals(plain.r(), rgb[0], 1e-5f);
-        assertEquals(plain.g(), rgb[1], 1e-5f);
-        assertEquals(plain.b(), rgb[2], 1e-5f);
+        for (DryVoidLook.Palette p : new DryVoidLook.Palette[]{DryVoidLook.CANYON, DryVoidLook.REGOLITH}) {
+            DryVoidLook.rock(p, 0, .7f, -.8f, .4f, DryVoidLook.PLAIN_CELLS, rgb);
+            assertEquals(p.plain().r(), rgb[0], 1e-5f);
+            assertEquals(p.plain().g(), rgb[1], 1e-5f);
+            assertEquals(p.plain().b(), rgb[2], 1e-5f);
+        }
     }
 
     @Test
@@ -46,9 +48,9 @@ class DryVoidLookTest {
     @Test
     void noStoneLiesInAChannelOrInTheTalusAgainstAWall() {
         int lies = 0;
-        assertTrue(DryVoidFloor.stoneAt(lies, 3f, 0f));
-        assertFalse(DryVoidFloor.stoneAt(lies, 3f, 1f), "in a channel");
-        assertFalse(DryVoidFloor.stoneAt(lies, .5f, 0f), "against the wall");
-        assertFalse(DryVoidFloor.stoneAt(1023, 3f, 0f), "a grid point the share leaves empty");
+        assertTrue(DryVoidFloor.stoneAt(lies, .3f, 3f, 0f));
+        assertFalse(DryVoidFloor.stoneAt(lies, .3f, 3f, 1f), "in a channel");
+        assertFalse(DryVoidFloor.stoneAt(lies, .3f, .5f, 0f), "against the wall");
+        assertFalse(DryVoidFloor.stoneAt(1023, .3f, 3f, 0f), "a grid point the share leaves empty");
     }
 }

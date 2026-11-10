@@ -51,6 +51,14 @@ public final class MechBodyPlan {
     // a bigger head pool is armor and structure no fire reaches before the torso goes, which only
     // makes the machine die further below its whole-body time. MechTimeToKillScene measures it.
 
+    /**
+     * Tri-Tachyon's light crawler: a low carapace on four short legs spread wide, so the legs take a large share of the
+     * low fire; one gun in a socket at the front, no shoulders, a small sensor head. UNTUNED.
+     */
+    public static final MechBodyPlan CRAWLER = new MechBodyPlan("crawler",
+            0.40f, 0.50f, 0.06f, 0.04f, 0.25f,
+            new float[] {0.32f, 0.56f, 0.08f, 0f, 0f, 0f, 0f, 0.04f}, false);
+
     /** Heavy support: a gun on each arm out wide, a pod on each shoulder. */
     public static final MechBodyPlan BULWARK = new MechBodyPlan("bulwark",
             0.35f, 0.40f, 0.18f, 0.07f, 0.40f,

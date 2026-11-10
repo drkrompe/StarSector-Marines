@@ -28,6 +28,9 @@ import java.util.Arrays;
  * lifts again and grips nothing: its foot stays on the floor and is dragged along behind the torso, held within
  * {@link #DRAG_SLACK_CELLS} of where it would rest, and the body sags toward it, carried on three legs. Downed, the
  * torso sinks to {@link #DOWNED_CELLS} below its rest height and no foot steps.
+ *
+ * <p><b>Builds.</b> The constants here are the walker's ({@link #WALKER}); Tri-Tachyon's light crawler walks the same
+ * rig on its own short legs ({@link #CRAWLER}). A rig reads its sizes and gait from its {@link Build}.
  */
 public final class DerelictLegRig {
 
@@ -94,6 +97,46 @@ public final class DerelictLegRig {
     private static final float MARCH = 0.05f;
     private static final int LEGS = 4;
 
+    /**
+     * A four-legged machine's proportions, cells and seconds: how far out its hips and feet stand, how long and high
+     * its legs are, and its gait. {@code scale} sizes the small distances that follow the machine's size (the sway,
+     * dip, bounce, lean, a re-step's slack, a crippled leg's drag and sag, how far a downed torso sinks).
+     *
+     * @param hipCells        hips on a ring this far from the torso's centre
+     * @param restCells       where a foot rests on open floor, from the torso's centre
+     * @param gripCells       how far a leg reaches to grip a wall
+     * @param hipHeightCells  how high the hips stand off the floor
+     * @param thighCells      the thigh's length
+     * @param shinCells       the shin's length
+     * @param wallFootCells   how far up a wall's face a gripping foot stands
+     * @param stepLiftCells   how high a stepping foot lifts at the top of its step
+     * @param walkStride      distance a walking gait cycle covers
+     * @param runStride       distance a running gait cycle covers
+     * @param runSpeed        above this the machine runs (cells a second)
+     * @param walkSpeed       back to a walk below this
+     * @param stepSeconds     a standing step's length
+     * @param scale           the small distances' size against the walker's
+     */
+    public record Build(float hipCells, float restCells, float gripCells, float hipHeightCells, float thighCells,
+                        float shinCells, float wallFootCells, float stepLiftCells, float walkStride, float runStride,
+                        float runSpeed, float walkSpeed, float stepSeconds, float scale) {
+    }
+
+    /** The derelict security walker: a heavy torso on long reaching legs. */
+    public static final Build WALKER = new Build(HIP_CELLS, REST_CELLS, GRIP_CELLS, DerelictLegPose.HIP_HEIGHT_CELLS,
+            DerelictLegPose.THIGH_CELLS, DerelictLegPose.SHIN_CELLS, DerelictLegPose.WALL_FOOT_HEIGHT_CELLS,
+            DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f);
+
+    /**
+     * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light): a small carapace low on four short legs, quick
+     * on its feet. UNTUNED: the legs are the crawler guide's
+     * (art-source/mech-modular-topdown/sources/hightech/crawler), the gait shorter and quicker than the walker's.
+     */
+    public static final Build CRAWLER = new Build(0.42f, 1.05f, 1.45f, 0.32f, 0.42f, 0.50f, 0.30f, 0.20f,
+            0.9f, 1.6f, 1.5f, 1.2f, 0.18f, 0.4f);
+
+    private final Build build;
+
     /** Each leg's direction from the torso's facing, sprite degrees (counter-clockwise from forward). */
     private final float[] hipAngle = {45f, 135f, 225f, 315f};
     /** Diagonal pairs: 45 with 225, 135 with 315. */
@@ -121,8 +164,17 @@ public final class DerelictLegRig {
     private boolean downed;
 
     public DerelictLegRig() {
+        this(WALKER);
+    }
+
+    /** A rig of {@code build}'s proportions: the derelict walker's ({@link #WALKER}) or the crawler's. */
+    public DerelictLegRig(Build build) {
+        this.build = build;
         Arrays.fill(swing, -1f);
     }
+
+    /** The proportions this rig stands and steps by. */
+    public Build build() { return build; }
 
     public int legs() { return LEGS; }
     public boolean posed() { return posed; }
@@ -141,8 +193,8 @@ public final class DerelictLegRig {
     public float lift(int leg) {
         return swing[leg] < 0f ? 0f : (float) Math.sin(Math.PI * swing[leg]);
     }
-    public float hipX(int leg) { return bodyX() + dirX(facing + hipAngle[leg]) * HIP_CELLS; }
-    public float hipY(int leg) { return bodyY() + dirY(facing + hipAngle[leg]) * HIP_CELLS; }
+    public float hipX(int leg) { return bodyX() + dirX(facing + hipAngle[leg]) * build.hipCells(); }
+    public float hipY(int leg) { return bodyY() + dirY(facing + hipAngle[leg]) * build.hipCells(); }
     /** Whether leg {@code i} is lifted in a step. */
     public boolean stepping(int leg) { return swing[leg] >= 0f; }
     /** Whether leg {@code i}'s knee is lost. */
@@ -205,7 +257,7 @@ public final class DerelictLegRig {
         pathY = y;
         float speed = (float) Math.sqrt(velX * velX + velY * velY);
         gait = speed < MOVING_SPEED ? Gait.STAND
-                : speed > RUN_SPEED || (gait == Gait.RUN && speed > WALK_SPEED) ? Gait.RUN : Gait.WALK;
+                : speed > build.runSpeed() || (gait == Gait.RUN && speed > build.walkSpeed()) ? Gait.RUN : Gait.WALK;
         if (downed) gait = Gait.STAND;
         if (gait == Gait.STAND) stand(dt, solid);
         else stride(moved, speed, solid);
@@ -216,7 +268,7 @@ public final class DerelictLegRig {
     /** Moving: the clock runs on distance and each leg swings in its window of the cycle. */
     private void stride(float moved, float speed, Solid solid) {
         boolean run = gait == Gait.RUN;
-        float strideCells = run ? RUN_STRIDE : WALK_STRIDE;
+        float strideCells = run ? build.runStride() : build.walkStride();
         float swingShare = run ? RUN_SWING : WALK_SWING;
         float[] offset = run ? RUN_OFFSET : WALK_OFFSET;
         phase = (phase + moved / strideCells) % 1f;
@@ -252,7 +304,7 @@ public final class DerelictLegRig {
         swing[i] = -1f;
         rest(i, pathX, pathY, solid, spot);
         // It keeps where it came down; only whether it holds a wall is read from the ground under it.
-        onWall[i] = spot[2] > 0f && distance(spot[0], spot[1], footX[i], footY[i]) < RESTEP_CELLS;
+        onWall[i] = spot[2] > 0f && distance(spot[0], spot[1], footX[i], footY[i]) < small(RESTEP_CELLS);
     }
 
     /** Standing: the clock stops; a swinging foot finishes its step, and a foot dragged out of place steps back. */
@@ -262,7 +314,7 @@ public final class DerelictLegRig {
         for (int i = 0; i < LEGS; i++) {
             if (swing[i] < 0f || lost[i]) continue;
             anySwinging = true;
-            swing[i] = Math.min(1f, swing[i] + dt / STEP_SECONDS);
+            swing[i] = Math.min(1f, swing[i] + dt / build.stepSeconds());
             rest(i, pathX, pathY, solid, spot);
             float t = swing[i];
             footX[i] = fromX[i] + (spot[0] - fromX[i]) * t;
@@ -274,7 +326,7 @@ public final class DerelictLegRig {
         }
         if (anySwinging || downed) return;
         int worst = -1;
-        float worstStrain = RESTEP_CELLS;
+        float worstStrain = small(RESTEP_CELLS);
         for (int i = 0; i < LEGS; i++) {
             if (lost[i]) continue;
             rest(i, pathX, pathY, solid, spot);
@@ -302,8 +354,8 @@ public final class DerelictLegRig {
             if (!lost[i]) continue;
             floorRest(i, pathX, pathY, solid, spot);
             float d = distance(footX[i], footY[i], spot[0], spot[1]);
-            if (d <= DRAG_SLACK_CELLS) continue;
-            float k = (d - DRAG_SLACK_CELLS) / d;
+            if (d <= small(DRAG_SLACK_CELLS)) continue;
+            float k = (d - small(DRAG_SLACK_CELLS)) / d;
             footX[i] += (spot[0] - footX[i]) * k;
             footY[i] += (spot[1] - footY[i]) * k;
             dragging[i] = true;
@@ -322,9 +374,9 @@ public final class DerelictLegRig {
         for (int i = 0; i < LEGS; i++) {
             if (lost[i]) {
                 // Carried on three: the body sags and tips toward the leg that no longer holds it.
-                sag += LIMP_SAG_CELLS;
-                tiltX += dirX(facing + hipAngle[i]) * LIMP_TILT_CELLS;
-                tiltY += dirY(facing + hipAngle[i]) * LIMP_TILT_CELLS;
+                sag += small(LIMP_SAG_CELLS);
+                tiltX += dirX(facing + hipAngle[i]) * small(LIMP_TILT_CELLS);
+                tiltY += dirY(facing + hipAngle[i]) * small(LIMP_TILT_CELLS);
             } else if (swing[i] < 0f) {
                 sx += footX[i];
                 sy += footY[i];
@@ -341,13 +393,13 @@ public final class DerelictLegRig {
         }
         tx += tiltX;
         ty += tiltY;
-        float th = downed ? -DOWNED_CELLS : -DIP_CELLS * lifted - sag;
+        float th = downed ? -small(DOWNED_CELLS) : -small(DIP_CELLS) * lifted - sag;
         if (gait != Gait.STAND && speed > 1e-4f) {
-            float lean = Math.min(LEAN_MAX_CELLS, LEAN * speed);
+            float lean = Math.min(small(LEAN_MAX_CELLS), small(LEAN) * speed);
             tx += velX / speed * lean;
             ty += velY / speed * lean;
         }
-        if (gait == Gait.RUN) th += RUN_BOUNCE_CELLS * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        if (gait == Gait.RUN) th += small(RUN_BOUNCE_CELLS) * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
         float k = dt <= 0f ? 1f : 1f - (float) Math.exp(-dt / SETTLE_SECONDS);
         offX += (tx - offX) * k;
         offY += (ty - offY) * k;
@@ -368,17 +420,17 @@ public final class DerelictLegRig {
         float side = sideOf(hipAngle[i]);
         for (int k = 0; k <= 1; k++) {
             float angle = own + side * k * SPLAY_DEGREES;
-            float hit = wallDistance(cx, cy, angle, GRIP_CELLS, solid);
+            float hit = wallDistance(cx, cy, angle, build.gripCells(), solid);
             if (hit > 0f) {
-                float at = hit - FACE_OFFSET;
+                float at = hit - small(FACE_OFFSET);
                 out[0] = cx + dirX(angle) * at;
                 out[1] = cy + dirY(angle) * at;
                 out[2] = 1f;
                 return;
             }
         }
-        float hit = wallDistance(cx, cy, own, REST_CELLS, solid);
-        float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
+        float hit = wallDistance(cx, cy, own, build.restCells(), solid);
+        float at = hit > 0f ? Math.max(build.hipCells() + small(MARCH), hit - small(TUCK_CELLS)) : build.restCells();
         out[0] = cx + dirX(own) * at;
         out[1] = cy + dirY(own) * at;
         out[2] = 0f;
@@ -387,18 +439,18 @@ public final class DerelictLegRig {
     /** Where leg {@code i}'s foot would stand on the floor, never on a wall: a lost leg's, which grips nothing. */
     private void floorRest(int i, float cx, float cy, Solid solid, float[] out) {
         float own = facing + hipAngle[i];
-        float hit = wallDistance(cx, cy, own, REST_CELLS, solid);
-        float at = hit > 0f ? Math.max(HIP_CELLS + MARCH, hit - TUCK_CELLS) : REST_CELLS;
+        float hit = wallDistance(cx, cy, own, build.restCells(), solid);
+        float at = hit > 0f ? Math.max(build.hipCells() + small(MARCH), hit - small(TUCK_CELLS)) : build.restCells();
         out[0] = cx + dirX(own) * at;
         out[1] = cy + dirY(own) * at;
         out[2] = 0f;
     }
 
     /** How far from (cx, cy) a ray at {@code angle} meets a wall, within reach; 0 when it meets none. */
-    private static float wallDistance(float cx, float cy, float angle, float reach, Solid solid) {
+    private float wallDistance(float cx, float cy, float angle, float reach, Solid solid) {
         float dx = dirX(angle);
         float dy = dirY(angle);
-        for (float d = HIP_CELLS + MARCH; d <= reach + 1e-4f; d += MARCH) {
+        for (float d = build.hipCells() + small(MARCH); d <= reach + 1e-4f; d += small(MARCH)) {
             if (solid.at((int) Math.floor(cx + dx * d), (int) Math.floor(cy + dy * d))) return d;
         }
         return 0f;
@@ -409,6 +461,11 @@ public final class DerelictLegRig {
         float a = ((hipAngle % 360f) + 360f) % 360f;
         if (a < 90f || (a >= 180f && a < 270f)) return 1f;
         return -1f;
+    }
+
+    /** One of the walker's small distances, sized to this machine. */
+    private float small(float walkerCells) {
+        return build.scale() * walkerCells;
     }
 
     private static float distance(float ax, float ay, float bx, float by) {

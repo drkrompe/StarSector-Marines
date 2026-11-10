@@ -55,12 +55,13 @@ public final class GroundFeather {
      * bare {@code GRASS}/{@code DIRT} cell drawn from the nature sheet,
      * {@code kind:<KIND>}. Green growth creeps over bare earth, earth spills
      * onto sand and gravel; roads, paving, interiors and walls are not here and
-     * never take part.
+     * never take part. Snow is last: lying snow on a tundra is a patch the ground around it frays into, as
+     * earth's is ({@code LivingWorld#TUNDRA}), and on a frozen world the bare ground it surrounds frays out over it.
      */
     public static final List<String> MATERIALS = List.of(
             "floors.grass", "kind:GRASS",
             "floors.dirt", "kind:DIRT", "pavement.dirt.worn",
-            "floors.sand", "pavement.gravel.cracked", "floors.stone");
+            "floors.sand", "pavement.gravel.cracked", "floors.stone", "floors.snow");
 
     /** Noise fields a tile can sit in: one per combination of its four edge colours. */
     public static final int EDGE_CODES = 16;

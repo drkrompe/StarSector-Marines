@@ -17,6 +17,12 @@ public record HullFitEffect(float armorFactor, float structureFactor, float ammo
         return new HullFitEffect(plating.armorFactor(), 1f, 1f, plating.armorRatingBonus(type));
     }
 
+    /** This effect with the Mech Lab's plate over every armor pool ({@code MechRefit#armorMult}). */
+    public HullFitEffect withArmor(float mult) {
+        if (mult == 1f) return this;
+        return new HullFitEffect(armorFactor * mult, structureFactor, ammoFactor, armorRatingBonus);
+    }
+
     /** This effect with what the hull's compartment adds: its liner's structure, its ready rack's rounds. */
     public HullFitEffect with(MachineSystems systems) {
         if (systems == null) return this;

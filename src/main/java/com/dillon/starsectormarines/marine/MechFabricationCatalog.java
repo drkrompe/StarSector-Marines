@@ -54,7 +54,9 @@ public final class MechFabricationCatalog {
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 10760),
             chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 15020),
-            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 22770));
+            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 22770),
+            // UNTUNED: a light frame, a little under the Hound; its shield emitter comes with it.
+            chassis(MechVariant.CRAWLER, "@gearFabricationTriTachyonPattern", 9800));
 
     /** Stock parts are built too: a replacement plate or engine is still an assembly. Bills are derived. */
     private static final List<Recipe> INTERNALS = List.of(

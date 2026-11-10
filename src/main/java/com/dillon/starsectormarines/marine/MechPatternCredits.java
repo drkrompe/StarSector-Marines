@@ -38,6 +38,7 @@ public final class MechPatternCredits {
         chassis(MechVariant.HOUND, hegemony, HEGEMONY, "patternCreditHound");
         chassis(MechVariant.WARDEN, hegemony, HEGEMONY, "patternCreditWarden");
         chassis(MechVariant.BULWARK, hegemony, HEGEMONY, "patternCreditBulwark");
+        chassis(MechVariant.CRAWLER, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON, "patternCreditCrawler");
 
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);

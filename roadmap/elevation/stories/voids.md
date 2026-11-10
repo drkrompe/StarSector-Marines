@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -84,6 +84,7 @@ generation, never a battle rule, as an emplacement style is
 | --- | --- | --- | --- | --- |
 | **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
 | **Arid canyon** | Desert worlds, where a living world lays a gorge river: a canyon cut through a sand plain | Banded red and ochre sandstone in terraces, sand lying on the ledges | A dry wash: pale sand braided between gravel bars, boulders fallen from the walls, a dust haze | A stone bridge or a laid plank span |
+| **Dry gorge** | Barren rock worlds, where a living world lays a gorge river: a gorge cut through a stone plain | Grey regolith and bedrock strata, grit on the ledges | Dust and rubble thick with fallen basalt blocks; no water, no haze | A rock bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
@@ -674,6 +675,21 @@ Laws):
    arch's thickness, which needs the bridge's kind; mesas or hoodoos standing
    in the floor (a rise inside the drop); a dry falls where the floor steps.
 
+   **Dry gorge** (owner, 2026-11-09: a drop for every ground palette): a
+   barren rock world's gorge, the canyon's grey sister and its second dry
+   palette (`DryVoidLook.REGOLITH`, style `DRY_GORGE`). Look suite:
+   `createSnapshots -Psnapshot=dry-gorge-void-look`, a stone plain cut by a
+   gorge (`-Dsnapshot.drygorge.depth`, `.eyes`, `.stillsOnly`).
+   - Wall image `regolith-wall.png`: grey regolith and bedrock bands, blocky
+     fractured ledges, scree, a few rust seams (`art-source/voids/dry-gorge/`).
+   - The canyon's rules with its own colours: grey strata, grit on the
+     ledges, shade toward near-black. The floor is dust and rubble with the
+     plain's basalt field stones lying thick on it (a palette's
+     `stoneShare`); no haze, an airless world's gorge.
+   First pass: three ledges to a floor 40 m down, a gorge 9 to 21 cells
+   across. Left: the owner's pick of depth; dust sifting off the lip;
+   impact-shattered blocks bigger than the field stones.
+
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
    than one dig). A made drop, not an eroded one: an open-cut mine beside a
@@ -808,15 +824,14 @@ Laws):
    on each palette, `-Dbattle.mapgen.naturalVoids=1`).
    - **Which style.** One table beside `SurfaceZoning`,
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
-     glacial crevasse, rock and arid the canyon, and a molten palette the lava
+     glacial crevasse, arid the canyon, rock the dry gorge, and a molten palette the lava
      rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it
      has a row.
-   - **The canyon** is the arid canyon above (`NaturalVoid.Style.CANYON`), its
-     row drawing the canyon's own sandstone wall. Barren rock worlds take it
-     too until they have a dry gorge of their own; the basalt wall read as
-     holes at a wide zoom.
+   - **The canyon and the dry gorge** are the dry styles above
+     (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
+     the basalt wall was tried on rock and read as holes at a wide zoom.
    - **Where.** A drop runs edge to edge across a generated outdoor map's
      open country (`NaturalChasm`), wandering, 7 to 12 cells wide. Lines both
      ways across the map are tried, through its middle and through the

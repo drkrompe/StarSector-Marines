@@ -40,16 +40,22 @@ public final class DerelictLegPose {
 
     /** As {@link #knee(float, float, float, float, float, float[])}, the hip {@code hipHeight} off the floor. */
     public static void knee(float hx, float hy, float hipHeight, float fx, float fy, float footHeight, float[] out) {
+        knee(hx, hy, hipHeight, fx, fy, footHeight, THIGH_CELLS, SHIN_CELLS, out);
+    }
+
+    /** As above, for a leg of {@code thigh} and {@code shin} (cells): another machine's ({@link DerelictLegRig.Build}). */
+    public static void knee(float hx, float hy, float hipHeight, float fx, float fy, float footHeight, float thigh,
+                            float shin, float[] out) {
         float dx = fx - hx;
         float dy = fy - hy;
         float flat = (float) Math.sqrt(dx * dx + dy * dy);
         float dz = footHeight - hipHeight;
-        float reach = THIGH_CELLS + SHIN_CELLS;
+        float reach = thigh + shin;
         float span = (float) Math.sqrt(flat * flat + dz * dz);
-        float d = Math.max(Math.abs(THIGH_CELLS - SHIN_CELLS) + 1e-3f, Math.min(reach - 1e-3f, span));
+        float d = Math.max(Math.abs(thigh - shin) + 1e-3f, Math.min(reach - 1e-3f, span));
         // Along the hip-to-foot line, a; up off it, h (the knee bends away from the floor).
-        float a = (THIGH_CELLS * THIGH_CELLS - SHIN_CELLS * SHIN_CELLS + d * d) / (2f * d);
-        float h = (float) Math.sqrt(Math.max(0f, THIGH_CELLS * THIGH_CELLS - a * a));
+        float a = (thigh * thigh - shin * shin + d * d) / (2f * d);
+        float h = (float) Math.sqrt(Math.max(0f, thigh * thigh - a * a));
         // Unit vectors in the upright plane: u along the line (flat, dz), w perpendicular to it, pointing up.
         float ux = span > 1e-4f ? flat / span : 1f;
         float uz = span > 1e-4f ? dz / span : 0f;
@@ -64,7 +70,7 @@ public final class DerelictLegPose {
         float held = Math.max(KNEE_MIN_SHARE * flat, Math.min(KNEE_MAX_SHARE * flat, kFlat));
         if (held != kFlat) {
             kFlat = held;
-            kZ = hipHeight + (float) Math.sqrt(Math.max(0f, THIGH_CELLS * THIGH_CELLS - kFlat * kFlat));
+            kZ = hipHeight + (float) Math.sqrt(Math.max(0f, thigh * thigh - kFlat * kFlat));
         }
         float dirX = flat > 1e-4f ? dx / flat : 0f;
         float dirY = flat > 1e-4f ? dy / flat : 1f;
