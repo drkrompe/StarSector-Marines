@@ -32,13 +32,15 @@ public record MechFrame(float armorCapacity, float moveSpeed,
     }
 
     /**
-     * The factory frame: the chassis's own armor and speed, stock flux reservoir and dissipation, and the systems its
-     * compartment carries as built ({@link #builtIn}).
+     * The factory frame: the chassis's own armor and speed, the stock bank's reservoir and dissipation with the
+     * chassis's plant on top ({@link MechVariant#plantCapacity}, {@link MechVariant#plantDissipation}), and the systems
+     * its compartment carries as built ({@link #builtIn}).
      */
     public static MechFrame stock(MechVariant variant) {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
         return new MechFrame(variant.armorCapacity, variant.moveSpeed,
-                MechFlux.CAPACITY, MechFlux.DISSIPATION_PER_SECOND, builtIn(variant, MachineSystems.NONE));
+                MechFlux.CAPACITY + variant.plantCapacity(),
+                MechFlux.DISSIPATION_PER_SECOND + variant.plantDissipation(), builtIn(variant, MachineSystems.NONE));
     }
 
     /** {@code systems} with what {@code variant}'s compartment carries as built: a crawler's shield emitter. */

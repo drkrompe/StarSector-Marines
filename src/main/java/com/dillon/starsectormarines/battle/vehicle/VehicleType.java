@@ -234,13 +234,15 @@ public enum VehicleType {
      * the white ring, over the empty ring its sheet paints at the hull's centre. A frontal flux shield
      * ({@link HullShield}) runs on the hull's one flux pool ({@link HullReservoir}), which it shares with the laser:
      * every round it stops charges the pool the laser fires from, and a full pool overloads both. It is a heavy hull,
-     * so it opens ordinary walls by its weight. Every figure is first-pass and UNTUNED. Its sheet has no turret
+     * so it opens ordinary walls by its weight. Its shield stands in for plate (`machine-budgets.md`): its plate is
+     * thinner and softer than the Onager's, so plate and a full shield come to about the Onager's plate. Every figure
+     * is first-pass and UNTUNED. Its sheet has no turret
      * frames (art-source/vehicles/tt-hover, pack.py).
      */
     HEAVY_SKIMMER("graphics/battle/vehicles/tt-heavy-skimmer.png", 0, 4, -90f,
             0, 3.375f, 3.25f, 1.95f, 3.4f, 1.6f, 3.2f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
-            TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID, 700f, 480f, 16f, 1.35f, 1.0f) {
+            TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID, 700f, 350f, 12f, 1.35f, 1.0f) {
         @Override public GroundBody createBody() {
             // A skirt slews its heading faster than tracks steer; bounded curvature stays the planners' contract.
             return new BicycleBody(2.2f, 36f, 200f, accel, brakingAccel, maxSpeed);

@@ -659,8 +659,8 @@ Built on a: the outer band's first line hall is laid at the foundry's size for
 every theme, and a forge works (`RuinsDressing.foundry`) fills it as a foundry.
 Its melt is a `FOUNDRY` lava drop (`NaturalVoidZoning.FOUNDRY`) that the ground
 plans and `RuinsMeltStage` cuts after finalize, as the outdoor landscape cuts
-its drops, since finalize takes any unwalkable cell left standing for a wall. A
-map carries one drop look, so a foundry's map lays no outdoor rift. The melt
+its drops, since finalize takes any unwalkable cell left standing for a wall. The
+melt is a drop of its own beside any rift outside, each owning its cells. The melt
 runs hot with no crust, between firebrick walls under the cast-steel kerb strip.
 Crucibles carry their melt overlay, and each channel's crossing is a grate
 catwalk. Still to come: the melt's cooler patches in the narrow channels (the

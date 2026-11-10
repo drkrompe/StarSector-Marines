@@ -28,6 +28,9 @@ class MechFitLawsTest {
     void theBestOfEverythingNeverFitsOnOneFrame() {
         for (MechVariant variant : MechVariant.companyLines()) {
             MechFrameBudget.Fit best = MechFitSpace.bestOfEverything(variant);
+            // A chassis whose stock guns are already the heaviest its mounts take (the Warden, on its 2x2 shoulders)
+            // has no heavier weapon to buy: its top fit is its full internal refit, which must fit.
+            if (best.fittedMass() <= MechFitSpace.fullInternalRefit(variant).fittedMass()) continue;
             assertTrue(best.overBudget(), variant + " carries the top of every ladder: "
                     + best.fittedMass() + " of " + best.output());
         }

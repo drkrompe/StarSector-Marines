@@ -12,8 +12,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * {@link RuinsDelveStage} planned ({@link RuinsKeys#MELT}) become a {@link NaturalVoidZoning#FOUNDRY} drop. A drop
  * is unwalkable, see-through, gives no edge cover and is never a wall, so it is cut after {@code FinalizeStage},
  * which takes every unwalkable cell left standing for a wall, as the outdoor landscape cuts its drops after it.
- * A map that already draws a drop or a backdrop keeps its own and no melt. The landscape after this stage then lays
- * no drop of its own, a map carrying one look.
+ * The melt is a drop of its own beside any other the map carries, owning its own cells, so the landscape after this
+ * stage still cuts its rift outside. A map that draws a backdrop, or already carries its most drops, keeps no melt.
  */
 public final class RuinsMeltStage implements GenStage {
 
@@ -21,7 +21,8 @@ public final class RuinsMeltStage implements GenStage {
     public void run(GenContext ctx) {
         boolean[] melt = ctx.get(RuinsKeys.MELT);
         CellTopology topology = ctx.topology;
-        if (melt == null || topology.naturalVoid() != null || topology.voidBackdrop() != null) return;
+        if (melt == null || topology.voidBackdrop() != null
+                || topology.naturalVoids().size() >= CellTopology.MAX_NATURAL_VOIDS) return;
         NavigationGrid grid = ctx.grid;
         int w = ctx.width;
         for (int i = 0; i < melt.length; i++) {
@@ -34,6 +35,6 @@ public final class RuinsMeltStage implements GenStage {
             topology.setGroundKind(x, y, GroundKind.VOID);
             topology.setSurface(x, y, 0);
         }
-        topology.setNaturalVoid(NaturalVoidZoning.FOUNDRY.look((int) ctx.seed));
+        topology.addNaturalVoid(NaturalVoidZoning.FOUNDRY.look((int) ctx.seed), melt);
     }
 }
