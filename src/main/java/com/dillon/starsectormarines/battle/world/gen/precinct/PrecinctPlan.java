@@ -138,12 +138,6 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
     }
 
-    /** The same plan with its places replaced, each where the plan's other statements expect it. */
-    public PrecinctPlan withPrecincts(List<Precinct> precincts) {
-        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
-    }
-
     /**
      * The place a mission is about, or {@code null} when nothing on the map is
      * programmed.
