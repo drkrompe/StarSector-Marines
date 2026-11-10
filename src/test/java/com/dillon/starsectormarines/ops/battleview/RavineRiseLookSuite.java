@@ -29,7 +29,8 @@ import java.util.Locale;
  * passes. Opt-in: a look review, not part of {@code all}.
  *
  * <p>{@code -Dsnapshot.ravine.height=36} sets the top's height in metres, the ledges scaled with it; {@code
- * -Dsnapshot.ravine.eyes=120} the camera heights to compare.
+ * -Dsnapshot.ravine.eyes=120} the camera heights to compare; {@code -Dsnapshot.ravine.sheer=true} draws the first
+ * pass's cliffs in place of the terraced bank.
  */
 public final class RavineRiseLookSuite implements SnapshotSuite {
 
@@ -40,14 +41,18 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
     /** The pillar's centre and radius, and the side canyon's column and half width, in cells. */
     static final int PILLAR_X = 62, PILLAR_R = 4, CANYON_X = 128, CANYON_HALF = 5;
 
-    /** The ravine's walls: two ledges and the top, 36 m up at the default height. */
-    static NaturalRise walls(float height, float eye) {
+    /**
+     * The ravine's walls: a terraced bank to the top, 36 m up at the default height ({@link NaturalRise#bank}); with
+     * {@code sheer} the first pass's cliffs instead, two ledges and the top, for comparison.
+     */
+    static NaturalRise walls(float height, float eye, boolean sheer) {
         float f = height / 36f;
-        return new NaturalRise(NaturalRise.Style.RAVINE_WALL, List.of(
+        List<NaturalRise.Step> steps = sheer ? List.of(
                 new NaturalRise.Step(11f * f, .5f),
                 new NaturalRise.Step(23f * f, 1.05f),
-                new NaturalRise.Step(36f * f, 1.6f)),
-                eye, "graphics/battle/voids/gorge-wall.png", 14f, 11);
+                new NaturalRise.Step(36f * f, 1.6f)) : NaturalRise.bank(height);
+        return new NaturalRise(NaturalRise.Style.RAVINE_WALL, steps, eye, "graphics/battle/voids/gorge-wall.png", 14f,
+                11);
     }
 
     /**
@@ -77,9 +82,11 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
         for (String eyeText : System.getProperty("snapshot.ravine.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
             boolean vary = Boolean.getBoolean("snapshot.ravine.vary");
-            String tag = String.format(Locale.ROOT, "ravine-%03dm%s-eye%03dm", Math.round(height), vary ? "-vary" : "",
+            boolean sheer = Boolean.getBoolean("snapshot.ravine.sheer");
+            String tag = String.format(Locale.ROOT, "ravine-%03dm%s%s-eye%03dm", Math.round(height), vary ? "-vary" : "",
+                    sheer ? "-sheer" : "",
                     Math.round(eye));
-            try (BattleSimulation sim = ravine(vary ? varying(walls(height, eye)) : walls(height, eye))) {
+            try (BattleSimulation sim = ravine(vary ? varying(walls(height, eye, sheer)) : walls(height, eye, sheer))) {
                 out.add(shot(context, sim, tag + "-1-wall-foot.png", 40f, centre(40) - 3f, PLAY));
                 out.add(shot(context, sim, tag + "-2-pillar.png", PILLAR_X, centre(PILLAR_X), PLAY));
                 out.add(shot(context, sim, tag + "-3-side-canyon.png", CANYON_X, centre(CANYON_X) - 12f, PLAY));
