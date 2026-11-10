@@ -290,7 +290,7 @@ the HC-20 at flux 26 with no build mass.
 | Refit cannon vs refit bastion Bulwark | 0.48 | 0.32 |
 | Refit cannon vs refit pulse-laser Bulwark | 0.73 | 0.73 |
 | Refit cannon vs stock chaingun Bulwark | 1.00, 44 s | 1.00, 59 s |
-| Refit cannon Bulwark vs breakthrough / heavy-gun tank | 0.00 / 0.00 | 0.00 / 0.01 |
+| Refit cannon Bulwark vs Onager / heavy-gun tank | 0.00 / 0.00 | 0.00 / 0.01 |
 | Stock / refit Warden vs refit cannon Bulwark | 0.06 / 0.04 | 0.06 / 0.06 |
 | Warden mirror, stock and refit | 13 s / 13 s | 13 s / 13 s |
 | Overall across the eleven fits: refit cannon / refit bastion Bulwark | 0.67 / 0.65 | 0.65 / 0.69 |
@@ -411,7 +411,7 @@ cycle or build mass takes the same
 | Overall: refit pulse / cannon / bastion Bulwark | 0.53 / 0.61 / 0.62 | 0.61 / 0.61 / 0.55 |
 | Overall: stock-frame bastion / pulse Bulwark | 0.39 / 0.20 | 0.31 / 0.37 |
 | Flux-limited seconds per fight: refit bastion / pulse | 13 / 36 | 18 / 20 |
-| Any Bulwark fit vs breakthrough / heavy-gun tank | 0.00 | 0.00 |
+| Any Bulwark fit vs Onager / heavy-gun tank | 0.00 | 0.00 |
 
 On a full refit the Prestige pulse laser now narrowly leads, and the two
 Advanced guns follow, the cannon ahead of the bastion head to head. The
@@ -495,7 +495,7 @@ was better on every axis that decides a duel, and the mech's flux stacked on top
 
 **What changed.**
 
-| | Breakthrough | Heavy gun |
+| | Onager | Heavy gun |
 | --- | --- | --- |
 | Structure / armor capacity | 1100 / 850 → 750 / 550 | 1050 / 900 → 700 / 600 |
 | Armor rating | 36 → 18 | 40 → 20 |
@@ -511,7 +511,7 @@ was better on every axis that decides a duel, and the mech's flux stacked on top
   fits fell from 0.43 to 0.39 (lever readings here predate the arm balance).
 - **Pool 1,300**, between a stock Bulwark's 1,260 and a refit one's 1,500, so
   neither side out-lasts the other by bulk alone. Armor per credit falls to
-  1.20x (breakthrough) and 1.09x (heavy gun) the Bulwark's, still above 1 as the
+  1.20x (Onager) and 1.09x (heavy gun) the Bulwark's, still above 1 as the
   vehicle rule asks, and per lift a tank still beats a stock Bulwark.
 - **Contact hit halved.** The tank still out-damages a flux-bound mech (about
   24 damage a second on a Bulwark against the mech's 12-30), but no longer
@@ -521,7 +521,7 @@ was better on every axis that decides a duel, and the mech's flux stacked on top
   takes it per hull, and the other hulls keep half). A tracked hull backing up is
   slower than a Bulwark walking, so a Bulwark that closes can catch it. This is
   the lever that gives the open ground its biggest move (with the stat changes
-  above, open share 0.12 at half speed and 0.31 at 0.3); at 0.35 the breakthrough tank still backed up at 1.085, just
+  above, open share 0.12 at half speed and 0.31 at 0.3); at 0.35 the Onager still backed up at 1.085, just
   faster than the Bulwark's walk. `-Dbattle.vehicle.tankReverseFraction=.5` is the
   control.
 - **Heavy gun reach 40**, the LRM's reach. At 44 it out-reached every mech
@@ -541,7 +541,7 @@ refit chaingun; refit heavy cannon, bastion and pulse arms.
 | Four refit fits | 0.01 | 0.64 |
 | By ground: open / hull-down / street | 0.00 / 0.00 / 0.03 | 0.37 / 0.45 / 0.81 |
 | Hull-down with the Bulwark holding the berm | 0.00 | 0.59 |
-| Against breakthrough / heavy gun | 0.00 / 0.02 | 0.56 / 0.53 |
+| Against Onager / heavy gun | 0.00 / 0.02 | 0.56 / 0.53 |
 | Fight range under 20 / 20-30 / over 30 cells | 0.04 / 0.00 / 0.00 | 0.78 / 0.53 / 0.08 |
 | Stock / refit chaingun Bulwark | 0.00 / 0.01 | 0.18 / 0.48 |
 | Refit heavy cannon / bastion / pulse | 0.01 / 0.02 / 0.01 | 0.57 / 0.79 / 0.70 |
@@ -558,16 +558,16 @@ street; the factory fit goes 0.03 / 0.06 / 0.44. The rows that do not fit the
 identity yet are owned elsewhere, and are reported here rather than tuned:
 
 - **LRM fits beat tanks everywhere, the open included** (two AT LRM-15s 0.89).
-  The racks match the heavy gun's reach, out-reach the breakthrough tank, and
+  The racks match the heavy gun's reach, out-reach the Onager, and
   their contact warhead (penetration 30) meets plate it defeats at full damage.
   That is the missiles' anti-armor role, but stronger than "the tank wins in the
   open" allows. The rack-side levers were measured and none of them fixes it;
   the active-protection kit's top-attack interception answers it (*The AT LRM against a tank*, below).
 - **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
-  bite, and the breakthrough tank stands off only when it out-reaches its target
+  bite, and the Onager stands off only when it out-reaches its target
   by 4 cells. If the open is to stay the tank's against these arms, the next
-  lever is the breakthrough tank's reach, not its plate.
+  lever is the Onager's reach, not its plate.
 - **Streets lean hard to the mech (0.81)**, more than the target's spread. The
   street holds fights at 17 cells, inside the AT SRM's reach, so the warheads did
   the work there. A tank in a street is the wrong tool, so this is accepted for now.
@@ -588,7 +588,7 @@ above (five fits, three grounds, eight seeds, both roles), first with
 | By ground: open / hull-down / street | 0.37 / 0.45 / 0.81 | 0.45 / 0.49 / 0.83 |
 | Stock / refit chaingun Bulwark | 0.18 / 0.48 | 0.23 / 0.51 |
 | Refit heavy cannon / bastion / pulse | 0.57 / 0.79 / 0.70 | 0.67 / 0.82 / 0.72 |
-| Against breakthrough / heavy gun | 0.56 / 0.53 | 0.61 / 0.57 |
+| Against Onager / heavy gun | 0.56 / 0.53 | 0.61 / 0.57 |
 | Fight range under 20 / 20-30 / over 30 cells | 0.79 / 0.53 / 0.08 | 0.81 / 0.59 / 0.13 |
 | Fights in which the tank lost its gun | — | 49 of 480, all won by the Bulwark |
 | Mean seconds from first hit | 57 | 54 |
@@ -610,7 +610,7 @@ above (five fits, three grounds, eight seeds, both roles), first with
   12%. 0.25 / 0.3 gave 0.59, 0.46, 12%. Above 0.15 hits, the pool share is the
   lever for how often the gun goes.
 - The open is still the tank's (0.45). If the gun-loss cost should be won back
-  there, the breakthrough tank's reach remains the lever named above, not its
+  there, the Onager's reach remains the lever named above, not its
   pool.
 - **A tank that has lost its gun withdraws** (`convoy-nouns.md`, the turret
   section): out of every threat's reach, then it holds. Read against
@@ -621,7 +621,7 @@ above (five fits, three grounds, eight seeds, both roles), first with
   turned from Bulwark wins into stalemates, and the tank kept 6-39% of its
   integrity. A defending tank runs and lives longer (up to 2410 against 1750
   ticks) but still dies, because the attacking Bulwark hunts it. Among tanks the
-  same holds: four hull-down heavy-gun fights against the breakthrough tank
+  same holds: four hull-down heavy-gun fights against the Onager
   ended with the gunless defender alive out of reach.
 - **Withdrawing nose on was measured and rejected** (`convoy-nouns.md`, what
   presents the front). Backing out of the nearest threat's reach before routing
@@ -633,8 +633,8 @@ above (five fits, three grounds, eight seeds, both roles), first with
   costs more than the rear plate saves.
 
 **The AT LRM against a tank** (2026-10-19). A refit Bulwark with two AT
-LRM-15s beats the tanks 0.81: 0.78 against the breakthrough tank, 0.83 against
-the heavy gun, and 1.00 against the breakthrough tank in the open and hull-down.
+LRM-15s beats the tanks 0.81: 0.78 against the Onager, 0.83 against
+the heavy gun, and 1.00 against the Onager in the open and hull-down.
 Bastion arms with the same racks take that to 0.94. The figures are
 `armorMatchup`, three grounds, eight seeds, both roles, with a timeout read by
 integrity. The same fit also beats a refit chaingun Bulwark 0.77, so it is the
@@ -647,7 +647,7 @@ being a tank-only gap.
   1.7 times a tank's whole main gun, and the Bulwark carries two. An indirect
   round rolls its hit at launch, with no range falloff and nothing for the
   target's size or motion, and lands about 80% of rolls on a hull. It opens at
-  40 cells, outside the breakthrough tank's 36. So the tank dies in 11-18 s
+  40 cells, outside the Onager's 36. So the tank dies in 11-18 s
   having fired 6-8 rounds. Against a chaingun Bulwark the tank's one edge is
   stand-off reach, and the rack's reach takes that away. The report's
   damage-by-weapon column had shown the racks at 15% of the damage, weighting a
@@ -667,17 +667,17 @@ being a tank-only gap.
   The magazine levers miss because the refit's replenisher reloads and the
   first two volleys already kill. Every damage-side lever moves the mech rows
   two to four times as far as the tank rows. Reach is erratic, and at 32 the
-  bastion fit beats the breakthrough tank 1.00. The tank rows are
+  bastion fit beats the Onager 1.00. The tank rows are
   overdetermined: halving the racks still wins.
 - **The answer is something a company buys, not a stock buff** (owner, 2026-10-19). A cheap tank
   losing to a dedicated anti-armor fit is by design; the counter is something a
-  company buys. It was first a rung, the **screened tank** (the Parapet): the breakthrough tank with active
+  company buys. It was first a rung, the **screened tank** (the Parapet): the Onager with active
   protection, a Prestige sidegrade on the tank line at Heavy lift. Since 2026-10-30 (owner: one tank, modular
   heads) the system is a Prestige compartment part (`MechInternal.ACTIVE_PROTECTION`, once a rack kit;
   `convoy-nouns.md`, active protection is a compartment part) and the Parapet is the Onager with it (`VehicleStockFit.PARAPET`); the system, its tuning and
   its cost in speed are unchanged, and `armorMatchup` reads the stock fit within a few seconds of the old hull's
-  times with the same wins. The record below is of the hull as it was. Its bill is the breakthrough
-  tank's plus machinery and rare metals for the launchers and their sensor
+  times with the same wins. The record below is of the hull as it was. Its bill is the Onager's
+  plus machinery and rare metals for the launchers and their sensor
   (125 supplies, 115 machinery, 240 metals, 44 rare metals), and the launcher
   boxes cost it a little speed (2.9 against 3.1). Its system has reach 8, a
   0.1 s cycle, a 0.7 roll and 30 engagements, and takes only arcing rounds
@@ -686,10 +686,10 @@ being a tank-only gap.
   for it or not), without a socket, a save field or a balance surface per hull,
   which is what *Vehicles: variants and kits* keeps out of the kit rack. The stock tanks carry
   none. Readings are Bulwark-side shares, three grounds, eight seeds, both roles,
-  a timeout read by integrity; the breakthrough tank is the screened tank's
+  a timeout read by integrity; the Onager is the screened tank's
   control:
 
-  | Fit | Breakthrough | Heavy gun | Screened |
+  | Fit | Onager | Heavy gun | Screened |
   | --- | --- | --- | --- |
   | Refit, two AT LRM-15s | 0.78 | 0.83 | 0.66 (open 0.81, hull-down 0.88, street 0.28) |
   | Bastion arms, two AT LRM-15s | 0.89 | 0.98 | 0.82 |
@@ -700,8 +700,8 @@ being a tank-only gap.
   It stops about 10 rounds a fight against the LRM fit. The stock Bulwark's
   street rows do not move, because its SRMs fly flat. The bastion fit stays high
   on its arms (bastion alone 0.79): that is the reach-34 arm's case above, not
-  the rack's. Against other tanks the screened tank duels as the breakthrough
-  tank does. The kit's launcher boxes stand on the hull's rear flanks and a sensor panel on each
+  the rack's. Against other tanks the screened tank duels as the Onager
+  does. The kit's launcher boxes stand on the hull's rear flanks and a sensor panel on each
   cheek, lifted off the retired hull's ImageGen turret (`art-source/vehicles/kit-active-protection`).
 - **Why top-attack only.** The first prototype took any interceptable round
   near the hull, and it taxed the SRM Bulwarks harder than the LRM fit. At the
@@ -732,7 +732,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
   cells, inside the LRM's reach. Bulwark-side shares, three grounds, eight seeds,
   both roles, timeout read by integrity, arcs on / off:
 
-  | Fit | Breakthrough | Heavy gun | Screened |
+  | Fit | Onager | Heavy gun | Screened |
   | --- | --- | --- | --- |
   | Refit, two AT LRM-15s | 1.00 / 0.98 | 0.94 / 0.92 | 0.85 / 0.85 |
   | Bastion arms, two AT LRM-15s | 1.00 / 1.00 | 1.00 / 1.00 | 0.94 / 0.94 |
@@ -741,7 +741,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
   On the old facing, arcs moved the same rows by 0.05 or less (LRM refit 0.83 /
   0.65 against 0.78 / 0.66). The screened tank stays the rung: against the LRM
-  fit it holds 0.15 where a breakthrough tank holds none. Its margin is smaller
+  fit it holds 0.15 where an Onager holds none. Its margin is smaller
   than the old street rows made it look.
 - **Caught off its front.** `-PdefenderFacing=90|180` turns the defenders from
   facing the attackers when they are set down. Attacker win share, eight seeds,
@@ -749,10 +749,10 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
   | Attacker vs tank | Facing the attacker | Side-on | Rear on |
   | --- | --- | --- | --- |
-  | Escort APC vs breakthrough | 0.04 / 0.08 | 0.12 / 0.42 | 0.08 / 0.46 |
+  | Escort APC vs Onager | 0.04 / 0.08 | 0.12 / 0.42 | 0.08 / 0.46 |
   | Escort APC vs screened | 0.12 / 0.08 | 0.08 / 0.38 | 0.12 / 0.04 |
-  | Breakthrough vs breakthrough | 0.38 / 0.42 | 0.54 / 0.58 | 0.62 / 0.71 |
-  | Refit Bulwark vs breakthrough | 0.50 / 0.46 | 0.33 / 0.42 | 0.58 / 0.54 |
+  | Onager vs Onager | 0.38 / 0.42 | 0.54 / 0.58 | 0.62 / 0.71 |
+  | Refit Bulwark vs Onager | 0.50 / 0.46 | 0.33 / 0.42 | 0.58 / 0.54 |
   | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.17 / 0.25 |
 
   These are the retuned profiles (below). The retune moved tank-on-tank side-on
@@ -776,7 +776,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
     penetration-4 MG out-trade the cannon in a long, close fight. A tank's flank
     is now 1.0 rating / 0.95 plate (0.9 still gave the dozer half its street
     fights), and the dozer is the tank line's profile without the glacis bonus.
-    Street, dozer attacking, arcs on / off: breakthrough 2/8 / 1/8, heavy-gun
+    Street, dozer attacking, arcs on / off: Onager 2/8 / 1/8, heavy-gun
     0/8 / 0/8, screened 2/8 / 1/8.
   - **The SRM technical (38/27/72/6) took a third of its fights from the
     fire-support APC (52/40/115/11).** Its welded sheet lost the hull profile's
@@ -798,10 +798,10 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
   | Attacker vs tank | Facing the attacker | Side-on | Rear on |
   | --- | --- | --- | --- |
-  | Escort APC vs breakthrough | 0.08 / 0.08 | 0.42 / 0.12 | 0.46 / 0.08 |
+  | Escort APC vs Onager | 0.08 / 0.08 | 0.42 / 0.12 | 0.46 / 0.08 |
   | Escort APC vs screened | 0.08 / 0.08 | 0.38 / 0.04 | 0.04 / 0.08 |
-  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.58 / 0.50 | 0.71 / 0.71 |
-  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
+  | Onager vs Onager | 0.42 / 0.42 | 0.58 / 0.50 | 0.71 / 0.71 |
+  | Refit Bulwark vs Onager | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
   | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.25 / 0.08 |
 
   Head-on, nothing moves. With arcs off the escort APC rows barely move (0.12 to
@@ -832,8 +832,8 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
   ground but one. 12 pairings move by 0.25 or more, all on the street but one
   hull-down row (Warden against the militia technical, one fight in four).
   Street fights left undecided (stalemate or timeout) go 227 to 141 of 828.
-  Most of them are fights that never began: the escort APC against a Hound, a
-  breakthrough tank or a screened tank timed out with no damage on either side,
+  Most of them are fights that never began: the escort APC against a Hound, an
+  Onager or a screened tank timed out with no damage on either side,
   and now ends about as it does on open ground (Hound 0.00 to 1.00, both tanks
   0.00 to 0.50). Light hulls that stalemated now finish each other, 0.00 to
   1.00: the escort APC against the militia technical and the heavy,
@@ -844,10 +844,10 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
   | Attacker vs tank | Facing the attacker | Side-on | Rear on |
   | --- | --- | --- | --- |
-  | Escort APC vs breakthrough | 0.08 / 0.17 | 0.12 / 0.12 | 0.08 / 0.08 |
+  | Escort APC vs Onager | 0.08 / 0.17 | 0.12 / 0.12 | 0.08 / 0.08 |
   | Escort APC vs screened | 0.08 / 0.17 | 0.04 / 0.04 | 0.08 / 0.08 |
-  | Breakthrough vs breakthrough | 0.42 / 0.42 | 0.50 / 0.50 | 0.71 / 0.71 |
-  | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
+  | Onager vs Onager | 0.42 / 0.42 | 0.50 / 0.50 | 0.71 / 0.71 |
+  | Refit Bulwark vs Onager | 0.46 / 0.46 | 0.42 / 0.42 | 0.54 / 0.54 |
   | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.08 / 0.08 |
 
   Only the head-on escort APC rows move, and only by the street fights that now
@@ -894,7 +894,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
     | Two fire-support APCs vs | 30° fan | 90° | 180° (opposite sides) | 180°, arcs off |
     | --- | --- | --- | --- | --- |
-    | Breakthrough tank | 0.33 | 0.42 | 0.50 | 0.17 |
+    | Onager | 0.33 | 0.42 | 0.50 | 0.17 |
     | Screened tank | 0.17 | 0.33 | 0.50 | 0.17 |
 
     The gain is the side plate (arcs off it is gone), and the tank's turn does
@@ -907,10 +907,10 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
 
     | Attacker vs tank | Facing the attacker | Side-on | Rear on |
     | --- | --- | --- | --- |
-    | Escort APC vs breakthrough | 0.21 / 0.12 | 0.12 / 0.00 | 0.08 / 0.12 |
+    | Escort APC vs Onager | 0.21 / 0.12 | 0.12 / 0.00 | 0.08 / 0.12 |
     | Escort APC vs screened | 0.21 / 0.25 | 0.04 / 0.08 | 0.08 / 0.12 |
-    | Breakthrough vs breakthrough | 0.42 / 0.46 | 0.54 / 0.58 | 0.71 / 0.71 |
-    | Refit Bulwark vs breakthrough | 0.46 / 0.46 | 0.42 / 0.58 | 0.54 / 0.58 |
+    | Onager vs Onager | 0.42 / 0.46 | 0.54 / 0.58 | 0.71 / 0.71 |
+    | Refit Bulwark vs Onager | 0.46 / 0.46 | 0.42 / 0.58 | 0.54 / 0.58 |
     | Stock Bulwark vs screened | 0.00 / 0.00 | 0.04 / 0.04 | 0.08 / 0.08 |
 
     With one threat the worst is the nearest, so every move here is the shaken
@@ -942,13 +942,13 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
     on its front; in every traced fight its rear plate was never hit. The side
     plates stripped while it turned are spent on top of the front's whole pool
     (about 780 armor chewed against the control's 550). Two Hounds from opposite
-    sides at 20 cells, 32 seeds, Hound wins located / control: breakthrough tank
+    sides at 20 cells, 32 seeds, Hound wins located / control: Onager
     23 / 29 (TTK 60.8 / 36.9 s), screened 23 / 28 (63.5 / 39.4 s), burst laser
     tank 16 / 30 (41.4 / 29.5 s). Head-on (the same pair on one approach) they
     win 2 / 3, 6 / 2 and 13 / 7, so the pincer is still worth having against the
     cannon tanks and is worth almost nothing against the laser tank. Two
     Bulwarks, or a Hound and a Bulwark, still win every fight, 20-65% slower.
-    What moved against two Hounds is how often the tank kills both (breakthrough 9 / 1 of 32, laser 15 / 1), not how often it gets away.
+    What moved against two Hounds is how often the tank kills both (Onager 9 / 1 of 32, laser 15 / 1), not how often it gets away.
   - *The single-machine ladder hardly moves* (2 seeds, every pairing both ways):
     of 612 vehicle rows 72 move by a fight, in both directions; median TTK
     ratios 1.00-1.04 by ground; mechs attacking hulls win 86 of 216 fights
@@ -989,7 +989,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
     | Tank | Pincer, control | Pincer, crossfire | One approach (both arms) |
     | --- | --- | --- | --- |
     | Burst laser | 16 / 15, 41.4 / 40.3 | 25 / 7, 50.4 / 50.3 | 13 / 18, 41.5 / 40.8 |
-    | Breakthrough | 23 / 9, 60.7 / 58.0 | 23 / 9, 55.0 / 59.3 | 2 / 21, 67.2 / 63.7 |
+    | Onager | 23 / 9, 60.7 / 58.0 | 23 / 9, 55.0 / 59.3 | 2 / 21, 67.2 / 63.7 |
     | Screened | 23 / 7, 63.5 / 59.8 | 22 / 9, 61.1 / 63.2 | 6 / 17, 67.7 / 65.4 |
 
     The pincer now beats the single approach against all three; the laser tank,
@@ -1002,7 +1002,7 @@ without its front bonus (the dozer, once the tank line without its glacis bonus,
   0.75 / 0.6, with `-Dbattle.mech.armorArcs=false` the control. Over the mech and
   mixed ladders (8 seeds, both roles), 202 of 291 rows are identical to the
   control and no pairing moves past noise. Two-on-one mech fights (`2x` Hound,
-  Warden and Bulwark, Hound+Warden, two breakthrough tanks against a Bulwark,
+  Warden and Bulwark, Hound+Warden, two Onagers against a Bulwark,
   a refit Bulwark and a Warden) win exactly as often, and only a few kill a
   second or two sooner. A mech's torso follows the machine it is shooting, and
   two attackers on one approach both stay inside its ninety-degree front.
@@ -1050,8 +1050,8 @@ one salvo per fight, because the chaingun's flux starves it (below). On the
 Warden the rack is the whole answer to men, which is why the Warden ships Frag
 LRMs.
 
-**The mixed fight.** An AT Bulwark faces six men at 13 cells with a breakthrough
-tank behind them at 15. With damage-aware target choice, the torso holds the tank
+**The mixed fight.** An AT Bulwark faces six men at 13 cells with an Onager
+behind them at 15. With damage-aware target choice, the torso holds the tank
 for 336 ticks while a rack is loaded and puts 32 rack rounds into it, killing 15
 of the 24 men over four plays. With nearest-target choice it puts no rack round
 into the tank and kills all 24 men. The tank kills the stock Bulwark in every
@@ -1076,8 +1076,8 @@ A Frag row's control fires the same Frag rack; its difference is its opponents'
 racks and the target choice. AT racks hold or improve every mech's armor results,
 most for the stock Bulwark, and the Frag Warden is half the anti-armor machine
 the AT one is. Where SRMs reach a tank (the street, at 17 cells) the AT warhead
-takes clearly more off it than the old rack did: a refit Bulwark leaves a
-breakthrough tank 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
+takes clearly more off it than the old rack did: a refit Bulwark leaves an
+Onager 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
 against 0.85, and a Hound leaves them 0.90 and 0.91 against 0.93 and 0.95. AT rockets hit about a third
 of the time against about half for the old area rack, because a contact warhead
 needs the body. Win shares against tanks stayed at zero until the tanks were
@@ -1095,7 +1095,7 @@ the racks (9.7-16.2 cells). In the open the tank holds its own stand-off beyond
 the Bulwark's 30-cell reach (31.5 cells and more) and backs away at 0.93 cells/s
 while the Bulwark walks at 1.05, so it never gets there. With tank reverse near
 zero (control, `-Dbattle.vehicle.tankReverseFraction=0.01`) the Bulwark closes to
-17 cells and the refit fit beats a breakthrough tank 8/8 on open ground, against
+17 cells and the refit fit beats an Onager 8/8 on open ground, against
 3/8. The open-ground tank kiting the SRM range is accepted (owner, 2026-10-18):
 there the SRM is not the anti-tank weapon; the LRM-15 and the bastion are. Once
 a fight drains both magazines, the band rightly walks the mech back out. A longer
@@ -1136,7 +1136,7 @@ Still open from these readings:
 | --- | --- | --- |
 | Light | Hound, heavy APC | Bus-class boats (Buffalo, Tarsus, Mule, Nebula) with a lift cradle |
 | Medium | Warden, mortar and LRM carriers, militia technical | Bus-class boats with a heavy cradle; Valkyrie |
-| Heavy | Bulwark, breakthrough tank | Valkyrie; a committed ship with Ground Support |
+| Heavy | Bulwark, Onager | Valkyrie; a committed ship with Ground Support |
 
 A lift fitting is a third boat fitting slot beside plating and drive. It trades
 seats for a lift rating: a cradled boat carries one machine or a reduced section,
@@ -1187,7 +1187,7 @@ one. Lines and their first variants:
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
 | APC | APC (troop carrier; plate and speed are fitted, not a rung) → fire-support APC (a mortar instead of seats, spotted indirect fire on anything, steady) or LRM carrier (an LRM-15 anti-armor rack instead of seats, spotted indirect fire) |
-| Tank | Breakthrough tank (the Onager; with the active-protection kit, the Parapet) → a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
+| Tank | Onager (with the active-protection kit, the Parapet) → a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
@@ -1196,7 +1196,7 @@ one. Lines and their first variants:
 price (`gradlew.bat armorEconomyEvidence`), structure plus armor
 capacity per thousand credits against the class mech: heavy APC 1.00x the Hound;
 technical 2.56x, escort 2.38x, up-armored 1.99x and fire-support 1.23x the
-Warden; breakthrough 1.20x, heavy-gun 1.09x and dozer 2.04x the Bulwark (the
+Warden; Onager 1.20x, heavy-gun 1.09x and dozer 2.04x the Bulwark (the
 tanks were 1.80x and 1.63x before their plate was retuned against the Bulwark). The
 heavy APC was 0.73x, a worse buy than the mech it shares a lift class with, and
 was cut to 38/28/88/3 (supplies, machinery, metals, rare metals). Its variants
@@ -1219,7 +1219,7 @@ Bulwark's would break this rule, so it stayed as it was until it was retired (`h
 seeds, three grounds, both roles; no spotter, so the LRM carrier fires only on its
 own sight). Wins out of 24 and the opponent's integrity left:
 
-| Carrier against | Breakthrough | Heavy-gun | Hound | Warden | Bulwark | Bulwark refit |
+| Carrier against | Onager | Heavy-gun | Hound | Warden | Bulwark | Bulwark refit |
 | --- | --- | --- | --- | --- | --- | --- |
 | LRM carrier | 0 (0.53-0.87) | 0 (0.27-0.84) | 20 | 16 | 17 | 10 |
 | SRM technical | 0 (0.77-1.00) | 0 (0.75-1.00) | 1 | 1 | 0 (1.00) | 0 (1.00) |
@@ -1242,7 +1242,7 @@ cadence rather than by a damage type: a four-pulse burst at penetration 3 every
 0.55 s, each pulse adding flux the hull dissipates far slower than it builds, so its
 crew holds and the hull vents for seconds at a time in a long fight (`convoy-nouns.md`, The
 laser tanks). A section dies inside one charge-up; a tank does not.
-Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
+Readings against the Onager's cannon (`tank-versus-infantry`, four
 seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,
 four seeds, three grounds):
 
@@ -1250,7 +1250,7 @@ four seeds, three grounds):
 | --- | --- | --- |
 | Line section (10/8 plate) broken | 19.8 s | 12.1 s |
 | Power-suit section (60/14) | 45 of 48 killed, 1 of 4 broken | 31 of 48 killed, none broken |
-| Attacking a breakthrough tank, wins of 4 (open, hull-down, street) | 2, 2, 2 | 0, 0, 1 |
+| Attacking an Onager, wins of 4 (open, hull-down, street) | 2, 2, 2 | 0, 0, 1 |
 | Attacking a Hound / heavy APC, wins of 4 per ground | 4 / 4 | 4 / 4 |
 
 Without the bank, the same burst at penetration 3 took every street fight and every

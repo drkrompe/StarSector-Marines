@@ -6,7 +6,7 @@ art source: `pack.py` now writes only the live turret frame to
 `art-source/vehicles/kit-active-protection/screened-turret-frame.png`, and that folder's `build.py` lifts the
 launchers and sensor panels off it. What follows is the original record.
 
-The breakthrough tank (`art-source/vehicles/tank/`) carrying active protection: a
+The retired tracked hull, then the Onager's sheet (`art-source/vehicles/tank/`), carrying active protection: a
 compact interceptor launcher box on each rear turret flank (2x3 tube mouths,
 hanging slightly outboard), a flat radar/sensor panel inset on each cheek wedge
 and a short sensor mast on the rear roof. Same hull, same housing and cannon,
@@ -45,5 +45,5 @@ python art-source/vehicles/tank-screened/pack.py
 
 The live edit came back 1.10x the target about (1495,457) (alpha IoU 0.988
 outside the launchers), so its scale is 0.7 / 1.1. Its muzzle is source
-(1149,458): 2.233 cells forward, ~0.01 cells lateral, against the breakthrough
+(1149,458): 2.233 cells forward, ~0.01 cells lateral, against the tracked hull's
 mount's 2.2434501 — the shared `TANK_CANNON` mount needs no change.
