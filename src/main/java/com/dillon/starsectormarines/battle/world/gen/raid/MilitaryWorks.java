@@ -227,6 +227,12 @@ public final class MilitaryWorks implements RaidIndustry {
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
         perimeter(c, plan, works);
         vehiclePark(c, plan, works);
+        // The base's buildings and its garrison's are built alike, so the two read as one cantonment.
+        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) oliveWalls(c, b);
+        for (Precinct p : plan.precincts()) {
+            if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
+            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) oliveWalls(c, b);
+        }
         int n = 0;
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
             RoomPurpose purpose = WorksProps.purposeOf(c, b);
@@ -314,6 +320,19 @@ public final class MilitaryWorks implements RaidIndustry {
             }
         }
         return most + 1;
+    }
+
+    /** The surface a base building's walls are built of: olive sheet, so its roof is the sheet roof a base wears. */
+    static final String BASE_WALL = "colony.olive-wall";
+
+    /** Rebuilds a building's walls in {@link #BASE_WALL}. */
+    private static void oliveWalls(GenContext c, PointOfInterest b) {
+        int surface = c.topology.surfaceIndex(BASE_WALL);
+        for (int x = b.left - 1; x <= b.right + 1; x++) {
+            for (int y = b.top - 1; y <= b.bottom + 1; y++) {
+                if (c.grid.inBounds(x, y) && c.topology.isWall(x, y)) c.topology.setSurface(x, y, surface);
+            }
+        }
     }
 
     /** Cells between ranks of the vehicle park, and between vehicles along a rank. UNTUNED. */
