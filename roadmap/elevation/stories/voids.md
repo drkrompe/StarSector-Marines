@@ -702,8 +702,11 @@ Laws):
        and access the ridge planner proves, at once when the map has no
        ridges of its own, else with them, its ground held from the hills
        meanwhile. A town too far from the river, or with no room, has none.
-       Left: basalt causeways for the crossings, waiting on a per-drop deck
-       (the ruins forge hall's multi-drop change).
+       Its crossings are causeways of dressed basalt (`Deck.BASALT`), where
+       an outdoor drop elsewhere lays timber.
+       Left: the breaks where a walled place or a road stands on the
+       river's line, each left as ground; the line is the design's, never
+       searched for, so steering it round built ground is its own change.
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -1017,12 +1020,18 @@ Laws):
      (`NaturalChasm`), wandering, 7 to 12 cells wide. It takes only ground the landscape pass's reservations leave
      (`OutdoorLandscapeStage`), after the open pit and before anything grows:
      so it never covers a road, building, doorway, fixture, prop, landing or
-     its approach, a spawn, or a route between required places, and each of
-     those that crosses its line is left standing across it as a bridge.
-   - **Crossings.** Every 34 cells along its line a crossing four cells wide
-     is left standing, decked with its drop's deck (`NaturalVoidZoning.Deck`:
-     a surface laid on the crossing, a doodad laid over it, or both), a
-     timber footbridge for every outdoor drop today; the drop is opened
+     its approach, or a spawn, and each of those that crosses its line is
+     left standing across it as a bridge. A route between required places is
+     not kept out: its five reserved cells left standing read as the drop
+     stopping, so a crossing is left where the route's own line meets the
+     drop's and the drop takes the rest of the route's ground.
+   - **Crossings.** Every 34 cells along its line, and wherever a route
+     crosses it, a crossing four cells wide is left standing; a regular
+     crossing within 17 cells of a route's gives way to it, so no sliver of
+     drop is left between them. Each is decked with its drop's deck
+     (`NaturalVoidZoning.Deck`: a surface laid on the crossing, a doodad laid
+     over it, or both), a timber footbridge outdoors and a basalt causeway
+     over a lava river; the drop is opened
      before the crossings are taken out, so it meets each deck square and runs
      on under it. A snow bridge on ice was tried: plain snow over a crevasse
      read as two pits with ground between them, not as a way across.
