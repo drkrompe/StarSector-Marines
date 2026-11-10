@@ -39,11 +39,24 @@ import java.util.List;
  * glow shows it is running and a ring shows a capture in progress, in the colour
  * of the side taking it.
  *
- * <p>Presentation only, in the {@code HAZARDS} layer beside the point-defence
- * bubble. A dome the player's side does not hold is drawn only where the map has
+ * <p>Presentation only. A shield draws over the machine it protects, so each is drawn in its host's own layer,
+ * straight after the host ({@link Hosts}): domes and the shields of hardpoints and mechs in the {@code HAZARDS}
+ * layer over the units, a hull's in the {@code CONVOY} layer over the hull ({@link #hullShields}), a boat's in the
+ * {@code SHUTTLES} layer over her ({@link #boatShields}). Drawn in {@code HAZARDS}, a hull's or boat's shield lay
+ * under the hull, which covered most of it. A dome the player's side does not hold is drawn only where the map has
  * been seen, so an enemy generator is discovered rather than announced.
  */
 public final class ShieldDomeRenderSystem implements RenderSystem {
+
+    /** Which shields an instance draws: each set in the layer its hosts are drawn in. */
+    enum Hosts {
+        /** Domes, and the shields of hardpoints and mechs: drawn over the units. */
+        GROUND,
+        /** The shields of convoy hulls (the heavy skimmer's): drawn over the hulls. */
+        HULLS,
+        /** The shields of company boats over the battle: drawn over the boats. */
+        BOATS
+    }
 
     private static final int RING_SEGMENTS = 96;
     private static final int MARK_SEGMENTS = 20;
@@ -58,14 +71,38 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
     private static final float[] HIT = {0.92f, 0.98f, 1.00f};
 
     private final PolyMesh mesh = new PolyMesh(512);
-    private final ShieldDomeShader shader = new ShieldDomeShader();
-    private final ShieldDomePass pass = new ShieldDomePass(shader);
+    private final ShieldDomeShader shader;
+    private final ShieldDomePass pass;
     private final List<ShieldDomeDraw> drawPool = new ArrayList<>();
+    private final Hosts hosts;
+    private final RenderLayer layer;
     private float clockSeconds;
+
+    /** Domes and the shields of hardpoints and mechs, over the units. */
+    public ShieldDomeRenderSystem() {
+        this(Hosts.GROUND, RenderLayer.HAZARDS, new ShieldDomeShader());
+    }
+
+    private ShieldDomeRenderSystem(Hosts hosts, RenderLayer layer, ShieldDomeShader shader) {
+        this.hosts = hosts;
+        this.layer = layer;
+        this.shader = shader;
+        this.pass = new ShieldDomePass(shader);
+    }
+
+    /** The convoy hulls' shields, on this system's shader; registered straight after the hulls. */
+    public ShieldDomeRenderSystem hullShields() {
+        return new ShieldDomeRenderSystem(Hosts.HULLS, RenderLayer.CONVOY, shader);
+    }
+
+    /** The boats' shields, on this system's shader; registered straight after the aircraft. */
+    public ShieldDomeRenderSystem boatShields() {
+        return new ShieldDomeRenderSystem(Hosts.BOATS, RenderLayer.SHUTTLES, shader);
+    }
 
     @Override
     public RenderLayer layer() {
-        return RenderLayer.HAZARDS;
+        return layer;
     }
 
     @Override
@@ -80,7 +117,7 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
         boolean shaded = shader.usable();
         pass.reset(clockSeconds);
 
-        for (ShieldDomeService.DomeView dome : domes.domes()) {
+        for (ShieldDomeService.DomeView dome : hosts == Hosts.GROUND ? domes.domes() : List.<ShieldDomeService.DomeView>of()) {
             if (!isKnown(ctx, dome.holder(), dome.x(), dome.y())) continue;
             if (shaded) {
                 pass.add(describe(ctx, dome, domes.recentHits(), camera, cellPx, pass.draws().size()));
@@ -91,7 +128,7 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             }
         }
         for (ShieldDomeService.HitView hit : domes.recentHits()) {
-            if (shaded || hit.freshness() <= 0f) continue;
+            if (hosts != Hosts.GROUND || shaded || hit.freshness() <= 0f) continue;
             if (!isKnown(ctx, hit.holder(), hit.x(), hit.y())) continue;
             float sx = camera.cellToScreenX(hit.x());
             float sy = camera.cellToScreenY(hit.y());
@@ -103,8 +140,8 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
                     1f, 1f, 1f, 0.85f * fade);
         }
         collectTurretShields(ctx, camera, cellPx, shaded);
-        if (!pass.isEmpty()) out.addCustom(RenderLayer.HAZARDS, pass);
-        if (!mesh.isEmpty()) out.addPoly(RenderLayer.HAZARDS, mesh);
+        if (!pass.isEmpty()) out.addCustom(layer, pass);
+        if (!mesh.isEmpty()) out.addPoly(layer, mesh);
     }
 
     /**
@@ -121,9 +158,10 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             TurretShieldService.Fitted fitted = shields.at(i);
             long id = fitted.id;
             if (!world.isAlive(id)) continue;
+            ShuttleMission boat = world.mission(id);
+            if (hostsOf(boat != null, ctx.sim.convoy().mission(id) != null) != hosts) continue;
             float x = world.renderX(id);
             float y = world.renderY(id);
-            ShuttleMission boat = world.mission(id);
             if (boat != null) {
                 if (!boat.isOverTheBattle()) continue;
                 AirBody body = world.kinematics(id);
@@ -139,6 +177,11 @@ public final class ShieldDomeRenderSystem implements RenderSystem {
             if (shaded) pass.add(draw);
             else appendFlat(mesh, draw);
         }
+    }
+
+    /** Which instance draws a shield: a boat's over the boats, a hull's over the hulls, any other over the units. */
+    static Hosts hostsOf(boolean boat, boolean hull) {
+        return boat ? Hosts.BOATS : hull ? Hosts.HULLS : Hosts.GROUND;
     }
 
     /** The shader inputs for one dome: where it is, how full, what state, and the impacts crossing it. */
