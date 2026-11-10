@@ -45,12 +45,13 @@ STONES = HERE / "field-stones"
 # unprefixed ids are the verdant set; RockDamage.Biome names the same four. A grade is (value, contrast, saturation,
 # tint) about the opaque pixels' mean luminance. The first set can be overridden from the command line to compare.
 STONE_SETS = [("", "mossed", "quiet"), ("sandstone-", "sandstone", "dusty"), ("basalt-", "basalt", "weathered"),
-              ("frost-", "frost", "none")]
+              ("frost-", "frost", "none"), ("scoria-", "basalt", "scoria")]
 GRADES = {
     "none": (1, 1, 1, (1, 1, 1)),
     "quiet": (.86, .85, .8, (1, 1, .96)),     # a mossed set taken down a step, keeping its greens
     "dusty": (.92, .8, .55, (1, 1, 1.04)),    # sandstone with its orange knocked back under a film of dust
     "weathered": (1.3, .75, .7, (1, 1, 1)),   # basalt lifted toward the stony ground, so it is not black on tan
+    "scoria": (.72, .9, .6, (1.05, 1, .95)),  # the basalt stones dark and faintly warm, for a lava world's basalt flow
 }
 PITCH, SOURCE_CELL = 512, 480
 ALPHA_MIN = 40
