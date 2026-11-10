@@ -56,15 +56,17 @@ profile. The seed is part of the contract: identical request inputs and recipe
 composition produce the same map. A stage must not add an RNG draw for a silent
 or absent feature, and unordered iteration must never decide an outcome.
 
-A story map does not take any seed: it plays from a **pool** of vetted seeds,
-each with an optional patch, regenerated every time so generator changes still
-arrive, and checked by `storyMapPools` (`story-map-pools.md`).
+A story map does not take any seed: it **owns one**, with an optional patch,
+laid out on the mission's home palette and regenerated every time so generator
+changes still arrive, checked by `storyMapPools`; a **planet skin** re-dresses
+that one map for the world it is fought on, the layout never moving
+(`story-map-pools.md`).
 
 A mission may instead **own** its map: one layout authored once as a data
 document, its settlements by program and role and its drops by role, which a
 **biome skin** dresses for whatever world the mission is fought on, the layout
-never moving under it (`owned-maps.md`). Relay Nine is the first; the rest is
-parked until every pooled mission plays one vetted seed per biome.
+never moving under it (`owned-maps.md`). Relay Nine is the first; the
+document format is parked, and story missions own a seed instead.
 
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,

@@ -205,6 +205,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -3288,7 +3289,10 @@ public final class BattleSetup {
         if (!patch.pins().isEmpty() || !patch.ruin().isEmpty()) {
             throw new IllegalStateException("a Colony Breach pool entry takes no pin or ruin yet: seed " + seed);
         }
-        TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(surfaceOrRock(profile)) : profile;
+        // A pooled colony is the mission's one map: laid out on its home palette, then skinned for this world.
+        SurfacePalette home = pooled != null
+                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).layoutFor(surfaceOrRock(profile)) : null;
+        TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(home) : profile;
         if (colony && mapProfile != null) {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
         }
@@ -3301,6 +3305,9 @@ public final class BattleSetup {
             PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
+            if (home != null) {
+                map = PlanetSkin.apply(map, home, profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK));
+            }
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
                 why = "missing " + missing;
