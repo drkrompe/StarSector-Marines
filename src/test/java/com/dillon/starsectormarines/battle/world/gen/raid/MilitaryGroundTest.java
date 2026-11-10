@@ -20,6 +20,14 @@ class MilitaryGroundTest {
         assertArrayEquals(new int[]{5, 3, 8, 6}, MilitaryGround.largestRectangle(open));
     }
 
+    /** A side is lined end to end in runs of four, the last flush with its far end; too short a side has none. */
+    @Test
+    void aSideIsLinedToItsEnd() {
+        assertArrayEquals(new int[]{2, 6}, MilitaryGround.runs(2, 9));
+        assertArrayEquals(new int[]{2, 6, 7}, MilitaryGround.runs(2, 10));
+        assertArrayEquals(new int[0], MilitaryGround.runs(2, 4));
+    }
+
     @Test
     void noOpenGroundIsNoSquare() {
         assertNull(MilitaryGround.largestRectangle(new boolean[5][5]));

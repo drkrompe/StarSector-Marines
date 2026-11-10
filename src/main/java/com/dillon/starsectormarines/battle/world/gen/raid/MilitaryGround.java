@@ -22,8 +22,8 @@ final class MilitaryGround {
     static final int PARADE_MAX_ALONG = 24, PARADE_MAX_DEEP = 14;
     /** Cells the square keeps from the yard's edge. */
     static final int PARADE_MARGIN = 1;
-    /** Cells between two marching marks across the square. UNTUNED. */
-    static final int MARK_STEP = 5;
+    /** Cells a rank row stands inside the square's long sides. UNTUNED. */
+    static final int RANK_IN = 3;
     /** A watchtower's side, and the farthest it moves in from its corner to find open ground, cells. */
     static final int TOWER_SIDE = 3, TOWER_SEARCH = 8;
 
@@ -69,31 +69,43 @@ final class MilitaryGround {
     }
 
     /**
-     * The square's border line (corner pieces, which turn clockwise from the north-west, and four-long runs end to
-     * end between them), a dashed rank row every {@link #MARK_STEP} cells across it, the ring at its middle, and the
+     * The square's border line (corner pieces, which turn anticlockwise from the north-west, and four-long runs end to
+     * end between them), a front and a rear rank row across it, the ring at its middle, and the
      * saluting base with the flag mast beside it at the middle of its south side.
      */
     private static void markOut(GenContext c, int x0, int y0, int x1, int y1) {
         WorksProps.decal(c, x0, y1 - 1, "doodad.parade-corner", 0);
-        WorksProps.decal(c, x1 - 1, y1 - 1, "doodad.parade-corner", 1);
+        WorksProps.decal(c, x1 - 1, y1 - 1, "doodad.parade-corner", 3);
         WorksProps.decal(c, x1 - 1, y0, "doodad.parade-corner", 2);
-        WorksProps.decal(c, x0, y0, "doodad.parade-corner", 3);
-        for (int x = x0 + 2; x + 3 <= x1 - 2; x += 4) {
+        WorksProps.decal(c, x0, y0, "doodad.parade-corner", 1);
+        // Runs four long end to end between the corners, the last laid flush against the far corner, so a side whose
+        // length is no multiple of four is still lined to its end (the overlap paints the same line twice).
+        for (int x : runs(x0 + 2, x1 - 2)) {
             WorksProps.decal(c, x, y0, "doodad.parade-line", 0);
             WorksProps.decal(c, x, y1, "doodad.parade-line", 0);
         }
-        for (int y = y0 + 2; y + 3 <= y1 - 2; y += 4) {
+        for (int y : runs(y0 + 2, y1 - 2)) {
             WorksProps.decal(c, x0, y, "doodad.parade-line", 1);
             WorksProps.decal(c, x1, y, "doodad.parade-line", 1);
         }
         int midX = (x0 + x1) / 2, midY = (y0 + y1) / 2;
-        for (int y = y0 + MARK_STEP; y <= y1 - MARK_STEP; y += MARK_STEP) {
-            if (Math.abs(y - midY) <= 1) continue;
-            for (int x = x0 + 3; x + 3 <= x1 - 3; x += 5) WorksProps.decal(c, x, y, "doodad.parade-ranks", 0);
+        // The ranks: a front and a rear rank {@link #RANK_IN} cells inside the long sides, across the square.
+        for (int y : new int[]{y0 + RANK_IN, y1 - RANK_IN}) {
+            for (int x : runs(x0 + RANK_IN, x1 - RANK_IN)) WorksProps.decal(c, x, y, "doodad.parade-ranks", 0);
         }
         WorksProps.decal(c, midX, midY, "doodad.parade-centre", 0);
         WorksProps.place(c, midX - 1, y0 - 3, "doodad.saluting-base", 0);
         WorksProps.place(c, midX + 3, y0 - 2, "doodad.flag-mast", 0);
+    }
+
+    /** The starts of four-long runs covering {@code from..to} inclusive: end to end, the last flush with {@code to}. */
+    static int[] runs(int from, int to) {
+        int length = to - from + 1;
+        if (length < 4) return new int[0];
+        int n = (length + 3) / 4;
+        int[] out = new int[n];
+        for (int i = 0; i < n; i++) out[i] = Math.min(from + 4 * i, to - 3);
+        return out;
     }
 
     /**
