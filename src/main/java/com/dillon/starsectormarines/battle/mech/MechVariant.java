@@ -185,6 +185,34 @@ public enum MechVariant {
             null, null, null,
             null,
             null,
+            MechRole.ASSAULT),
+
+    /**
+     * The fallen hull's stripper (`fallen-hull-nouns.md`, Stripper): the MG-18, a chassis of the derelict line on its
+     * own leg rig at its size, unarmed, cutting arms in place of guns. It cuts the structures and wrecks on a hull's
+     * claim into feedstock and holds it for a hauler. Narrow enough for a one-cell door. Automated; drawn as the
+     * sentinel at its size until its own look ships. All numbers UNTUNED.
+     */
+    SECURITY_STRIPPER("security_stripper", "@gearMechVariantSECURITY_STRIPPER", 300f, 280f, 12f, 1.10f, 0.45f, 40f,
+            1.05f, 0.70f, 0.40f, 0.42f, 0.8f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
+            null,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The fallen hull's hauler (`fallen-hull-nouns.md`, Hauler): the MG-30, a chassis of the derelict line built broad
+     * and slow under a load bed, unarmed. It carries stripped metal to the nearest store along a haul road, and a
+     * printed stake out at the heart of its train. Narrow enough for a two-cell corridor. Automated; drawn as the
+     * sentinel at its size until its own look ships. All numbers UNTUNED.
+     */
+    SECURITY_HAULER("security_hauler", "@gearMechVariantSECURITY_HAULER", 560f, 640f, 16f, 0.95f, 0.45f, 40f,
+            1.60f, 1.00f, 0.62f, 0.60f, 2.0f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, null, null,
+            null,
+            null,
             MechRole.ASSAULT);
 
     public final String id;
@@ -252,7 +280,8 @@ public enum MechVariant {
             case HAULER, PILGRIM -> BULWARK;
             case FOUNDRY_BREAKER, TORCH -> HOUND;
             case CENSER -> WARDEN;
-            case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> this;
+            case BULWARK, HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER,
+                 SECURITY_STRIPPER, SECURITY_HAULER, CRAWLER -> this;
         };
     }
 
@@ -276,7 +305,8 @@ public enum MechVariant {
     public boolean hostsDrones() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER,
+                 CRAWLER -> false;
         };
     }
 
@@ -287,7 +317,8 @@ public enum MechVariant {
     public boolean hostsPointDefence() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN, HAULER, FOUNDRY_BREAKER, PILGRIM, TORCH, CENSER -> true;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER,
+                 CRAWLER -> false;
         };
     }
 
@@ -310,7 +341,8 @@ public enum MechVariant {
         return switch (this) {
             case BULWARK, HAULER, PILGRIM -> 6f;
             case CRAWLER -> 3f;
-            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER -> 0f;
+            case HOUND, WARDEN, FOUNDRY_BREAKER, TORCH, CENSER, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL,
+                 SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> 0f;
         };
     }
 
@@ -330,7 +362,8 @@ public enum MechVariant {
      * Only an opposition spawns it.
      */
     public boolean automated() {
-        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL || this == SECURITY_TENDER;
+        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL || this == SECURITY_TENDER
+                || this == SECURITY_STRIPPER || this == SECURITY_HAULER;
     }
 
     /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
@@ -415,7 +448,7 @@ public enum MechVariant {
             case HOUND, FOUNDRY_BREAKER, TORCH -> MechBodyPlan.HOUND;
             case BULWARK, HAULER, PILGRIM -> MechBodyPlan.BULWARK;
             case WARDEN, CENSER -> MechBodyPlan.WARDEN;
-            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER -> MechBodyPlan.DERELICT;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> MechBodyPlan.DERELICT;
             case CRAWLER -> MechBodyPlan.CRAWLER;
         };
     }
@@ -429,8 +462,8 @@ public enum MechVariant {
             case HOUND, FOUNDRY_BREAKER, TORCH, CRAWLER -> LiftClass.LIGHT;
             case WARDEN, CENSER -> LiftClass.MEDIUM;
             case BULWARK, HAULER, PILGRIM -> LiftClass.HEAVY;
-            case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
-            case SECURITY_ROUNDS -> LiftClass.MEDIUM;
+            case SECURITY_WALKER, SECURITY_HALL, SECURITY_HAULER -> LiftClass.HEAVY;
+            case SECURITY_ROUNDS, SECURITY_STRIPPER -> LiftClass.MEDIUM;
             case SECURITY_TENDER -> LiftClass.LIGHT;
         };
     }

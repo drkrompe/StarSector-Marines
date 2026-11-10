@@ -39,7 +39,17 @@ public enum DerelictWalkerFrame {
      * The smallest, the MG-12 tender (`derelict-watch.md`, Field repair): unarmed, it follows its zone's walkers and
      * welds their plate back in the fight.
      */
-    TENDER(MechVariant.SECURITY_TENDER, null, null, null, null, 1.0f, MechRole.ASSAULT);
+    TENDER(MechVariant.SECURITY_TENDER, null, null, null, null, 1.0f, MechRole.ASSAULT),
+    /**
+     * A fallen hull's MG-18 stripper (`fallen-hull-nouns.md`, Stripper): unarmed, it cuts the metal on the claim into
+     * feedstock ({@link StripperWork}).
+     */
+    STRIPPER(MechVariant.SECURITY_STRIPPER, null, null, null, null, 1.0f, MechRole.ASSAULT),
+    /**
+     * A fallen hull's MG-30 hauler (`fallen-hull-nouns.md`, Hauler): unarmed, it carries metal home and stakes out
+     * ({@link HaulerWork}, {@link StakeTrain}).
+     */
+    HAULER(MechVariant.SECURITY_HAULER, null, null, null, null, 1.0f, MechRole.ASSAULT);
 
     /** The heavy chassis the line, siege and vault frames are built on. */
     public static final MechVariant CHASSIS = MechVariant.SECURITY_WALKER;
@@ -78,6 +88,11 @@ public enum DerelictWalkerFrame {
         return chassis.armorCapacity * plateShare;
     }
 
+    /** Whether this frame is one of a fallen hull's workers, whose work the hull's rules direct rather than a posture. */
+    public boolean worker() {
+        return this == STRIPPER || this == HAULER;
+    }
+
     /** Whether this frame fires on contacts its zone's flocks hold rather than closing on them. */
     public boolean spots() {
         return this == SIEGE;
@@ -95,6 +110,8 @@ public enum DerelictWalkerFrame {
             case ROUNDS -> "MG-25 rounds walker";
             case HALL -> "MG-70 hall frame";
             case TENDER -> "MG-12 tender";
+            case STRIPPER -> "MG-18 stripper";
+            case HAULER -> "MG-30 hauler";
         };
     }
 

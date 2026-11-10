@@ -31,6 +31,20 @@
       "description": "@gearCatalogSecurityTenderDescription"
     },
     {
+      "variant": "security_stripper",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-18",
+      "role": "@gearCatalogSecurityStripperRole",
+      "description": "@gearCatalogSecurityStripperDescription"
+    },
+    {
+      "variant": "security_hauler",
+      "factionLogo": "graphics/factions/domain_explorarium.png",
+      "designation": "MG-30",
+      "role": "@gearCatalogSecurityHaulerRole",
+      "description": "@gearCatalogSecurityHaulerDescription"
+    },
+    {
       "variant": "security_hall",
       "factionLogo": "graphics/factions/domain_explorarium.png",
       "designation": "MG-70",

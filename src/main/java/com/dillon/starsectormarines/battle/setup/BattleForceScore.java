@@ -85,6 +85,8 @@ public final class BattleForceScore {
             case SECURITY_WALKER -> 30f;
             case SECURITY_ROUNDS -> 12f;
             case SECURITY_TENDER -> 5f;
+            case SECURITY_STRIPPER -> 5f;
+            case SECURITY_HAULER -> 6f;
             case SECURITY_HALL -> 55f;
         };
     }

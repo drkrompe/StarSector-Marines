@@ -1,7 +1,8 @@
 # Fallen hull — Nouns
 
 Status: DRAFT — the model for a derelict capital ship down on a world and the
-watch it pours out; nothing built. Its first instance is the authored arc
+watch it pours out; its battle rules and the stripper and hauler are built on
+the recommended picks (What is built). Its first instance is the authored arc
 `long-survey-arc.md`, played on owned seeds before any campaign phenomenon.
 
 Written: 2026-11-10
@@ -150,6 +151,42 @@ the event gate are not designed yet.
   look).
 - `stripper-hauler`: (a, recommended) two units, the stripper and the hauler,
   of the derelict line. (b) one unit that cuts and carries.
+
+## What is built
+
+Everything is in `battle.derelict`, on the recommended option of every pick.
+Numbers UNTUNED.
+
+- **The rules.** `Autoforge` (the forge cycle, `CYCLE_SECONDS`; prints the next
+  item only with feedstock for it, passes over an item with nowhere to go at no
+  cost, prints nothing once put out; breached below `BREACH_SHARE` of whole);
+  `BuildQueue` (the fixed program, round and round, read ahead by `peek`; the
+  stand-in `survey()` order); `Feedstock` (a store, and the forge's draw over
+  the hull's and the linked stakes' stores, all or nothing, the hull's first);
+  `ClaimLattice` (links within `linkCells` of a point or the hull's footprint;
+  `nextPlantable`: the open point nearest the hull's middle that links to the
+  hull or to an anchor, an established stake whose chain holds, its parent the
+  hull where it can be, else the nearest anchor); `SurveyStake` (planted,
+  raised, established on `RAISE_SECONDS` and `ESTABLISH_SECONDS`, counting only
+  while it builds; a store from established; killed planted it is scrap;
+  stranded it keeps its stage for good); `RelayChain` (a stake's chain is cut by
+  its own node, any node on the way to the hull, or the forge going out);
+  `Salvage` (metal on the claim; a wreck of the watch's cut to nothing is
+  stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
+  `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
+  hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
+  chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
+  reaching its point, scrap if its hauler dies first, the point open again);
+  `HaulRoads` (a walk with both ends near a road follows it, waypoint by
+  waypoint; any other goes straight).
+- **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and
+  `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
+  derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
+  (`worker()`). Both are drawn as the sentinel at their size until the art
+  session's looks ship (pick `stripper-hauler`, option a).
+
+Evidence: `AutoforgeTest`, `ClaimLatticeTest`, `SurveyStakeTest`,
+`HullWorkersTest`.
 
 ## Boundaries
 
