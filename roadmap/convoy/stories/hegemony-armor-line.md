@@ -133,7 +133,7 @@ tuned in the playtest, not by evidence alone.
    defenders prefer their faction's (`FactionVehiclePoints`: the Diktat and the Lion's Guard energy, the Luddic
    factions missile, everyone else, independents and pirates among them, ballistic). Evidence: `createSnapshots
    -Psnapshot=vehicle-colours` (each colour firing on both tanks) and `-Psnapshot=bought-machines` (the omni dolls);
-   the proving ground's third rank fields the missile and energy tanks. A one-hour build of yellow, green and red
+   the proving ground fields the missile and energy tanks. A one-hour build of yellow, green and red
    builds came first; a save from it loads, its colour ignored (`CampaignVehicle.pointId`).
 
 ## Open
