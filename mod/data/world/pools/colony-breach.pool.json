@@ -4,7 +4,7 @@
   "home": "ARID",
   "entry": {
     "seed": 38,
-    "note": "Asharu, the campaign's map: 3 holdouts; lift and bores placed by the owner (2026-10-28), the lift moved south so the cordon clears the road, holdouts kept where they stood",
+    "note": "Asharu, the campaign's map: 3 holdouts; lift and bores placed by the owner (2026-10-28), the lift moved south so the cordon clears the road, holdouts kept where they stood (when the street plan came in, the first moved from 69,83 and the second from 28,204 to their nearest held buildings)",
     "patch": {
       "lift": [
         164,
@@ -35,12 +35,12 @@
       ],
       "holdouts": [
         [
-          69,
-          83
+          79,
+          86
         ],
         [
-          28,
-          204
+          18,
+          200
         ],
         [
           145,

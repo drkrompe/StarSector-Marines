@@ -1,0 +1,58 @@
+{
+  "sheet": "graphics/doodads/ruins-forge.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-great-crucible",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-great-crucible-melt",
+      "col": 12,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-furnace-core",
+      "col": 0,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Great crucible",
+      "description": "The mega forge's head: a colossal tilting crucible on its working platform, its control core housed on its west flank and its spout pouring east onto the line."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Great crucible melt",
+      "description": "Overlay: the great crucible's melt and its spout's run, drawn over its body so the engine can pulse it."
+    },
+    {
+      "col": 0,
+      "row": 16,
+      "name": "Furnace control core",
+      "description": "The great crucible's control core, cut free and lying on its transport skid: the prize."
+    }
+  ]
+}

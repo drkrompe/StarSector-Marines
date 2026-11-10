@@ -36,6 +36,12 @@ public final class LandscapeAccess {
      */
     public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved, boolean[] avoid,
                                      boolean[] dear) {
+        reserveRoutes(grid, anchors, reserved, avoid, dear, null);
+    }
+
+    /** As above, marking each route's own line, the middle of its five cells, in {@code traces} (or null for none). */
+    public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved, boolean[] avoid,
+                                     boolean[] dear, boolean[] traces) {
         int w = grid.getWidth(), h = grid.getHeight();
         int[] parent = new int[w * h], queue = new int[w * h];
         Arrays.fill(parent, -1);
@@ -64,6 +70,7 @@ public final class LandscapeAccess {
             }
             for (int at = start; !traced[at]; at = parent[at]) {
                 traced[at] = true;
+                if (traces != null) traces[at] = true;
                 for (int yy = Math.max(0, at / w - 2); yy <= Math.min(h - 1, at / w + 2); yy++)
                     for (int xx = Math.max(0, at % w - 2); xx <= Math.min(w - 1, at % w + 2); xx++)
                         reserved[yy * w + xx] = true;

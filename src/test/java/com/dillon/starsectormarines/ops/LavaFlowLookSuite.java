@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -28,7 +29,7 @@ import java.util.Locale;
 /**
  * Lava flows on a volcanic world ({@code voids.md}, Lava flows): a volcanic Assault on a town and its country, its lava river,
  * older flows that broke from it, framed whole ({@code seed<n>-whole.png}) and at play zoom on the flows nearest the
- * map's middle ({@code -play.png}). Look preset; nothing is played. {@code -Dsnapshot.lavaFlow.seeds=7,11} picks the
+ * map's middle ({@code -play.png}) and on the basalt causeway nearest it ({@code -causeway.png}). Look preset; nothing is played. {@code -Dsnapshot.lavaFlow.seeds=7,11} picks the
  * seeds.
  */
 public final class LavaFlowLookSuite implements SnapshotSuite {
@@ -99,6 +100,18 @@ public final class LavaFlowLookSuite implements SnapshotSuite {
                 w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f).render(sim, "")));
         out.add(new SnapshotArtifact(id + "-play.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080,
                 px, py, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.5f).render(sim, "")));
+        // The causeway nearest the map's middle: a crossing's basalt deck.
+        String deck = NaturalVoidZoning.LAVA_RIVER.deck().surface();
+        float cx = -1, cy = -1, near = Float.MAX_VALUE;
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            if (!deck.equals(topology.getSurfaceId(x, y)) || topology.getGroundKind(x, y) == GroundKind.VOID) continue;
+            float d = (x - mx) * (x - mx) + (y - my) * (y - my);
+            if (d < near) { near = d; cx = x + .5f; cy = y + .5f; }
+        }
+        if (cx >= 0) {
+            out.add(new SnapshotArtifact(id + "-causeway.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920,
+                    1080, cx, cy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
+        }
         if (raised > 0) {
             out.add(new SnapshotArtifact(id + "-berm.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920,
                     1080, bx / raised, by / raised, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 2f).render(sim, "")));

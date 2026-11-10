@@ -177,6 +177,29 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      */
     public record Apron(String name, Area door, Area ground, LandingArea lift) {}
 
+    /** How a leaf door stands in the dead plant ({@code ruins-expedition.md}, The ruins' doors are leaf doors). */
+    public enum DoorStance {
+        /** Still powered: it parts for whoever comes through and closes behind them. */
+        ANSWERS,
+        /** Stuck part-open where its power died: its leaves stand in the way's end cells, which are shut. */
+        DEAD,
+        /** Torn open long ago: one leaf lies on the floor beside the way, the other jammed in its track. */
+        FORCED
+    }
+
+    /**
+     * A sliding leaf door across a plant hall's join or a way in from open ground: two leaves parting from a seam
+     * ({@code RoomDoor}), across the cells of {@code span}, which runs along x when {@code alongX}. A cargo door's
+     * leaves telescope, two each way. Its passage is the grid's: a dead door's end cells are shut at generation.
+     */
+    public record LeafDoor(Area span, boolean alongX, boolean cargo, DoorStance stance) {
+        public LeafDoor {
+            if (span == null || stance == null) throw new IllegalArgumentException("a leaf door needs a span and a stance");
+        }
+        /** Cells along the door. */
+        public int length() { return alongX ? span.width() : span.height(); }
+    }
+
     /** The collapse across the short way of layer {@code layer}; the layer's open ways are the long way round. */
     public record Collapse(String name, int layer, Way shortWay) {}
 
@@ -188,12 +211,19 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * door). A court inside is a light well open to the sky, so every lift point is under open sky.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
-                           List<Area> chambers, List<PlantHall> halls) {
+                           List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors) {
         public Interior {
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
             halls = halls == null ? List.of() : List.copyOf(halls);
+            doors = doors == null ? List.of() : List.copyOf(doors);
+        }
+
+        /** An interior whose ways in and joins carry no doors. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, List.of());
         }
 
         /** An interior without plant halls. */

@@ -57,6 +57,34 @@ public enum MechVariant {
             MechRole.ARMORED_SUPPORT),
 
     /**
+     * The derelict line's medium (`derelict-watch.md`, Medium and large walkers): the MG-25 rounds walker, the sentinel
+     * built low and quick on its own leg rig at its size, light plate, a chaingun and an SRM-5. Narrow enough for a
+     * one-cell door, so it walks its zone's round and answers in side rooms and stores. Automated, like the heavy.
+     * All numbers UNTUNED.
+     */
+    SECURITY_ROUNDS("security_rounds", "@gearMechVariantSECURITY_ROUNDS", 380f, 450f, 14f, 1.45f, 0.45f, 55f,
+            1.20f, 1.20f, 0.42f, 0.45f, 1.0f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, MechWeaponComponent.CHAINGUN, null,
+            MechWeaponComponent.SRM_5,
+            null,
+            MechRole.ASSAULT),
+
+    /**
+     * The derelict line's large (`derelict-watch.md`, Medium and large walkers): the MG-70 hall frame, the sentinel
+     * built to twice the heavy's height, the heaviest plate outside the vault, a heavy cannon pair and fragmentation racks. Too
+     * wide for a corridor or a two-cell door: it keeps the plant's halls, joins and cargo docks, and forces a dead door
+     * in its way. Automated. All numbers UNTUNED.
+     */
+    SECURITY_HALL("security_hall", "@gearMechVariantSECURITY_HALL", 1800f, 2600f, 28f, 0.60f, 0.45f, 52f,
+            3.40f, 2.60f, 1.25f, 1.20f, 5.0f,
+            LayeredMechAppearance.CHASSIS_DERELICT,
+            null, MechWeaponComponent.HC_10, MechWeaponComponent.HC_10,
+            MechWeaponComponent.SRM_15_FRAG,
+            MechWeaponComponent.SRM_15_FRAG,
+            MechRole.BALANCED),
+
+    /**
      * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light; owner: "an interesting 'drone' concept"): a
      * small carapace low on four short legs, a chassis of its own (law 1), drawn by the walker's leg rig at the
      * crawler's size ({@code DerelictLegRig.CRAWLER}) with its own parts. High-tech by its numbers: fast, thin plate,
@@ -135,7 +163,7 @@ public enum MechVariant {
     public boolean hostsDrones() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
         };
     }
 
@@ -146,7 +174,7 @@ public enum MechVariant {
     public boolean hostsPointDefence() {
         return switch (this) {
             case BULWARK, HOUND, WARDEN -> true;
-            case SECURITY_WALKER, CRAWLER -> false;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL, CRAWLER -> false;
         };
     }
 
@@ -169,7 +197,7 @@ public enum MechVariant {
         return switch (this) {
             case BULWARK -> 6f;
             case CRAWLER -> 3f;
-            case HOUND, WARDEN, SECURITY_WALKER -> 0f;
+            case HOUND, WARDEN, SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> 0f;
         };
     }
 
@@ -189,7 +217,7 @@ public enum MechVariant {
      * Only an opposition spawns it.
      */
     public boolean automated() {
-        return this == SECURITY_WALKER;
+        return this == SECURITY_WALKER || this == SECURITY_ROUNDS || this == SECURITY_HALL;
     }
 
     /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
@@ -274,7 +302,7 @@ public enum MechVariant {
             case HOUND -> MechBodyPlan.HOUND;
             case BULWARK -> MechBodyPlan.BULWARK;
             case WARDEN -> MechBodyPlan.WARDEN;
-            case SECURITY_WALKER -> MechBodyPlan.DERELICT;
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> MechBodyPlan.DERELICT;
             case CRAWLER -> MechBodyPlan.CRAWLER;
         };
     }
@@ -288,7 +316,8 @@ public enum MechVariant {
             case HOUND, CRAWLER -> LiftClass.LIGHT;
             case WARDEN -> LiftClass.MEDIUM;
             case BULWARK -> LiftClass.HEAVY;
-            case SECURITY_WALKER -> LiftClass.HEAVY;
+            case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
+            case SECURITY_ROUNDS -> LiftClass.MEDIUM;
         };
     }
 }

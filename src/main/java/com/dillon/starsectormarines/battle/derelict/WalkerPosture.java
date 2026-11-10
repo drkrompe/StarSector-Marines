@@ -19,6 +19,11 @@ import java.util.List;
  *       it, through its own ground and past its perimeter; a siege frame fires on the haul's escort first; the vault
  *       frame stays on the vault and fights what comes into its reach.
  *       A zone whose node is dead is out of the call and keeps its own posture.</li>
+ *   <li>A <b>rounds walker</b> (`derelict-watch.md`) walks its zone's round while the zone is dormant or alert, and
+ *       awake comes to the nearest pin inside its perimeter like a line frame, walking the round when it holds none;
+ *       in the contingency it walks to the egress as a line frame does.</li>
+ *   <li>A <b>hall frame</b> keeps its hall as a line frame keeps its layer, and in the contingency walks to the egress
+ *       only where its way there fits it; otherwise it holds its hall.</li>
  * </ul>
  */
 public final class WalkerPosture {
@@ -34,7 +39,9 @@ public final class WalkerPosture {
         /** Stand at the post and fire on the spotted unit at {@code cell}. */
         FIRE,
         /** Walk to the egress cell and hold it. */
-        HOLD_EGRESS
+        HOLD_EGRESS,
+        /** Walk the zone's round: on to the round's place at {@code cell}. */
+        ROUND
     }
 
     /** The answer: what to do, the cell it is about, and the unit (-1 none). */
@@ -62,7 +69,22 @@ public final class WalkerPosture {
     public static Order decide(DerelictWalkerFrame frame, SecurityZone zone, boolean contingency,
                                int postX, int postY, List<Contact> pins, List<Contact> sightings,
                                List<Long> haul, List<int[]> egress, float reachCells) {
+        return decide(frame, zone, contingency, postX, postY, null, true, pins, sightings, haul, egress, reachCells);
+    }
+
+    /**
+     * As the other {@code decide}, for every frame of the line.
+     *
+     * @param round      the place of the zone's round the walker is on, {@code {x, y}}; null with no round (a rounds
+     *                   walker then holds its post)
+     * @param egressFits whether the walker's way to the egress fits it (a hall frame's may not)
+     */
+    public static Order decide(DerelictWalkerFrame frame, SecurityZone zone, boolean contingency,
+                               int postX, int postY, int[] round, boolean egressFits, List<Contact> pins,
+                               List<Contact> sightings, List<Long> haul, List<int[]> egress, float reachCells) {
         boolean called = contingency && zone.online();
+        Order idle = frame == DerelictWalkerFrame.ROUNDS && round != null
+                ? new Order(Kind.ROUND, round[0], round[1], -1L) : Order.hold(postX, postY);
         if (frame.spots()) {
             if (zone.state() != SecurityZone.State.AWAKE && !called) return Order.hold(postX, postY);
             Contact spot = called ? freshest(sightings, haul, postX, postY, reachCells) : null;
@@ -70,11 +92,11 @@ public final class WalkerPosture {
             return spot == null ? Order.hold(postX, postY)
                     : new Order(Kind.FIRE, spot.cellX(), spot.cellY(), spot.unitId());
         }
-        if (called && frame != DerelictWalkerFrame.VAULT && !egress.isEmpty()) {
+        if (called && frame != DerelictWalkerFrame.VAULT && !egress.isEmpty() && egressFits) {
             int[] best = nearest(egress, postX, postY);
             return new Order(Kind.HOLD_EGRESS, best[0], best[1], -1L);
         }
-        if (zone.state() != SecurityZone.State.AWAKE && !called) return Order.hold(postX, postY);
+        if (zone.state() != SecurityZone.State.AWAKE && !called) return idle;
         Contact pin = null;
         int pinDistance = Integer.MAX_VALUE;
         for (Contact contact : pins) {
@@ -86,8 +108,7 @@ public final class WalkerPosture {
                 pinDistance = distance;
             }
         }
-        return pin == null ? Order.hold(postX, postY)
-                : new Order(Kind.CLOSE, pin.cellX(), pin.cellY(), pin.unitId());
+        return pin == null ? idle : new Order(Kind.CLOSE, pin.cellX(), pin.cellY(), pin.unitId());
     }
 
     /** The most recently seen contact within reach of the post, among {@code only} when given; ties by unit id. */

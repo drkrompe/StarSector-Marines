@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.StreetPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkSegment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
@@ -15,9 +17,11 @@ import java.util.List;
  * A cantonment's road in ({@code mapgen-nouns.md}, cantonment). A cantonment lays its own streets, square to one
  * avenue from its gate to its middle, and a road its growth threw across its square cuts its rows: the owner's notes
  * on the Raid site's garrison were that it read as messy. So every road inside its claim is taken up (a road another
- * place grew across it is welded back round it: {@link #block}), and one straight road is laid from the middle of its square out through the side nearest a road outside (the
- * side facing the middle of the map, where the rest of the site is, when two are as near), on until it meets that road.
- * That road is the avenue's line, and where it crosses the wall is the main gate. Meeting the town's road is what keeps
+ * place grew across it is welded back round it: {@link #block}), and one straight road is laid on the square's middle
+ * line out through the side nearest a road outside (the side facing the middle of the map, where the rest of the site
+ * is, when two are as near), from the patrol lane inside the wall on until it meets that road. It ends at the gate:
+ * the streets inside are the cantonment's own. That road is the avenue's line, and where it crosses the wall is the
+ * main gate. Meeting the town's road is what keeps
  * the map's roads whole without a second road welded in across the cantonment.
  *
  * <p>A base has more than one way in and out (owner: "they need multiple entrances and exits"): as many gates as its
@@ -81,6 +85,18 @@ public final class CantonmentRoads {
      * @param glacis the open strip inside the claim's edge the wall stands behind
      */
     public static void lay(int[][] claim, int[][] owner, int who, int width, int height, int gates, int glacis) {
+        lay(claim, owner, who, width, height, gates, glacis, List.of());
+    }
+
+    /**
+     * As above, against the map's planned streets ({@link StreetPlan}): of the sides as near a road, the one whose road
+     * meets a planned street square, as a tee or a cross on its centre line ({@link StreetPlan#meet}), is preferred to
+     * one whose road would run into a street's end or make an offset pair with another tee.
+     *
+     * @param streets the planned streets, empty where there is no plan
+     */
+    public static void lay(int[][] claim, int[][] owner, int who, int width, int height, int gates, int glacis,
+                           List<TrunkSegment> streets) {
         boolean[][] mine = new boolean[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -94,22 +110,31 @@ public final class CantonmentRoads {
         if (square == null) return;
         int cx = square[0] + square[2] / 2, cy = square[1] + square[2] / 2;
         // Out of the side nearest the town's road, the side facing the map's middle where two are as near.
+        // Then the one meeting a planned street square.
         Side out = null;
         int bestSteps = Integer.MAX_VALUE;
         double bestFacing = Double.NEGATIVE_INFINITY;
+        boolean bestSquare = false;
         for (Side side : Side.values()) {
             int steps = toRoad(claim, owner, who, cx, cy, side, width, height);
             if (steps < 0) continue;
             double facing = side.dx * (width / 2.0 - cx) + side.dy * (height / 2.0 - cy);
-            if (steps < bestSteps - REACH_TIE || Math.abs(steps - bestSteps) <= REACH_TIE && facing > bestFacing) {
+            boolean meets = meetsSquare(sideStart(square, side, glacis), side, streets);
+            boolean tie = Math.abs(steps - bestSteps) <= REACH_TIE;
+            if (steps < bestSteps - REACH_TIE
+                    || tie && (meets && !bestSquare || meets == bestSquare && facing > bestFacing)) {
                 out = side;
                 bestSteps = steps;
                 bestFacing = facing;
+                bestSquare = meets;
             }
         }
         if (out == null) out = Side.facing(width / 2 - cx, height / 2 - cy);
-        run(claim, owner, who, cx, cy, out, HALF, width, height);
-        further(claim, owner, who, width, height, gates, glacis);
+        // It ends at the gate, on the patrol lane: the streets inside are the cantonment's own (Cantonment), and a road
+        // run on to the square's middle stopped dead in the parade.
+        int[] gate = sideStart(square, out, glacis);
+        run(claim, owner, who, gate[0], gate[1], out, HALF, width, height);
+        further(claim, owner, who, width, height, gates, glacis, streets);
     }
 
     /**
@@ -119,6 +144,15 @@ public final class CantonmentRoads {
      * road the town gets late is still a road a gate can meet.
      */
     public static void further(int[][] claim, int[][] owner, int who, int width, int height, int gates, int glacis) {
+        further(claim, owner, who, width, height, gates, glacis, List.of());
+    }
+
+    /**
+     * As above, the sides whose road meets a planned street square ({@link StreetPlan#meet}) before those whose road
+     * would not, nearest road first within each.
+     */
+    public static void further(int[][] claim, int[][] owner, int who, int width, int height, int gates, int glacis,
+                               List<TrunkSegment> streets) {
         boolean[][] mine = new boolean[width][height];
         for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) mine[x][y] = claim[x][y] == who;
         int[] square = Cantonment.square(mine);
@@ -127,6 +161,7 @@ public final class CantonmentRoads {
         List<Side> further = new ArrayList<>();
         List<int[]> starts = new ArrayList<>();
         List<Integer> reach = new ArrayList<>();
+        List<Boolean> squareOn = new ArrayList<>();
         for (Side side : Side.values()) {
             int[] edge = sideStart(square, side, -LANE);
             if (owner[edge[0]][edge[1]] == who) {     // a road of its own already leaves by this side
@@ -139,10 +174,11 @@ public final class CantonmentRoads {
             further.add(side);
             starts.add(start);
             reach.add(steps);
+            squareOn.add(meetsSquare(start, side, streets));
         }
         List<Integer> order = new ArrayList<>();
         for (int k = 0; k < further.size(); k++) order.add(k);
-        order.sort(Comparator.comparingInt(reach::get));
+        order.sort(Comparator.comparing((Integer k) -> !squareOn.get(k)).thenComparingInt(reach::get));
         for (int k : order.subList(0, Math.min(order.size(), Math.max(0, gates - open)))) {
             run(claim, owner, who, starts.get(k)[0], starts.get(k)[1], further.get(k), SIDE_HALF, width, height);
         }
@@ -176,6 +212,11 @@ public final class CantonmentRoads {
                 if (owner[px][py] == GrownTrunkPlan.UNOWNED) owner[px][py] = who;
             }
         }
+    }
+
+    /** Whether a road out of {@code start} toward {@code side} meets a planned street square. */
+    private static boolean meetsSquare(int[] start, Side side, List<TrunkSegment> streets) {
+        return streets != null && !streets.isEmpty() && StreetPlan.meet(start[0], start[1], side, streets) != null;
     }
 
     /** Cells within which two sides' roads count as equally near. UNTUNED. */

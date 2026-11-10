@@ -865,9 +865,12 @@ Every move is kept only where the network stays in as few pieces as before,
 and no street is moved onto ground growth was kept off (the layout's held
 ground, sealed ground). It draws no random number. What is laid later
 (cantonment avenues and gate roads, gates, layout roads, welds, pad
-approaches) is laid onto the planned streets. It plans Raid sites only for
-now: the pooled story maps keep their grown streets until their pools are
-vetted on it. `-Dbattle.mapgen.streetPlan=false` is the control.
+approaches) is laid onto the planned streets. A road leaving a walled place
+meets them square (`StreetPlan.meet`): straight out of its gate onto the
+centre line of the nearest street across its way, as a tee, or a cross where
+a street leaves the far side on its line, never an offset tee within ten
+cells of another; where none qualifies the place keeps its own road. Inside a
+walled place's claim the streets are the place's own.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
@@ -1323,8 +1326,10 @@ small a motor pool and airfield). Its claim is a square kept whole on the map
 and slid the least it takes off ground a place before it holds (a Raid site's
 works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
-**road in** laid straight from its middle to the town's nearest road
-(`CantonmentRoads`), and no weld between road networks is cut back across it.
+**road in** laid on its middle line, from the patrol lane inside the gate to the
+town's nearest road (`CantonmentRoads`); it ends at the gate, and the streets
+inside are the cantonment's own. No weld between road networks is cut back
+across it.
 The **main gate** is where that road comes in, the widest road in; the avenue
 runs from the gate side's middle, with a forecourt street inside the wall where
 the road enters off that line. A base has more than one way in and out (owner:
@@ -2125,14 +2130,32 @@ line end feeding 6x3 modules with a gap after every second and a wreck here and
 there, some modules carrying the theme's unit half-built or wrecked on their bed; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
 wall (their levelers are floor) with stock left on the dock floor.
 
-**A forge works has a foundry.** The outer band's first line hall is laid at a
-foundry's size, 34x22 (40x24 at vast), whatever the theme. A dressing marked
-`foundry` fills it with a bank of crucibles on its north wall, a two-cell pour
-channel from each to a casting bed, and a grate crossing over each channel,
-staggered from channel to channel, all clear of doorways and the hall's middle.
-The hall is proved one floor across its crossings before the melt is cut. The
-ground plans the melt (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after
-finalize as a `FOUNDRY` lava drop (`voids.md`).
+**A forge works has a mega forge hall** (owner pick `ruins-forge-process` b1).
+A dressing marked `foundry` lays its halls before its side rooms, and the outer
+band takes one mega forge hall in place of every line hall: about 40x76 (44x92
+at vast). It is shortened to fit, never below 44 long, and a hall narrower than
+32 is laid as the old foundry instead. The hall is laid out from its process,
+head to the north:
+
+- a great crucible's open bath, with waiting ladles, charge racks and a slag
+  pit;
+- a two-cell pour line down the middle, crossed every twelve rows by grate
+  catwalks;
+- production lines branching off each side every sixteen rows, each a channel
+  to a mould grid over its bed, with a cooling rack beyond;
+- the dispatch end left clear.
+
+The hall is proved one floor before the melt is cut. The ground plans the melt
+(`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
+lava drop (`voids.md`). Every other theme keeps its line halls, the first laid
+at the old foundry's 34x22.
+
+**Plant hall floors are zoned.** Every plant hall's floor is laid by zone after
+its furniture (`RuinsDelveStage.zoneFloor`), not as one slab:
+
+- deck plate under the work and one cell round it;
+- a painted walkway along the two long walls;
+- worn concrete in the aisles, cracked in patches by coordinate hash.
 
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
 and the interior's chambers wear for the site's vault prize

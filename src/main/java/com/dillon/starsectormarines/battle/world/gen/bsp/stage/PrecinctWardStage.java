@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.door.WallGate;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -24,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.precinct.CantonmentRoads;
+import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.GateYardLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
@@ -174,10 +176,13 @@ public final class PrecinctWardStage implements GenStage {
             if (walled) {
                 int gateWidth = wall.gateWidth();
                 stampWall(ctx, own, ownRoad, i, wall);
-                // A sealed town's gates are its locks.
+                // A sealed town's gates are its locks; every other walled place's are hung with leaves.
+                List<PrecinctBoundary.Gate> openGates = PrecinctBoundary.openGates(own, ownRoad, i, ctx.width,
+                        ctx.height, wall.gates(), gateWidth);
                 if (!precinct.isProgrammed() && SealedTown.on(ctx.get(BspKeys.MARKET_PROFILE))) {
-                    markLocks(ctx, PrecinctBoundary.openGates(own, ownRoad, i, ctx.width, ctx.height,
-                            wall.gates(), gateWidth), own, ownRoad, i);
+                    markLocks(ctx, openGates, own, ownRoad, i);
+                } else {
+                    hangGates(ctx, openGates, own, i);
                 }
                 if (masks != null) {
                     for (int x = 0; x < ctx.width; x++) {
@@ -185,9 +190,7 @@ public final class PrecinctWardStage implements GenStage {
                     }
                 }
                 if (result != null) PrecinctDefence.hearts(result.placed(), hearts);
-                works.put(i, new PrecinctDefence.Works(PrecinctBoundary.openGates(own, ownRoad, i, ctx.width,
-                        ctx.height, wall.gates(), gateWidth),
-                        hearts, kept));
+                works.put(i, new PrecinctDefence.Works(openGates, hearts, kept));
             }
             if (square) {
                 boolean[][] strip = new boolean[ctx.width][ctx.height];
@@ -721,6 +724,16 @@ public final class PrecinctWardStage implements GenStage {
 
     /** The floor marking a sealed town's locks are laid in. */
     static final String LOCK_MARKING = "doodad.fl-striped-yellow";
+
+    /** Hangs leaves in each of a walled place's open gates ({@link WallGate}), for the battle to draw. */
+    private static void hangGates(GenContext ctx, List<PrecinctBoundary.Gate> gates, int[][] claim, int who) {
+        boolean[][] mine = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) mine[x][y] = claim[x][y] == who;
+        for (PrecinctBoundary.Gate gate : gates) {
+            DefenceDoctrine.Gate g = DefenceDoctrine.gateOf(gate.cells(), mine);
+            if (g != null) ctx.wallGates.add(WallGate.of(gate.cells(), g.outX(), g.outY()));
+        }
+    }
 
     /**
      * Marks a sealed town's locks ({@link SealedTown#lockFloors}): a striped floor marking, which has no footprint or

@@ -56,6 +56,8 @@ public final class DerelictSecurityDirector {
     static final int REISSUE_CELLS = 3;
     static final int HOLD_RADIUS = 3;
     static final int EGRESS_RADIUS = 4;
+    /** How near a place of its round a rounds walker stands before it counts as there. */
+    static final int ROUND_RADIUS = 1;
     /** Confidence a relayed sighting is handed to a siege frame at. */
     static final float SPOT_CONFIDENCE = 0.9f;
 
@@ -605,7 +607,11 @@ public final class DerelictSecurityDirector {
 
     /** How near the cell a holding order counts as there. */
     static int radius(Order stand) {
-        return stand.kind() == Kind.HOLD_EGRESS ? EGRESS_RADIUS : HOLD_RADIUS;
+        return switch (stand.kind()) {
+            case HOLD_EGRESS -> EGRESS_RADIUS;
+            case ROUND -> ROUND_RADIUS;
+            default -> HOLD_RADIUS;
+        };
     }
 
     /** Whether a walker at {@code (x, y)} must walk to the cell its holding order names before it holds it. */
@@ -625,6 +631,7 @@ public final class DerelictSecurityDirector {
             case CLOSE -> walker.frame() + " comes to a pinned contact";
             case FIRE -> walker.frame() + " fires on what the watch sees";
             case HOLD_EGRESS -> walker.frame() + " holds the egress in the contingency";
+            case ROUND -> walker.frame() + " walks its zone's round";
         };
     }
 

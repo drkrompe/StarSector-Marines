@@ -227,10 +227,11 @@ Any entry may also **place** a mission layout's structures by name
   this way (`heart-nouns.md`, Allied airbase). Asharu's ARID entry is placed
 this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
-Patches are authored in the pool file, in cell coordinates read off the
-pool's whole-map review frames (`createSnapshots -Psnapshot=story-map-pools`).
-The Map damage workbench page hosts only Relief so far; giving it the story
-maps is the natural next step once patches are common.
+Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
+or headless through `map_render` and `map_save`: pins, ruin strokes and
+placements on the home entry's whole-map picture, the mission's acceptance
+(`StoryMapAcceptance`, the same check `storyMapPools` runs) before every save,
+and only that entry's text rewritten in the pool file.
 
 ## Evidence plays the pool
 
