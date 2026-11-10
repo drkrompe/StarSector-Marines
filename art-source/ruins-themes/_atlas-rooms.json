@@ -9,34 +9,6 @@
     ]
   },
   "assets": {
-    "control-desk.png": {
-      "id": "doodad.ruins-control-desk",
-      "name": "Control desk",
-      "description": "A run of three operator consoles, screens to the room.",
-      "footprintCells": [
-        3,
-        1
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 1,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5
-    },
-    "control-desk-burnt.png": {
-      "id": "doodad.ruins-control-desk-burnt",
-      "name": "Control desk, burnt",
-      "description": "The console run burned out, its screens blown.",
-      "footprintCells": [
-        3,
-        1
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 2,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5
-    },
     "mimic-board.png": {
       "id": "doodad.ruins-mimic-board",
       "name": "Mimic board",
@@ -47,21 +19,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 3,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5
-    },
-    "shift-desk.png": {
-      "id": "doodad.ruins-shift-desk",
-      "name": "Shift desk",
-      "description": "The shift lead's desk, a terminal on it.",
-      "footprintCells": [
-        2,
-        1
-      ],
-      "preserveCanvas": true,
-      "padding": 0,
-      "order": 4,
+      "order": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -75,7 +33,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 5,
+      "order": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -89,7 +47,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 6,
+      "order": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -103,7 +61,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 7,
+      "order": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -117,7 +75,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 8,
+      "order": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -131,7 +89,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 9,
+      "order": 6,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -145,7 +103,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 10,
+      "order": 7,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -159,7 +117,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 11,
+      "order": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -173,7 +131,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 12,
+      "order": 9,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -187,7 +145,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 13,
+      "order": 10,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -201,7 +159,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 14,
+      "order": 11,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -215,7 +173,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 15,
+      "order": 12,
       "cover": "none"
     },
     "workshop-hoist.png": {
@@ -228,7 +186,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 16,
+      "order": 13,
       "cover": "none"
     },
     "hoist-fallen.png": {
@@ -241,7 +199,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 17,
+      "order": 14,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -255,7 +213,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 18,
+      "order": 15,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -269,7 +227,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 19,
+      "order": 16,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -283,7 +241,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 20,
+      "order": 17,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -297,7 +255,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 21,
+      "order": 18,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -311,7 +269,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 22,
+      "order": 19,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -325,7 +283,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 23,
+      "order": 20,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -339,7 +297,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 24,
+      "order": 21,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -353,7 +311,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 25,
+      "order": 22,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -367,7 +325,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 26,
+      "order": 23,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -381,7 +339,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 27,
+      "order": 24,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -395,7 +353,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 28,
+      "order": 25,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -409,7 +367,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 29,
+      "order": 26,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -423,7 +381,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 30,
+      "order": 27,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -437,7 +395,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 31,
+      "order": 28,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -451,7 +409,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 32,
+      "order": 29,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -465,7 +423,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 33,
+      "order": 30,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -479,7 +437,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 34,
+      "order": 31,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -493,7 +451,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 35,
+      "order": 32,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -507,7 +465,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 36,
+      "order": 33,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -521,7 +479,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 37,
+      "order": 34,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -535,7 +493,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 38,
+      "order": 35,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -549,7 +507,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 39,
+      "order": 36,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -563,7 +521,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 40,
+      "order": 37,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -577,7 +535,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 41,
+      "order": 38,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -591,7 +549,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 42,
+      "order": 39,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -605,7 +563,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 43,
+      "order": 40,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -619,7 +577,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 44,
+      "order": 41,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -633,7 +591,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 45,
+      "order": 42,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -647,7 +605,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 46,
+      "order": 43,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -661,7 +619,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 47,
+      "order": 44,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -675,7 +633,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 48,
+      "order": 45,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -689,7 +647,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 49,
+      "order": 46,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -703,7 +661,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 50,
+      "order": 47,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -717,7 +675,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 51,
+      "order": 48,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -731,7 +689,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 52,
+      "order": 49,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -745,7 +703,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 53,
+      "order": 50,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -759,7 +717,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 54,
+      "order": 51,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -773,7 +731,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 55,
+      "order": 52,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -787,7 +745,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 56,
+      "order": 53,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -801,7 +759,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 57,
+      "order": 54,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -815,7 +773,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 58,
+      "order": 55,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -829,7 +787,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 59,
+      "order": 56,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -843,7 +801,7 @@
       ],
       "preserveCanvas": true,
       "padding": 0,
-      "order": 60,
+      "order": 57,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
@@ -851,6 +809,48 @@
       "id": "doodad.ruins-ingot-stacks",
       "name": "Ingot stacks",
       "description": "A store shelf's load: cast ingots.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 58,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "control-desk.png": {
+      "id": "doodad.ruins-control-desk",
+      "name": "Control desk",
+      "description": "One continuous operator desk along the wall: three screens on a raised back bank, a worktop with keyboards, three chairs pulled up to it.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 59,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "control-desk-burnt.png": {
+      "id": "doodad.ruins-control-desk-burnt",
+      "name": "Control desk, burnt",
+      "description": "The operator desk burned out: screens blown, the worktop scorched and holed, a chair knocked over.",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 60,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "shift-desk.png": {
+      "id": "doodad.ruins-shift-desk",
+      "name": "Shift desk",
+      "description": "The shift lead's desk: a worktop with one terminal, papers and a lamp, a chair at it.",
       "footprintCells": [
         2,
         1

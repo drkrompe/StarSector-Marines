@@ -3,7 +3,7 @@
   "cellPx": 128,
   "doodads": [
     {
-      "id": "doodad.ruins-control-desk",
+      "id": "doodad.ruins-mimic-board",
       "col": 0,
       "row": 0,
       "cover": "med",
@@ -14,41 +14,8 @@
       ]
     },
     {
-      "id": "doodad.ruins-control-desk-burnt",
-      "col": 3,
-      "row": 0,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5,
-      "footprintCells": [
-        3,
-        1
-      ]
-    },
-    {
-      "id": "doodad.ruins-mimic-board",
-      "col": 6,
-      "row": 0,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5,
-      "footprintCells": [
-        3,
-        1
-      ]
-    },
-    {
-      "id": "doodad.ruins-shift-desk",
-      "col": 9,
-      "row": 0,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5,
-      "footprintCells": [
-        2,
-        1
-      ]
-    },
-    {
       "id": "doodad.ruins-ceiling-panel",
-      "col": 11,
+      "col": 3,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -59,7 +26,7 @@
     },
     {
       "id": "doodad.ruins-sample-hatch",
-      "col": 13,
+      "col": 5,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -70,14 +37,14 @@
     },
     {
       "id": "doodad.ruins-tally-terminal",
-      "col": 15,
+      "col": 7,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
     {
       "id": "doodad.ruins-fume-hood",
-      "col": 16,
+      "col": 8,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -88,7 +55,7 @@
     },
     {
       "id": "doodad.ruins-lab-bench",
-      "col": 18,
+      "col": 10,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -99,7 +66,7 @@
     },
     {
       "id": "doodad.ruins-shelf-toppled",
-      "col": 21,
+      "col": 13,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -110,7 +77,7 @@
     },
     {
       "id": "doodad.ruins-sample-store",
-      "col": 23,
+      "col": 15,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -121,14 +88,14 @@
     },
     {
       "id": "doodad.ruins-reject-bin",
-      "col": 24,
+      "col": 16,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
     {
       "id": "doodad.ruins-parts-rack",
-      "col": 25,
+      "col": 17,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -139,14 +106,14 @@
     },
     {
       "id": "doodad.ruins-parts-trolley",
-      "col": 26,
+      "col": 18,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5
     },
     {
       "id": "doodad.ruins-rework-stand",
-      "col": 27,
+      "col": 19,
       "row": 0,
       "cover": "none",
       "footprintCells": [
@@ -156,8 +123,8 @@
     },
     {
       "id": "doodad.ruins-workshop-hoist",
-      "col": 0,
-      "row": 1,
+      "col": 22,
+      "row": 0,
       "cover": "none",
       "footprintCells": [
         3,
@@ -166,7 +133,7 @@
     },
     {
       "id": "doodad.ruins-hoist-fallen",
-      "col": 30,
+      "col": 25,
       "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -177,8 +144,8 @@
     },
     {
       "id": "doodad.ruins-tool-wall",
-      "col": 3,
-      "row": 1,
+      "col": 27,
+      "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -188,8 +155,8 @@
     },
     {
       "id": "doodad.ruins-crew-locker",
-      "col": 6,
-      "row": 1,
+      "col": 30,
+      "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -199,8 +166,8 @@
     },
     {
       "id": "doodad.ruins-crew-locker-open",
-      "col": 7,
-      "row": 1,
+      "col": 31,
+      "row": 0,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -210,7 +177,7 @@
     },
     {
       "id": "doodad.ruins-crew-bunk",
-      "col": 8,
+      "col": 0,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -221,7 +188,7 @@
     },
     {
       "id": "doodad.ruins-store-rack",
-      "col": 9,
+      "col": 1,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -232,7 +199,7 @@
     },
     {
       "id": "doodad.ruins-mess-table-tipped",
-      "col": 10,
+      "col": 2,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -243,7 +210,7 @@
     },
     {
       "id": "doodad.ruins-store-shelf",
-      "col": 13,
+      "col": 5,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -254,7 +221,7 @@
     },
     {
       "id": "doodad.ruins-cold-loop-board",
-      "col": 15,
+      "col": 7,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -265,7 +232,7 @@
     },
     {
       "id": "doodad.ruins-culture-board",
-      "col": 18,
+      "col": 10,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -276,8 +243,8 @@
     },
     {
       "id": "doodad.ruins-print-queue-board",
-      "col": 3,
-      "row": 2,
+      "col": 25,
+      "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -287,7 +254,7 @@
     },
     {
       "id": "doodad.ruins-lattice-board",
-      "col": 10,
+      "col": 2,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -298,7 +265,7 @@
     },
     {
       "id": "doodad.ruins-field-board",
-      "col": 13,
+      "col": 5,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -309,7 +276,7 @@
     },
     {
       "id": "doodad.ruins-beam-board",
-      "col": 16,
+      "col": 8,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -320,7 +287,7 @@
     },
     {
       "id": "doodad.ruins-bore-board",
-      "col": 19,
+      "col": 11,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -331,7 +298,7 @@
     },
     {
       "id": "doodad.ruins-reactor-board",
-      "col": 22,
+      "col": 14,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -342,8 +309,8 @@
     },
     {
       "id": "doodad.ruins-draw-board",
-      "col": 3,
-      "row": 3,
+      "col": 25,
+      "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -353,8 +320,8 @@
     },
     {
       "id": "doodad.ruins-director-board",
-      "col": 6,
-      "row": 3,
+      "col": 28,
+      "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -364,7 +331,7 @@
     },
     {
       "id": "doodad.ruins-dispatch-board",
-      "col": 9,
+      "col": 0,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -375,7 +342,7 @@
     },
     {
       "id": "doodad.ruins-range-board",
-      "col": 12,
+      "col": 3,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -386,7 +353,7 @@
     },
     {
       "id": "doodad.ruins-pour-board",
-      "col": 15,
+      "col": 6,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -397,18 +364,7 @@
     },
     {
       "id": "doodad.ruins-qubit-dewar",
-      "col": 30,
-      "row": 1,
-      "cover": "med",
-      "ballisticHalfHeight": 0.5,
-      "footprintCells": [
-        2,
-        2
-      ]
-    },
-    {
-      "id": "doodad.ruins-incubator",
-      "col": 25,
+      "col": 17,
       "row": 2,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -418,8 +374,19 @@
       ]
     },
     {
+      "id": "doodad.ruins-incubator",
+      "col": 9,
+      "row": 3,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
       "id": "doodad.ruins-core-probe",
-      "col": 18,
+      "col": 11,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -430,7 +397,7 @@
     },
     {
       "id": "doodad.ruins-coil-test-rig",
-      "col": 20,
+      "col": 13,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -441,7 +408,7 @@
     },
     {
       "id": "doodad.ruins-magnet-bench",
-      "col": 22,
+      "col": 15,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -452,7 +419,7 @@
     },
     {
       "id": "doodad.ruins-core-sample-rack",
-      "col": 27,
+      "col": 19,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -463,7 +430,7 @@
     },
     {
       "id": "doodad.ruins-assay-bench",
-      "col": 29,
+      "col": 21,
       "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -474,8 +441,8 @@
     },
     {
       "id": "doodad.ruins-tally-bench",
-      "col": 0,
-      "row": 4,
+      "col": 23,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -485,8 +452,8 @@
     },
     {
       "id": "doodad.ruins-charge-test-cell",
-      "col": 2,
-      "row": 4,
+      "col": 25,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -496,8 +463,8 @@
     },
     {
       "id": "doodad.ruins-assay-furnace",
-      "col": 4,
-      "row": 4,
+      "col": 27,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -507,8 +474,8 @@
     },
     {
       "id": "doodad.ruins-sorter-module",
-      "col": 6,
-      "row": 4,
+      "col": 29,
+      "row": 3,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -518,7 +485,7 @@
     },
     {
       "id": "doodad.ruins-cryogen-dewars",
-      "col": 21,
+      "col": 13,
       "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -529,8 +496,8 @@
     },
     {
       "id": "doodad.ruins-nutrient-drums",
-      "col": 9,
-      "row": 4,
+      "col": 28,
+      "row": 1,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -540,7 +507,7 @@
     },
     {
       "id": "doodad.ruins-feedstock-canisters",
-      "col": 11,
+      "col": 0,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -551,7 +518,7 @@
     },
     {
       "id": "doodad.ruins-rack-module-crates",
-      "col": 13,
+      "col": 2,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -562,7 +529,7 @@
     },
     {
       "id": "doodad.ruins-coolant-drums",
-      "col": 15,
+      "col": 4,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -573,7 +540,7 @@
     },
     {
       "id": "doodad.ruins-cable-drums",
-      "col": 24,
+      "col": 6,
       "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -584,8 +551,8 @@
     },
     {
       "id": "doodad.ruins-drill-rods",
-      "col": 9,
-      "row": 5,
+      "col": 17,
+      "row": 4,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -595,7 +562,7 @@
     },
     {
       "id": "doodad.ruins-reagent-drums",
-      "col": 11,
+      "col": 0,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -606,7 +573,7 @@
     },
     {
       "id": "doodad.ruins-spool-cores",
-      "col": 13,
+      "col": 2,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -617,7 +584,7 @@
     },
     {
       "id": "doodad.ruins-emitter-cases",
-      "col": 15,
+      "col": 4,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -628,7 +595,7 @@
     },
     {
       "id": "doodad.ruins-tote-stacks",
-      "col": 17,
+      "col": 6,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -639,7 +606,7 @@
     },
     {
       "id": "doodad.ruins-charge-cases",
-      "col": 19,
+      "col": 8,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -650,7 +617,40 @@
     },
     {
       "id": "doodad.ruins-ingot-stacks",
-      "col": 21,
+      "col": 10,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-control-desk",
+      "col": 12,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-control-desk-burnt",
+      "col": 15,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-shift-desk",
+      "col": 18,
       "row": 5,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -664,368 +664,368 @@
     {
       "col": 0,
       "row": 0,
-      "name": "Control desk",
-      "description": "A run of three operator consoles, screens to the room."
-    },
-    {
-      "col": 3,
-      "row": 0,
-      "name": "Control desk, burnt",
-      "description": "The console run burned out, its screens blown."
-    },
-    {
-      "col": 6,
-      "row": 0,
       "name": "Mimic board",
       "description": "A generic plant mimic board on the wall."
     },
     {
-      "col": 9,
-      "row": 0,
-      "name": "Shift desk",
-      "description": "The shift lead's desk, a terminal on it."
-    },
-    {
-      "col": 11,
+      "col": 3,
       "row": 0,
       "name": "Fallen ceiling panel",
       "description": "A fallen ceiling panel with its cable loom."
     },
     {
-      "col": 13,
+      "col": 5,
       "row": 0,
       "name": "Sample hatch",
       "description": "A pass-through hatch in the hall-side wall, a tray in front."
     },
     {
-      "col": 15,
+      "col": 7,
       "row": 0,
       "name": "Tally terminal",
       "description": "A stores tally terminal on a post."
     },
     {
-      "col": 16,
+      "col": 8,
       "row": 0,
       "name": "Fume hood",
       "description": "A lab fume hood, sash half down."
     },
     {
-      "col": 18,
+      "col": 10,
       "row": 0,
       "name": "Lab bench",
       "description": "A lab bench with glassware and a scope."
     },
     {
-      "col": 21,
+      "col": 13,
       "row": 0,
       "name": "Toppled shelf",
       "description": "A toppled lab shelf, its contents spilled."
     },
     {
-      "col": 23,
+      "col": 15,
       "row": 0,
       "name": "Sample store",
       "description": "A tall chilled sample cabinet."
     },
     {
-      "col": 24,
+      "col": 16,
       "row": 0,
       "name": "Reject bin",
       "description": "A lidded reject bin, hazard-banded."
     },
     {
-      "col": 25,
+      "col": 17,
       "row": 0,
       "name": "Parts rack",
       "description": "A narrow spares rack, bins of parts."
     },
     {
-      "col": 26,
+      "col": 18,
       "row": 0,
       "name": "Parts trolley",
       "description": "A parts trolley."
     },
     {
-      "col": 27,
+      "col": 19,
       "row": 0,
       "name": "Rework stand",
       "description": "A low frame a unit is bolted to for rework; open for the unit laid on it."
     },
     {
-      "col": 0,
-      "row": 1,
+      "col": 22,
+      "row": 0,
       "name": "Workshop hoist",
       "description": "A small gantry hoist over the stand, open in the middle. Drawn above units."
     },
     {
-      "col": 30,
+      "col": 25,
       "row": 0,
       "name": "Hoist's fallen load",
       "description": "The hoist's dropped load and chain."
     },
     {
-      "col": 3,
-      "row": 1,
+      "col": 27,
+      "row": 0,
       "name": "Tool wall",
       "description": "A tool board and bench against the wall."
     },
     {
-      "col": 6,
-      "row": 1,
+      "col": 30,
+      "row": 0,
       "name": "Crew lockers",
       "description": "A pair of crew lockers."
     },
     {
-      "col": 7,
-      "row": 1,
+      "col": 31,
+      "row": 0,
       "name": "Crew lockers, open",
       "description": "The lockers, doors open, kit spilled."
     },
     {
-      "col": 8,
+      "col": 0,
       "row": 1,
       "name": "Crew bunk",
       "description": "A crew bunk, bedding rumpled."
     },
     {
-      "col": 9,
+      "col": 1,
       "row": 1,
       "name": "Store rack",
       "description": "A tall store rack."
     },
     {
-      "col": 10,
+      "col": 2,
       "row": 1,
       "name": "Tipped mess table",
       "description": "A mess table on its side as a barricade, scorch-marked."
     },
     {
-      "col": 13,
+      "col": 5,
       "row": 1,
       "name": "Store shelf",
       "description": "Steel store shelving, mostly stripped."
     },
     {
-      "col": 15,
+      "col": 7,
       "row": 1,
       "name": "Cold loop board",
       "description": "The control room's mimic board of its hall's line: cryostat loop temperatures."
     },
     {
-      "col": 18,
+      "col": 10,
       "row": 1,
       "name": "Culture board",
       "description": "The control room's mimic board of its hall's line: culture vat states."
     },
     {
-      "col": 3,
-      "row": 2,
+      "col": 25,
+      "row": 1,
       "name": "Print queue board",
       "description": "The control room's mimic board of its hall's line: the print queue."
     },
     {
-      "col": 10,
+      "col": 2,
       "row": 2,
       "name": "Lattice board",
       "description": "The control room's mimic board of its hall's line: AI core burn-in states."
     },
     {
-      "col": 13,
+      "col": 5,
       "row": 2,
       "name": "Field board",
       "description": "The control room's mimic board of its hall's line: the fusion torus field."
     },
     {
-      "col": 16,
+      "col": 8,
       "row": 2,
       "name": "Beam board",
       "description": "The control room's mimic board of its hall's line: the synchrotron beam position."
     },
     {
-      "col": 19,
+      "col": 11,
       "row": 2,
       "name": "Bore board",
       "description": "The control room's mimic board of its hall's line: bore depth and torque."
     },
     {
-      "col": 22,
+      "col": 14,
       "row": 2,
       "name": "Reactor board",
       "description": "The control room's mimic board of its hall's line: reactor column temperatures."
     },
     {
-      "col": 3,
-      "row": 3,
+      "col": 25,
+      "row": 2,
       "name": "Draw board",
       "description": "The control room's mimic board of its hall's line: fibre draw speed and tension."
     },
     {
-      "col": 6,
-      "row": 3,
+      "col": 28,
+      "row": 2,
       "name": "Director board",
       "description": "The control room's mimic board of its hall's line: holostage calibration."
     },
     {
-      "col": 9,
+      "col": 0,
       "row": 3,
       "name": "Dispatch board",
       "description": "The control room's mimic board of its hall's line: the dispatch schedule."
     },
     {
-      "col": 12,
+      "col": 3,
       "row": 3,
       "name": "Range board",
       "description": "The control room's mimic board of its hall's line: the proof range."
     },
     {
-      "col": 15,
+      "col": 6,
       "row": 3,
       "name": "Pour board",
       "description": "The control room's mimic board of its hall's line: the foundry pour."
     },
     {
-      "col": 30,
-      "row": 1,
+      "col": 17,
+      "row": 2,
       "name": "Qubit dewar rig",
       "description": "A dewar test rig for cryo units."
     },
     {
-      "col": 25,
-      "row": 2,
+      "col": 9,
+      "row": 3,
       "name": "Sample incubator",
       "description": "A culture sample incubator."
     },
     {
-      "col": 18,
+      "col": 11,
       "row": 3,
       "name": "Core probe station",
       "description": "A probe station for AI core lattices."
     },
     {
-      "col": 20,
+      "col": 13,
       "row": 3,
       "name": "Coil test rig",
       "description": "A field coil on a test frame."
     },
     {
-      "col": 22,
+      "col": 15,
       "row": 3,
       "name": "Magnet bench",
       "description": "A magnet segment on a measuring bench."
     },
     {
-      "col": 27,
+      "col": 19,
       "row": 3,
       "name": "Core sample rack",
       "description": "Rock cores from the bore, racked."
     },
     {
-      "col": 29,
+      "col": 21,
       "row": 3,
       "name": "Assay bench",
       "description": "A reagent assay bench."
     },
     {
-      "col": 0,
-      "row": 4,
+      "col": 23,
+      "row": 3,
       "name": "Inspection bench",
       "description": "An inspection and tally bench."
     },
     {
-      "col": 2,
-      "row": 4,
+      "col": 25,
+      "row": 3,
       "name": "Charge test cell",
       "description": "A small armoured test cell."
     },
     {
-      "col": 4,
-      "row": 4,
+      "col": 27,
+      "row": 3,
       "name": "Assay furnace",
       "description": "A small assay furnace."
     },
     {
-      "col": 6,
-      "row": 4,
+      "col": 29,
+      "row": 3,
       "name": "Sorter module",
       "description": "A sorter head, the high bay's spare on the rework stand."
     },
     {
-      "col": 21,
+      "col": 13,
       "row": 1,
       "name": "Cryogen dewars",
       "description": "A store shelf's load: cryogen dewars."
     },
     {
-      "col": 9,
-      "row": 4,
+      "col": 28,
+      "row": 1,
       "name": "Nutrient drums",
       "description": "A store shelf's load: nutrient drums."
     },
     {
-      "col": 11,
+      "col": 0,
       "row": 4,
       "name": "Feedstock canisters",
       "description": "A store shelf's load: print feedstock canisters."
     },
     {
-      "col": 13,
+      "col": 2,
       "row": 4,
       "name": "Rack module crates",
       "description": "A store shelf's load: AI rack module crates."
     },
     {
-      "col": 15,
+      "col": 4,
       "row": 4,
       "name": "Coolant drums",
       "description": "A store shelf's load: coolant drums."
     },
     {
-      "col": 24,
+      "col": 6,
       "row": 4,
       "name": "Cable drums",
       "description": "A store shelf's load: superconducting cable drums."
     },
     {
-      "col": 9,
-      "row": 5,
+      "col": 17,
+      "row": 4,
       "name": "Drill rods",
       "description": "A store shelf's load: drill rods."
     },
     {
-      "col": 11,
+      "col": 0,
       "row": 5,
       "name": "Reagent drums",
       "description": "A store shelf's load: reagent drums."
     },
     {
-      "col": 13,
+      "col": 2,
       "row": 5,
       "name": "Spool cores",
       "description": "A store shelf's load: empty fibre spool cores."
     },
     {
-      "col": 15,
+      "col": 4,
       "row": 5,
       "name": "Emitter cases",
       "description": "A store shelf's load: holo emitter cases."
     },
     {
-      "col": 17,
+      "col": 6,
       "row": 5,
       "name": "Tote stacks",
       "description": "A store shelf's load: dispatch totes."
     },
     {
-      "col": 19,
+      "col": 8,
       "row": 5,
       "name": "Charge cases",
       "description": "A store shelf's load: charge cases."
     },
     {
-      "col": 21,
+      "col": 10,
       "row": 5,
       "name": "Ingot stacks",
       "description": "A store shelf's load: cast ingots."
+    },
+    {
+      "col": 12,
+      "row": 5,
+      "name": "Control desk",
+      "description": "One continuous operator desk along the wall: three screens on a raised back bank, a worktop with keyboards, three chairs pulled up to it."
+    },
+    {
+      "col": 15,
+      "row": 5,
+      "name": "Control desk, burnt",
+      "description": "The operator desk burned out: screens blown, the worktop scorched and holed, a chair knocked over."
+    },
+    {
+      "col": 18,
+      "row": 5,
+      "name": "Shift desk",
+      "description": "The shift lead's desk: a worktop with one terminal, papers and a lamp, a chair at it."
     }
   ]
 }

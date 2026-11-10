@@ -113,7 +113,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.ruralLandUse` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.settlementLots` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
-| `battle.mapgen.streetJogs` | experiment | 2026-11-10 | Mapgen pass (mapgen-nouns.md): `taper` restores the diagonal taper between side-by-side streets; remove it with the losing path once the owner answers picks `street-jogs`. |
 | `battle.mapgen.townFields` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mech.<axis>.<short id>` | tuning | 2026-10-18 | Balance control over one authored mech-weapon value (MechWeaponComponent.tuned). Kept while armorMatchup balances mech weapons; fold the readings into the data files and drop it when that pass closes. |
 | `battle.mech.armorArcs` | control | 2026-10-19 | Standing control alongside battle.vehicle.armorArcs. Retire with it. |

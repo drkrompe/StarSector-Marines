@@ -319,7 +319,7 @@ public final class GeneratedRoads {
             lanes.put(b, street ? Carriageway.of(b, footway, style.sidewalks()) : Carriageway.whole(b));
         }
         Map<Band, int[]> ends = city == null ? Map.of() : junctionEnds(bands, lanes);
-        if (city != null && squareJogs()) jogs(bands, city, ends);
+        if (city != null) jogs(bands, city, ends);
         for (Band b : bands) {
             boolean street = city != null && b.holds(city);
             Carriageway c = lanes.get(b);
@@ -366,7 +366,6 @@ public final class GeneratedRoads {
                 add(routes, turn, width, seed, Material.ASPHALT, EndCap.ROUND);
             }
         }
-        if (city != null && !squareJogs()) for (Band b : bands) if (b.holds(city)) tapers(b, bands, lanes, ends, routes, seed);
         List<Marking> paint = new ArrayList<>();
         if (city != null && style.markings())
             for (Band b : bands) if (b.holds(city) && b.width() != b.height()) centreLine(b, lanes.get(b), bands, ends, paint);
@@ -456,15 +455,6 @@ public final class GeneratedRoads {
     }
 
     /**
-     * {@code -Dbattle.mapgen.streetJogs=taper} restores the diagonal taper where two streets grown side by side jog
-     * one into the other; square, the default, trims the shorter. Temporary, for the owner's pick between the two
-     * (picks question {@code street-jogs}): remove it, with the losing path, once the owner has chosen.
-     */
-    static boolean squareJogs() {
-        return !"taper".equalsIgnoreCase(System.getProperty("battle.mapgen.streetJogs", "square"));
-    }
-
-    /**
      * Where two streets grown side by side touch, or stand a kerb cell apart, and each runs on past the other, a jog
      * from one line onto the next (or the arms of a crossing that do not line up, the one running on past the
      * crossing beside the other), both swept would draw the stretch they share as one slab of road twice a street's
@@ -490,58 +480,6 @@ public final class GeneratedRoads {
                 else if (sHi > lHi && sLo < lHi - step + 1 && sLo > lLo) ends.put(s, new int[]{lHi - step + 1, sHi});
             }
         }
-    }
-
-    /** Cells along which a street that widens beside another merges into it. */
-    static final int TAPER = 6;
-
-    /**
-     * Where a street ends beside a parallel street that runs on past its end
-     * (two arms grown side by side, so the road widens there), a square end is a
-     * step across the carriageway. A short diagonal stroke from the ending
-     * street's centre into the other's turns the step into a taper. An end that
-     * meets a crossing street is a junction and keeps its square end.
-     */
-    private static void tapers(Band b, List<Band> bands, Map<Band, Carriageway> lanes, Map<Band, int[]> ends,
-                               List<Route> routes, long seed) {
-        boolean horizontal = b.horizontal();
-        int lo = lo(b, ends), hi = hi(b, ends);
-        int sideLo = horizontal ? b.bottom : b.left, sideHi = horizontal ? b.top : b.right;
-        for (int dir : new int[]{-1, 1}) {
-            int end = dir < 0 ? lo : hi;
-            if (ends.containsKey(b) && (dir < 0 ? lo != (horizontal ? b.left : b.bottom)
-                    : hi != (horizontal ? b.right : b.top))) continue;
-            if (meetsCrossing(b, end, bands)) continue;
-            for (Band a : bands) {
-                if (a == b || a.horizontal() != horizontal) continue;
-                int aSideLo = horizontal ? a.bottom : a.left, aSideHi = horizontal ? a.top : a.right;
-                if (aSideLo != sideHi + 1 && aSideHi != sideLo - 1) continue;
-                int aLo = lo(a, ends), aHi = hi(a, ends);
-                // a runs on past b's end by a taper's length, and alongside b at the end.
-                boolean past = dir < 0 ? aLo <= end - TAPER && aHi >= end + 1 : aHi >= end + TAPER && aLo <= end - 1;
-                if (!past) continue;
-                double from = lanes.get(b).centre(), to = lanes.get(a).centre();
-                double width = Math.min(lanes.get(b).width(), lanes.get(a).width());
-                double start = end + (dir < 0 ? 1 : -1), stop = end + dir * TAPER;
-                Point p = horizontal ? new Point(start, from) : new Point(from, start);
-                Point q = horizontal ? new Point(stop, to) : new Point(to, stop);
-                add(routes, List.of(p, q), width, seed, Material.ASPHALT, EndCap.ROUND);
-                break;
-            }
-        }
-    }
-
-    /** Whether a perpendicular band crosses b's line at its end cell {@code end}. */
-    private static boolean meetsCrossing(Band b, int end, List<Band> bands) {
-        boolean horizontal = b.horizontal();
-        double line = horizontal ? b.cy() : b.cx();
-        for (Band c : bands) {
-            if (c == b || c.horizontal() == horizontal) continue;
-            int alongLo = horizontal ? c.bottom : c.left, alongHi = horizontal ? c.top : c.right;
-            int crossLo = horizontal ? c.left : c.bottom, crossHi = horizontal ? c.right : c.top;
-            if (line >= alongLo && line <= alongHi && end >= crossLo - 1 && end <= crossHi + 1) return true;
-        }
-        return false;
     }
 
     /** Whether every cell between two corners is street or footway, so a sweep over them is not cut off. */
