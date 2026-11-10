@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -91,6 +92,19 @@ class MechLabDollCanvasTest {
                     assertFalse(overlaps, a.id() + " overlaps " + b.id() + " on " + variant);
                 }
             }
+        }
+    }
+
+    @Test
+    void aHullsCoaxCardStandsBesideItsTurretCardOnAnyPage() {
+        List<SocketDef> sockets = VehicleDoll.sockets(VehicleType.BREAKTHROUGH_TANK);
+        for (float canvas : new float[]{452f, 1100f}) {
+            float panel = MechLabDollCanvas.panelWidth(sockets, canvas);
+            List<MechLabDollCanvas.SocketDropTarget> targets = MechLabDollCanvas.schematicTargets(sockets, panel, 700f);
+            MechLabDollCanvas.SocketDropTarget turret = find(targets, SocketId.ARMS);
+            MechLabDollCanvas.SocketDropTarget coax = find(targets, SocketId.RIGHT_ARM);
+            assertTrue(coax.left() > turret.right(), "the coax card is right of the turret card");
+            assertTrue(coax.right() <= panel, "and stays on the panel");
         }
     }
 

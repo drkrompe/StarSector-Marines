@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.gen.raid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -18,7 +20,8 @@ import java.util.List;
 /**
  * Dressing a Raid works ({@link RaidIndustry#dressWorks}): the works' buildings, and props set on its open ground
  * where they block nothing. A prop yields to circulation rather than refusing the map: one whose footprint would
- * take a street, a doorway's neighbourhood, a building, a ramp, a landing pad's apron or another prop is not placed.
+ * take a street or road, a doorway's neighbourhood, a building, a ramp, a landing pad's apron or another prop is not
+ * placed.
  */
 public final class WorksProps {
 
@@ -67,11 +70,16 @@ public final class WorksProps {
 
     /** Whether a {@code w} by {@code h} footprint with its corner at {@code (x, y)} may take a prop. */
     public static boolean open(GenContext c, int x, int y, int w, int h) {
+        LayoutGround ground = new LayoutGround(c);
+        // A place's own roads, inside its claim, which the layout's ways leave to the place.
+        int[][] roadOwner = c.get(BspKeys.PRECINCT_ROAD);
         for (int yy = y; yy < y + h; yy++) {
             for (int xx = x; xx < x + w; xx++) {
                 if (!c.grid.inBounds(xx, yy) || !c.grid.isWalkable(xx, yy) || c.topology.isFixture(xx, yy)
                         || c.topology.hasBuildingKindHint(xx, yy)
                         || c.topology.getGroundKind(xx, yy) == GroundKind.STREET
+                        || ground.isWay(xx, yy)
+                        || (roadOwner != null && roadOwner[xx][yy] != GrownTrunkPlan.UNOWNED)
                         || (c.grid.elevation() != null && c.grid.elevation().isRamp(xx, yy))) {
                     return false;
                 }

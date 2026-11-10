@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurity;
+import com.dillon.starsectormarines.battle.derelict.BuildQueue;
+import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
+import com.dillon.starsectormarines.battle.derelict.FallenHull;
+import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -3528,7 +3532,7 @@ public final class BattleSetup {
             if (hull != null) {
                 // The hull's watch stands where the deep bore would: its zones from there toward the shelter.
                 why = "the hull's watch does not seat";
-                if (!installHullWatch(sim, hull, eruption, payload.placement)) continue;
+                if (!installHullWatch(sim, map, hull, eruption, payload.placement)) continue;
                 sim.mechDrops().installScriptedCaller(Faction.MARINE,
                         SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
                         () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
@@ -3587,11 +3591,39 @@ public final class BattleSetup {
     }
 
     /**
-     * Lays the hull's derelict watch on a rescue: the zones along the walk from the deep bore's place (the eruption
-     * plan's mother, else its first site) to the shelter's approach. False when there is no place or no walk.
+     * The Fall's forge program (`long-survey-arc.md`, The Fall: the hull only, no stakes): workers and walkers, never a
+     * stake, so the claim does not spread in chapter 1. UNTUNED.
      */
-    private static boolean installHullWatch(BattleSimulation sim, HullWatch hull, ColonyEruptionPlan eruption,
-                                            CivilianEvacuationPlacement placement) {
+    static final BuildQueue FALL_QUEUE = new BuildQueue(List.of(
+            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.HAULER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
+    /** The hull's store when it comes down: enough for its first cycles (UNTUNED). */
+    static final float FALL_FEEDSTOCK = BuildQueue.WORKER_COST * 2;
+    /** The watch already out the night it came down: a line frame and a rounds walker, and two strippers (UNTUNED). */
+    static final List<DerelictWalkerFrame> FALL_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.ROUNDS,
+            DerelictWalkerFrame.STRIPPER, DerelictWalkerFrame.STRIPPER);
+
+    /**
+     * Lays the hull's watch on a rescue. On ground carrying a fallen hull ({@link MapResult#hullSite}) it is the hull's
+     * own claim ({@code FallenHull}): the root zone with the autoforge as its vault, its flock, bay and the walkers
+     * already out at its mouth, printing {@link #FALL_QUEUE}. On ground with none it falls back to a site network
+     * along the walk from the deep bore's place (the eruption plan's mother, else its first site) to the shelter's
+     * approach. False when the watch cannot stand.
+     */
+    private static boolean installHullWatch(BattleSimulation sim, MapResult map, HullWatch hull,
+                                            ColonyEruptionPlan eruption, CivilianEvacuationPlacement placement) {
+        if (map.hullSite != null) {
+            FallenHullSite probe = LongSurveyGround.rulesSite(map.hullSite, List.of(), List.of(), 0f);
+            List<FallenHullSite.Posting> out = new ArrayList<>();
+            for (DerelictWalkerFrame frame : FALL_WALKERS) out.add(new FallenHullSite.Posting(frame, probe.mouthX(), probe.mouthY()));
+            FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, List.of(), out, FALL_FEEDSTOCK),
+                    FALL_QUEUE, hull.livery());
+            return true;
+        }
         if (eruption == null || eruption.sites().isEmpty()) return false;
         ColonyEruptionPlan.Site site = eruption.mother() != null ? eruption.mother() : eruption.sites().get(0);
         int[] route = GridPathfinder.findPath(sim.getGrid(), site.x(), site.y(),

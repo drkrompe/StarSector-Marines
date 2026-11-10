@@ -409,6 +409,7 @@ public final class MechBay implements Serializable {
     private static Parts fittedParts(CampaignVehicle vehicle) {
         Parts parts = new Parts();
         parts.weapon(vehicle.gun());
+        parts.weapon(vehicle.coax());
         parts.internal(vehicle.engine());
         parts.internal(vehicle.plating());
         for (MechInternal part : vehicle.compartment()) parts.internal(part);
@@ -495,6 +496,8 @@ public final class MechBay implements Serializable {
             for (CampaignVehicle vehicle : squad.vehicles()) {
                 MechWeaponComponent gun = vehicle.gun();
                 if (gun != null && gun.id.equals(componentId)) installed++;
+                MechWeaponComponent coax = vehicle.coax();
+                if (coax != null && coax.id.equals(componentId)) installed++;
             }
         }
         return installed;
@@ -608,8 +611,7 @@ public final class MechBay implements Serializable {
 
     /** Whether {@code gun} would go in the vehicle's gun card: an armed hull, and a weapon of the card's type and size. */
     public boolean canFitGun(String vehicleId, MechWeaponComponent gun) {
-        CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && CampaignVehicle.takesGun(vehicle.type(), gun);
+        return canFitVehicleWeapon(vehicleId, MechMountSlot.ARMS, gun);
     }
 
     /**
@@ -617,18 +619,40 @@ public final class MechBay implements Serializable {
      * False with no spare or a weapon that does not go.
      */
     public boolean fitGun(String vehicleId, MechWeaponComponent gun) {
-        CampaignVehicle vehicle = vehicleById(vehicleId);
-        if (vehicle == null || gun == null || !CampaignVehicle.takesGun(vehicle.type(), gun)
-                || availableWeapon(gun.id) <= 0) {
-            return false;
-        }
-        return refit(vehicle, () -> vehicle.fitGun(gun));
+        return fitVehicleWeapon(vehicleId, MechMountSlot.ARMS, gun);
     }
 
     /** Takes the weapon out of a vehicle's gun card back to stores; the hull fires its own gun again. */
     public boolean stripGun(String vehicleId) {
+        return stripVehicleWeapon(vehicleId, MechMountSlot.ARMS);
+    }
+
+    /**
+     * Whether {@code weapon} would go in the vehicle's card at {@code mount}: its gun card at the centreline mount, its
+     * coax card at the right arm ({@link CampaignVehicle#weaponAt}).
+     */
+    public boolean canFitVehicleWeapon(String vehicleId, MechMountSlot mount, MechWeaponComponent weapon) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
-        return vehicle != null && refit(vehicle, vehicle::stripGun);
+        return vehicle != null && CampaignVehicle.takesWeapon(vehicle.type(), mount, weapon);
+    }
+
+    /**
+     * Puts a spare weapon in the vehicle's card at {@code mount}; the weapon it replaces returns to stores.
+     * False with no spare or a weapon that does not go.
+     */
+    public boolean fitVehicleWeapon(String vehicleId, MechMountSlot mount, MechWeaponComponent weapon) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        if (vehicle == null || weapon == null || !CampaignVehicle.takesWeapon(vehicle.type(), mount, weapon)
+                || availableWeapon(weapon.id) <= 0) {
+            return false;
+        }
+        return refit(vehicle, () -> vehicle.fitWeapon(mount, weapon));
+    }
+
+    /** Takes the weapon out of the vehicle's card at {@code mount} back to stores. */
+    public boolean stripVehicleWeapon(String vehicleId, MechMountSlot mount) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && refit(vehicle, () -> vehicle.stripWeapon(mount));
     }
 
     /** Whether {@code engine} would go at the vehicle's engine core: any engine. */
