@@ -749,38 +749,36 @@ port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
 
 **The ruins' doors are leaf doors** (owner: "we have nice automated doors we
 use on ships in the engineering tab renderer... We should look at reusing the
-tech there to make better vault/facility doors than a 1x1"; pick `ruins-doors`
-open, building on a). Today the plant's halls meet at open three-cell gaps, and
-the vault's doors and the works' seals are one cell. The ship's sliding door
-(`RoomDoor`, drawn by `RoomDoorRenderSystem`) is two leaves parting from a seam
-into their jambs, any width, along either axis, and answers whoever stands in
-line with it. The ruins reuse it rather than drawing a door of their own. It
-needs three changes:
+tech there to make better vault/facility doors than a 1x1"; owner pick
+`ruins-doors` a). Every door in the plant is the ship's sliding door: two leaves
+parting from a seam into their jambs (`RoomDoor`), drawn by one shared leaf
+drawing (`LeafDoorArt`) for a ship's compartments, the locked doors and the
+ruins alike.
 
-- **A door kind.** `RoomDoor` gains a kind: a hall door (two leaves), a cargo
-  door (two telescoping leaves each way) and a blast door (two thick leaves,
-  the seam clamped when sealed). Each kind has its own leaf art.
-- **A derelict state.** A door answers while its works are powered. It stands
-  dead where its power died, part-open: the cells under its leaves are wall, so
-  a dead door narrows the way. It is sealed while its `SealDoor` is shut, and
-  forced for good once a breach forces it, one leaf torn out onto the floor. A
-  ruins door's state is the works' (`LockedDoor` open, forced and hardened), so
-  passage stays the grid's and the `LockedDoor`'s, as on a ship.
-- **Fed from the battle.** Ruins doors are built from the ground (the plant
-  halls' joins, the interior's entrances, the works' seals and the vault's
-  doors), not from a ship's compartments. The animation that moves the leaves
-  for the bodies near them, today in `ShipDeckBattleScene`, moves to the battle
-  view for every map.
+- **Hall doors** stand in every plant hall's join, a run of two to eight open
+  cells through the hull round a hall, and in the vault's outer door.
+- **Cargo doors** stand in every way in from open ground, two telescoping
+  leaves each way.
+- **Blast doors** are the works' seals: the vault's inner door and every side
+  room's door are cut three cells wide, and their `SealDoor`s span all three.
 
-| Option | What becomes a leaf door |
-| --- | --- |
-| a (recommended) | Every hall join (hall door), every intake dock (cargo door, four leaves), the vault and secure stores (blast doors widened to three cells), all with the four states |
-| b | Only the works' seals (gates, stores, bunker, vault), sealed and forced; the joins stay open gaps |
-| c | The joins answer as a ship's do, with no derelict states; the seals stay as today |
+A hall or cargo door's stance (`RuinsDelve.DoorStance`) is drawn by coordinate
+hash when the ground is laid, and recorded on the interior (`LeafDoor`):
 
-The leaf art is ruins-theme-art's (`ruins-doors.md` in the shared notes holds
-the piece list). The cards use today's ship leaves, forcible and hardened plates
-as stand-ins. Picture cards: `createSnapshots -Psnapshot=ruins-door-picks`.
+- **answers**: still powered, it parts for whoever stands in line with it and
+  closes behind them, as a ship's does;
+- **dead**: stuck part-open, its leaves in its end cells, which are shut to
+  passage and sight, so the way narrows. Only a hall door of three cells or
+  more dies. A way in stays open its whole width, so a cargo door never dies;
+- **forced**: torn open long ago, one leaf on the floor beside the way.
+
+A seal's leaves follow its lock (`LockedDoor`): they slide apart when it
+unlocks and shut when it locks, a blast door slower than a forcible one. A
+breach that forces it leaves one leaf on the floor. Passage stays the grid's
+and the lock's; the leaves only show it. The cards use today's ship leaves and
+forcible and hardened plates until the ruins set lands (`ruins-doors.md` in
+the shared notes holds the piece list). Look shots:
+`createSnapshots -Psnapshot=ruins-door-look`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
