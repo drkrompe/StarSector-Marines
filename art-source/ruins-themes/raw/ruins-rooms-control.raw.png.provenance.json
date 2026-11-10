@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73b-e573-7411-a855-33852cb48ab1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73b-e573-7411-a855-33852cb48ab1\\exec-7ad83d3a-5449-46b8-a409-a5bc6f8d0f22.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-control.raw.png",
+    "sha256": "538e2a5a9f58e20a72d451e4effe69134b38b605c44b32b16e28c761a9cf7ef1",
+    "dimensions": [
+      1614,
+      975
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-control.prompt.txt",
+  "promptSha256": "36cda19b2b9621ed5278bcf3b8b5f494fdb187c17622fbbb8976c02ce4970ccd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nSubjects, top row, left to right:\n1. control-desk (3x1): A run of three operator consoles, screens to the room.\n2. control-desk-burnt (3x1): The console run burned out, its screens blown.\n3. mimic-board (3x1): A generic plant mimic board on the wall.\nSubjects, second row, left to right:\n4. shift-desk (2x1): The shift lead's desk, a terminal on it.\n5. ceiling-panel (2x1): A fallen ceiling panel with its cable loom.\n6. sample-hatch (2x1): A pass-through hatch in the hall-side wall, a tray in front.\n7. tally-terminal (1x1): A stores tally terminal on a post.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-control-guide.png",
+      "sha256": "c05739b5bb78226796df18c10f7441b4b53909a943aaefda1d41c3f3e7288657",
+      "dimensions": [
+        1696,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using Image 1 for exact geometry and Image 2 for materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 44425,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 689,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.5
+}

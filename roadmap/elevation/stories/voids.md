@@ -602,8 +602,15 @@ Laws):
    to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
    the view's centre run to a cap of its cells at that lift, drawn before the
    buildings' faces and re-formed when a breach changes the topology. Fences,
-   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
-   as a staircase of cell blocks.
+   sandbags and barriers are doodads and still lie flat. A run stands as the
+   straight strokes it was built along (`FreestandingWalls.strokes`): a
+   diagonal is one slanted wall exactly as thick as a straight one, from its
+   end cells' centres, with a square pier on each end cell so it meets
+   straight walls on the grid, and a low footing on the ground covering its
+   cells' corners. Each face is dressed by kind (plinth, shaded body, coping,
+   panel joints or masonry courses and piers, weather streaks), each cap
+   coping-edged. The ground shadow still comes from the cells, so a diagonal's
+   shadow steps.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag

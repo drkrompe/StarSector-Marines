@@ -708,9 +708,8 @@ seizure, the optional broker and the return to the apron. A **quiet phase**
 holds until a shot, a sentry sighting inside the compound's exclusion ring, or
 the broker's lift-off clock. From the alarm, the ledger burns until the room is
 seized. Its grade and the broker's fate change only the debrief: every victory
-names Prell's dispatch authority and the Warion post. Two pre-alarm side
-objectives earn local support: the Harrow salvage team, and the warden's
-watch holding the cantina. The rules and their tuning live in
+names Prell's dispatch authority and the Warion post. The broker is the
+mission's one bonus objective, a chase from the alarm. The rules and their tuning live in
 `DustLedgerProgress`; open work is in `dust-ledger-crossing.md`. The records
 remain an abstract recovered package under the Raid objective's survivor-egress
 law, with the same numbered **1 / Seize** and **2 / Return** checklist.
