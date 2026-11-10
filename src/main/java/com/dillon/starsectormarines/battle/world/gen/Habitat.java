@@ -25,6 +25,12 @@ public enum Habitat {
     SEALED(Map.of("colony.masonry-wall", "colony.ceramic-wall")),
 
     /**
+     * Compact heated blocks for a frozen world: brick and steel that hold heat, no white ceramic panel blocks. Its
+     * people still walk between buildings, so parks and doors are the open town's.
+     */
+    INSULATED(Map.of("colony.ceramic-wall", "colony.masonry-wall")),
+
+    /**
      * Shielded works for hard radiation at the surface: every building's shell is thick poured concrete under a flat
      * slab, outside doors are decontamination locks with their thresholds marked, and parks are paved over as service
      * courts. The walls are the installation's light concrete in its brutalist works look ({@link #SHIELD_WALL}), a
@@ -55,6 +61,6 @@ public enum Habitat {
 
     /** Whether nobody lives in the open: no lawns or benches, outside doors are locks. */
     public boolean enclosed() {
-        return this != OPEN;
+        return this == SEALED || this == SHIELDED;
     }
 }
