@@ -1,38 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "map": "heart-burn",
-  "biomes": {
-    "VERDANT": [ {"seed": 2, "note": "two mothers"} ],
-    "ARID": [ {"seed": 2, "note": "two mothers; the Wellhollow story map", "story": true} ],
-    "ROCK": [ {"seed": 2, "note": "two mothers"} ],
-    "FROZEN": [ {"seed": 2, "note": "two mothers"} ],
-    "IRRADIATED": [ {"seed": 2, "note": "two mothers"} ],
-    "TOXIC": [ {"seed": 2, "note": "workings origin; 13 bores (2 mothers)"} ]
-  },
-  "candidates": {
-    "VERDANT": [
-      {"seed": 3, "note": "two mothers"},
-      {"seed": 5, "note": "two mothers"}
-    ],
-    "ARID": [
-      {"seed": 3, "note": "two mothers"},
-      {"seed": 5, "note": "two mothers"}
-    ],
-    "ROCK": [
-      {"seed": 3, "note": "two mothers"},
-      {"seed": 5, "note": "two mothers"}
-    ],
-    "FROZEN": [
-      {"seed": 3, "note": "two mothers"},
-      {"seed": 5, "note": "two mothers"}
-    ],
-    "IRRADIATED": [
-      {"seed": 3, "note": "two mothers"},
-      {"seed": 5, "note": "two mothers"}
-    ],
-    "TOXIC": [
-      {"seed": 3, "note": "freight origin; 13 bores (2 mothers)"},
-      {"seed": 5, "note": "park origin; 13 bores (2 mothers)"}
-    ]
+  "home": "ARID",
+  "entry": {
+    "seed": 2,
+    "note": "two mothers; the Wellhollow story map"
   }
 }
