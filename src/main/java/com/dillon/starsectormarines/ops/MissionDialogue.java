@@ -155,6 +155,7 @@ public final class MissionDialogue {
             case "castle" -> "briefingRoleCompanyOperations";
             case "vale" -> "briefingRoleBasinReclamation";
             case "warden" -> "wellhollowRoleCompact";
+            case "garrison" -> "longSurveyRoleGarrison";
             case "mara", "iona" -> "briefingRoleWayline";
             default -> "briefingMissionContact";
         });
@@ -169,6 +170,7 @@ public final class MissionDialogue {
             case "iona", "iona serr", "@dialoguespeakerionaserr" -> "iona";
             case "@dialoguespeakercastle" -> "castle";
             case "@wellhollowspeakerwarden" -> "warden";
+            case "@longsurveyspeakercommander" -> "garrison";
             default -> name;
         };
     }
@@ -185,6 +187,7 @@ public final class MissionDialogue {
             case "castle" -> "#e4bd78";
             case "vale" -> "#9fd2a5";
             case "warden" -> "#d8c48a";
+            case "garrison" -> "#a9c0d8";
             case "mara" -> "#c8b2e8";
             case "rill" -> "#e7a79d";
             case "iona" -> "#b9cb8b";

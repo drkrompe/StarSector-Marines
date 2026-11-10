@@ -1364,6 +1364,9 @@ its turns may sweep there. Bearing on pushable ground is
 progress, so the wall-contact and stall recovery leave a pushing hull alone; bearing on a fortified wall is not, and
 recovery treats it as any other wall.
 
+A heavy walker crushes by the same rule, ceiling and rates (`mechs-nouns.md`, Wall crush); every cell a breach view
+opens is tagged `BREACH`, which a walker's route prices as a hull's prices its pushable cells.
+
 Route proof for a wall-crushing hull reads a **breach view**: a routing copy of
 the grid it moves over (its crush view, or a heavy skirt's view) with every cell
 and edge under its ceiling open. Its move-order proof and rolling local planner both use

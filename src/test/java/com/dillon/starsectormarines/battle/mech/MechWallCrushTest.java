@@ -40,4 +40,15 @@ class MechWallCrushTest {
         assertEquals(WallCrush.HEAVY_PER_SECOND, spent + carried, 1e-3f, "a second's push is a heavy hull's rate");
         assertTrue(carried < 1f);
     }
+
+    @Test
+    void aFastCrusherPushesAtTheUltraHeavyRateAndANonCrusherAtNone() {
+        for (MechVariant variant : MechVariant.values()) {
+            float expected = !variant.crushesWalls() ? 0f
+                    : variant.crushesFast() ? WallCrush.ULTRA_HEAVY_PER_SECOND : WallCrush.HEAVY_PER_SECOND;
+            assertEquals(expected, MechWallCrush.rate(variant), variant.name());
+        }
+        float[] step = MechWallCrush.spend(0f, WallCrush.ULTRA_HEAVY_PER_SECOND, 1f);
+        assertEquals(WallCrush.ULTRA_HEAVY_PER_SECOND, step[0], 1e-6f);
+    }
 }
