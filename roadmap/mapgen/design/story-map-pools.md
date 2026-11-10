@@ -257,8 +257,10 @@ instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
 - **`bores`** `[{x, y, mother?}]`: the first wave in eruption order and exactly
   one mother, each on the doorstep of the place nearest it (within 10 cells) or
   else on the open ground nearest it (within 16).
-- **`holdouts`** `[[x, y]]`: in redoubt order, the held building each cell falls
-  inside.
+- **`holdouts`** `[[x, y]]`: in redoubt order, the held building with room that
+  each cell falls inside, or else the nearest one (within 16 cells), none named
+  twice. The sealed layout lays its own street plan from the same seed, so a cell
+  inside a building on the open layout may fall in a street on the sealed one.
 
 They replace the setup's choices and its clearances; a placement that cannot
 seat fails the map like any other acceptance.

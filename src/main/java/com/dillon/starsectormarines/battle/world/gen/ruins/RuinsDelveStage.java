@@ -92,6 +92,10 @@ public final class RuinsDelveStage implements GenStage {
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
     /** The mega forge's breakout pool round its middle: half its width and half its length, cells. */
     static final int BREAKOUT_WIDE = 7, BREAKOUT_LONG = 8;
+    /** The transfer bridge's pieces ({@code ruins-forge-bridge}), each two cells along the span by four across. */
+    static final String BRIDGE_SPAN = "doodad.ruins-transfer-bridge-span",
+            BRIDGE_END = "doodad.ruins-transfer-bridge-end",
+            BRIDGE_SPAN_DAMAGED = "doodad.ruins-transfer-bridge-span-damaged";
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
     static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
     /**
@@ -267,6 +271,8 @@ public final class RuinsDelveStage implements GenStage {
          * ({@code ruins-expedition.md}, The works hall is the trunk); null on a site without one.
          */
         Area trunkHall;
+        /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
+        Cell worksStand;
 
         Layout(GenContext ctx, RuinsGroundPlan plan, Random rng) {
             this.ctx = ctx;
@@ -426,7 +432,7 @@ public final class RuinsDelveStage implements GenStage {
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors);
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand());
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
@@ -1739,6 +1745,26 @@ public final class RuinsDelveStage implements GenStage {
             return out;
         }
 
+        /**
+         * The works hall's stand settled on floor: the nearest open cell to the planned one inside the hall, clear of
+         * pieces, melt and floor kit; null without a works hall or with no such cell within six.
+         */
+        Cell settledStand() {
+            if (worksStand == null || trunkHall == null) return null;
+            for (int r = 0; r <= 6; r++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                        int x = worksStand.x() + dx, y = worksStand.y() + dy;
+                        if (!trunkHall.contains(x, y) || !grid.isWalkable(x, y) || kitFloor[i(x, y)]
+                                || topology.isFixture(x, y)) continue;
+                        return new Cell(x, y);
+                    }
+                }
+            }
+            return null;
+        }
+
         /** The stage a works site's works hall is laid as: the mega forge's foundry, or the theme's works hall. */
         RuinsDelve.PlantStage worksStage() {
             return plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS;
@@ -1814,6 +1840,8 @@ public final class RuinsDelveStage implements GenStage {
                             : null;
                     if (laid != null) worksHall(registry, hall, centre, laid);
                     else lines(registry, hall, centre);
+                    // The zone is held from the east end of the transfer aisle, which the hall keeps clear.
+                    if (hall.equals(trunkHall)) worksStand = new Cell(hall.right() - 2, centre.y());
                 }
                 case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
@@ -2182,6 +2210,7 @@ public final class RuinsDelveStage implements GenStage {
                     over(registry, "doodad.ruins-crucible-melt", cx + 3, gy + 1);
                 }
                 piece(registry, "doodad.ruins-pour-pulpit", cx + 3, lineHead - 1, 2, 2, hall, centre);
+                worksStand = new Cell(cx + 5, lineHead - 1);
             } else {
                 for (int side = -1; side <= 1; side += 2) {
                     int lx = side < 0 ? cx - 8 : cx + 5;
@@ -2190,6 +2219,7 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
                 piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
+                worksStand = new Cell(cx + 12, top - 8);
             }
             piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
             // The slag pit, a crashed hover skid with its east edge on the pit's lip, the slag heaped below.
@@ -2267,8 +2297,8 @@ public final class RuinsDelveStage implements GenStage {
 
         /**
          * The transfer bridge over the breakout: a deck four cells wide on the transfer aisle, from bank to bank of
-         * the pool, where a hall frame stands its post and the haul crosses the hall. Drawn as grate decking until
-         * the bridge's own art ships.
+         * the pool, where a hall frame stands its post and the haul crosses the hall. A run of deck spans on box
+         * girders, railed both sides, with a cast abutment on each bank; floor, blocking nothing.
          */
         private void transferBridge(TileRegistry registry, Area hall, Cell centre, boolean[] melt) {
             int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
@@ -2280,13 +2310,18 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             if (lo > hi) return;
-            // Bank to bank, on the pour line's columns' even step so the decking lines up with the line's crossings.
-            int start = centre.x() - 1 - 2 * ((centre.x() - 1 - (lo - 1) + 1) / 2);
-            for (int x = start; x <= hi + 1; x += 2) {
-                for (int y = centre.y() - 1; y <= centre.y() + 1; y += 2) {
-                    lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), x, y);
-                }
+            DoodadDef span = registry.doodad(BRIDGE_SPAN), end = registry.doodad(BRIDGE_END);
+            DoodadDef damaged = registry.doodad(BRIDGE_SPAN_DAMAGED);
+            if (span == null || end == null) return;
+            // Spans every two columns over the pool, an abutment on each bank (the east one mirrored), one span
+            // split by coordinate hash.
+            int y = centre.y() - 1, spans = (hi - lo + 2) / 2;
+            int split = damaged == null ? -1 : 1 + hash(lo, y, 0xB21) % Math.max(1, spans - 2);
+            ctx.doodads.add(new Doodad(lo - 2, y, end));
+            for (int k = 0; k < spans; k++) {
+                ctx.doodads.add(new Doodad(lo + 2 * k, y, k == split ? damaged : span));
             }
+            ctx.doodads.add(new Doodad(lo + 2 * spans, y, end, 0, true));
         }
 
         /**

@@ -1,0 +1,15 @@
+Asset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.
+Style: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.
+View: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).
+
+Subjects, top row, left to right:
+1. control-desk (3x1): A run of three operator consoles, screens to the room.
+2. control-desk-burnt (3x1): The console run burned out, its screens blown.
+3. mimic-board (3x1): A generic plant mimic board on the wall.
+Subjects, second row, left to right:
+4. shift-desk (2x1): The shift lead's desk, a terminal on it.
+5. ceiling-panel (2x1): A fallen ceiling panel with its cable loom.
+6. sample-hatch (2x1): A pass-through hatch in the hall-side wall, a tray in front.
+7. tally-terminal (1x1): A stores tally terminal on a post.
