@@ -53,9 +53,12 @@ FORGE_LINE = ("tapping-furnace", "ladle-hook", "ladle-hook-tipped", "ore-car", "
               "fallen-girder")
 FORGE_FLOOR = ("rail-bed", "rail-bed-curve", "rail-buffer", "slag-car", "slag-car-tipped", "pallet-bay",
                "trench-cover", "drain-gutter", "floor-drain", "crane-runway", "cable-tray", "cable-tray-fallen")
+FORGE_WEAR = ("oil-stain", "oil-trail", "coolant-stain", "scorch-mark", "scorch-arc", "skid-marks", "line-pulpit",
+              "recorder-console")
 FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "furnace-core")),
               "forge-line": ("ruins-forge-line.raw.png", FORGE_LINE),
-              "forge-floor": ("ruins-forge-floor.raw.png", FORGE_FLOOR)}
+              "forge-floor": ("ruins-forge-floor.raw.png", FORGE_FLOOR),
+              "forge-wear": ("ruins-forge-wear.raw.png", FORGE_WEAR)}
 # The forge floor's runs, laid end to end north-south: each is healed into a seamless repeat along its length as the
 # foundry textures are (``art-source/voids/foundry/derive.py``): a band at each end blended with the piece rolled by
 # half its length. Their guides repeat with a period that divides the length, so the rolled copy meets in step.
@@ -75,7 +78,7 @@ LEAF_INSET = 0.03
 # Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
 # scale and the wrecked one's fallen fragments stay where they lie.
 TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
-         "great-crucible", "furnace-core", *FORGE_LINE, *FORGE_FLOOR}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+         "great-crucible", "furnace-core", *FORGE_LINE, *FORGE_FLOOR, "line-pulpit", "recorder-console"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -123,7 +126,7 @@ def split_melt(piece, guide_frame):
 # - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
 #   the engine's pulse rides from dull orange to orange rather than from yellow to white.
 # - the forge line came back with the same bright trim, and its melt as bright as the crucible's was.
-MUTE_HAZARD = ("spool-drum", "drone-frame", *FORGE_LINE, *FORGE_FLOOR)
+MUTE_HAZARD = ("spool-drum", "drone-frame", *FORGE_LINE, *FORGE_FLOOR, "line-pulpit", "recorder-console")
 GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "ladle-hook-melt",
               "ladle-hook-tipped-pour", "slag-car-melt", "slag-car-tipped-spill")
 MELT_GRADE = (0.80, 0.62, 0.50)
@@ -171,7 +174,9 @@ def grade(pid, piece):
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
-CAP = {"frost": 150, "growth": 205}
+CAP = {"frost": 150, "growth": 205, "oil": 225, "coolant": 215, "scorch": 225, "skid": 180}
+# The forge's stains were drawn translucent to their edges, so the halo cut is lower: only the faintest haze goes.
+STAIN_FEATHER = 30
 
 
 def cut(family):
@@ -188,9 +193,10 @@ def cut(family):
         piece = raw.crop(box)
         if pid in RUNS:
             piece = heal_run(piece)
-        if kind == "organic":
+        if kind in ("organic", "streak"):
+            f = STAIN_FEATHER if pid in FORGE_WEAR else FEATHER
             alpha = piece.getchannel("A").point(
-                lambda v, cap=CAP[pid.split("-")[0]]: 0 if v < FEATHER else round((v - FEATHER) * cap / (255 - FEATHER)))
+                lambda v, cap=CAP[pid.split("-")[0]], f=f: 0 if v < f else round((v - f) * cap / (255 - f)))
             piece.putalpha(alpha)
         if pid in MELT_SPLIT:
             body, over = split_melt(piece, guide.crop((x, y, x + w, y + h)))

@@ -79,7 +79,12 @@ FAMILIES["forge-floor"] = [("rail-bed", 2, 2, "rail"), ("rail-bed-curve", 4, 4, 
     ("pallet-bay", 3, 3, "palletbay"), None,
     ("trench-cover", 2, 2, "trench"), ("drain-gutter", 1, 2, "gutter"), ("floor-drain", 1, 1, "drain"),
     ("crane-runway", 1, 4, "runway"), ("cable-tray", 1, 2, "tray"), ("cable-tray-fallen", 1, 4, "trayfallen")]
-FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160}
+# The forge's wear and its b2 consoles: stains laid along the traffic (low organic blots and streaks, faded in
+# ``export.py`` as the patches are), the line pulpit's roof and the recorder console.
+FAMILIES["forge-wear"] = [("oil-stain", 2, 2, "organic"), ("oil-trail", 1, 3, "streak"),
+    ("coolant-stain", 2, 2, "organic"), ("scorch-mark", 2, 2, "organic"), ("scorch-arc", 2, 2, "organic"),
+    ("skid-marks", 2, 3, "streak"), None, ("line-pulpit", 3, 3, "linepulpit"), ("recorder-console", 1, 2, "recorder")]
+FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160, "forge-wear": 160}
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -656,6 +661,26 @@ def draw(family):
             for k in range(4):
                 d.line((x + (0.36 + 0.07 * k) * w, y + 0.1 * h, x + (0.2 + 0.2 * k) * w, y + (0.3 + 0.18 * k) * h,
                         x + (0.42 + 0.06 * k) * w, y + 0.92 * h), fill=DARK, width=12)
+        elif kind == "streak":
+            lanes = (0.5,) if w < h * 0.5 else (0.3, 0.7)
+            for lx in lanes:
+                pts = [(x + lx * w + 0.06 * w * math.sin(t / 10 * math.pi * 1.3 + lx * 7), y + 40 + t / 10 * (h - 80))
+                       for t in range(11)]
+                d.line(pts, fill=(150, 154, 160, 140), width=int(0.16 * w / len(lanes)) + 10, joint="curve")
+        elif kind == "linepulpit":
+            d.rectangle((x + 16, y + 16, x + w - 16, y + h - 70), fill=BODY, outline=EDGE, width=12)
+            for vy in (0.16, 0.36):
+                d.rectangle((x + 0.12 * w, y + vy * h, x + 0.62 * w, y + vy * h + 0.1 * h), fill=DARK)
+            d.ellipse((x + 0.74 * w, y + 0.12 * h, x + 0.86 * w, y + 0.24 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.7 * w, y + 0.36 * h, x + 0.9 * w, y + 0.62 * h), fill=EDGE)
+            d.rectangle((x + 0.08 * w, y + 0.62 * h, x + 0.62 * w, y + 0.72 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.12 * w, y + h - 70, x + 0.88 * w, y + h - 16), fill=EDGE, outline=DARK, width=6)
+        elif kind == "recorder":
+            d.rectangle((x + 14, y + 14, x + w - 14, y + h - 14), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + 34, y + 40, x + w - 34, y + 0.4 * h), fill=DARK)
+            d.ellipse((x + w / 2 - 34, y + 0.55 * h, x + w / 2 + 34, y + 0.55 * h + 68), fill=EDGE, outline=DARK,
+                      width=6)
+            d.rectangle((x + 30, y + h - 60, x + w - 30, y + h - 34), fill=LIGHT)
         elif kind == "ladle":
             d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)

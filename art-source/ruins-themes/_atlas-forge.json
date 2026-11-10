@@ -440,6 +440,112 @@
       "preserveCanvas": true,
       "padding": 0,
       "order": 32
+    },
+    "oil-stain.png": {
+      "id": "doodad.ruins-oil-stain",
+      "name": "Oil stain",
+      "description": "An old dark oil stain on the floor. Overlay, laid along the traffic.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 33
+    },
+    "oil-trail.png": {
+      "id": "doodad.ruins-oil-trail",
+      "name": "Oil trail",
+      "description": "A trail of oil drips and smears along a traffic lane, north-south.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 34
+    },
+    "coolant-stain.png": {
+      "id": "doodad.ruins-coolant-stain",
+      "name": "Coolant stain",
+      "description": "A dried coolant spill, crusted pale blue-green.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 35
+    },
+    "scorch-mark.png": {
+      "id": "doodad.ruins-scorch-mark",
+      "name": "Scorch mark",
+      "description": "A heat scorch on the floor, sooty with a burnt-steel fringe.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 36
+    },
+    "scorch-arc.png": {
+      "id": "doodad.ruins-scorch-arc",
+      "name": "Arc burn",
+      "description": "An electrical arc burn: a blast star with forked burn lines, for a blown cabinet.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 37
+    },
+    "skid-marks.png": {
+      "id": "doodad.ruins-skid-marks",
+      "name": "Skid marks",
+      "description": "Two faded skid tracks from a heavy vehicle, north-south.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 38
+    },
+    "line-pulpit.png": {
+      "id": "doodad.ruins-line-pulpit",
+      "name": "Line pulpit",
+      "description": "The line's control pulpit seen from above: its armoured roof, visor strip along its south edge. Where b2 wakes the line.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 39
+    },
+    "recorder-console.png": {
+      "id": "doodad.ruins-recorder-console",
+      "name": "Recorder console",
+      "description": "A line recorder console: dead screen at its north end, a data-core socket, an amber status bar. b2's recorder.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        1,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 40
     }
   }
 }
