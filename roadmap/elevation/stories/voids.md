@@ -577,8 +577,7 @@ Laws):
    lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
    and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
    and each wall turned to the camera is a face from its foot to the eave,
-   tinted from the building's own and lit by its side, with a window to each
-   cell on every storey. A wall turned away lies under its own roof. All faces
+   tinted from the building's own and lit by its side. A wall turned away lies under its own roof. All faces
    are drawn before all roofs. A face is built on the outline of the roof as
    drawn (its eaves stop short of each outside cell, `RoofCover.rects`), never
    on its cells, so its top is the roof's edge at any view; the first pass
@@ -589,6 +588,35 @@ Laws):
    whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
    compound view full of buildings. Look suite:
    `createSnapshots -Psnapshot=building-faces-look`.
+   **Wall styles and damage** (owner: "wall styles (windows/no
+   windows/doors) and also damage next"). Each cell's length of face shows
+   what stands under it, read from the building and its cells, never a tag
+   of its own:
+   - Homes, shops, offices and clinics have windows on every storey.
+   - Works and warehouses are blind above the ground.
+   - A door is drawn only at an outside doorway; works' and warehouses'
+     doors are loading doors.
+   - The habitat comes from the wall's surface and the world's ground.
+     Sealed (ceramic) towns get round ports and airlock doors, shielded
+     (light-concrete) walls get slits, and frozen towns get deep-set
+     insulated windows.
+
+   Damage is read live from the battle's own state:
+   - A wall's lost HP scorches its upper part, blows its windows and tears
+     holes through it.
+   - A breached cell opens dark to the room behind.
+   - Once half a building's roof has fallen in or burnt
+     (`BuildingFaces.DESTROYED_SHARE`), it drops flat to its rubble.
+     A broken first storey left standing was tried: under the 120 m eye it
+     stands only a few pixels deep at play zoom, so it was dropped.
+
+   Each segment's kind and its building's habitat are settled once per
+   topology change. Windows and doors are drawn only where a cell spans
+   10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);
+   the 280x168 compound view stays at about 0.3 ms. Look suite:
+   `createSnapshots -Psnapshot=building-damage-look` (an open and a frozen
+   crevasse town, intact, damaged and destroyed through the map damage
+   layer).
    Next: each terrace a walkable tier (elevation's terraces,
    `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
    walkways crossing the floor, heat and glow from below (lit windows, vents

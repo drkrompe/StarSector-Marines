@@ -22,9 +22,14 @@ import java.util.List;
  */
 final class RuinsLeafDoorRenderSystem implements RenderSystem {
 
-    private static final String HALL_LEAF = "graphics/doors/ship-leaf.png", CARGO_PAIR = "graphics/doors/forcible-4.png";
-    /** A hall leaf's art length and thickness in cells; a cargo leaf's art length (half its pair) and thickness. */
-    static final float HALL_ART_CELLS = 1.5f, HALL_DEPTH = .5f, CARGO_ART_CELLS = 2f, CARGO_DEPTH = .7f;
+    private static final String HALL_LEAF = "graphics/doors/ruins-leaf.png",
+            CARGO_LEAF = "graphics/doors/ruins-cargo-leaf.png", TORN_LEAF = "graphics/doors/ruins-leaf-torn.png";
+    /**
+     * A hall leaf's art length and thickness in cells, a cargo leaf's, and a torn leaf's thickness: each a single
+     * leaf at 160 px a cell ({@code art-source/ruins-themes}, the {@code doors} family).
+     */
+    static final float HALL_ART_CELLS = 1.5f, HALL_DEPTH = .55f, CARGO_ART_CELLS = 1f, CARGO_DEPTH = .7f,
+            TORN_DEPTH = .8f;
     /** How far a forced door's surviving leaf stands open in its track. */
     static final float FORCED_TRAVEL = .3f;
 
@@ -45,8 +50,10 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
         if (sprites == null || ctx.sim == null) return;
         if (builtFor != ctx.sim) build(ctx.sim);
         if (doors.isEmpty()) return;
-        ShuttleSpriteCache hall = sprites.spriteByPath(HALL_LEAF), cargo = sprites.spriteByPath(CARGO_PAIR);
+        ShuttleSpriteCache hall = sprites.spriteByPath(HALL_LEAF), cargo = sprites.spriteByPath(CARGO_LEAF);
         if (hall == null || cargo == null) return;
+        ShuttleSpriteCache torn = sprites.spriteByPath(TORN_LEAF), jamb = sprites.spriteByPath(LeafDoorArt.RUINS_JAMB);
+        ShuttleSpriteCache rubble = sprites.spriteByPath(LeafDoorArt.RUINS_RUBBLE);
         advance(ctx.sim, ctx.realDt);
         BattleCamera cam = ctx.camera;
         float margin = 4f;
@@ -59,19 +66,28 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
             RuinsDelve.LeafDoor door = doors.get(i);
             LeafDoorArt.Span span = new LeafDoorArt.Span(m.spanX(), m.spanMin(), m.spanMax(), m.across());
             ShuttleSpriteCache art = door.cargo() ? cargo : hall;
-            boolean pair = door.cargo();
+            boolean pair = false;
             float artCells = door.cargo() ? CARGO_ART_CELLS : HALL_ART_CELLS;
             float depth = door.cargo() ? CARGO_DEPTH : HALL_DEPTH;
             int perSide = door.cargo() ? 2 : 1;
             switch (door.stance()) {
-                case ANSWERS -> LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, m.leafTravel(), perSide,
-                        0, 1f, ctx.alphaMult);
+                case ANSWERS -> {
+                    LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_OPEN, ctx.alphaMult);
+                    LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, m.leafTravel(), perSide, 0, 1f,
+                            ctx.alphaMult);
+                }
                 // Its leaves stand in its end cells: each reaches one cell in from its jamb.
-                case DEAD -> LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth,
-                        1f - 1f / span.half(), perSide, 0, .7f, ctx.alphaMult);
+                case DEAD -> {
+                    LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_DEAD, ctx.alphaMult);
+                    LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, 1f - 1f / span.half(), perSide, 0,
+                            .7f, ctx.alphaMult);
+                }
                 case FORCED -> {
                     int floor = floorSide(ctx.sim, door);
-                    LeafDoorArt.torn(cam, out, art, pair, span, depth, -1, floor, ctx.alphaMult);
+                    LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_DEAD, ctx.alphaMult);
+                    LeafDoorArt.rubble(cam, out, rubble, span, -1, floor, ctx.alphaMult);
+                    LeafDoorArt.torn(cam, out, torn != null ? torn : art, pair, span,
+                            torn != null ? TORN_DEPTH : depth, -1, floor, ctx.alphaMult);
                     LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, FORCED_TRAVEL, perSide, -1, .8f,
                             ctx.alphaMult);
                 }

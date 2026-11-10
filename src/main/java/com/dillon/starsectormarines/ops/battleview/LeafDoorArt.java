@@ -74,6 +74,63 @@ final class LeafDoorArt {
                 .78f, .78f, .78f, alpha);
     }
 
+    /** The ruins' door furniture ({@code ruins-doors}): jamb, its lamp's lens in the jamb art, rubble, blast clamp. */
+    static final String RUINS_JAMB = "graphics/doors/ruins-door-jamb.png",
+            RUINS_RUBBLE = "graphics/doors/ruins-door-rubble.png",
+            RUINS_CLAMP = "graphics/doors/ruins-blast-clamp.png";
+    /** A ruins jamb's length along the door and depth through the wall, in cells (80 x 96 px at 160 a cell). */
+    static final float JAMB_CELLS = .5f, JAMB_DEPTH = .6f;
+    /** The jamb lamp's plain lens within the jamb art, px: left, top, size. Drawn again tinted to light it. */
+    private static final int LENS_X = 4, LENS_Y = 3, LENS_PX = 25;
+    /** A lamp's colours: answering or open, powered but held, locked, dead. */
+    static final float[] LAMP_OPEN = {.45f, 1f, .55f}, LAMP_READY = {1f, .72f, .25f}, LAMP_LOCKED = {1f, .3f, .25f},
+            LAMP_DEAD = {.35f, .33f, .3f};
+
+    /**
+     * A jamb at each end of the door, set into the wall just outside its span, the lamp's lens lit {@code lamp}. The
+     * high jamb is the low one turned a half.
+     */
+    static void jambs(BattleCamera cam, DrawList out, ShuttleSpriteCache jamb, Span s, float[] lamp, float alpha) {
+        if (jamb == null) return;
+        float px = cam.cellPxSize();
+        for (int side = -1; side <= 1; side += 2) {
+            float along = side < 0 ? s.min() - JAMB_CELLS * .5f : s.max() + JAMB_CELLS * .5f;
+            float angle = (s.spanX() ? 0f : 90f) + (side > 0 ? 180f : 0f);
+            float sx = screenX(cam, s, along, s.across()), sy = screenY(cam, s, along, s.across());
+            out.addSprite(RenderLayer.DOODADS, jamb.sprite, sx, sy, JAMB_CELLS * px, JAMB_DEPTH * px, angle,
+                    1f, 1f, 1f, alpha);
+            // The lens, lit: its offset from the jamb's middle in art px, turned with the jamb.
+            float scale = JAMB_CELLS * px / jamb.pxW;
+            float ox = (LENS_X + LENS_PX * .5f - jamb.pxW * .5f) * scale;
+            float oy = (jamb.pxH * .5f - LENS_Y - LENS_PX * .5f) * scale;
+            double r = Math.toRadians(angle);
+            float lx = sx + (float) (ox * Math.cos(r) - oy * Math.sin(r));
+            float ly = sy + (float) (ox * Math.sin(r) + oy * Math.cos(r));
+            out.addImageRegion(RenderLayer.DOODADS, jamb.sprite, jamb.pxW, jamb.pxH, LENS_X, LENS_Y, LENS_PX, LENS_PX,
+                    lx, ly, LENS_PX * scale, LENS_PX * scale, angle, lamp[0], lamp[1], lamp[2], alpha);
+        }
+    }
+
+    /** Rubble a cell across, on the floor where a torn leaf fell ({@link #torn}'s place for it). */
+    static void rubble(BattleCamera cam, DrawList out, ShuttleSpriteCache rubble, Span s, int tornSide, int floorSide,
+                       float alpha) {
+        if (rubble == null) return;
+        float px = cam.cellPxSize();
+        float along = tornSide < 0 ? s.min() + .5f : s.max() - .5f;
+        float across = s.across() + floorSide * .7f;
+        out.addSprite(RenderLayer.DOODADS, rubble.sprite, screenX(cam, s, along, across),
+                screenY(cam, s, along, across), px, px, s.spanX() ? 0f : 90f, 1f, 1f, 1f, alpha);
+    }
+
+    /** A blast door's seal clamp across its seam, {@code length} by {@code depth} cells. */
+    static void clamp(BattleCamera cam, DrawList out, ShuttleSpriteCache clamp, Span s, float length, float depth,
+                      float alpha) {
+        if (clamp == null) return;
+        float px = cam.cellPxSize(), seam = (s.min() + s.max()) * .5f;
+        out.addSprite(RenderLayer.DOODADS, clamp.sprite, screenX(cam, s, seam, s.across()),
+                screenY(cam, s, seam, s.across()), length * px, depth * px, s.spanX() ? 0f : 90f, 1f, 1f, 1f, alpha);
+    }
+
     private static float screenX(BattleCamera cam, Span s, float along, float across) {
         return cam.cellToScreenX(s.spanX() ? along : across);
     }
