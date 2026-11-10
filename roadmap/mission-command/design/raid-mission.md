@@ -123,7 +123,9 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   guard posts from the first tick, out of the garrison's share and never the
   mobile pool, so the machines are held when the raid lands and the garrison
   beside the works answers the alarm (owner pick `raid-works-guard` a;
-  `RaidWorksGuard`). Riflemen hold the posts while any are left; a mech does
+  `RaidWorksGuard`). A post is a guard room or one of the works' gun
+  emplacements, and a squad on an emplacement's post crews that gun (owner:
+  "Yes, we should"). Riflemen hold the posts while any are left; a mech does
   not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
   alarm. Each wave is at most three mobile squads; a bigger garrison has more

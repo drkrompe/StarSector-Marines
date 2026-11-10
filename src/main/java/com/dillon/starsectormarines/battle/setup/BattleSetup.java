@@ -1642,6 +1642,8 @@ public final class BattleSetup {
         } else if (ruinsDefence == null) {
             allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                     assaultMobileMembers);
+            // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
+            if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();

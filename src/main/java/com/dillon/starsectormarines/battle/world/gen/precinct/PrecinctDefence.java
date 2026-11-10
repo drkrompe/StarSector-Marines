@@ -120,11 +120,15 @@ public final class PrecinctDefence {
                 wallLength(own, w, h));
 
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
+        int emitted = ctx.tactical.size();
         for (DefenceDoctrine.Site site : DefenceDoctrine.plan(inside, gates, hearts, threat, wanted, fits)) {
             int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, clear, ctx.doodads,
                     ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
             if (got > 0) placed.merge(site.kind(), got, Integer::sum);
         }
+        // Each emplacement's guard post names the place it defends, as the place's rooms do, so a setup can crew a
+        // place's own guns (RaidWorksGuard).
+        for (int i = emitted; i < ctx.tactical.size(); i++) ctx.tactical.get(i).setPlace(precinct.name());
         for (Map.Entry<DefensePostKind, Integer> e : wanted.entrySet()) {
             int short_ = e.getValue() - placed.getOrDefault(e.getKey(), 0);
             if (short_ > 0) unplaced.put(e.getKey(), short_);
