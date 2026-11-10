@@ -353,11 +353,16 @@ public final class RuinsDelveStage implements GenStage {
             for (RuinsDelve.PlantHall plantHall : plantHalls) furnish(plantHall);
             // A great hall is furnished by its process alone: no loose dressing against its walls.
             List<Area> dressed = new ArrayList<>(chambers);
+            List<Area> plain = new ArrayList<>(chambers);
             for (RuinsDelve.PlantHall plantHall : plantHalls) {
+                plain.remove(plantHall.footprint());
                 if (plantHall.stage() == RuinsDelve.PlantStage.WORKS
                         || plantHall.stage() == RuinsDelve.PlantStage.FOUNDRY) dressed.remove(plantHall.footprint());
             }
+            // A plain chamber is a room of the plant, laid from its role rather than dressed loose.
+            dressed.removeAll(plain);
             dress(plan.dressing(), vault, dressed);
+            rooms(plain, plantHalls, laid, vault);
             for (RuinsDelve.PlantHall plantHall : plantHalls) zoneFloor(plantHall.footprint());
             finishMasks();
             repairPockets(landing.get(0).berth(0));
@@ -1018,12 +1023,16 @@ public final class RuinsDelveStage implements GenStage {
             if (s == null) return null;
             // Ruined inside: a corner heaped with rubble, wreckage where the room's things fell.
             boolean east = rng.nextBoolean();
-            int bx = east ? s.area.right() - 1 : s.area.left() + 1, by = s.back();
-            ground(bx, by, GroundKind.RUBBLE);
-            ground(east ? bx - 1 : bx + 1, by, GroundKind.RUBBLE);
-            ground(bx, by + s.inward(), GroundKind.RUBBLE);
-            loose(SCRAP, bx, by);
-            loose(WRECKAGE[rng.nextInt(WRECKAGE.length)], east ? s.area.left() + 1 : s.area.right() - 1, by);
+            String wreck = WRECKAGE[rng.nextInt(WRECKAGE.length)];
+            // Inside the megastructure a side room is one of the plant's stores, laid from its role later (rooms).
+            if (!insideCell(s.area.centreX(), s.area.centreY())) {
+                int bx = east ? s.area.right() - 1 : s.area.left() + 1, by = s.back();
+                ground(bx, by, GroundKind.RUBBLE);
+                ground(east ? bx - 1 : bx + 1, by, GroundKind.RUBBLE);
+                ground(bx, by + s.inward(), GroundKind.RUBBLE);
+                loose(SCRAP, bx, by);
+                loose(wreck, east ? s.area.left() + 1 : s.area.right() - 1, by);
+            }
             Cell interior = new Cell(s.area.centreX(), (s.area.bottom() + s.area.top()) / 2);
             ctx.pois.add(poi(PointOfInterest.Kind.DEPOT, s, interior));
             return new SideRoom(name, s.area, s.door, interior);
@@ -1547,6 +1556,11 @@ public final class RuinsDelveStage implements GenStage {
 
         /** Stands a prop if its footprint is open room floor, off every doorway and the kept cell, and the room stays whole. */
         boolean dressProp(DoodadDef def, int ax, int ay, int fx, int fy, Area room, Cell keepClear) {
+            return dressProp(def, ax, ay, fx, fy, room, keepClear, 0);
+        }
+
+        /** As {@link #dressProp(DoodadDef, int, int, int, int, Area, Cell)}, the prop drawn {@code turns} quarters anticlockwise. */
+        boolean dressProp(DoodadDef def, int ax, int ay, int fx, int fy, Area room, Cell keepClear, int turns) {
             for (int y = ay; y < ay + fy; y++) {
                 for (int x = ax; x < ax + fx; x++) {
                     if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
@@ -1564,7 +1578,7 @@ public final class RuinsDelveStage implements GenStage {
                 for (int y = ay; y < ay + fy; y++) for (int x = ax; x < ax + fx; x++) grid.setWalkableFloor(x, y);
                 return false;
             }
-            ctx.doodads.add(new Doodad(ax, ay, def));
+            ctx.doodads.add(new Doodad(ax, ay, def, turns));
             for (int y = ay; y < ay + fy; y++) {
                 for (int x = ax; x < ax + fx; x++) {
                     grid.setSeeThrough(x, y, true);
@@ -1808,28 +1822,7 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
             }
-            int under = ctx.doodads.size();
-            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.WEAR, WorksHallPlan.Layer.FLOOR)) {
-                for (WorksHallPlan.Piece p : laid.pieces()) {
-                    if (p.layer() != layer) continue;
-                    int before = ctx.doodads.size();
-                    tile(registry, p, x0, y0, under, hall, centre);
-                    under += ctx.doodads.size() - before;
-                }
-            }
-            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.STAND, WorksHallPlan.Layer.OVER,
-                    WorksHallPlan.Layer.OVERHEAD)) {
-                for (WorksHallPlan.Piece p : laid.pieces()) {
-                    if (p.layer() == layer) tile(registry, p, x0, y0, -1, hall, centre);
-                }
-            }
-            // Floor kit is kept clear of anything laid after.
-            for (WorksHallPlan.Piece p : laid.pieces()) {
-                if (p.layer() != WorksHallPlan.Layer.FLOOR) continue;
-                for (int y = p.y(); y < p.y() + p.h(); y++) {
-                    for (int x = p.x(); x < p.x() + p.w(); x++) kitFloor[i(x0 + x, y0 + y)] = true;
-                }
-            }
+            layPieces(registry, hall, centre, laid);
             if (cut != null) {
                 boolean whole = oneFloor(hall);
                 for (int k = 0; k < cut.length; k++) {
@@ -1848,19 +1841,99 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
+         * Lays a plan's pieces over {@code area} from its south-west corner: wear and floor kit drawn under
+         * everything, then the equipment, each piece only where the area stays one floor round {@code centre}, then
+         * the overlays and the structure overhead. Floor kit is kept clear of anything laid after.
+         */
+        void layPieces(TileRegistry registry, Area area, Cell centre, WorksHallPlan laid) {
+            int x0 = area.left(), y0 = area.bottom();
+            int under = ctx.doodads.size();
+            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.WEAR, WorksHallPlan.Layer.FLOOR)) {
+                for (WorksHallPlan.Piece p : laid.pieces()) {
+                    if (p.layer() != layer) continue;
+                    int before = ctx.doodads.size();
+                    tile(registry, p, x0, y0, under, area, centre);
+                    under += ctx.doodads.size() - before;
+                }
+            }
+            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.STAND, WorksHallPlan.Layer.OVER,
+                    WorksHallPlan.Layer.OVERHEAD)) {
+                for (WorksHallPlan.Piece p : laid.pieces()) {
+                    if (p.layer() == layer) tile(registry, p, x0, y0, -1, area, centre);
+                }
+            }
+            for (WorksHallPlan.Piece p : laid.pieces()) {
+                if (p.layer() != WorksHallPlan.Layer.FLOOR) continue;
+                for (int y = p.y(); y < p.y() + p.h(); y++) {
+                    for (int x = p.x(); x < p.x() + p.w(); x++) kitFloor[i(x0 + x, y0 + y)] = true;
+                }
+            }
+        }
+
+        /**
+         * The rooms off the plant's corridors, each laid from what it did for the process ({@link RuinsRoom},
+         * {@code ruins-expedition.md}, Every room serves the process). The interior's plain chambers take their roles
+         * by how near they lie to the works hall, the nearest its control room, and each is turned to face the hall;
+         * the side rooms inside the megastructure are the plant's stores, their back wall opposite the blast door.
+         * Drawn from coordinates alone, never from the layout's stream.
+         */
+        void rooms(List<Area> plain, List<RuinsDelve.PlantHall> plantHalls, List<Layer> layers, Vault vault) {
+            TileRegistry registry = TileRegistry.installed();
+            if (registry == null) return;
+            WorksHall works = plan.dressing().works();
+            Area anchor = RuinsRoom.anchor(plantHalls, vault.footprint());
+            int ax = anchor.centreX(), ay = anchor.centreY();
+            List<Area> ranked = RuinsRoom.ranked(plain, anchor);
+            for (int rank = 0; rank < ranked.size(); rank++) {
+                Area room = ranked.get(rank);
+                layRoom(registry, RuinsRoom.chamberRole(rank), works, room, new Cell(room.centreX(), room.centreY()),
+                        RuinsRoom.facing(ax - room.centreX(), ay - room.centreY()));
+            }
+            for (Layer layer : layers) {
+                for (SideRoom side : layer.rooms()) {
+                    Area f = side.footprint();
+                    if (!insideCell(f.centreX(), f.centreY())) continue;
+                    Area inner = new Area(f.left() + 1, f.bottom() + 1, f.right() - 1, f.top() - 1);
+                    layRoom(registry, RuinsRoom.STORE, works, inner, side.interior(),
+                            side.door().y() == f.top() ? 2 : 0);
+                }
+            }
+        }
+
+        /** One room of {@code kind} over {@code area}, its hall side turned {@code q} quarters from north. */
+        void layRoom(TileRegistry registry, RuinsRoom kind, WorksHall works, Area area, Cell keep, int q) {
+            WorksHallPlan laid = kind.laid(works, area, keep, q);
+            layPieces(registry, area, keep, laid);
+            for (int y = 0; y < laid.length(); y++) {
+                for (int x = 0; x < laid.width(); x++) {
+                    String skin = laid.skin(x, y);
+                    int gx = area.left() + x, gy = area.bottom() + y;
+                    if (skin == null || !grid.isWalkable(gx, gy) || grid.isDoorway(gx, gy)) continue;
+                    topology.setSurface(gx, gy, topology.surfaceIndex(skin));
+                }
+            }
+        }
+
+        /**
          * Lays one planned piece at the hall's corner {@code (x0, y0)}: its own art when it has shipped and fits, else
          * its stand-in, either tiled at its own size over the piece's footprint, centred. A standing piece blocks where the hall stays one floor; any
          * other is drawn, at {@code under} when that is not negative.
          */
         private void tile(TileRegistry registry, WorksHallPlan.Piece p, int x0, int y0, int under, Area hall,
                           Cell centre) {
-            // Its own art where it fits the planned footprint, else its stand-in; each tiled at its own size.
+            // Its own art where it fits the planned footprint, else its stand-in; each tiled at its own size, turned
+            // with the piece (the plan turns clockwise, a prop anticlockwise).
             DoodadDef def = null;
-            int fx = 0, fy = 0;
+            int fx = 0, fy = 0, turns = (4 - p.turns() % 4) % 4;
             for (String id : new String[]{p.id(), p.standIn()}) {
                 DoodadDef d = id == null ? null : registry.doodad(id);
                 if (d == null) continue;
                 int dx = Math.max(1, d.footprintCellsX), dy = Math.max(1, d.footprintCellsY);
+                if (turns % 2 == 1) {
+                    int t = dx;
+                    dx = dy;
+                    dy = t;
+                }
                 if (dx > p.w() || dy > p.h()) continue;
                 def = d;
                 fx = dx;
@@ -1874,10 +1947,10 @@ public final class RuinsDelveStage implements GenStage {
                 for (int tx = 0; tx < nx; tx++) {
                     int ax = ox + tx * fx, ay = oy + ty * fy;
                     switch (p.layer()) {
-                        case STAND -> dressProp(def, ax, ay, fx, fy, hall, centre);
-                        case OVER, OVERHEAD -> ctx.doodads.add(new Doodad(ax, ay, def));
+                        case STAND -> dressProp(def, ax, ay, fx, fy, hall, centre, turns);
+                        case OVER, OVERHEAD -> ctx.doodads.add(new Doodad(ax, ay, def, turns));
                         case WEAR, FLOOR -> ctx.doodads.add(Math.min(Math.max(0, under), ctx.doodads.size()),
-                                new Doodad(ax, ay, def));
+                                new Doodad(ax, ay, def, turns));
                     }
                     if (under >= 0) under++;
                 }

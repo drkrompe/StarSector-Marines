@@ -77,7 +77,7 @@ import java.util.Random;
  * is lifted out to the far west corner, so the place is no longer manned.
  * <ul>
  *   <li>{@code mech}: a Warden lance of one.</li>
- *   <li>{@code tank}: a breakthrough tank.</li>
+ *   <li>{@code tank}: an Onager.</li>
  *   <li>{@code control}: the Warden and the same click on the building with nobody in it: an ordinary move.</li>
  * </ul>
  *

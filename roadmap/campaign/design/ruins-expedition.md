@@ -726,6 +726,13 @@ hall, a wet floor under every shallow, a raised floor in the core hall's pods an
 stage. The mantle bore's shaft is a bore-shaft drop (`voids.md`): a cast collar laid round it, a cell inside the
 headframe's legs, and bedrock 30 m down.
 
+**Every room serves the process** (owner: more ruin rooms designed, each with a purpose tied to its theme's process
+and a story of what happened there). The rooms off the service corridors are laid from their role in the plant:
+the control room nearest the works hall, then workshops, labs and crew quarters, and the side rooms inside as its
+stores, each with the theme's own pieces, its spill and its collapse. The model is in `mapgen-nouns.md` (Every room
+serves the process). Look shots and plans: `createSnapshots -Psnapshot=ruins-room-look`. Picks `ruins-rooms-<kind>`
+are open, building on a (rooms laid from their role).
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,

@@ -65,6 +65,11 @@ FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "fur
               "forge-wear": ("ruins-forge-wear.raw.png", FORGE_WEAR),
               "forge-era-a": ("ruins-forge-era-a.raw.png", FORGE_ERA_A),
               "forge-era-b": ("ruins-forge-era-b.raw.png", FORGE_ERA_B)}
+# The delve's weather (``RuinsWeather``): flat decals on a sheet of their own, faded as the forge's stains are. The
+# crack network and crack run came back as thorny twigs, not cracks, and do not ship.
+WEATHER = ("fallen-ceiling", "fallen-panel", "seep-stain", "dust-tongue", "sand-tongue", "snow-tongue", "ash-tongue",
+           "sulphur-tongue", "root-mat", "root-run")
+WEATHER_RAWS = {"delve-weather": ("ruins-delve-weather.raw.png", WEATHER)}
 # The theme works halls' pieces (``ruins-theme-halls``) ship on a third sheet, ``ruins-works``: every piece is cut at
 # its exact guide frame, so a run and a wall block keep their edges flush.
 WORKS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in make_guide.FAMILIES[f] if e))
@@ -98,7 +103,7 @@ LEAF_INSET = 0.03
 # scale and the wrecked one's fallen fragments stay where they lie.
 TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
          "great-crucible", "furnace-core", *WORKS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
-         "recorder-console"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+         "recorder-console", *WEATHER}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -223,7 +228,8 @@ def grade(pid, piece):
 # Patch alpha: below FEATHER is the halo ring and goes; the rest is rescaled to at most the family's cap. Frost is
 # pale and reads as a white disc on the ruin floor unless it lets more of the floor through than growth does.
 FEATHER = 110
-CAP = {"frost": 150, "growth": 205, "oil": 225, "coolant": 215, "scorch": 225, "thrust": 200}
+CAP = {"frost": 150, "growth": 205, "oil": 225, "coolant": 215, "scorch": 225, "thrust": 200,
+       "fallen": 245, "seep": 200, "dust": 185, "sand": 215, "snow": 220, "ash": 210, "sulphur": 200, "root": 225}
 # The forge's stains were drawn translucent to their edges, so the halo cut is lower: only the faintest haze goes.
 STAIN_FEATHER = 30
 # A stain drawn fainter than the rest is stretched so its densest part reaches the cap: the thrust wash came back at
@@ -232,7 +238,7 @@ STAIN_TOP = {"thrust-wash": 140}
 
 
 def cut(family):
-    raw_name, keep = {**RAWS, **FORGE_RAWS, **WORKS_RAWS}[family]
+    raw_name, keep = {**RAWS, **FORGE_RAWS, **WORKS_RAWS, **WEATHER_RAWS}[family]
     raw = Image.open(HERE / "raw" / raw_name).convert("RGBA")
     guide = Image.open(ROOT / "art-source" / "templates" / f"ruins-{family}-guide.png")
     sx, sy = raw.width / guide.width, raw.height / guide.height
@@ -248,8 +254,8 @@ def cut(family):
             piece.putalpha(piece.getchannel("A").point(lambda v: 0 if v < 8 else v))
         if pid in RUNS:
             piece = heal_run(piece)
-        if kind in ("organic", "streak"):
-            f = STAIN_FEATHER if pid in FORGE_WEAR or pid == "thrust-wash" else FEATHER
+        if kind in ("organic", "streak") or pid in WEATHER:
+            f = STAIN_FEATHER if pid in FORGE_WEAR or pid in WEATHER or pid == "thrust-wash" else FEATHER
             top = STAIN_TOP.get(pid, 255)
             alpha = piece.getchannel("A").point(
                 lambda v, cap=CAP[pid.split("-")[0]], f=f, top=top:
@@ -306,6 +312,10 @@ def build_forge():
     build_sheet("ruins-forge", "_atlas-forge.json", FORGE_RAWS)
 
 
+def build_weather():
+    build_sheet("ruins-delve-weather", "_atlas-weather.json", WEATHER_RAWS, columns=16)
+
+
 def build_sheet(sheet, metadata, raws, columns=24):
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
@@ -333,6 +343,7 @@ def build_sheet(sheet, metadata, raws, columns=24):
 def main() -> None:
     export_doors()
     build_forge()
+    build_weather()
     build_works()
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)

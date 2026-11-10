@@ -4,7 +4,7 @@
  "turretBodyCells": 1.25,
  "frames": [
   {"role": "hull", "source": "hull-raw-b4.png", "scale": 0.73, "sourceCenter": [508, 451],
-   "note": "Live hull: the breakthrough master re-liveried (hull-raw-b, pass 4: window on the deck, sloped glacis, cool wear), edited on the master's own canvas, so the master's registration holds and the tread strips VehicleTreadRender scrolls sit on its tracks."},
+   "note": "Live hull: the retired tracked hull's master re-liveried (hull-raw-b, pass 4: window on the deck, sloped glacis, cool wear), edited on the master's own canvas, so the master's registration holds and the tread strips VehicleTreadRender scrolls sit on its tracks."},
   {"role": "turret", "source": "pd-skin-tt-raw.png",
    "note": "Live turret: the up-res vanilla PD laser in Tri-Tachyon white, graphite and cyan (skin 'tt'). Pivot at the vanilla sprite's centre."},
   {"role": "hull", "source": "hull-wreck-raw.png", "scale": 0.73, "sourceCenter": [508, 451],
