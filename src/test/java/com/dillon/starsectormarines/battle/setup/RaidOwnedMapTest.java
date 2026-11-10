@@ -88,10 +88,7 @@ class RaidOwnedMapTest {
         for (OperationTier tier : OperationTier.values()) {
             assertEquals(RaidOwnedMap.MACHINES, BattleSetup.raidMachines(tier), tier.name());
         }
-        assertThrows(IllegalArgumentException.class,
-                () -> new RaidOwnedMap.Ground(StoryMap.CORDON_LINE, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, RaidOwnedMap.SCALE, 4));
-        assertThrows(IllegalArgumentException.class,
-                () -> new RaidOwnedMap.Ground(StoryMap.RAID, SurfacePalette.ARID, ground.reference(), RaidOwnedMap.TIER, RaidOwnedMap.SCALE, 0));
+        assertThrows(IllegalArgumentException.class, () -> RaidOwnedMap.Ground.of(StoryMap.CORDON_LINE, SurfacePalette.ARID));
     }
 
     @Test

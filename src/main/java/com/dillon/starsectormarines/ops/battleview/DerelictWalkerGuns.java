@@ -21,6 +21,11 @@ final class DerelictWalkerGuns {
     static final float RING_SHARE = 0.30f;
     /** The ring a shade darker than painted, so it reads as the hull's own collar rather than a lid. */
     static final float RING_SHADE = 0.72f;
+    /**
+     * The guns weathered toward the sentinel's plate (its torso drawing averages a rust-brown, 106/92/71): the company's
+     * drawings in a derelict casing until derelict-built gun art exists. UNTUNED.
+     */
+    static final float[] WEATHER = {0.90f, 0.84f, 0.72f};
     /** How wide a chaingun is drawn: the six-barrel drawing at half width, as on a centreline mount. */
     static final float CHAINGUN_WIDTH = 0.5f;
 
@@ -57,8 +62,8 @@ final class DerelictWalkerGuns {
             if (ring != null && ring.sprite != null) {
                 float across = RING_SHARE * gunHull * ppc;
                 out.addSprite(RenderLayer.UNITS, ring.sprite, cam.cellToScreenX(pivot[0]),
-                        cam.cellToScreenY(pivot[1]), across, across, facing, RING_SHADE, RING_SHADE, RING_SHADE,
-                        alpha);
+                        cam.cellToScreenY(pivot[1]), across, across, facing, RING_SHADE * WEATHER[0],
+                        RING_SHADE * WEATHER[1], RING_SHADE * WEATHER[2], alpha);
             }
             float kick = (slot.isArm() ? (LayeredMechComposer.armKicks(gun) ? armKick : 0f) : podKick) * gunHull;
             float centre = (0.5f - MechBodyHardpoints.SEAT) * length - kick;
@@ -68,7 +73,7 @@ final class DerelictWalkerGuns {
             float lengthPx = length * ppc;
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
                     lengthPx * sprite.pxWidth / Math.max(1f, sprite.pxHeight) * widthScale, lengthPx, facing,
-                    1f, 1f, 1f, alpha);
+                    WEATHER[0], WEATHER[1], WEATHER[2], alpha);
             if (flashing(slot, gun, flags) && guns.muzzleFlash != null && guns.muzzleFlash.sprite != null) {
                 float[] tip = along(pivot, facing, (1f - MechBodyHardpoints.SEAT) * length - kick);
                 float scale = gunHull * ppc / 208f;

@@ -1,0 +1,7 @@
+Five top-down machine-part sprites for a strategy game, seen from directly above, north-up. They are armoured equipment modules bolted onto an ancient derelict industrial robot: (1) a long module with one thick tube ending at the top and a heavy armoured housing at the bottom, (2) a module with one medium tube at the top and a boxy feed housing on its side, (3) a module with a cluster of six thin parallel tubes at the top, (4) a small armoured box whose top face is a grid of round tube openings, (5) a larger armoured box whose top face is a grid of round tube openings.
+
+Fill each grey silhouette in the guide exactly: same outline, same size, same position, same orientation. Do not move, resize, rotate or add pieces. Five separate objects with clear empty space between them.
+
+Material and style: match the style reference exactly - weathered pale sage-green armour plate, heavy rust streaks and chipped paint, worn yellow hazard stripes, dark grey machinery, dense small mechanical detail, gritty painted game sprite look. Industrial, old, grounded; not cartoonish, not sleek, not modern, no glowing parts, no bright colours.
+
+True transparent background, including negative spaces. No ground, no shadow, no border, no text, no labels.
