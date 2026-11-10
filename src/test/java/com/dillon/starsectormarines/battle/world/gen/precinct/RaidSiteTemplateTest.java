@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
 import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
@@ -205,6 +207,11 @@ class RaidSiteTemplateTest {
             assertEquals(1, RaidWorksPrograms.mine(4).countOf(step), "one " + step + " in the processing chain");
         }
         assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more mills, more yard");
+        // The ore comes in from the pit at the deep end and leaves by the gate the attacker faces.
+        for (FortressBuilding b : RaidWorksPrograms.mine(4).buildings()) {
+            if (b.purpose() == RaidWorksPrograms.MINE_RECEIVING) assertEquals(Ward.REAR, b.ward(), "receiving faces the pit");
+            if (b.purpose() == RaidWorksPrograms.MINE_LOADOUT) assertEquals(Ward.FRONTAGE, b.ward(), "loadout by the gate");
+        }
     }
 
     /** Every industry a raid can name has its site, and each site's works holds one machine per machine asked for. */
