@@ -135,6 +135,10 @@ public final class RoofMesh {
     private boolean broken;
 
     private final List<Span> spans = new ArrayList<>();
+    /** Storey classes ({@link BuildingFaces#HEIGHTS}): each one's first slot and its count of slots. */
+    private static final int CLASSES = BuildingFaces.HEIGHTS.length;
+    private final int[] classFirst = new int[CLASSES];
+    private final int[] classSlots = new int[CLASSES];
     /** The first of the slots each cell holds, or {@code -1}; sized to the grid. */
     private int[] slotOfCell;
     /** The building each slot-holding cell is roofed by, by its first slot over {@link #SLOTS}. */
@@ -283,7 +287,7 @@ public final class RoofMesh {
      * everything per-quad — a building's tint and its fade — because those are
      * exactly what differs between one roof and the next.
      */
-    public void draw(BattleCamera camera) {
+    public void draw(BattleCamera camera, float[] lifts) {
         if (broken || used == 0 || posVbo == 0 || camera == null || sheet == null) return;
         GlStateBracket bracket = GlStateBracket.textured2D();
         try {
@@ -292,10 +296,8 @@ public final class RoofMesh {
             // attrib bracket carries the mode back instead.
             glPushAttrib(GL_TRANSFORM_BIT);
             glMatrixMode(GL_MODELVIEW);
-            glPushMatrix();
-            glTranslatef(camera.cellToScreenX(0f), camera.cellToScreenY(0f), 0f);
+            float viewX = camera.cellToScreenX(camera.panCellX()), viewY = camera.cellToScreenY(camera.panCellY());
             float cell = camera.cellPxSize();
-            glScalef(cell, cell, 1f);
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             try {
                 glEnableClientState(GL_VERTEX_ARRAY);
@@ -309,14 +311,25 @@ public final class RoofMesh {
                 glTexCoordPointer(2, GL_FLOAT, 0, 0L);
                 glBindBuffer(GL_ARRAY_BUFFER, colVbo);
                 glColorPointer(4, GL_FLOAT, 0, 0L);
-                glDrawArrays(GL_QUADS, 0, used * 4);
+                // Each storey class lifted about the view's centre: the stood-up roofs (BuildingFaces).
+                for (int c = 0; c < CLASSES; c++) {
+                    if (classSlots[c] == 0) continue;
+                    float lift = lifts == null ? 1f : lifts[c];
+                    glPushMatrix();
+                    glTranslatef(viewX, viewY, 0f);
+                    glScalef(lift, lift, 1f);
+                    glTranslatef(-viewX, -viewY, 0f);
+                    glTranslatef(camera.cellToScreenX(0f), camera.cellToScreenY(0f), 0f);
+                    glScalef(cell, cell, 1f);
+                    glDrawArrays(GL_QUADS, classFirst[c] * 4, classSlots[c] * 4);
+                    glPopMatrix();
+                }
                 // Back to the client-array default the rest of the drain runs
                 // under. The attrib bracket does not cover the buffer binding.
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
             } finally {
                 glPopClientAttrib();
             }
-            glPopMatrix();
             glPopAttrib();
         } catch (RuntimeException failure) {
             broken = true;
@@ -374,18 +387,17 @@ public final class RoofMesh {
         buildingOfCell = new Building[total];
         used = total * SLOTS;
 
+        // Baked by storey class, lowest first, so each class is one run its lift is drawn at (BuildingFaces).
         int slot = 0;
-        int index = 0;
-        for (Building b : buildings.all()) {
-            int[] own = cellsOf.get(index++);
-            spans.add(new Span(b, slot, own.length * SLOTS));
-            for (int at : own) {
-                slotOfCell[at] = slot;
-                buildingOfCell[slot / SLOTS] = b;
-                for (int k = 0; k < SLOTS; k++) writeTint(slot + k, b);
-                resolveInto(slot, at % gridW, at / gridW, resolver);
-                slot += SLOTS;
+        for (int heightClass = 0; heightClass < CLASSES; heightClass++) {
+            classFirst[heightClass] = slot;
+            int index = 0;
+            for (Building b : buildings.all()) {
+                int[] own = cellsOf.get(index++);
+                if (BuildingFaces.heightClass(b.cellsX.length) != heightClass) continue;
+                slot = bakeBuilding(b, own, slot, resolver);
             }
+            classSlots[heightClass] = slot - classFirst[heightClass];
         }
         lastResolvedCells = total;
         caughtUpTo = topology.changeCount();
@@ -394,6 +406,19 @@ public final class RoofMesh {
         colourFrom = 0;
         colourTo = used;
         wholeUpload = true;
+    }
+
+    /** One building's cells into its run of slots from {@code slot}; returns the slot after it. */
+    private int bakeBuilding(Building b, int[] own, int slot, RoofResolver resolver) {
+        spans.add(new Span(b, slot, own.length * SLOTS));
+        for (int at : own) {
+            slotOfCell[at] = slot;
+            buildingOfCell[slot / SLOTS] = b;
+            for (int k = 0; k < SLOTS; k++) writeTint(slot + k, b);
+            resolveInto(slot, at % gridW, at / gridW, resolver);
+            slot += SLOTS;
+        }
+        return slot;
     }
 
     /**

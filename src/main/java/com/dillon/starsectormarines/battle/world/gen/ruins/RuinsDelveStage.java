@@ -34,9 +34,11 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Lays a ruins site's delve over the dead settlement ({@code mapgen-nouns.md}, Ruins ground): the cleared landing ground at the
@@ -72,6 +74,8 @@ public final class RuinsDelveStage implements GenStage {
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
+    /** Cells across a side room's door: a sealed store's blast door. */
+    static final int STORE_DOOR = 3;
     static final int HALL_WIDTH = 11, HALL_HEIGHT = 8;
     static final int COURT_WIDTH = 17, COURT_HEIGHT = 11;
     /** Rows between the centres of two ways through one layer. */
@@ -319,8 +323,13 @@ public final class RuinsDelveStage implements GenStage {
             Way shortWay = null;
             for (Way way : last.ways) if (way.kind() == WayKind.COLLAPSE) shortWay = way;
             Collapse collapse = new Collapse(RuinsDelve.COLLAPSE, layers - 1, shortWay);
+            List<RuinsDelve.LeafDoor> leafDoors = leafDoors(plantHalls, entrances);
+            // The vault's outer door: a hall door across its three cells, kept powered so the haul's way stays whole.
+            Cell outer = vault.door();
+            leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
+                    false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls);
+                    entrances, aprons, chambers, plantHalls, leafDoors);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }
@@ -413,6 +422,80 @@ public final class RuinsDelveStage implements GenStage {
             return Math.floorMod(hash, 3) == 0;
         }
 
+        // ---- leaf doors ----------------------------------------------------------------------
+
+        /**
+         * A sliding leaf door in every plant hall's join and a cargo door in every way in from open ground
+         * ({@code ruins-expedition.md}, The ruins' doors are leaf doors). A join is a run of open cells, two to eight
+         * long, through the ring of hull round a hall. Each door's stance is drawn by coordinate hash: a third stand
+         * dead part-open, one in six was forced long ago, the rest still answer. A dead door's leaves stand in its
+         * end cells, which are shut so the way narrows to the cells between; only a hall door of three cells or more
+         * can die so. A cargo door stands in a way in, which stays open its whole width, so it never dies.
+         */
+        List<RuinsDelve.LeafDoor> leafDoors(List<RuinsDelve.PlantHall> halls, List<Area> entrances) {
+            List<RuinsDelve.LeafDoor> out = new ArrayList<>();
+            Set<Long> seen = new HashSet<>();
+            for (RuinsDelve.PlantHall hall : halls) {
+                Area f = hall.footprint();
+                joins(out, seen, true, f.left(), f.right(), f.bottom() - 1);
+                joins(out, seen, true, f.left(), f.right(), f.top() + 1);
+                joins(out, seen, false, f.bottom(), f.top(), f.left() - 1);
+                joins(out, seen, false, f.bottom(), f.top(), f.right() + 1);
+            }
+            for (Area way : entrances) {
+                boolean alongX = way.width() > way.height();
+                Area span = alongX ? new Area(way.left(), way.bottom(), way.right(), way.bottom())
+                        : new Area(way.left(), way.bottom(), way.left(), way.top());
+                if (seen.add(key(span))) out.add(stance(span, alongX, true));
+            }
+            return out;
+        }
+
+        private void joins(List<RuinsDelve.LeafDoor> out, Set<Long> seen, boolean alongX, int from, int to,
+                           int line) {
+            int run = -1;
+            for (int a = from; a <= to + 1; a++) {
+                int x = alongX ? a : line, y = alongX ? line : a;
+                boolean gap = a <= to && grid.inBounds(x, y) && grid.isWalkable(x, y) && !topology.isWall(x, y);
+                if (gap && run < 0) run = a;
+                if (!gap && run >= 0) {
+                    int n = a - run;
+                    if (n >= 2 && n <= 8) {
+                        Area span = alongX ? new Area(run, line, a - 1, line) : new Area(line, run, line, a - 1);
+                        if (seen.add(key(span))) out.add(stance(span, alongX, false));
+                    }
+                    run = -1;
+                }
+            }
+        }
+
+        private static long key(Area a) {
+            return ((long) a.left() << 48) ^ ((long) a.bottom() << 32) ^ ((long) a.right() << 16) ^ a.top();
+        }
+
+        /** The door's stance by hash; a dead one's end cells are shut where its leaves stand. */
+        private RuinsDelve.LeafDoor stance(Area span, boolean alongX, boolean cargo) {
+            int roll = hash(span.left(), span.bottom(), 0xD0A) % 6;
+            int length = alongX ? span.width() : span.height();
+            // A way in from open ground stays open its whole width (the delve's law), so a cargo door never dies shut.
+            RuinsDelve.DoorStance stance = roll < 2 && !cargo && length >= 3 ? RuinsDelve.DoorStance.DEAD
+                    : roll == 2 ? RuinsDelve.DoorStance.FORCED : RuinsDelve.DoorStance.ANSWERS;
+            if (stance == RuinsDelve.DoorStance.DEAD) {
+                leaf(span.left(), span.bottom());
+                leaf(span.right(), span.top());
+            }
+            return new RuinsDelve.LeafDoor(span, alongX, cargo, stance);
+        }
+
+        /** A dead leaf standing in a door's end cell: shut to passage and sight, never taken for a wall. */
+        private void leaf(int x, int y) {
+            removeProps(x, y);
+            grid.setWalkable(x, y, false);
+            grid.setSeeThrough(x, y, false);
+            topology.setFixture(x, y, true);
+            kept[i(x, y)] = true;
+        }
+
         // ---- vault ---------------------------------------------------------------------------
 
         Vault vault(int cy) {
@@ -423,8 +506,11 @@ public final class RuinsDelveStage implements GenStage {
             shell(x0, y0, x1, y1, VAULT_WALL, VAULT_FLOOR, BuildingKind.FORTIFIED);
             int partition = x0 + 4;
             for (int y = y0 + 1; y < y1; y++) wall(partition, y, VAULT_WALL, BuildingKind.FORTIFIED);
-            door(x0, cy);
-            door(partition, cy);
+            // Both doors are three cells across, as wide as the aisle the cradles leave: blast doors, not hatches.
+            for (int d = -1; d <= 1; d++) {
+                door(x0, cy + d);
+                door(partition, cy + d);
+            }
             // The breach is held on the aisle, before the cradle the prize survives in at its far end.
             Cell source = new Cell(x1 - CRADLE - 2, cy);
             dressVault(x0, y0, x1, y1, partition, cy);
@@ -765,8 +851,9 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         SideRoom room(String name, Area region) {
+            // A side room may be sealed as a store, behind a three-cell blast door, so every one is cut that wide.
             Shell s = shellIn(region, ROOM_WIDTH, ROOM_HEIGHT, RUIN_WALLS[rng.nextInt(RUIN_WALLS.length)],
-                    RUIN_FLOORS[rng.nextInt(RUIN_FLOORS.length)], BuildingKind.INDUSTRIAL);
+                    RUIN_FLOORS[rng.nextInt(RUIN_FLOORS.length)], BuildingKind.INDUSTRIAL, STORE_DOOR);
             if (s == null) return null;
             // Ruined inside: a corner heaped with rubble, wreckage where the room's things fell.
             boolean east = rng.nextBoolean();
@@ -795,6 +882,11 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         Shell shellIn(Area region, int width, int height, String wall, String floor, BuildingKind kind) {
+            return shellIn(region, width, height, wall, floor, kind, 1);
+        }
+
+        /** A stamped one-room shell whose door is {@code doorWidth} cells across, centred on its wall. */
+        Shell shellIn(Area region, int width, int height, String wall, String floor, BuildingKind kind, int doorWidth) {
             int[] at = spot(region, width, height, 2);
             if (at == null) return null;
             if (insideCell(at[0], at[1])) {
@@ -808,7 +900,7 @@ public final class RuinsDelveStage implements GenStage {
             shell(area.left(), area.bottom(), area.right(), area.top(), wall, floor, kind);
             boolean doorHigh = area.centreY() < h / 2;
             int dy = doorHigh ? area.top() : area.bottom();
-            door(area.centreX(), dy);
+            for (int d = -(doorWidth / 2); d <= doorWidth / 2; d++) door(area.centreX() + d, dy);
             return new Shell(area, new Cell(area.centreX(), dy), new Cell(area.centreX(), dy + (doorHigh ? 1 : -1)), doorHigh);
         }
 

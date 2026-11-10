@@ -863,7 +863,12 @@ Every move is kept only where the network stays in as few pieces as before,
 and no street is moved onto ground growth was kept off (the layout's held
 ground, sealed ground). It draws no random number. What is laid later
 (cantonment avenues and gate roads, gates, layout roads, welds, pad
-approaches) is laid onto the planned streets. `-Dbattle.mapgen.streetPlan=false`
+approaches) is laid onto the planned streets. A road leaving a walled place
+meets them square (`StreetPlan.meet`): straight out of its gate onto the
+centre line of the nearest street across its way, as a tee, or a cross where
+a street leaves the far side on its line, never an offset tee within ten
+cells of another; where none qualifies the place keeps its own road. Inside a
+walled place's claim the streets are the place's own. `-Dbattle.mapgen.streetPlan=false`
 is the control.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
@@ -1320,8 +1325,10 @@ small a motor pool and airfield). Its claim is a square kept whole on the map
 and slid the least it takes off ground a place before it holds (a Raid site's
 works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
-**road in** laid straight from its middle to the town's nearest road
-(`CantonmentRoads`), and no weld between road networks is cut back across it.
+**road in** laid on its middle line, from the patrol lane inside the gate to the
+town's nearest road (`CantonmentRoads`); it ends at the gate, and the streets
+inside are the cantonment's own. No weld between road networks is cut back
+across it.
 The **main gate** is where that road comes in, the widest road in; the avenue
 runs from the gate side's middle, with a forecourt street inside the wall where
 the road enters off that line. A base has more than one way in and out (owner:
