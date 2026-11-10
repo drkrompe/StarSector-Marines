@@ -34,6 +34,16 @@ class FactionTest {
     }
 
     @Test
+    void aHazardFightsEveryFightingSideButNeverACivilian() {
+        for (Faction side : new Faction[]{Faction.MARINE, Faction.ALLY, Faction.DEFENDER}) {
+            assertTrue(Faction.HAZARD.hostileTo(side), "hazard against " + side);
+            assertTrue(side.hostileTo(Faction.HAZARD), side + " against hazard");
+            assertFalse(Faction.HAZARD.friendlyTo(side));
+        }
+        assertFalse(Faction.HAZARD.hostileTo(Faction.CIVILIAN));
+    }
+
+    @Test
     void theCompanyAndItsAlliesDoNotFightEachOther() {
         assertFalse(Faction.MARINE.hostileTo(Faction.ALLY));
         assertFalse(Faction.ALLY.hostileTo(Faction.MARINE));
