@@ -78,6 +78,15 @@ public final class RuinsDelveStage implements GenStage {
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
     static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
+    /**
+     * The mega forge's great crucible ({@code ruins-forge} sheet): its id, its melt's, its footprint, and the row above
+     * its bottom where the spout on its east edge pours onto the line.
+     */
+    static final String GREAT_CRUCIBLE = "doodad.ruins-great-crucible",
+            GREAT_CRUCIBLE_MELT = "doodad.ruins-great-crucible-melt";
+    static final int GREAT_CRUCIBLE_WIDE = 12, GREAT_CRUCIBLE_LONG = 16, GREAT_CRUCIBLE_SPOUT = 8;
+    /** A forge works' prize as it waits in the vault's cradle: the great crucible's control core, cut free on its skid. */
+    static final String FURNACE_CORE = "doodad.ruins-furnace-core";
     /** Cells across a side room's door: a sealed store's blast door. */
     static final int STORE_DOOR = 3;
     static final int HALL_WIDTH = 11, HALL_HEIGHT = 8;
@@ -632,6 +641,10 @@ public final class RuinsDelveStage implements GenStage {
             TileRegistry registry = TileRegistry.installed();
             int under = ctx.doodads.size();
             String product = plan.dressing().whole();
+            // A forge works' prize is the great crucible's control core on its skid, where the registry has it.
+            if (plan.dressing().foundry() && registry != null && registry.doodad(FURNACE_CORE) != null) {
+                product = FURNACE_CORE;
+            }
             DoodadDef def = registry == null || product == null ? null : registry.doodad(product);
             if (def == null) prop(HAUL, px + 1, cy);
             else {
@@ -1727,10 +1740,16 @@ public final class RuinsDelveStage implements GenStage {
         void megaForge(TileRegistry registry, Area hall, Cell centre) {
             int cx = hall.centreX(), top = hall.top(), bottom = hall.bottom();
             boolean[] melt = new boolean[w * h];
-            // The great crucible's bath at the head.
-            meltBox(melt, hall, centre, cx - 4, top - 9, cx + 3, top - 2);
+            // The great crucible at the head, west of the line: its spout, flush with its east edge, pours onto the
+            // line's head. Without its art (or room for it) the head is an open bath.
+            int gx = cx - 1 - GREAT_CRUCIBLE_WIDE, gy = top - 1 - GREAT_CRUCIBLE_LONG;
+            boolean great = piece(registry, GREAT_CRUCIBLE, gx, gy, GREAT_CRUCIBLE_WIDE, GREAT_CRUCIBLE_LONG, hall,
+                    centre);
+            if (great) over(registry, GREAT_CRUCIBLE_MELT, gx, gy);
+            else meltBox(melt, hall, centre, cx - 4, top - 9, cx + 3, top - 2);
+            int lineHead = great ? gy + GREAT_CRUCIBLE_SPOUT : top - 10;
             // The pour line down the middle, a crossing every twelve rows.
-            for (int y = bottom + 6; y <= top - 10; y++) {
+            for (int y = bottom + 6; y <= lineHead; y++) {
                 if (Math.floorMod(top - 16 - y, 12) <= 1) continue;
                 meltBox(melt, hall, centre, cx - 1, y, cx, y);
             }
@@ -1739,7 +1758,8 @@ public final class RuinsDelveStage implements GenStage {
             }
             // Production lines: a channel each way to a mould grid over its bed, a cooling rack beyond.
             int line = 0;
-            for (int y0 = top - 20; y0 - 6 > bottom + 6; y0 -= 16, line++) {
+            // The first line leaves a two-row aisle under the great crucible, so no pocket of floor is shut in.
+            for (int y0 = great ? gy - 5 : top - 20; y0 - 6 > bottom + 6; y0 -= 16, line++) {
                 meltBox(melt, hall, centre, cx - 6, y0, cx - 2, y0 + 1);
                 meltBox(melt, hall, centre, cx - 14, y0 - 2, cx - 7, y0 + 2);
                 over(registry, "doodad.ruins-mould-grid", cx - 14, y0 - 2);
@@ -1753,18 +1773,30 @@ public final class RuinsDelveStage implements GenStage {
                     over(registry, "doodad.ruins-crucible-tipped-spill", cx + 2, y0 + 3);
                 }
             }
-            // The head: ladles waiting either side of the bath, charge racks east, the slag pit west, the pulpit.
-            for (int side = -1; side <= 1; side += 2) {
-                int lx = side < 0 ? cx - 8 : cx + 5;
-                if (piece(registry, "doodad.ruins-crucible", lx, top - 6, 3, 3, hall, centre)) {
-                    over(registry, "doodad.ruins-crucible-melt", lx, top - 6);
+            // The head, east of the line: ladles waiting by the spout, the charge racks feeding the crucible, the
+            // pour pulpit watching the spout; the slag pit beyond the line. With no great crucible, a ladle each side
+            // of the bath.
+            if (great) {
+                if (piece(registry, "doodad.ruins-crucible", cx + 3, top - 6, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-melt", cx + 3, top - 6);
                 }
+                if (piece(registry, "doodad.ruins-crucible", cx + 3, gy + 1, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-melt", cx + 3, gy + 1);
+                }
+                piece(registry, "doodad.ruins-pour-pulpit", cx + 3, lineHead - 1, 2, 2, hall, centre);
+            } else {
+                for (int side = -1; side <= 1; side += 2) {
+                    int lx = side < 0 ? cx - 8 : cx + 5;
+                    if (piece(registry, "doodad.ruins-crucible", lx, top - 6, 3, 3, hall, centre)) {
+                        over(registry, "doodad.ruins-crucible-melt", lx, top - 6);
+                    }
+                }
+                piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
             }
             piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 14, top - 4, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 12, top - 6, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 15, top - 7, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx + 13, top - 7, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx + 15, top - 9, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
         }
