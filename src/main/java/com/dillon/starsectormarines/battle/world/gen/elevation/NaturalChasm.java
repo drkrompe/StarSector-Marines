@@ -34,8 +34,11 @@ public final class NaturalChasm {
     static final int MIN_PIECE = 60, MIN_CELLS = 300;
     /** The largest pocket of open ground the drop may swallow rather than strand. */
     static final int MAX_POCKET = 40;
-    /** How far its line wanders either side, as a share of the side it crosses. */
+    /** How far its line wanders either side, as a share of the side it crosses, and at most, in cells. */
     static final float WANDER = .09f;
+    public static final int MAX_WANDER = 14;
+    /** The farthest any cut of it reaches off its line: its wander, its widest swell, and a crossing's strip past it. */
+    public static final int REACH = MAX_WANDER + (int) Math.ceil(HALF_WIDTH + SWELL + 1.5f);
 
     /** Cells along its line a deck looks for the drop on either side of it. */
     static final int DECK_REACH = 6;
@@ -109,7 +112,7 @@ public final class NaturalChasm {
         int length = along ? w : h, span = along ? h : w;
         float phase = (seed & 0xff) / 40f, phase2 = ((seed >> 8) & 0xff) / 40f;
         int crossOffset = Math.floorMod(seed >> 4, CROSS_EVERY);
-        float mid = across * span, wander = WANDER * span;
+        float mid = across * span, wander = Math.min(WANDER * span, MAX_WANDER);
         float[] centres = new float[length], halves = new float[length];
         // Where a route's line meets the drop's: a crossing's width centred on it.
         boolean[] routed = new boolean[length];

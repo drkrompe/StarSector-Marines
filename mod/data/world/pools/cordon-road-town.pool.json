@@ -1,38 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "map": "cordon-road-town",
-  "biomes": {
-    "VERDANT": [ {"seed": 2, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"} ],
-    "ARID": [ {"seed": 8, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"} ],
-    "ROCK": [ {"seed": 2, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"} ],
-    "FROZEN": [ {"seed": 2, "note": "rear south; redoubt guns 3-3-3-3; every redoubt on the crest; replaces seed 8, which the main street district moved off its carrier route"} ],
-    "IRRADIATED": [ {"seed": 2, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"} ],
-    "TOXIC": [ {"seed": 2, "note": "rear south; redoubt guns 6-7-6-6"} ]
-  },
-  "candidates": {
-    "VERDANT": [
-      {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"},
-      {"seed": 8, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
-    ],
-    "ARID": [
-      {"seed": 2, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"},
-      {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
-    ],
-    "ROCK": [
-      {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"},
-      {"seed": 8, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
-    ],
-    "FROZEN": [
-      {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"},
-      {"seed": 10, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
-    ],
-    "IRRADIATED": [
-      {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"},
-      {"seed": 8, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
-    ],
-    "TOXIC": [
-      {"seed": 7, "note": "rear south; redoubt guns 7-7-6-7"},
-      {"seed": 8, "note": "rear south; redoubt guns 7-7-6-6"}
-    ]
+  "home": "ARID",
+  "entry": {
+    "seed": 8,
+    "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
   }
 }

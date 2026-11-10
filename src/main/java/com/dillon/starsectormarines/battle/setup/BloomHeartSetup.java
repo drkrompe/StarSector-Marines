@@ -52,6 +52,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -172,7 +173,8 @@ public final class BloomHeartSetup {
 
     /** As {@link #country(Form, SurfacePalette, StoryMapPool.Entry)}, from the pool of a density. */
     public static Built country(Form form, SurfacePalette biome, Density density, StoryMapPool.Entry entry) {
-        Built built = build(form, biome, density, entry.seed(), entry.patch());
+        Built built = build(form, biome, StoryMapPools.pool(storyMap(form, density)).layoutFor(biome), density,
+                entry.seed(), entry.patch());
         if (built == null) {
             throw new IllegalStateException(storyMap(form, density).id + " " + biome + " seed " + entry.seed()
                     + " does not seat its bores");
@@ -269,15 +271,25 @@ public final class BloomHeartSetup {
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
     private static Built build(Form form, SurfacePalette biome, Density density, long battleSeed, MapPatch patch) {
-        TargetProfile profile = world(biome).withBasin(Basin.ravBloom(biome, BASIN_REACH_X, BASIN_REACH_Y));
+        return build(form, biome, biome, density, battleSeed, patch);
+    }
+
+    /**
+     * The country laid out on {@code layout}'s palette and skinned for a world of {@code biome}
+     * ({@link PlanetSkin}): a pooled map is laid out on its home whatever world it is fought on.
+     */
+    private static Built build(Form form, SurfacePalette biome, SurfacePalette layout, Density density,
+                               long battleSeed, MapPatch patch) {
+        TargetProfile profile = world(layout).withBasin(Basin.ravBloom(layout, BASIN_REACH_X, BASIN_REACH_Y));
         PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, density, battleSeed));
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
+        map = PlanetSkin.apply(map, layout, world(biome));
         HeartBores heart = bores(form, map, plan, battleSeed);
         if (heart == null) return null;
         map = originDamage(patch.ruined(map, battleSeed), plan, heart, battleSeed);
         BattleSimulation sim = BattleSetup.buildMap(map, Collections.emptyList(),
                 Collections.emptyList(), battleSeed).sim();
-        sim.setSurface(profile.surface());
+        sim.setSurface(biome);
         heart.open(sim);
         sim.matureCreep();
         return new Built(sim, map, plan, heart, battleSeed);

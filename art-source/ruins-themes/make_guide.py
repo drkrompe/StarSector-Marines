@@ -48,6 +48,39 @@ FAMILIES["foundry-a"] = [("crucible", 3, 3, "crucible"), ("crucible-tipped", 3, 
 FAMILIES["foundry-tip"] = [("crucible-tipped", 3, 3, "crucibletip")]
 FAMILIES["foundry-b"] = [("mould-grid", 8, 5, "mould"), None, ("grate-catwalk", 2, 2, "catwalk")]
 
+# The ruins' leaf doors (``ruins-doors``, ``LeafDoorArt``): each leaf runs along x, its jamb end left and its meeting
+# end right, seen straight down; sizes in cells, along x by across. Shipped at 160 px a cell like the ship's leaves, so
+# drawn here at twice that.
+FAMILIES["doors"] = [("ruins-leaf", 1.5, 0.55, "leaf"), ("ruins-leaf-sealed", 1.5, 0.55, "leafsealed"),
+                     ("ruins-cargo-leaf", 1.0, 0.7, "cargoleaf"), ("ruins-blast-leaf", 1.5, 0.9, "blastleaf"), None,
+                     ("ruins-leaf-torn", 1.5, 0.8, "leaftorn"), ("ruins-blast-clamp", 0.9, 0.95, "clamp"),
+                     ("ruins-door-jamb", 0.5, 0.6, "jamb"), ("ruins-door-rubble", 1.0, 1.0, "rubble")]
+# The mega forge hall's head (``ruins-themed-environments``, pick b1): the great crucible, 12x16, its pour spout on
+# the east edge onto the pour line and its control core (the prize) housed on its west flank; and that core cut free
+# on its skid, 3x3. Drawn at a smaller guide scale so the great crucible's guide stays a size ImageGen takes whole.
+FAMILIES["forge-mega"] = [("great-crucible", 12, 16, "greatcrucible"), ("furnace-core", 3, 3, "furnacecore")]
+# The mega forge hall's pour line (``ruins-themed-environments``, art wanted): the tapping furnace, the ladle on its
+# crane hook upright and tipped mid-pour (the melt in each split off as an overlay), the ore car on its rail and
+# derailed, cooling racks, the fettling bench and inspection table, the line's pour head and mould master, and a crane
+# girder fallen to the floor.
+FAMILIES["forge-line"] = [("tapping-furnace", 6, 7, "furnace"), ("ladle-hook", 3, 3, "ladle-up"),
+                          ("ladle-hook-tipped", 3, 3, "ladle-tip"), ("ore-car", 2, 3, "orecar"),
+                          ("ore-car-derailed", 2, 3, "orecar-off"), None,
+                          ("cooling-rack", 2, 4, "coolrack"), ("cooling-rack-castings", 2, 4, "coolrack-full"),
+                          ("fettling-bench", 2, 2, "bench"), ("inspection-table", 2, 2, "table"),
+                          ("pour-head", 2, 2, "pourhead"), ("mould-master", 2, 2, "mouldmaster"), None,
+                          ("fallen-girder", 7, 1, "girder")]
+# The forge floor: the hall's movers and runs. Runs (rail bed, trench cover, drain gutter, crane runway, cable tray)
+# run north-south and fill their frame edge to edge, with a pattern whose period divides the frame's length, so
+# ``export.py`` heals each into a seamless repeat along its run. The curve meets the straight bed's cross-section at
+# its south and east edges (rails at 0.3 and 0.7 of the bed's width).
+FAMILIES["forge-floor"] = [("rail-bed", 2, 2, "rail"), ("rail-bed-curve", 4, 4, "railcurve"),
+    ("rail-buffer", 2, 2, "railbuffer"), ("slag-car", 2, 3, "slagcar"), ("slag-car-tipped", 3, 3, "slagtip"),
+    ("pallet-bay", 3, 3, "palletbay"), None,
+    ("trench-cover", 2, 2, "trench"), ("drain-gutter", 1, 2, "gutter"), ("floor-drain", 1, 1, "drain"),
+    ("crane-runway", 1, 4, "runway"), ("cable-tray", 1, 2, "tray"), ("cable-tray-fallen", 1, 4, "trayfallen")]
+FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160}
+
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
                      ("products-d", (("catalyst-bed", "catalyst"), ("spool-drum", "spool"))),
@@ -70,9 +103,11 @@ def frames(family):
             x, y, row_h = GUTTER, y + row_h + GUTTER, 0
             continue
         pid, cw, ch, kind = entry
-        out.append((pid, x, y, cw * CELL, ch * CELL, kind))
-        x += cw * CELL + GUTTER
-        row_h = max(row_h, ch * CELL)
+        cell = FAMILY_CELL.get(family, CELL)
+        w, h = round(cw * cell), round(ch * cell)
+        out.append((pid, x, y, w, h, kind))
+        x += w + GUTTER
+        row_h = max(row_h, h)
     return out
 
 
@@ -367,6 +402,260 @@ def draw(family):
                 bd.rectangle((tx - 55, y0 + D, tx + 55, y0 + D + 90), fill=LIGHT, outline=EDGE, width=8)
             im.alpha_composite(body.rotate(-24, center=(x0 + L, y0 + D / 2), resample=Image.BICUBIC), (x, y))
             d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind in ("leaf", "leafsealed", "cargoleaf", "blastleaf"):
+            ribs = {"leaf": 3, "leafsealed": 3, "cargoleaf": 2, "blastleaf": 4}[kind]
+            d.rectangle((x, y, x + w - 1, y + h - 1), fill=BODY, outline=EDGE, width=14)
+            for k in range(1, ribs + 1):
+                rx = x + k * (w * 0.85) / (ribs + 1)
+                d.rectangle((rx - 9, y + 14, rx + 9, y + h - 14), fill=EDGE)
+            d.rectangle((x + w * 0.85, y, x + w - 1, y + h - 1), fill=LIGHT, outline=EDGE, width=8)
+            if kind == "blastleaf":
+                for by in (y + h * 0.3, y + h * 0.7):
+                    d.rectangle((x + w * 0.55, by - 16, x + w * 0.97, by + 16), fill=DARK)
+                for k in range(8):
+                    d.ellipse((x + 30 + k * w * 0.1 - 7, y + 22 - 7, x + 30 + k * w * 0.1 + 7, y + 22 + 7), fill=EDGE)
+                    d.ellipse((x + 30 + k * w * 0.1 - 7, y + h - 22 - 7, x + 30 + k * w * 0.1 + 7, y + h - 22 + 7),
+                              fill=EDGE)
+        elif kind == "leaftorn":
+            leaf = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            ld = ImageDraw.Draw(leaf)
+            ld.polygon([(w * 0.03, h * 0.30), (w * 0.52, h * 0.20), (w * 0.97, h * 0.34), (w * 0.95, h * 0.80),
+                        (w * 0.50, h * 0.72), (w * 0.05, h * 0.84)], fill=BODY, outline=EDGE)
+            for k in range(1, 6):
+                rx = w * k / 6
+                ld.ellipse((rx - 14, h * 0.83 - 14, rx + 14, h * 0.83 + 14), fill=LIGHT, outline=EDGE)
+            ld.rectangle((w * 0.82, h * 0.26, w * 0.95, h * 0.76), fill=LIGHT)
+            im.alpha_composite(leaf, (x, y))
+        elif kind == "clamp":
+            d.rectangle((x, y + h * 0.35, x + w - 1, y + h * 0.65), fill=EDGE)
+            d.rectangle((x + w * 0.22, y, x + w * 0.78, y + h - 1), fill=BODY, outline=EDGE, width=10)
+            d.ellipse((x + w / 2 - 26, y + h * 0.18 - 26, x + w / 2 + 26, y + h * 0.18 + 26), fill=LIGHT)
+        elif kind == "jamb":
+            d.rectangle((x, y, x + w - 1, y + h - 1), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + w * 0.45, y + 20, x + w * 0.8, y + h - 20), fill=DARK)
+            d.ellipse((x + 18, y + 18, x + 58, y + 58), fill=LIGHT, outline=EDGE)
+        elif kind == "rubble":
+            for k in range(26):
+                cx, cy = x + rng.uniform(40, w - 40), y + rng.uniform(40, h - 40)
+                r = rng.uniform(8, 34)
+                d.polygon([(cx + r * math.cos(a), cy + r * math.sin(a) * 0.8) for a in
+                           (rng.uniform(0, 6.28) for _ in range(6))], fill=(DARK, EDGE, BODY)[k % 3])
+            d.rectangle((x + 20, y + h / 2 - 12, x + w - 20, y + h / 2 + 12), fill=EDGE)
+        elif kind == "greatcrucible":
+            c = FAMILY_CELL["forge-mega"]
+            cx, cy, r = x + 6.6 * c, y + 8 * c, 4.6 * c
+            d.rectangle((x + 1.2 * c, y + 0.3 * c, x + w - 0.6 * c, y + h - 0.3 * c), fill=EDGE)
+            for ty in (cy - r - 1.2 * c, cy + r - 0.1 * c):
+                d.rectangle((cx - 1.6 * c, ty, cx + 1.6 * c, ty + 1.3 * c), fill=LIGHT, outline=DARK, width=8)
+            d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=BODY, outline=DARK, width=12)
+            d.polygon([(cx + r - 0.6 * c, cy - 0.9 * c), (x + w, cy - 0.6 * c), (x + w, cy + 0.6 * c),
+                       (cx + r - 0.6 * c, cy + 0.9 * c)], fill=BODY, outline=DARK)
+            d.rectangle((cx + r, cy - 0.3 * c, x + w, cy + 0.3 * c), fill=MELT)
+            d.rectangle((x + 0.2 * c, cy - 1.6 * c, x + 2.4 * c, cy + 1.6 * c), fill=LIGHT, outline=DARK, width=10)
+            d.ellipse((x + 0.6 * c, cy - 0.9 * c, x + 2.0 * c, cy + 0.9 * c), fill=DARK)
+            for k in range(3):
+                d.line((x + 2.4 * c, cy - 0.8 * c + k * 0.8 * c, cx - r + 0.3 * c, cy - 0.8 * c + k * 0.8 * c),
+                       fill=DARK, width=14)
+            d.polygon([(cx + rr * math.cos(a), cy + rr * math.sin(a)) for rr, a in
+                       ((3.5 * c, k * math.pi / 60) for k in range(120))], fill=MELT)
+        elif kind == "furnacecore":
+            d.rectangle((x + 30, y + 30, x + w - 30, y + h - 30), fill=EDGE)
+            for sx in (x + 30, x + w - 70):
+                d.rectangle((sx, y + 30, sx + 40, y + h - 30), fill=DARK)
+            cx, cy, r = x + w / 2, y + h / 2, w * 0.32
+            d.polygon([(cx + r * math.cos(a), cy + r * math.sin(a)) for a in
+                       (k * math.pi / 4 + math.pi / 8 for k in range(8))], fill=BODY, outline=DARK, width=10)
+            for k in range(8):
+                a = k * math.pi / 4
+                d.line((cx + 0.45 * r * math.cos(a), cy + 0.45 * r * math.sin(a), cx + 0.95 * r * math.cos(a),
+                        cy + 0.95 * r * math.sin(a)), fill=EDGE, width=12)
+            d.ellipse((cx - 0.4 * r, cy - 0.4 * r, cx + 0.4 * r, cy + 0.4 * r), fill=LIGHT, outline=DARK, width=8)
+            for lx, ly in ((x + 50, y + 50), (x + w - 50, y + 50), (x + 50, y + h - 50), (x + w - 50, y + h - 50)):
+                d.ellipse((lx - 16, ly - 16, lx + 16, ly + 16), fill=LIGHT)
+        elif kind == "furnace":
+            c = FAMILY_CELL["forge-line"]
+            d.rectangle((x + 0.2 * c, y + 0.2 * c, x + w - 0.2 * c, y + h - 1.6 * c), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + 1.4 * c, y + 0.9 * c, x + w - 1.4 * c, y + 4.3 * c), fill=DARK, outline=EDGE, width=12)
+            for k in range(6):
+                d.rectangle((x + 0.4 * c + k * 0.9 * c, y + 0.3 * c, x + 0.7 * c + k * 0.9 * c, y + 0.6 * c), fill=LIGHT)
+            d.polygon([(x + w / 2 - 0.6 * c, y + h - 1.6 * c), (x + w / 2 + 0.6 * c, y + h - 1.6 * c),
+                       (x + w / 2 + 0.4 * c, y + h), (x + w / 2 - 0.4 * c, y + h)], fill=BODY, outline=EDGE)
+            d.rectangle((x + w / 2 - 0.2 * c, y + h - 1.9 * c, x + w / 2 + 0.2 * c, y + h), fill=MELT)
+            d.ellipse((x + w / 2 - 0.35 * c, y + 4.3 * c, x + w / 2 + 0.35 * c, y + 5.0 * c), fill=MELT)
+        elif kind in ("ladle-up", "ladle-tip"):
+            cx, cy = x + w / 2, y + h / 2
+            d.line((x + 0.1 * w, cy, x + 0.9 * w, cy), fill=EDGE, width=26)
+            for sx in (x + 0.1 * w, x + 0.9 * w - 40):
+                d.rectangle((sx, cy - 40, sx + 40, cy + 40), fill=LIGHT, outline=EDGE)
+            if kind == "ladle-up":
+                d.ellipse((cx - 0.33 * w, cy - 0.33 * w, cx + 0.33 * w, cy + 0.33 * w), fill=BODY, outline=EDGE, width=12)
+                d.ellipse((cx - 0.24 * w, cy - 0.24 * w, cx + 0.24 * w, cy + 0.24 * w), fill=MELT)
+            else:
+                d.ellipse((cx - 0.36 * w, cy - 0.28 * w, cx + 0.24 * w, cy + 0.28 * w), fill=BODY, outline=EDGE, width=12)
+                d.ellipse((cx - 0.26 * w, cy - 0.18 * w, cx + 0.12 * w, cy + 0.18 * w), fill=DARK)
+                d.polygon([(cx + 0.18 * w, cy - 0.08 * w), (cx + 0.46 * w, cy - 0.05 * w), (cx + 0.48 * w, cy + 0.05 * w),
+                           (cx + 0.18 * w, cy + 0.08 * w)], fill=MELT)
+            d.rectangle((cx - 30, cy - 0.45 * h, cx + 30, cy - 0.33 * w), fill=EDGE)
+        elif kind in ("orecar", "orecar-off"):
+            car = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            cd = ImageDraw.Draw(car)
+            m = 0.08 if kind == "orecar-off" else 0
+            cd.rectangle((w * (0.12 + m), h * (0.08 + m), w * (0.88 - m), h * (0.92 - m)), fill=BODY, outline=EDGE,
+                         width=12)
+            cd.rectangle((w * (0.22 + m), h * (0.16 + m), w * (0.78 - m), h * (0.84 - m)), fill=DARK)
+            for wy in (h * (0.2 + m), h * (0.8 - m)):
+                for wx in (w * (0.04 + m), w * (0.84 - m)):
+                    cd.rectangle((wx, wy - 26, wx + 0.12 * w, wy + 26), fill=EDGE)
+            if kind == "orecar-off":
+                car = car.rotate(-16, resample=Image.BICUBIC)
+                for k in range(5):
+                    d.ellipse((x + w * (0.55 + 0.08 * k), y + h * (0.86 + 0.02 * (k % 2)) - 16,
+                               x + w * (0.55 + 0.08 * k) + 32, y + h * (0.86 + 0.02 * (k % 2)) + 16), fill=EDGE)
+            im.alpha_composite(car, (x, y))
+        elif kind in ("coolrack", "coolrack-full"):
+            d.rectangle((x + 16, y + 16, x + w - 16, y + h - 16), outline=EDGE, width=22)
+            for k in range(1, 6):
+                yy = y + k * h / 6
+                d.rectangle((x + 16, yy - 8, x + w - 16, yy + 8), fill=EDGE)
+            if kind == "coolrack-full":
+                for k in (0, 1, 3, 4):
+                    yy = y + k * h / 6 + h / 12
+                    d.rectangle((x + 50, yy - 4, x + w - 50, yy + h / 6 - 30), fill=BODY, outline=EDGE)
+        elif kind in ("bench", "table"):
+            d.rectangle((x + 20, y + 40, x + w - 20, y + h - 40), fill=BODY, outline=EDGE, width=12)
+            if kind == "bench":
+                d.ellipse((x + 50, y + 80, x + 150, y + 180), fill=LIGHT, outline=EDGE)
+                d.rectangle((x + 170, y + 90, x + w - 50, y + 150), fill=DARK)
+            else:
+                d.rectangle((x + 60, y + 80, x + w - 60, y + h - 80), fill=LIGHT, outline=EDGE)
+                d.rectangle((x + w - 110, y + 50, x + w - 50, y + 110), fill=DARK)
+        elif kind == "pourhead":
+            d.ellipse((x + 24, y + 24, x + w - 24, y + h - 24), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + w / 2 - 50, y + h / 2 - 50, x + w / 2 + 50, y + h / 2 + 50), fill=DARK)
+            for k in range(4):
+                a = k * math.pi / 2 + math.pi / 4
+                d.rectangle((x + w / 2 + 110 * math.cos(a) - 22, y + h / 2 + 110 * math.sin(a) - 22,
+                             x + w / 2 + 110 * math.cos(a) + 22, y + h / 2 + 110 * math.sin(a) + 22), fill=LIGHT)
+        elif kind == "mouldmaster":
+            d.rectangle((x + 20, y + 20, x + w - 20, y + h - 20), fill=BODY, outline=EDGE, width=12)
+            for gx in range(2):
+                for gy in range(2):
+                    d.rectangle((x + 60 + gx * 110, y + 60 + gy * 110, x + 150 + gx * 110, y + 150 + gy * 110),
+                                fill=LIGHT, outline=EDGE)
+        elif kind == "girder":
+            d.polygon([(x + 10, y + 30), (x + w - 10, y + 50), (x + w - 14, y + h - 30), (x + 14, y + h - 50)],
+                      fill=BODY, outline=EDGE)
+            for k in range(1, 14):
+                gx = x + k * w / 14
+                d.line((gx - 40, y + 40, gx + 40, y + h - 40), fill=EDGE, width=10)
+        elif kind == "rail":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 0.035 * h, x + 0.88 * w, sy + 0.035 * h), fill=EDGE)
+            for rx in (0.3, 0.7):
+                d.rectangle((x + rx * w - 10, y, x + rx * w + 10, y + h), fill=LIGHT)
+        elif kind == "railcurve":
+            c = FAMILY_CELL["forge-floor"]
+            ox, oy = x + w, y + h
+            d.pieslice((ox - 4 * c, oy - 4 * c, ox + 4 * c, oy + 4 * c), 180, 270, fill=BODY)
+            d.pieslice((ox - 2 * c, oy - 2 * c, ox + 2 * c, oy + 2 * c), 180, 270, fill=(0, 0, 0, 0))
+            for k in range(13):
+                a = math.radians(180 + (k + 0.5) * 90 / 13)
+                d.line((ox + 2.24 * c * math.cos(a), oy + 2.24 * c * math.sin(a), ox + 3.76 * c * math.cos(a),
+                        oy + 3.76 * c * math.sin(a)), fill=EDGE, width=22)
+            for r in (2.6, 3.4):
+                d.arc((ox - r * c, oy - r * c, ox + r * c, oy + r * c), 180, 270, fill=LIGHT, width=20)
+        elif kind == "railbuffer":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            for k in range(4, 8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 0.035 * h, x + 0.88 * w, sy + 0.035 * h), fill=EDGE)
+            for rx in (0.3, 0.7):
+                d.rectangle((x + rx * w - 10, y + 0.3 * h, x + rx * w + 10, y + h), fill=LIGHT)
+            d.rectangle((x + 0.1 * w, y + 0.12 * h, x + 0.9 * w, y + 0.36 * h), fill=EDGE, outline=DARK, width=8)
+            for rx in (0.3, 0.7):
+                d.ellipse((x + rx * w - 26, y + 0.33 * h, x + rx * w + 26, y + 0.33 * h + 52), fill=LIGHT,
+                          outline=DARK, width=6)
+        elif kind == "slagcar":
+            d.rectangle((x + 0.14 * w, y + 0.06 * h, x + 0.86 * w, y + 0.94 * h), fill=EDGE, outline=DARK, width=10)
+            for wy in (0.16, 0.84):
+                for wx in (0.04, 0.84):
+                    d.rectangle((x + wx * w, y + wy * h - 22, x + (wx + 0.12) * w, y + wy * h + 22), fill=DARK)
+            d.ellipse((x + 0.06 * w, y + 0.5 * h - 0.44 * w, x + 0.94 * w, y + 0.5 * h + 0.44 * w), fill=BODY,
+                      outline=EDGE, width=12)
+            d.ellipse((x + 0.2 * w, y + 0.5 * h - 0.3 * w, x + 0.8 * w, y + 0.5 * h + 0.3 * w), fill=DARK)
+            d.ellipse((x + 0.38 * w, y + 0.5 * h - 0.1 * w, x + 0.6 * w, y + 0.5 * h + 0.1 * w), fill=MELT)
+        elif kind == "slagtip":
+            car = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            cd = ImageDraw.Draw(car)
+            cd.rectangle((0.12 * w, 0.18 * h, 0.52 * w, 0.82 * h), fill=EDGE, outline=DARK, width=10)
+            for wy in (0.26, 0.74):
+                for wx in (0.06, 0.48):
+                    cd.rectangle((wx * w, wy * h - 18, (wx + 0.08) * w, wy * h + 18), fill=DARK)
+            car = car.rotate(9, resample=Image.BICUBIC)
+            im.alpha_composite(car, (x, y))
+            d.polygon([(x + 0.5 * w, y + 0.36 * h), (x + 0.72 * w, y + 0.3 * h), (x + w - 6, y + 0.4 * h),
+                       (x + w - 6, y + 0.66 * h), (x + 0.74 * w, y + 0.7 * h), (x + 0.52 * w, y + 0.62 * h)],
+                      fill=MELT)
+            d.ellipse((x + 0.3 * w, y + 0.26 * h, x + 0.66 * w, y + 0.74 * h), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + 0.38 * w, y + 0.36 * h, x + 0.62 * w, y + 0.64 * h), fill=DARK)
+        elif kind == "palletbay":
+            paint, t, ln = (196, 170, 70, 255), 16, 0.22 * w
+            for cx_, cy_, sx_, sy_ in ((x + 20, y + 20, 1, 1), (x + w - 20, y + 20, -1, 1),
+                                       (x + 20, y + h - 20, 1, -1), (x + w - 20, y + h - 20, -1, -1)):
+                d.rectangle((min(cx_, cx_ + sx_ * ln), min(cy_, cy_ + sy_ * t), max(cx_, cx_ + sx_ * ln),
+                             max(cy_, cy_ + sy_ * t)), fill=paint)
+                d.rectangle((min(cx_, cx_ + sx_ * t), min(cy_, cy_ + sy_ * ln), max(cx_, cx_ + sx_ * t),
+                             max(cy_, cy_ + sy_ * ln)), fill=paint)
+            d.rectangle((x + 0.38 * w, y + 0.8 * h, x + 0.62 * w, y + 0.9 * h), fill=paint)
+        elif kind == "trench":
+            d.rectangle((x, y, x + w, y + h), fill=EDGE)
+            for rx in (0, 0.9 * w):
+                d.rectangle((x + rx, y, x + rx + 0.1 * w, y + h), fill=DARK)
+            for k in range(4):
+                d.rectangle((x + 0.12 * w, y + k * h / 4 + 6, x + 0.88 * w, y + (k + 1) * h / 4 - 6), fill=BODY,
+                            outline=EDGE, width=6)
+        elif kind == "gutter":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            d.rectangle((x + 0.28 * w, y, x + 0.72 * w, y + h), fill=DARK)
+            for k in range(16):
+                sy = y + (k + 0.5) * h / 16
+                d.rectangle((x + 0.3 * w, sy - 4, x + 0.7 * w, sy + 4), fill=EDGE)
+        elif kind == "drain":
+            d.rectangle((x + 12, y + 12, x + w - 12, y + h - 12), fill=EDGE, outline=DARK, width=8)
+            d.rectangle((x + 34, y + 34, x + w - 34, y + h - 34), fill=DARK)
+            for k in range(1, 7):
+                d.line((x + 34 + k * (w - 68) / 7, y + 34, x + 34 + k * (w - 68) / 7, y + h - 34), fill=EDGE,
+                       width=6)
+        elif kind == "runway":
+            d.rectangle((x + 0.22 * w, y, x + 0.78 * w, y + h), fill=BODY)
+            d.rectangle((x + 0.44 * w, y, x + 0.56 * w, y + h), fill=LIGHT)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.22 * w, sy - 8, x + 0.78 * w, sy + 8), fill=EDGE)
+            d.rectangle((x + 0.06 * w, y + 0.44 * h, x + 0.94 * w, y + 0.56 * h), fill=EDGE, outline=DARK, width=6)
+        elif kind == "tray":
+            for rx in (0.12, 0.8):
+                d.rectangle((x + rx * w, y, x + (rx + 0.08) * w, y + h), fill=LIGHT)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 5, x + 0.88 * w, sy + 5), fill=EDGE)
+            for k in range(5):
+                d.rectangle((x + (0.24 + 0.11 * k) * w, y, x + (0.31 + 0.11 * k) * w, y + h), fill=DARK)
+        elif kind == "trayfallen":
+            tray = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            td = ImageDraw.Draw(tray)
+            for rx in (0.3, 0.62):
+                td.rectangle((rx * w, 0.06 * h, (rx + 0.08) * w, 0.94 * h), fill=LIGHT)
+            for k in range(12):
+                sy = (0.08 + k * 0.074) * h
+                td.rectangle((0.3 * w, sy - 4, 0.7 * w, sy + 4), fill=EDGE)
+            tray = tray.rotate(-7, resample=Image.BICUBIC)
+            im.alpha_composite(tray, (x, y))
+            for k in range(4):
+                d.line((x + (0.36 + 0.07 * k) * w, y + 0.1 * h, x + (0.2 + 0.2 * k) * w, y + (0.3 + 0.18 * k) * h,
+                        x + (0.42 + 0.06 * k) * w, y + 0.92 * h), fill=DARK, width=12)
         elif kind == "ladle":
             d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)

@@ -1,0 +1,22 @@
+Asset: a sheet of separate top-down tactical-game props for the pour line of a vast abandoned Domain-era nanoforge foundry hall, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent.
+Style: match reference 2 (the same foundry's great crucible and its crucibles: same steel, rivets, hoops, worn hazard trim, the same melt) and references 3-4 for material: crisp painterly-pixel game sprite, blue-gray and gunmetal armour plate, dark recessed seams, bolted edges, small amber lamps, restrained hazard trim, soft upper-left object-local light. Heavy, grounded, industrial, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective, never a look into an opening at an angle. Light from the upper left, object-local.
+Melt: every orange area is molten metal: deep orange to dull red glowing through cracks in a dark crust, never yellow-white, never a flat bright ribbon. Keep the melt exactly inside the orange areas and nowhere else.
+Background: true transparent background with clean alpha; no floor, base tile, cast shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. tapping-furnace (6x7): a massive tapping furnace seen from above: its armoured refractory body with a ring of charging ports along its top edge, the big round dark furnace roof (a domed lid of refractory segments, cold and soot-black), the taphole at its lower edge glowing, and a spout trough running from it straight down to the bottom edge, the orange melt running in the trough, flush with the bottom edge.
+2. ladle-hook (3x3): a heavy pouring ladle hanging from an overhead crane hook, seen from above: the thick bail crossbar with its two trunnion lugs, the round ladle bowl full of melt, the hook block and cables at its top.
+3. ladle-hook-tipped (3x3): the same ladle on its hook tipped mid-pour: the bowl tilted, its interior dark, a stream of melt pouring from its lip to the right.
+4. ore-car (2x3): a squat armoured ore charge car on rail wheels, its open hopper heaped with dark ore and scrap, wheel trucks at its four corners.
+5. ore-car-derailed (2x3): the same car jumped off its rail, slewed askew, a little of its load spilled beside it.
+Middle row left to right:
+6. cooling-rack (2x4): a tall steel cooling rack seen from above, an open frame of rails and crossbars, empty.
+7. cooling-rack-castings (2x4): the same rack with dull grey forged castings left on four of its shelves.
+8. fettling-bench (2x2): a fettling bench: a heavy steel workbench with a grinding wheel, a vice and scattered tools, grinding dust.
+9. inspection-table (2x2): an inspection table: a steel table with a pale gauge plate surface and a scanner head housing in one corner.
+10. pour-head (2x2): the line's pour head module: a round armoured nozzle unit with a dark central nozzle and four mounting clamps, heat-blued.
+11. mould-master (2x2): the mould master module: a square precision block with four inset master pattern faces, machined bright edges.
+Bottom row:
+12. fallen-girder (7x1): an overhead crane girder fallen to the floor, lying across it: a long riveted steel box girder with lattice bracing, buckled and twisted toward one end, its rail on top.

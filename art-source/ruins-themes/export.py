@@ -47,11 +47,35 @@ RAWS = {
                                                      for s in ("whole", "half", "wrecked"))),
 }
 
+# The mega forge hall's head ships on a sheet of its own (``ruins-forge``): the great crucible alone is 12x16 cells.
+FORGE_LINE = ("tapping-furnace", "ladle-hook", "ladle-hook-tipped", "ore-car", "ore-car-derailed", "cooling-rack",
+              "cooling-rack-castings", "fettling-bench", "inspection-table", "pour-head", "mould-master",
+              "fallen-girder")
+FORGE_FLOOR = ("rail-bed", "rail-bed-curve", "rail-buffer", "slag-car", "slag-car-tipped", "pallet-bay",
+               "trench-cover", "drain-gutter", "floor-drain", "crane-runway", "cable-tray", "cable-tray-fallen")
+FORGE_RAWS = {"forge-mega": ("ruins-forge-mega.raw.png", ("great-crucible", "furnace-core")),
+              "forge-line": ("ruins-forge-line.raw.png", FORGE_LINE),
+              "forge-floor": ("ruins-forge-floor.raw.png", FORGE_FLOOR)}
+# The forge floor's runs, laid end to end north-south: each is healed into a seamless repeat along its length as the
+# foundry textures are (``art-source/voids/foundry/derive.py``): a band at each end blended with the piece rolled by
+# half its length. Their guides repeat with a period that divides the length, so the rolled copy meets in step.
+RUNS = ("rail-bed", "trench-cover", "drain-gutter", "crane-runway", "cable-tray")
+RUN_BAND = .08
+
+# The ruins' leaf doors ship as single images beside the ship's (``graphics/doors/``), at the leaves' 160 px a cell,
+# for ``LeafDoorArt``. A leaf must be solid to its ends, since the game cuts it from its meeting end: it is cut a
+# little inside its guide frame, past any rounded corner ImageGen drew, and stretched back to its exact size.
+DOORS_RAW = "ruins-doors.raw.png"
+DOOR_PX = 160
+DOOR_LEAVES = {"ruins-leaf", "ruins-leaf-sealed", "ruins-cargo-leaf", "ruins-blast-leaf"}
+LEAF_INSET = 0.03
+
 # Pieces cut at their exact guide frame instead of half a gutter wider: the dock door bled into the gutter beside
 # the racks, so a wider rack cut picks up its edge.
 # Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
 # scale and the wrecked one's fallen fragments stay where they lie.
-TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
+         "great-crucible", "furnace-core", *FORGE_LINE, *FORGE_FLOOR}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -75,7 +99,10 @@ def cut_plant_line():
 # Crucibles whose melt ships as its own overlay on the same footprint, so the engine can pulse it: the guide's MELT
 # pixels, carried to the raw's scale and feathered a little, go to the overlay and the rest to the body; the two
 # alphas sum to the piece's own, so laid together they are the piece as drawn.
-MELT_SPLIT = {"crucible": "crucible-melt", "crucible-tipped": "crucible-tipped-spill"}
+MELT_SPLIT = {"crucible": "crucible-melt", "crucible-tipped": "crucible-tipped-spill",
+              "great-crucible": "great-crucible-melt", "tapping-furnace": "tapping-furnace-melt",
+              "ladle-hook": "ladle-hook-melt", "ladle-hook-tipped": "ladle-hook-tipped-pour",
+              "slag-car": "slag-car-melt", "slag-car-tipped": "slag-car-tipped-spill"}
 MELT_FEATHER = 2.5
 
 
@@ -95,8 +122,21 @@ def split_melt(piece, guide_frame):
 #   down to a worn ochre, kept as a mark but no longer a band of colour;
 # - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
 #   the engine's pulse rides from dull orange to orange rather than from yellow to white.
-MUTE_HAZARD = ("spool-drum", "drone-frame")
+# - the forge line came back with the same bright trim, and its melt as bright as the crucible's was.
+MUTE_HAZARD = ("spool-drum", "drone-frame", *FORGE_LINE, *FORGE_FLOOR)
+GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "ladle-hook-melt",
+              "ladle-hook-tipped-pour", "slag-car-melt", "slag-car-tipped-spill")
 MELT_GRADE = (0.80, 0.62, 0.50)
+
+
+def heal_run(piece):
+    a = np.asarray(piece.convert("RGBA")).astype(np.float32)
+    h = a.shape[0]
+    t = np.arange(h, dtype=np.float32) / (h - 1)
+    e = np.clip(np.minimum(t, 1 - t) / RUN_BAND, 0, 1)
+    keep = (e * e * (3 - 2 * e))[:, None, None]
+    a = a * keep + np.roll(a, h // 2, axis=0) * (1 - keep)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), "RGBA")
 
 
 def mute_hazard(piece):
@@ -121,10 +161,10 @@ def grade_melt(piece):
 
 
 def grade(pid, piece):
+    if pid in GRADE_MELT:
+        return grade_melt(piece)
     if pid.startswith(MUTE_HAZARD):
         return mute_hazard(piece)
-    if pid == "crucible-melt":
-        return grade_melt(piece)
     return piece
 
 
@@ -135,7 +175,7 @@ CAP = {"frost": 150, "growth": 205}
 
 
 def cut(family):
-    raw_name, keep = RAWS[family]
+    raw_name, keep = {**RAWS, **FORGE_RAWS}[family]
     raw = Image.open(HERE / "raw" / raw_name).convert("RGBA")
     guide = Image.open(ROOT / "art-source" / "templates" / f"ruins-{family}-guide.png")
     sx, sy = raw.width / guide.width, raw.height / guide.height
@@ -146,6 +186,8 @@ def cut(family):
         m = 0 if pid in TIGHT else half
         box = (round((x - m) * sx), round((y - m) * sy), round((x + w + m) * sx), round((y + h + m) * sy))
         piece = raw.crop(box)
+        if pid in RUNS:
+            piece = heal_run(piece)
         if kind == "organic":
             alpha = piece.getchannel("A").point(
                 lambda v, cap=CAP[pid.split("-")[0]]: 0 if v < FEATHER else round((v - FEATHER) * cap / (255 - FEATHER)))
@@ -158,7 +200,51 @@ def cut(family):
         yield pid, piece
 
 
+def export_doors():
+    raw = Image.open(HERE / "raw" / DOORS_RAW).convert("RGBA")
+    guide = Image.open(ROOT / "art-source" / "templates" / "ruins-doors-guide.png")
+    sx, sy = raw.width / guide.width, raw.height / guide.height
+    cell = make_guide.FAMILY_CELL["doors"]
+    out = ROOT / "mod" / "graphics" / "doors"
+    for pid, x, y, w, h, kind in make_guide.frames("doors"):
+        i = LEAF_INSET if pid in DOOR_LEAVES else 0
+        box = (round((x + w * i) * sx), round((y + h * i) * sy), round((x + w * (1 - i)) * sx),
+               round((y + h * (1 - i)) * sy))
+        size = (round(w / cell * DOOR_PX), round(h / cell * DOOR_PX))
+        piece = raw.crop(box).resize(size, Image.LANCZOS)
+        if pid in DOOR_LEAVES:
+            piece.putalpha(255)
+        piece.save(out / f"{pid}.png", optimize=True)
+        print("door", pid, size)
+
+
+def build_forge():
+    with tempfile.TemporaryDirectory() as scratch:
+        staged = Path(scratch)
+        for family in FORGE_RAWS:
+            for pid, piece in cut(family):
+                grade(pid, piece).save(staged / f"{pid}.png")
+        image, manifest, count = build_atlas(BuildOptions(
+            input_dir=staged,
+            output_image=ROOT / "mod" / "graphics" / "doodads" / "ruins-forge.png",
+            output_manifest=ROOT / "mod" / "data" / "tilesets" / "ruins-forge.tileset.json",
+            sheet_path="graphics/doodads/ruins-forge.png",
+            metadata_path=HERE / "_atlas-forge.json",
+            columns=24,
+            cell_size=CELL_PX,
+            padding=4,
+            id_prefix="doodad.",
+            resample="lanczos",
+            alpha_threshold=1,
+            allow_opaque=False,
+            only_prefix=None,
+        ))
+    print(f"Packed {count} forge assets")
+
+
 def main() -> None:
+    export_doors()
+    build_forge()
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
         for family in RAWS:

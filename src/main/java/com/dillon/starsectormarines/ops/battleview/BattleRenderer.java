@@ -283,6 +283,7 @@ public class BattleRenderer {
     /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
     private final CliffArtLayer cliffArt = new CliffArtLayer();
     private final ScorchLayer scorch = new ScorchLayer();
+    private final LavaFlowLayer lavaFlows = new LavaFlowLayer();
     private final FireRenderSystem fire;
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
@@ -353,6 +354,8 @@ public class BattleRenderer {
         units.useLights(groundLights);
         nightLighting.useLights(groundLights);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
+        // One shader for every shield; each host's shields drawn in its own layer, over it (ShieldDomeRenderSystem).
+        ShieldDomeRenderSystem shields = new ShieldDomeRenderSystem();
         this.worldSystems = List.of(
                 // The ground far below a map's void cells, under the tiles that cover it everywhere else.
                 voidBackdrop,
@@ -360,7 +363,7 @@ public class BattleRenderer {
                 naturalVoid,
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // A volcanic world's ash drifts and glowing cracks, vents and embers, over its basalt tiles.
-                new VolcanicGroundRenderSystem(sprites),
+                new VolcanicGroundRenderSystem(sprites, lavaFlows),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
                 eachDrop(drops, NaturalVoidRenderSystem::fray),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
@@ -409,6 +412,8 @@ public class BattleRenderer {
                 new LockedDoorRenderSystem(sprites),
                 // The ruins' hall and cargo doors, sliding leaf doors as a ship's are.
                 new RuinsLeafDoorRenderSystem(sprites),
+                // A walled place's gates, a pair of leaves that part for whoever comes through.
+                new WallGateRenderSystem(sprites),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,
@@ -444,7 +449,7 @@ public class BattleRenderer {
                 new SquadRunMarkerRenderSystem(),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
-                new ShieldDomeRenderSystem(),
+                shields,
                 new TenderSiteRenderSystem(),
                 // With the other threat marks: spines breaking out, and the spores a colony lifts.
                 colonyThreat.over(),
@@ -469,6 +474,8 @@ public class BattleRenderer {
                                 .noneMatch(item -> item.id().startsWith("territory-")))
                             compoundMarkers.collect(ctx.sim, ctx.sim.getCompoundService(), ctx.camera, out, ctx.alphaMult); }),
                 new ConvoyRenderSystem(sprites),
+                // A hull's shield stands over the hull it protects, as a boat's over her.
+                shields.hullShields(),
                 // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
                 RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->
                         out.addCustom(RenderLayer.CONVOY, () -> {
@@ -478,6 +485,7 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 aircraft,
+                shields.boatShields(),
                 new ShipLightingRenderSystem(),
                 // Dead air over the shade: it hangs in front of the deck rather than being darkened with it.
                 RenderSystem.of(RenderLayer.DECK_LIGHTING, dressing::collectHaze),
@@ -768,6 +776,7 @@ public class BattleRenderer {
         creep.dispose();
         cliffArt.dispose();
         scorch.dispose();
+        lavaFlows.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
         pagedRun.dispose();

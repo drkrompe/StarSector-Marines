@@ -111,6 +111,16 @@ public interface PrecinctClaim {
      * (a storm bank's ridges and the run in to them), or {@code null} for none.
      */
     static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held) {
+        return byKind(precincts, held, null);
+    }
+
+    /**
+     * {@link #byKind(List, boolean[][])}, with every programmed place's pooled claim also kept off {@code drop}: the
+     * ground a designed drop is held on ({@code Landform.Drop}), so a walled place stands back from the drop's line
+     * and the drop runs past it rather than stopping at its wall. A road crossing the line still stands as a bridge.
+     * {@code null} for none.
+     */
+    static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop) {
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];
             for (int[] column : claim) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
@@ -185,7 +195,7 @@ public interface PrecinctClaim {
                 taken[i]++;
                 pooling.add(new long[]{0L, x, y});
             }
-            expand(pooling, claim, taken, budget, width, height, shape);
+            expand(pooling, claim, taken, budget, width, height, shape, drop);
 
             PriorityQueue<long[]> fronting = frontier();
             for (int i = 0; i < precincts.size(); i++) {
@@ -201,7 +211,7 @@ public interface PrecinctClaim {
                     }
                 }
             }
-            expand(fronting, claim, taken, budget, width, height, shape);
+            expand(fronting, claim, taken, budget, width, height, shape, null);
             return claim;
         };
     }
@@ -274,7 +284,7 @@ public interface PrecinctClaim {
      */
     private static void expand(PriorityQueue<long[]> queue, int[][] claim,
                                int[] taken, int[] budget, int width, int height,
-                               PatchField[] shape) {
+                               PatchField[] shape, boolean[][] off) {
         List<int[]> steps = List.of(new int[]{1, 0}, new int[]{-1, 0},
                 new int[]{0, 1}, new int[]{0, -1});
         while (!queue.isEmpty()) {
@@ -288,6 +298,7 @@ public interface PrecinctClaim {
                 int ny = y + step[1];
                 if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
                 if (claim[nx][ny] != GrownTrunkPlan.UNOWNED) continue;
+                if (off != null && off[nx][ny]) continue;
                 claim[nx][ny] = who;
                 taken[who]++;
                 float bias = shape == null ? 0f

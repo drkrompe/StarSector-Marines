@@ -711,8 +711,10 @@ Laws):
      (`LavaFlows`, `CellTopology.lavaFlows`): tongues of cooled crust that broke
      from the melt, widening to rounded toes and now and then splitting, hot
      where they leave the melt and cold at the toe. They are walkable ground
-     whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
-     laid dark, its cracks glowing by the heat, the margin rounded), and they
+     whose look alone changes (`LavaFlowShading`, one shader pass: the crust
+     image laid dark, its cracks glowing by the heat, the margin a curve where
+     the flow's blurred cover crosses a half, lobed and frayed by noise, never
+     the cells' steps), and they
      keep the landscape's later features off what they buried. The owner picked
      the river with its older flows (2026-11-10, of the rift, the river, the
      river with its flows and the flows alone): a volcanic world's drop is the
@@ -735,9 +737,8 @@ Laws):
        meanwhile. A town too far from the river, or with no room, has none.
        Its crossings are causeways of dressed basalt (`Deck.BASALT`), where
        an outdoor drop elsewhere lays timber.
-       Left: the breaks where a walled place or a road stands on the
-       river's line, each left as ground; the line is the design's, never
-       searched for, so steering it round built ground is its own change.
+       A road across the river stands as a bridge; a walled place never
+       stands on it (Where, below).
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -1048,14 +1049,20 @@ Laws):
      (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
      the basalt wall was tried on rock and read as holes at a wide zoom.
    - **Where.** A drop runs edge to edge along its design's line
-     (`NaturalChasm`), wandering, 7 to 12 cells wide. It takes only ground the landscape pass's reservations leave
-     (`OutdoorLandscapeStage`), after the open pit and before anything grows:
-     so it never covers a road, building, doorway, fixture, prop, landing or
-     its approach, or a spawn, and each of those that crosses its line is
-     left standing across it as a bridge. A route between required places is
-     not kept out: its five reserved cells left standing read as the drop
-     stopping, so a crossing is left where the route's own line meets the
-     drop's and the drop takes the rest of the route's ground.
+     (`NaturalChasm`), wandering at most 14 cells off it, 7 to 12 cells wide.
+     The design holds a band as wide as it can reach (`Landform.Drop`), and
+     moves every programmed place's seed off that band's held ground, so a
+     walled place's claim keeps off it (`FortReservations.dropGround`) and the
+     drop runs past its wall. It takes only ground the landscape pass's
+     reservations leave (`OutdoorLandscapeStage`), after the open pit and
+     before anything grows: so it never covers a road, building, doorway,
+     fixture, prop, landing or a spawn, and each of those that crosses its
+     line is left standing across it as a bridge. A route between required
+     places is not kept out: its five reserved cells left standing read as the
+     drop stopping, so a crossing is left where the route's own line meets the
+     drop's and the drop takes the rest of the route's ground. A landing's
+     approach to the edge keeps only trees and rises off a flight path, so the
+     drop runs under it.
    - **Crossings.** Every 34 cells along its line, and wherever a route
      crosses it, a crossing four cells wide is left standing; a regular
      crossing within 17 cells of a route's gives way to it, so no sliver of

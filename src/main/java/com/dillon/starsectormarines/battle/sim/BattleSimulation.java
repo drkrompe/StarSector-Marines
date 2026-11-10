@@ -44,6 +44,7 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
+import com.dillon.starsectormarines.battle.door.WallGate;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
 import com.dillon.starsectormarines.battle.setup.JunctionPressure;
@@ -1289,6 +1290,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The battle's locked doors ({@code garrisonables.md}, Locked doors and hardened walls), for drawing. */
     public List<LockedDoor> lockedDoors() { return Collections.unmodifiableList(lockedDoors); }
+
+    private List<WallGate> wallGates = List.of();
+
+    /** The gates in walled places' walls ({@code precincts.md}, Gates are leaf doors), for drawing. */
+    public List<WallGate> wallGates() { return wallGates; }
+
+    /** The map's wall gates. At setup. */
+    public void setWallGates(List<WallGate> gates) {
+        wallGates = gates == null ? List.of() : List.copyOf(gates);
+    }
 
     /** Registers a locked door as it installs. At setup. */
     public void addLockedDoor(LockedDoor door) {

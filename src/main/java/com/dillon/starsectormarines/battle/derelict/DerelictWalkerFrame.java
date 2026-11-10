@@ -22,10 +22,25 @@ public enum DerelictWalkerFrame {
             MechWeaponComponent.LRM_15_FRAG, MechWeaponComponent.LRM_15_FRAG, 0.85f, MechRole.LR_SUPPORT),
     /** Two heavy cannon under the heaviest plate: the vault's last guard. */
     VAULT(MechWeaponComponent.HC_10, MechWeaponComponent.HC_10,
-            MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15, 1.45f, MechRole.BALANCED);
+            MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15, 1.45f, MechRole.BALANCED),
+    /**
+     * The medium, the MG-25 rounds walker (`derelict-watch.md`): walks its zone's round while the zone sleeps, and once
+     * awake answers a pin anywhere in its perimeter, one-cell doors included.
+     */
+    ROUNDS(MechVariant.SECURITY_ROUNDS, MechWeaponComponent.CHAINGUN, null,
+            MechWeaponComponent.SRM_5, null, 1.0f, MechRole.ASSAULT),
+    /**
+     * The large, the MG-70 hall frame (`derelict-watch.md`): keeps the plant's largest hall, too wide for a corridor,
+     * and forces a dead door in its way.
+     */
+    HALL(MechVariant.SECURITY_HALL, MechWeaponComponent.HC_10, MechWeaponComponent.HC_10,
+            MechWeaponComponent.SRM_15_FRAG, MechWeaponComponent.SRM_15_FRAG, 1.0f, MechRole.BALANCED);
 
-    /** The one chassis every frame is built on. */
+    /** The heavy chassis the line, siege and vault frames are built on. */
     public static final MechVariant CHASSIS = MechVariant.SECURITY_WALKER;
+
+    /** The chassis this frame is built on: the heavy's, or the medium's or the large's. */
+    public final MechVariant chassis;
 
     public final MechWeaponComponent leftArm;
     public final MechWeaponComponent rightArm;
@@ -38,6 +53,13 @@ public enum DerelictWalkerFrame {
     DerelictWalkerFrame(MechWeaponComponent leftArm, MechWeaponComponent rightArm,
                         MechWeaponComponent leftShoulder, MechWeaponComponent rightShoulder,
                         float plateShare, MechRole role) {
+        this(MechVariant.SECURITY_WALKER, leftArm, rightArm, leftShoulder, rightShoulder, plateShare, role);
+    }
+
+    DerelictWalkerFrame(MechVariant chassis, MechWeaponComponent leftArm, MechWeaponComponent rightArm,
+                        MechWeaponComponent leftShoulder, MechWeaponComponent rightShoulder,
+                        float plateShare, MechRole role) {
+        this.chassis = chassis;
         this.leftArm = leftArm;
         this.rightArm = rightArm;
         this.leftShoulder = leftShoulder;
@@ -48,7 +70,7 @@ public enum DerelictWalkerFrame {
 
     /** This frame's armour capacity on the walker. */
     public float armorCapacity() {
-        return CHASSIS.armorCapacity * plateShare;
+        return chassis.armorCapacity * plateShare;
     }
 
     /** Whether this frame fires on contacts its zone's flocks hold rather than closing on them. */
@@ -56,16 +78,30 @@ public enum DerelictWalkerFrame {
         return this == SIEGE;
     }
 
+    /** The size class of this frame's chassis: which of the plant's ways it fits. */
+    public DerelictWalkerClass size() {
+        return DerelictWalkerClass.of(chassis);
+    }
+
+    /** The designation the frame's walker is named by. */
+    public String designation() {
+        return switch (this) {
+            case LINE, SIEGE, VAULT -> "MG-40 " + name().toLowerCase() + " frame";
+            case ROUNDS -> "MG-25 rounds walker";
+            case HALL -> "MG-70 hall frame";
+        };
+    }
+
     /** The frame's mounts on the walker. */
     public MechLoadoutComponent createLoadout() {
-        return new MechLoadoutComponent(CHASSIS, null, leftArm, rightArm, leftShoulder, rightShoulder, role);
+        return new MechLoadoutComponent(chassis, null, leftArm, rightArm, leftShoulder, rightShoulder, role);
     }
 
     /** The walker's spawn stats with this frame's plate; range and vision follow the frame's own guns. */
     public EntitySpec applyTo(EntitySpec spec) {
-        CHASSIS.applyTo(spec).armor(armorCapacity(), CHASSIS.armorRating);
+        chassis.applyTo(spec).armor(armorCapacity(), chassis.armorRating);
         float range = maxWeaponRange();
-        spec.attackRange(range).visionRange(Math.max(CHASSIS.visionRange, range));
+        spec.attackRange(range).visionRange(Math.max(chassis.visionRange, range));
         return spec;
     }
 

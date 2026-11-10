@@ -74,6 +74,10 @@ public final class RuinsDelveStage implements GenStage {
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
+    /** A mega forge hall's breadth and length, cells; vast's larger. Its pour line runs along its length. */
+    static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
+    /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
+    static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
     /** Cells across a side room's door: a sealed store's blast door. */
     static final int STORE_DOOR = 3;
     static final int HALL_WIDTH = 11, HALL_HEIGHT = 8;
@@ -131,6 +135,13 @@ public final class RuinsDelveStage implements GenStage {
     /** The megastructure's hull and floor: the installation's cast concrete, as the vault is built. */
     static final String HULL_WALL = "installation.dark-concrete-wall";
     static final String HULL_FLOOR = "installation.concrete-floor";
+    /**
+     * A plant hall's floor zones ({@code ruins-expedition.md}, A hall is laid out from its process): deck plate under
+     * the work and a cell round it, painted walkways along the hall's long walls, worn concrete in the aisles with
+     * cracked patches where the traffic broke it.
+     */
+    static final String HALL_PLATE = "sky-port.deck-plate", HALL_WALKWAY = "apron.marked",
+            HALL_AISLE = "pavement.concrete.worn", HALL_AISLE_CRACKED = "pavement.concrete.cracked";
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
     /** The vault room's floor: the installation's command floor, so the heart of the site reads apart. */
     static final String VAULT_ROOM_FLOOR = "installation.command-floor";
@@ -277,6 +288,9 @@ public final class RuinsDelveStage implements GenStage {
                 }
                 if (i == hallLayer) hall = in ? innerHall : hall(i, region);
                 if (i == 0) records = records(region);
+                // A forge works lays its halls before its side rooms, so its mega hall has the band's length.
+                boolean forge = plan.dressing().foundry();
+                if (in && forge) layHalls(i, firstInside, region, chambers, plantHalls);
                 List<SideRoom> rooms = new ArrayList<>();
                 for (int r = 0; r < ROOMS_PER_LAYER; r++) {
                     SideRoom room = room(RuinsDelve.layerName(i) + ".room." + (rooms.size() + 1), region);
@@ -286,20 +300,7 @@ public final class RuinsDelveStage implements GenStage {
                 }
                 if (rooms.isEmpty()) throw new IllegalStateException(RuinsDelve.layerName(i) + " seats no side room");
                 if (in) {
-                    // The plant's halls first, in its own order: intake and lines in the outer band, storage deeper.
-                    for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
-                        // The outer band's first line hall is laid at a foundry's size whatever the theme, so the
-                        // ground's footprint never changes with it; a forge works makes it its foundry.
-                        boolean first = i == firstInside && stage == RuinsDelve.PlantStage.PRODUCTION
-                                && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
-                        Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
-                        if (floor == null) continue;
-                        if (first && plan.dressing().foundry()) stage = RuinsDelve.PlantStage.FOUNDRY;
-                        connect(new Cell(floor.centreX(), floor.centreY()), i, null);
-                        chambers.add(floor);
-                        plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
-                                stage, floor));
-                    }
+                    if (!forge) layHalls(i, firstInside, region, chambers, plantHalls);
                     int tries = Math.max(4, region.width() * region.height() / HULL_PER_CHAMBER);
                     for (int c = 0; c < tries; c++) {
                         Area chamber = chamber(region);
@@ -316,6 +317,7 @@ public final class RuinsDelveStage implements GenStage {
             }
             for (RuinsDelve.PlantHall plantHall : plantHalls) furnish(plantHall);
             dress(plan.dressing(), vault, chambers);
+            for (RuinsDelve.PlantHall plantHall : plantHalls) zoneFloor(plantHall.footprint());
             finishMasks();
             repairPockets(landing.get(0).berth(0));
 
@@ -420,6 +422,54 @@ public final class RuinsDelveStage implements GenStage {
             hash *= 0x5bd1e995L;
             hash ^= (hash >>> 15);
             return Math.floorMod(hash, 3) == 0;
+        }
+
+        // ---- hall floors ---------------------------------------------------------------------
+
+        /**
+         * Lays a plant hall's floor by zone rather than as one slab. The work is every cell its furniture stands on:
+         * the kit's floor (cradles, levelers, melt), every doodad's footprint and every fixture. Deck plate lies under
+         * the work and one cell round it; a painted walkway runs a cell deep along the hall's two long walls; the
+         * aisles left between are worn concrete, cracked in patches by coordinate hash. A melt cell keeps its
+         * surface, which its drop draws over.
+         */
+        void zoneFloor(Area hall) {
+            int hw = hall.width(), hh = hall.height();
+            boolean[] work = new boolean[hw * hh];
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (kitFloor[i(x, y)] || topology.isFixture(x, y) || !grid.isWalkable(x, y)) {
+                        work[(y - hall.bottom()) * hw + x - hall.left()] = true;
+                    }
+                }
+            }
+            for (Doodad d : ctx.doodads) {
+                for (int y = d.cellY; y < d.cellY + Math.max(1, d.footprintCellsY); y++) {
+                    for (int x = d.cellX; x < d.cellX + Math.max(1, d.footprintCellsX); x++) {
+                        if (hall.contains(x, y)) work[(y - hall.bottom()) * hw + x - hall.left()] = true;
+                    }
+                }
+            }
+            int plate = topology.surfaceIndex(HALL_PLATE), walkway = topology.surfaceIndex(HALL_WALKWAY);
+            int aisle = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
+            boolean longX = hw >= hh;
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (topology.isWall(x, y) || topology.getGroundKind(x, y) != GroundKind.INDOOR) continue;
+                    boolean near = false;
+                    for (int dy = -1; dy <= 1 && !near; dy++) {
+                        for (int dx = -1; dx <= 1 && !near; dx++) {
+                            int lx = x + dx - hall.left(), ly = y + dy - hall.bottom();
+                            near = lx >= 0 && ly >= 0 && lx < hw && ly < hh && work[ly * hw + lx];
+                        }
+                    }
+                    boolean wallSide = longX ? (y == hall.bottom() || y == hall.top())
+                            : (x == hall.left() || x == hall.right());
+                    int surface = near ? plate : wallSide ? walkway
+                            : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : aisle;
+                    topology.setSurface(x, y, surface);
+                }
+            }
         }
 
         // ---- leaf doors ----------------------------------------------------------------------
@@ -1430,6 +1480,7 @@ public final class RuinsDelveStage implements GenStage {
          * Vast ground lays one more of each.
          */
         List<RuinsDelve.PlantStage> stages(int band, int bands) {
+            if (plan.dressing().foundry()) return forgeStages(band, bands);
             List<RuinsDelve.PlantStage> out = new ArrayList<>();
             boolean outer = band == 0;
             if (outer) {
@@ -1448,6 +1499,45 @@ public final class RuinsDelveStage implements GenStage {
             return out;
         }
 
+        /**
+         * The plant's halls of band {@code i}, in its own order: intake and lines in the outer band, storage deeper.
+         * The outer band's first line hall is laid at a foundry's size whatever the theme, so a themed ground's
+         * footprint stays the same; a forge works lays its mega forge hall instead ({@link #forgeStages}).
+         */
+        void layHalls(int i, int firstInside, Area region, List<Area> chambers, List<RuinsDelve.PlantHall> plantHalls) {
+            for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
+                boolean first = i == firstInside && stage == RuinsDelve.PlantStage.PRODUCTION
+                        && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
+                Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
+                if (floor == null) continue;
+                connect(new Cell(floor.centreX(), floor.centreY()), i, null);
+                chambers.add(floor);
+                plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
+                        stage, floor));
+            }
+        }
+
+        /**
+         * A forge works' halls (owner pick {@code ruins-forge-process} b1): its production is one mega forge hall in
+         * the outer band after the intake, its storage deeper; no line halls. At vast the intake and the storage are
+         * doubled, never the forge.
+         */
+        List<RuinsDelve.PlantStage> forgeStages(int band, int bands) {
+            List<RuinsDelve.PlantStage> out = new ArrayList<>();
+            boolean vast = plan.layers() >= 4;
+            if (band == 0) {
+                // The forge is placed first, while the band still has room for it; the intake after.
+                out.add(RuinsDelve.PlantStage.FOUNDRY);
+                out.add(RuinsDelve.PlantStage.INTAKE);
+                if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
+            }
+            if (band > 0 || bands == 1) {
+                int storage = bands > 1 ? (vast ? 4 : 2) : 0;
+                for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
+            }
+            return out;
+        }
+
         /** A plant hall of {@code stage}'s size laid in {@code region}, its floor carved; null where none fits. */
         Area plantHall(Area region, RuinsDelve.PlantStage stage) {
             boolean vast = plan.layers() >= 4;
@@ -1463,9 +1553,20 @@ public final class RuinsDelveStage implements GenStage {
                 case FOUNDRY -> vast ? 24 : 22;
                 case STORAGE -> 14;
             };
+            if (stage == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()) {
+                // A forge works' mega hall: a great crucible's pour line run down the band's length.
+                cw = vast ? MEGA_WIDE_VAST : MEGA_WIDE;
+                ch = Math.min(vast ? MEGA_LONG_VAST : MEGA_LONG, region.height() - 8);
+            }
             cw = Math.min(cw, region.width() - 6);
             if (cw < 12) return null;
             int[] at = spot(region, cw, ch, 2);
+            // A mega forge that finds no room at its full length is shortened, never below the layout's least.
+            while (at == null && stage == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()
+                    && ch - 8 >= MEGA_MIN_LONG) {
+                ch -= 8;
+                at = spot(region, cw, ch, 2);
+            }
             if (at == null) return null;
             Area room = new Area(at[0], at[1], at[0] + cw - 1, at[1] + ch - 1);
             for (int y = room.bottom(); y <= room.top(); y++) {
@@ -1486,7 +1587,13 @@ public final class RuinsDelveStage implements GenStage {
             Area hall = plantHall.footprint();
             Cell centre = new Cell(hall.centreX(), hall.centreY());
             switch (plantHall.stage()) {
-                case FOUNDRY -> foundry(registry, hall, centre);
+                case FOUNDRY -> {
+                    if (plan.dressing().foundry() && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG) {
+                        megaForge(registry, hall, centre);
+                    } else {
+                        foundry(registry, hall, centre);
+                    }
+                }
                 case PRODUCTION -> {
                     // Line runs east-west, three deep with a two-cell aisle between: a line end feeding modules, a
                     // gap after every second module so a run is never a wall, and a module wrecked here and there.
@@ -1599,6 +1706,99 @@ public final class RuinsDelveStage implements GenStage {
             piece(registry, "doodad.ruins-fallen-ladle", hall.left() + 2 + span / 4, hall.bottom() + 11, 3, 2, hall,
                     centre);
             piece(registry, "doodad.ruins-pour-pulpit", hall.right() - 3, hall.top() - 3, 2, 2, hall, centre);
+        }
+
+        /**
+         * A forge works' mega hall (owner pick {@code ruins-forge-process} b1; {@code ruins-themed-environments.md}),
+         * laid from its process along its length, head to the north:
+         * <ul>
+         *   <li><b>Head.</b> The great crucible's open bath, 8 by 8, with two ladles waiting either side. The charge
+         *   racks stand east of it, the slag heaped in a pit west of it, the pour pulpit below the racks.</li>
+         *   <li><b>Pour line.</b> A two-cell trench down the hall's middle from the bath to the dispatch end, crossed
+         *   every twelve rows by a grate catwalk, the drop's deck.</li>
+         *   <li><b>Production lines.</b> Every sixteen rows a channel branches each way off the line to a mould grid
+         *   over its casting bed, with a cooling rack beyond it.</li>
+         *   <li><b>Dispatch.</b> The south end is left clear for the dispatch aisle.</li>
+         *   <li><b>The collapse.</b> A ladle tipped mid-pour beside the line, another fallen near the dispatch.</li>
+         * </ul>
+         * The melt is planned here and cut after finalize as the foundry's is ({@link RuinsMeltStage}), proved to
+         * leave the hall one floor.
+         */
+        void megaForge(TileRegistry registry, Area hall, Cell centre) {
+            int cx = hall.centreX(), top = hall.top(), bottom = hall.bottom();
+            boolean[] melt = new boolean[w * h];
+            // The great crucible's bath at the head.
+            meltBox(melt, hall, centre, cx - 4, top - 9, cx + 3, top - 2);
+            // The pour line down the middle, a crossing every twelve rows.
+            for (int y = bottom + 6; y <= top - 10; y++) {
+                if (Math.floorMod(top - 16 - y, 12) <= 1) continue;
+                meltBox(melt, hall, centre, cx - 1, y, cx, y);
+            }
+            for (int y = top - 17; y >= bottom + 6; y -= 12) {
+                lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx - 1, y);
+            }
+            // Production lines: a channel each way to a mould grid over its bed, a cooling rack beyond.
+            int line = 0;
+            for (int y0 = top - 20; y0 - 6 > bottom + 6; y0 -= 16, line++) {
+                meltBox(melt, hall, centre, cx - 6, y0, cx - 2, y0 + 1);
+                meltBox(melt, hall, centre, cx - 14, y0 - 2, cx - 7, y0 + 2);
+                over(registry, "doodad.ruins-mould-grid", cx - 14, y0 - 2);
+                meltBox(melt, hall, centre, cx + 1, y0, cx + 5, y0 + 1);
+                meltBox(melt, hall, centre, cx + 6, y0 - 2, cx + 13, y0 + 2);
+                over(registry, "doodad.ruins-mould-grid", cx + 6, y0 - 2);
+                piece(registry, RACK_STRIPPED, cx - 14, y0 - 6, 6, 2, hall, centre);
+                piece(registry, RACK_STRIPPED, cx + 8, y0 - 6, 6, 2, hall, centre);
+                // Work stopped mid-pour: one line's ladle tipped beside the trench.
+                if (line == 1 && piece(registry, "doodad.ruins-crucible-tipped", cx + 2, y0 + 3, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-tipped-spill", cx + 2, y0 + 3);
+                }
+            }
+            // The head: ladles waiting either side of the bath, charge racks east, the slag pit west, the pulpit.
+            for (int side = -1; side <= 1; side += 2) {
+                int lx = side < 0 ? cx - 8 : cx + 5;
+                if (piece(registry, "doodad.ruins-crucible", lx, top - 6, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-melt", lx, top - 6);
+                }
+            }
+            piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx - 14, top - 4, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx - 12, top - 6, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx - 15, top - 7, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
+            sealMelt(melt, hall);
+            piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
+        }
+
+        /** Plans melt over a box of a hall's cells, keeping it off the walls, the doorways and the hall's middle. */
+        private void meltBox(boolean[] melt, Area hall, Cell centre, int l, int b, int r, int t) {
+            for (int y = b; y <= t; y++) {
+                for (int x = l; x <= r; x++) {
+                    if (!hall.contains(x, y) || x <= hall.left() || x >= hall.right() || y <= hall.bottom()
+                            || y >= hall.top()) continue;
+                    if (Math.abs(x - centre.x()) <= 1 && Math.abs(y - centre.y()) <= 1) continue;
+                    if (!grid.isWalkable(x, y) || nearDoorway(x, y)) continue;
+                    melt[i(x, y)] = true;
+                }
+            }
+        }
+
+        /** Proves the planned melt leaves the hall one floor, holds it clear of later pieces and publishes it. */
+        private void sealMelt(boolean[] melt, Area hall) {
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (melt[i(x, y)]) grid.setWalkable(x, y, false);
+                }
+            }
+            boolean whole = oneFloor(hall);
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (!melt[i(x, y)]) continue;
+                    grid.setWalkable(x, y, true);
+                    kitFloor[i(x, y)] = true;
+                }
+            }
+            if (!whole) throw new IllegalStateException("a forge's melt split its hall at " + hall);
+            ctx.put(RuinsKeys.MELT, melt);
         }
 
         /** Whether a cell is a doorway or beside one. */
