@@ -98,6 +98,14 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
                     LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, FORCED_TRAVEL, perSide, -1, .8f,
                             ctx.alphaMult);
                 }
+                // Torn out wide, jambs and all: rubble at both new ends, one leaf on the floor, none standing.
+                case TORN -> {
+                    int floor = floorSide(ctx.sim, door);
+                    LeafDoorArt.rubble(cam, out, rubble, span, -1, floor, ctx.alphaMult);
+                    LeafDoorArt.rubble(cam, out, rubble, span, 1, -floor, ctx.alphaMult);
+                    LeafDoorArt.torn(cam, out, torn != null ? torn : art, pair, span,
+                            torn != null ? TORN_DEPTH : depth, -1, floor, ctx.alphaMult);
+                }
                 case SEALED -> {
                     LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_DEAD, ctx.alphaMult);
                     LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, 0f, perSide, 0, .8f,
@@ -110,7 +118,13 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
     /** Takes the doors as they stand, keeping each one already held where its leaves have got to. */
     private void build(BattleSimulation sim) {
         Map<RuinsDelve.LeafDoor, RoomDoor> held = new HashMap<>();
-        if (builtFor == sim) for (int i = 0; i < doors.size(); i++) held.put(doors.get(i), moving.get(i));
+        Map<RuinsDelve.LeafDoor, RuinsDelve.Area> heldSpan = new HashMap<>();
+        if (builtFor == sim) {
+            for (int i = 0; i < doors.size(); i++) {
+                held.put(doors.get(i), moving.get(i));
+                heldSpan.put(doors.get(i), states.spanOf(doors.get(i)));
+            }
+        }
         builtFor = sim;
         RuinsWorks works = sim.getRuinsWorks();
         states = works == null ? null : works.doorStates();
@@ -118,8 +132,9 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
         doors = states == null ? List.of() : states.doors();
         List<RoomDoor> m = new ArrayList<>(doors.size());
         for (RuinsDelve.LeafDoor door : doors) {
-            RoomDoor kept = held.get(door);
-            RuinsDelve.Area a = door.span();
+            // A door torn wider stands across new cells: its leaves start afresh there.
+            RuinsDelve.Area a = states.spanOf(door);
+            RoomDoor kept = a.equals(heldSpan.get(door)) ? held.get(door) : null;
             m.add(kept != null ? kept : door.alongX()
                     ? new RoomDoor(true, a.left(), a.right() + 1f, a.bottom() + .5f, false)
                     : new RoomDoor(false, a.bottom(), a.top() + 1f, a.left() + .5f, false));

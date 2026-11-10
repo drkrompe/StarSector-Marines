@@ -238,14 +238,20 @@ public final class DerelictSecurity {
             // A hall frame shut in by a dead door forces it once awake; the network's bulkheads wait for hunting.
             for (DerelictSecurityDirector.Walker w : walkers) {
                 if (!hallBound.contains(w.squadId())) continue;
-                RuinsDelve.LeafDoor door = deadDoorOf(delve, w.postX(), w.postY());
-                if (door != null) director.forceDoor(w.squadId(), door);
+                if (egress.isEmpty()) break;
+                RuinsDelve.LeafDoor door = ramDoorOf(delve, w.postX(), w.postY(), egress.get(0));
+                // Only a door the frame can walk up to: a frame shut in a chamber by a narrow neck keeps its hall.
+                boolean[] reach = reachable(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius,
+                        new int[] {w.postX(), w.postY()});
+                int[] stand = door == null || reach == null ? null
+                        : ramStand(sim.getGrid(), reach, door, w.postX(), w.postY());
+                if (stand != null) director.forceDoor(w.squadId(), door, stand[0], stand[1]);
             }
             List<RuinsDelve.Area> halls = new ArrayList<>();
             for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
             NavigationGrid grid = sim.getGrid();
             CellTopology topology = sim.getTopology();
-            director.layBulkheads(Bulkheads.lay(new Bulkheads.Ground() {
+            director.layBulkheads(sim, Bulkheads.lay(new Bulkheads.Ground() {
                 public int width() { return grid.getWidth(); }
 
                 public int height() { return grid.getHeight(); }
@@ -390,6 +396,56 @@ public final class DerelictSecurity {
      * Where the grade's hall frames stand (`derelict-watch.md`, Medium and large walkers): the middles of the plant's
      * largest halls, largest first, else the interior's largest chambers; none on ground without an interior.
      */
+    /**
+     * The hall door a hall frame shut in at {@code (x, y)} rams: of the hall doors on its hall's face, a dead one
+     * first, else the one nearest its way out {@code toward}; null when its hall has none.
+     */
+    static RuinsDelve.LeafDoor ramDoorOf(RuinsDelve delve, int x, int y, int[] toward) {
+        RuinsDelve.LeafDoor dead = deadDoorOf(delve, x, y);
+        if (dead != null) return dead;
+        RuinsDelve.LeafDoor best = null;
+        int bestD = Integer.MAX_VALUE;
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+            RuinsDelve.Area f = hall.footprint();
+            if (!f.contains(x, y)) continue;
+            for (RuinsDelve.LeafDoor door : delve.interior().doors()) {
+                if (door.cargo() || !onFace(door, f)) continue;
+                int d = WalkerPosture.chebyshev(toward[0], toward[1], door.span().centreX(), door.span().centreY());
+                if (d < bestD) {
+                    bestD = d;
+                    best = door;
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Where a hall frame stands to ram {@code door}: the first cell it fits on the way from the door's middle to its
+     * post, within {@link DerelictSecurityDirector#RAM_CELLS} of the door, that it can reach ({@code reach}, row-major);
+     * null when there is none.
+     */
+    static int[] ramStand(NavigationGrid grid, boolean[] reach, RuinsDelve.LeafDoor door, int postX, int postY) {
+        float radius = DerelictWalkerFrame.HALL.chassis.radius;
+        int cx = door.span().centreX(), cy = door.span().centreY();
+        int dx = Integer.signum(postX - cx), dy = Integer.signum(postY - cy);
+        if (door.alongX()) dx = 0;
+        else dy = 0;
+        for (int k = 1; k <= DerelictSecurityDirector.RAM_CELLS; k++) {
+            int x = cx + dx * k, y = cy + dy * k;
+            if (grid.inBounds(x, y) && fits(grid, x, y, radius) && reach[y * grid.getWidth() + x]) {
+                return new int[] {x, y};
+            }
+        }
+        return null;
+    }
+
+    private static boolean onFace(RuinsDelve.LeafDoor door, RuinsDelve.Area f) {
+        RuinsDelve.Area s = door.span();
+        return s.right() >= f.left() - 1 && s.left() <= f.right() + 1 && s.top() >= f.bottom() - 1
+                && s.bottom() <= f.top() + 1;
+    }
+
     /** The dead leaf door nearest {@code (x, y)} on the face of the plant hall holding it; null when none. */
     static RuinsDelve.LeafDoor deadDoorOf(RuinsDelve delve, int x, int y) {
         RuinsDelve.LeafDoor best = null;

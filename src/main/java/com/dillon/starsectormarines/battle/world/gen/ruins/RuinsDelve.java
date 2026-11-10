@@ -189,7 +189,12 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
          * Shut and holding: its leaves meet across the way, which is wall, its lamp dark. A security bulkhead stands
          * so until the hunt opens it ({@code RuinsDoorStates}).
          */
-        SEALED
+        SEALED,
+        /**
+         * Torn out wider than it was built, jambs and all: no leaf stands, one lies on the floor, rubble at both new
+         * ends. A derelict hall frame leaves a door so when it rams one too narrow for it ({@code RuinsDoorStates}).
+         */
+        TORN
     }
 
     /**

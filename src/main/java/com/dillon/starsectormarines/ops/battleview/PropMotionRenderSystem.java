@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
@@ -35,6 +38,11 @@ import java.util.WeakHashMap;
  * <p>A fixed overhead part (a shop awning, a pipe rack) fades to {@link #SEEN_UNDER_ALPHA} while a figure the player
  * can see stands under its prop, so nobody can hide under one from the player's view; it eases back once the ground
  * under it is clear. Moving parts (a crane's bridge) keep their full alpha.
+ *
+ * <p>An overhead prop that stands inside a building, under its intact roof (a mega forge's crane runway), is inside the
+ * building and not over it: the roof pass draws its roof first, so the prop's every part draws at what the roof leaves
+ * of it, {@link #underRoof} of the roof's own fade. Hidden while the roof is shut, it shows as the roof fades for the
+ * people inside. A prop under no roof draws as it always has.
  */
 final class PropMotionRenderSystem implements RenderSystem {
 
@@ -92,14 +100,35 @@ final class PropMotionRenderSystem implements RenderSystem {
             float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
             float fade = layer == PropMotion.Layer.OVERHEAD
                     ? fade(d, seenUnder(seenFigures, width, d), ctx.realDt) : 1f;
+            float roof = layer == PropMotion.Layer.OVERHEAD ? roofLeaves(sim, (int) centreX, (int) centreY) : 1f;
+            if (roof <= 0f) continue;
             for (PropMotion.Part part : motion.parts()) {
                 if (part.layer() != layer) continue;
                 DoodadDef def = registry.doodad(part.doodadId());
                 SpriteAPI sheet = def == null ? null : sprites.extraTerrainSheet(def.sheetPath);
-                float alpha = part.kind() == PropMotion.Kind.FIXED ? ctx.alphaMult * fade : ctx.alphaMult;
+                float alpha = (part.kind() == PropMotion.Kind.FIXED ? ctx.alphaMult * fade : ctx.alphaMult) * roof;
                 if (sheet != null) emitPart(out, cam, sheet, def, d, part, phase, alpha);
             }
         }
+    }
+
+    /** How much of an overhead prop at a cell the roof over it leaves to draw: all of it where no intact roof is. */
+    private static float roofLeaves(BattleSimulation sim, int x, int y) {
+        CellTopology topology = sim.getTopology();
+        Buildings buildings = sim.getBuildings();
+        if (topology == null || buildings == null || !topology.inBounds(x, y) || !topology.isRoofIntact(x, y)) {
+            return 1f;
+        }
+        Building building = buildings.get(topology.getBuildingId(x, y));
+        return building == null ? 1f : underRoof(building.currentAlpha);
+    }
+
+    /**
+     * What a roof drawn at {@code roofAlpha} leaves of what stands under it: nothing under a shut roof, all of it once
+     * the roof has faded away.
+     */
+    static float underRoof(float roofAlpha) {
+        return 1f - Math.max(0f, Math.min(1f, roofAlpha));
     }
 
     /** Marks every cell a live figure stands on where the player can see it. */

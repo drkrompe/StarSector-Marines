@@ -202,6 +202,25 @@ class MacroReliefFieldTest {
         assertEquals(0f, MacroReliefField.plinthTopMeters(grid, topology, 6, 6), 1e-4f);
     }
 
+    /**
+     * A wall opened at runtime into a roofed building ({@code MapEditor.openPassage} gives it the building of the floor
+     * it joins) stands under that roof, so the walls and roof round it cast no shadow into a slot.
+     */
+    @Test
+    void aWallOpenedIntoARoofedBuildingStandsUnderItsRoofUntilItCavesIn() {
+        CellTopology topology = walledBox();
+        MacroReliefField relief = field(topology, roofOverInterior(topology));
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+
+        topology.setTag(4, 5, CellTopology.Tag.WALL, false);
+        topology.setGroundKind(4, 5, CellTopology.GroundKind.INDOOR);
+        topology.setBuildingId(4, 5, 1);
+        assertEquals(mapping.roofMacroHeightMeters(), relief.metersAt(4, 5), 1e-4f, "opened into the roofed hall");
+        topology.setRoofDestroyed(4, 5, true);
+        assertEquals(mapping.macroHeightMeters(CellTopology.GroundKind.INDOOR), relief.metersAt(4, 5), 1e-4f,
+                "and open to the sky once its roof caves in");
+    }
+
     // ------------------------------------------------------------------------
 
     private static MacroReliefField field(CellTopology topology, Buildings buildings) {

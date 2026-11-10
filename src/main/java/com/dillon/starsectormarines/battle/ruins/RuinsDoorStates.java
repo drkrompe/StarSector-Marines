@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,8 @@ import java.util.Map;
 public final class RuinsDoorStates {
 
     private final Map<RuinsDelve.LeafDoor, RuinsDelve.DoorStance> stances = new LinkedHashMap<>();
+    /** The span a door was torn out to, where it was torn wider than it was built. */
+    private final Map<RuinsDelve.LeafDoor, RuinsDelve.Area> torn = new HashMap<>();
     private int version;
 
     /** The doors the ground laid, each in the stance it was laid in. */
@@ -47,6 +50,31 @@ public final class RuinsDoorStates {
     /** A dead door torn open: it stands forced from now on. */
     public void force(RuinsDelve.LeafDoor door) {
         set(door, RuinsDelve.DoorStance.FORCED);
+    }
+
+    /**
+     * A door torn out to {@code widened}, its jambs with it: it stands {@link RuinsDelve.DoorStance#TORN TORN} at that
+     * span from now on. {@code widened} lies on the door's own line and takes in every cell of its span.
+     */
+    public void tear(RuinsDelve.LeafDoor door, RuinsDelve.Area widened) {
+        require(door);
+        RuinsDelve.Area span = door.span();
+        boolean onLine = door.alongX() ? widened.bottom() == span.bottom() && widened.top() == span.top()
+                : widened.left() == span.left() && widened.right() == span.right();
+        boolean covers = widened.left() <= span.left() && widened.right() >= span.right()
+                && widened.bottom() <= span.bottom() && widened.top() >= span.top();
+        if (!onLine || !covers) {
+            throw new IllegalArgumentException("a torn span " + widened + " must widen " + span + " along its line");
+        }
+        torn.put(door, widened);
+        stances.put(door, RuinsDelve.DoorStance.TORN);
+        version++;
+    }
+
+    /** The cells a door stands across now: its span, or the wider one it was torn out to. */
+    public RuinsDelve.Area spanOf(RuinsDelve.LeafDoor door) {
+        RuinsDelve.Area widened = torn.get(door);
+        return widened != null ? widened : door.span();
     }
 
     /** A sealed door opened: it answers from now on, parting for whoever comes through. */

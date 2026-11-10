@@ -49,6 +49,13 @@ class OverheadFadeTest {
     }
 
     @Test
+    void aRoofOverAPropLeavesWhatItsOwnFadeUncovers() {
+        assertEquals(0f, PropMotionRenderSystem.underRoof(1f), 1e-6f, "hidden under a shut roof");
+        assertEquals(1f, PropMotionRenderSystem.underRoof(0f), 1e-6f, "whole once the roof has faded away");
+        assertEquals(0.75f, PropMotionRenderSystem.underRoof(0.25f), 1e-6f, "as much as the fading roof leaves");
+    }
+
+    @Test
     void aPropDrawnOverheadIsLeftOutOfTheGroundPass() {
         PropMotion awning = motion("doodad.awning", part("doodad.awning", Layer.OVERHEAD));
         PropMotion crane = motion("doodad.crane", part("doodad.crane-bridge", Layer.OVERHEAD));
