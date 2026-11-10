@@ -2020,8 +2020,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun on a turning hull shakes the way a moving shooter's does, and so does a crew caught in crossfire;
         // the gun is never shakier than a moving shooter's.
         HullPivot pivot = new HullPivot(rosterService.convoy());
+        // The Mech Lab's calibration steadies a company hull's guns as it does its mechs'.
         turretFire.setShooterAccuracy(id -> Math.min(pivot.multiplier(id),
-                Crossfire.accuracyMultiplier(rosterService.convoy(), id)));
+                Crossfire.accuracyMultiplier(rosterService.convoy(), id)) * rosterService.convoy().refitAccuracy(id));
         // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
         turretFire.setRoundHeat(id -> {
             FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
