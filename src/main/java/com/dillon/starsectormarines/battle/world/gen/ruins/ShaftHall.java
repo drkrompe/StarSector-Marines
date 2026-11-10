@@ -82,7 +82,7 @@ final class ShaftHall {
             p.wear("doodad.ruins-scorch-arc", f.cx - 3, f.headY - 5, 2, 2);
             spoil.add(new int[]{f.cx, f.headY - 5});
         }
-        f.stand("doodad.ruins-fallen-girder", null, 1, f.l / 3, 7, 1, WorksHallPlan.COLLAPSE);
+        f.stand("doodad.ruins-fallen-girder", null, HallFrame.TRUNK, f.l / 3, 7, 1, WorksHallPlan.COLLAPSE);
 
         // The spoil heaps at the dispatch end, one slid across it.
         int hx = f.eastR - 7;

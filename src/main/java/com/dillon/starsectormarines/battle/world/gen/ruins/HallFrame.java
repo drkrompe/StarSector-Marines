@@ -6,13 +6,15 @@ import java.util.List;
 /**
  * The bones every works hall shares, across its width (west to east) and down its length (dispatch to head):
  * <pre>
- *   walkway | rail (feed) | west aisle | west stations | line aisle | LINE | line aisle | east stations | east aisle | lane | walkway
+ *   trunk | rail (feed) | west aisle | west stations | line aisle | LINE | line aisle | east stations | east aisle | lane | walkway
  * </pre>
  * The feed comes up the west rail from the intake to the head; the work runs down the line from the head to the
- * dispatch end; the east lane carries the hall's waste or return. Every aisle is a frame's way wide
- * ({@link WorksHallPlan#FRAME_WAY}), the stations take the width that is left, and bays repeat down the line every
- * {@link #PERIOD} rows with a cross aisle between. A transfer aisle across the middle is kept clear from wall to wall,
- * where the corridor arrives and a hall frame stands its post.
+ * dispatch end; the east lane carries the hall's waste or return. The plant's spine (the trunk) runs down the west
+ * wall, the hall's first {@link #TRUNK} columns: floor and overhead kit may lie there, but nothing stands on it.
+ * Every aisle is a frame's way wide ({@link WorksHallPlan#FRAME_WAY}) but the west one, two cells beside the spine;
+ * the stations take the width that is left, and bays repeat down the line every {@link #PERIOD} rows with a cross
+ * aisle between. A transfer aisle across the middle is kept clear from wall to wall, where the corridor arrives and
+ * a hall frame stands its post.
  */
 final class HallFrame {
 
@@ -20,6 +22,8 @@ final class HallFrame {
     static final int PERIOD = 12, BAY = 8;
     /** Rows the dispatch end keeps clear of the line, and the head takes. */
     static final int DISPATCH = 6, HEAD = 18;
+    /** Columns the band's spine takes down the hall's west wall, an aisle nothing stands on. */
+    static final int TRUNK = 3;
 
     final WorksHallPlan plan;
     final int w, l, seed;
@@ -36,9 +40,10 @@ final class HallFrame {
         l = length;
         this.seed = (int) (seed ^ (seed >>> 32));
         cx = width / 2 - 1;
-        railX = 2;
+        railX = TRUNK;
         laneX = width - 4;
-        westL = railX + 2 + WorksHallPlan.FRAME_WAY;
+        // The spine beside the rail is a frame's way already, so the aisle between the rail and the stations is two.
+        westL = railX + 4;
         westR = cx - 1 - WorksHallPlan.FRAME_WAY;
         eastL = cx + 2 + WorksHallPlan.FRAME_WAY;
         eastR = laneX - 1 - WorksHallPlan.FRAME_WAY;
@@ -86,9 +91,9 @@ final class HallFrame {
      */
     boolean middle(int x, int y) { return y >= l / 2 - 1 && y <= l / 2 + 2; }
 
-    /** Stands a piece unless it would cover the hall's middle or its edge ring. */
+    /** Stands a piece unless it would cover the hall's middle, its edge ring or the spine down its west wall. */
     boolean stand(String id, String standIn, int x, int y, int fw, int fh, String station) {
-        if (x < 1 || y < 1 || x + fw > w - 1 || y + fh > l - 1) return false;
+        if (x < TRUNK || y < 1 || x + fw > w - 1 || y + fh > l - 1) return false;
         for (int cy = y; cy < y + fh; cy++) for (int cx2 = x; cx2 < x + fw; cx2++) if (middle(cx2, cy)) return false;
         return plan.stand(id, standIn, x, y, fw, fh, station);
     }
@@ -143,13 +148,13 @@ final class HallFrame {
     }
 
     /**
-     * The service drops along both long walls, every six rows: the cabinets that fed each bay its power and the
-     * theme's service (coolant, nutrient, air), between the walkway and the rail on the west and beside the lane on
-     * the east. They are what a marine running the wall aisles has to put his back to.
+     * The service drops down both sides, every six rows: the cabinets that fed each bay its power and the
+     * theme's service (coolant, nutrient, air), off the rail on the west (the wall there is the spine's) and beside
+     * the lane on the east. They are what a marine running the side aisles has to put his back to.
      */
     void serviceDrops(String id, String standIn, String station) {
         for (int y = HallFrame.DISPATCH + 2; y + 1 <= l - 3; y += 6) {
-            stand(id, standIn, 1, y, 1, 2, station);
+            stand(id, standIn, railX + 2, y, 1, 2, station);
             stand(id, standIn, w - 2, y + 3, 1, 2, station);
         }
     }

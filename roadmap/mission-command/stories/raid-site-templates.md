@@ -59,10 +59,10 @@ rest of the planet's sites feed. Three things carry that.
 |---|---|---|
 | Heavy industry | the planet's assembly works, which every foundry ships into | feeder lines in; machine halls; yards beyond |
 | Mining | the central concentrator, which every dig feeds | the open pit beside the head works (`RaidSiteTemplate.PIT`); ore lines in from the other digs; ore stockpiles |
-| Refining | the only cracking and distillation plant | pipelines in; stills; a tank farm |
+| Refining | the only cracking and distillation plant | pipelines in on racks from the map's edges; units with their columns; the product rack over the haul road; a bunded tank farm and loading rack before the works; a flare stack |
 | Light industry | the central fabrication works | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road |
-| Farming | the central grain elevator and processing hub | farm roads in; silos; packing sheds |
-| Spaceport | the only orbital lift | the lighter apron; bonded sheds; roads in from the planet's towns |
+| Farming | the central grain elevator and processing hub | farm roads in off the edges through the fields; haulers queued at the intake; the grain gallery from intake through dryer, silo battery and mill to cold store and loadout; spilt grain; fish ponds among the fields (`GrainHub`) |
+| Spaceport | the only orbital lift | the lighter apron held at the deep end (pads, blast walls, scorch, fuel main, container staging, a freighter mid-turnaround); bonded sheds; haulers queued on the roads in from the planet's towns |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
 
 **The pit.** A mine holds its pit's ground beside the head works: a held
@@ -73,6 +73,14 @@ cuts the pit runs. It runs from just past the works' claim
 `PIT_HALF_SPAN` either side of the works, but never nearer the middle than
 `PIT_INNER`, because ground held near the garrison can starve the works of its
 road.
+
+**The tank farm.** A refinery holds its tank farm's ground before the works
+(`RefiningWorks.TANK_FARM`, `SitePurpose.GROUND`): along the map from just
+short of the works' claim back toward its industrial quarter, which stands
+nearer the homes, and across it on the side of the haul road with the more
+room, never past `FARM_INNER` toward the garrison. The company comes through the
+industrial quarter to it: the bund walls are its cover and the tanks break the
+sight lines before the works' wall.
 
 ## Acceptance
 
@@ -95,6 +103,10 @@ road.
 - [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
   as its process after the owner rejected the generic shops (`LightIndustryWorks`,
   `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`).
+  Refining rebuilt as its process after the owner rejected the generic stills
+  (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; stand-in art for
+  the tanks, columns and flare until the refinery's own lands;
+  `createSnapshots -Psnapshot=raid-refinery-site-look`).
 
 ## Constraints
 
