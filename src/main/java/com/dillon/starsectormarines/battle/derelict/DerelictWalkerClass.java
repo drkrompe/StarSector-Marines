@@ -32,9 +32,11 @@ public enum DerelictWalkerClass {
         this.chassis = chassis;
     }
 
-    /** The size of a derelict chassis. */
+    /** The size of a derelict chassis: a fallen hull's stripper is a medium, its hauler a heavy. */
     public static DerelictWalkerClass of(MechVariant chassis) {
         for (DerelictWalkerClass size : values()) if (size.chassis == chassis) return size;
+        if (chassis == MechVariant.SECURITY_STRIPPER) return MEDIUM;
+        if (chassis == MechVariant.SECURITY_HAULER) return HEAVY;
         throw new IllegalArgumentException("Not a derelict chassis: " + chassis);
     }
 

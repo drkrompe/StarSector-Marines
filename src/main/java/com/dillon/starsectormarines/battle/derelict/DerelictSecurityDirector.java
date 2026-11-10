@@ -80,6 +80,10 @@ public final class DerelictSecurityDirector {
 
     private final SecurityNetwork network;
     private final List<Walker> walkers;
+    /** A fallen hull's claim this network grows from, or null at a site network (`fallen-hull-nouns.md`). */
+    private FallenHull hull;
+    /** Whether the walkers' bodies are hooked into the damage pipeline, the leg modifier and the straddle. */
+    private boolean armed;
     private final List<int[]> egress;
     private final int vaultX;
     private final int vaultY;
@@ -217,7 +221,13 @@ public final class DerelictSecurityDirector {
                         new Body(walker.frame() == DerelictWalkerFrame.VAULT ? new VaultFrameBrace() : null));
             }
         }
-        if (bodies.isEmpty()) return;
+        if (bodies.isEmpty() && hull == null) return;
+        hookBodies(sim);
+    }
+
+    private void hookBodies(BattleSimulation sim) {
+        if (armed) return;
+        armed = true;
         sim.getRoster().hitScale((target, attacker, damage) -> bodyHit(sim, target, attacker, damage));
         sim.getRoster().modifiers().register(new LegModifier());
         sim.straddle(new Straddle(sim));
@@ -376,7 +386,7 @@ public final class DerelictSecurityDirector {
     public DerelictSecurityDirector(SecurityNetwork network, List<Walker> walkers, List<int[]> egress,
                                     int vaultX, int vaultY) {
         this.network = network;
-        this.walkers = List.copyOf(walkers);
+        this.walkers = new ArrayList<>(walkers);
         this.egress = List.copyOf(egress);
         this.vaultX = vaultX;
         this.vaultY = vaultY;
@@ -576,7 +586,43 @@ public final class DerelictSecurityDirector {
     }
 
     public List<Walker> walkers() {
-        return walkers;
+        return Collections.unmodifiableList(walkers);
+    }
+
+    /**
+     * A walker the fallen hull's forge printed (`fallen-hull-nouns.md`, Laws: every new unit is printed) joins the
+     * network: its body is armed as the first walkers' were, and from the next pulse it takes its posture in its zone,
+     * unless the hull commands it ({@link FallenHull#commands}).
+     */
+    public void addWalker(BattleSimulation sim, Walker walker) {
+        if (network.zone(walker.zoneId()) == null) throw new IllegalArgumentException("No zone " + walker.zoneId());
+        walkers.add(walker);
+        for (int i = 0, n = sim.squadMemberCount(walker.squadId()); i < n; i++) {
+            bodies.put(sim.squadMemberAt(walker.squadId(), i), new Body(null));
+        }
+        hookBodies(sim);
+    }
+
+    /** Posts a walker lance to another zone and post: a stake train's escort to the stake it brought up. */
+    public void repost(int squadId, int zoneId, int postX, int postY) {
+        if (network.zone(zoneId) == null) throw new IllegalArgumentException("No zone " + zoneId);
+        for (int i = 0; i < walkers.size(); i++) {
+            Walker w = walkers.get(i);
+            if (w.squadId() != squadId) continue;
+            walkers.set(i, new Walker(squadId, w.frame(), zoneId, postX, postY));
+            issued.remove(squadId);
+            walking.remove(squadId);
+        }
+    }
+
+    /** Grows this network from a fallen hull's claim: the hull's rules run each pulse before the walkers' postures. */
+    public void attachHull(FallenHull hull) {
+        this.hull = hull;
+    }
+
+    /** The fallen hull this network grows from, or null. */
+    public FallenHull hull() {
+        return hull;
     }
 
     /** The posture last given to a walker lance, or null before its first. */
@@ -638,6 +684,8 @@ public final class DerelictSecurityDirector {
         }
         RuinsVaultObjective vault = vault(sim);
         if (vault != null && vault.breached() && !network.contingency()) network.breachVault(tick);
+        // A fallen hull's vault is its autoforge: its breach calls the contingency.
+        if (hull != null && hull.breached(sim) && !network.contingency()) network.breachVault(tick);
         if (network.contingency()) {
             for (Contact contact : all) {
                 if (WalkerPosture.chebyshev(contact.cellX(), contact.cellY(), vaultX, vaultY)
@@ -654,6 +702,7 @@ public final class DerelictSecurityDirector {
         network.settle(tick);
         tickWake(sim);
         tickWrecks(sim);
+        if (hull != null) hull.pulse(sim, this, tick);
         for (Map.Entry<Long, Integer> post : posts.entrySet()) {
             long id = post.getKey();
             if (sim.resolveUnit(id) == 0L) continue;
@@ -664,8 +713,10 @@ public final class DerelictSecurityDirector {
         List<Long> haulIds = new ArrayList<>(haul);
         List<Contact> haulContacts = new ArrayList<>();
         for (Contact contact : all) if (haul.contains(contact.unitId())) haulContacts.add(contact);
-        for (Walker walker : walkers) {
+        for (Walker walker : new ArrayList<>(walkers)) {
             if (sim.squadMemberCount(walker.squadId()) <= 0) continue;
+            // A fallen hull's workers, trains and escorts are walked by the hull's own rules.
+            if (hull != null && hull.commands(walker.squadId())) continue;
             SecurityZone zone = network.zone(walker.zoneId());
             if (walker.frame() == DerelictWalkerFrame.TENDER) {
                 tend(sim, walker, zone, tick);
@@ -1155,12 +1206,22 @@ public final class DerelictSecurityDirector {
         // hold walks there first, fighting on the way, and holds it once there.
         ObjectiveAssignment assignment;
         if (stand.kind() == Kind.CLOSE || walk) {
-            assignment = ObjectiveAssignment.attackMove(walker.squadId(), stand.cellX(), stand.cellY());
+            assignment = walk(walker.squadId(), walker.frame(), stand.cellX(), stand.cellY());
         } else {
             assignment = ObjectiveAssignment.defendArea(walker.squadId(), stand.cellX(), stand.cellY(),
                     radius(stand));
         }
         sim.assignSquadCommand(assignment, CommandAuthority.MISSION_COMMAND, ISSUER, why);
+    }
+
+    /**
+     * The order that walks a lance to a cell: an attack move, fighting on the way; for an unarmed frame (the tender, a
+     * fallen hull's stripper and hauler) a withdrawal to it, since a lance with no gun declines every attack goal and
+     * breaks contact instead (`MechDamageDoctrine.lanceDeclinesAttack`), walking away from where it was sent.
+     */
+    static ObjectiveAssignment walk(int squadId, DerelictWalkerFrame frame, int cellX, int cellY) {
+        return frame.armed() ? ObjectiveAssignment.attackMove(squadId, cellX, cellY)
+                : ObjectiveAssignment.withdraw(squadId, cellX, cellY);
     }
 
     /** How near the cell a holding order counts as there. */
