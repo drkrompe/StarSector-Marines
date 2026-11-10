@@ -8,10 +8,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Pins the fog-bitmap reveal rule: a building roof reveals (targetAlpha 0) iff
- * any of its interior cells is currently revealed, and only its <em>own</em>
- * interior cells count. Guards the fix for the under-reveal divergence (closest-
- * unit + 5-sample raycast → per-cell fog coverage).
+ * Pins the open rule: a building opens (targetAlpha 0) only while one of the player's units stands on its own floor;
+ * seeing in does not open it, and a peek opens only the building under the pointer. The fog rule still reads what the
+ * player sees.
  */
 public class BuildingVisibilityPassTest {
 
@@ -27,6 +26,8 @@ public class BuildingVisibilityPassTest {
         return buildings;
     }
 
+    private static final int[] NOBODY = new int[0];
+
     private static int idx(int x, int y) {
         return y * GW + x;
     }
@@ -35,17 +36,41 @@ public class BuildingVisibilityPassTest {
     public void noInteriorCellRevealed_roofStaysOpaque() {
         Buildings buildings = oneBuilding();
         boolean[] revealed = new boolean[GW * GH];
-        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, NOBODY, 0);
         assertEquals(1f, buildings.get(1).targetAlpha, 0f, "unseen interior → opaque roof");
     }
 
     @Test
-    public void anyInteriorCellRevealed_roofReveals() {
+    public void seeingInsideLiftsTheFogButDoesNotOpenIt() {
         Buildings buildings = oneBuilding();
         boolean[] revealed = new boolean[GW * GH];
-        revealed[idx(6, 5)] = true; // one of the two interior cells
-        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
-        assertEquals(0f, buildings.get(1).targetAlpha, 0f, "a single visible interior cell reveals the roof");
+        revealed[idx(6, 5)] = true; // seen through a door or window
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, NOBODY, 0);
+        assertEquals(1f, buildings.get(1).targetAlpha, 0f, "seeing in keeps the building standing");
+        assertEquals(0f, buildings.get(1).targetFog, 0f, "but out of the fog");
+    }
+
+    @Test
+    public void aUnitOnItsFloorOpensItAndOneOutsideDoesNot() {
+        Buildings buildings = oneBuilding();
+        boolean[] revealed = new boolean[GW * GH];
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, new int[]{idx(7, 5), idx(0, 0)}, 2);
+        assertEquals(1f, buildings.get(1).targetAlpha, 0f, "a unit at its wall or across the map does not open it");
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, new int[]{idx(0, 0), idx(6, 5)}, 2);
+        assertEquals(0f, buildings.get(1).targetAlpha, 0f, "a unit on its floor opens it");
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, new int[]{idx(6, 5)}, 0);
+        assertEquals(1f, buildings.get(1).targetAlpha, 0f, "only the filled occupants count");
+    }
+
+    @Test
+    public void thePointerPeeksIntoOneBuildingAndLeavesTheRest() {
+        Buildings buildings = oneBuilding();
+        buildings.add(new Building(2, BuildingKind.values()[0], 1, 1, 1, 1, new int[]{1}, new int[]{1}, 1f, 1f, 1f));
+        BuildingVisibilityPass.advanceAlpha(buildings, 10f, 1);
+        assertEquals(0f, buildings.get(1).currentAlpha, 1e-6f, "the building under the pointer opens");
+        assertEquals(1f, buildings.get(2).currentAlpha, 1e-6f, "its neighbour stays closed");
+        BuildingVisibilityPass.advanceAlpha(buildings, 10f, 0);
+        assertEquals(1f, buildings.get(1).currentAlpha, 1e-6f, "and closes again when the pointer leaves");
     }
 
     @Test
@@ -53,7 +78,7 @@ public class BuildingVisibilityPassTest {
         Buildings buildings = oneBuilding();
         boolean[] revealed = new boolean[GW * GH];
         revealed[idx(0, 0)] = true; // not an interior cell of the building
-        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, NOBODY, 0);
         assertEquals(1f, buildings.get(1).targetAlpha, 0f, "only the building's own interior cells count");
     }
 
@@ -62,7 +87,7 @@ public class BuildingVisibilityPassTest {
         Buildings buildings = oneBuilding();
         boolean[] revealed = new boolean[GW * GH];
         revealed[idx(7, 5)] = true; // the wall beside the floor, seen from outside
-        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, NOBODY, 0);
         assertEquals(1f, buildings.get(1).targetAlpha, 0f, "a seen wall does not open the roof");
         assertEquals(0f, buildings.get(1).targetFog, 0f, "a seen wall lifts the roof out of fog");
     }
@@ -72,7 +97,7 @@ public class BuildingVisibilityPassTest {
         Buildings buildings = oneBuilding();
         boolean[] revealed = new boolean[GW * GH];
         revealed[idx(8, 5)] = true; // two cells off the floor: outside the roof
-        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH, NOBODY, 0);
         assertEquals(1f, buildings.get(1).targetFog, 0f, "a roof nobody can see lies in fog");
     }
 }

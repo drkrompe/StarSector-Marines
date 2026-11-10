@@ -638,16 +638,19 @@ Laws):
      stands only a few pixels deep at play zoom, so it was dropped.
 
    **Cutaway** (owner: "a bit unclear how it will play when we cutaway
-   reveal into structures"). A building's roof fades when the player sees
-   inside it (`BuildingVisibilityPass`). With the fade:
+   reveal into structures"). A building opens while one of the player's
+   units stands in it or the pointer is over it (`BuildingVisibilityPass`,
+   the roof reveal in `fog-of-war-nouns.md`); seeing in no longer opens it,
+   so the street keeps its height where the fighting is, and units seen
+   inside a closed building are marked on its roof. With the fade:
    - the walls turned to the camera drop to knee height
      (`BuildingFaces.standing`, 0.6 m);
    - the far walls' inner sides come up to frame the rooms;
    - nothing pops, and the walls stay opaque.
 
-   A stood-up roof, or a far wall, is drawn over the street just past its
-   building. A unit standing there, outside any building, gets a small mark
-   in its side's colour over the roofs, and fog of war still hides enemies.
+   A closed building's roof is drawn over the street just past it. A unit
+   standing there gets a small mark in its side's colour over the roofs (an
+   open building hides nothing), and fog of war still hides enemies.
    The owner chose the knee stub over a ghosted full-height wall. Look suite:
    `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
