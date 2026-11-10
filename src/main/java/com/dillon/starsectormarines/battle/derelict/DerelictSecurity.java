@@ -164,13 +164,12 @@ public final class DerelictSecurity {
         return 0;
     }
 
-    /** The interior's works hall, or null where the site has none. */
+    /**
+     * The interior's works hall (a theme's works hall or a forge works' mega forge): the hall holding its works stand,
+     * which is published exactly when one is laid; null where the site has none.
+     */
     static RuinsDelve.Area worksHall(RuinsDelve delve) {
-        if (delve == null || delve.interior() == null) return null;
-        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
-            if (hall.stage() == RuinsDelve.PlantStage.WORKS) return hall.footprint();
-        }
-        return null;
+        return hallAt(delve, worksStand(delve));
     }
 
     /** The interior's works stand, or null where the site has none. */
@@ -250,8 +249,7 @@ public final class DerelictSecurity {
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
                                                    FlockLivery livery, int[] route, int sourceX, int sourceY) {
-        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve),
-                hallAt(delve, worksStand(delve)));
+        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve), worksHall(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));

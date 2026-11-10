@@ -155,4 +155,24 @@ public class LandingZoneScorerTest {
         assertThrows(IllegalArgumentException.class, () -> s.bestAmong(new int[]{1, 2, 3}, 0, 0),
                 "odd-length candidate array is a caller bug, not silently dropped");
     }
+
+    @Test
+    public void machineScorerRefusesGroundMarkedNoMachineDrop() {
+        NavigationGrid g = openGrid();
+        CellTopology t = new CellTopology(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < 9; x++) g.markNoMachineDrop(x, y); // the facility: everything west of x=9
+        }
+        LandingZoneScorer plain = new LandingZoneScorer(g, t);
+        LandingZoneScorer machines = plain.forMachines();
+
+        assertTrue(plain.isViable(5, 5), "infantry may still be set down inside");
+        assertFalse(machines.isViable(5, 5), "no machine is set down inside the facility");
+        assertTrue(machines.isViable(10, 5), "open ground outside stays viable");
+
+        int[] lz = machines.bestNear(7, 5, 4);
+        assertNotNull(lz, "aimed just inside, the drop falls back outside");
+        assertEquals(9, lz[0], "the nearest outside cell");
+        assertNull(machines.bestNear(3, 5, 4), "aimed deep inside, nothing in reach: refused");
+    }
 }

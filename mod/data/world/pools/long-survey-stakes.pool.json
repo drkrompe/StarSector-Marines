@@ -1,0 +1,39 @@
+{
+  "version": 3,
+  "map": "long-survey-stakes",
+  "home": "ARID",
+  "entry": {
+    "seed": 1,
+    "note": "Stakes: mine country of its own (a Sabotage plan in remote sprawl at the colony's size) with the Surveyor down in it; three stakes planted on the lattice and one raised beyond them",
+    "patch": {
+      "hull": {
+        "x": 300,
+        "y": 160,
+        "heading": "east",
+        "trench": 56,
+        "stakes": [
+          {
+            "x": 220,
+            "y": 120,
+            "stage": "planted"
+          },
+          {
+            "x": 260,
+            "y": 80,
+            "stage": "planted"
+          },
+          {
+            "x": 180,
+            "y": 160,
+            "stage": "planted"
+          },
+          {
+            "x": 140,
+            "y": 120,
+            "stage": "raised"
+          }
+        ]
+      }
+    }
+  }
+}

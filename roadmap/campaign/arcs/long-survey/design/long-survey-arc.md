@@ -78,16 +78,18 @@ adds one fallen-hull mechanic to the shipped watch:
 
 ## Seeds
 
-Each chapter owns one seed from the home pool of its family, with a patch that
-places the hull and its claim (`story-map-pools.md`, The owned seed). The first
-attempt, retries, replays and the debug player all play it. Recommended
-starting points, for the ground session to vet or replace:
+Each chapter owns one seed with a patch that lays the hull, its trench and its
+starting stakes over its family's ground (`story-map-pools.md`, The owned seed;
+`fallen-hull-nouns.md`, The ground), one pool file each, so no shipped map
+moves. The first attempt, retries, replays and the debug player all play it;
+`LongSurveyGround` builds each as its family's setup generates its map.
 
-- The Fall: the owned `colony-breach` seed 38, the hull's trench patched in
-  where its deep bore stands, so the shelter, lift and town are the vetted ones.
-- Stakes: a Sabotage seed whose three sites can be lattice points.
-- The Line: the owned `cordon-line` seed, the claim laid beyond its redoubts.
-- The Surveyor: the owned `heart-front` seed, the hull in the heart's place.
+| Chapter | Map | Ground | The hull |
+| --- | --- | --- | --- |
+| The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, bow east, the trench ploughed west along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
+| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1 | Beside the installation, bow east, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
+| The Line | `long-survey-line` | `cordon-line` seed 3, the line and base built | North-east beyond the redoubts, bow west, the trench run in from the map's east edge; three established stakes in a chain toward redoubts 3 and 4 and one raised |
+| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, bow north, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
 ## Unlocks and replay
 

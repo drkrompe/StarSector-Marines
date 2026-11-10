@@ -34,7 +34,7 @@ public enum VehicleSupportPayload implements AirDeliveryPayload {
 
     /** Sets {@code vehicle} down; shared with {@link ArmorDropPayload}'s mixed drop. */
     static boolean deploy(AirDeliveryContext context, VehicleDeploymentSpec vehicle) {
-        int[] cell = context.findOpenDeboardCell();
+        int[] cell = context.findOpenDeboardCell(true);
         if (cell == null) return false;
         // Pointed the way the carrier flew in. Better than an authored
         // constant because it is at least consistent with what the player

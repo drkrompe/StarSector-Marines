@@ -877,7 +877,7 @@ public final class MechLabViewModel {
             return bay.canInstallWeapon(mech.id(), mount, component.id)
                     && bay.withinBudget(mech.id(), mech.fit().withWeapon(mount, component));
         }
-        return mount == MechMountSlot.ARMS && bay.canFitGun(machine.id(), component);
+        return bay.canFitVehicleWeapon(machine.id(), mount, component);
     }
 
     /** True when the bay holds a spare of this part, so its row can be picked up. */
@@ -938,7 +938,9 @@ public final class MechLabViewModel {
         MechMountSlot mount = mountFor(target);
         if (machine == null || component == null || mount == null
                 || bay.availableWeapon(component.id) <= 0) return false;
-        if (machine instanceof CampaignVehicle && mount != MechMountSlot.ARMS) return false;
+        if (machine instanceof CampaignVehicle vehicle && !CampaignVehicle.takesWeapon(vehicle.type(), mount, component)) {
+            return false;
+        }
         selectedSlot.set(target);
         MechFrameBudget.Fit proposed = machine instanceof CampaignMech mech ? mech.fit().withWeapon(mount, component) : null;
         return applyWeaponResult(workshop.fitWeapon(machine.id(), mount, component), component, proposed);
@@ -1463,7 +1465,7 @@ public final class MechLabViewModel {
                 ? Strings.get("openingMechLabFabricateACompleteStandardFitWalkerHere")
                 : Strings.get("openingMechLabNoHeavyAssetSelected");
         if (browsingStores.get()) return Strings.get("openingMechLabAllPartsCopy");
-        // A hull has no mass budget and one gun card, so its engine, plate and gun say so.
+        // A hull has no mass budget and a gun card (the Onager a coax card too), so its engine, plate and guns say so.
         boolean hull = machine instanceof CampaignVehicle;
         return switch (selectedSlot.get()) {
             case CORE -> Strings.get(hull ? "openingMechLabVehicleEngineCopy" : "openingMechLabEngineCopy");
@@ -1471,7 +1473,8 @@ public final class MechLabViewModel {
             case AUXILIARY, AUXILIARY_2 -> Strings.get(machine.capabilities().armed()
                     ? "openingMechLabCompartmentCopy" : "openingMechLabCompartmentCopyUnarmed");
             case ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER -> hull
-                    ? Strings.get("openingMechLabVehicleGunCopy")
+                    ? Strings.get(selectedSlot.get() == SocketId.RIGHT_ARM
+                            ? "openingMechLabVehicleCoaxCopy" : "openingMechLabVehicleGunCopy")
                     : slotWeapon(machine, selectedSlot.get()) == null
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
                             : Strings.get("openingMechLabInstalledWeaponAssemblySocketTypeAndCapacity");
@@ -1554,7 +1557,11 @@ public final class MechLabViewModel {
     private List<CatalogRow> weaponCatalog(CampaignMachine machine, MechMountSlot mount) {
         MechWeaponComponent current = mount != null ? slotWeapon(machine, selectedSlot.get()) : null;
         if (machine instanceof CampaignVehicle vehicle) {
-            return weaponRows(current, component -> CampaignVehicle.takesGun(vehicle.type(), component));
+            // A hull's cards: the one picked, or with none picked any card the hull has.
+            return weaponRows(current, component -> mount != null
+                    ? CampaignVehicle.takesWeapon(vehicle.type(), mount, component)
+                    : CampaignVehicle.takesGun(vehicle.type(), component)
+                    || CampaignVehicle.takesCoax(vehicle.type(), component));
         }
         SocketDef socket = mount != null ? selectedSocketDefinition() : null;
         return weaponRows(current, component -> mount == null || socket != null && component.accepts(mount)
@@ -2746,12 +2753,12 @@ public final class MechLabViewModel {
         };
     }
 
-    /** The weapon a socket holds: a mech's at any mount, a hull's in its one gun card. */
+    /** The weapon a socket holds: a mech's at any mount, a hull's in its gun or coax card. */
     private static MechWeaponComponent slotWeapon(CampaignMachine machine, SocketId slot) {
         MechMountSlot mount = mountFor(slot);
         if (machine == null || mount == null) return null;
         if (machine instanceof CampaignMech mech) return mech.weaponAt(mount);
-        return mount == MechMountSlot.ARMS ? ((CampaignVehicle) machine).gun() : null;
+        return ((CampaignVehicle) machine).weaponAt(mount);
     }
 
     private static String doctrineAdvice(MechRole role) {

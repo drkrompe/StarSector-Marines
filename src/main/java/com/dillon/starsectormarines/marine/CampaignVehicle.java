@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
@@ -47,6 +48,11 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     private String engineId;
     /** The weapon component in its gun card; null is an empty card, which fires nothing unless {@link #hasOwnGun}. */
     private String gunId;
+    /**
+     * The weapon component in its coax card ({@link VehicleGunCard#COAX}), on a hull that has one; null is an empty
+     * card, as a hull is sold and as a save from before the card loads.
+     */
+    private String coaxId;
     /**
      * Read by nothing: the weapon colour a Scorpion or Onager was built in while those hulls came in yellow, green and
      * red builds, before their cards became omni (hegemony-armor-line.md). Kept so a save from then still loads.
@@ -105,6 +111,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
         vehicle.engineId = null;
         vehicle.platingId = null;
         vehicle.gunId = null;
+        vehicle.coaxId = null;
         vehicle.ownGunGone = true;
         vehicle.rack.clear();
         return vehicle;
@@ -181,6 +188,52 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     boolean stripGun() {
         boolean fitted = gun() != null;
         gunId = null;
+        return fitted;
+    }
+
+    /** The weapon fitted in the coax card; null for an empty card or a hull without one. */
+    public MechWeaponComponent coax() {
+        MechWeaponComponent coax = MechWeaponComponent.findById(coaxId);
+        return coax != null && takesCoax(type, coax) ? coax : null;
+    }
+
+    /** Whether {@code coax} goes in {@code type}'s coax card: a hull with one, and a one-row ballistic weapon. */
+    public static boolean takesCoax(VehicleType type, MechWeaponComponent coax) {
+        VehicleGunCard card = VehicleGunCard.coaxOf(type);
+        return card != null && card.accepts(coax);
+    }
+
+    /**
+     * The weapon at {@code mount}, read as a hull's cards sit on the doll: the gun card at the centreline mount
+     * ({@link MechMountSlot#ARMS}), the coax card at the right arm; null at any other.
+     */
+    public MechWeaponComponent weaponAt(MechMountSlot mount) {
+        if (mount == MechMountSlot.ARMS) return gun();
+        if (mount == MechMountSlot.RIGHT_ARM) return coax();
+        return null;
+    }
+
+    /** Whether {@code weapon} goes in the card at {@code mount} on a hull of {@code type} ({@link #weaponAt}). */
+    public static boolean takesWeapon(VehicleType type, MechMountSlot mount, MechWeaponComponent weapon) {
+        if (mount == MechMountSlot.ARMS) return takesGun(type, weapon);
+        if (mount == MechMountSlot.RIGHT_ARM) return takesCoax(type, weapon);
+        return false;
+    }
+
+    /** Fits {@code weapon} in the card at {@code mount}, replacing what was there; false for one that does not go. */
+    boolean fitWeapon(MechMountSlot mount, MechWeaponComponent weapon) {
+        if (mount == MechMountSlot.ARMS) return fitGun(weapon);
+        if (mount != MechMountSlot.RIGHT_ARM || !takesCoax(type, weapon)) return false;
+        coaxId = weapon.id;
+        return true;
+    }
+
+    /** Takes the weapon out of the card at {@code mount}, leaving it empty; false when none was fitted. */
+    boolean stripWeapon(MechMountSlot mount) {
+        if (mount == MechMountSlot.ARMS) return stripGun();
+        if (mount != MechMountSlot.RIGHT_ARM) return false;
+        boolean fitted = coax() != null;
+        coaxId = null;
         return fitted;
     }
 
@@ -298,7 +351,7 @@ public final class CampaignVehicle implements CampaignMachine, Serializable {
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
         return new VehicleDeploymentSpec(id, displayName, type, platingTier(), engineTier(), gun(),
-                compartment(), !hasOwnGun());
+                compartment(), !hasOwnGun(), null, coax());
     }
 
     /**

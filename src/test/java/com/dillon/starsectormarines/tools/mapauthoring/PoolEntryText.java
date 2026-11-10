@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSitePlan;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.Map;
 /**
  * A story map's pool file as the pool files are written ({@code story-map-pools.md}, version 3): two-space indent,
  * every object and array laid open, keys in the reader's order ({@code version, map, home, entry}; an entry's
- * {@code seed, note, patch}; a patch's {@code pin, ruin, lift, bores, holdouts, place}), only the ops a patch has.
+ * {@code seed, note, patch}; a patch's {@code pin, ruin, lift, bores, holdouts, place, hull}), only the ops a patch has.
  * Writing a file's own entry back gives the file byte for byte, so a save changes only what the page edited.
  */
 public final class PoolEntryText {
@@ -89,7 +91,28 @@ public final class PoolEntryText {
             for (Structure s : p.place()) placed.add(object("name", s.name(), "kind", s.kind().name(), "x", s.x(), "y", s.y(), "turns", s.turns()));
             m.put("place", placed);
         }
+        if (p.hull() != null) {
+            HullSitePlan h = p.hull();
+            Map<String, Object> hull = object("x", h.x(), "y", h.y(), "heading", heading(h.heading()), "trench", h.trench());
+            if (!h.stakes().isEmpty()) {
+                List<Object> stakes = new ArrayList<>();
+                for (HullSitePlan.StakeAt s : h.stakes()) {
+                    stakes.add(object("x", s.x(), "y", s.y(), "stage", s.stage().name().toLowerCase(Locale.ROOT)));
+                }
+                hull.put("stakes", stakes);
+            }
+            m.put("hull", hull);
+        }
         return m;
+    }
+
+    private static String heading(Direction d) {
+        return switch (d) {
+            case N -> "north";
+            case E -> "east";
+            case S -> "south";
+            default -> "west";
+        };
     }
 
     private static Map<String, Object> object(Object... keysAndValues) {
