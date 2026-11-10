@@ -35,6 +35,8 @@ final class GlacialVoidRenderSystem implements RenderSystem {
     static final float WIND_X = .87f, WIND_Y = .49f, WIND_SPEED = 2.4f;
     /** The low mist over the floor: metres above it, puff size in cells and thickness. */
     static final float MIST_LOW_METERS = 3f, MIST_LOW_PUFF = 3.2f, MIST_LOW_ALPHA = .16f;
+    /** How fast the low mist drains down a flowing crevasse, cells a second, and a puff's life, seconds. */
+    static final float MIST_DRAIN = .3f, MIST_LIFE = 10f;
     /** Spindrift: streaks from each lip cell the wind blows off, how long one lives, seconds, and how far it sinks. */
     static final int DRIFT_PER_CELL = 2;
     static final float DRIFT_LIFE = 3.2f, DRIFT_SINK_METERS = 9f, DRIFT_ALPHA = .32f;
@@ -145,8 +147,10 @@ final class GlacialVoidRenderSystem implements RenderSystem {
                     r, g, b, alpha);
         }
         if (!mesh.isEmpty()) drop.drawList().addPoly(RenderLayer.GROUND, mesh);
+        // The cold air drains down the crevasse toward its deeper end, as cold air runs downhill.
         VoidHaze.draw(drop, sprites, overFloor, MIST_LOW_METERS, MIST_LOW_PUFF, MIST_LOW_ALPHA, WIND_X, WIND_Y,
-                WIND_SPEED * .12f, IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B, time);
+                WIND_SPEED * .12f, MIST_DRAIN, MIST_LIFE, IceVoidLook.MIST_R, IceVoidLook.MIST_G, IceVoidLook.MIST_B,
+                time);
     }
 
     // ----- over the ground -----
