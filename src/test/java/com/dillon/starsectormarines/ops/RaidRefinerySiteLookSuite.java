@@ -45,8 +45,9 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
             new Case("size7-seed141418", 141_418L, 7, 5, OperationTier.REINFORCED),
             new Case("size7-seed7", 7L, 7, 5, OperationTier.REINFORCED));
 
-    /** The tank farm's tanks are the stand-in feed and nutrient tanks drawn at a tank's size. */
+    /** The tank farm's vessels: the refinery sheet's lower row (tanks and spheres), drawn at least this big. */
     private static final int TANK_MIN = 8;
+    private static final int VESSEL_ROW_PX = 480;
 
     @Override public String id() { return "raid-refinery-site-look"; }
 
@@ -101,7 +102,8 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
         float tx = 0, ty = 0;
         int tanks = 0;
         for (Doodad d : sim.getDoodads()) {
-            if (d.footprintCellsX < TANK_MIN || !d.sheetPath.contains("ruins-works-plant")) continue;
+            if (d.footprintCellsX < TANK_MIN || !d.sheetPath.contains("refinery-plant")
+                    || d.tile.row * d.sourceCellPx < VESSEL_ROW_PX) continue;
             float dx = d.cellX + d.footprintCellsX / 2f, dy = d.cellY + d.footprintCellsY / 2f;
             if (Math.hypot(dx - ux, dy - uy) < 30) continue;
             tx += dx;

@@ -159,6 +159,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 }
             } else if (mainTurret != null) {
                 for (MountedGun gun : mainTurret.secondaries) {
+                    if (gun.mount().part() != null) {
+                        // A fitted part (the Onager's coax) stands on a bare ring on the deck, as a carrier's does.
+                        collectFittedSecondary(type, gun, body, paint, wrecked, cam, cellPx, alphaMult, out);
+                        continue;
+                    }
                     collectMountTurret(gun.mount().structure(), gun.turret().facingDeg, gun.mount().mountX(),
                             gun.mount().mountY(), body, wrecked, cam, cellPx, alphaMult, out);
                 }
@@ -601,7 +606,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     /** The gun a carrier's secondary socket carries, drawn as the light machine gun part. */
     private static final MechWeaponComponent CARRIER_SECONDARY_GUN = MechWeaponComponent.LIGHT_MACHINE_GUN;
     /** How far a secondary gun's muzzle stands past its ring, cells. */
-    private static final float SECONDARY_PROTRUSION_CELLS = .14f;
+    static final float SECONDARY_PROTRUSION_CELLS = .14f;
 
     /**
      * A carrier's secondary mount: the bare ring on its socket, and its gun turning on it as a layer of its own
@@ -611,7 +616,27 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                          VehiclePaint paint, boolean wrecked, BattleCamera cam, float cellPx,
                                          float alphaMult, DrawList out) {
         train.toWorld(body.x, body.y, gun.mount().mountX(), gun.mount().mountY(), point);
-        float ringX = point[0], ringY = point[1];
+        collectSecondaryOnRing(type, gun, point[0], point[1],
+                gun.mount().part() != null ? gun.mount().part() : CARRIER_SECONDARY_GUN, paint, wrecked, cam, cellPx,
+                alphaMult, out);
+    }
+
+    /** A secondary mount fitted with a part on a rigid hull: its ring and gun at the mount, turning with the hull. */
+    private void collectFittedSecondary(VehicleType type, MountedGun gun, GroundBody body, VehiclePaint paint,
+                                        boolean wrecked, BattleCamera cam, float cellPx, float alphaMult,
+                                        DrawList out) {
+        float cRad = (float) Math.toRadians(body.facingDegrees);
+        float cc = (float) Math.cos(cRad);
+        float cs = (float) Math.sin(cRad);
+        float localX = gun.mount().mountX(), localY = gun.mount().mountY();
+        collectSecondaryOnRing(type, gun, body.x + localX * cc - localY * cs, body.y + localX * cs + localY * cc,
+                gun.mount().part(), paint, wrecked, cam, cellPx, alphaMult, out);
+    }
+
+    /** The bare ring at {@code ringX, ringY} and {@code part}'s drawing turning on it at the mount's facing. */
+    private void collectSecondaryOnRing(VehicleType type, MountedGun gun, float ringX, float ringY,
+                                        MechWeaponComponent part, VehiclePaint paint, boolean wrecked,
+                                        BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
         float shade = wrecked ? WRECK_SHADE : 1f;
         float ringCells = type.secondaryRingCells();
         LayeredSpriteCache ring = sprites.vehicleGunMount(type.mountStyle());
@@ -619,7 +644,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             out.addSprite(RenderLayer.CONVOY, ring.sprite, cam.cellToScreenX(ringX), cam.cellToScreenY(ringY),
                     ringCells * cellPx, ringCells * cellPx, 0f, shade, shade, shade, alphaMult);
         }
-        LayeredSpriteCache art = VehicleGunArt.sprite(sprites, type, CARRIER_SECONDARY_GUN, paint);
+        LayeredSpriteCache art = VehicleGunArt.sprite(sprites, type, part, paint);
         if (art == null) return;
         float length = (ringCells / 2f + SECONDARY_PROTRUSION_CELLS) / (1f - VehicleGun.RING_FROM_REAR);
         float facing = gun.turret().facingDeg;

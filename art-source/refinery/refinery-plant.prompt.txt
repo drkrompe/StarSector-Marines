@@ -1,0 +1,18 @@
+Use case: style-transfer. Asset type: production transparent prop sheet for a FUEL REFINERY in a gritty science-fiction overhead tactical game, seen from straight above. Someone glancing at any one piece must think "oil and fuel refinery" at once.
+
+Image 1 is the authoritative geometry guide and edit target: paint onto these SIX exact silhouettes, keeping the two rows of three square frames and each piece's position, size, outline and shadow direction. Do not move, rotate, enlarge or shrink anything.
+Image 2 and Image 3 are the game's existing painted prop sprites (an ore conveyor and giant industrial works machinery): rendering finish, palette and detail density at game scale only. Not layout.
+
+Six pieces, left to right, top row then bottom row:
+1. A tall refinery distillation column seen from directly above: its domed top head with nozzles and a small davit crane, a grated circular platform ring with a handrail round it, a caged ladder on the ring, an insulated overhead vapour line leaving east; and the column's long cast shadow falling to the lower right on the ground, soft-edged and semi-transparent, so the column reads as very tall.
+2. A smaller stripper column, the same family: head, platform ring, vapour line east, shorter cast shadow to the lower right.
+3. A burning flare stack: a steel lattice derrick seen from above with the stack tip in its middle, a bright roaring orange-yellow flame at the tip leaning slightly with the wind, a soft warm heat glow on the ground round it (semi-transparent), and the stack's thin shadow to the lower right.
+4. A large floating-roof crude oil storage tank filling its cell: the dark shell rim with wind girder, the pale steel floating roof with its pontoon ring, roof drains, gauge hatch, the rolling ladder down to the roof, a rust run and dust; light weathered steel.
+5. A spherical pressurised volatiles tank (a ball tank) on legs: pale steel sphere with an equator walkway and stair, valves on top, and its round cast shadow to the lower right, soft and semi-transparent.
+6. A spill of crude oil and fuel on the ground: a dark, glossy, irregular pool with an iridescent sheen and drip trails, soaked edges; nothing else.
+
+Domain-era spacefaring industry: heavy, worn, repaired; plated steel, rivets, rust streaks, grime, faded hazard striping, small sodium-orange work lights. Weathered grey and off-white steel with rust and ochre accents; no glossy paint.
+
+TRUE ORTHOGRAPHIC ZENITH CAMERA looking straight DOWN, light from the upper left. Grounded painted Starsector-style sprite aesthetic: no chunky pixel-art outlines, no cartoon style. Keep broad readable forms at small game scale. Cast shadows only where the guide draws them, soft and semi-transparent.
+
+True alpha transparency around every piece; no ground, no background, no border, no labels, no text, no watermark. Paint only the six pieces and the shadows and glow the guide draws; nothing outside their silhouettes.

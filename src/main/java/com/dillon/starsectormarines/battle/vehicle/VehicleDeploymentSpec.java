@@ -21,10 +21,14 @@ import java.util.List;
  *
  * <p>{@code refit} is what the company's Mech Lab upgrades were worth at launch ({@link MechRefit}): aim, cooling,
  * plate and turret traverse, the same bonuses its mechs carry. Neutral for a vehicle the company does not own.
+ *
+ * <p>{@code coax} is the part in the hull's coax card ({@link VehicleType#coaxMount}); null is an empty card, no gun
+ * there, and always null on a hull with no coax card.
  */
 public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type,
                                     VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun,
-                                    List<MechInternal> compartment, boolean noOwnGun, MechRefit refit) {
+                                    List<MechInternal> compartment, boolean noOwnGun, MechRefit refit,
+                                    MechWeaponComponent coax) {
 
     public VehicleDeploymentSpec {
         if (type == null) throw new IllegalArgumentException("Vehicle type is required");
@@ -32,6 +36,14 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
         plating = plating == null ? VehiclePlating.FACTORY : plating;
         engine = engine == null ? VehicleEngine.STOCK : engine;
         compartment = compartment == null ? VehicleRack.stockFit(type) : List.copyOf(compartment);
+        if (coax != null && !VehicleGunCard.COAX.accepts(coax) || type.coaxMount() == null) coax = null;
+    }
+
+    /** A vehicle with an empty coax card, or none. */
+    public VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type,
+                                 VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun,
+                                 List<MechInternal> compartment, boolean noOwnGun, MechRefit refit) {
+        this(campaignId, callsign, type, plating, engine, gun, compartment, noOwnGun, refit, null);
     }
 
     /** A vehicle off the Mech Lab's upgrades: neutral. */
@@ -43,7 +55,14 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
 
     /** This deployment with the Mech Lab's upgrades frozen over it. */
     public VehicleDeploymentSpec withRefit(MechRefit refit) {
-        return new VehicleDeploymentSpec(campaignId, callsign, type, plating, engine, gun, compartment, noOwnGun, refit);
+        return new VehicleDeploymentSpec(campaignId, callsign, type, plating, engine, gun, compartment, noOwnGun, refit,
+                coax);
+    }
+
+    /** This deployment with {@code coax} in its coax card. */
+    public VehicleDeploymentSpec withCoax(MechWeaponComponent coax) {
+        return new VehicleDeploymentSpec(campaignId, callsign, type, plating, engine, gun, compartment, noOwnGun, refit,
+                coax);
     }
 
     /** A vehicle whose empty gun card, if it has one, is the hull's own gun. */
@@ -87,10 +106,12 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
     }
 
     /**
-     * An unowned vehicle of {@code type}: debug grants and missions without a bay, with the part a spawn that names none
-     * fits ({@link VehicleType#standardPart}), so a modular hull is not set down as a bare ring.
+     * An unowned vehicle of {@code type}: debug grants and missions without a bay, with the parts a spawn that names
+     * none fits ({@link VehicleType#standardPart}, {@link VehicleType#standardCoax}), so a modular hull is not set down
+     * as a bare ring.
      */
     public static VehicleDeploymentSpec standard(VehicleType type) {
-        return new VehicleDeploymentSpec(null, null, type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart());
+        return new VehicleDeploymentSpec(null, null, type, VehiclePlating.FACTORY, VehicleEngine.STOCK, type.standardPart())
+                .withCoax(type.standardCoax());
     }
 }

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Props;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Plot;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Use;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -170,5 +171,71 @@ class GrainHubTest {
         BiPredicate<Integer, Integer> walled = (x, y) -> false;
         assertTrue(GrainHub.haulerQueue(box, Side.NORTH, walled, walled, GrainHub.QUEUE).isEmpty(),
                 "no room, no queue");
+    }
+
+    /**
+     * A leg house's bins stand off its walls on yard, never on each other, each with walkable ground all round it, and
+     * no more than asked.
+     */
+    @Test
+    void theBinsStandRoundTheLegHouse() {
+        int[] box = {30, 30, 37, 37};
+        BiPredicate<Integer, Integer> open = (x, y) -> !(x >= box[0] && x <= box[2] && y >= box[1] && y <= box[3]);
+        List<Props.Placement> bins = GrainHub.bins(box, open, open, GrainHub.BINS_PER_HOUSE);
+        assertEquals(GrainHub.BINS_PER_HOUSE, bins.size());
+        int b = GrainHub.BIN_SIDE;
+        Set<Long> footprints = new HashSet<>();
+        for (Props.Placement p : bins) {
+            assertEquals(GrainHub.BIN, p.doodad());
+            for (int dx = 0; dx < b; dx++) {
+                for (int dy = 0; dy < b; dy++) {
+                    assertTrue(footprints.add(((long) (p.x() + dx) << 32) | (p.y() + dy)), "two bins overlap");
+                }
+            }
+        }
+        for (Props.Placement p : bins) {
+            for (int dx = -1; dx <= b; dx++) {
+                for (int dy = -1; dy <= b; dy++) {
+                    int x = p.x() + dx, y = p.y() + dy;
+                    assertTrue(open.test(x, y), "a bin or its ring on the house");
+                    boolean ring = dx < 0 || dy < 0 || dx == b || dy == b;
+                    if (ring) assertFalse(footprints.contains(((long) x << 32) | y), "bins with no way between");
+                }
+            }
+        }
+        assertTrue(GrainHub.bins(box, (x, y) -> false, open, 3).isEmpty(), "no yard, no bins");
+    }
+
+    /** A pivot field grows in rings inside the pivot's reach, which stays inside the plot, and grass beyond it. */
+    @Test
+    void aPivotFieldGrowsInRings() {
+        Plot plot = new Plot(10, 10, 31, 29, Use.GRAIN, true, false);
+        int[] centre = GrainHub.pivotCentre(plot);
+        int r = GrainHub.pivotRadius(plot);
+        assertTrue(centre[0] - r > plot.x0() && centre[0] + r < plot.x1(), "reach past the plot's sides");
+        assertTrue(centre[1] - r > plot.y0() && centre[1] + r < plot.y1(), "reach past the plot's ends");
+        assertEquals(GroundKind.GRASS, GrainHub.pivotGround(plot, plot.x0(), plot.y0()), "a corner is under crop");
+        Set<GroundKind> along = EnumSet.noneOf(GroundKind.class);
+        for (int x = centre[0] + 1; x <= centre[0] + r; x++) along.add(GrainHub.pivotGround(plot, x, centre[1]));
+        assertEquals(EnumSet.of(GroundKind.SAND, GroundKind.DIRT), along, "no crop rings and wheel tracks");
+    }
+
+    /** Pivot squares lie wholly on free ground, keep their headland from each other, and leave the mask as it was. */
+    @Test
+    void pivotsTileTheOpenCountry() {
+        boolean[][] free = new boolean[60][40];
+        for (int x = 0; x < 60; x++) for (int y = 0; y < 40; y++) free[x][y] = !(x >= 25 && x <= 30);
+        List<Plot> plots = GrainHub.pivotPlots(free, new int[]{20, 12}, 2);
+        assertFalse(plots.isEmpty());
+        for (Plot p : plots) {
+            for (int x = p.x0(); x <= p.x1(); x++) for (int y = p.y0(); y <= p.y1(); y++) assertTrue(free[x][y]);
+            for (Plot q : plots) {
+                if (p == q) continue;
+                boolean apart = p.x1() + 2 < q.x0() || q.x1() + 2 < p.x0() || p.y1() + 2 < q.y0() || q.y1() + 2 < p.y0();
+                assertTrue(apart, "two pivots with no headland between");
+            }
+        }
+        assertTrue(plots.stream().anyMatch(p -> p.x1() - p.x0() + 1 == 20), "the larger side first");
+        assertFalse(free[25][0] || !free[0][0], "the mask changed");
     }
 }
