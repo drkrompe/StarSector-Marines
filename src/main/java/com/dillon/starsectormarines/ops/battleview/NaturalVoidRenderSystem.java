@@ -70,6 +70,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final GlacialVoidRenderSystem glacial;
     /** The drop this instance draws is a lava rift. */
     private boolean lava;
+    /** Whether the drop is a foundry's melt, whose kerb is laid as a strip. */
+    private boolean foundry;
+    /** A foundry's kerb: one cell along the edge by half a cell across, its bottom row at the drop. */
+    static final String FOUNDRY_LIP = "graphics/battle/voids/foundry-lip.png";
     /** The drop this instance draws is an open pit: benches, a haul road down them, conveyors out. */
     private boolean pit;
     /** An open pit's haul road, and the conveyors it draws over the ground. */
@@ -215,6 +219,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             seed = drop.seed();
         }
         lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
+        foundry = !rising && ((NaturalVoid) look).style() == NaturalVoid.Style.FOUNDRY;
         pit = !rising && PitVoidLook.pit((NaturalVoid) look);
         belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
@@ -297,6 +302,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 // crevasse's cornice and a dry drop's rim go over to the plain's own tone, so their end needs no
                 // fading. A partly covering piece would also thin the ground target's alpha, read as shade.
                 if ((lava || ice || frozenRise || dry != null) && at[o + 7] < 1f) continue;
+                // A foundry's kerb is a laid strip (below), not rock fraying onto the floor.
+                if (foundry) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
@@ -318,13 +325,47 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                         shadeR, shadeG, shadeB, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+            if (foundry) drawKerb(ctx.sim.getTopology());
             if (pit && !belts.isEmpty()) drawBelts(FireLight.clock(ctx.animationTimeSeconds));
         });
+    }
+
+    /**
+     * A foundry's kerb: the style's lip strip ({@link #FOUNDRY_LIP}) laid along every edge where the floor meets the
+     * melt, half a cell deep on the floor's side, its bottom row at the drop. Engineered, so its corners are square.
+     */
+    private void drawKerb(CellTopology topology) {
+        ShuttleSpriteCache lip = sprites.spriteByPath(FOUNDRY_LIP);
+        if (lip == null || lip.pxW <= 4) return;
+        float cell = cam.cellPxSize(), margin = cell * 2f;
+        int w = topology.getWidth(), h = topology.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (topology.getGroundKind(x, y) == GroundKind.VOID) continue;
+                float fx = x + MARGIN + .5f, fy = y + MARGIN + .5f;
+                if (!inView(fx, fy, 1f, margin)) continue;
+                for (int side = 0; side < 4; side++) {
+                    int dx = side == 1 ? 1 : side == 3 ? -1 : 0, dy = side == 0 ? -1 : side == 2 ? 1 : 0;
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || topology.getGroundKind(nx, ny) != GroundKind.VOID) {
+                        continue;
+                    }
+                    // The strip lies inside the floor cell against the shared edge, turned so its bottom faces the
+                    // melt: south unturned, east a quarter turn, north a half, west three quarters.
+                    float px = sx(fx + dx * .25f, 1f), py = sy(fy + dy * .25f, 1f);
+                    out.addSheetQuad(RenderLayer.GROUND, lip.sprite, 0, 0, lip.pxW, lip.pxH, px, py, cell, cell * .5f,
+                            side * 90f, 1f, 1f, 1f, alpha);
+                }
+            }
+        }
     }
 
     // ----- projection, shared with the lava rift's drawing -----
 
     NaturalVoidField field() { return field; }
+
+    /** Whether the drop is a foundry's melt. */
+    boolean foundry() { return foundry; }
 
     /** Whether this instance draws a rise, the land standing up from the floor, rather than a drop. */
     boolean rising() { return rising; }

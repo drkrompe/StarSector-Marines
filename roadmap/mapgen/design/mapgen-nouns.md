@@ -2077,6 +2077,15 @@ line end feeding 6x3 modules with a gap after every second and a wreck here and
 there, some modules carrying the theme's unit half-built or wrecked on their bed; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
 wall (their levelers are floor) with stock left on the dock floor.
 
+**A forge works has a foundry.** The outer band's first line hall is laid at a
+foundry's size, 34x22 (40x24 at vast), whatever the theme. A dressing marked
+`foundry` fills it with a bank of crucibles on its north wall, a two-cell pour
+channel from each to a casting bed, and a grate crossing over each channel,
+staggered from channel to channel, all clear of doorways and the hall's middle.
+The hall is proved one floor across its crossings before the melt is cut. The
+ground plans the melt (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after
+finalize as a `FOUNDRY` lava drop (`voids.md`).
+
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
 and the interior's chambers wear for the site's vault prize
 (`ruins-expedition.md`, The vault and its prize). The ruins ground lays them
