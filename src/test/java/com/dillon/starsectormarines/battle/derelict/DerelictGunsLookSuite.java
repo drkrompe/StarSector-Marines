@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.battle.mech.MechBodyHardpoints;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -23,8 +24,10 @@ import org.json.JSONObject;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -66,6 +69,10 @@ public final class DerelictGunsLookSuite implements SnapshotSuite {
                     context.projectRoot().resolve(DerelictHeaviesLookSuite.VAST_FIXTURE), StandardCharsets.UTF_8));
             BattleSimulation sim = settled(fixture);
             Map<MechVariant, Long> walkers = walkers(sim);
+            Map<MechVariant, float[]> posts = new EnumMap<>(MechVariant.class);
+            for (Map.Entry<MechVariant, Long> w : walkers.entrySet()) {
+                posts.put(w.getKey(), new float[] {sim.world().x(w.getValue()), sim.world().y(w.getValue())});
+            }
             System.out.println("    [look/derelict-guns] walkers " + walkers.keySet());
             if (walkers.isEmpty()) return out;
             long first = walkers.values().iterator().next();
@@ -94,9 +101,61 @@ public final class DerelictGunsLookSuite implements SnapshotSuite {
                         1080, x, cy, 3.2f * order[i].renderScale).withoutRoofs().render(sim, name)));
                 stand(sim, id, x, cy, 0f, LINEUP_AIM, 0);
             }
+            // Each class alone, aiming ahead, its mounts' arcs drawn over it; the others back at their posts.
+            for (int i = 0; i < order.length; i++) {
+                Long id = walkers.get(order[i]);
+                if (id == null) continue;
+                for (int j = 0; j < order.length; j++) {
+                    Long other = walkers.get(order[j]);
+                    if (other == null) continue;
+                    float[] post = j == i ? new float[] {cx, cy} : posts.get(order[j]);
+                    stand(sim, other, post[0], post[1], 0f, 0f, 0);
+                }
+                float across = ARC_CELLS * order[i].renderScale;
+                BufferedImage frame = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, cx, cy, across)
+                        .withoutRoofs().render(sim, "derelict-guns-arcs");
+                arcs(frame, order[i], cx, cy, across);
+                out.add(new SnapshotArtifact("derelict-guns-" + order[i].id + "-arcs.png", frame));
+            }
             out.add(new SnapshotArtifact("derelict-guns-dolls.png", dolls(context)));
         }
         return out;
+    }
+
+    /** The arc shots' frame, cells across per unit of render scale, and the arc wedges' reach. */
+    static final float ARC_CELLS = 4.4f;
+    static final float ARC_REACH = 1.25f;
+
+    /**
+     * Each of {@code variant}'s hardpoints' arcs as a wedge from its pivot over a frame centred on (cx, cy)
+     * {@code across} cells wide, the walker heading up: guns orange, racks blue.
+     */
+    private static void arcs(BufferedImage frame, MechVariant variant, float cx, float cy, float across) {
+        float ppc = frame.getWidth() / across;
+        float hull = LayeredMechAppearance.hullWidthCells(variant.renderScale);
+        Graphics2D g = frame.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                MechBodyHardpoints.Hardpoint point = MechBodyHardpoints.of(variant, slot);
+                if (point == null) continue;
+                float[] pivot = MechBodyHardpoints.pivot(cx, cy, 0f, hull, point);
+                double px = frame.getWidth() / 2.0 + (pivot[0] - cx) * ppc;
+                double py = frame.getHeight() / 2.0 - (pivot[1] - cy) * ppc;
+                double r = ARC_REACH * variant.renderScale * ppc;
+                // Sprite bearing 0 is up the frame and turns left as it grows: Java2D's 90 degrees, the same way round.
+                Arc2D wedge = new Arc2D.Double(px - r, py - r, 2 * r, 2 * r,
+                        90 + point.arcCentre() - point.arcHalf(), 2 * point.arcHalf(), Arc2D.PIE);
+                Color tone = slot.isArm() ? new Color(255, 150, 40) : new Color(70, 170, 255);
+                g.setColor(new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 46));
+                g.fill(wedge);
+                g.setColor(new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 200));
+                g.setStroke(new BasicStroke(3f));
+                g.draw(wedge);
+            }
+        } finally {
+            g.dispose();
+        }
     }
 
     /** Every walker frame's doll, intact, at three and a half times its HUD size, captioned with its fit. */

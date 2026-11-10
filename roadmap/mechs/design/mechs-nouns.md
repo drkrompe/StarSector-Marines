@@ -66,7 +66,8 @@ increasing an encounter's total armored threat.
   rows, per walker class. Its gun turns on its own ring toward the fire-control bearing (`torsoFacingDegrees`) and
   stops at its arc's edge; it fires only at a bearing its arc covers, and its round and flash leave the tip of its
   drawn barrel. The doll draws each mount's weapon by kind (`MountGlyph`: rotary, cannon, laser, small or large
-  rack), so the MG-40's line, siege and vault frames read apart on one body.
+  rack), so the MG-40's line, siege and vault frames read apart on one body. The MG-25 carries two guns, one in each flank port with their arcs overlapping ahead
+  (`MechBodyHardpoints.RoundsLayout`, owner pick `derelict-rounds-mounts` open), and has its own doll.
   The arm positions come in two shapes, and a chassis has one or the other:
   a **centreline arm mount** (`ARMS`, the gun under the Hound's nose, a 2x2
   ballistic socket, or the Warden's chin, a 2x3 omni socket that also takes the
