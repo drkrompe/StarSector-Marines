@@ -1,0 +1,12 @@
+Concept art for a top-down tactical science-fiction game: one finished concept frame, 16:9 landscape.
+
+Image 1 is the layout authority: the game's own overhead view of a mining site on a desert world. On the right an open-cut ore pit, terraced in benches, with a crushing station on its floor and a covered conveyor gallery climbing out to a transfer tower on the rim. On the left the walled head-works compound. Keep the camera (straight down, the same framing), the pit, the compound's wall line and the desert ground. Repaint at the same painted, gritty game-sprite finish.
+Images 2 and 3 are the setting's own illustrations of a mine and an industrial megafacility: material and design language only (Domain-era spacefaring industry: heavy, worn, plated and ribbed, lattice gantries, thick pipework, rust, grime, sodium-orange work lights, furnace glow). Not layout, not camera.
+
+Redesign the inside of the compound as an ore-processing chain that plausibly makes sense, every building joined to the next by raised conveyors that run straight along the map's grid, only turning at right angles, on trestles above the ground, with ore visibly riding them:
+1. From the transfer tower on the pit's rim the conveyor runs overland, raised on trestles, into a receiving and primary-crusher house at the compound's edge.
+2. From there to a long covered ore stockpile shed with a travelling stacker on its roof line, broken ore heaped along it.
+3. From the stockpile into two or three parallel concentrator mill halls (grinding drums, flotation cells seen through roof vents).
+4. From the mills into the smelter: a heavy furnace hall with rows of burners glowing orange-red through roof grilles, tall stacks trailing smoke, slag pots.
+5. From the smelter to a loadout building where refined ingots or concentrate go out by the compound gate.
+The ore's path from the pit to the gate must read at a glance, as one connected line. Buildings are large, plated industrial halls with roof machinery, not plain boxes. No people, no text, no labels, no UI, no border.
