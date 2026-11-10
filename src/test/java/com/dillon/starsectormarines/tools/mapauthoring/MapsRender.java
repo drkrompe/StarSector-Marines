@@ -1,21 +1,16 @@
 package com.dillon.starsectormarines.tools.mapauthoring;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.BiomeSkin;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.OwnedMap;
+import com.dillon.starsectormarines.battle.world.gen.OwnedMap.Cell;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
-import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.render2d.BattleCamera;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Crossing;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Drop;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Place;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Program;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Pt;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Rise;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Road;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Role;
-import com.dillon.starsectormarines.tools.mapauthoring.MapSketch.Settlement;
 
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -29,9 +24,10 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Draws an edited map as it will play, through the battle renderer's owner-facing look preset
+ * Draws a built owned map as it will play, through the battle renderer's owner-facing look preset
  * ({@link BattleReviewFrameRenderer#look}), framed whole; and the marks the page draws over it, which say what the
- * picture cannot: where the paths run, which crossing is which, what a settlement's program is.
+ * picture cannot: where a drop's path runs and how deep it is on this world, which crossing is which, what a
+ * settlement is for and how it adapted here.
  */
 public final class MapsRender {
 
@@ -52,8 +48,8 @@ public final class MapsRender {
 
     public MapsRender(Path modRoot) { this.modRoot = modRoot; }
 
-    /** The whole map in the look preset, {@code width} by {@code height}. */
-    public Frame whole(MapResult map, int width, int height) throws Exception {
+    /** The whole map in the look preset, {@code width} by {@code height}, as the owned-map look suite draws it. */
+    public synchronized Frame whole(MapResult map, SurfacePalette surface, int width, int height) throws Exception {
         int w = map.grid.getWidth(), h = map.grid.getHeight();
         float across = Math.max(w, h * width / (float) height) + 4f;
         if (renderer == null || rendererWidth != width || rendererHeight != height) {
@@ -63,9 +59,9 @@ public final class MapsRender {
         } else {
             renderer.refocus(w / 2f, h / 2f, across);
         }
-        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(map, 0)) {
-            BattleSimulation sim = scene.simulation();
-            sim.setMissionCompletionEnabled(false);
+        try (BattleSimulation sim = new BattleSimulation(map.grid, map.topology)) {
+            for (Doodad d : map.doodads) sim.addDoodad(d);
+            sim.setSurface(surface);
             BufferedImage image = renderer.render(sim, "");
             BattleCamera camera = renderer.cameraOf(sim);
             float px = camera.cellPxSize();
@@ -78,79 +74,121 @@ public final class MapsRender {
 
     // ------------------------------------------------------------------ marks
 
-    static final Color DROP = new Color(120, 200, 255), RISE = new Color(225, 170, 90), ROAD = new Color(240, 240, 240),
-            CROSSING = new Color(120, 255, 160), SITE = new Color(255, 214, 64), LANDING = new Color(80, 220, 255),
-            BAD = new Color(255, 80, 70);
+    static final Color DROP = new Color(120, 200, 255), RISE = new Color(225, 170, 90),
+            CROSSING = new Color(120, 255, 160), SITE = new Color(255, 214, 64), ORIGIN = new Color(80, 220, 255),
+            OBJECTIVE = new Color(255, 110, 90), TOWN = new Color(255, 230, 150), BAD = new Color(255, 80, 70);
 
-    /** The page's marks over {@code frame}, in place. {@code selected} is drawn brighter; null for none. */
-    public static void mark(Graphics2D g, Frame f, MapSketch sketch, BiomeSkin skin, String selected) {
+    /** The page's marks over {@code f}, in place: {@code built} says how deep and how adapted on its world. */
+    public static void mark(Graphics2D g, Frame f, MapDocument doc, MapsSession.Built built, String selected) {
+        OwnedMap map = doc.map();
+        BiomeSkin skin = built.world().skin();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        for (Rise r : sketch.rises()) {
-            path(g, f, r.path(), RISE, r.id().equals(selected));
-            for (int k = 0; k < r.path().size(); k++) label(g, f, r.path().get(k), String.format(Locale.ROOT, "+%.0f m", r.heights().get(k)), RISE);
+        for (OwnedMap.Rise r : map.rises()) {
+            OwnedMap.Box b = r.box();
+            OwnedMap.DropRole role = map.drops().isEmpty() ? OwnedMap.DropRole.RIFT : map.drops().get(0).role();
+            box(g, f, b, RISE, r.name().equals(selected), new float[]{5f, 4f});
+            tag(g, Math.round(f.sx(b.x0())) + 4, Math.round(f.sy(b.y1() + 1)) + 16,
+                    String.format(Locale.ROOT, "%s · bank +%.0f m", r.name(), skin.floorMeters(role, 1f) * r.share()), RISE);
         }
-        for (Drop d : sketch.drops()) {
-            path(g, f, d.path(), DROP, d.id().equals(selected));
-            for (int k = 0; k < d.path().size(); k++) label(g, f, d.path().get(k), String.format(Locale.ROOT, "−%.0f m", d.depths().get(k)), DROP);
-            float length = SketchRaster.length(d.path());
-            for (Crossing c : d.crossings()) {
-                Pt at = SketchRaster.pointAt(d.path(), c.at() * length), n = SketchRaster.normalAt(d.path(), c.at() * length);
-                float reach = d.width() / 2f + 1.5f;
-                g.setColor(CROSSING);
-                g.setStroke(new BasicStroke(Math.max(3f, c.width() * f.cellPx() * .6f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-                g.setComposite(AlphaComposite.SrcOver.derive(.55f));
-                g.drawLine(Math.round(f.sx(at.x() - n.x() * reach)), Math.round(f.sy(at.y() - n.y() * reach)),
-                        Math.round(f.sx(at.x() + n.x() * reach)), Math.round(f.sy(at.y() + n.y() * reach)));
-                g.setComposite(AlphaComposite.SrcOver);
-                label(g, f, new Pt(at.x() + n.x() * reach, at.y() + n.y() * reach),
-                        c.kind() == MapSketch.CrossingKind.BRIDGE ? "bridge" : "land bridge", CROSSING);
+        for (OwnedMap.Drop d : map.drops()) {
+            path(g, f, d.path(), DROP, d.name().equals(selected));
+            for (int k = 0; k < d.path().size(); k++) {
+                float share = MapDocument.depthAt(d, k);
+                if (share < 0f) continue;
+                tag(g, Math.round(f.sx(d.path().get(k).x() + .5f)) + 7, Math.round(f.sy(d.path().get(k).y() + .5f)) - 7,
+                        String.format(Locale.ROOT, "−%.0f m", skin.floorMeters(d.role(), share)), DROP);
+            }
+            Cell first = d.path().get(0);
+            tag(g, Math.round(f.sx(first.x() + .5f)) + 7, Math.round(f.sy(first.y() + .5f)) + 20,
+                    d.name() + " · " + d.role().name().toLowerCase(Locale.ROOT) + " · " + built.world().dropStyle(d.role()), DROP);
+            for (Cell c : d.crossings()) {
+                float[] n = MapChecks.across(d.path(), c.x() + .5f, c.y() + .5f);
+                float reach = d.width() / 2f + 1.5f, cx = c.x() + .5f, cy = c.y() + .5f;
+                g.setColor(new Color(CROSSING.getRed(), CROSSING.getGreen(), CROSSING.getBlue(), 140));
+                g.setStroke(new BasicStroke(Math.max(3f, d.crossingWidth() * f.cellPx() * .6f), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+                g.drawLine(Math.round(f.sx(cx - n[0] * reach)), Math.round(f.sy(cy - n[1] * reach)),
+                        Math.round(f.sx(cx + n[0] * reach)), Math.round(f.sy(cy + n[1] * reach)));
+                tag(g, Math.round(f.sx(cx + n[0] * reach)) + 4, Math.round(f.sy(cy + n[1] * reach)), "crossing", CROSSING);
             }
         }
-        for (Road r : sketch.roads()) path(g, f, r.path(), ROAD, r.id().equals(selected));
-        for (Settlement s : sketch.settlements()) {
-            int x0 = Math.round(f.sx(s.x())), y0 = Math.round(f.sy(s.y() + s.h()));
-            int x1 = Math.round(f.sx(s.x() + s.w())), y1 = Math.round(f.sy(s.y()));
-            Color c = s.program() == Program.COMPOUND ? new Color(255, 120, 90) : s.program() == Program.CREVASSE_TOWN ? new Color(170, 220, 255) : new Color(255, 230, 150);
-            g.setColor(c);
-            g.setStroke(new BasicStroke(s.id().equals(selected) ? 4f : 2.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, new float[]{12f, 7f}, 0f));
-            g.drawRect(x0, y0, x1 - x0, y1 - y0);
-            String text = program(s.program()) + (s.role().isBlank() ? "" : " · " + s.role()) + " → " + skin.adaptation(s.program());
-            tag(g, x0 + 4, y0 + 18, text, c);
+        if (doc.roads() != null) {
+            for (RoadPlan.Route r : doc.roads().routes()) {
+                Path2D.Float line = new Path2D.Float();
+                for (int k = 0; k < r.points().size(); k++) {
+                    float x = f.sx((float) r.points().get(k).x() + .5f), y = f.sy((float) r.points().get(k).y() + .5f);
+                    if (k == 0) line.moveTo(x, y); else line.lineTo(x, y);
+                }
+                boolean on = r.id().equals(selected);
+                g.setColor(new Color(255, 255, 255, on ? 230 : 70));
+                g.setStroke(new BasicStroke(on ? 3f : 1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, new float[]{6f, 6f}, 0f));
+                g.draw(line);
+            }
         }
-        for (Place p : sketch.places()) {
-            Color c = p.role() == Role.LANDING ? LANDING : p.role() == Role.SITE ? SITE : Color.WHITE;
-            int x = Math.round(f.sx(p.x() + .5f)), y = Math.round(f.sy(p.y() + .5f)), r = p.id().equals(selected) ? 10 : 7;
-            g.setColor(new Color(0, 0, 0, 170));
-            g.fillOval(x - r - 2, y - r - 2, 2 * r + 4, 2 * r + 4);
-            g.setColor(c);
-            g.fillOval(x - r, y - r, 2 * r, 2 * r);
-            tag(g, x + r + 4, y + 5, p.label(), c);
+        for (OwnedMap.Settlement s : map.settlements()) {
+            box(g, f, s.lot(), TOWN, s.name().equals(selected), new float[]{12f, 7f});
+            for (Cell gate : s.gates()) {
+                g.setColor(TOWN);
+                int x = Math.round(f.sx(gate.x() + .5f)), y = Math.round(f.sy(gate.y() + .5f));
+                g.fillRect(x - 4, y - 4, 8, 8);
+            }
+            BiomeSkin.Adaptation a = built.adaptations().get(s.name());
+            String text = s.name() + " · " + s.program() + " · " + s.role().name().toLowerCase(Locale.ROOT)
+                    + (s.terraceInto() == null ? "" : " · terraces into " + s.terraceInto())
+                    + (a == null ? "" : " → " + MapWorld.words(a));
+            tag(g, Math.round(f.sx(s.lot().x0())) + 4, Math.round(f.sy(s.lot().y1() + 1)) + 18, text, TOWN);
         }
+        for (OwnedMap.Site s : map.sites()) {
+            Cell at = s.at() != null ? s.at() : buildingCell(map, s.building());
+            if (at == null) continue;
+            dot(g, f, at, SITE, s.name().equals(selected), s.name() + (s.building() == null ? "" : " (" + s.building() + ")"));
+        }
+        dot(g, f, map.origin(), ORIGIN, "origin".equals(selected), "Origin · landing");
+        dot(g, f, map.objective(), OBJECTIVE, false, "Objective");
+    }
+
+    private static Cell buildingCell(OwnedMap map, String name) {
+        OwnedMap.Building b = name == null ? null : map.building(name);
+        if (b == null) return null;
+        if (b.at() != null) return b.at();
+        return b.box() == null ? null : new Cell((b.box().x0() + b.box().x1()) / 2, (b.box().y0() + b.box().y1()) / 2);
     }
 
     /** The check results in a panel at the bottom left, green when every check passed. */
     public static void problems(Graphics2D g, int height, List<String> problems) {
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-        List<String> lines = problems.isEmpty() ? List.of("All checks pass: every place reachable, every crossing crosses, nothing built on a way.") : problems;
+        List<String> lines = problems.isEmpty() ? List.of("Every check passes: every place reachable from the origin, every crossing crosses, nothing built on a way.") : problems;
         int shown = Math.min(lines.size(), 8), lh = 22, y0 = height - 18 - shown * lh;
         g.setColor(new Color(10, 12, 12, 200));
-        g.fillRoundRect(12, y0 - 20, 980, shown * lh + 18, 10, 10);
+        g.fillRoundRect(12, y0 - 20, 1100, shown * lh + 18, 10, 10);
         for (int i = 0; i < shown; i++) {
             g.setColor(problems.isEmpty() ? new Color(120, 235, 140) : BAD);
             g.drawString((problems.isEmpty() ? "" : "✗ ") + lines.get(i), 24, y0 + i * lh);
         }
     }
 
-    static String program(Program p) {
-        return switch (p) { case TOWN -> "Town"; case COMPOUND -> "Compound"; case CREVASSE_TOWN -> "Crevasse town"; };
+    private static void box(Graphics2D g, Frame f, OwnedMap.Box b, Color c, boolean selected, float[] dash) {
+        int x0 = Math.round(f.sx(b.x0())), y0 = Math.round(f.sy(b.y1() + 1));
+        int x1 = Math.round(f.sx(b.x1() + 1)), y1 = Math.round(f.sy(b.y0()));
+        g.setColor(c);
+        g.setStroke(new BasicStroke(selected ? 4f : 2.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, dash, 0f));
+        g.drawRect(x0, y0, x1 - x0, y1 - y0);
     }
 
-    private static void path(Graphics2D g, Frame f, List<Pt> path, Color c, boolean selected) {
+    private static void dot(Graphics2D g, Frame f, Cell at, Color c, boolean selected, String label) {
+        int x = Math.round(f.sx(at.x() + .5f)), y = Math.round(f.sy(at.y() + .5f)), r = selected ? 10 : 7;
+        g.setColor(new Color(0, 0, 0, 170));
+        g.fillOval(x - r - 2, y - r - 2, 2 * r + 4, 2 * r + 4);
+        g.setColor(c);
+        g.fillOval(x - r, y - r, 2 * r, 2 * r);
+        tag(g, x + r + 4, y + 5, label, c);
+    }
+
+    private static void path(Graphics2D g, Frame f, List<Cell> path, Color c, boolean selected) {
         Path2D.Float line = new Path2D.Float();
         for (int k = 0; k < path.size(); k++) {
-            float x = f.sx(path.get(k).x()), y = f.sy(path.get(k).y());
+            float x = f.sx(path.get(k).x() + .5f), y = f.sy(path.get(k).y() + .5f);
             if (k == 0) line.moveTo(x, y); else line.lineTo(x, y);
         }
         g.setColor(new Color(0, 0, 0, 150));
@@ -159,14 +197,10 @@ public final class MapsRender {
         g.setColor(c);
         g.setStroke(new BasicStroke(selected ? 3.5f : 2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10f, new float[]{10f, 6f}, 0f));
         g.draw(line);
-        for (Pt p : path) {
-            int x = Math.round(f.sx(p.x())), y = Math.round(f.sy(p.y()));
+        for (Cell p : path) {
+            int x = Math.round(f.sx(p.x() + .5f)), y = Math.round(f.sy(p.y() + .5f));
             g.fillRect(x - 4, y - 4, 8, 8);
         }
-    }
-
-    private static void label(Graphics2D g, Frame f, Pt at, String text, Color c) {
-        tag(g, Math.round(f.sx(at.x())) + 7, Math.round(f.sy(at.y())) - 7, text, c);
     }
 
     static void tag(Graphics2D g, int x, int y, String text, Color c) {
@@ -179,10 +213,10 @@ public final class MapsRender {
 
     // ------------------------------------------------------------------ contact sheet
 
-    /** One tile of the all-biomes sheet: a skin's whole-map picture and what it chose. */
-    public record Tile(BiomeSkin skin, BufferedImage image, String drop, String adaptation, int problems) { }
+    /** One tile of the all-worlds sheet: a world's whole-map picture and what it chose. */
+    public record Tile(MapWorld world, BufferedImage image, String drop, String adaptation, int problems) { }
 
-    /** Every skin's picture side by side, five across and two down, 1920 by 1080, each labelled with its choices. */
+    /** Every world's picture side by side, five across and two down, 1920 by 1080, each labelled with its choices. */
     public static BufferedImage contactSheet(String title, List<Tile> tiles) {
         BufferedImage out = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = out.createGraphics();
@@ -198,18 +232,21 @@ public final class MapsRender {
         for (int k = 0; k < tiles.size() && k < 10; k++) {
             Tile t = tiles.get(k);
             int x = (k % cols) * tw, y = top + (k / cols) * th;
-            int ih = th - 58, iw = Math.round(ih * t.image().getWidth() / (float) t.image().getHeight());
+            int ih = th - 62, iw = Math.round(ih * t.image().getWidth() / (float) t.image().getHeight());
             if (iw > tw - 8) { iw = tw - 8; ih = Math.round(iw * t.image().getHeight() / (float) t.image().getWidth()); }
-            g.drawImage(t.image(), x + (tw - iw) / 2, y + 4, iw, ih, null);
+            int iy = y + (th - 62 - ih) / 2 + 4;
+            g.drawImage(t.image(), x + (tw - iw) / 2, iy, iw, ih, null);
+            int ty = y + th - 52;
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 17));
             g.setColor(new Color(240, 232, 208));
-            g.drawString(t.skin().label() + " · " + t.skin().planetType(), x + 10, y + ih + 24);
+            g.drawString(t.world().label() + " · " + t.world().planetType(), x + 10, ty);
             g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
             g.setColor(new Color(190, 200, 205));
-            g.drawString("drop: " + t.drop() + " · towns: " + t.adaptation(), x + 10, y + ih + 44);
+            g.drawString("drop: " + t.drop(), x + 10, ty + 20);
+            g.drawString("settlements: " + t.adaptation(), x + 10, ty + 38);
             if (t.problems() > 0) {
                 g.setColor(BAD);
-                g.drawString(t.problems() + " check(s) fail", x + tw - 130, y + ih + 24);
+                g.drawString(t.problems() + " check(s) fail", x + tw - 130, ty);
             }
         }
         g.dispose();

@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.tools.mapauthoring;
 
+import com.dillon.starsectormarines.battle.world.gen.OwnedMap;
+import com.dillon.starsectormarines.battle.world.gen.OwnedMapJson;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.tools.mcp.McpSchema;
 import com.dillon.starsectormarines.tools.mcp.McpTool;
 import com.dillon.starsectormarines.tools.mcp.McpToolContext;
@@ -17,107 +20,128 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The Maps page headless: list the maps it opens, and lay a set of edits on one, check it and draw it under one world
- * or every world, so a session edits and looks at a map without the workbench. The same {@link MapsSession} the page
- * drives. Writes PNGs under {@code build/map-authoring/} unless told elsewhere inside the project; never into mod/.
+ * The Maps page headless: list the owned maps and the worlds, build an owned map for one world or every world, check
+ * it and draw it, and save it, so a session edits and looks at a map without the workbench. The same
+ * {@link MapsSession} the page drives. Pictures go under {@code build/map-authoring/} unless told elsewhere inside the
+ * project; only {@code map_save} writes into mod/, and only a map whose checks pass on every world.
  */
 public final class MapsMcpToolProvider implements McpToolProvider {
 
     @Override
     public List<McpTool> tools() {
-        return List.of(new ListMaps(), new RenderMap());
+        return List.of(new ListMaps(), new RenderMap(), new SaveMap());
     }
 
     private static final class ListMaps implements McpTool {
         @Override public String name() { return "map_list"; }
         @Override public String description() {
-            return "List the maps the Maps page opens (existing mission maps, by id, with their named places) and the "
-                    + "worlds a map can be skinned as, with each world's drop style and settlement adaptation.";
+            return "List the owned mission maps the Maps page opens (data/world/maps/<id>.map.json, owned-maps.md) and "
+                    + "the worlds a map is built for, with each world's drop style for a RIVER and a RIFT and its habitat.";
         }
         @Override public JSONObject inputSchema() { return McpSchema.object().build(); }
         @Override public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
-            JSONArray maps = new JSONArray();
-            StringBuilder text = new StringBuilder("Maps:\n");
-            for (MapBases.Base b : MapBases.all()) {
-                maps.put(new JSONObject().put("id", b.id()).put("label", b.label()).put("builtAs", b.builtAs().name())
-                        .put("places", b.sketch().json().getJSONArray("places")));
-                text.append("  ").append(b.id()).append(" — ").append(b.label()).append('\n');
+            JSONArray worlds = new JSONArray();
+            StringBuilder text = new StringBuilder("Owned maps: " + MapsSession.maps() + "\nWorlds:\n");
+            for (MapWorld w : MapWorld.values()) {
+                String habitat = w.skin().habitat().name().toLowerCase(Locale.ROOT);
+                worlds.put(new JSONObject().put("id", w.name()).put("planetType", w.planetType())
+                        .put("river", w.dropStyle(OwnedMap.DropRole.RIVER)).put("rift", w.dropStyle(OwnedMap.DropRole.RIFT))
+                        .put("habitat", habitat));
+                text.append(String.format(Locale.ROOT, "  %-10s %-10s river %-16s rift %-12s habitat %s%n", w.name(),
+                        w.planetType(), w.dropStyle(OwnedMap.DropRole.RIVER), w.dropStyle(OwnedMap.DropRole.RIFT), habitat));
             }
-            JSONArray skins = new JSONArray();
-            text.append("Worlds:\n");
-            for (BiomeSkin s : BiomeSkin.values()) {
-                skins.put(new JSONObject().put("id", s.name()).put("planetType", s.planetType()).put("palette", s.palette().name())
-                        .put("drop", s.drop().style().name()).put("towns", s.adaptation(MapSketch.Program.TOWN)));
-                text.append(String.format(Locale.ROOT, "  %-10s %-10s drop %-11s towns %s%n", s.name(), s.planetType(),
-                        s.drop().style(), s.adaptation(MapSketch.Program.TOWN)));
-            }
-            return McpToolResult.of(text.toString(), new JSONObject().put("maps", maps).put("skins", skins));
+            return McpToolResult.of(text.toString(), new JSONObject().put("maps", new JSONArray(MapsSession.maps())).put("worlds", worlds));
         }
+    }
+
+    private static McpSchema documentArguments(McpSchema schema) {
+        return schema.requiredString("map", "Owned map id from map_list")
+                .object("document", "The owned map document to use instead of the saved one (OwnedMapJson form)", false)
+                .object("roads", "The road document to use instead of the one the map names (RoadPlan form)", false);
+    }
+
+    /** The saved map, or the given document and roads in its place. */
+    private static MapDocument document(MapsSession session, JSONObject arguments) throws Exception {
+        MapDocument doc = session.open(arguments.getString("map"));
+        JSONObject map = arguments.optJSONObject("document");
+        JSONObject roads = arguments.optJSONObject("roads");
+        if (map != null) doc = doc.withMap(OwnedMapJson.read(map));
+        if (roads != null) doc = doc.withRoads(RoadPlan.read(roads));
+        return doc;
     }
 
     private static final class RenderMap implements McpTool {
         @Override public String name() { return "map_render"; }
         @Override public String description() {
-            return "Open a map by id (map_list), lay the given edits on it, run the Maps page's checks (every named place "
-                    + "reachable from the landing zone, every crossing crosses, nothing built on a road, crossing, drop or "
-                    + "rise) and draw it at 1920x1080 in the battle's look preset. 'edits' holds drops (path, width, depths "
-                    + "per point in metres, terraces, crossings {at 0-1, width, kind BRIDGE|LAND_BRIDGE}), rises (path, "
-                    + "width, heights, terraces), roads (path, width, material), places (id, label, x, y, role "
-                    + "LANDING|SITE|LANDMARK; omit to keep the map's own) and settlements (id, x, y, w, h, program "
-                    + "TOWN|COMPOUND|CREVASSE_TOWN, role). Points are [x, y] map cells, y up. 'skin' is one world, "
-                    + "'ALL' draws the all-worlds contact sheet as well. Writes PNGs only, never into mod/.";
+            return "Build an owned map for a world with the mission's own recipe, run the Maps page's checks (every pad, "
+                    + "site, building and route reachable from the origin; every crossing joins its banks; nothing built on "
+                    + "a road, crossing or gate) and draw it whole at 1920x1080 in the battle's look preset, with the page's "
+                    + "marks. 'document' and 'roads' replace the saved ones, so edits can be tried without saving. 'world' "
+                    + "is one of map_list's; ALL also draws the all-worlds contact sheet. Writes PNGs only, never into mod/.";
         }
         @Override public JSONObject inputSchema() {
-            return McpSchema.object()
-                    .requiredString("map", "Map id from map_list")
-                    .object("edits", "The edits to lay: drops, rises, roads, places, settlements", false)
-                    .string("skin", "World to draw it as (map_list); default the map's own; ALL adds the contact sheet")
-                    .bool("bridgeRoads", "Add a bridge wherever a drop cuts one of the map's roads. Default false.")
-                    .bool("marked", "Draw the page's marks and the check results over the picture. Default true.")
+            return documentArguments(McpSchema.object())
+                    .string("world", "World to build it for (map_list); default ARID; ALL adds the contact sheet")
+                    .bool("marked", "Draw the page's marks and the check results. Default true.")
                     .string("outputDir", "Project-relative folder for the PNGs. Default build/map-authoring/<map>.")
                     .build();
         }
         @Override public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
-            MapBases.Base base = MapBases.find(arguments.getString("map"));
             String dir = arguments.optString("outputDir", "");
-            Path out = dir.isBlank() ? context.projectRoot().resolve("build/map-authoring").resolve(base.id().replace('/', '-'))
-                    : context.resolveInsideProject(dir);
-            JSONObject edits = arguments.optJSONObject("edits");
-            MapSketch sketch = sketch(base, edits);
-            boolean bridge = arguments.optBoolean("bridgeRoads", false);
-            String skinName = arguments.optString("skin", "").trim().toUpperCase(Locale.ROOT);
-            boolean all = skinName.equals("ALL");
-            BiomeSkin skin = skinName.isEmpty() || all ? BiomeSkin.of(base.builtAs()) : BiomeSkin.valueOf(skinName);
+            String id = arguments.getString("map");
+            Path out = dir.isBlank() ? context.projectRoot().resolve("build/map-authoring").resolve(id) : context.resolveInsideProject(dir);
+            String asked = arguments.optString("world", "").trim().toUpperCase(Locale.ROOT);
+            boolean all = asked.equals("ALL");
+            MapWorld world = asked.isEmpty() || all ? MapWorld.ARID : MapWorld.valueOf(asked);
             boolean marked = arguments.optBoolean("marked", true);
             Files.createDirectories(out);
             try (MapsSession session = new MapsSession(context.projectRoot())) {
-                if (bridge) sketch = session.bridgeRoads(base, sketch);
-                MapsSession.Built built = session.build(base, sketch, skin);
-                Path picture = out.resolve(skin.name().toLowerCase(Locale.ROOT) + (marked ? "-marked" : "") + ".png");
-                write(session.picture(built, sketch, marked, null), picture);
-                JSONObject result = new JSONObject().put("picture", picture.toString())
-                        .put("problems", new JSONArray(built.problems())).put("skin", skin.name())
-                        .put("towns", skin.adaptation(MapSketch.Program.TOWN)).put("sketch", sketch.json());
-                StringBuilder text = new StringBuilder(picture + "\n");
+                MapDocument doc = document(session, arguments);
+                MapsSession.Built built = session.build(doc, world);
+                JSONObject result = new JSONObject().put("problems", new JSONArray(built.problems())).put("world", world.name());
+                StringBuilder text = new StringBuilder();
+                if (built.map() != null) {
+                    Path picture = out.resolve(world.name().toLowerCase(Locale.ROOT) + (marked ? "-marked" : "") + ".png");
+                    write(marked ? session.picture(built, doc, null) : session.frame(built).image(), picture);
+                    result.put("picture", picture.toString());
+                    text.append(picture).append('\n');
+                }
+                JSONObject adaptations = new JSONObject();
+                for (var e : built.adaptations().entrySet()) adaptations.put(e.getKey(), MapWorld.words(e.getValue()));
+                result.put("adaptations", adaptations);
                 if (all) {
                     Path sheet = out.resolve("all-worlds.png");
-                    write(session.contactSheet(base, sketch), sheet);
+                    write(session.contactSheet(doc), sheet);
                     result.put("contactSheet", sheet.toString());
                     text.append(sheet).append('\n');
                 }
                 text.append(built.problems().isEmpty() ? "All checks pass.\n" : String.join("\n", built.problems()) + "\n");
-                return built.problems().isEmpty() ? McpToolResult.of(text.toString(), result)
-                        : new McpToolResult(text.toString(), result, false);
+                return new McpToolResult(text.toString(), result, !built.problems().isEmpty());
             }
         }
     }
 
-    /** The base's sketch with {@code edits} laid over it: its own places unless the edits name places. */
-    static MapSketch sketch(MapBases.Base base, JSONObject edits) throws Exception {
-        if (edits == null) return base.sketch();
-        JSONObject merged = new JSONObject(edits.toString()).put("base", base.id());
-        if (!merged.has("places")) merged.put("places", base.sketch().json().getJSONArray("places"));
-        return MapSketch.read(merged);
+    private static final class SaveMap implements McpTool {
+        @Override public String name() { return "map_save"; }
+        @Override public String description() {
+            return "Save an owned map and its road document into mod/ (data/world/maps/<id>.map.json and the roads it "
+                    + "names), each replaced atomically, after building it for every world and running every check. "
+                    + "Refused, writing nothing, while any check fails on any world; the reply names each failure.";
+        }
+        @Override public JSONObject inputSchema() { return documentArguments(McpSchema.object()).build(); }
+        @Override public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
+            try (MapsSession session = new MapsSession(context.projectRoot())) {
+                MapDocument doc = document(session, arguments);
+                List<String> problems = session.checkEveryWorld(doc);
+                if (!problems.isEmpty()) {
+                    return new McpToolResult("Not saved:\n" + String.join("\n", problems), new JSONObject().put("problems", new JSONArray(problems)), true);
+                }
+                List<Path> written = session.save(doc, context.projectRoot());
+                JSONArray paths = new JSONArray();
+                for (Path p : written) paths.put(p.toString());
+                return McpToolResult.of("Saved " + written, new JSONObject().put("written", paths));
+            }
+        }
     }
 
     private static void write(BufferedImage image, Path target) throws Exception {
