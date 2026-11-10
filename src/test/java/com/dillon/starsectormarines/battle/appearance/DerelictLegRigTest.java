@@ -212,4 +212,16 @@ class DerelictLegRigTest {
         assertEquals(DerelictLegRig.Gait.RUN, crawler.gait());
         assertEquals(DerelictLegRig.Gait.WALK, walker.gait());
     }
+
+    @Test
+    void aCrawlersBodyYawsAsItStepsAndTheWalkersNever() {
+        DerelictLegRig crawler = new DerelictLegRig(DerelictLegRig.CRAWLER);
+        DerelictLegRig walker = new DerelictLegRig();
+        float[] most = {0f, 0f};
+        walk(crawler, 0.9f, 240, OPEN, () -> most[0] = Math.max(most[0], Math.abs(crawler.bodyFacing() - EAST)));
+        walk(walker, 0.7f, 240, OPEN, () -> most[1] = Math.max(most[1], Math.abs(walker.bodyFacing() - EAST)));
+        assertTrue(most[0] > 1f, "the crawler wriggles: " + most[0]);
+        assertTrue(most[0] <= DerelictLegRig.CRAWLER.twistDegrees() + 1e-3f);
+        assertEquals(0f, most[1], 1e-6f, "the walker's body keeps its heading");
+    }
 }

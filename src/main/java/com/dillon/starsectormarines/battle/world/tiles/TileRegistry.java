@@ -61,6 +61,7 @@ public final class TileRegistry {
             "data/tilesets/basin-ship-scrap.tileset.json",
             "data/tilesets/field-salvage.tileset.json",
             "data/tilesets/listening-post.tileset.json",
+            "data/tilesets/ruins-themes.tileset.json",
             "data/tilesets/fort-earthworks.tileset.json",
             "data/tilesets/fort-emplacement.tileset.json",
             "data/tilesets/fort-emplacement-damaged.tileset.json",

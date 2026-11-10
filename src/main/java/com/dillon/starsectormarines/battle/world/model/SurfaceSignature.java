@@ -7,8 +7,8 @@ package com.dillon.starsectormarines.battle.world.model;
  * generation so the renderer draws it.
  *
  * <p>A signature is detail, never a palette: the ground stays the palette's own material, and nothing here is a
- * battle rule. Fissures and crater rims are the excavation and raised-mass contracts every map already has; vents,
- * scars, ejecta, flecks, tint and haze are presentation only ({@code mapgen-nouns.md}, Surface signatures).
+ * battle rule. Crater rims are the raised-mass contract every map already has; cracks, vents, craters' bowls,
+ * ejecta, flecks, tint and haze are presentation only ({@code mapgen-nouns.md}, Surface signatures).
  */
 public enum SurfaceSignature {
 
@@ -24,7 +24,7 @@ public enum SurfaceSignature {
     /** Venus-like: hot, thick air; the ground amber and a haze drifting low over it, under the units. */
     HOT_HAZE,
 
-    /** Unstable: fissures opened in the ground, with quake rubble along their banks. */
+    /** Unstable: cracks opened in the ground at a marine's scale, with quake rubble along their banks. */
     FISSURES,
 
     /** Cast-iron and metallic: darker ground and formations, flecked with metal that catches the light. */

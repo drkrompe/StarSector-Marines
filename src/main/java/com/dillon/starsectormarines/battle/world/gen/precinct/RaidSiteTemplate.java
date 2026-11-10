@@ -47,8 +47,8 @@ import java.util.function.UnaryOperator;
  * an outskirts suburb on the landing side, behind the homes and away from everything worth raiding.
  *
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
- * machine halls in a dense industrial quarter; a mine's is its head works, a winding house over each shaft and the
- * ore mill they feed, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
+ * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
+ * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
  * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
  * among depots, with the garrison beside it as on every site.
  *
@@ -164,7 +164,7 @@ public final class RaidSiteTemplate {
     /** Share of the map a works may claim before its program is trimmed. UNTUNED. */
     static final float WORKS_FIT = 0.06f;
 
-    /** Share of the map a mine's head works may claim: its shafts stand apart on wide ore yards. UNTUNED. */
+    /** Share of the map a mine's head works may claim: its processing halls stand apart on wide ore yards. UNTUNED. */
     static final float MINE_FIT = 0.08f;
 
     private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
@@ -261,7 +261,7 @@ public final class RaidSiteTemplate {
      * The site laid on a map of this size for this market. The draws are this template's own: one for the
      * orientation, then the places in order.
      *
-     * @param machines machines in the works (halls, or a mine's winding houses), one per machine the raid wrecks
+     * @param machines machines in the works (halls, or a mine's mill lines), one per machine the raid wrecks
      * @param demand   the hardest wall this operation may be asked to face; it caps the works' wall and sets the
      *                 garrison's as a derived plan does
      */

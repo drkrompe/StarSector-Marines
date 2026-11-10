@@ -69,8 +69,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.garrison.plan` | experiment | 2026-11-09 | Raid garrison layout cards (`raid-garrison`): `YARD` (default, recommended) or `APRON`. Remove with the losing plan in `Cantonment` once the owner picks. |
-| `battle.stormBank.facing` | experiment | 2026-11-09 | Storm bank cards (`storm-bank-facing`): `LEE` (default, recommended: the town turns its back to the wind, the bank never across the landing) or `ANY`. Remove with the losing arm in `StormBank.mirrorX` once the owner picks. |
-| `battle.stormBank.standoff` | experiment | 2026-11-09 | Storm bank cards (`storm-bank-standoff`): open ground between the bank and the town's places, `StormBank.STANDOFF` (6) by default. Fold the pick into the constant and remove once the owner picks. |
 | `battle.garrison.stretches` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
 | `battle.heart.airbase` | control | 2026-10-31 | Broad Front's air wing is the bays of the two airbases its layout lays and flies from them, with a standing patrol of fighters over the lanes (`BloomHeartSetup.AIRBASE`, `heart-nouns.md` Allied airbase); `false` is the old edge-only wing. Remove it and the heart's edge-only path once the owner has seen the based wing and its Broad Front evidence has been read. |
 | `battle.heart.boreAssault` | control | 2026-10-25 | The Burn's lanes assault each bore in phases (`BoreAssault`, `heart-bore-assault.md`); remove it and the posts ahead of the aim once the owner has seen it on The Burn and its evidence has been read. |
@@ -113,6 +111,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mapgen.cityRoads` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.citySidewalks` | experiment | 2026-10-21 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.compoundPreparedGround` | experiment | 2026-10-20 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
+| `battle.mapgen.crevasseTowns` | control | 2026-11-09 | Permanent evidence lever: the share (0 to 1) of generated frozen maps that are a town sheltered in a crevasse, in place of `CrevasseTown.CHANCE`; 1 makes every frozen map with a derived plan that fits one, for look suites and evidence (voids.md, the crevasse town). |
 | `battle.mapgen.naturalVoids` | control | 2026-11-09 | Permanent evidence lever: the share (0 to 1) of generated outdoor maps cut by a natural drop, in place of `CHASM_CHANCE`; 1 lays one on every map that fits, for look suites and evidence (voids.md, placement in generated maps). |
 | `battle.mapgen.outdoorLandscape` | experiment | 2026-10-11 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
 | `battle.mapgen.plateaus` | experiment | 2026-10-22 | Mapgen pass (mapgen-nouns.md): remove each once the owner accepts the generated maps with it on. |
@@ -155,7 +154,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.sallyDoors.closable` | experiment | 2026-10-21 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.sallyDoors.derived` | experiment | 2026-10-20 | Sally doors (garrisonables.md): remove once the closable-door fold is accepted in play. |
 | `battle.separation.capsules` | experiment | 2026-10-21 | Continuous positions (continuous-positions-nouns.md): remove once capsule separation is accepted. |
-| `battle.signature.fissureTrench` | experiment | 2026-11-09 | Planet signatures (mapgen-nouns.md, surface signatures): remove with the losing arm once the owner picks crack or trench fissures on the picks page. |
 | `battle.squad.prosecutionFallThrough` | control | 2026-09-01 | Standing control: the frozen-control loop of ProsecutionHoldScene runs the off arm and its verdict depends on it. Retire it with that loop. |
 | `battle.squad.routeCommitNeedsFreshContact` | experiment | 2026-10-13 | Squad zone actions (2026-10-13): remove once the squad zone-action evidence has been read against it. |
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |

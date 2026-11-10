@@ -14,18 +14,31 @@ import java.util.List;
  */
 public final class RaidWorksPrograms {
 
-    /** A mine's winding house: the headframe and its hoist over a shaft, the floor one charge wrecks. */
-    private static final RoomShape WINDING_HOUSE = RoomShape.rectangle(9, 9);
-    /** The ore mill the shafts feed: one long crushing and sorting hall. */
-    private static final RoomShape ORE_MILL = RoomShape.rectangle(16, 8);
+    /** A mine's receiving house, where the ore line from the pit lands its ore on the primary crusher. */
+    private static final RoomShape RECEIVING = RoomShape.rectangle(10, 8);
+    /** The covered stockpile the crushed ore is stacked in before the mills draw it. */
+    private static final RoomShape STOCKPILE = RoomShape.rectangle(18, 7);
+    /** A concentrator mill line: grinding drums and flotation cells, the floor one charge wrecks. */
+    private static final RoomShape MILL_LINE = RoomShape.rectangle(12, 8);
+    /** The smelter: the furnace hall the concentrate is fired in, its burners and stacks. */
+    private static final RoomShape SMELTER = RoomShape.rectangle(16, 10);
+    /** The loadout, where the metal leaves for the planet. */
+    private static final RoomShape LOADOUT = RoomShape.rectangle(10, 6);
     private static final RoomShape STORES = RoomShape.rectangle(12, 5);
     private static final RoomShape GUARD_POST = RoomShape.rectangle(4, 4);
 
     /**
-     * Ore yard a mine keeps per shaft, on top of its packing slack: the stockpiles and haul ground each headframe
-     * stands apart on, more than a works' yard because ore is heaped where it comes up. UNTUNED.
+     * Yard a mine's works keeps per mill line, on top of its packing slack: room for the ore line's runs between the
+     * halls and the haul ground round them. UNTUNED.
      */
-    static final int MINE_YARD_PER_SHAFT = 260;
+    static final int MINE_YARD_PER_MILL = 200;
+
+    /** The room each step of a mine's processing chain is, in the order the ore passes through them. */
+    public static final RoomPurpose MINE_RECEIVING = RoomPurpose.LOADING_BAY;
+    public static final RoomPurpose MINE_STOCKPILE = RoomPurpose.STOCKROOM;
+    public static final RoomPurpose MINE_MILL = RoomPurpose.PARTS_CAGE;
+    public static final RoomPurpose MINE_SMELTER = RoomPurpose.ENGINE_ROOM;
+    public static final RoomPurpose MINE_LOADOUT = RoomPurpose.VEHICLE_BAY;
 
     /**
      * A refinery's still: a cracking column on its plinth. Square: cut corners let two columns touch diagonally,
@@ -133,20 +146,24 @@ public final class RaidWorksPrograms {
     }
 
     /**
-     * A mine's head works: one winding house per shaft, which are the machines a raid wrecks; the ore mill they
-     * feed; a stores; and the posts its gates are watched from. No keep and no airfield: the garrison beside it
-     * holds the market.
+     * A mine's head works as an ore-processing chain ({@code raid-site-templates.md}; {@code voids.md}, the open pit):
+     * the receiving house the ore line from the pit lands on, the stockpile shed, one concentrator mill line per
+     * machine (the machines a raid wrecks), the smelter whose burners fire the concentrate, the loadout by the gate,
+     * and the posts its gates are watched from. The ore line links them in that order. No keep and no airfield: the
+     * garrison beside it holds the market.
      *
-     * @param shafts winding houses in the head works, one per machine
+     * @param mills concentrator mill lines in the head works, one per machine
      */
-    public static FortressProgram mine(int shafts) {
-        if (shafts < 1) throw new IllegalArgumentException("a mine has at least one shaft");
+    public static FortressProgram mine(int mills) {
+        if (mills < 1) throw new IllegalArgumentException("a mine has at least one mill line");
         return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, WINDING_HOUSE, Ward.YARD, shafts),
-                new FortressBuilding(RoomPurpose.ENGINE_ROOM, ORE_MILL, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 1),
+                new FortressBuilding(MINE_RECEIVING, RECEIVING, Ward.YARD, 1),
+                new FortressBuilding(MINE_STOCKPILE, STOCKPILE, Ward.YARD, 1),
+                new FortressBuilding(MINE_MILL, MILL_LINE, Ward.YARD, mills),
+                new FortressBuilding(MINE_SMELTER, SMELTER, Ward.REAR, 1),
+                new FortressBuilding(MINE_LOADOUT, LOADOUT, Ward.FRONTAGE, 1),
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
                         RoomPacker.EdgeContact.ANY, 2)),
-                0, shafts * MINE_YARD_PER_SHAFT, true);
+                0, mills * MINE_YARD_PER_MILL, true);
     }
 }
