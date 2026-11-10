@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.fortress.SealedComplex;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
@@ -124,8 +125,12 @@ public final class PrecinctWardStage implements GenStage {
                     shortFields.put(precinct.name(),
                             precinct.program().airfields() - fields.size());
                 }
+                // A sealed complex cuts its own halls from the gates in, rather than standing its rooms along roads.
+                if (precinct.program().sealed()) SealedComplex.gateStubsOnly(masks.buildable(), masks.circulation(), own, i);
                 result =
                         PrecinctFill.pack(ctx, precinct, masks, facing(precinct, ctx));
+                // Its leftover ground is hall under its roof.
+                if (precinct.program().sealed()) SealedComplex.roofHalls(ctx, own, i);
                 if (yard != null) {
                     // Street under the yard's gate and yard, which the dressing below paves as the place's roads.
                     for (List<int[]> cells : List.of(yard.apron(), yard.yard())) {
@@ -160,6 +165,7 @@ public final class PrecinctWardStage implements GenStage {
             }
             if (precinct.boundary() == Precinct.Boundary.WALLED) {
                 stampWall(ctx, own, ownRoad, i, precinct.fortification());
+                if (precinct.isProgrammed() && precinct.program().sealed()) SealedComplex.skin(ctx, own, i);
             }
             if (square) {
                 boolean[][] strip = new boolean[ctx.width][ctx.height];
