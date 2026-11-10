@@ -124,7 +124,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 train = trains.computeIfAbsent(id, k -> new TrailerKinematic(joints));
                 // A wreck lies as it fell: its bend is no longer followed, though one first seen wrecked is laid out.
                 if (!wrecked || !train.placed()) train.update(body.x, body.y, body.facingDegrees);
-                collectSegments(type, joints, train, cache, frames, body, wrecked, cam, drawLong, drawShort, tint,
+                collectSegments(type, joints, train, cache, frames, f, body, wrecked, cam, drawLong, drawShort, tint,
                         alphaMult, out);
             } else {
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
@@ -531,21 +531,68 @@ public final class ConvoyRenderSystem implements RenderSystem {
         });
     }
 
+    /** Slices a hinge section is drawn in across the hull, so it bends smoothly between its two plates. */
+    private static final int HINGE_SLICES = 6;
+    private final float[] edges = new float[4];
+
     /**
-     * An articulated hull drawn segment by segment, the rearmost first so each hinge tucks under the segment ahead:
-     * each segment's frame keeps the straight hull's registration, so it is the whole frame turned about that
-     * segment's front hinge ({@link TrailerKinematic#toWorld}).
+     * An articulated hull drawn segment by segment: first each hinge section, the pistons and cables between two
+     * plates, cut from the whole hull's frame and spanned edge to edge between the plate ahead and the plate behind,
+     * so it stretches across the outside of a bend and presses together on the inside
+     * ({@link TrailerKinematic#hingeEdges}); then the plates, the rearmost first so each tucks under the one ahead.
+     * A plate is its segment's frame cut at its own edges, kept in the straight hull's registration and turned with
+     * its segment ({@link TrailerKinematic#toWorld}), so plate and section always meet.
      */
     private void collectSegments(VehicleType type, Articulation joints, TrailerKinematic train, UnitSpriteCache cache,
-                                 SpriteSheetFrames frames, GroundBody body, boolean wrecked, BattleCamera cam,
-                                 float drawLong, float drawShort, float[] tint, float alphaMult, DrawList out) {
+                                 SpriteSheetFrames frames, SpriteSheetFrames.Frame hull, GroundBody body,
+                                 boolean wrecked, BattleCamera cam, float drawLong, float drawShort, float[] tint,
+                                 float alphaMult, DrawList out) {
+        float cellPx = cam.cellPxSize();
+        float lengthCells = drawLong / cellPx;
+        int hinges = joints.hingeY().length;
+        for (int h = 0; h < hinges; h++) {
+            int front = framePx(joints.gapFrontY(h), lengthCells, hull.w);
+            int rear = framePx(joints.gapRearY(h), lengthCells, hull.w);
+            if (rear <= front) continue;
+            for (int k = 0; k < HINGE_SLICES; k++) {
+                float v0 = k / (float) HINGE_SLICES, v1 = (k + 1) / (float) HINGE_SLICES;
+                // The frame's top is the hull's right, +x.
+                train.hingeEdges(body.x, body.y, h, (v0 - .5f) * drawShort / cellPx, edges);
+                float ax = cam.cellToScreenX(edges[0]), ay = cam.cellToScreenY(edges[1]);
+                float bx = cam.cellToScreenX(edges[2]), by = cam.cellToScreenY(edges[3]);
+                train.hingeEdges(body.x, body.y, h, (v1 - .5f) * drawShort / cellPx, edges);
+                float cx = cam.cellToScreenX(edges[2]), cy = cam.cellToScreenY(edges[3]);
+                float dx = cam.cellToScreenX(edges[0]), dy = cam.cellToScreenY(edges[1]);
+                float minX = Math.min(Math.min(ax, bx), Math.min(cx, dx));
+                float maxX = Math.max(Math.max(ax, bx), Math.max(cx, dx));
+                float minY = Math.min(Math.min(ay, by), Math.min(cy, dy));
+                float maxY = Math.max(Math.max(ay, by), Math.max(cy, dy));
+                float w = Math.max(maxX - minX, 1e-3f), ht = Math.max(maxY - minY, 1e-3f);
+                // Corners around the slice, front then rear at its left side, rear then front at its right.
+                float[] patch = {
+                        (ax - minX) / w, (ay - minY) / ht, (bx - minX) / w, (by - minY) / ht,
+                        (cx - minX) / w, (cy - minY) / ht, (dx - minX) / w, (dy - minY) / ht,
+                        0f, v0, 1f, v0, 1f, v1, 0f, v1};
+                out.addSheetPatch(RenderLayer.CONVOY, cache.sheet, hull.x + front, hull.y, rear - front, hull.h,
+                        (minX + maxX) / 2f, (minY + maxY) / 2f, w, ht, alphaMult, patch);
+            }
+        }
         for (int s = joints.segments() - 1; s >= 0; s--) {
             SpriteSheetFrames.Frame sf = frames.frames[wrecked ? joints.wreckFrame(s) : joints.liveFrame(s)];
-            train.toWorld(body.x, body.y, s, 0f, 0f, point);
-            out.addSheetQuad(RenderLayer.CONVOY, cache.sheet, sf.x, sf.y, sf.w, sf.h,
-                    cam.cellToScreenX(point[0]), cam.cellToScreenY(point[1]), drawLong, drawShort,
+            int x0 = s == 0 ? 0 : framePx(joints.gapRearY(s - 1), lengthCells, sf.w);
+            int x1 = s == hinges ? sf.w : framePx(joints.gapFrontY(s), lengthCells, sf.w);
+            if (x1 <= x0) continue;
+            float noseY = (.5f - x0 / (float) sf.w) * lengthCells, tailY = (.5f - x1 / (float) sf.w) * lengthCells;
+            train.toWorld(body.x, body.y, s, 0f, (noseY + tailY) / 2f, point);
+            out.addSheetQuad(RenderLayer.CONVOY, cache.sheet, sf.x + x0, sf.y, x1 - x0, sf.h,
+                    cam.cellToScreenX(point[0]), cam.cellToScreenY(point[1]), (noseY - tailY) * cellPx, drawShort,
                     train.headingDeg(s) + type.spriteFacingOffsetDeg, tint[0], tint[1], tint[2], alphaMult);
         }
+    }
+
+    /** The frame column, from its nose edge, of the point {@code y} cells along a straight hull {@code lengthCells} long. */
+    private static int framePx(float y, float lengthCells, int frameW) {
+        return Math.round((.5f - y / lengthCells) * frameW);
     }
 
     /** The gun a carrier's secondary socket carries, drawn as the light machine gun part. */
