@@ -11,6 +11,7 @@
     "STONE":     "floors.stone",
     "SAND":      "floors.sand",
     "SNOW":      "floors.snow",
+    "HARDPAN":   "floors.hardpan",
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
@@ -31,6 +32,7 @@
     "STONE": "terrain.blast-paving",
     "SAND": "terrain.blast-earth",
     "SNOW": "terrain.blast-earth",
+    "HARDPAN": "terrain.blast-earth",
     "BRICK": "terrain.blast-paving",
     "SIDEWALK": "terrain.blast-paving"
   },
@@ -86,6 +88,26 @@
         "rockPool": ["nature.rock-basalt-small-1", "nature.rock-basalt-small-2", "nature.rock-basalt-medium-1", "nature.rock-basalt-medium-2"]
       }
     },
+    "VOLCANIC": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.20,
+        "plantPool": [],
+        "rockPool": ["nature.rock-scoria-small-1", "nature.rock-scoria-small-2", "nature.rock-scoria-medium-1", "nature.rock-scoria-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.22,
+        "plantPool": [],
+        "rockPool": ["nature.rock-scoria-small-1", "nature.rock-scoria-small-2", "nature.rock-scoria-medium-1", "nature.rock-scoria-medium-2"]
+      }
+    },
     "ARID": {
       "NATURE_GRASSLAND": {
         "groundPool": [
@@ -115,6 +137,26 @@
         "rockChance": 0.18,
         "plantPool": [],
         "rockPool": ["nature.rock-frost-small-1", "nature.rock-frost-small-2", "nature.rock-frost-medium-1", "nature.rock-frost-medium-2"]
+      }
+    },
+    "IRRADIATED": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "HARDPAN", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.16,
+        "plantPool": [],
+        "rockPool": ["nature.rock-glassed-small-1", "nature.rock-glassed-small-2", "nature.rock-glassed-medium-1", "nature.rock-glassed-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "HARDPAN", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.18,
+        "plantPool": [],
+        "rockPool": ["nature.rock-glassed-small-1", "nature.rock-glassed-small-2", "nature.rock-glassed-medium-1", "nature.rock-glassed-medium-2"]
       }
     }
   },

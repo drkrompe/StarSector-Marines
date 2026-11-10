@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LayoutRoads;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.CantonmentRoads;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -83,6 +84,17 @@ public final class PrecinctSkeletonStage implements GenStage {
         }
         boolean[][] weldBlocked = FortReservations.weldBlocked(ctx, plan);
 
+        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up and one
+        // road laid in from the town's nearest, and no weld is cut back across it (Raid garrisons only).
+        boolean[][] weldAround = weldBlocked;
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            Precinct precinct = plan.precincts().get(i);
+            if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height);
+            if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
+            CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
+        }
+
         // A walled place owes a way out, and growth does not always leave one.
         // Do this after highway pruning: pruning may erase the exterior end
         // of a short gate approach. The wall must read the final road network.
@@ -102,7 +114,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         // Measured over four derived maps, three came out whole and one came
         // out in three pieces, which is the kind of intermittent structural
         // fault that has to be solved for rather than hoped about.
-        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+        PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
 
         // An open-field landing's country is surveyed, not grown.
         RuralLayout rural = survey(plan, grown, ctx, weldBlocked);
@@ -112,7 +124,12 @@ public final class PrecinctSkeletonStage implements GenStage {
         // paving and the road graph come from the stages that do that for every road.
         List<Laid> layoutRoads = LayoutRoads.carve(plan, claim, grown.owner(), rural,
                 ctx.width, ctx.height, FortReservations.barred(ctx, plan));
-        if (!layoutRoads.isEmpty()) ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
+        if (!layoutRoads.isEmpty()) {
+            ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
+            // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
+            // piece of road on its own; the map is one network after it as before it.
+            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+        }
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;
         boolean[][] trunkPainted = new boolean[ctx.width][ctx.height];

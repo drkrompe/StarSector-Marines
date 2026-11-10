@@ -269,9 +269,9 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
 
     /**
      * A garrison laid out as an installation ({@link Cantonment}): the same kinds of building as {@link #garrison()},
-     * counted from the market. Its size sets the barracks, workshops and stores; its security ({@code grade} 0 open,
-     * 1 guarded, 2 fortified) sets the guardroom, the corner towers and the magazines. One flight line at most: the
-     * rows are laid round one.
+     * counted from the market. Its size sets the barracks, the motor pool's vehicle sheds (one, two from size 6), workshops and stores, and with the barracks the flight line's size ({@link Cantonment#fieldFor});
+     * its security ({@code grade} 0 open, 1 guarded, 2 fortified) sets the guardroom, the corner towers and the
+     * magazines. One flight line at most.
      *
      * @param marketSize the market's size, 3 to 10
      * @param grade      0 open, 1 guarded, 2 fortified
@@ -285,7 +285,8 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.KEEP_THRONE, HEADQUARTERS, Ward.REAR, 1),
                 new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, barracks),
                 new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, marketSize >= 7 ? 2 : 1),
-                new FortressBuilding(RoomPurpose.VEHICLE_BAY, VEHICLE_SHED, Ward.FRONTAGE, 1),
+                new FortressBuilding(RoomPurpose.VEHICLE_BAY, VEHICLE_SHED, Ward.FRONTAGE,
+                        marketSize >= 6 ? 2 : 1),
                 new FortressBuilding(RoomPurpose.PARTS_CAGE, WORKSHOP, Ward.YARD, marketSize >= 6 ? 2 : 1),
                 new FortressBuilding(RoomPurpose.ARMORY, MAGAZINE, Ward.REAR, 1 + grade),
                 new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, marketSize >= 6 ? 2 : 1),

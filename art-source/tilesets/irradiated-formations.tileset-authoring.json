@@ -1,0 +1,134 @@
+{
+  "alphaMin": 40,
+  "cellPx": 64,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.husks",
+      "included": true,
+      "rect": [
+        20,
+        78,
+        482,
+        367
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.husks-damaged",
+      "included": true,
+      "rect": [
+        22,
+        606,
+        480,
+        363
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.husks-destroyed",
+      "included": true,
+      "rect": [
+        21,
+        1131,
+        480,
+        363
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.husk-spires",
+      "included": true,
+      "rect": [
+        638,
+        19,
+        296,
+        486
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.husk-spires-damaged",
+      "included": true,
+      "rect": [
+        639,
+        542,
+        292,
+        487
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.husk-spires-destroyed",
+      "included": true,
+      "rect": [
+        638,
+        1049,
+        292,
+        487
+      ]
+    }
+  ],
+  "gridCols": 2,
+  "gridRows": 3,
+  "idPrefix": "formation",
+  "note": "HuskFormationTemplate full-footprint cuts. Accepted codex image_gen pass is 1024x1536 versus guide 768x1152 (4/3). Intact and damaged panels are fitted separately: the guide frame is mapped onto each generated panel by matching alpha>40 bounding boxes per axis, because the pass drifts down by up to ~30 px from row to row. Debris keeps its column damaged-state scale, centred on its own fragments; the husk-spires debris frame is lifted 18 px to stay on the sheet. Generated alpha untouched. Every visible exported pixel lies in a blocked cell; debris covers ~21-25 percent of its footprint. MineralFormation owns collision and fog; no ground backing.",
+  "sheet": "art-source/tilesets/irradiated-formations.raw.png",
+  "sheetName": "irradiated-formations"
+}

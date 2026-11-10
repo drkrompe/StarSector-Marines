@@ -58,9 +58,30 @@ public final class SurfaceZoning {
         if (id.contains("lava")) {
             return SurfacePalette.VOLCANIC;
         }
+        // Hard radiation at the surface: scorched, glassed, bleached ground.
+        if (id.contains("irradiated")) {
+            return SurfacePalette.IRRADIATED;
+        }
         // Everything else the Sector actually fights over: barren, rocky,
-        // toxic, irradiated.
+        // toxic.
         return SurfacePalette.ROCK;
+    }
+
+    /**
+     * Which living world a planet type is, read alongside {@link #forPlanetType}: {@code jungle} a rainforest,
+     * {@code tundra} the boreal edge, {@code water} and {@code ocean} a sea of islands, and every other type, the
+     * {@code terran} family among them, {@link LivingWorld#TEMPERATE}. Only a {@link SurfacePalette#VERDANT}
+     * surface reads it; a type that is not living answers {@code TEMPERATE}.
+     *
+     * @param planetTypeId vanilla planet type id, or {@code null} when nothing is known about the target.
+     */
+    public static LivingWorld livingWorld(String planetTypeId) {
+        if (forPlanetType(planetTypeId) != SurfacePalette.VERDANT) return LivingWorld.TEMPERATE;
+        String id = planetTypeId.toLowerCase(Locale.ROOT);
+        if (id.contains("jungle")) return LivingWorld.JUNGLE;
+        if (id.contains("tundra")) return LivingWorld.TUNDRA;
+        if (id.contains("water") || id.contains("ocean")) return LivingWorld.OCEAN;
+        return LivingWorld.TEMPERATE;
     }
 
     /**

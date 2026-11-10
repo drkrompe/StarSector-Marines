@@ -903,6 +903,454 @@
         374,
         324
       ]
+    },
+    {
+      "id": "nature.rock-scoria-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        7146,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        29,
+        8033,
+        287,
+        359
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        7150,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        524,
+        8037,
+        312,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        7156,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        935,
+        8043,
+        366,
+        354
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        7162,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        8049,
+        347,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        7583,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        26,
+        8470,
+        389,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        7599,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        8486,
+        370,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        7610,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-scoria-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        924,
+        8497,
+        375,
+        325
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        8921,
+        309,
+        361
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        9808,
+        309,
+        361
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        521,
+        8925,
+        330,
+        360
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        521,
+        9812,
+        330,
+        360
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        930,
+        8929,
+        369,
+        358
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        930,
+        9816,
+        369,
+        358
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        8938,
+        349,
+        342
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1388,
+        9825,
+        349,
+        342
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        9358,
+        393,
+        361
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        10245,
+        393,
+        361
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        476,
+        9374,
+        376,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        476,
+        10261,
+        376,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        920,
+        9384,
+        385,
+        330
+      ]
+    },
+    {
+      "id": "nature.rock-glassed-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        920,
+        10271,
+        385,
+        330
+      ]
     }
   ]
 }

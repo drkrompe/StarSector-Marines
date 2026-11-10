@@ -20,16 +20,16 @@ public interface NaturalPropShape {
      * footprint and states, drawn from the {@code dry-scrub-*} sheets. {@code forest.oak-dry}, and its states
      * {@code forest.oak-dry-damaged}, {@code -destroyed} and {@code -blight-k}.
      */
-    String DRY = "-dry";
+    String DRY = Flora.DRY.suffix;
 
     /** The id a shape's art is placed under: its own, or its dry-country twin's. */
     static String placedId(NaturalPropShape shape, boolean dry) {
-        return dry ? shape.id() + DRY : shape.id();
+        return (dry ? Flora.DRY : Flora.TEMPERATE).placedId(shape);
     }
 
-    /** The shape an intact placement draws, its own art or the dry twin's; null for anything else. */
+    /** The shape an intact placement draws, its own art or any flora's twin ({@link Flora}); null for anything else. */
     static NaturalPropShape find(String id) {
-        if (id != null && id.endsWith(DRY)) id = id.substring(0, id.length() - DRY.length());
+        id = Flora.baseId(id);
         for (var tree : TreeCanopy.values()) if (tree.id.equals(id)) return tree;
         for (var growth : Undergrowth.values()) if (growth.id.equals(id)) return growth;
         for (var mineral : MineralFormation.values()) if (mineral.id().equals(id)) return mineral;

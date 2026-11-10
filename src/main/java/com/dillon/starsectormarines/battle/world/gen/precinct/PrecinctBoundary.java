@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -328,6 +329,14 @@ public final class PrecinctBoundary {
      * place has one at all: a walled installation its own armour cannot leave is
      * a defect rather than a difficulty, and it is the same obligation
      * {@link PrecinctArtery} enforces one step earlier.
+     *
+     * <p>And every run of road outside the place that a crossing meets keeps a
+     * crossing, past the cap if it must: the map's roads are welded into one
+     * network through the places, so sealing the last crossing onto a run cuts
+     * that run off. Two runs that each leave the map count apart: two towns
+     * whose only road between them is sealed read as two road networks. Kept widest-first alone, a garrison's widest crossing was
+     * a feeder off the map's edge while the street from the town was sealed,
+     * and a works sealed the street through it that joined two quarters.
      */
     public static List<Gate> openGates(int[][] claim, int[][] owner, int who,
                                        int width, int height, int maxGates) {
@@ -353,6 +362,82 @@ public final class PrecinctBoundary {
                 break;
             }
         }
+        // Every run of road outside the place that a crossing meets keeps one: the map's roads are one network
+        // because the places join them, and a run whose every crossing is sealed is cut off from the rest.
+        int[] network = beyond(claim, owner, who, width, height);
+        for (Gate gate : all) {
+            int run = meets(gate, network, width, height);
+            if (run < 0 || kept.contains(gate)) continue;
+            boolean served = false;
+            for (Gate open : kept) served |= meets(open, network, width, height) == run;
+            if (served) continue;
+            Gate best = gate;
+            for (Gate other : all) {
+                if (meets(other, network, width, height) == run && other.drivable() && !best.drivable()) best = other;
+            }
+            kept.add(best);
+        }
         return kept;
+    }
+
+    /**
+     * The road outside {@code who}'s ground labelled by connected run: entry {@code y * width + x} is the run's label, or -1 for no road, and the array's tail holds each run's
+     * cell count, run {@code c} at {@code length - 1 - c}.
+     */
+    private static int[] beyond(int[][] claim, int[][] owner, int who, int width, int height) {
+        int cells = width * height;
+        int[] label = new int[cells];
+        Arrays.fill(label, -1);
+        List<Integer> sizes = new ArrayList<>();
+        Deque<int[]> open = new ArrayDeque<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!outsideRoad(claim, owner, who, x, y) || label[y * width + x] >= 0) continue;
+                label[y * width + x] = sizes.size();
+                open.add(new int[]{x, y});
+                sizes.add(flood(claim, owner, who, label, open, sizes.size(), width, height));
+            }
+        }
+        int[] out = Arrays.copyOf(label, cells + sizes.size());
+        for (int c = 0; c < sizes.size(); c++) out[out.length - 1 - c] = sizes.get(c);
+        return out;
+    }
+
+    /** Labels {@code run} the road outside the place reachable from the cells queued in {@code open}; returns its size. */
+    private static int flood(int[][] claim, int[][] owner, int who, int[] label, Deque<int[]> open, int run,
+                             int width, int height) {
+        int size = 0;
+        while (!open.isEmpty()) {
+            int[] at = open.poll();
+            size++;
+            for (int[] step : STEPS) {
+                int nx = at[0] + step[0], ny = at[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || label[ny * width + nx] >= 0
+                        || !outsideRoad(claim, owner, who, nx, ny)) continue;
+                label[ny * width + nx] = run;
+                open.add(new int[]{nx, ny});
+            }
+        }
+        return size;
+    }
+
+    private static boolean outsideRoad(int[][] claim, int[][] owner, int who, int x, int y) {
+        return claim[x][y] != who && owner[x][y] != GrownTrunkPlan.UNOWNED;
+    }
+
+    /** The largest run of road outside the place that {@code gate} opens onto, or -1 for none. */
+    private static int meets(Gate gate, int[] network, int width, int height) {
+        int best = -1, bestSize = 0;
+        for (int[] cell : gate.cells()) {
+            for (int[] step : STEPS) {
+                int nx = cell[0] + step[0], ny = cell[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                int c = network[ny * width + nx];
+                if (c < 0) continue;
+                int size = network[network.length - 1 - c];
+                if (size > bestSize) { best = c; bestSize = size; }
+            }
+        }
+        return best;
     }
 }

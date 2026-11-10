@@ -57,6 +57,20 @@
         "seed": 5,
         "note": "two mothers; landing 279,30"
       }
+    ],
+    "IRRADIATED": [
+      {
+        "seed": 2,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 3,
+        "note": "two mothers; landing 279,30"
+      },
+      {
+        "seed": 5,
+        "note": "two mothers; landing 279,30"
+      }
     ]
   }
 }

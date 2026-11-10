@@ -179,10 +179,49 @@ final class SignatureRenderSystem implements RenderSystem {
         return RenderSystem.of(RenderLayer.DECALS, (ctx, out) -> {
             CellTopology topology = ctx.sim.getTopology();
             if (topology == null || topology.signatureMarks().length == 0) return;
+            if (topology.signature() == SurfaceSignature.FISSURES) {
+                cracks(topology.signatureMarks(), ctx.camera, ctx.alphaMult, out);
+                return;
+            }
             boolean craters = topology.signature() == SurfaceSignature.CRATER_FIELD;
             ShuttleSpriteCache art = sprites.spriteByPath(craters ? CRATER_SPRITE : MOUND_SPRITE);
             if (art != null) marks(topology.signatureMarks(), craters, art, ctx.camera, ctx.alphaMult, out);
         });
+    }
+
+    /**
+     * An unstable world's cracks, each a header {@code {-1, points, 0}} and its points' {@code {x, y, width}}: a dark
+     * opening as wide as the crack is there, a near-black depth down its middle, and the ground's broken lip catching
+     * the light on the side toward it.
+     */
+    static void cracks(float[] marks, BattleCamera cam, float alpha, DrawList out) {
+        float cellPx = cam.cellPxSize();
+        float[] open = SignatureLook.CRACK_OPEN_RGB, deep = SignatureLook.CRACK_DEEP_RGB;
+        for (int i = 0; i + 2 < marks.length; ) {
+            int n = (int) marks[i + 1];
+            int first = i + 3;
+            i = first + n * 3;
+            for (int pass = 0; pass < 3; pass++) {
+                for (int k = 0; k + 1 < n; k++) {
+                    int a = first + k * 3, b = a + 3;
+                    float w = (marks[a + 2] + marks[b + 2]) * .5f * cellPx;
+                    if (w < .6f) continue;
+                    float x0 = cam.cellToScreenX(marks[a]), y0 = cam.cellToScreenY(marks[a + 1]);
+                    float x1 = cam.cellToScreenX(marks[b]), y1 = cam.cellToScreenY(marks[b + 1]);
+                    if (!onScreen(cam, x0, y0, w * 4f) && !onScreen(cam, x1, y1, w * 4f)) continue;
+                    if (pass == 0) {
+                        // The lip: offset toward the light, which falls from the upper left.
+                        float lx = -w * SignatureLook.CRACK_LIP_SHIFT, ly = w * SignatureLook.CRACK_LIP_SHIFT;
+                        out.addLine(RenderLayer.DECALS, x0 + lx, y0 + ly, x1 + lx, y1 + ly, w * 1.25f,
+                                1f, 1f, 1f, SignatureLook.CRACK_LIP_ALPHA * alpha);
+                    } else if (pass == 1) {
+                        out.addLine(RenderLayer.DECALS, x0, y0, x1, y1, w, open[0], open[1], open[2], alpha);
+                    } else {
+                        out.addLine(RenderLayer.DECALS, x0, y0, x1, y1, w * .45f, deep[0], deep[1], deep[2], alpha);
+                    }
+                }
+            }
+        }
     }
 
     private static void marks(float[] marks, boolean craters, ShuttleSpriteCache art, BattleCamera cam, float alpha,

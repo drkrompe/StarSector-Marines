@@ -1209,11 +1209,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
     }
 
     /**
-     * A Raid garrison's roads: one crossroads at its middle whose four arms run straight out through its walls, the
-     * avenues its rows are laid square to, and no branching street of its own to cut across them.
+     * A Raid garrison's roads: one junction with the shortest arms, as a works compound's, and nothing to wander off
+     * across the town. A cantonment takes up its own roads and lays its one road in ({@link CantonmentRoads}), so what
+     * it grows is only what holds its seed.
      */
     public static GrownTrunkPlan.Profile raidGarrisonGrowth() {
-        return new GrownTrunkPlan.Profile(0, 0f, 0.30f, 0.34f, 1f, 4, SettlementLink.NONE);
+        return new GrownTrunkPlan.Profile(0, 0f, 0.04f, 0.06f, 0f, 4, SettlementLink.NONE);
     }
 
     /** A Raid garrison's wall: laid square, as its rows are, with its security's open ground round it. */
