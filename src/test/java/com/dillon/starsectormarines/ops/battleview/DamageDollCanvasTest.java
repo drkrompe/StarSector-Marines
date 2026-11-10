@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,5 +48,13 @@ class DamageDollCanvasTest {
     void partNamesAreLocations() {
         assertEquals(DollLocation.TORSO_REAR, DollLocation.ofPart("TORSO_REAR"));
         assertNull(DollLocation.ofPart("WING"));
+    }
+
+    @Test
+    void everyMechChassisHasADollThatShips() {
+        for (MechVariant variant : MechVariant.values()) {
+            Path doll = Path.of("mod", DamageDollCanvas.dollPath(variant));
+            assertTrue(Files.isRegularFile(doll), variant + " draws as " + doll + ", which does not ship");
+        }
     }
 }

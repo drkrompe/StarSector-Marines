@@ -175,9 +175,13 @@ public final class DamageDollCanvas implements CanvasProducer {
         return ramp;
     }
 
-    /** The doll a mech chassis draws as. */
+    /** The doll a mech chassis draws as; the derelict walkers are one chassis and share one. */
     public static String dollPath(MechVariant variant) {
-        return DOLL_DIR + "mech-" + variant.id + ".svg";
+        String name = switch (variant) {
+            case SECURITY_WALKER, SECURITY_ROUNDS, SECURITY_HALL -> "derelict";
+            default -> variant.id;
+        };
+        return DOLL_DIR + "mech-" + name + ".svg";
     }
 
     /** The plan a fighter wing draws as. */
