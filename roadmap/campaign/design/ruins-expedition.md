@@ -863,7 +863,7 @@ over ground its body fits and through every hall door, a dead one forced and one
 narrower than the frame torn a jamb wider at each end. A hall door it cannot
 pass is one it tears; a service corridor is somewhere it does not go.
 
-**The works hall is the trunk** (pick `ruins-works-trunk`, building on a). A
+**The works hall is the trunk** (owner pick `ruins-works-trunk` a). A
 works site's showpiece is on the way, not off it. Its works hall, the mega
 forge or a theme's, is laid first in the outer interior band, so it always fits
 at full size, and the band's spine runs through it down its west wall, in at
@@ -874,12 +874,12 @@ crosses the hall:
 
 | Option | Where the works hall stands |
 | --- | --- |
-| a (recommended, built) | On the trunk: the band's spine runs through it, the route crosses it |
+| a (picked) | On the trunk: the band's spine runs through it, the route crosses it |
 | b | Beside the trunk, joined by a freight way, laid only where it fits (about one site in four before this) |
 | c | As b, and the route is drawn past its door, so the stand is held at its mouth |
 
 **The forge's transfer bridge** (owner: "a real bridge would be cool. Depends
-on the mission we make"; pick `ruins-forge-bridge`, building on a). At the mega
+on the mission we make"; owner pick `ruins-forge-bridge` a). At the mega
 forge's middle the pour line burst its banks round a ladle tipped mid-pour and
 pooled. A transfer bridge four cells wide crosses the pool from bank to bank on
 the transfer aisle. The catwalks over the line are two wide, so infantry cross
@@ -888,14 +888,15 @@ line. The frame's post is the hall's middle, on the bridge.
 
 | Option | Shape |
 | --- | --- |
-| a (recommended, built) | The breakout: a pool of melt up to 14x18 round the hall's middle, the bridge across it, the frame's post on the deck |
+| a (picked) | The breakout: a pool of melt up to 14x18 round the hall's middle, the bridge across it, the frame's post on the deck |
 | b | A deck bridge over the two-cell pour line on the transfer aisle, no pool |
 | c | No bridge: the transfer aisle crosses the line as floor |
 
-The deck is grate decking until the bridge's own art ships: a four-wide span with
-girders, kerbs and railings, and an abutment at each bank.
+The bridge is its own art (`ruins-forge-bridge`): deck spans on box girders,
+railed both sides, a cast abutment on each bank, and one span split by the
+breakout with the melt glowing through.
 
-**Beats through the facility** (pick `ruins-facility-beats`, building on a).
+**Beats through the facility** (owner pick `ruins-facility-beats` a).
 On a works site the delve's inside has a shape the player can read: the plant's
 own order, intake to works hall to stores to vault, along the trunk.
 
@@ -920,12 +921,14 @@ own order, intake to works hall to stores to vault, along the trunk.
 
 | Option | The stand |
 | --- | --- |
-| a (recommended) | The works hall is the outer band's stand, derelict security's zone held there (node and frame) |
+| a (picked) | The works hall is the outer band's stand, derelict security's zone held there (node and frame) |
 | b | The stand stays at the layer's junction; the works hall is ground the route crosses |
 | c | The works hall is the vault's antechamber, the last stand before the breach |
 
-Where derelict security wakes, escalates and repairs in these halls is
-`derelict-security-network.md`'s.
+The ground publishes the works hall's stand (`RuinsDelve.Interior.worksStand`):
+by the mega forge's pour pulpit, or at the east end of a works hall's transfer
+aisle. The outer band's zone holds its node there. Where derelict security wakes,
+escalates and repairs in these halls is `derelict-security-network.md`'s.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
