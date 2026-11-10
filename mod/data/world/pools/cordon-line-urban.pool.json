@@ -57,6 +57,20 @@
         "seed": 1,
         "note": "rear north; redoubt guns 0-2-0-2"
       }
+    ],
+    "IRRADIATED": [
+      {
+        "seed": 11,
+        "note": "rear north; redoubt guns 2-2-0-2"
+      },
+      {
+        "seed": 6,
+        "note": "rear north; redoubt guns 2-1-0-2"
+      },
+      {
+        "seed": 1,
+        "note": "rear north; redoubt guns 0-2-0-2"
+      }
     ]
   }
 }

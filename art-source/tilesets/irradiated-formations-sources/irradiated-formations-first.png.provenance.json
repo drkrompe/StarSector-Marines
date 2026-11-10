@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2af-ea19-76e2-b0ad-f3e1cdcedc61",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2af-ea19-76e2-b0ad-f3e1cdcedc61\\exec-99dc57df-0d3e-4672-a897-ee9628724786.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\irradiated-formations-sources\\irradiated-formations-first.png",
+    "sha256": "74ebcba978192457461e72429062c48d5199c55b9cbd2e0966120595dcbf6b93",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\irradiated-formations.prompt.txt",
+  "promptSha256": "57da332c3f2d537ec243bb4c0d6904887aae2c3bd987a0a08e1ca1541c033df4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: exact canvas, 2x3 panel registration, every silhouette and transparent region\nImage 2: Rendering finish and level of detail only (overhead painted game-sprite style at this scale); NOT layout, NOT material, NOT colour\n\nUse case: sketch-to-render. Image 1 is the authoritative geometry guide and edit target for an overhead tactical space-game sprite atlas. Reskin only the supplied bodies into detailed, restrained realistic painted game art. Preserve the EXACT 768x1152 canvas and 2-column by 3-row registration, every body silhouette, center, size, transparent gutter and empty region. Each column is the SAME object in three states. Column 1: a pair of squat dead husks. Column 2: a chain of three tall, stripped, split dead husk spires. Subject: dead husk-like formations on an irradiated, bombed-out world, the bleached, hollowed, split shells of something that once stood: part petrified dead stump, part calcified hollow husk, part burnt-out spire. Material: bone-white and pale ash-grey calcified shell with fibrous, layered, stringy grain, split open along long cracks; deep scorch-black hollows and charred cavities inside the split shells; a glossy pale olive-green glass glaze (trinitite), fused and bubbled, only on the upper sun-facing tops of each body. Row 1 intact: whole standing husk shells, hollows visible from above, glaze on the tops. Row 2 damaged: the same bodies, still standing, with deep fresh fractures, chipped rims, flaked-off shell exposing black char; no geometry rearrangement. Row 3 destroyed: only the indicated separated fragments, each a LOW flat shard or splinter of bleached shell and glassy fragments, with generous transparent gaps between them; no standing bodies, no connecting backing. Strict straight-down orthographic overhead view, NEVER side-on or isometric; depth reads through the hollow openings, broken rims and top faces, under harsh, pale, high sunlight from the north-west. Low saturation overall; the glaze is a muted olive glass, never glowing or neon. The bodies must read clearly against pale cracked bleached hardpan ground, so keep firm dark char edges and crack lines defining each outline. Facet lines are only guides: replace the flat low-poly colors with natural material, retain outlines. No ground, dirt apron, slab, floor, base, frame, cast shadow outside the bodies, text, labels or extra objects. Genuine transparent alpha background. All 6 panels stay independent.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\irradiated-formations.png",
+      "sha256": "0862886ca2062cc28f917cea89fa993ded33c84b0fdf44d8117566c564c0bd81",
+      "dimensions": [
+        768,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: exact canvas, 2x3 panel registration, every silhouette and transparent region"
+    },
+    {
+      "path": "art-source\\tilesets\\planet-formations.raw.png",
+      "sha256": "8902f3f3237738312d93909151b1640dbb3655913e7e680ab7c352aa9ad1ac50",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Rendering finish and level of detail only (overhead painted game-sprite style at this scale); NOT layout, NOT material, NOT colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the exact geometry guide and Image 2 only for the painted rendering finish, generating one transparent atlas."
+  ],
+  "usage": {
+    "input_tokens": 44300,
+    "cached_input_tokens": 37504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 598,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.6
+}

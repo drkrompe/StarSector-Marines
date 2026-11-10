@@ -59,7 +59,7 @@ class MachinePartRequirementsTest {
         assertTrue(VehicleRack.takes(VehicleType.LRM_CARRIER, MechInternal.SENSOR_PAIR));
         assertFalse(VehicleRack.takes(VehicleType.HOVER_SCOUT, MechInternal.SENSOR_PAIR), "it has a sensor pair already");
         assertFalse(VehicleRack.takes(VehicleType.DRONE_SKIMMER, MechInternal.SENSOR_PAIR), "it has a bay");
-        for (MechVariant chassis : MechVariant.values()) {
+        for (MechVariant chassis : MechVariant.companyLines()) {
             // The crawler's small carapace has no deck for a wing and no flanks for launchers.
             if (chassis == MechVariant.CRAWLER) continue;
             assertTrue(chassis.hostsDrones() && chassis.hostsPointDefence(), "every chassis hosts both: " + chassis);

@@ -560,6 +560,7 @@ public final class DefensePostStamper implements GenStage {
             case GRASS:
             case DIRT:
             case STONE:
+            case HARDPAN:
             case SAND:
             case SNOW:
             case SIDEWALK:

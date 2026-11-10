@@ -41,6 +41,7 @@ class CantonmentRoadsTest {
             }
         }
         assertEquals(GrownTrunkPlan.UNOWNED, owner[19][20], "and only from the middle out");
+        assertEquals(1, owner[40][20], "it ends on the town's road, joining that network");
         for (int y = 3; y < 10; y++) assertEquals(GrownTrunkPlan.UNOWNED, owner[20][y], "not south as well");
     }
 

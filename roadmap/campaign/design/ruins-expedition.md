@@ -397,8 +397,7 @@ or scene judges whether the company gets through (owner rule); whether the
 chain plays well is the owner's playtest. Look shots: `ruins-works-look` (a
 store sealed and powered open), `ruins-vault-lock-look` (the vault's door
 locked, its hardened walls tinted, powered, open), `ruins-vault-access-look`
-(one card per access variant on a site that drew it), `ruins-works-picks` (the
-court-power and occupied-locks cards).
+(one card per access variant on a site that drew it).
 
 ### The entrance and the pull-out point
 
@@ -648,7 +647,7 @@ the company commits. The prize's **theme** shows four ways:
   close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
   the occupant's sign: the survey's tell, seen up close.
 
-**The works' twist** (`RuinsWorksTwist`). Each theme changes one rule of the
+**The works' twist** (`RuinsWorksTwist`, owner pick `ruins-works-twists` a). Each theme changes one rule of the
 works, built from the works' own parts, so the prize changes what the company
 does and not only what it sees. The works' row says which rule it is. Every
 twist keeps the works' law that nothing is locked for good: a store that power

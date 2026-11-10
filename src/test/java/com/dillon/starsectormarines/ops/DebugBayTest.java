@@ -16,7 +16,7 @@ class DebugBayTest {
     @Test void slotsCycleThroughEmptyMechsAndVehiclesAndWrap() {
         var slot = DebugBaySlot.EMPTY;
         int options = DebugBaySlot.options().size();
-        assertEquals(1 + MechVariant.values().length + VehicleType.values().length, options);
+        assertEquals(1 + MechVariant.companyLines().size() + VehicleType.values().length, options);
         for (int i = 0; i < options; i++) slot = DebugBaySlot.cycle(slot, 1);
         assertTrue(slot.sameAs(DebugBaySlot.EMPTY));
         assertTrue(DebugBaySlot.cycle(DebugBaySlot.EMPTY, -1).vehicle != null);

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.tools.snapshot.FfmpegVideo;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -29,7 +30,7 @@ import java.util.Locale;
  *
  * <p>{@code -Dsnapshot.lava.depth=40} sets the melt's depth in metres, the ledges scaled with it; {@code
  * -Dsnapshot.lava.eyes=120} the camera heights to compare. {@code -Dsnapshot.lava.setup} picks the rift: {@code
- * rift} (the default, the 40 m rift), {@code river} (a shallow lava river a few metres down, running), or {@code
+ * rift} (the default, the 40 m rift), {@code river} (a shallow lava river, running, {@code -Dsnapshot.lava.riverDepth=4} metres down), or {@code
  * vary} (the rift deep at the west, shallowing to a channel past the bridge and running out shallow in the east).
  */
 public final class LavaVoidLookSuite implements SnapshotSuite {
@@ -51,12 +52,16 @@ public final class LavaVoidLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
     }
 
-    /** A shallow lava river: a low bank of cooled crust and the running melt, four metres down. */
-    static NaturalVoid river(float eye) {
-        return new NaturalVoid(NaturalVoid.Style.LAVA, List.of(
-                new NaturalVoid.Step(1.6f, .45f),
-                new NaturalVoid.Step(4f, .9f)),
-                eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
+    /**
+     * A shallow lava river ({@link NaturalVoidZoning#LAVA_RIVER}, 4 m, the owner's pick), its steps scaled to put the
+     * melt {@code depth} metres down.
+     */
+    static NaturalVoid river(float eye, float depth) {
+        NaturalVoidZoning.Drop river = NaturalVoidZoning.LAVA_RIVER;
+        float f = depth / river.steps().get(river.steps().size() - 1).depthMeters();
+        List<NaturalVoid.Step> steps = new ArrayList<>();
+        for (NaturalVoid.Step step : river.steps()) steps.add(new NaturalVoid.Step(step.depthMeters() * f, step.insetCells()));
+        return new NaturalVoid(river.style(), steps, eye, river.wallTexture(), river.wallTileMeters(), 11);
     }
 
     /** The rift deepening and shallowing along its length: 40 m in the west, 12 m by the bridge, 4 m in the east. */
@@ -80,15 +85,17 @@ public final class LavaVoidLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         float depth = Float.parseFloat(System.getProperty("snapshot.lava.depth", "40"));
         String setup = System.getProperty("snapshot.lava.setup", "rift");
+        float riverDepth = Float.parseFloat(System.getProperty("snapshot.lava.riverDepth", "4"));
         for (String eyeText : System.getProperty("snapshot.lava.eyes", "120").split(",")) {
             float eye = Float.parseFloat(eyeText.trim());
             NaturalVoid look = switch (setup) {
-                case "river" -> river(eye);
+                case "river" -> river(eye, riverDepth);
                 case "vary" -> varying(eye);
                 default -> rift(depth, eye);
             };
             String tag = switch (setup) {
-                case "river" -> String.format(Locale.ROOT, "lava-river-eye%03dm", Math.round(eye));
+                case "river" -> riverDepth == 4f ? String.format(Locale.ROOT, "lava-river-eye%03dm", Math.round(eye))
+                        : String.format(Locale.ROOT, "lava-river-%03.1fm-eye%03dm", riverDepth, Math.round(eye));
                 case "vary" -> String.format(Locale.ROOT, "lava-vary-eye%03dm", Math.round(eye));
                 default -> String.format(Locale.ROOT, "lava-%03dm-eye%03dm", Math.round(depth), Math.round(eye));
             };

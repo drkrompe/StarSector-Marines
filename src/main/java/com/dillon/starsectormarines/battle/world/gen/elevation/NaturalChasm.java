@@ -136,6 +136,12 @@ public final class NaturalChasm {
      * larger than {@link #MAX_POCKET} or not wholly open ground.
      */
     static boolean[] proved(int w, int h, boolean[] cut, int[] before, IntPredicate free, IntPredicate walkable) {
+        return proved(w, h, cut, before, free, walkable, MAX_POCKET);
+    }
+
+    /** As {@link #proved(int, int, boolean[], int[], IntPredicate, IntPredicate)}, taking pockets up to {@code maxPocket}. */
+    static boolean[] proved(int w, int h, boolean[] cut, int[] before, IntPredicate free, IntPredicate walkable,
+                            int maxPocket) {
         boolean[] out = cut.clone();
         int[] after = OpenPit.label(w, h, i -> walkable.test(i) && !cut[i]);
         int pieces = 0, stretches = 0;
@@ -153,7 +159,7 @@ public final class NaturalChasm {
         for (int i = 0; i < after.length; i++) {
             int p = after[i];
             if (p == 0 || p == main[before[i]]) continue;
-            if (size[p] > MAX_POCKET || !free.test(i)) return null;
+            if (size[p] > maxPocket || !free.test(i)) return null;
             stranded[p] = true;
         }
         for (int i = 0; i < after.length; i++) if (after[i] > 0 && stranded[after[i]]) out[i] = true;

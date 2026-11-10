@@ -345,6 +345,7 @@ public class BattleRenderer {
                 // The land standing up from the walkable ground through a map's rise cells, a ravine's walls:
                 // over the tiles, so a rise leaning out over the floor is seen whole, and under every unit.
                 naturalRise,
+                naturalRise.glacial(),
                 // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
                 cliffArt,
                 // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.
