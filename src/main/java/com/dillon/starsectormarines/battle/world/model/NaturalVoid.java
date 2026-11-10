@@ -127,6 +127,12 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
         if (steps.isEmpty()) throw new IllegalArgumentException("a natural void needs at least its floor");
     }
 
+    /**
+     * Whether this drop is cut inside a building (a foundry's melt) rather than across the open country, where a map
+     * lays at most one drop of its own.
+     */
+    public boolean indoor() { return style == Style.FOUNDRY; }
+
     /** How deep the floor lies on the {@code steps}, in metres below the surface: everywhere, without marks. */
     public float floorMeters() { return steps.get(steps.size() - 1).depthMeters(); }
 }

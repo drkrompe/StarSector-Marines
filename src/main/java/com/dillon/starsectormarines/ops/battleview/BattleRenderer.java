@@ -56,6 +56,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.function.Function;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
@@ -150,6 +151,16 @@ public class BattleRenderer {
      * order is immaterial; within one layer this list preserves painter order.
      */
     private final List<RenderSystem> worldSystems;
+
+    /** One ground pass running {@code pass} of every drop's renderer in turn, the first drop's first. */
+    private static RenderSystem eachDrop(List<NaturalVoidRenderSystem> drops,
+                                         Function<NaturalVoidRenderSystem, RenderSystem> pass) {
+        List<RenderSystem> passes = new ArrayList<>();
+        for (NaturalVoidRenderSystem drop : drops) passes.add(pass.apply(drop));
+        return RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
+            for (RenderSystem p : passes) p.collect(ctx, out);
+        });
+    }
 
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
@@ -306,8 +317,14 @@ public class BattleRenderer {
         cliffArt.useSun(sun);
         VoidBackdropRenderSystem voidBackdrop = new VoidBackdropRenderSystem(sprites);
         voidBackdrop.useSun(sun);
-        NaturalVoidRenderSystem naturalVoid = new NaturalVoidRenderSystem(sprites);
-        naturalVoid.useSun(sun);
+        // One instance per drop a map may carry (a rift outside, a foundry's melt within), each over its own cells.
+        List<NaturalVoidRenderSystem> drops = new ArrayList<>();
+        for (int slot = 0; slot < CellTopology.MAX_NATURAL_VOIDS; slot++) {
+            NaturalVoidRenderSystem drop = NaturalVoidRenderSystem.drop(sprites, slot);
+            drop.useSun(sun);
+            drops.add(drop);
+        }
+        RenderSystem naturalVoid = eachDrop(drops, d -> d);
         NaturalVoidRenderSystem naturalRise = new NaturalVoidRenderSystem(sprites, true);
         naturalRise.useSun(sun);
         SignatureRenderSystem signature = new SignatureRenderSystem(sprites);
@@ -340,11 +357,11 @@ public class BattleRenderer {
                 // A volcanic world's ash drifts and glowing cracks, vents and embers, over its basalt tiles.
                 new VolcanicGroundRenderSystem(sprites),
                 // A natural drop's lip fraying onto the ground beside it, over the tiles.
-                naturalVoid.fray(),
+                eachDrop(drops, NaturalVoidRenderSystem::fray),
                 // A lava rift's light on the ground at its lip, its embers, smoke and ash, over the tiles and the fray.
-                naturalVoid.molten(),
+                eachDrop(drops, NaturalVoidRenderSystem::molten),
                 // A glacial crevasse's cold breath, snow blown off its lip and snow falling, over the tiles and the fray.
-                naturalVoid.glacial(),
+                eachDrop(drops, NaturalVoidRenderSystem::glacial),
                 // A rise's talus at its foot and its shadow on the floor, over the tiles.
                 naturalRise.fray(),
                 // The land standing up from the walkable ground through a map's rise cells, a ravine's walls:

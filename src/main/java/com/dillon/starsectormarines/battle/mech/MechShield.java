@@ -24,7 +24,7 @@ public final class MechShield {
             MechFlux.CAPACITY, // not read: a pooled shield's capacity is its pool's
             0f,             // not read: the pool sheds its own flux
             1.5f,           // upkeep a second, under the stock pool's dissipation of 6
-            0.6f,           // flux per blocked point of damage
+            0.75f,          // flux per blocked point: the crawler's 150 pool blocks 200, its plate's trade (machine-budgets.md)
             0f,             // not read: the guns charge the pool themselves
             0.4f,           // raise
             0.3f,           // lower

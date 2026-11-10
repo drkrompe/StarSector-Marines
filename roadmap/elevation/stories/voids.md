@@ -411,9 +411,13 @@ Laws):
    eroded line that wanders off the cells, not runs along them; its walls are
    rock strata stepping down in ledges, not facades over terraces grown from a
    footprint; its floor is water, scree, dark ice or surf, not a city plate;
-   it has no towers, walkways, traffic or lit windows. So a map carries a
-   `NaturalVoid` instead of a `VoidBackdrop` (never both), drawn by
-   `NaturalVoidRenderSystem` beside `VoidBackdropRenderSystem`. What they
+   it has no towers, walkways, traffic or lit windows. So a map carries
+   `NaturalVoid`s instead of a `VoidBackdrop` (never both), drawn by
+   `NaturalVoidRenderSystem` beside `VoidBackdropRenderSystem`. A map may
+   carry several drops, each owning its own void cells
+   (`CellTopology.addNaturalVoid`, `dropAt`) and drawn by its own instance
+   from them alone: an outdoor drop across the open country, at most one,
+   and a drop cut indoors (`NaturalVoid.indoor`, a foundry's melt) beside it. What they
    share is the camera and the rules, not code: the pinhole eye in metres
    above the surface, painter's order by depth, the battle's sun, and the
    ground tiles drawn after, covering everything but the void cells. Neither
@@ -999,7 +1003,9 @@ Laws):
      its approach, a spawn, or a route between required places, and each of
      those that crosses its line is left standing across it as a bridge.
    - **Crossings.** Every 34 cells along its line a crossing four cells wide
-     is left standing, decked as a timber footbridge; the drop is opened
+     is left standing, decked with its drop's deck (`NaturalVoidZoning.Deck`:
+     a surface laid on the crossing, a doodad laid over it, or both), a
+     timber footbridge for every outdoor drop today; the drop is opened
      before the crossings are taken out, so it meets each deck square and runs
      on under it. A snow bridge on ice was tried: plain snow over a crevasse
      read as two pits with ground between them, not as a way across.
