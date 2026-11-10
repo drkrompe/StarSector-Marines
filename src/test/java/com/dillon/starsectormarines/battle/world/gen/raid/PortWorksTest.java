@@ -97,6 +97,19 @@ class PortWorksTest {
         assertSameHub(turned, PortWorks.hubOf((Site) back.get(0), (Site) back.get(1)));
     }
 
+    @Test
+    void groundBesideAWorksComesInToItsClaimButNeverAcrossABuilding() {
+        Site east = PortWorks.apronSite(150, 110, 30, false, false, 280, 168);
+        assertEquals(150 + 30 + PortWorks.APRON_GAP, east.x0());
+        Site ground = new Site(PortWorks.APRON, 200, 90, 270, 150, SitePurpose.GROUND, true);
+        // Open ground between the claim (ending at 180) and the held ground: brought in to the claim.
+        assertEquals(180, PortWorks.clearEdge(180, true, ground, (x, y) -> false));
+        // A shed grew at x 188..190 on the ground's rows: the ground starts past it.
+        assertEquals(190, PortWorks.clearEdge(180, true, ground, (x, y) -> x >= 188 && x <= 190 && y == 120));
+        // A building off the ground's rows does not stop it.
+        assertEquals(180, PortWorks.clearEdge(180, true, ground, (x, y) -> x == 188 && y == 40));
+    }
+
     private static void assertSameHub(PortHub want, PortHub got) {
         assertNotNull(got);
         assertEquals(want.lines(), got.lines());

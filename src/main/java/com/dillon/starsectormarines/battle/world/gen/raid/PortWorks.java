@@ -201,6 +201,70 @@ public final class PortWorks implements RaidIndustry {
         return PortHub.lay(apron.x0(), y0, apron.x1(), y1, deepEast, outerNorth, back);
     }
 
+    // Ground held beside a works at the deep end and brought in to its claim once it is built: the port's apron
+    // before the hub, and light industry's assembly line now (LightIndustryWorks).
+
+    /** Open ground between a works' furthest claim and the ground held beside it. UNTUNED. */
+    static final int APRON_GAP = 3;
+    /** Cells of open ground left between a works' claim and the ground brought in to it: its rear road. */
+    static final int REAR_ROAD = 2;
+
+    /**
+     * Ground beside a works at the deep end: across the map and out to the deep edge as a pit's ground is
+     * ({@link RaidSiteTemplate#pitSite}, kept to the works' flank), but from {@link #APRON_GAP} beyond the works'
+     * reach, since the ground's road is the works' own; named {@link #APRON}.
+     */
+    static Site apronSite(int seedX, int seedY, int reach, boolean mirrorX, boolean mirrorY, int width, int height) {
+        Site ground = RaidSiteTemplate.pitSite(seedX, seedY, reach, mirrorX, mirrorY, width, height);
+        int x0 = mirrorX ? ground.x0() : seedX + reach + APRON_GAP;
+        int x1 = mirrorX ? seedX - reach - APRON_GAP : ground.x1();
+        if (x1 < x0) x1 = x0;
+        return new Site(APRON, x0, ground.y0(), x1, ground.y1(), ground.purpose(), true);
+    }
+
+    /**
+     * The works' claim's outermost column on the held ground's side, across the ground's rows; or the held ground's
+     * own near edge where the claim is not known. The held ground keeps clear of the largest claim a works may make,
+     * so a works that packed tighter leaves open ground the held ground is brought in across.
+     */
+    static int claimEdge(int[][] claim, int index, boolean deepEast, Site ground) {
+        int edge = deepEast ? ground.x0() - 1 - APRON_GAP : ground.x1() + 1 + APRON_GAP;
+        if (claim == null || index < 0) return edge;
+        int found = deepEast ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        for (int x = 0; x < claim.length; x++) {
+            for (int y = Math.max(0, ground.y0()); y <= Math.min(claim[x].length - 1, ground.y1()); y++) {
+                if (claim[x][y] != index) continue;
+                found = deepEast ? Math.max(found, x) : Math.min(found, x);
+            }
+        }
+        return found == Integer.MIN_VALUE || found == Integer.MAX_VALUE ? edge : found;
+    }
+
+    /** Whether a cell is built on. */
+    interface Built {
+        boolean at(int x, int y);
+    }
+
+    /**
+     * The works' edge as held ground may come in to it: the claim's {@code edge}, or, where something was built on
+     * the open ground between the claim and the held ground, that building's far side, so the ground never takes in
+     * a building that grew there. Only the held ground's rows are looked at.
+     */
+    static int clearEdge(int edge, boolean deepEast, Site ground, Built built) {
+        int from = deepEast ? edge + 1 : edge - 1, to = deepEast ? ground.x0() - 1 : ground.x1() + 1;
+        int step = deepEast ? 1 : -1;
+        int out = edge;
+        for (int x = from; deepEast ? x <= to : x >= to; x += step) {
+            for (int y = ground.y0(); y <= ground.y1(); y++) {
+                if (built.at(x, y)) {
+                    out = x;
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
     /** Lays the hub once the terminal is built ({@link PortHubDressing}), the terminal's rear gate and its intake queue. */
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
         if (!(plan.layout().find(APRON) instanceof Site apron) || !(plan.layout().find(LINES) instanceof Site lines)) {
