@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -513,6 +513,52 @@ Laws):
      them for comparison. Drops keep their sheer walls: the player looks
      down into them, not out of them. Left: the owner's pick of how wide and
      how many terraces (`BANK_CELLS`, `BANK_TERRACES`, UNTUNED).
+
+   **The crevasse town** (owner, 2026-11-09: "a plausible 'habitable' region
+   for cold planets ... a settlement might have built itself into a massive
+   crevasse to shelter from the planet's winds / storms"). A frozen world's
+   town on the floor of a great crevasse, the battle fought among its
+   streets, the crevasse's walls rising along both sides. Look suite:
+   `createSnapshots -Psnapshot=crevasse-town-look` (an Assault on a remote
+   garrison and on a town, `-Dbattle.mapgen.crevasseTowns=1`).
+   - **The ice wall.** A rise of style `ICE_WALL`: the terraced bank in the
+     crevasse's ice (the glacial crevasse's wall image), snow drifted on every
+     terrace, the top a wind-scoured snowfield with blue ice blown bare along
+     its rim (`IceVoidLook.snowfield`). Its shadow on the snow floor is the
+     sky's blue, lighter than on rock. The gale streams snow off every lip it
+     leaves for the crevasse, high over the floor and settling only a little
+     (`GlacialVoidRenderSystem`, rising); on the floor no snow drives: the
+     town lies out of the wind. `-Dsnapshot.ravine.ice=true` draws the
+     ravine suite in ice.
+   - **Decided with the plan.** On a frozen world half of the derived maps
+     (`CrevasseTown.CHANCE`, UNTUNED; `-Dbattle.mapgen.crevasseTowns`) hold
+     two bands of relief `ICE_WALL` along a pair of opposite edges before
+     anything is laid (`CrevasseTown.shelter`, from
+     `BattleSetup.precinctPlanFor` and `conquestPlanFor`): along the long
+     edges, or for a conquest along its axis, so the attack runs down the
+     floor rather than over a wall. Held ground, as a rim round a settlement
+     is (`Landscape.held`): the town, its roads and its fields grow on the
+     floor between them. The ordinary settlement and precinct programs lay
+     the town; nothing new builds it, and a frozen world's own building
+     style (the per-palette settlement adaptation, FROZEN: insulated, compact,
+     heated blocks) is what it builds.
+   - **The walls raised.** The landscape pass raises those bands as the ice
+     rise, never as hills (`CrevasseShelter`): in from each edge about 17
+     cells, wandering, on the open ground the town left there (yards and
+     verges as well as wild ground, never a building, door, fixture or road),
+     notched by a pass wherever the town, the landing, a spawn or a route
+     reaches the edge. Proved as a drop is: every stretch of walkable ground
+     connected before stays connected, dead ground behind a wall (600 cells
+     or fewer) is taken into it, and anything else refuses the walls; a map
+     whose walls would stand along less than half of their edges keeps none.
+     A crevasse town lays no other drop.
+   Next (slice 2): buildings stepped into the banks, each terrace a walkable
+   tier (elevation's terraces, `elevation-nouns.md`) with stairs, ramps and
+   lifts between them, enclosed walkways crossing the floor, heat and glow
+   from below (lit windows, vents steaming in the cold), and the walls
+   taller and wider for "huge": the owner's pick of the bank. Left: a
+   compound that runs to an edge still breaks its wall; the garrison could
+   be held off the bands as the town is.
    First pass (ravine wall): the gorge's strata wall, two ledges and the top
    36 m up, camera 120 m. Left: the owner's pick of height; a top with real
    art (a canopy image rather than flat colour, which blurs as the top scales
