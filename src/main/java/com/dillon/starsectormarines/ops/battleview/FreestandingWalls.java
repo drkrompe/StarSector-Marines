@@ -21,6 +21,10 @@ final class FreestandingWalls {
      * {@link #NONE} is a wall not stood up: a ship's bulkhead, or a wall out over the void.
      */
     enum Kind {
+        /** A sealed town's envelope ({@code SealedTown.ENVELOPE_WALL}): its body and its buttresses. */
+        ENVELOPE(8f, .58f, .59f, .58f),
+        /** The plinth along the envelope's outer course ({@code SealedTown.ENVELOPE_PLINTH}). */
+        ENVELOPE_PLINTH(3.5f, .42f, .43f, .44f),
         SEALED_PERIMETER(7f, .48f, .50f, .53f),
         INSTALLATION(5f, .42f, .43f, .44f),
         BLAST(3.5f, .62f, .62f, .60f),
@@ -51,6 +55,8 @@ final class FreestandingWalls {
      * lot ({@code worksStyle} non-zero).
      *
      * <ul>
+     *   <li>{@code habitat.envelope-wall}: a sealed town's envelope ({@code PrecinctWardStage.sealTowns}), its
+     *       {@code @plinth} the lower course along its outer face.</li>
      *   <li>{@code colony.ceramic-wall}, and the shielded town's brutalist light concrete: a sealed town's perimeter
      *       ({@code OwnedMapRecipe.perimeter}).</li>
      *   <li>{@code installation.dark-concrete-wall}: an installation's perimeter ({@code InstallationWalls}).</li>
@@ -65,6 +71,8 @@ final class FreestandingWalls {
     static Kind kind(String surfaceId, int worksStyle) {
         if (surfaceId != null) {
             if (surfaceId.startsWith("ship")) return Kind.NONE;
+            Part part = part(surfaceId);
+            if (part != null) return part == Part.PLINTH ? Kind.ENVELOPE_PLINTH : Kind.ENVELOPE;
             if (surfaceId.startsWith("installation.light-concrete-wall") && surfaceId.contains("@brutalist"))
                 return Kind.SEALED_PERIMETER;
             if (surfaceId.startsWith("installation.dark-concrete-wall")) return Kind.INSTALLATION;
@@ -76,6 +84,20 @@ final class FreestandingWalls {
         if (surfaceId.startsWith("colony.masonry-wall") || surfaceId.startsWith("urban.wall")) return Kind.COMPOUND;
         if (surfaceId.startsWith("colony.olive-wall")) return Kind.GARDEN;
         return Kind.UNKNOWN;
+    }
+
+    /** Which part of a sealed town's envelope a wall cell is, drawn each in its own way ({@link FreestandingWallFaces}). */
+    enum Part { BODY, BUTTRESS, PLINTH }
+
+    /** The envelope's surface ids ({@code SealedTown}): its body, and its outer course's {@code @look}s. */
+    static final String ENVELOPE = "habitat.envelope-wall";
+
+    /** The part of the envelope a surface is, or null where it is no envelope's. */
+    static Part part(String surfaceId) {
+        if (surfaceId == null || !surfaceId.startsWith(ENVELOPE)) return null;
+        if (surfaceId.endsWith("@plinth")) return Part.PLINTH;
+        if (surfaceId.endsWith("@buttress")) return Part.BUTTRESS;
+        return Part.BODY;
     }
 
     /**

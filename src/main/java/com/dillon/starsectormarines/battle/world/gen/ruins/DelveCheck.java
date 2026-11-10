@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -16,7 +18,8 @@ import java.util.List;
  * The laws a ruins delve keeps on its finished map ({@code mapgen-nouns.md}, Ruins ground): the vault is reachable from the
  * landing, the layer count is the one declared, every layer has its open ways, and no layer closes the route; at
  * the larger grades no single blocked way closes it either. Every published place a squad stands on is reachable
- * too. A ruins map that breaks one is a generation error, never a fallback.
+ * too. A derelict hall frame in any plant hall can travel to every other one, through hall doors it passes or tears
+ * ({@link #frameProblems}). A ruins map that breaks one is a generation error, never a fallback.
  *
  * <p>Reach is walked one cardinal step at a time under the grid's own step rule, which is stricter than the
  * pathfinder's diagonal steps, so a pass here is a pass for any route the battle plans.
@@ -24,6 +27,9 @@ import java.util.List;
 public final class DelveCheck {
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    /** The body a hall frame stands in: the MG-70's radius, cells. */
+    public static final float HALL_FRAME_RADIUS = MechVariant.SECURITY_HALL.radius;
 
     private DelveCheck() {}
 
@@ -104,8 +110,131 @@ public final class DelveCheck {
                     out.add(RuinsDelve.Interior.chamberName(k) + " is not reachable");
                 }
             }
+            out.addAll(frameProblems(grid, interior.halls(), interior.doors(), HALL_FRAME_RADIUS));
         }
         return out;
+    }
+
+    /**
+     * Whether a hall frame of {@code radius} standing at any plant hall's post (its middle) can travel to every other
+     * hall's post ({@code ruins-expedition.md}, Ways sized for machines): over ground its body fits, through every hall
+     * door, a dead one forced and one narrower than the frame torn a jamb wider at each end. Narrow service ways it
+     * cannot follow are allowed; a hall it cannot reach is not.
+     */
+    public static List<String> frameProblems(NavigationGrid grid, List<RuinsDelve.PlantHall> halls,
+                                             List<RuinsDelve.LeafDoor> doors, float radius) {
+        List<String> out = new ArrayList<>();
+        if (halls.size() < 2) return out;
+        NavigationGrid forced = forced(grid, doors, radius);
+        Area first = halls.get(0).footprint();
+        boolean[] reach = bodyReach(forced, radius, first.centreX(), first.centreY());
+        if (reach == null) {
+            out.add("a hall frame cannot stand in the " + halls.get(0).stage().name().toLowerCase() + " hall at "
+                    + first);
+            return out;
+        }
+        for (int k = 1; k < halls.size(); k++) {
+            Area hall = halls.get(k).footprint();
+            if (!postReached(forced, reach, hall)) {
+                out.add("a hall frame cannot travel from the hall at " + first + " to the post in the hall at " + hall);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * A copy of {@code grid} with every hall door as a hall frame leaves it: forced open across its span, and one
+     * narrower than the frame torn a jamb wider at each end until the frame fits.
+     */
+    static NavigationGrid forced(NavigationGrid grid, List<RuinsDelve.LeafDoor> doors, float radius) {
+        NavigationGrid forced = grid.copyNavigationTopology();
+        for (RuinsDelve.LeafDoor door : doors) {
+            Area s = door.span();
+            for (int y = s.bottom(); y <= s.top(); y++) {
+                for (int x = s.left(); x <= s.right(); x++) open(forced, x, y);
+            }
+            if (bodyFits(radius, door.length())) continue;
+            int widen = 1;
+            while (!bodyFits(radius, door.length() + 2 * widen)) widen++;
+            for (int k = 1; k <= widen; k++) {
+                if (door.alongX()) {
+                    open(forced, s.left() - k, s.bottom());
+                    open(forced, s.right() + k, s.bottom());
+                } else {
+                    open(forced, s.left(), s.bottom() - k);
+                    open(forced, s.left(), s.top() + k);
+                }
+            }
+        }
+        return forced;
+    }
+
+    /** Whether a body of {@code radius} passes a way {@code cells} wide: its body across is less than the way. */
+    static boolean bodyFits(float radius, int cells) {
+        return radius * 2f < cells;
+    }
+
+    /**
+     * The cells a body of {@code radius} reaches from the standable cell nearest {@code (x, y)}, over the cells it
+     * stands at the middle or a corner of (a body as wide as a way stands on the seam between its rows); null when it
+     * cannot stand within three cells of the start.
+     */
+    static boolean[] bodyReach(NavigationGrid grid, float radius, int x0, int y0) {
+        int w = grid.getWidth(), h = grid.getHeight();
+        int start = -1;
+        for (int r = 0; r <= 3 && start < 0; r++) {
+            for (int dy = -r; dy <= r && start < 0; dy++) {
+                for (int dx = -r; dx <= r && start < 0; dx++) {
+                    int x = x0 + dx, y = y0 + dy;
+                    if (grid.inBounds(x, y) && stands(grid, x, y, radius)) start = y * w + x;
+                }
+            }
+        }
+        if (start < 0) return null;
+        boolean[] reach = new boolean[w * h];
+        boolean[] seen = new boolean[w * h];
+        int[] queue = new int[w * h];
+        int head = 0, tail = 0;
+        reach[start] = seen[start] = true;
+        queue[tail++] = start;
+        while (head < tail) {
+            int at = queue[head++], cx = at % w, cy = at / w;
+            for (int[] step : STEPS) {
+                int nx = cx + step[0], ny = cy + step[1];
+                if (!grid.inBounds(nx, ny) || seen[ny * w + nx]) continue;
+                seen[ny * w + nx] = true;
+                if (!stands(grid, nx, ny, radius)) continue;
+                reach[ny * w + nx] = true;
+                queue[tail++] = ny * w + nx;
+            }
+        }
+        return reach;
+    }
+
+    /** Whether a body of {@code radius} stands at the middle or at a corner of cell {@code (x, y)}. */
+    private static boolean stands(NavigationGrid grid, int x, int y, float radius) {
+        if (ManualTerrainMotion.canStand(grid, x + 0.5f, y + 0.5f, radius)) return true;
+        for (int cx = 0; cx <= 1; cx++) {
+            for (int cy = 0; cy <= 1; cy++) {
+                if (ManualTerrainMotion.canStand(grid, x + cx, y + cy, radius)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static void open(NavigationGrid grid, int x, int y) {
+        if (grid.inBounds(x, y)) grid.setWalkableFloor(x, y);
+    }
+
+    /** Whether the reach takes in a hall's post: a cell within three of its middle that the body stands on. */
+    private static boolean postReached(NavigationGrid grid, boolean[] reach, Area hall) {
+        for (int dy = -3; dy <= 3; dy++) {
+            for (int dx = -3; dx <= 3; dx++) {
+                int x = hall.centreX() + dx, y = hall.centreY() + dy;
+                if (grid.inBounds(x, y) && reach[y * grid.getWidth() + x]) return true;
+            }
+        }
+        return false;
     }
 
     /** Cells reachable from {@code (x, y)} by cardinal steps, never entering {@code blocked}. */
