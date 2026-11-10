@@ -575,6 +575,42 @@ industrial upgrades for planets or gamma/beta/alpha cores". Owner picks
 `ruins-prize-forced` a and `ruins-theme-defences` a. What is still owed is in
 `ruins-vault-prize.md`.
 
+**The site is the plant that made the prize** (owner, 2026-11-09: "In theory
+these would be massive facilities with these spoils being common day
+occurrences at the time"; pick `ruins-vault-facility` open, building on a). A
+ruins site is the wreck of a Domain-era plant whose prize was an ordinary
+product: a cryoarithmetic plant, a nanoforge works, a biofactory complex, an AI
+core datacentre. The ruin's roofed megastructure is that plant, and the delve
+runs through its own logic, from the entrances to the far end:
+
+| Stage | Hall | Tells |
+| --- | --- | --- |
+| Intake | Receiving docks on the hull face | Dock doors, empty pallet lanes |
+| Production | Line halls, two or three line runs with aisles | Units on the line, half-built, wrecked |
+| Storage | Rack bays, mostly stripped | The sealed stores are caged bays here |
+| Secure store | The vault: a cradle hall | Rows of cradles, empty where units were pulled out; one still sealed holds the prize |
+
+The works are the plant's own: the power hall is its substation, the records
+office its control room. **The prize is the one surviving unit** of something
+that used to roll off the line; everything else is wreckage, half-built units
+and empty cradles.
+
+**Size follows the grade.** Scattered ground keeps only a satellite depot
+(storage and a small secure store in its bunker). Widespread has intake, one
+production hall and the secure store in its one interior band. Extensive adds
+storage bays and a second production hall across two bands. Vast widens every
+hall and runs two lines per production hall. The secure store is built: a
+cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
+(`mapgen-nouns.md`, Ruins ground). The plant's other halls are still owed.
+
+**One plant kit, one product a theme.** The halls wear a generic plant kit:
+line modules, line ends, cradles, rack rows and dock doors. The theme adds its
+product, whole (only the prize), half-built and wrecked. The ground lays halls
+with slots (line runs, cradle grids, rack rows, dock doors), and the theme's
+`RuinsDressing` names the pieces for each slot role. Placement is a coordinate
+hash, so the layout never changes with the theme. Picture cards:
+`createSnapshots -Psnapshot=ruins-facility-picks`.
+
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
 

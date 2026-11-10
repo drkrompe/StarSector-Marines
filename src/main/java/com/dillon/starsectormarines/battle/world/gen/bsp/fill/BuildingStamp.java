@@ -235,7 +235,28 @@ public enum BuildingStamp {
             "#.....#",
             "w.....e",
             "#.....#",
-            "###+###");
+            "###+###"),
+    /**
+     * A compact heated block for a narrow terrace ({@code mapgen-nouns.md}, Habitat, insulated): five cells deep, its
+     * back blind against the bank behind it, its door and windows on the one face it has, so it fits a plot six deep
+     * with its threshold in front. Built in brick, which a frozen town keeps. Site only: no city lot draws it.
+     */
+    TERRACE_BLOCK("Terrace block", BuildingKind.RESIDENTIAL, BuildingStyle.TENEMENT,
+            "#########",
+            "#.......#",
+            "#.......#",
+            "#.......#",
+            "##s#+#s##"),
+    /**
+     * Two terrace blocks under one roof, a party wall between them with a door through it, and a door each ({@link #TERRACE_BLOCK}). Site
+     * only.
+     */
+    TERRACE_ROW("Terrace row", BuildingKind.RESIDENTIAL, BuildingStyle.TENEMENT,
+            "###############",
+            "#......#......#",
+            "#......+......#",
+            "#......#......#",
+            "##s#+#s#s#+#s##");
 
     /**
      * The plans a city lot may draw. The farm buildings stand only where the
