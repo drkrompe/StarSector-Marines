@@ -231,6 +231,43 @@ class PrecinctBoundaryTest {
         assertTrue(gate.cells().stream().noneMatch(c -> c[0] == 5 && c[1] == 24), "the corner was left open");
     }
 
+    /**
+     * A street through a walled place keeps both its crossings, past the cap.
+     *
+     * <p>West and east of the place the street runs on to nothing but the place, so each side is a run of road
+     * of its own: sealed, it is cut off from the map's network, which the place's own road joined it to.
+     */
+    @Test
+    void everyRunOfRoadOutsideKeepsACrossing() {
+        int[][] claim = new int[GW][GH];
+        int[][] owner = new int[GW][GH];
+        for (int x = 0; x < GW; x++) {
+            for (int y = 0; y < GH; y++) {
+                claim[x][y] = x >= 12 && x <= 27 && y >= 8 && y <= 21 ? 1 : GrownTrunkPlan.UNOWNED;
+                owner[x][y] = y >= 13 && y <= 15 && x >= 2 && x <= 37 ? 0 : GrownTrunkPlan.UNOWNED;
+            }
+        }
+        List<PrecinctBoundary.Gate> gates = PrecinctBoundary.openGates(claim, owner, 1, GW, GH, 1);
+        assertTrue(gates.size() == 2, gates.size() + " gates: one side of the street was cut off");
+    }
+
+    /** Two crossings onto the same road outside keep to the cap: the road is joined either way. */
+    @Test
+    void crossingsOntoOneRoadKeepToTheCap() {
+        int[][] claim = new int[GW][GH];
+        int[][] owner = new int[GW][GH];
+        for (int x = 0; x < GW; x++) {
+            for (int y = 0; y < GH; y++) {
+                claim[x][y] = x >= 12 && x <= 27 && y >= 8 && y <= 21 ? 1 : GrownTrunkPlan.UNOWNED;
+                boolean through = y >= 13 && y <= 15 && x >= 2 && x <= 37;
+                boolean round = y >= 24 && y <= 26 && x >= 2 && x <= 37 || (x <= 4 || x >= 35) && y >= 13 && y <= 26;
+                owner[x][y] = through || round ? 0 : GrownTrunkPlan.UNOWNED;
+            }
+        }
+        List<PrecinctBoundary.Gate> gates = PrecinctBoundary.openGates(claim, owner, 1, GW, GH, 1);
+        assertTrue(gates.size() == 1, gates.size() + " gates");
+    }
+
     private static final int GW = 40;
     private static final int GH = 30;
 
