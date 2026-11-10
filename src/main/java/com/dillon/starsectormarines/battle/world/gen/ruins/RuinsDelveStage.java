@@ -33,8 +33,10 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Random;
@@ -114,6 +116,12 @@ public final class RuinsDelveStage implements GenStage {
     /** Rows between the centres of two ways through one layer. */
     static final int WAY_SPACING = 9;
     static final int ROOMS_PER_LAYER = 2;
+    /**
+     * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
+     * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
+     * the pick {@code ruins-plant-plan}; then drop the switch and the losing path.
+     */
+    public static final String PLANT_PROPERTY = "battle.ruins.plant";
     /** The most ground a repair may wall in rather than join; more is a layout error, not a pocket. */
     static final int MAX_SEALED_POCKET = 60;
 
@@ -280,6 +288,14 @@ public final class RuinsDelveStage implements GenStage {
         Area apronKeepOff;
         /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
         Cell worksStand;
+        /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
+        boolean plantMode;
+        /** The room each of the plant's infantry-only spaces is laid as. */
+        final Map<Area, RuinsRoom> roles = new HashMap<>();
+        /** The plant's spaces laid, by their published names. */
+        final Map<String, Area> spaces = new LinkedHashMap<>();
+        /** The brief's spaces a band had no room for, tried again in the next band. */
+        final List<PlantBrief.Space> carried = new ArrayList<>();
 
         Layout(GenContext ctx, RuinsGroundPlan plan, Random rng) {
             this.ctx = ctx;
@@ -323,6 +339,7 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         RuinsDelve lay() {
+            plantMode = Boolean.getBoolean(PLANT_PROPERTY) && plan.dressing().works().any();
             endStreets();
             weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
@@ -388,6 +405,7 @@ public final class RuinsDelveStage implements GenStage {
                 // A forge works lays its halls before its side rooms, so its mega hall has the band's length.
                 boolean forge = plan.dressing().works().any();
                 if (in && forge) layHalls(i, firstInside, region, chambers, plantHalls);
+                if (in && plantMode) plant(i, firstInside, region, entrances, vault, chambers, plantHalls);
                 List<SideRoom> rooms = new ArrayList<>();
                 for (int r = 0; r < ROOMS_PER_LAYER; r++) {
                     SideRoom room = room(RuinsDelve.layerName(i) + ".room." + (rooms.size() + 1), region);
@@ -398,7 +416,7 @@ public final class RuinsDelveStage implements GenStage {
                 if (rooms.isEmpty()) throw new IllegalStateException(RuinsDelve.layerName(i) + " seats no side room");
                 if (in) {
                     if (!forge) layHalls(i, firstInside, region, chambers, plantHalls);
-                    int tries = Math.max(4, region.width() * region.height() / HULL_PER_CHAMBER);
+                    int tries = plantMode ? 0 : Math.max(4, region.width() * region.height() / HULL_PER_CHAMBER);
                     for (int c = 0; c < tries; c++) {
                         Area chamber = chamber(region);
                         if (chamber == null) continue;
@@ -412,6 +430,8 @@ public final class RuinsDelveStage implements GenStage {
                 laid.add(new Layer(RuinsDelve.layerName(i), i, d.kind, ground, d.lineLeft, d.lineRight,
                         d.ways, rooms, court));
             }
+            // The plant's spaces are listed from the way in toward the vault: the first frame posts nearest the entry.
+            if (plantMode) chambers.sort(Comparator.comparingInt(Area::centreX).thenComparingInt(Area::centreY));
             for (RuinsDelve.PlantHall plantHall : plantHalls) furnish(plantHall);
             // A great hall is furnished by its process alone: no loose dressing against its walls.
             List<Area> dressed = new ArrayList<>(chambers);
@@ -439,7 +459,7 @@ public final class RuinsDelveStage implements GenStage {
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand());
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces);
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
             // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
@@ -1753,6 +1773,8 @@ public final class RuinsDelveStage implements GenStage {
          * doubled, never the forge.
          */
         List<RuinsDelve.PlantStage> forgeStages(int band, int bands) {
+            // A plant laid from its brief takes only the works hall here; its other spaces are the brief's (plant).
+            if (plantMode) return band == 0 ? List.of(worksStage()) : List.of();
             List<RuinsDelve.PlantStage> out = new ArrayList<>();
             boolean vast = plan.layers() >= 4;
             if (band == 0) {
@@ -1788,6 +1810,105 @@ public final class RuinsDelveStage implements GenStage {
             return null;
         }
 
+        /**
+         * Band {@code i}'s spaces of the plant's brief ({@link PlantBrief}), each where its job put it: round the works
+         * hall, at a way in, by the power hall or on the vault's row. A frame-wide space is joined by a freight way and
+         * published as a plant hall; the rest by a service corridor, as rooms with a role. A space the band has no
+         * room for, even a fifth smaller, is carried to the next band. Placement is a search from the space's anchor,
+         * never the layout's stream.
+         */
+        void plant(int i, int firstInside, Area region, List<Area> entrances, Vault vault, List<Area> chambers,
+                   List<RuinsDelve.PlantHall> plantHalls) {
+            int band = i - firstInside, bands = plan.interiorLayers();
+            List<PlantBrief.Space> brief = new ArrayList<>(carried);
+            carried.clear();
+            brief.addAll(PlantBrief.spaces(band, bands, plan.layers()));
+            Area last = null;
+            for (PlantBrief.Space space : brief) {
+                Area room = null;
+                for (float shrink : new float[]{1f, .8f}) {
+                    int cw = Math.min(Math.round(space.width() * shrink), region.width() - 6);
+                    int ch = Math.round(space.height() * shrink);
+                    if (cw < 6) break;
+                    int[] at = anchorOf(space.anchor(), region, entrances, vault, last, cw, ch);
+                    int[] spot = near(region, at[0], at[1], cw, ch, 2);
+                    if (spot == null) continue;
+                    room = new Area(spot[0], spot[1], spot[0] + cw - 1, spot[1] + ch - 1);
+                    break;
+                }
+                if (room == null) {
+                    carried.add(space);
+                    continue;
+                }
+                for (int y = room.bottom(); y <= room.top(); y++) {
+                    for (int x = room.left(); x <= room.right(); x++) interiorFloor(x, y);
+                }
+                reserve(room, 2);
+                connect(new Cell(room.centreX(), room.centreY()), i, null,
+                        space.freight() ? FREIGHT_WIDTH : SERVICE_WIDTH);
+                chambers.add(room);
+                spaces.put(RuinsDelve.Interior.spaceName(space.name()), room);
+                if (space.stage() != null) {
+                    plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.Interior.spaceName(space.name()),
+                            space.stage(), room));
+                } else if (space.role() != null) {
+                    roles.put(room, space.role());
+                }
+                last = room;
+            }
+        }
+
+        /** The cell a space of {@code cw} by {@code ch} wants its centre on, by its anchor. */
+        int[] anchorOf(PlantBrief.Anchor anchor, Area region, List<Area> entrances, Vault vault, Area last, int cw,
+                       int ch) {
+            Area t = trunkHall != null && region.contains(trunkHall.centreX(), trunkHall.centreY()) ? trunkHall : null;
+            int mx = region.centreX(), my = region.centreY();
+            return switch (anchor) {
+                case HALL_EAST -> t == null ? new int[]{mx, my}
+                        : new int[]{t.right() + 3 + cw / 2, t.centreY() + t.height() / 4};
+                case HALL_HEAD -> t == null ? new int[]{mx, my} : new int[]{t.centreX() + 2, t.top() + 3 + ch / 2};
+                case HALL_DISPATCH -> t == null ? new int[]{mx, my}
+                        : new int[]{t.right() - cw / 2, t.bottom() - 3 - ch / 2};
+                case HALL_FEED -> t == null ? new int[]{mx, my}
+                        : new int[]{t.left() + 4 + cw / 2, t.bottom() - 3 - ch / 2};
+                case ENTRANCE -> entrances.isEmpty() ? new int[]{region.left() + cw / 2, my}
+                        : new int[]{region.left() + 2 + cw / 2, entrances.get(0).centreY()};
+                case QUIET_END -> {
+                    int busy = t != null ? t.centreY() : entrances.isEmpty() ? my : entrances.get(0).centreY();
+                    int y = busy > my ? region.bottom() + 2 + ch / 2 : region.top() - 2 - ch / 2;
+                    yield new int[]{region.left() + 2 + cw / 2, y};
+                }
+                case POWER -> innerHall != null && region.contains(innerHall.footprint().centreX(),
+                        innerHall.footprint().centreY())
+                        ? new int[]{innerHall.footprint().centreX(), innerHall.footprint().centreY()}
+                        : new int[]{mx, t != null && t.centreY() > my ? region.bottom() + ch : region.top() - ch};
+                case VAULT_ROW -> new int[]{region.right() - 2 - cw / 2, vault.footprint().centreY()};
+                case MIDDLE -> new int[]{mx, my};
+                case BESIDE_LAST -> last == null ? new int[]{mx, my}
+                        : new int[]{last.right() + 3 + cw / 2, last.centreY()};
+            };
+        }
+
+        /**
+         * The south-west corner nearest {@code (ax, ay)} of a free {@code cw} by {@code ch} footprint inside
+         * {@code region}, {@code margin} clear round it, searched ring by ring outward; null where none fits.
+         */
+        int[] near(Area region, int ax, int ay, int cw, int ch, int margin) {
+            int reach = Math.max(region.width(), region.height());
+            for (int r = 0; r <= reach; r++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                        int l = ax + dx - cw / 2, b = ay + dy - ch / 2;
+                        if (l < region.left() + margin || b < region.bottom() + margin
+                                || l + cw - 1 > region.right() - margin || b + ch - 1 > region.top() - margin) continue;
+                        if (free(l - margin, b - margin, l + cw - 1 + margin, b + ch - 1 + margin)) return new int[]{l, b};
+                    }
+                }
+            }
+            return null;
+        }
+
         /** The stage a works site's works hall is laid as: the mega forge's foundry, or the theme's works hall. */
         RuinsDelve.PlantStage worksStage() {
             return plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS;
@@ -1798,12 +1919,14 @@ public final class RuinsDelveStage implements GenStage {
             boolean vast = plan.layers() >= 4;
             int cw = switch (stage) {
                 case INTAKE -> 16;
+                case MAINTENANCE -> 24;
                 case PRODUCTION -> vast ? 30 : 26;
                 case FOUNDRY, WORKS -> vast ? 40 : 34;
                 case STORAGE -> 18;
             };
             int ch = switch (stage) {
                 case INTAKE -> 12;
+                case MAINTENANCE -> 18;
                 case PRODUCTION -> vast ? 18 : 16;
                 case FOUNDRY, WORKS -> vast ? 24 : 22;
                 case STORAGE -> 14;
@@ -1817,11 +1940,14 @@ public final class RuinsDelveStage implements GenStage {
             }
             cw = Math.min(cw, region.width() - 6);
             if (cw < 12) return null;
-            int[] at = spot(region, cw, ch, 2);
+            // A plant laid from its brief stands its works hall in the middle of the band, room left at both ends
+            // for what fed it and what served it.
+            boolean centred = plantMode && mega;
+            int[] at = centred ? near(region, region.centreX(), region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
             // A mega forge that finds no room at its full length is shortened, never below the layout's least.
             while (at == null && mega && ch - 8 >= MEGA_MIN_LONG) {
                 ch -= 8;
-                at = spot(region, cw, ch, 2);
+                at = centred ? near(region, region.centreX(), region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
             }
             if (at == null) return null;
             Area room = new Area(at[0], at[1], at[0] + cw - 1, at[1] + ch - 1);
@@ -1987,7 +2113,16 @@ public final class RuinsDelveStage implements GenStage {
             List<Area> ranked = RuinsRoom.ranked(plain, anchor);
             for (int rank = 0; rank < ranked.size(); rank++) {
                 Area room = ranked.get(rank);
-                layRoom(registry, RuinsRoom.chamberRole(rank), works, room, new Cell(room.centreX(), room.centreY()),
+                RuinsRoom kind = plantMode ? roles.get(room) : RuinsRoom.chamberRole(rank);
+                if (kind == null) continue;
+                layRoom(registry, kind, works, room, new Cell(room.centreX(), room.centreY()),
+                        RuinsRoom.facing(ax - room.centreX(), ay - room.centreY()));
+            }
+            // Until it has a plan of its own, the plant's maintenance shop is laid as a workshop.
+            for (RuinsDelve.PlantHall hall : plantHalls) {
+                if (hall.stage() != RuinsDelve.PlantStage.MAINTENANCE) continue;
+                Area room = hall.footprint();
+                layRoom(registry, RuinsRoom.WORKSHOP, works, room, new Cell(room.centreX(), room.centreY()),
                         RuinsRoom.facing(ax - room.centreX(), ay - room.centreY()));
             }
             for (Layer layer : layers) {

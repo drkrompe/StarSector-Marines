@@ -781,7 +781,9 @@ public class CellTopology {
         /** An arched ribbed hangar roof: motor sheds, depots, the fuel house. */
         HANGAR,
         /** A low ridged hut roof: barracks, dispatch, stores huts. */
-        HUT
+        HUT,
+        /** A fallen starship's dorsal plating, over every compartment of the hull whatever its walls are. */
+        HULL
     }
 
     /** The roof kind marked on the cell, or null where none is. */
