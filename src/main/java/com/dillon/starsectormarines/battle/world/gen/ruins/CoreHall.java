@@ -20,6 +20,9 @@ final class CoreHall {
 
     static final String DUST = "floors.sand";
 
+    /** The width of one rack row's art. */
+    static final int RACK = 6;
+
     private CoreHall() {}
 
     static WorksHallPlan plan(int width, int length, long seed) {
@@ -30,7 +33,7 @@ final class CoreHall {
         int top = length - 2, sw = f.stationWidth();
 
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            p.floor("doodad.ruins-core-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
+            p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);
         f.feedRail("feed", top - 1);
@@ -47,7 +50,7 @@ final class CoreHall {
                 WorksHallPlan.COLLAPSE);
         p.wear("doodad.ruins-coolant-stain", f.eastR - chill - 1, top - 17, 2, 2);
         p.wear("doodad.ruins-coolant-stain", f.eastR - chill - 2, top - 19, 2, 2);
-        f.stand("doodad.ruins-line-pulpit", "doodad.industrial-control-console", f.cx - 1, top - 2, 3, 1, "lattice");
+        f.stand("doodad.ruins-line-console", "doodad.industrial-control-console", f.cx - 1, top - 2, 3, 1, "lattice");
 
         // Down the line: a rack pod either side of each bay, on the raised floor.
         List<Integer> bays = f.bays();
@@ -59,13 +62,11 @@ final class CoreHall {
                 boolean toppled = b == 1 && side == 0;
                 int rackL = side == 0 ? l : l + 3, rackR = side == 0 ? r - 3 : r;
                 if (toppled) {
-                    f.stand("doodad.ruins-core-racks-toppled", "doodad.industrial-scrap-pile", rackL, y0 + 2,
-                            rackR - rackL + 1, 3, WorksHallPlan.COLLAPSE);
+                    racks(f, "doodad.ruins-core-racks-toppled", "doodad.industrial-scrap-pile", rackL, rackR, y0 + 2, 3,
+                            WorksHallPlan.COLLAPSE);
                 } else {
-                    f.stand("doodad.ruins-core-rack-row", "doodad.civic-server-rack", rackL, y0 + 1, rackR - rackL + 1,
-                            2, "burn-in");
-                    f.stand("doodad.ruins-core-rack-row", "doodad.civic-server-rack", rackL, y0 + 5, rackR - rackL + 1,
-                            2, "burn-in");
+                    racks(f, "doodad.ruins-core-rack-row", "doodad.civic-server-rack", rackL, rackR, y0 + 1, 2, "burn-in");
+                    racks(f, "doodad.ruins-core-rack-row", "doodad.civic-server-rack", rackL, rackR, y0 + 5, 2, "burn-in");
                 }
                 // The core burning in at the pod's line end.
                 int cab = side == 0 ? r - 2 : l;
@@ -90,5 +91,12 @@ final class CoreHall {
 
         f.bank(DUST, 0, 2, 0xD5);
         return p;
+    }
+
+    /** A rack row from {@code l} to {@code r}: whole six-cell rows, the short end in the stand-in's single racks. */
+    private static void racks(HallFrame f, String id, String standIn, int l, int r, int y, int h, String station) {
+        int x = l;
+        for (; x + RACK - 1 <= r; x += RACK) f.stand(id, standIn, x, y, RACK, h, station);
+        if (x <= r) f.stand(standIn, null, x, y, r - x + 1, h, station);
     }
 }

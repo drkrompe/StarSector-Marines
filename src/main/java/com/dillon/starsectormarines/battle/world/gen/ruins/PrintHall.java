@@ -34,7 +34,7 @@ final class PrintHall {
 
         // The frame conveyor down the line, from the head to the cage.
         for (int y = cageT + 2; y + 1 <= f.headY - 1; y += 2) {
-            p.floor("doodad.ruins-frame-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "print");
+            p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "print");
         }
         p.zone(f.cx, cageT + 2, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);
         f.feedRail("feed", top - 1);
@@ -97,8 +97,8 @@ final class PrintHall {
         }
         for (int y = cageB + 1; y < cageT; y++) {
             if (Math.abs(y - (cageB + cageT) / 2f) <= 1.5f) continue;
-            f.stand("doodad.ruins-cage-fence", "doodad.industrial-fence-straight-v", cl, y, 1, 1, "flight test");
-            f.stand("doodad.ruins-cage-fence", "doodad.industrial-fence-straight-v", cr, y, 1, 1, "flight test");
+            f.stand("doodad.ruins-cage-fence-v", "doodad.industrial-fence-straight-v", cl, y, 1, 1, "flight test");
+            f.stand("doodad.ruins-cage-fence-v", "doodad.industrial-fence-straight-v", cr, y, 1, 1, "flight test");
         }
         int mid = (cageB + cageT) / 2;
         f.stand("doodad.ruins-drone-frame-wrecked", null, cl + 4, mid - 2, 3, 3, WorksHallPlan.COLLAPSE);
