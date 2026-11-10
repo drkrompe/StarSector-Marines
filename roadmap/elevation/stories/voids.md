@@ -629,8 +629,9 @@ Laws):
    margin in the wide shot, as the gorge's water does.
    - **A lava river** (owner, 2026-11-09: "the lava river might look good with
      flow and not need a 40m drop"): the same style set shallow, a low bank of
-     cooled crust and the melt 4 m down (`LavaVoidLookSuite.river`), a valid
-     `NaturalVoid` with no new rule. A shallow melt runs where a deep one
+     cooled crust and the melt 4 m down (`NaturalVoidZoning.LAVA_RIVER`), a
+     valid `NaturalVoid` with no new rule. The owner picked 4 m from 2.5, 4
+     and 8 m (2026-11-09): the river's standing depth. A shallow melt runs where a deep one
      pools: the crust's drift and the heat's run quicken from a 24 m melt's
      crawl (0.22 cells a second, the rift's) to a 4 m channel's run (1.1)
      (`LavaVoidLook.runShare`, `MoltenVoidRenderSystem.crustSpeed`), so the

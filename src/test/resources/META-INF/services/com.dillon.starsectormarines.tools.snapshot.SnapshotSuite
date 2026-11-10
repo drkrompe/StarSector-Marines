@@ -456,3 +456,4 @@ com.dillon.starsectormarines.ops.RuinsPushCueLookSuite
 com.dillon.starsectormarines.ops.battleview.VolcanicGroundLookSuite
 com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite
 com.dillon.starsectormarines.ops.CrevasseTownLookSuite
+com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
