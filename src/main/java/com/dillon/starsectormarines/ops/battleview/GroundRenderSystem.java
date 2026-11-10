@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
@@ -117,6 +118,8 @@ public final class GroundRenderSystem implements RenderSystem {
     private SpriteSheetFrames urbanTile3Frames, natureFrames;
     private TileRegistry tileReg;
     private GenMappingRegistry genMapping;
+    /** The battle's world, whose own material a kind may draw in ({@code paletteGroundRender}); null for bare rock. */
+    private SurfacePalette world;
 
     /**
      * The atlas this collect addresses, or null while it is not serving.
@@ -162,6 +165,7 @@ public final class GroundRenderSystem implements RenderSystem {
         this.natureFrames = sprites.natureFrames();
         this.tileReg = TileRegistry.installed();
         this.genMapping = GenMappingRegistry.installed();
+        this.world = ctx.sim.surface();
         bindAtlas(ctx);
 
         NavigationGrid grid = ctx.sim.getGrid();
@@ -549,7 +553,7 @@ public final class GroundRenderSystem implements RenderSystem {
             kindSheet = new SpriteAPI[kinds.length];
             kindFill = new Color[kinds.length];
             for (CellTopology.GroundKind k : kinds) {
-                String id = (genMapping == null || tileReg == null) ? null : genMapping.groundBlockId(k);
+                String id = (genMapping == null || tileReg == null) ? null : genMapping.groundBlockId(k, world);
                 if (id == null) continue;
                 GridBlockDef b = tileReg.block(id);
                 if (b == null) continue; // a sliced-tile mapping (e.g. STREET) — special-cased below
@@ -971,7 +975,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 boolean nature = system.nature != null
                         && (kind == CellTopology.GroundKind.GRASS || kind == CellTopology.GroundKind.DIRT);
                 String key = nature ? "kind:" + kind.name()
-                        : system.genMapping == null ? null : system.genMapping.groundBlockId(kind);
+                        : system.genMapping == null ? null : system.genMapping.groundBlockId(kind, system.world);
                 kindPriority[kind.ordinal()] = usable(blocks, key);
             }
             return new Feather(base, topology, edge, sheet, blocks, surfacePriority, kindPriority);
