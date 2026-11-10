@@ -93,10 +93,11 @@ through or built on (`PlanetSkinTest`). It swaps:
   (`PlanetSkin.fieldsOn`). On a frozen, bare-rock, volcanic, irradiated or toxic
   world, or under air that kills, every worked field (`MapResult.fields`: the
   surveyed country's plots, the town's own fields and the lots' kitchen plots)
-  is laid as **hydroponic beds** on its footprint: paved bays on the crop's rows
-  between walkways along its headland, as walkable as the field was. Bare
-  ground of the planet's own surface is the other arm of the owner's pick
-  (`-Dbattle.planetSkin.fields=bare`).
+  is cleared to the planet's own ground, as walkable as it was; the farmsteads
+  stand. Paved hydroponic bays on the footprint were tried and dropped (owner,
+  2026-11-10: "Do a bunch of paved beds make sense? Why would a planet have
+  those?"): a hazardous world grows its food under cover, so what belongs on
+  those plots is greenhouses or domes, which wait for their own art.
 - **Buildings.** Every town wall in the world's habitat (`HabitatStage.rebuild`,
   `BiomeSkin.habitat`): shielded on an irradiated world, sealed on a toxic or
   airless one (bare rock is airless unless its profile says otherwise),
@@ -229,9 +230,10 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
 Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
 or headless through `map_render` and `map_save`: pins, ruin strokes and
-placements on the home entry's whole-map picture, the mission's acceptance
-(`StoryMapAcceptance`, the same check `storyMapPools` runs) before every save,
-and only that entry's text rewritten in the pool file.
+placements on the owned entry's whole-map picture, any world shown through the
+planet skin, the mission's acceptance on home (`StoryMapAcceptance`, the same
+check `storyMapPools` runs) before every save, and the file written back in its
+own form.
 
 ## Evidence plays the pool
 

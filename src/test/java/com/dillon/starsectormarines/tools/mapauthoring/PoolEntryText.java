@@ -1,80 +1,177 @@
 package com.dillon.starsectormarines.tools.mapauthoring;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.StringJoiner;
+import java.util.Map;
 
 /**
- * A pool file's text with one entry rewritten ({@code story-map-pools.md}): the entry is written in the file's own
- * compact form, keys in the reader's order, and spliced over the old entry's text, so every other entry, the
- * {@code candidates} and the file's hand formatting stay as they were. {@link MapPatch#read} reads what
- * {@link #entry} writes back equal.
+ * A story map's pool file as the pool files are written ({@code story-map-pools.md}, version 3): two-space indent,
+ * every object and array laid open, keys in the reader's order ({@code version, map, home, entry}; an entry's
+ * {@code seed, note, patch}; a patch's {@code pin, ruin, lift, bores, holdouts, place}), only the ops a patch has.
+ * Writing a file's own entry back gives the file byte for byte, so a save changes only what the page edited.
  */
 public final class PoolEntryText {
 
     private PoolEntryText() { }
 
-    /** The entry as the pool files write one: seed, note, story, patch. */
-    public static String entry(StoryMapPool.Entry e) {
-        StringJoiner j = new StringJoiner(", ", "{", "}");
-        j.add("\"seed\": " + e.seed());
-        if (!e.note().isEmpty()) j.add("\"note\": " + JSONObject.quote(e.note()));
-        if (e.story()) j.add("\"story\": true");
-        if (!e.patch().isEmpty()) j.add("\"patch\": " + patch(e.patch()));
-        return j.toString();
+    /** The whole pool file of {@code map} owning {@code entry} on {@code home}. */
+    public static String file(StoryMap map, SurfacePalette home, StoryMapPool.Entry entry) {
+        Map<String, Object> root = new LinkedHashMap<>();
+        root.put("version", StoryMapPool.VERSION);
+        root.put("map", map.id);
+        root.put("home", home.name());
+        root.put("entry", entry(entry));
+        StringBuilder out = new StringBuilder();
+        write(out, root, 0);
+        return out.append('\n').toString();
     }
 
-    /** A patch in the pool's form; only the ops it has. */
+    /** The patch alone, on one line, for a tool's reply. */
     public static String patch(MapPatch p) {
-        StringJoiner j = new StringJoiner(", ", "{", "}");
+        StringBuilder out = new StringBuilder();
+        line(out, patchTree(p));
+        return out.toString();
+    }
+
+    private static Map<String, Object> entry(StoryMapPool.Entry e) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("seed", e.seed());
+        if (!e.note().isEmpty()) m.put("note", e.note());
+        if (!e.patch().isEmpty()) m.put("patch", patchTree(e.patch()));
+        return m;
+    }
+
+    private static Map<String, Object> patchTree(MapPatch p) {
+        Map<String, Object> m = new LinkedHashMap<>();
         if (!p.pins().isEmpty()) {
-            List<String> pins = new ArrayList<>();
-            for (MapPatch.Pin pin : p.pins()) {
-                pins.add("{\"place\": " + JSONObject.quote(pin.place()) + ", \"x\": " + pin.x() + ", \"y\": " + pin.y() + "}");
-            }
-            j.add("\"pin\": [" + String.join(", ", pins) + "]");
+            List<Object> pins = new ArrayList<>();
+            for (MapPatch.Pin pin : p.pins()) pins.add(object("place", pin.place(), "x", pin.x(), "y", pin.y()));
+            m.put("pin", pins);
         }
         if (!p.ruin().isEmpty()) {
-            List<String> strokes = new ArrayList<>();
+            List<Object> strokes = new ArrayList<>();
             for (DamagePlan.Stroke s : p.ruin()) {
-                List<String> points = new ArrayList<>();
-                for (DamagePlan.Point pt : s.points()) points.add("[" + number(pt.x()) + ", " + number(pt.y()) + "]");
-                strokes.add("{\"radius\": " + number(s.radius())
-                        + (s.mode() == DamagePlan.Mode.RUIN ? "" : ", \"mode\": \"" + s.mode().name() + "\"")
-                        + ", \"points\": [" + String.join(", ", points) + "]}");
+                Map<String, Object> stroke = object("radius", s.radius());
+                if (s.mode() != DamagePlan.Mode.RUIN) stroke.put("mode", s.mode().name());
+                List<Object> points = new ArrayList<>();
+                for (DamagePlan.Point pt : s.points()) points.add(List.of(pt.x(), pt.y()));
+                stroke.put("points", points);
+                strokes.add(stroke);
             }
-            j.add("\"ruin\": [" + String.join(", ", strokes) + "]");
+            m.put("ruin", strokes);
         }
-        if (p.lift() != null) j.add("\"lift\": [" + p.lift().x() + ", " + p.lift().y() + "]");
+        if (p.lift() != null) m.put("lift", List.of(p.lift().x(), p.lift().y()));
         if (!p.bores().isEmpty()) {
-            List<String> bores = new ArrayList<>();
+            List<Object> bores = new ArrayList<>();
             for (MapPatch.Bore b : p.bores()) {
-                bores.add("{\"x\": " + b.x() + ", \"y\": " + b.y() + (b.mother() ? ", \"mother\": true" : "") + "}");
+                Map<String, Object> bore = object("x", b.x(), "y", b.y());
+                if (b.mother()) bore.put("mother", true);
+                bores.add(bore);
             }
-            j.add("\"bores\": [" + String.join(", ", bores) + "]");
+            m.put("bores", bores);
         }
         if (!p.holdouts().isEmpty()) {
-            List<String> cells = new ArrayList<>();
-            for (MapPatch.Cell c : p.holdouts()) cells.add("[" + c.x() + ", " + c.y() + "]");
-            j.add("\"holdouts\": [" + String.join(", ", cells) + "]");
+            List<Object> cells = new ArrayList<>();
+            for (MapPatch.Cell c : p.holdouts()) cells.add(List.of(c.x(), c.y()));
+            m.put("holdouts", cells);
         }
         if (!p.place().isEmpty()) {
-            List<String> placed = new ArrayList<>();
-            for (Structure s : p.place()) {
-                placed.add("{\"name\": " + JSONObject.quote(s.name()) + ", \"kind\": \"" + s.kind().name() + "\", \"x\": "
-                        + s.x() + ", \"y\": " + s.y() + ", \"turns\": " + s.turns() + "}");
-            }
-            j.add("\"place\": [" + String.join(", ", placed) + "]");
+            List<Object> placed = new ArrayList<>();
+            for (Structure s : p.place()) placed.add(object("name", s.name(), "kind", s.kind().name(), "x", s.x(), "y", s.y(), "turns", s.turns()));
+            m.put("place", placed);
         }
-        return j.toString();
+        return m;
+    }
+
+    private static Map<String, Object> object(Object... keysAndValues) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        for (int i = 0; i < keysAndValues.length; i += 2) m.put((String) keysAndValues[i], keysAndValues[i + 1]);
+        return m;
+    }
+
+    /** {@code value} laid open at {@code depth}, the way the pool files are written. */
+    private static void write(StringBuilder out, Object value, int depth) {
+        if (value instanceof Map<?, ?> map) {
+            if (map.isEmpty()) { out.append("{}"); return; }
+            out.append("{\n");
+            int k = 0;
+            for (Map.Entry<?, ?> e : map.entrySet()) {
+                indent(out, depth + 1).append(quote((String) e.getKey())).append(": ");
+                write(out, e.getValue(), depth + 1);
+                out.append(++k < map.size() ? ",\n" : "\n");
+            }
+            indent(out, depth).append('}');
+        } else if (value instanceof List<?> list) {
+            if (list.isEmpty()) { out.append("[]"); return; }
+            out.append("[\n");
+            for (int k = 0; k < list.size(); k++) {
+                indent(out, depth + 1);
+                write(out, list.get(k), depth + 1);
+                out.append(k + 1 < list.size() ? ",\n" : "\n");
+            }
+            indent(out, depth).append(']');
+        } else {
+            scalar(out, value);
+        }
+    }
+
+    /** {@code value} on one line. */
+    private static void line(StringBuilder out, Object value) {
+        if (value instanceof Map<?, ?> map) {
+            out.append('{');
+            int k = 0;
+            for (Map.Entry<?, ?> e : map.entrySet()) {
+                if (k++ > 0) out.append(", ");
+                out.append(quote((String) e.getKey())).append(": ");
+                line(out, e.getValue());
+            }
+            out.append('}');
+        } else if (value instanceof List<?> list) {
+            out.append('[');
+            for (int k = 0; k < list.size(); k++) {
+                if (k > 0) out.append(", ");
+                line(out, list.get(k));
+            }
+            out.append(']');
+        } else {
+            scalar(out, value);
+        }
+    }
+
+    private static void scalar(StringBuilder out, Object value) {
+        if (value instanceof String s) out.append(quote(s));
+        else if (value instanceof Double d) out.append(number(d));
+        else out.append(value);
+    }
+
+    /** A JSON string: quotes, backslashes and control characters escaped, everything else as written. */
+    private static String quote(String s) {
+        StringBuilder q = new StringBuilder("\"");
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '"') q.append("\\\"");
+            else if (c == '\\') q.append("\\\\");
+            else if (c == '\n') q.append("\\n");
+            else if (c == '\t') q.append("\\t");
+            else if (c == '\r') q.append("\\r");
+            else if (c < 0x20) q.append(String.format(Locale.ROOT, "\\u%04x", (int) c));
+            else q.append(c);
+        }
+        return q.append('"').toString();
+    }
+
+    private static StringBuilder indent(StringBuilder out, int depth) {
+        for (int i = 0; i < depth; i++) out.append("  ");
+        return out;
     }
 
     private static String number(double v) {
@@ -82,72 +179,5 @@ public final class PoolEntryText {
         String s = String.format(Locale.ROOT, "%.3f", v);
         while (s.endsWith("0")) s = s.substring(0, s.length() - 1);
         return s;
-    }
-
-    /**
-     * {@code file} with the {@code index}th entry of {@code biome} under {@code biomes} replaced by {@code entry};
-     * everything else byte for byte. Throws when the file has no such entry.
-     */
-    public static String replace(String file, SurfacePalette biome, int index, String entry) {
-        int root = skipSpace(file, 0);
-        int[] biomes = member(file, root, "biomes");
-        if (biomes == null) throw new IllegalArgumentException("the pool file has no biomes");
-        int[] list = member(file, biomes[0], biome.name());
-        if (list == null || file.charAt(list[0]) != '[') throw new IllegalArgumentException("the pool file has no " + biome + " maps");
-        int i = skipSpace(file, list[0] + 1);
-        for (int k = 0; ; k++) {
-            if (file.charAt(i) == ']') throw new IllegalArgumentException("the pool file has no " + biome + " entry " + index);
-            int end = skipValue(file, i);
-            if (k == index) return file.substring(0, i) + entry + file.substring(end);
-            i = skipSpace(file, end);
-            if (file.charAt(i) == ',') i = skipSpace(file, i + 1);
-        }
-    }
-
-    /** The span {@code [start, end)} of {@code key}'s value in the object opening at {@code object}, or null. */
-    private static int[] member(String s, int object, String key) {
-        if (s.charAt(object) != '{') throw new IllegalArgumentException("not an object at " + object);
-        int i = skipSpace(s, object + 1);
-        while (s.charAt(i) != '}') {
-            int keyEnd = skipValue(s, i);
-            String name = s.substring(i + 1, keyEnd - 1);
-            i = skipSpace(s, keyEnd);
-            if (s.charAt(i) != ':') throw new IllegalArgumentException("expected ':' at " + i);
-            int value = skipSpace(s, i + 1);
-            int end = skipValue(s, value);
-            if (name.equals(key)) return new int[]{value, end};
-            i = skipSpace(s, end);
-            if (s.charAt(i) == ',') i = skipSpace(s, i + 1);
-        }
-        return null;
-    }
-
-    /** The index just past the JSON value starting at {@code i}. */
-    private static int skipValue(String s, int i) {
-        char c = s.charAt(i);
-        if (c == '"') {
-            for (int k = i + 1; ; k++) {
-                char d = s.charAt(k);
-                if (d == '\\') k++;
-                else if (d == '"') return k + 1;
-            }
-        }
-        if (c == '{' || c == '[') {
-            int depth = 0;
-            for (int k = i; ; k++) {
-                char d = s.charAt(k);
-                if (d == '"') { k = skipValue(s, k) - 1; continue; }
-                if (d == '{' || d == '[') depth++;
-                else if (d == '}' || d == ']') { if (--depth == 0) return k + 1; }
-            }
-        }
-        int k = i;
-        while (k < s.length() && ",}] \t\r\n".indexOf(s.charAt(k)) < 0) k++;
-        return k;
-    }
-
-    private static int skipSpace(String s, int i) {
-        while (i < s.length() && Character.isWhitespace(s.charAt(i))) i++;
-        return i;
     }
 }

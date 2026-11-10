@@ -216,28 +216,6 @@ public final class DrawList {
         slot(layer).setSheetQuad(image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
-    /**
-     * As {@link #addImageRegion}, but the region adds light instead of compositing over what is beneath it: an
-     * image's lit parts (a crust's cracks) glowing over ground already drawn.
-     */
-    public void addAdditiveImageRegion(RenderLayer layer, SpriteAPI image, int imageW, int imageH,
-                                       int srcX, int srcY, int srcW, int srcH,
-                                       float cx, float cy, float w, float h, float angleDeg,
-                                       float r, float g, float b, float a) {
-        SpriteAtlas.Placement at = srcW > 0 && srcH > 0
-                ? held(layer, image, w * imageW / (float) srcW, h * imageH / (float) srcH)
-                : held(layer, image, Float.NaN, Float.NaN);
-        TextureUsage.sheet(image, srcW, srcH, w, h);
-        if (at != null) {
-            float sx = at.fullW() / (float) imageW;
-            float sy = at.fullH() / (float) imageH;
-            emitHeld(layer, at, Math.round(srcX * sx), Math.round(srcY * sy), Math.round(srcW * sx),
-                    Math.round(srcH * sy), cx, cy, w, h, angleDeg, false, true, r, g, b, a);
-            return;
-        }
-        slot(layer).setAdditiveSheetQuad(image, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
-    }
-
     /** Vertically-mirrored sheet-quad (axis-aligned): samples the sub-rect top↔bottom flipped. */
     public void addSheetQuadFlippedV(RenderLayer layer, SpriteAPI sheet,
                                      int srcX, int srcY, int srcW, int srcH,

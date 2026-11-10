@@ -31,9 +31,9 @@ class PlanetSkinTest {
         assertEquals(FieldUse.CROPS, PlanetSkin.fieldsOn(SurfacePalette.ARID, Climate.NONE));
         for (SurfacePalette p : EnumSet.of(SurfacePalette.FROZEN, SurfacePalette.ROCK, SurfacePalette.VOLCANIC,
                 SurfacePalette.IRRADIATED, SurfacePalette.TOXIC)) {
-            assertEquals(FieldUse.BEDS, PlanetSkin.fieldsOn(p, Climate.NONE), p.name());
+            assertEquals(FieldUse.BARE, PlanetSkin.fieldsOn(p, Climate.NONE), p.name());
         }
-        assertEquals(FieldUse.BEDS, PlanetSkin.fieldsOn(SurfacePalette.VERDANT,
+        assertEquals(FieldUse.BARE, PlanetSkin.fieldsOn(SurfacePalette.VERDANT,
                 new Climate(EnumSet.of(Climate.Hazard.TOXIC))));
     }
 
@@ -74,7 +74,7 @@ class PlanetSkinTest {
     }
 
     @Test
-    void aSkinMovesNoCellOfTheLayoutAndLaysFieldsAsBedsWhereNothingGrowsInTheOpen() {
+    void aSkinMovesNoCellOfTheLayoutAndClearsFieldsWhereNothingGrowsInTheOpen() {
         int w = 8, h = 6;
         NavigationGrid grid = new NavigationGrid(w, h);
         CellTopology topology = new CellTopology(w, h);
@@ -97,8 +97,8 @@ class PlanetSkinTest {
         }
         assertEquals(SurfacePalette.FROZEN, topology.groundPalette());
         assertEquals(GroundKind.SNOW, topology.getGroundKind(6, 5));
-        assertEquals(GroundKind.COURTYARD, topology.getGroundKind(0, 0));
-        assertEquals(GroundKind.TILE, topology.getGroundKind(2, 1));
+        assertEquals(GroundKind.SNOW, topology.getGroundKind(0, 0));
+        assertEquals(GroundKind.SNOW, topology.getGroundKind(2, 1));
     }
 
     @Test
