@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — ruins ground: the delve's walls stand at fortress structure, so no heavy crushes through the plant. Also 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -1320,7 +1320,11 @@ than about its outskirts. A ladder one rung too short does not produce slightly
 wide lanes; it produces a town whose every street is an arterial, with the
 buildings left as islands in pavement. Any new class is added at the bottom, and
 the plan's own paved share is the measure that says whether the ladder reaches
-far enough — a road network, not the ground the town stands on.
+far enough — a road network, not the ground the town stands on. The lanes a
+block partition cuts between the trunks are a class too: every cut of one pass
+carves the same lane (`Bsp`), a back street's width under a trunk pre-pass and
+five cells where none runs. A lane drawn at a random width stepped wider and
+narrower from block to block, one street changing width along its run.
 
 A **ward** is the exception to parcel-first fill, and the conquest fortress is
 the one place that has it. Rather than being filled leaf by leaf and then walled,
@@ -2020,7 +2024,10 @@ settlement that died: the same growth at a density the mission states,
 `SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
 cleared landing ground toward the west end, a vault at the east end, and between
 them the ruins grade's **layers**, each a line across the whole map with its
-ways through: a wall inside the megastructure, a boundary outside it.
+ways through: a wall inside the megastructure, a boundary outside it. The
+delve's own walls stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`),
+so no heavy crushes through the plant (`ruins-expedition.md`, Works); the ruined
+lots keep ordinary walls.
 
 A mission asks for it with a `RuinsGroundPlan` through
 `MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
@@ -2082,6 +2089,22 @@ coordinate hash that draws nothing from the layout's stream, and end in rubble
 six cells short of every edge, trunks included, so the road graph has no perimeter node
 and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
+
+**The world takes the ruin back** (`RuinsWeather`, the last stage of the
+ruins recipe). A site long dead is not a bare concrete block on any world: its
+own ground (sand, snow, basalt, sulphur, or grass on a living world) lies over
+the dead town's earth, rubble bed and lot floors in drifts and banks against
+every standing wall; it blows in through each mouth of the megastructure in a
+tongue that thins out within twelve cells down the corridor; dust, rime, ash or
+growth banks along the corridor walls, thicker near the mouths; water stands
+(ice on a frozen world) where the roof leaks; and ceiling has fallen here and
+there. It is look only: surface skins over cells that keep their ground kind,
+and flat decals with no cover (`ruins-delve-weather`), by coordinate noise on the
+site's seed. It leaves the landing ground, the courts, the aprons, the vault and
+the themed halls alone. Indoors its skins are coverings (`GroundFeather.COVERINGS`):
+they feather onto the megastructure's floor, so a drift ends soft, never in a step
+of cells. Pick `ruins-weather` open, building on it; `battle.ruins.weather` is
+its control.
 
 **A line stands only inside.** Inside the megastructure a layer line is a
 hull wall edge to edge, so its ways are the only crossings, and it sheds a bed
@@ -2165,14 +2188,24 @@ wall (their levelers are floor) with stock left on the dock floor.
 A dressing marked `foundry` lays its halls before its side rooms, and the outer
 band takes one mega forge hall in place of every line hall: about 40x76 (44x92
 at vast). It is shortened to fit, never below 44 long, and a hall narrower than
-32 is laid as the old foundry instead. The hall is laid out from its process,
+32 is laid as the old foundry instead.
+
+**The works hall is the trunk.** A works site's works hall, the mega forge or a
+theme's, is the first piece laid in the outer interior band, while the band is
+whole, so it is always laid at full size. The band's spine then runs down its
+west wall, in at the dispatch end and out at the head, three cells kept clear
+of every piece and melt; the band's court stands across the same column and the
+power hall clear of it. No other way enters the hall: the ways through the
+lines, the other halls and the rooms meet the spine beyond the hall's ends. So
+the route through the band passes through the works hall
+(`ruins-expedition.md`, The works hall is the trunk). The hall is laid out from its process,
 head to the north:
 
 - the great crucible (12x16, `ruins-forge` sheet) west of the line, its
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- the feed: a mag-rail up the west aisle from the dispatch end to a
+- the feed: a mag-rail up the west aisle, beside the trunk, from the dispatch end to a
   decelerator stop at the head, beside the crucible's flank, one sealed feed
   pod waiting on it and another derailed in the aisle. The hall reads as
   automated, spacefaring heavy industry, never a period foundry (owner: "Ore
@@ -2182,6 +2215,12 @@ head to the north:
   it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
+- the breakout: at the hall's middle the line burst its banks round a ladle
+  tipped mid-pour, a ragged pool of melt (up to 14x18, smaller where a larger
+  pool would split the hall), and the **transfer bridge** across it, a deck
+  four cells wide on the transfer aisle from bank to bank. It is the only way
+  a hall frame or the haul crosses the line, and the frame's post stands on it
+  (`ruins-expedition.md`, The forge's transfer bridge);
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
@@ -2192,7 +2231,7 @@ head to the north:
   roof until the roof fades (`ruins-forge-motions`): a crane runway down
   each long wall, a cable tray beside the pour line with a length fallen to
   the floor, a ladle lift hung under the spout, and another tipped over a
-  line junction. A crane girder lies fallen across the west aisle as cover;
+  line junction. A crane girder lies fallen beside the trunk as cover;
 - wear laid under it all: scorch round the spout and the core's flank,
   coolant by the racks, a floor drain in each aisle, oil and a hover
   skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
@@ -2236,12 +2275,37 @@ The halls by theme:
 - AI cores: the core hall;
 - lamps, dynamos and hypershunt taps: the field hall;
 - synchrotron: the ring hall;
-- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- mantle bore: the shaft hall, with a bore-shaft drop cut as the melt is;
 - catalytic core: the reactor train;
 - fullerene spool: the draw line;
 - holosuite: the stage hall;
 - depot: the high bay;
 - armory: the filling hall.
+
+**Every room serves the process** (`RuinsRoom`; the designs and their art list are
+in `ruins-theme-rooms.md` in the shared notes). The rooms off the plant's
+corridors are laid from what each did for the line, as a hall is, never dressed
+loose. The interior's plain chambers take their roles by how near they lie to
+the works hall (the hall's anchor, else the first plant hall, else the vault):
+
+- the nearest is the **control room**: the line's feeds in through the hall-side
+  wall to the mimic board, desk runs either side, the shift lead at the back;
+- the rest are a **workshop** (spares in from the stores, rejects from the lab
+  onto the rework stand under its hoist, units out to the line), a **lab**
+  (samples in through the hatch, the theme's instrument and benches, the sample
+  store, rejects binned for rework) and **crew quarters** (lockers by the way in,
+  the galley and mess table, bunks at the back), in turn;
+- a side room inside the megastructure is a **store**: stock shelved along the
+  back wall, tallied by the blast door, drawn out to the workshop.
+
+A room is planned in its own cells with its hall side north, its middle kept
+open round the cell its way in arrives at and one floor, so its rules are
+unit-proved there; the ground turns it to face its hall, its pieces' art turned
+with it (`WorksHallPlan.turned`). Its theme (`RoomTheme`) gives the board, the
+instrument, the unit on the stand, the stock and the spill; every room carries a
+collapse (a burned desk run, a fallen hoist load, a toppled shelf, the crew's
+tipped-table barricade, a split crate). Plant halls other than the works hall
+keep their dressing.
 
 A piece whose art has not shipped stands as its stand-in from the game's own
 sets, tiled over its footprint. A works hall and the mega forge take no loose

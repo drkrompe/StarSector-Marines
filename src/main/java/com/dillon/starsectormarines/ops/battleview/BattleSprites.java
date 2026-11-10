@@ -98,6 +98,8 @@ public class BattleSprites {
     // ---- asset-path constants -----------------------------------------------
 
     private static final String SPRITE_DECAL_SHEET  = "graphics/decals/decals.png";
+    /** The rubble damaged building walls leave at their foot ({@link WallRubble}). */
+    static final String SPRITE_WALL_RUBBLE = "graphics/decals/wall-rubble.png";
     /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
     static final String WARSHIP_ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
     static final String WARSHIP_ENGINE_GLOW_SPRITE = "graphics/fx/engineglow32.png";
@@ -206,6 +208,9 @@ public class BattleSprites {
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
     private boolean decalSheetLoadAttempted;
+    private SpriteAPI rubbleSheet;
+    private SpriteSheetFrames rubbleFrames;
+    private boolean rubbleSheetLoadAttempted;
 
     // ---- drone sprites ------------------------------------------------------
 
@@ -489,6 +494,8 @@ public class BattleSprites {
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
+    public SpriteAPI rubbleSheet()                 { return rubbleSheet; }
+    public SpriteSheetFrames rubbleFrames()        { return rubbleFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
     public ShuttleSpriteCache droneSprite()        { return droneSprite; }
     public SpriteAPI tileSheet()                   { return tileTex.sprite(); }
@@ -577,6 +584,7 @@ public class BattleSprites {
             ensureUrbanTile3Sheet();
             ensureDoodadSheet();
             ensureDecalSheet();
+            ensureRubbleSheet();
         }));
         if (terrainSheets != null) {
             for (String path : terrainSheetPaths()) {
@@ -1783,6 +1791,24 @@ public class BattleSprites {
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load unit sheet " + path, e);
             return null;
+        }
+    }
+
+    /**
+     * Lazy-loads the wall rubble sheet: a whole grid of {@link WallRubble#CELL_PX} cells, each piece kept where it lies
+     * in its cell. Failure leaves both null and no rubble is drawn.
+     */
+    public void ensureRubbleSheet() {
+        if (rubbleSheetLoadAttempted) return;
+        rubbleSheetLoadAttempted = true;
+        try {
+            ModTextures.loadTexture(SPRITE_WALL_RUBBLE, lease);
+            rubbleSheet = ModTextures.sprite(SPRITE_WALL_RUBBLE);
+            rubbleFrames = rubbleSheet == null ? null : WallRubble.frames();
+        } catch (Exception e) {
+            LOG.warn("BattleSprites: could not load " + SPRITE_WALL_RUBBLE, e);
+            rubbleSheet = null;
+            rubbleFrames = null;
         }
     }
 

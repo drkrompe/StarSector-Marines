@@ -329,6 +329,16 @@ every door on the way on stays open, so the haul is never shut in. A store is a
 field cache just inside its door, recovered by holding its room
 (`SalvageCache.heldFromRoom`).
 
+**The facility holds against every heavy** (owner: "You can't just drive through the ruin fortress walls with a
+heavy tank right?"). The delve's own walls, layer lines, every shell it stamps, the interior's hull and every
+closed cell inside it, jambs included, stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`, 240), over
+every wall crush's ceiling (100; `mechs-nouns.md`, Wall crush), so no heavy hull or walker pushes through the plant
+and no heavy's route plans through it, while a satchel (450) still cuts it. A seal door or bulkhead shut as its jamb
+holds the same; a dead door's leaves are fixtures, which nothing crushes. A door opens only by its own rules:
+answering, power, a charge through a forcible one, or a hall frame's ram and tear. Props on the plant's floor keep
+their own structure and stay the heavies' to push, and the dead settlement's ruined lots outside the plant stay
+ordinary walls.
+
 **The vault's door** is its inner door, hardened, as are its suite's walls
 (`HardenedWalls`, from the published `ruins.vault` footprint): no charge and no
 heavy hull gets in. Owner pick `ruins-vault-seal`: a door with a puzzle, so a
@@ -726,6 +736,13 @@ hall, a wet floor under every shallow, a raised floor in the core hall's pods an
 stage. The mantle bore's shaft is a bore-shaft drop (`voids.md`): a cast collar laid round it, a cell inside the
 headframe's legs, and bedrock 30 m down.
 
+**Every room serves the process** (owner: more ruin rooms designed, each with a purpose tied to its theme's process
+and a story of what happened there). The rooms off the service corridors are laid from their role in the plant:
+the control room nearest the works hall, then workshops, labs and crew quarters, and the side rooms inside as its
+stores, each with the theme's own pieces, its spill and its collapse. The model is in `mapgen-nouns.md` (Every room
+serves the process). Look shots and plans: `createSnapshots -Psnapshot=ruins-room-look`. Picks `ruins-rooms-<kind>`
+are open, building on a (rooms laid from their role).
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,
@@ -845,6 +862,70 @@ hall frame standing in the first plant hall reaches every other hall's post,
 over ground its body fits and through every hall door, a dead one forced and one
 narrower than the frame torn a jamb wider at each end. A hall door it cannot
 pass is one it tears; a service corridor is somewhere it does not go.
+
+**The works hall is the trunk** (pick `ruins-works-trunk`, building on a). A
+works site's showpiece is on the way, not off it. Its works hall, the mega
+forge or a theme's, is laid first in the outer interior band, so it always fits
+at full size, and the band's spine runs through it down its west wall, in at
+the dispatch end and out at the head (`mapgen-nouns.md`, The works hall is the
+trunk). Every other way in the band meets the spine beyond the hall's ends, so
+the hall has two doors, both on the trunk, and the company crossing the band
+crosses the hall:
+
+| Option | Where the works hall stands |
+| --- | --- |
+| a (recommended, built) | On the trunk: the band's spine runs through it, the route crosses it |
+| b | Beside the trunk, joined by a freight way, laid only where it fits (about one site in four before this) |
+| c | As b, and the route is drawn past its door, so the stand is held at its mouth |
+
+**The forge's transfer bridge** (owner: "a real bridge would be cool. Depends
+on the mission we make"; pick `ruins-forge-bridge`, building on a). At the mega
+forge's middle the pour line burst its banks round a ladle tipped mid-pour and
+pooled. A transfer bridge four cells wide crosses the pool from bank to bank on
+the transfer aisle. The catwalks over the line are two wide, so infantry cross
+anywhere, but the bridge is the only way a hall frame or the haul crosses the
+line. The frame's post is the hall's middle, on the bridge.
+
+| Option | Shape |
+| --- | --- |
+| a (recommended, built) | The breakout: a pool of melt up to 14x18 round the hall's middle, the bridge across it, the frame's post on the deck |
+| b | A deck bridge over the two-cell pour line on the transfer aisle, no pool |
+| c | No bridge: the transfer aisle crosses the line as floor |
+
+The deck is grate decking until the bridge's own art ships: a four-wide span with
+girders, kerbs and railings, and an abutment at each bank.
+
+**Beats through the facility** (pick `ruins-facility-beats`, building on a).
+On a works site the delve's inside has a shape the player can read: the plant's
+own order, intake to works hall to stores to vault, along the trunk.
+
+1. **The entry.** The cargo door the company takes from its apron. Phase B
+   begins, the pull-out point moves to the entry.
+2. **The works hall, the outer band's stand.** The route crosses it on its
+   trunk. On a forge works: the frame on the bridge over the pool, the pour
+   line and the pool as fire lanes nobody stands in, cover in the lanes
+   between the production lines, the catwalks as infantry flanks. Holding the
+   bridge is holding the stand: the close reading of the deeper band comes in
+   there.
+3. **The works off the trunk.** The power hall, the records and the side
+   rooms' stores are reached by service corridors, two wide: infantry go, a hall
+   frame cannot follow. They are where the company works the puzzle, and
+   where it can shake off a frame.
+4. **The deeper band.** Storage halls on freight ways, the stores, then the
+   vault and its frame: the breach.
+5. **The egress, back through the works hall.** The haul comes out the way the
+   company came in, so the counter-push meets it at the stand it took: the
+   haul crosses the bridge under fire, and a frame shut behind a dead hall door
+   tears through it.
+
+| Option | The stand |
+| --- | --- |
+| a (recommended) | The works hall is the outer band's stand, derelict security's zone held there (node and frame) |
+| b | The stand stays at the layer's junction; the works hall is ground the route crosses |
+| c | The works hall is the vault's antechamber, the last stand before the breach |
+
+Where derelict security wakes, escalates and repairs in these halls is
+`derelict-security-network.md`'s.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:

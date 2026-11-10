@@ -1,17 +1,13 @@
-package com.dillon.starsectormarines.battle.world.gen.precinct;
+package com.dillon.starsectormarines.battle.world.gen.raid;
 
-import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
-import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
-import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Props;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Plot;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout.Use;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -25,13 +21,11 @@ import java.util.function.BiPredicate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The rules the farm world's hub is laid by ({@link GrainHub}): the process in its wards, the fields and ponds, the
- * spill and the haulers' queue. Pure planning; no map is generated.
+ * The rules the farm world's hub is laid by ({@link GrainHub}): the process in its wards, the gallery's order, the
+ * fields and ponds, the spill and the haulers' queue. Pure planning; no map is generated.
  */
 class GrainHubTest {
 
@@ -43,7 +37,7 @@ class GrainHubTest {
     /** The harvest comes in at the rear, where the farm roads enter, is worked in the yard, and leaves by the gate. */
     @Test
     void theHubStandsInTheOrderTheGrainPasses() {
-        FortressProgram hub = GrainHub.grain(4);
+        FortressProgram hub = GrainHub.program(4);
         assertEquals(Ward.REAR, wardOf(hub, GrainHub.INTAKE));
         assertEquals(Ward.REAR, wardOf(hub, GrainHub.WEIGHBRIDGE), "every load is weighed in at the intake");
         assertEquals(Ward.YARD, wardOf(hub, GrainHub.DRYER));
@@ -55,32 +49,33 @@ class GrainHubTest {
         assertEquals(GrainHub.LOADOUT, GrainHub.CHAIN.get(GrainHub.CHAIN.size() - 1));
         assertEquals(4, hub.countOf(GrainHub.SILO), "one bin per machine");
         assertTrue(hub.detached());
-        assertTrue(GrainHub.grain(5).apron() > GrainHub.grain(3).apron(), "more bins, more yard");
+        assertTrue(GrainHub.program(5).apron() > GrainHub.program(3).apron(), "more bins, more yard");
     }
 
-    /** A fish-farming world's hub has its tank halls for machines and no dryer. */
+    /** Farming and aquaculture both lay the grain hub, which holds one bin per machine the raid wrecks. */
     @Test
-    void anAquacultureHubHasTanksAndNoDryer() {
-        FortressProgram hub = GrainHub.aquaculture(3);
-        assertEquals(3, hub.countOf(GrainHub.SILO));
-        assertEquals(0, hub.countOf(GrainHub.DRYER));
-        assertEquals(1, hub.countOf(GrainHub.INTAKE));
-    }
-
-    /** Only the farm site lays the hub's ground, beside its feeders; the other sites keep theirs. */
-    @Test
-    void theFarmSiteLaysTheHubsGround() {
-        TargetProfile market = new TargetProfile(5, 5, 3, 1, "independent", EnumSet.of(EconomicFunction.AGRICULTURE),
-                SurfacePalette.VERDANT, SettlementLink.ROAD);
+    void farmingAndAquacultureLayTheGrainHub() {
         for (String id : List.of("farming", "aquaculture")) {
-            PrecinctPlan plan = RaidSiteTemplate.forIndustry(id)
-                    .lay(market, Fortification.Demand.UNSTATED, 4, 280, 168, new Random(3));
-            assertInstanceOf(Deferred.class, plan.layout().find(GrainHub.HUB), id);
-            assertNotNull(plan.layout().find(RaidSiteTemplate.HAUL_ROAD), id);
+            RaidIndustry industry = RaidIndustries.forId(id);
+            assertInstanceOf(FarmingWorks.class, industry, id);
+            assertEquals(4, industry.works(4).countOf(RoomPurpose.PARTS_CAGE), id);
+            assertEquals(1, industry.works(4).countOf(GrainHub.INTAKE), id);
         }
-        PrecinctPlan mine = RaidSiteTemplate.forIndustry("mining")
-                .lay(market, Fortification.Demand.UNSTATED, 4, 280, 168, new Random(3));
-        assertNull(mine.layout().find(GrainHub.HUB));
+    }
+
+    /** The gallery runs along the battery nearest-first and passes over steps with no hall standing. */
+    @Test
+    void theGalleryRunsAlongTheBattery() {
+        List<List<int[]>> halls = new ArrayList<>();
+        for (int i = 0; i < GrainHub.CHAIN.size(); i++) halls.add(new ArrayList<>());
+        halls.get(0).add(new int[]{0, 0, 9, 9});                       // intake
+        halls.get(2).add(new int[]{60, 0, 69, 9});                     // bins, out of order
+        halls.get(2).add(new int[]{20, 0, 29, 9});
+        halls.get(2).add(new int[]{40, 0, 49, 9});
+        halls.get(5).add(new int[]{80, 0, 89, 9});                     // loadout; no dryer, mill or cold store
+        List<Integer> xs = new ArrayList<>();
+        for (int[] hall : GrainHub.run(halls)) xs.add(hall[0]);
+        assertEquals(List.of(0, 20, 40, 60, 80), xs);
     }
 
     /** A farm world's fields stand in crops at harvest; wild ground stays wild, and the draw repeats. */

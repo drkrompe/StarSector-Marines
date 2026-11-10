@@ -7,19 +7,25 @@ package com.dillon.starsectormarines.battle.drone;
  */
 public enum FlockLivery {
 
-    DOMAIN(DroneLook.SWARM, "graphics/battle/drones/cradle-domain.png"),
-    CONTINGENCY(DroneLook.SWARM_CONTINGENCY, "graphics/battle/drones/cradle-contingency.png");
+    DOMAIN(DroneLook.SWARM, "graphics/battle/drones/cradle-domain.png", DroneLook.REPAIR_DOMAIN),
+    CONTINGENCY(DroneLook.SWARM_CONTINGENCY, "graphics/battle/drones/cradle-contingency.png",
+            DroneLook.REPAIR_CONTINGENCY);
 
     /** A cradle's drawn size, its long side in cells: a housing for fourteen drones, larger than a drone hub. */
     public static final float CRADLE_VISUAL_CELLS = 2.4f;
 
     private final DroneLook drone;
     private final String cradleSpritePath;
+    private final DroneLook repairDrone;
 
-    FlockLivery(DroneLook drone, String cradleSpritePath) {
+    FlockLivery(DroneLook drone, String cradleSpritePath, DroneLook repairDrone) {
         this.drone = drone;
         this.cradleSpritePath = cradleSpritePath;
+        this.repairDrone = repairDrone;
     }
+
+    /** The look the lineage's repair drones wear. */
+    public DroneLook repairDrone() { return repairDrone; }
 
     /** The look the flock's drones wear. */
     public DroneLook drone() { return drone; }

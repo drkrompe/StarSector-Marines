@@ -24,7 +24,7 @@ public final class Crossfire {
     /**
      * {@code false} is the control: a crew fires as steadily under fire from two sides as from one. Temporary
      * (2026-10-23): decided by {@code armorMatchup} with this off as the control, two Hounds against the laser,
-     * breakthrough and screened tanks at 32 seeds in a pincer ({@code -PattackerSpread=180}) and on one approach
+     * Onager and screened tanks at 32 seeds in a pincer ({@code -PattackerSpread=180}) and on one approach
      * ({@code -PattackerSpread=0}), plus the default ladder in both arms. Keep it, dropping the switch and this
      * control, if the pincer beats the single approach clearly while the one-on-one rows hold within noise; remove
      * the class otherwise.

@@ -602,8 +602,15 @@ Laws):
    to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
    the view's centre run to a cap of its cells at that lift, drawn before the
    buildings' faces and re-formed when a breach changes the topology. Fences,
-   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
-   as a staircase of cell blocks.
+   sandbags and barriers are doodads and still lie flat. A run stands as the
+   straight strokes it was built along (`FreestandingWalls.strokes`): a
+   diagonal is one slanted wall exactly as thick as a straight one, from its
+   end cells' centres, with a square pier on each end cell so it meets
+   straight walls on the grid, and a low footing on the ground covering its
+   cells' corners. Each face is dressed by kind (plinth, shaded body, coping,
+   panel joints or masonry courses and piers, weather streaks), each cap
+   coping-edged. The ground shadow still comes from the cells, so a diagonal's
+   shadow steps.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag
@@ -686,6 +693,13 @@ Laws):
      (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
      than a storey high, its corners tallest, drawn over its roof's
      remnants, with rubble heaped round it.
+   - **Rubble** (`WallRubble`, sheet `graphics/decals/wall-rubble.png` from
+     `art-source/wall-rubble`): a breached or razed wall heaps a long pile
+     against its foot with blocks and scattered fragments beyond it; a wall
+     whose roof fell in heaps a smaller one; a badly hurt wall sheds a slab
+     or a few blocks. Pieces are neutral grey, tinted half toward their
+     wall's finish. Rubble lies on the open ground, so it is laid outside
+     every wall that sheds it, whichever way the wall faces the view.
 
    Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
    worlds, intact, cut away and damaged).
@@ -1010,7 +1024,7 @@ Laws):
      processing facility with burners to refine the ore", the facility "a
      series of buildings that again plausibly make sense"; real buildings,
      dressed). The head works is the chain the ore passes through
-     (`RaidWorksPrograms.mine`): receiving (in the rear, the pit's side, so
+     (`MiningWorks`): receiving (in the rear, the pit's side, so
      the pit's line runs straight in), stockpile, one mill line per
      machine (the raid's machines), smelter, loadout, each a real building the
      battle enters. The ore line links them in that order, each link from the

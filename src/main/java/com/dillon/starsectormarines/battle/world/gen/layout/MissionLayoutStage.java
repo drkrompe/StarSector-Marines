@@ -177,10 +177,6 @@ public final class MissionLayoutStage implements GenStage {
                 out.add(LayoutStructures.raise(ctx, ground, structure, held));
             } else if (piece instanceof Worked worked) {
                 out.add(layWorked(ctx, worked, held));
-            } else if (piece instanceof Fields fields && phase == Phase.WORKS) {
-                Laid laid = LayoutFields.lay(ctx, fields, held);
-                out.add(laid);
-                closed |= laid.isLaid() && !fields.water().isEmpty();
             } else if (piece instanceof Props props && phase == Phase.STRUCTURES) {
                 out.add(layProps(ctx, props));
             } else if (phase == Phase.STRUCTURES) {

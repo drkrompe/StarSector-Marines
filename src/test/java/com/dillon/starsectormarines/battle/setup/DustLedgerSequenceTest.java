@@ -1,13 +1,10 @@
 package com.dillon.starsectormarines.battle.setup;
 
-import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Area;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Sites;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Watcher;
-import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
-import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -56,12 +53,12 @@ class DustLedgerSequenceTest {
         assertFalse(DustLedgerSequence.breaksQuiet(null));
     }
 
-    @Test void sitesPutTheOfficeAndBarrelInsideTheRingAndTheSideJobsOutside() {
-        assertEquals(sites(new Cell(22, 6), Area.rect(0, 0, 2, 2)).exclusionRing(), RING);
-        assertThrows(IllegalArgumentException.class, () -> sites(new Cell(2, 6), Area.rect(0, 0, 2, 2)),
+    @Test void sitesPutTheOfficeAndBarrelInsideTheRingAndTheApronOutside() {
+        assertEquals(sites(new Cell(22, 6), Area.rect(0, 10, 3, 13)).exclusionRing(), RING);
+        assertThrows(IllegalArgumentException.class, () -> sites(new Cell(2, 6), Area.rect(0, 10, 3, 13)),
                 "an office outside the ring");
         assertThrows(IllegalArgumentException.class, () -> sites(new Cell(22, 6), Area.rect(15, 5, 17, 7)),
-                "a well house inside the ring");
+                "an apron inside the ring");
     }
 
     @Test void anAreaGrowsByKingsMovesAndOutlinesItsEdge() {
@@ -79,27 +76,9 @@ class DustLedgerSequenceTest {
         assertSame(ring.centre(), ring.centre());
     }
 
-    @Test void aControlRunGrantsTheSideObjectivesItNamesAndRejectsOthers() {
-        var sequence = new DustLedgerSequence(sites(new Cell(22, 6), Area.rect(0, 0, 2, 2)),
-                new RaidObjective("ledger", "Ledger room", 22, 6, 0, 1, 11), List.of(), List.of(), new StoryBeatLog());
-        var service = new SideObjectiveService();
-        sequence.offer(service);
-        sequence.grantForced(" feed, coupling ", service, null);
-        assertTrue(sequence.feedCut());
-        assertTrue(sequence.salvageTeamJoins());
-        assertTrue(sequence.drinkersJoin(), "the nod was not granted");
-        sequence.grantForced("all", service, null);
-        assertFalse(sequence.drinkersJoin());
-        assertFalse(service.job(DustLedgerSideObjectives.BROKER).done(), "the broker is never granted");
-        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("radio", service, null));
-        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("broker", service, null));
-    }
 
-    private static Sites sites(Cell office, Area wellHouse) {
-        return new Sites(Area.rect(0, 10, 3, 13), new Cell(1, 11), Area.rect(21, 5, 23, 7), new Cell(22, 6), office,
-                new Cell(30, 12), RING, GROUNDS, List.of(new Cell(10, 6)), Area.rect(6, 0, 8, 2),
-                List.of(new Cell(7, 1)), wellHouse, Area.rect(10, 10, 12, 12), List.of(new Cell(30, 6)), new Cell(25, 6),
-                Area.rect(5, 4, 6, 5), List.of());
+    private static Sites sites(Cell office, Area apron) {
+        return new Sites(apron, Area.rect(21, 5, 23, 7), new Cell(22, 6), office, new Cell(30, 12), RING, List.of());
     }
 
     private static NavigationGrid open(int width, int height) {

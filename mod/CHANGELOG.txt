@@ -61,6 +61,9 @@ Battles
   - A Cold Account ends when the company rallies at the pickup.
   - Depot Clearance meets a full force, and the Dust Ledger plays its own
     briefing.
+  - The Dust Ledger has one bonus objective: catch the broker before his
+    skimmer leaves and bring him to the apron alive. The salvagers'
+    coupling, the warden's nod and the power tap are gone.
 
 Fixes
   - Closing the company dialog no longer leaves the campaign map's

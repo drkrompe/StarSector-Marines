@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * The company A Working Ship is balanced against: the one that comes to Asharu having won A Cold Account, five squads
  * and four machines with its first heavies in the bay (the Kit Ladder sells the Bulwark by Blind Watch and the
- * breakthrough tank by Thunder Run, {@code kit-ladder.json}). The recovered Hound leads a Bulwark, a breakthrough tank
+ * Onager by Thunder Run, {@code kit-ladder.json}). The recovered Hound leads a Bulwark, an Onager
  * and an LRM carrier on every visit. Its kit grows with the ladder: Salvage Rights' squads carry Cold Account's cards;
  * winning it sells Fire-Support, which Cold Start's company carries; winning Cold Start sells the Foundry-Breaker rigs,
  * which Working Passage's breaching squad wears. The debug briefing lands it and the probes build it, so a played debug
@@ -31,7 +31,7 @@ public final class WorkingShipCompany {
     /** Every machine the company drops: the Hound, its mechs and its vehicles. */
     public static final int MACHINES = 1 + MECHS.size() + VEHICLES.size();
     /** The bay as the debug briefing names it. */
-    static final String BAY = "the Hound (chaingun), a Bulwark, a breakthrough tank and an LRM carrier";
+    static final String BAY = "the Hound (chaingun), a Bulwark, an Onager and an LRM carrier";
 
     /** One squad's weapon card each, in squad order, on {@code visit}. */
     public static List<String> weaponCards(ShepherdBasin.Visit visit) {

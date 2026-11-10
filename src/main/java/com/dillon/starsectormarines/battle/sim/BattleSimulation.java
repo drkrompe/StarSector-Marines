@@ -880,13 +880,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public DustLedgerSequence getDustLedger() { return dustLedger; }
     /**
      * Installs the Dust Ledger over an installed Raid whose target is the ledger room ({@code dust-ledger-crossing.md}):
-     * stands the broker in his office and puts the quiet phase over the scans. The reserves spawn at the alarm.
+     * stands the broker in his office and puts the quiet phase over the scans.
      */
-    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid,
-                                                List<EntitySpec> drinkers, List<EntitySpec> salvageTeam) {
+    public DustLedgerSequence installDustLedger(DustLedgerSequence.Sites sites, RaidObjective raid) {
         if (simTickIndex != 0 || dustLedger != null) throw new IllegalStateException("Install the Dust Ledger once at setup");
         if (!getObjectives().contains(raid)) throw new IllegalStateException("Install the ledger room's Raid first");
-        dustLedger = new DustLedgerSequence(sites, raid, drinkers, salvageTeam, storyBeats);
+        dustLedger = new DustLedgerSequence(sites, raid, storyBeats);
         dustLedger.begin(this);
         addObjective(dustLedger);
         return dustLedger;
@@ -2070,8 +2069,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         WallCrush wallCrush = new WallCrush(navigation, mapEditor, doodadService);
         groundSystem.setWallCrush(wallCrush);
-        // A wall-crushing walker (the Pilgrim, mech-lines.md) plans over the walkers' breach view and pushes down what
-        // it walks into. Routes are asked for from the parallel unit update, so the view is caught up under a lock.
+        // A wall-crushing walker (every heavy-lift walker, mechs-nouns.md) plans over the walkers' breach view and
+        // pushes down what it walks into. Routes are asked for from the parallel unit update, so the view is caught
+        // up under a lock.
         mechWallCrush = new MechWallCrush(entityWorld, battleComponents, rosterService, navigation, mapEditor,
                 doodadService);
         navigation.setOwnRouteGrid(id -> {

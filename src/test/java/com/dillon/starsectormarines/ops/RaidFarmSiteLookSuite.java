@@ -15,7 +15,7 @@ public final class RaidFarmSiteLookSuite extends RaidSiteLookSuite {
     }
 
     /** Cells of hub kept round the silo battery in the works shot: the intake, the gallery and the loadout. */
-    private static final float HUB_MARGIN = 26f;
+    private static final float HUB_MARGIN = 38f;
 
     /** The whole hub in one frame, so the process reads from intake to loadout. */
     @Override

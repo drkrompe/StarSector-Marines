@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
-import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseTerraces;
@@ -32,9 +31,8 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseShelter;
 import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
-import com.dillon.starsectormarines.battle.world.gen.precinct.GrainHub;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
+import com.dillon.starsectormarines.battle.world.gen.raid.MiningWorks;
 import java.util.Locale;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -130,7 +128,6 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (firm != null) reserveLaid(c, landscape, plan, brookCells, firm);
         boolean[] beforePits = firm == null ? null : reserved.clone();
         openPits(c, plan, reserved);
-        hubGallery(c, plan, reserved);
         if (firm != null) for (int i = 0; i < firm.length; i++) firm[i] |= reserved[i] && !beforePits[i];
         RidgePlanner.Band berm = crevasseTown(c, field, reserved) ? null : chasm(c, field, reserved, firm, routeLines);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
@@ -204,10 +201,10 @@ public final class OutdoorLandscapeStage implements GenStage {
         cutDrop(c, pit, reserved);
         // The ore goes to the works' receiving house, the first step of its processing chain; a works without one
         // takes it at its largest building.
-        List<List<PointOfInterest>> chain = processingChain(c, plan, MINE_CHAIN);
+        List<List<PointOfInterest>> chain = processingChain(c, plan);
         PointOfInterest receiving = !chain.isEmpty() && chain.get(0).size() == 1
                 && c.topology.getRoomPurpose(chain.get(0).get(0).interiorAnchorX, chain.get(0).get(0).interiorAnchorY)
-                == RaidWorksPrograms.MINE_RECEIVING ? chain.get(0).get(0) : pitWorksBuilding(c, plan);
+                == MiningWorks.RECEIVING ? chain.get(0).get(0) : pitWorksBuilding(c, plan);
         float[] works = receiving == null ? null : pitWorks(receiving, box);
         NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
         if (belt != null) belt = oreLine(c, pit, belt, receiving, chain, reserved);
@@ -251,7 +248,16 @@ public final class OutdoorLandscapeStage implements GenStage {
         // The pit's line is fed by the tower on the rim, behind its first cell.
         int fromX = (int) Math.floor(belt.rimX()), fromY = (int) Math.floor(belt.rimY());
         if (!layLink(c, registry, blocked, passable, sx, sy, fromX, fromY, receiving, reserved, true)) return belt;
-        linkChain(c, registry, blocked, passable, chain, reserved);
+        for (int k = 0; k + 1 < chain.size(); k++) {
+            for (PointOfInterest from : chain.get(k)) {
+                for (PointOfInterest to : chain.get(k + 1)) {
+                    int[] start = beside(from, to, passable, w, h);
+                    if (start == null) continue;
+                    layLink(c, registry, blocked, passable, start[0], start[1], start[2], start[3], to, reserved,
+                            false);
+                }
+            }
+        }
         return new NaturalVoid.Belt(belt.floorX(), belt.floorY(), belt.rimX(), belt.rimY(), sx + .5f, sy + .5f);
     }
 
@@ -341,107 +347,17 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /**
      * The works' processing chain in the plan's objective, step by step in the order the ore passes
-     * ({@code RaidWorksPrograms.mine}): each step the buildings whose room is that step's, nearest the objective
+     * ({@code MiningWorks.works}): each step the buildings whose room is that step's, nearest the objective
      * first. A step with no building is left out.
      */
-    /** A mine's processing chain, in the order the ore passes ({@link RaidWorksPrograms#mine}). */
-    private static final List<RoomPurpose> MINE_CHAIN = List.of(RaidWorksPrograms.MINE_RECEIVING,
-            RaidWorksPrograms.MINE_STOCKPILE, RaidWorksPrograms.MINE_MILL, RaidWorksPrograms.MINE_SMELTER,
-            RaidWorksPrograms.MINE_LOADOUT);
-
-    /**
-     * A farm world's grain gallery ({@link GrainHub}): its hub's halls linked overhead in the order the grain passes,
-     * as a mine's processing chain is, from the intake to the loadout. Only on a plan whose layout lays the hub.
-     */
-    private static void hubGallery(GenContext c, PrecinctPlan plan, boolean[] reserved) {
-        if (plan == null || plan.layout() == null || plan.layout().find(GrainHub.HUB) == null) return;
-        TileRegistry registry = TileRegistry.installed();
-        if (registry == null || registry.doodad("ore-conveyor.straight") == null) return;
-        Buildings standing = c.get(BspKeys.BUILDINGS);
-        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
-        int index = plan.precincts().indexOf(plan.objective());
-        if (standing == null || claim == null || index < 0) return;
-        int w = c.width, h = c.height;
-        // The hub's halls by the step each is (not every hall is a point of interest), as boxes the gallery links.
-        List<List<PointOfInterest>> chain = new ArrayList<>();
-        for (List<int[]> step : GrainHub.steps(standing.all(), c.topology,
-                (x, y) -> x >= 0 && y >= 0 && x < w && y < h && claim[x][y] == index)) {
-            List<PointOfInterest> halls = new ArrayList<>();
-            for (int[] b : step) {
-                // The gallery runs from a hall's floor as the ore line does from a point of interest's: inside the walls.
-                int cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2;
-                halls.add(new PointOfInterest(PointOfInterest.Kind.DEPOT, b[0] + 1, b[1] + 1, b[2] - 1, b[3] - 1, cx, cy));
-            }
-            chain.add(halls);
-        }
-        boolean[] blocked = new boolean[w * h];
-        for (PointOfInterest poi : c.pois) {
-            for (int y = Math.max(0, poi.top); y <= Math.min(h - 1, poi.bottom); y++) {
-                for (int x = Math.max(0, poi.left); x <= Math.min(w - 1, poi.right); x++) blocked[y * w + x] = true;
-            }
-        }
-        for (Building b : standing.all()) {
-            for (int y = Math.max(0, b.minY); y <= Math.min(h - 1, b.maxY); y++) {
-                for (int x = Math.max(0, b.minX); x <= Math.min(w - 1, b.maxX); x++) blocked[y * w + x] = true;
-            }
-        }
-        IntPredicate passable = i -> !blocked[i] && i % w > 0 && i / w > 0 && i % w < w - 1 && i / w < h - 1;
-        // The silo battery is one row of bins under one gallery: the grain runs along it bin to bin, not out to
-        // each bin and back.
-        List<List<PointOfInterest>> run = new ArrayList<>();
-        for (List<PointOfInterest> step : chain) {
-            if (step.size() < 2 || run.isEmpty()) {
-                run.add(step);
-                continue;
-            }
-            for (PointOfInterest bin : battery(run.get(run.size() - 1).get(0), step)) run.add(List.of(bin));
-        }
-        linkChain(c, registry, blocked, passable, run, reserved);
-    }
-
-    /** A step's halls in the order a gallery from {@code from} runs along them: each next the nearest to the last. */
-    private static List<PointOfInterest> battery(PointOfInterest from, List<PointOfInterest> halls) {
-        List<PointOfInterest> left = new ArrayList<>(halls), out = new ArrayList<>();
-        PointOfInterest at = from;
-        while (!left.isEmpty()) {
-            PointOfInterest best = null;
-            float bestD = Float.MAX_VALUE;
-            for (PointOfInterest p : left) {
-                float d = Math.abs(p.interiorAnchorX - at.interiorAnchorX) + Math.abs(p.interiorAnchorY - at.interiorAnchorY);
-                if (d < bestD) { bestD = d; best = p; }
-            }
-            left.remove(best);
-            out.add(best);
-            at = best;
-        }
-        return out;
-    }
-
-    /** Links each step of a processing chain to the next, every hall of one step to every hall of the next. */
-    private static void linkChain(GenContext c, TileRegistry registry, boolean[] blocked, IntPredicate passable,
-                                  List<List<PointOfInterest>> chain, boolean[] reserved) {
-        int w = c.width, h = c.height;
-        for (int k = 0; k + 1 < chain.size(); k++) {
-            for (PointOfInterest from : chain.get(k)) {
-                for (PointOfInterest to : chain.get(k + 1)) {
-                    int[] start = beside(from, to, passable, w, h);
-                    if (start == null) continue;
-                    layLink(c, registry, blocked, passable, start[0], start[1], start[2], start[3], to, reserved,
-                            false);
-                }
-            }
-        }
-    }
-
-    private static List<List<PointOfInterest>> processingChain(GenContext c, PrecinctPlan plan,
-                                                               List<RoomPurpose> steps) {
+    private static List<List<PointOfInterest>> processingChain(GenContext c, PrecinctPlan plan) {
         Precinct works = plan.objective();
         List<List<PointOfInterest>> out = new ArrayList<>();
         if (works == null) return out;
         int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
         int index = plan.precincts().indexOf(works);
         int reach = PIT_WORKS_REACH * PIT_WORKS_REACH * 2;
-        for (RoomPurpose step : steps) {
+        for (RoomPurpose step : MiningWorks.CHAIN) {
             List<PointOfInterest> found = new ArrayList<>();
             for (PointOfInterest poi : c.pois) {
                 if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;

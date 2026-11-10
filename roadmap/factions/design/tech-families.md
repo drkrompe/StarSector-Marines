@@ -31,7 +31,7 @@ Three things are easily confused with tech family, and none of them is it:
 
 | Not this | Which is | Why it differs |
 |---|---|---|
-| **Pattern tier** (Common / Advanced / Prestige) | How rare a pattern is and how hard it is to get | The Breakthrough tank is Prestige and low-tech. The Hover scout is Advanced and high-tech. |
+| **Pattern tier** (Common / Advanced / Prestige) | How rare a pattern is and how hard it is to get | The Onager is Prestige and low-tech. The Hover scout is Advanced and high-tech. |
 | **Armor tier** (1-4) | How much protection a suit gives | A tier-4 Knights reliquary suit is low-tech. A tier-2 Janus scout suit is high-tech. |
 | **Faction** | Who fields the thing | A faction leans towards one family but fields all of them. Tri-Tachyon and the League run the Hegemony's low-tech walkers under shells of their own. |
 
@@ -82,7 +82,7 @@ These follow vanilla fleet doctrine. They are leanings, not ownership.
 | Engine flame | Vanilla low-tech orange | Vanilla midline amber | Vanilla high-tech blue (`EngineStylePalette`) |
 | Wear | Rust, patches and replaced plates; reads as old | Scuffed paint, clean repairs; reads as serviced | Scorching and cracked panels; damage reads as failure, not age |
 
-Low-tech is established. The low-tech interiors, the Breakthrough tank and the APCs
+Low-tech is established. The low-tech interiors, the Onager and the APCs
 define it. High-tech has a start in Tri-Tachyon's skimmer line and the burst laser tank.
 **Midline has no defined language yet.** The rows above are a direction to look-develop
 from, not a finished design.
@@ -113,7 +113,7 @@ Correct it here when a pattern's lore says otherwise.
 |---|---|---|
 | APC (Packhorse), LRM carrier (Longshot) | Low-tech | Ordnance Board line schedule, copied from Domain colonial-garrison drawings; the Board's cast turret head, roofless as an open barbette on the Longshot |
 | Fire-support APC (Pounder) | Low-tech hull | The Lion's Guard's refit of bought Packhorses, the head cut to an open barbette; a midline refit candidate |
-| Breakthrough tank (Onager, and the Parapet fit) | Low-tech | "A shape older than anyone's records"; a Domain lift-sled repulsor skirt on combustion turbines |
+| Onager (and the Parapet fit) | Low-tech | "A shape older than anyone's records"; a Domain lift-sled repulsor skirt on combustion turbines |
 | Medium tank (Scorpion) | Low-tech | The medium schedule's Domain-era escort tank, kept in production for its running cost |
 | Burst laser tank | High-tech refit of a low-tech hull | Tri-Tachyon emitter, livery and power plant |
 | Militia technical, SRM technical, Supply truck, Scout car | Low-tech | Field rigs on workshop pickups |
