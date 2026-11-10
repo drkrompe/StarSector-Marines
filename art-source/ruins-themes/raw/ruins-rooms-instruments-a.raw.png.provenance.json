@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73c-1d06-7420-af7d-e4322812f6f2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73c-1d06-7420-af7d-e4322812f6f2\\exec-9ab70386-1c93-4b95-a689-ec185094f4f3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-instruments-a.raw.png",
+    "sha256": "333fceff2c15203a5752fea61ba9768f07f68966a1032a0ae0584d8898b48377",
+    "dimensions": [
+      1516,
+      1037
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-instruments-a.prompt.txt",
+  "promptSha256": "c8a91141eae9fecf0a3bcf13d23277768b67d4928e12dc722cfff1077a87f2a9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nEach is a lab test instrument on its own base, different in shape: see the list.\nSubjects, top row, left to right:\n1. qubit-dewar (2x2): A dewar test rig for cryo units. Seen from above: a squat insulated cryogen dewar (round white-frosted lid with a vent stack) in a test frame with cable trunks and a small readout panel.\n2. incubator (2x2): A culture sample incubator. Seen from above: a boxy incubator cabinet, its top a glass inspection panel over racked culture flasks with a faint green glow, control strip at the front.\n3. core-probe (2x2): A probe station for AI core lattices. Seen from above: a probe station: a flat chuck holding a square lattice wafer under a gantry arm with fine probe needles, a monitor at the back.\nSubjects, second row, left to right:\n4. coil-test-rig (2x2): A field coil on a test frame. Seen from above: a toroidal copper field coil standing in a rectangular steel test frame with clamps, heavy power leads trailing to the back.\n5. magnet-bench (2x2): A magnet segment on a measuring bench. Seen from above: a curved synchrotron magnet segment lying on a granite measuring bench, a laser tracker head on a post beside it.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-instruments-a-guide.png",
+      "sha256": "19d3828060f5ee56a84fdf548c62942537a9e9f1584eb9af35b53fb767e73192",
+      "dimensions": [
+        1216,
+        832
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using the first reference for exact placement and the second for materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 43250,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 732,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.1
+}

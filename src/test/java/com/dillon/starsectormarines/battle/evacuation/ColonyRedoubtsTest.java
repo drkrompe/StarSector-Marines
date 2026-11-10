@@ -26,6 +26,18 @@ class ColonyRedoubtsTest {
     }
 
     @Test
+    void anAuthoredHoldoutNamesTheBuildingItFallsInsideElseTheNearestWithinReach() {
+        int reach = ColonyRedoubts.AUTHORED_HOLDOUT_REACH;
+        List<int[]> footprints = List.of(new int[]{10, 10, 20, 20}, new int[]{30, 10, 40, 20});
+        assertEquals(1, ColonyRedoubts.authoredHoldout(footprints, new boolean[2], 35, 15), "inside one");
+        assertEquals(0, ColonyRedoubts.authoredHoldout(footprints, new boolean[2], 24, 15), "in the street, nearer the first");
+        assertEquals(1, ColonyRedoubts.authoredHoldout(footprints, new boolean[]{true, false}, 15, 15),
+                "a building already named is passed over");
+        assertEquals(0, ColonyRedoubts.authoredHoldout(footprints, new boolean[2], 15, 20 + reach), "at the reach");
+        assertEquals(-1, ColonyRedoubts.authoredHoldout(footprints, new boolean[2], 15, 21 + reach), "past it, none");
+    }
+
+    @Test
     void aHoldoutStandsTheClearanceFromEveryBoreSite() {
         int r = ColonyRedoubts.BREACH_CLEARANCE;
         List<ColonyEruptionPlan.Site> sites = List.of(site(100, 100), site(300, 100));

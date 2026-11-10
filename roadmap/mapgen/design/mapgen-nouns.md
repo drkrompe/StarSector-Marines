@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — ruins ground: the delve's walls stand at fortress structure, so no heavy crushes through the plant. Also 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -2024,7 +2024,10 @@ settlement that died: the same growth at a density the mission states,
 `SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
 cleared landing ground toward the west end, a vault at the east end, and between
 them the ruins grade's **layers**, each a line across the whole map with its
-ways through: a wall inside the megastructure, a boundary outside it.
+ways through: a wall inside the megastructure, a boundary outside it. The
+delve's own walls stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`),
+so no heavy crushes through the plant (`ruins-expedition.md`, Works); the ruined
+lots keep ordinary walls.
 
 A mission asks for it with a `RuinsGroundPlan` through
 `MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
@@ -2185,14 +2188,27 @@ wall (their levelers are floor) with stock left on the dock floor.
 A dressing marked `foundry` lays its halls before its side rooms, and the outer
 band takes one mega forge hall in place of every line hall: about 40x76 (44x92
 at vast). It is shortened to fit, never below 44 long, and a hall narrower than
-32 is laid as the old foundry instead. The hall is laid out from its process,
+32 is laid as the old foundry instead.
+
+**The works hall is the trunk.** A works site's works hall, the mega forge or a
+theme's, is the first piece laid in the outer interior band, while the band is
+whole, so it is always laid at full size. The band's spine then runs down its
+west wall, in at the dispatch end and out at the head, three cells kept clear
+of every piece and melt; the band's court stands across the same column and the
+power hall clear of it. No other way enters the hall: the ways through the
+lines, the other halls and the rooms meet the spine beyond the hall's ends. So
+the route through the band passes through the works hall
+(`ruins-expedition.md`, The works hall is the trunk). The interior publishes the hall's
+stand (`RuinsDelve.Interior.worksStand`), the floor cell its zone is held from:
+by the mega forge's pour pulpit, or at the east end of a works hall's transfer
+aisle. The hall is laid out from its process,
 head to the north:
 
 - the great crucible (12x16, `ruins-forge` sheet) west of the line, its
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- the feed: a mag-rail up the west aisle from the dispatch end to a
+- the feed: a mag-rail up the west aisle, beside the trunk, from the dispatch end to a
   decelerator stop at the head, beside the crucible's flank, one sealed feed
   pod waiting on it and another derailed in the aisle. The hall reads as
   automated, spacefaring heavy industry, never a period foundry (owner: "Ore
@@ -2202,6 +2218,14 @@ head to the north:
   it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
+- the breakout: at the hall's middle the line burst its banks round a ladle
+  tipped mid-pour, a ragged pool of melt (up to 14x18, smaller where a larger
+  pool would split the hall), and the **transfer bridge** across it, a deck
+  four cells wide on the transfer aisle from bank to bank. It is the only way
+  a hall frame or the haul crosses the line, and the frame's post stands on it
+  (`ruins-expedition.md`, The forge's transfer bridge). It is laid from the
+  `ruins-forge-bridge` sheet: spans every two columns, an abutment on each
+  bank (the east one mirrored), one span split;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
@@ -2212,7 +2236,7 @@ head to the north:
   roof until the roof fades (`ruins-forge-motions`): a crane runway down
   each long wall, a cable tray beside the pour line with a length fallen to
   the floor, a ladle lift hung under the spout, and another tipped over a
-  line junction. A crane girder lies fallen across the west aisle as cover;
+  line junction. A crane girder lies fallen beside the trunk as cover;
 - wear laid under it all: scorch round the spout and the core's flank,
   coolant by the racks, a floor drain in each aisle, oil and a hover
   skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never

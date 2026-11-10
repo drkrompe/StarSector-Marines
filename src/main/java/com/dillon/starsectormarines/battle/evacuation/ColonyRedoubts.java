@@ -62,6 +62,8 @@ public final class ColonyRedoubts {
     public static final int HEAVY_CORNER_GUNS = 2;
     /** Aprons laid at a holdout: the door toward the lift, and one more if the building has it. */
     static final int APRONS = 2;
+    /** Cells round an authored holdout searched for a held building with room ({@link #authoredHoldout}). */
+    static final int AUTHORED_HOLDOUT_REACH = 16;
     private static final long SEED_SALT = 0x524544554F425453L;
     private static final UnitType[] TRADES = {
             UnitType.CIVILIAN, UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.CIVILIAN, UnitType.SCIENTIST};
@@ -128,6 +130,29 @@ public final class ColonyRedoubts {
             if (dx * dx + dy * dy < BREACH_CLEARANCE * BREACH_CLEARANCE) return false;
         }
         return true;
+    }
+
+    /**
+     * Of {@code footprints} (left, top, right, bottom), not yet {@code taken}, the one an authored holdout at
+     * ({@code x}, {@code y}) names: the one it falls inside, or else the one whose edge is nearest it within
+     * {@link #AUTHORED_HOLDOUT_REACH} cells, ties to the earlier; {@code -1} where none is that near. A patch is
+     * read on the open and the sealed layout alike, and the sealed one lays a different street plan from the same
+     * seed, so a cell put down inside a building on one may fall in the street on the other.
+     */
+    public static int authoredHoldout(List<int[]> footprints, boolean[] taken, int x, int y) {
+        int best = -1;
+        int bestDistance = AUTHORED_HOLDOUT_REACH * AUTHORED_HOLDOUT_REACH + 1;
+        for (int i = 0; i < footprints.size(); i++) {
+            if (taken[i]) continue;
+            int[] f = footprints.get(i);
+            int dx = Math.max(0, Math.max(f[0] - x, x - f[2]));
+            int dy = Math.max(0, Math.max(f[1] - y, y - f[3]));
+            int distance = dx * dx + dy * dy;
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            best = i;
+        }
+        return best;
     }
 
     /** How many holdouts this seed's colony has beside the main redoubt. */
