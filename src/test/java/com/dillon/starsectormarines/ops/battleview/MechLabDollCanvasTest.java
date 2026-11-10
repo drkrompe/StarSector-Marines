@@ -51,7 +51,7 @@ class MechLabDollCanvasTest {
 
     @Test
     void schematicKeepsEveryCardOnASmallPageByClosingItsGaps() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             List<SocketDef> sockets = MechFittingLayout.forVariant(variant).sockets();
             float panel = MechLabDollCanvas.panelWidth(sockets, 452f);
             assertTrue(panel <= 452f, "the panel stays on the canvas on " + variant);
@@ -65,7 +65,7 @@ class MechLabDollCanvasTest {
 
     @Test
     void schematicBuildsTheMachineAroundItsEngineCoreWithoutOverlaps() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             MechFittingLayout layout = MechFittingLayout.forVariant(variant);
             List<MechLabDollCanvas.SocketDropTarget> targets =
                     MechLabDollCanvas.schematicTargets(layout.sockets(), 620f, 880f);

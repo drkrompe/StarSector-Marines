@@ -21,6 +21,7 @@ final class MaintenanceOutpostLandscape {
         var finish = switch (c.get(BspKeys.MARKET_PROFILE).surface()) {
             case VERDANT -> TerrainPlan.Finish.GRASS_TOP;
             case FROZEN -> TerrainPlan.Finish.ICE;
+            case IRRADIATED -> TerrainPlan.Finish.GLASSED;
             case VOLCANIC -> TerrainPlan.Finish.BASALT;
             default -> TerrainPlan.Finish.ROCK;
         };

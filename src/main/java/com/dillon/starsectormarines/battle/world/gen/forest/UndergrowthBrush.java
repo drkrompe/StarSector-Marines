@@ -74,7 +74,7 @@ public final class UndergrowthBrush {
     }
 
     private static boolean eligible(NavigationGrid grid, CellTopology topology, boolean[] reserved, int x, int y) {
-        boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW -> true; default -> false; };
+        boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true; default -> false; };
         return natural && grid.isWalkable(x, y) && !grid.isDoorway(x, y) && !topology.isWall(x, y)
                 && !topology.isFixture(x, y) && topology.getBuildingId(x, y) == 0 && topology.getSurface(x, y) == 0
                 && (reserved == null || !reserved[y * grid.getWidth() + x])

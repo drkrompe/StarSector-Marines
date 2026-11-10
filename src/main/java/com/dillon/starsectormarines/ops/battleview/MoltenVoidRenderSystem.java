@@ -59,6 +59,12 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     static final float SMOKE_ALPHA = .22f;
     /** How far downwind of the rift smoke above it is carried before it thins away, in cells. */
     static final float SMOKE_LAG_CELLS = 2.5f;
+    /**
+     * The low smoke over the melt is dragged along by it: each puff rises off one place, is carried down the
+     * channel's flow ({@link ChannelFlow#carry}) this much faster than the crust, cells a second, and fades over its
+     * life, seconds.
+     */
+    static final float LOW_SMOKE_DRAG = .35f, LOW_SMOKE_LIFE = 6f;
     /** Ash: the spacing of falling flakes, in cells. */
     static final float ASH_SPACING = 1.7f;
 
@@ -85,6 +91,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     /** How long one crust layer drifts before fading into the next, seconds: {@link #CRUST_PERIOD} at most. */
     private float crustPeriod = CRUST_PERIOD;
     private final float[] vel = new float[2];
+    private final float[] puff = new float[2];
 
     private final float[] rgb = new float[3];
 
@@ -482,10 +489,14 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float s = drop.scale(low ? field.depth[n] * field.mostGain - z : z);
         float cellPx = cam.cellPxSize();
         float step = puffCells * .55f;
-        float drift = time * WIND_SPEED * (low ? .35f : 1f);
+        // A low deck over a running melt is carried down it, puff by puff; any other is blown on the wind.
+        boolean carried = low && field.flow.any;
+        float drift = carried ? 0f : time * WIND_SPEED * (low ? .35f : 1f);
         float dx = WIND_X * drift, dy = WIND_Y * drift;
+        float pace = crustSpeed + LOW_SMOKE_DRAG;
+        float reach = carried ? pace * LOW_SMOKE_LIFE * MoltenVoidRenderSystem.FASTEST : 0f;
         float ccx = cam.panCellX() + NaturalVoidRenderSystem.MARGIN, ccy = cam.panCellY() + NaturalVoidRenderSystem.MARGIN;
-        float half = cam.vpW() / cellPx / s * .5f + puffCells, halfY = cam.vpH() / cellPx / s * .5f + puffCells;
+        float half = cam.vpW() / cellPx / s * .5f + puffCells + reach, halfY = cam.vpH() / cellPx / s * .5f + puffCells + reach;
         int i0 = (int) Math.floor((ccx - half - dx) / step), i1 = (int) Math.ceil((ccx + half - dx) / step);
         int j0 = (int) Math.floor((ccy - halfY - dy) / step), j1 = (int) Math.ceil((ccy + halfY - dy) / step);
         if ((long) (i1 - i0) * (j1 - j0) > 8000) return;
@@ -497,6 +508,15 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 int hsh = hash(i, j, seed);
                 float x = i * step + dx + ((hsh & 255) / 255f - .5f) * step;
                 float y = j * step + dy + (((hsh >> 8) & 255) / 255f - .5f) * step;
+                float fade = 1f;
+                if (carried) {
+                    float life = LOW_SMOKE_LIFE * (.7f + .6f * ((hsh >>> 20) & 15) / 15f);
+                    float t = frac(time / life + ((hsh >>> 12) & 255) / 255f);
+                    field.flow.carry(x, y, pace * t * life, puff);
+                    x = puff[0];
+                    y = puff[1];
+                    fade = Math.min(1f, 3f * (float) Math.sin(Math.PI * t));
+                }
                 // Smoke stands over the rift: where it came up from, upwind of here, and thins away from it.
                 float over = overRift(field, x - WIND_X * SMOKE_LAG_CELLS, y - WIND_Y * SMOKE_LAG_CELLS, low);
                 if (over <= 0f || field.nearBridge(x, y, puffCells * .75f)) continue;
@@ -504,7 +524,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 if (dense < .38f) continue;
                 float ps = low ? drop.scale(field.stepDepth(n, x, y) - z) : s;
                 float size = puffCells * (.85f + ((hsh >> 16) & 255) / 255f * .6f) * cellPx * ps;
-                float a = thick * over * Math.min(1f, (dense - .38f) / .3f) * alpha;
+                float a = thick * over * Math.min(1f, (dense - .38f) / .3f) * fade * alpha;
                 // Lit orange from below, the more the nearer the melt.
                 float lit = low ? .65f : .38f / (1f + deck);
                 int cell = (hsh >>> 24) % (cells * cells);

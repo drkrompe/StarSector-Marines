@@ -195,6 +195,9 @@ public final class WarshipAtmosphere {
                 new float[]{1.00f, 0.70f, 0.42f}, new float[]{0.90f, 0.94f, 0.96f}, new float[]{0.58f, 0.58f, 0.44f});
         private static final Tint FROZEN = new Tint(
                 new float[]{0.72f, 0.82f, 1.00f}, new float[]{0.94f, 0.97f, 1.00f}, new float[]{0.90f, 0.93f, 0.98f});
+        /** Pale and washed out: a white-hot glow, bleached vapour and bone-white dust off scorched hardpan. */
+        private static final Tint IRRADIATED = new Tint(
+                new float[]{1.00f, 0.90f, 0.66f}, new float[]{0.93f, 0.94f, 0.88f}, new float[]{0.84f, 0.82f, 0.74f});
 
         /** The tint a surface palette gives; null reads as bare rock, the baseline for a battle with no planet behind it. */
         public static Tint forPalette(SurfacePalette palette) {
@@ -203,6 +206,7 @@ public final class WarshipAtmosphere {
                 case ARID -> ARID;
                 case VERDANT -> VERDANT;
                 case FROZEN -> FROZEN;
+                case IRRADIATED -> IRRADIATED;
                 default -> ROCK;
             };
         }

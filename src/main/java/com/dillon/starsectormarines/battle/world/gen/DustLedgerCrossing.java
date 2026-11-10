@@ -483,7 +483,7 @@ public final class DustLedgerCrossing {
     private static void packed(GenContext c, int x, int y) {
         if (!c.grid.inBounds(x, y)) return;
         GroundKind ground = c.topology.getGroundKind(x, y);
-        if (ground == GroundKind.SAND || ground == GroundKind.STONE || ground == GroundKind.GRASS || ground == GroundKind.SNOW)
+        if (ground == GroundKind.SAND || ground == GroundKind.STONE || ground == GroundKind.GRASS || ground == GroundKind.SNOW || ground == GroundKind.HARDPAN)
             c.topology.setGroundKind(x, y, GroundKind.DIRT);
     }
 

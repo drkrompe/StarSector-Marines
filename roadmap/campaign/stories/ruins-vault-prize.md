@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
 `ruins-prize-hint` a, `ruins-find-tiers` a, `ruins-prize-forced` a,
-`ruins-theme-defences` a). These are built and folded into
+`ruins-theme-defences` a, `ruins-works-twists` a). These are built and folded into
 `ruins-expedition.md` (The vault and its prize):
 - The draw and the tell in the briefing.
 - The payout and find-tier rules.
@@ -15,8 +15,7 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
 - Tech caches along the delve (sealed stores, the guardian's court, the vault
   store's deepest layer) settled as rolls of vanilla equipment, and the prize's
   row on the results screen.
-- One works twist per theme (`RuinsWorksTwist`), built on the recommended set
-  while the owner's pick on it is open.
+- One works twist per theme (`RuinsWorksTwist`, owner pick `ruins-works-twists` a).
 
 The slices below are what is left.
 
