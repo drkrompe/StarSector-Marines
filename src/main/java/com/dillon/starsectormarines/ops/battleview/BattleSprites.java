@@ -163,6 +163,9 @@ public class BattleSprites {
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
+    /** The derelict walkers' turret heads: the gun ports' and the racks' ({@code DerelictWalkerGuns}). */
+    private LayeredSpriteCache derelictPortHead;
+    private LayeredSpriteCache derelictRackHead;
     private LayeredSpriteCache vehicleTurretBase;
     private LayeredSpriteCache vehicleTurretBaseLight;
     private LayeredSpriteCache vehicleGunPlate;
@@ -314,6 +317,8 @@ public class BattleSprites {
     public DerelictWalkerAssets crawlerSprites() { return crawler; }
     /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
     public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return vehicleGunMounts.get(style); }
+    /** The derelict walkers' turret head over a gun port's weapon, or over a rack's when {@code rack}; null if absent. */
+    public LayeredSpriteCache derelictTurretHead(boolean rack) { return rack ? derelictRackHead : derelictPortHead; }
     /** The collar that turns with a modular turret inside its ring; null when the art did not load. */
     public LayeredSpriteCache vehicleTurretCollar() { return vehicleTurretCollar; }
     /** The round base a laser stands in on a modular turret: two rows or more, one row. Null when the art did not load. */
@@ -1502,6 +1507,8 @@ public class BattleSprites {
             if (ring != null) vehicleGunMounts.put(style, ring);
         }
         vehicleTurretCollar = loadLayeredSprite("graphics/battle/vehicles/turret-collar.png");
+        derelictPortHead = loadLayeredSprite(DerelictWalkerGuns.PORT_HEAD);
+        derelictRackHead = loadLayeredSprite(DerelictWalkerGuns.RACK_HEAD);
         vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
         vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");
         vehicleGunPlate = loadLayeredSprite("graphics/battle/vehicles/gun-plate.png");

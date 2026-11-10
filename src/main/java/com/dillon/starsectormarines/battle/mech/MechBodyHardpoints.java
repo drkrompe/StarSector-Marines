@@ -124,78 +124,31 @@ public final class MechBodyHardpoints {
      * The walkers' mounts (`derelict-watch.md`, Medium and large walkers), all on the one sentinel torso drawn at each
      * class's size. The MG-40 and MG-70 carry four guns: a port in each flank of the upper band, turning out to its own
      * side and across the front (the pair overlapping ahead), and a missile rack each side of the back, turning with the
-     * fire control over the front and flanks. The MG-25 carries two, laid out by {@link RoundsLayout}. The torso's
+     * fire control over the front and flanks. The MG-25 carries two, one in each flank port ({@link #rounds}). The torso's
      * drawing is 0.74 hull widths across. The hall frame's casemates are the stiffest and its racks the deepest. Arcs
      * UNTUNED.
      */
     private static Map<MechVariant, Hardpoint[]> build() {
         Map<MechVariant, Hardpoint[]> table = new EnumMap<>(MechVariant.class);
-        table.put(MechVariant.SECURITY_ROUNDS, RoundsLayout.current().points());
+        table.put(MechVariant.SECURITY_ROUNDS, rounds());
         table.put(MechVariant.SECURITY_WALKER, walker(3, 3, 25f, 105f, 120f, 0.62f, 0.46f));
         table.put(MechVariant.SECURITY_HALL, walker(3, 3, 20f, 95f, 120f, 0.58f, 0.42f));
         return table;
     }
 
     /**
-     * Where the MG-25 rounds walker's two guns stand (owner: "bad turret positioning given it only has two turrets"):
-     * its chaingun on the {@code LEFT_ARM} mount and its SRM-5 on {@code LEFT_SHOULDER}, its other two mounts left off
-     * the body. Every layout lets both guns bear on one target ahead. Chosen by {@link #PROPERTY} for the owner's pick
-     * {@code derelict-rounds-mounts}; {@link #FLANK_PAIR} is the recommended default: it stands its guns on the flank band
-     * the bigger walkers' ports use, where a centreline gun would lie across the sensor dome.
+     * The MG-25 rounds walker's two guns, one in each flank port on the band the bigger walkers' ports use (owner pick
+     * {@code derelict-rounds-mounts}: flank pair): its chaingun on the {@code LEFT_ARM} mount in the left port and its
+     * SRM-5 on {@code LEFT_SHOULDER} in the right, each turned a little out, their arcs overlapping about 100 degrees
+     * either side of ahead. Its other two mounts are off the body.
      */
-    public enum RoundsLayout {
-        /** One each side of the upper band, as the bigger walkers' ports, turned a little out with their arcs overlapping ahead. */
-        FLANK_PAIR,
-        /** Both on the spine: the chaingun on a turret just behind the sensor dome, the rack on the back, turning over it. */
-        DORSAL_PAIR,
-        /** Side by side at the front of the upper band, both facing ahead: a forward battery, blind behind. */
-        TWIN_FRONT;
-
-        /**
-         * Temporary switch for the owner's pick {@code derelict-rounds-mounts}: {@code flank-pair} (default),
-         * {@code dorsal-pair} or {@code twin-front}. Remove it with the losing layouts once the pick is answered.
-         */
-        public static final String PROPERTY = "battle.derelictRounds.mounts";
-
-        static RoundsLayout current() {
-            String value = System.getProperty(PROPERTY, "flank-pair");
-            for (RoundsLayout layout : values()) if (layout.key().equals(value)) return layout;
-            return FLANK_PAIR;
-        }
-
-        /** The switch's value for this layout. */
-        public String key() {
-            return name().toLowerCase().replace('_', '-');
-        }
-
-        Hardpoint[] points() {
-            Hardpoint[] points = new Hardpoint[MechMountSlot.values().length];
-            Hardpoint gun;
-            Hardpoint rack;
-            switch (this) {
-                case DORSAL_PAIR -> {
-                    gun = new Hardpoint(MechMountSlot.LEFT_ARM, MechFittingLayout.SocketType.BALLISTIC, 2,
-                            0f, 0.06f, 0f, 135f, 0.72f);
-                    rack = new Hardpoint(MechMountSlot.LEFT_SHOULDER, MechFittingLayout.SocketType.MISSILE, 2,
-                            0f, RACK_FORWARD, 0f, 160f, 0.56f);
-                }
-                case TWIN_FRONT -> {
-                    gun = new Hardpoint(MechMountSlot.LEFT_ARM, MechFittingLayout.SocketType.BALLISTIC, 2,
-                            -0.10f, 0.12f, 0f, 90f, 0.72f);
-                    rack = new Hardpoint(MechMountSlot.LEFT_SHOULDER, MechFittingLayout.SocketType.MISSILE, 2,
-                            0.10f, 0.12f, 0f, 90f, 0.52f);
-                }
-                default -> {
-                    gun = new Hardpoint(MechMountSlot.LEFT_ARM, MechFittingLayout.SocketType.BALLISTIC, 2,
-                            -PORT_RIGHT, PORT_FORWARD, 15f, 115f, 0.72f);
-                    rack = new Hardpoint(MechMountSlot.LEFT_SHOULDER, MechFittingLayout.SocketType.MISSILE, 2,
-                            PORT_RIGHT, PORT_FORWARD, -15f, 115f, 0.56f);
-                }
-            }
-            points[gun.slot().ordinal()] = gun;
-            points[rack.slot().ordinal()] = rack;
-            return points;
-        }
+    private static Hardpoint[] rounds() {
+        Hardpoint[] points = new Hardpoint[MechMountSlot.values().length];
+        points[MechMountSlot.LEFT_ARM.ordinal()] = new Hardpoint(MechMountSlot.LEFT_ARM,
+                MechFittingLayout.SocketType.BALLISTIC, 2, -PORT_RIGHT, PORT_FORWARD, 15f, 115f, 0.72f);
+        points[MechMountSlot.LEFT_SHOULDER.ordinal()] = new Hardpoint(MechMountSlot.LEFT_SHOULDER,
+                MechFittingLayout.SocketType.MISSILE, 2, PORT_RIGHT, PORT_FORWARD, -15f, 115f, 0.56f);
+        return points;
     }
 
     /**

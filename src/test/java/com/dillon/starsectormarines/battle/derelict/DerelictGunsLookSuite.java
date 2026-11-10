@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.mech.MechBodyHardpoints;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -117,9 +118,72 @@ public final class DerelictGunsLookSuite implements SnapshotSuite {
                 arcs(frame, order[i], cx, cy, across);
                 out.add(new SnapshotArtifact("derelict-guns-" + order[i].id + "-arcs.png", frame));
             }
+            // Everyone back to their posts, so the heads sheet shows the MG-40 alone.
+            for (Map.Entry<MechVariant, Long> w : walkers.entrySet()) {
+                float[] post = posts.get(w.getKey());
+                stand(sim, w.getValue(), post[0], post[1], 0f, 0f, 0);
+            }
+            Long heavy = walkers.get(MechVariant.SECURITY_WALKER);
+            if (heavy != null) out.add(new SnapshotArtifact("derelict-guns-heads.png", heads(context, sim, heavy, cx, cy)));
             out.add(new SnapshotArtifact("derelict-guns-dolls.png", dolls(context)));
         }
         return out;
+    }
+
+    /** The weapon sets the heads sheet stands under one MG-40's turret heads: ports left, right; racks left, right. */
+    static final MechWeaponComponent[][] HEAD_SETS = {
+            {MechWeaponComponent.HC_10, MechWeaponComponent.AC_6, MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5},
+            {MechWeaponComponent.CHAINGUN, MechWeaponComponent.CHAINGUN, MechWeaponComponent.LRM_15,
+                    MechWeaponComponent.LRM_15},
+            {MechWeaponComponent.PL_2, MechWeaponComponent.BL_2, MechWeaponComponent.LL_3, MechWeaponComponent.LL_3},
+            {MechWeaponComponent.DC_5, MechWeaponComponent.AC_6_QS, MechWeaponComponent.SRM_3_QS,
+                    MechWeaponComponent.LRM_5}};
+
+    /**
+     * One MG-40 drawn four times, aiming a little right, each time with a different set of weapons under the same turret
+     * heads ({@link #HEAD_SETS}), each frame a look-preset render shrunk into a quarter of the sheet and captioned.
+     */
+    private static BufferedImage heads(SnapshotContext context, BattleSimulation sim, long id, float cx, float cy)
+            throws Exception {
+        EntityWorld world = sim.getEntityWorld();
+        BattleComponents c = sim.getBattleComponents();
+        int[] fields = {BattleComponents.MECH_LAYERED_LEFT_ARM, BattleComponents.MECH_LAYERED_RIGHT_ARM,
+                BattleComponents.MECH_LAYERED_LEFT_SHOULDER, BattleComponents.MECH_LAYERED_RIGHT_SHOULDER};
+        MechMountSlot[] slots = {MechMountSlot.LEFT_ARM, MechMountSlot.RIGHT_ARM, MechMountSlot.LEFT_SHOULDER,
+                MechMountSlot.RIGHT_SHOULDER};
+        int[] kept = new int[fields.length];
+        for (int k = 0; k < fields.length; k++) kept[k] = world.getInt(id, c.MECH_LAYERED_ANIMATION, fields[k]);
+        BufferedImage sheet = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = sheet.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+            stand(sim, id, cx, cy, 0f, -30f, 0);
+            for (int set = 0; set < HEAD_SETS.length; set++) {
+                StringBuilder label = new StringBuilder();
+                for (int k = 0; k < fields.length; k++) {
+                    MechWeaponComponent weapon = HEAD_SETS[set][k];
+                    world.setInt(id, c.MECH_LAYERED_ANIMATION, fields[k], weapon.appearanceSelector(slots[k]));
+                    if (k == 0 || k == 2) label.append(k == 0 ? "ports " : "   racks ");
+                    else label.append(" / ");
+                    label.append(weapon.displayName());
+                }
+                BufferedImage frame = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, cx, cy,
+                        2.6f * MechVariant.SECURITY_WALKER.renderScale).withoutRoofs().render(sim, "derelict-heads");
+                int x = (set % 2) * 960;
+                int y = (set / 2) * 540;
+                g.drawImage(frame, x, y, 960, 540, null);
+                g.setColor(new Color(0, 0, 0, 150));
+                g.fillRect(x, y + 500, 960, 40);
+                g.setColor(new Color(0xE6, 0xEE, 0xE8));
+                g.drawString(label.toString(), x + 16, y + 527);
+            }
+        } finally {
+            g.dispose();
+            for (int k = 0; k < fields.length; k++) world.setInt(id, c.MECH_LAYERED_ANIMATION, fields[k], kept[k]);
+        }
+        return sheet;
     }
 
     /** The arc shots' frame, cells across per unit of render scale, and the arc wedges' reach. */
