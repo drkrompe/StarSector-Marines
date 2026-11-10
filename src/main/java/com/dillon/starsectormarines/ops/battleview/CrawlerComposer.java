@@ -51,7 +51,7 @@ final class CrawlerComposer {
         float torsoHeight = torsoCells(art) * renderScale * art.torso.pxHeight / Math.max(1f, art.torso.pxWidth)
                 * (1f + DerelictWalkerComposer.TORSO_HEIGHT_GROWTH * rig.bodyHeight());
         float forward = MOUNT_FORWARD_SHARE * torsoHeight;
-        double heading = Math.toRadians(rig.facing());
+        double heading = Math.toRadians(rig.bodyFacing());
         // Sprite degrees: 0 is +y, counter-clockwise positive.
         return new float[] {rig.bodyX() - (float) Math.sin(heading) * forward,
                 rig.bodyY() + (float) Math.cos(heading) * forward};

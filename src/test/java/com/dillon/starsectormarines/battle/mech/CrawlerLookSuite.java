@@ -71,6 +71,9 @@ public final class CrawlerLookSuite implements SnapshotSuite {
                     .done();
             SceneWorld world = builder.build();
             long crawler = placement.subject(KEY, world.members(KEY)[0]);
+            // Faced down the route from the first frame: a mech turns at its own rate in battle, never in one snap.
+            world.sim().world().setPos(crawler, start[0], start[1]);
+            FacingSystem.faceStanding(world.sim().getEntityWorld(), world.sim().getBattleComponents(), crawler, EAST);
             int[] tick = {0};
             placement.beforeTick(sim -> {
                 int t = tick[0]++;
