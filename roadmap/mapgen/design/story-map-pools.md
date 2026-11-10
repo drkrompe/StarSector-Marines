@@ -7,7 +7,7 @@ generic Raid's map, one per Raid site, laid against a reference market
 (`raid-mission.md`, The owned map). Conquest and the other generic contracts
 stay fully random until they own a map too.
 
-Updated: 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
+Updated: 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
@@ -110,14 +110,39 @@ through or built on (`PlanetSkinTest`). It swaps:
   insulated on a frozen one.
 
 It does not raise a sealed perimeter round a town, add a drop or grow new
-water or woods: each would move the layout. A drop belongs on a map only where
+water or woods: each would move the layout; the sealed layout (below) is how a
+town is sealed. A drop belongs on a map only where
 its terrain explains one (`owned-maps.md`, Relay Nine). Living worlds (jungle,
 tundra, ocean) reach a story setup as verdant today, since the setups take the
 world's palette alone.
 
+## Sealed layout
+
+A world nobody lives on in the open plays the mission's **sealed layout**: the
+same owned seed and patch on the same home palette, generated with every town
+sealed (`SealedTown.seal`), then skinned as any world is. Which worlds is the
+world's alone (`PlanetSkin.sealsTowns`): wherever its habitat is enclosed, so
+irradiated, toxic and airless worlds, and bare rock, which is airless unless its
+profile says otherwise. Every zoned place the mission names (its colony, towns,
+suburbs, depots and hamlets) is walled where it stands under its own name;
+garrisons, compounds, workings and the landing keep their own boundary, and no
+mission place is dropped. The owner chose one owned layout per case over a wall
+the skin draws on an open town's outline (2026-11-10): a wall changes what can
+be walked, so it belongs to the layout. The regeneration check plays every map
+on every palette, so a sealed layout is checked wherever it is played.
+
+A sealed wall keeps a lock onto every stretch of open ground it borders
+(`SealedTown.groundLocks`), not only where roads cross it: on a city map the
+suburbs' wall ran the map's width with no road out to the landing field, and
+sealed the company out of the whole map.
+Every sealed place is walled as one, so a sealed layout's town plan is laid
+with its envelope's ground held back (`mapgen-nouns.md`, Habitat): it is a
+different street plan from the open layout's, from the same seed.
+
 `createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
 `.worlds=`) frames each mission's map whole under every palette through the
-look preset, with close frames on its fields and woods.
+look preset, with close frames on its fields and woods, and on a world that
+plays the sealed layout a close frame on a lock.
 
 **Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
 never on the market behind it, with no re-roll, then skinned for the world the

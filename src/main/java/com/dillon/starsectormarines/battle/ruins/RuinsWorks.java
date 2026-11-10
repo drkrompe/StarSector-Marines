@@ -90,6 +90,7 @@ public final class RuinsWorks {
     private final PowerGraph graph;
     /** The published ground the works were wired on; null for works built without one. */
     private RuinsDelve delve;
+    private RuinsDoorStates doorStates;
     private final Site hall;
     private final List<Site> junctions;
     private final List<SealDoor> doors;
@@ -432,6 +433,18 @@ public final class RuinsWorks {
     public PowerGraph graph() { return graph; }
     /** The published ground the works were wired on; null for works built without one. */
     public RuinsDelve delve() { return delve; }
+
+    /**
+     * The interior's leaf doors as they stand now, from those the ground laid; empty for works built without a
+     * ground. Whoever opens or shuts a door's cells tells this, and the drawing reads it.
+     */
+    public RuinsDoorStates doorStates() {
+        if (doorStates == null) {
+            doorStates = new RuinsDoorStates(delve == null || delve.interior() == null ? List.of()
+                    : delve.interior().doors());
+        }
+        return doorStates;
+    }
     public List<SealDoor> doors() { return doors; }
     public boolean isOpen(int door) { return locks.get(door).isOpen(); }
     public boolean isForced(int door) { return locks.get(door).isForced(); }

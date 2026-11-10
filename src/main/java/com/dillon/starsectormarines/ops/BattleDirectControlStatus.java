@@ -566,10 +566,21 @@ final class BattleDirectControlStatus {
             int index = i + 1;
             weapons.add(vehicleWeapon(gun.turret(), gun.mount().structure().mount,
                     vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(body, gun.mount().mountX(),
-                            gun.mount().mountY())), index + 1, "MOUNT",
+                            gun.mount().mountY())), index + 1, mountKey(index),
                     FireGroups.badge(mounts, picks, index), FireGroups.group(mounts, index)));
         }
         return List.copyOf(weapons);
+    }
+
+    /** The slot key of a hull's secondary mounts; each mount's own key adds its number. */
+    static final String MOUNT_KEY = "MOUNT";
+
+    /**
+     * The slot key of a hull's {@code number}th secondary mount, counted from 1. Each mount needs its own: the HUD
+     * keys a weapon's row by it, and a carrier stands two of the same gun on its deck.
+     */
+    static String mountKey(int number) {
+        return MOUNT_KEY + number;
     }
 
     /**

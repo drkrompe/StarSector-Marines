@@ -33,7 +33,9 @@ import java.util.Set;
  * pure function of the home palette and the world, so a test states it without a map.
  *
  * <p>What it does not do, because each would move the layout: raise a sealed perimeter round a town, add a drop, grow
- * new water or woods. A drop belongs on a map only where its terrain explains one ({@code owned-maps.md}).
+ * new water or woods. A drop belongs on a map only where its terrain explains one ({@code owned-maps.md}). A world
+ * whose towns are sealed ({@link #sealsTowns}) plays the mission's sealed layout instead, generated with its towns
+ * walled ({@code SealedTown.seal}), and the skin dresses that.
  */
 public final class PlanetSkin {
 
@@ -83,6 +85,16 @@ public final class PlanetSkin {
     }
 
     // --- the rules ------------------------------------------------------------------------------------------------
+
+    /**
+     * Whether a mission fought on {@code world} plays its sealed layout, every town walled with locks: wherever the
+     * world's habitat is enclosed (shielded or sealed), its air read as {@link #climateOf} reads it, so bare rock is
+     * airless. Decided by the world alone, never the home, so every mission and the regeneration check agree.
+     */
+    public static boolean sealsTowns(TargetProfile world) {
+        if (world == null) return false;
+        return new BiomeSkin(world.surface(), world.living(), world.signature(), climateOf(world)).habitat().enclosed();
+    }
 
     /**
      * The air a world has when its profile says nothing: none on bare rock, which in the Sector is an airless world.

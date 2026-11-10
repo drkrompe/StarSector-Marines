@@ -100,6 +100,7 @@ public final class RuinsDoorLookSuite implements SnapshotSuite {
             case ANSWERS -> "still powered: it parts for whoever comes through (shown shut)";
             case DEAD -> "dead part-open: its leaves stand in its end cells";
             case FORCED -> "forced long ago: one leaf torn out onto the floor";
+            case SEALED -> "sealed: shut across a way that is wall, its lamps dark";
         };
     }
 

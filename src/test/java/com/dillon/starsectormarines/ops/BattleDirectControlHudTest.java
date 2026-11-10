@@ -394,6 +394,28 @@ class BattleDirectControlHudTest {
         }
     }
 
+    @Test
+    void aHullWithTwoOfTheSameDeckGunGivesEachItsOwnRowAndNamesWhichIsPicked() throws Exception {
+        var base = preview(Carrier.VEHICLE, false);
+        var main = base.weapons().get(0);
+        var ammo = new Ammo(90, 120, AmmoUnit.ROUNDS, false);
+        var snapshot = new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(), List.of(
+                weapon(1, "TURRET", "Heavy Cannon", FireKind.SINGLE, 1, true, 0f, 0, main.ammo(), "L"),
+                deckGun(2, mountKey(1), main.name(), ammo, ""),
+                deckGun(3, mountKey(2), main.name(), ammo, "R")));
+        try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals(List.of("direct-hud-weapon-" + mountKey(1), "direct-hud-weapon-" + mountKey(2)),
+                    rows(fixture.weapons, "direct-hud-group-rmb"));
+            assertEquals("deck 2 " + main.name(), fixture.weapons.requireElement("direct-hud-group-rmb-name").text(),
+                    "two of the same gun: the header says which mount");
+        }
+    }
+
+    private static WeaponStatus deckGun(int number, String slot, String name, Ammo ammo, String trigger) {
+        return new WeaponStatus(number, slot, name, new Behavior(FireKind.BURST, 10, .1f, 1), true,
+                0f, 1f, 0, .1f, ammo, false, "", trigger, false, false, "R");
+    }
+
     /** A Bulwark with a chaingun on each arm and an SRM-5 on each shoulder, on {@code picks}. */
     static Snapshot bulwark(TriggerPicks picks) {
         MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
