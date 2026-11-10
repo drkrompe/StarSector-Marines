@@ -23,10 +23,12 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
+import com.dillon.starsectormarines.battle.world.gen.precinct.CantonmentRoads;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.GateYardLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctFill;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -79,18 +81,25 @@ public final class PrecinctWardStage implements GenStage {
         Map<String, List<FortressBuilding>> unbuilt = new LinkedHashMap<>();
         Map<String, Integer> shortFields = new LinkedHashMap<>();
         List<Laid> yards = new ArrayList<>();
+        Map<Integer, PrecinctDefence.Works> works = new LinkedHashMap<>();
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
+            boolean walled = precinct.boundary() == Precinct.Boundary.WALLED;
+            // What the defences are sited against: the ground this place keeps for moving, and what it guards.
+            boolean[][] kept = walled ? new boolean[ctx.width][ctx.height] : null;
+            List<int[]> hearts = new ArrayList<>();
+            // The wall's gates: a cantonment's are the roads it laid in, as many as its market owes.
+            Fortification wall = CantonmentRoads.wall(precinct);
             // A square place builds and walls inside its glacis; the strip stays claimed, so
             // no neighbour builds on it, and open.
             boolean square = precinct.fortification() != null && precinct.fortification().square();
             int[][] own = square ? glacis(claim, i, ctx.width, ctx.height, precinct.fortification().glacis()) : claim;
             if (square && precinct.isProgrammed()) {
-                reachIn(claim, own, road, i, precinct.fortification().gates(), precinct.fortification().glacis(),
+                reachIn(claim, own, road, i, wall.gates(), wall.glacis(),
                         ctx.width, ctx.height);
             }
             // Its gates are where roads met the whole claim, carried across the strip to the wall.
-            int[][] ownRoad = square ? acrossGlacis(claim, road, i, precinct.fortification(), ctx) : road;
+            int[][] ownRoad = square ? acrossGlacis(claim, road, i, wall, ctx) : road;
             // A gate yard: its gate widened across the glacis and through the wall, laid before the place packs.
             GateYardLayout.Laid yard = square && precinct.isProgrammed() && precinct.fortification().yard() != null
                     ? gateYard(claim, own, road, ownRoad, i, precinct.fortification(), ctx) : null;
@@ -100,7 +109,7 @@ public final class PrecinctWardStage implements GenStage {
             FortressInterior.Result result = null;
             if (precinct.isProgrammed() && precinct.program().cantonment()) {
                 masks = PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
-                result = cantonment(ctx, precinct, masks, own, road, i, unbuilt, shortFields);
+                result = cantonment(ctx, precinct, masks, own, road, i, unbuilt, shortFields, kept, hearts);
                 emitTacticalNodes(ctx, result);
                 emitPointsOfInterest(ctx, result);
             } else if (precinct.isProgrammed()) {
@@ -158,8 +167,17 @@ public final class PrecinctWardStage implements GenStage {
                     unbuilt.put(precinct.name(), List.copyOf(result.unplaced()));
                 }
             }
-            if (precinct.boundary() == Precinct.Boundary.WALLED) {
-                stampWall(ctx, own, ownRoad, i, precinct.fortification());
+            if (walled) {
+                stampWall(ctx, own, ownRoad, i, wall);
+                if (masks != null) {
+                    for (int x = 0; x < ctx.width; x++) {
+                        for (int y = 0; y < ctx.height; y++) if (masks.circulation()[x][y]) kept[x][y] = true;
+                    }
+                }
+                if (result != null) PrecinctDefence.hearts(result.placed(), hearts);
+                works.put(i, new PrecinctDefence.Works(PrecinctBoundary.openGates(own, ownRoad, i, ctx.width,
+                        ctx.height, wall.gates(), wall.gateWidth()),
+                        hearts, kept));
             }
             if (square) {
                 boolean[][] strip = new boolean[ctx.width][ctx.height];
@@ -203,6 +221,7 @@ public final class PrecinctWardStage implements GenStage {
             }
         }
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));
+        ctx.put(BspKeys.PRECINCT_WORKS, Map.copyOf(works));
         ctx.put(BspKeys.UNPLACED_AIRFIELDS, Map.copyOf(shortFields));
         if (!yards.isEmpty()) ctx.put(BspKeys.GATE_YARDS, List.copyOf(yards));
     }
@@ -863,7 +882,8 @@ public final class PrecinctWardStage implements GenStage {
     private static FortressInterior.Result cantonment(GenContext ctx, Precinct precinct, PrecinctFill.Masks masks,
                                                       int[][] own, int[][] road, int who,
                                                       Map<String, List<FortressBuilding>> unbuilt,
-                                                      Map<String, Integer> shortFields) {
+                                                      Map<String, Integer> shortFields,
+                                                      boolean[][] kept, List<int[]> hearts) {
         boolean[][] mine = new boolean[ctx.width][ctx.height];
         boolean[][] paved = new boolean[ctx.width][ctx.height];
         for (int x = 0; x < ctx.width; x++) {
@@ -900,6 +920,13 @@ public final class PrecinctWardStage implements GenStage {
         // The motor pool's hardstand: striped concrete the sheds open on and the vehicles stand and turn on.
         InstallationGround.pave(ctx, laid.pool(), GroundKind.STRIPED, Material.CONCRETE);
         for (int[] c : laid.pool()) masks.buildable()[c[0]][c[1]] = false;
+        // Its streets, parade and hardstand are where it moves, and its motor pool is the first thing it guards.
+        if (kept != null) {
+            for (List<int[]> cells : List.of(laid.streets(), laid.parade(), laid.pool())) {
+                for (int[] c : cells) kept[c[0]][c[1]] = true;
+            }
+        }
+        if (!laid.pool().isEmpty()) hearts.add(PrecinctDefence.middle(laid.pool()));
         List<FortressBuilding> missing = new ArrayList<>();
         for (RoomPurpose purpose : laid.unplaced()) {
             for (FortressBuilding building : precinct.program().buildings()) {

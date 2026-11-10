@@ -89,8 +89,11 @@ public final class DefensePostStamper implements GenStage {
     /** Artillery batteries are rare (1-2 per battle) — a single battery already controls a wide arc with LOCUST's 42-cell range, and two on the same map is enough to make the whole approach feel suppressed. */
     private static final int FORTRESS_ARTILLERY_MIN  = 1, FORTRESS_ARTILLERY_MAX  = 2;
 
-    /** Minimum center-to-center distance between any two placed posts. Stops clumping. */
-    private static final int POST_MIN_SEPARATION = 14;
+    /**
+     * Minimum center-to-center distance between any two placed posts. Stops clumping. A planner siting posts ahead
+     * of the placer ({@code DefenceDoctrine}) keeps the same spacing, or its sites are refused here.
+     */
+    public static final int POST_MIN_SEPARATION = 14;
 
     /** The ground under a field-works gun: dug earth, as a trench's floor. */
     private static final String FIELD_PAD = "floors.dirt";
@@ -385,13 +388,40 @@ public final class DefensePostStamper implements GenStage {
         int minSpanLong = (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) ? 5 : 3;
         if (bRight - bLeft < minSpanLong) return 0;
         if (bBot - bTop < minSpanLong) return 0;
+        return placePosts(grid, topology, where, roadReservation, doodads, tactical, defensePosts, rng,
+                tier, count, seeds, true, bLeft, bTop, bRight, bBot, style);
+    }
 
+    /**
+     * Place one post of {@code tier} at each of {@code sites} that takes one, each sliding at most
+     * {@link #ANCHOR_SLIDE_RADIUS} to a valid footprint, and never anywhere else: a planned site the ground refuses
+     * is a post not placed, not a post drawn at random. {@code keepClear} cells are refused as the road reservation
+     * is. Returns how many landed.
+     */
+    public static int stampAtSites(NavigationGrid grid, CellTopology topology, Ground where,
+                                   boolean[][] keepClear,
+                                   List<Doodad> doodads, List<TacticalNode> tactical,
+                                   List<DefensePost> defensePosts, Random rng,
+                                   DefensePostKind tier, List<int[]> sites) {
+        return placePosts(grid, topology, where, keepClear, doodads, tactical, defensePosts, rng,
+                tier, sites.size(), sites, false, 0, 0, 0, 0, EmplacementStyle.BRUTALIST);
+    }
+
+    private static int placePosts(NavigationGrid grid, CellTopology topology,
+                                  Ground where,
+                                  boolean[][] roadReservation,
+                                  List<Doodad> doodads, List<TacticalNode> tactical,
+                                  List<DefensePost> defensePosts, Random rng,
+                                  DefensePostKind tier, int count, List<int[]> seeds, boolean fallback,
+                                  int bLeft, int bTop, int bRight, int bBot,
+                                  EmplacementStyle style) {
         int placed = 0;
         int seedIdx = 0;
         int seedCount = (seeds != null) ? seeds.size() : 0;
         // Total attempt budget — seeds get a free turn each, then we fall
-        // back to random picks for the rest of the budget.
-        int budget = seedCount + count * PLACEMENT_ATTEMPTS_PER_POST;
+        // back to random picks for the rest of the budget (unless the caller
+        // planned its sites and wants none drawn).
+        int budget = seedCount + (fallback ? count * PLACEMENT_ATTEMPTS_PER_POST : 0);
         for (int attempt = 0; attempt < budget && placed < count; attempt++) {
             // Per-attempt shape pick — varies the silhouette across placements
             // so a row of LARGE posts reads as distinct emplacements. LIGHT and

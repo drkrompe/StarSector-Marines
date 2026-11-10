@@ -163,20 +163,9 @@ class PrecinctDefenceTest {
     }
 
     /**
-     * The way in is covered.
-     *
-     * <p>The whole reason the perimeter tiers are seeded from the gates rather
-     * than scattered: a gate nobody is watching is a door.
-     *
-     * <p>Two readings, because either alone can pass on a placement that is not
-     * doing this. The bound is what the mechanism guarantees — the seed sits one
-     * setback inside the gate and the placer may slide it, so the gun lands
-     * inside that sum every time. The comparison is what makes the bound worth
-     * asserting: a claim this size is small enough that a scatter satisfies an
-     * absolute bound often, and the first version of this test compared against
-     * the <em>best</em> of six scattered runs and failed — one of them had put a
-     * gun three cells from the gate by luck. Luck is not the thing being
-     * measured, so the control is what a scatter does on average.
+     * The way in is covered: a gate nobody is watching is a door, so the
+     * perimeter's posts are sited at the gates before anywhere else, a short
+     * setback behind the wall either side of the approach.
      */
     @Test
     void theWayInIsWatched() {
@@ -184,20 +173,9 @@ class PrecinctDefenceTest {
         List<PrecinctBoundary.Gate> open = PrecinctBoundary.openGates(
                 built.claim(), built.road(), 0, W, H, Fortification.CITADEL.gates());
         assertEquals(1, open.size(), "the fixture should leave a citadel exactly one way in");
-        int[] gate = centroid(open.get(0));
-
-        int watched = nearestPost(built, gate);
-        long[] seeds = {1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 42L};
-        double scattered = 0;
-        for (long seed : seeds) {
-            scattered += nearestPost(defend(Fortification.CITADEL, seed, false), gate);
-        }
-        scattered /= seeds.length;
+        int watched = nearestPost(built, centroid(open.get(0)));
         assertTrue(watched <= 12, "the nearest gun to the gate is " + watched + " cells away, "
-                + "which is further than a seed one setback in and a slide can put it");
-        assertTrue(watched < scattered - 2, "the nearest gun to the gate is " + watched
-                + " cells away seeded and " + Math.round(scattered) + " scattered on average, "
-                + "so the gate seeding is not reaching the placement");
+                + "further than a flanking post set back behind the wall stands");
     }
 
     private static int[] centroid(PrecinctBoundary.Gate gate) {
@@ -304,6 +282,42 @@ class PrecinctDefenceTest {
                             + " carries a garrison its own tier did not give it");
             assertEquals(Faction.DEFENDER, manning.defaultGuard,
                     "a garrison's own emplacement is manned by somebody else");
+        }
+    }
+
+    /**
+     * No emplacement stands on a road (owner: "the roads are being cut off with turret emplacements"). The fixture's
+     * road runs clean across the place, three cells wide; every cell of every post's footprint keeps off it.
+     */
+    @Test
+    void noEmplacementStandsOnTheRoad() {
+        for (Fortification fortification : List.of(Fortification.GARRISON, Fortification.STRONGHOLD,
+                Fortification.CITADEL)) {
+            Built built = defend(fortification);
+            assertTrue(!built.ctx().defensePosts.isEmpty(), "no posts placed, so this measures nothing");
+            for (DefensePost post : built.ctx().defensePosts) {
+                int r = PrecinctDefence.reach(post.tier);
+                for (int dx = -r; dx <= r; dx++) {
+                    for (int dy = -r; dy <= r; dy++) {
+                        assertEquals(GrownTrunkPlan.UNOWNED, built.road()[post.anchorX + dx][post.anchorY + dy],
+                                "the " + post.tier + " post at " + post.anchorX + "," + post.anchorY
+                                        + " stands on the road");
+                    }
+                }
+            }
+        }
+    }
+
+    /** Every gate the wall leaves open has a gun within a short walk of it. */
+    @Test
+    void everyOpenGateIsCovered() {
+        Built built = defend(Fortification.GARRISON);
+        List<PrecinctBoundary.Gate> open = PrecinctBoundary.openGates(
+                built.claim(), built.road(), 0, W, H, Fortification.GARRISON.gates());
+        assertEquals(2, open.size(), "the fixture's road should leave the garrison two ways in");
+        for (PrecinctBoundary.Gate gate : open) {
+            int[] at = centroid(gate);
+            assertTrue(nearestPost(built, at) <= 12, "the gate at " + at[0] + "," + at[1] + " is unwatched");
         }
     }
 

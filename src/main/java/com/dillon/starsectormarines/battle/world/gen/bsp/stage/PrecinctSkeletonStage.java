@@ -84,13 +84,15 @@ public final class PrecinctSkeletonStage implements GenStage {
         }
         boolean[][] weldBlocked = FortReservations.weldBlocked(ctx, plan);
 
-        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up and one
-        // road laid in from the town's nearest, and no weld is cut back across it (Raid garrisons only).
+        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up, the avenue
+        // and a road to each further gate laid in from the town's nearest, and no weld is cut back across it (Raid
+        // garrisons only).
         boolean[][] weldAround = weldBlocked;
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
-            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height);
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height,
+                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis());
             if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
             CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
         }
