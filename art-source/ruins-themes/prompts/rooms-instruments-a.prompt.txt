@@ -1,0 +1,14 @@
+Asset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.
+Style: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.
+View: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).
+
+Each is a lab test instrument on its own base, different in shape: see the list.
+Subjects, top row, left to right:
+1. qubit-dewar (2x2): A dewar test rig for cryo units. Seen from above: a squat insulated cryogen dewar (round white-frosted lid with a vent stack) in a test frame with cable trunks and a small readout panel.
+2. incubator (2x2): A culture sample incubator. Seen from above: a boxy incubator cabinet, its top a glass inspection panel over racked culture flasks with a faint green glow, control strip at the front.
+3. core-probe (2x2): A probe station for AI core lattices. Seen from above: a probe station: a flat chuck holding a square lattice wafer under a gantry arm with fine probe needles, a monitor at the back.
+Subjects, second row, left to right:
+4. coil-test-rig (2x2): A field coil on a test frame. Seen from above: a toroidal copper field coil standing in a rectangular steel test frame with clamps, heavy power leads trailing to the back.
+5. magnet-bench (2x2): A magnet segment on a measuring bench. Seen from above: a curved synchrotron magnet segment lying on a granite measuring bench, a laser tracker head on a post beside it.
