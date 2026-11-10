@@ -673,7 +673,12 @@ Laws):
      to 400), never a fixed scale. Its lost HP soots its top, blows its
      windows (soot plumes over them) and tears ragged holes through it.
    - A breached cell opens dark to the room behind, its rubble spilled on
-     the ground.
+     the ground. Faces stand on the building's outline as built, settled
+     once per map (`BattleRenderer.builtOutline`); only what stands on each
+     piece is read again as the battle changes (`BattleRenderer.stamp`).
+     Read live, destroyed wall cells moved the roof's edge in behind them
+     and stood fresh walls up inside the building. A rubble cell is a
+     breach, never a doorway.
    - Where a room's roof has fallen in or burnt, the wall over it loses its
      upper storeys to a ragged, charred edge, with rubble at its foot.
    - Once half a building's roof has fallen in or burnt
