@@ -194,7 +194,10 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   apart in a sealed ruin, where the plant is black while daylight falls through
   its open roof. A lamp lights its own building and the walls bounding it; its
   strength scales its pool and its tint how hard its colour stains, so a dim
-  emergency strip reads red. Ship-compartment lighting is separate.
+  emergency strip reads red. A circuit powered comes up lamp by lamp, each
+  striking after its own short delay and flickering before it holds
+  (`LampWarmUp`); a circuit cut goes dark at once. A new map's lamps are lit as
+  laid. Ship-compartment lighting is separate.
 - **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
   drawn once after environmental shade. It follows the admitted aircraft's pose,
   appearance offsets and smoothed thrust demand. Its localized reflection uses

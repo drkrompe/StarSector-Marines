@@ -34,7 +34,8 @@ import java.util.List;
  * {@code -Dsnapshot.ruinsLight.seed} picks the site (default 31), {@code -Dsnapshot.ruinsLight.grade} the grade
  * (default EXTENSIVE), {@code -Dsnapshot.ruinsLight.focus} where the camera stands: {@code hall} (default), {@code entrance} (the first way in), {@code court} (the first light well inside) or
  * {@code works}, {@code -Dsnapshot.ruinsLight.roofed} the darkness under the roof, for a dimmer start to compare
- * (default {@link RuinsLighting#ROOFED_DARKNESS}). {@code -Psnapshot=ruins-light-look}.
+ * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.warm=true} renders the hall's
+ * restart instead, one renderer stepping its clock, so the lamps are seen striking as they warm up. {@code -Psnapshot=ruins-light-look}.
  */
 public final class RuinsLightLookSuite implements SnapshotSuite {
 
@@ -85,6 +86,19 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
             } else {
                 cx = works.hall().x();
                 cy = works.hall().y();
+            }
+            if (Boolean.getBoolean("snapshot.ruinsLight.warm")) {
+                // One renderer across the restart, its clock stepped, so the lamps strike and flicker as they warm up.
+                BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), W, H, cx, cy,
+                        BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).withoutRoofs();
+                out.add(new SnapshotArtifact("warm-before.png", renderer.atClock(100f).render(sim, "")));
+                works.graph().restart();
+                sim.advance(BattleSimulation.TICK_DT);
+                for (float t : new float[] {0f, 0.4f, 0.9f, 1.4f, 2.5f}) {
+                    out.add(new SnapshotArtifact(String.format("warm-%.1fs.png", t),
+                            renderer.atClock(100.01f + t).render(sim, "")));
+                }
+                return out;
             }
             out.add(frame(context, sim, cx, cy, "01-dark.png"));
             works.graph().restart();

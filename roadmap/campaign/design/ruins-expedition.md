@@ -424,12 +424,13 @@ hall; each junction then lights what it feeds: its band of the plant (halls and
 corridors) on its way on, its stores on its store side, and the vault's suite
 with the vault's seal. An overloaded hall browns the plant out, all but the hall
 itself. A lamp's pool stops at its own building's walls, so rooms light as
-rooms. Light is presentation: it draws none of the hall's capacity and changes
+rooms. A band coming up strikes lamp by lamp over a second or two, flickering
+as its tubes catch. Light is presentation: it draws none of the hall's capacity and changes
 no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
 lit).
 
 Open (owner picks, raised on the parent's picks page): the watch's own lights
-showing its wake stages, a lamp's flicker as its circuit comes up, the company's
+showing its wake stages, the company's
 own helmet and vehicle lamps, and whether darkness shortens the company's sight.
 
 ### The entrance and the pull-out point
