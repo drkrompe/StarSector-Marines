@@ -147,6 +147,7 @@ public final class WastelandRubbleFiller implements BlockFiller {
         RuralLayout.Use crop = ctx.rng.nextInt(5) == 0 ? RuralLayout.Use.GRAIN : RuralLayout.Use.ROW_CROP;
         RuralLayout.Plot plot = new RuralLayout.Plot(leaf.left + 1, leaf.top + 1, leaf.right - 1, leaf.bottom - 1,
                 crop, leaf.width() >= leaf.height(), false);
+        RuralGround.worked(ctx, plot);
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 GroundKind kind = plot.contains(x, y) ? RuralGround.plotGround(plot, x, y) : GroundKind.DIRT;

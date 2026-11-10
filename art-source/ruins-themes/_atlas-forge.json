@@ -1,0 +1,259 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "great-crucible.png": {
+      "id": "doodad.ruins-great-crucible",
+      "name": "Great crucible",
+      "description": "The mega forge's head: a colossal tilting crucible on its working platform, its control core housed on its west flank and its spout pouring east onto the line.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        16
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1
+    },
+    "great-crucible-melt.png": {
+      "id": "doodad.ruins-great-crucible-melt",
+      "name": "Great crucible melt",
+      "description": "Overlay: the great crucible's melt and its spout's run, drawn over its body so the engine can pulse it.",
+      "cover": "none",
+      "footprintCells": [
+        12,
+        16
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2
+    },
+    "furnace-core.png": {
+      "id": "doodad.ruins-furnace-core",
+      "name": "Furnace control core",
+      "description": "The great crucible's control core, cut free and lying on its transport skid: the prize.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3
+    },
+    "tapping-furnace.png": {
+      "id": "doodad.ruins-tapping-furnace",
+      "name": "Tapping furnace",
+      "description": "The pour line's tapping furnace: a domed refractory roof ringed by charging ports, its taphole and spout trough running south toward the crane bay.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        7
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4
+    },
+    "tapping-furnace-melt.png": {
+      "id": "doodad.ruins-tapping-furnace-melt",
+      "name": "Tapping furnace melt",
+      "description": "Overlay: the melt in the tapping furnace's taphole and spout trough, so the engine can pulse it.",
+      "cover": "none",
+      "footprintCells": [
+        6,
+        7
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5
+    },
+    "ladle-hook.png": {
+      "id": "doodad.ruins-ladle-hook",
+      "name": "Ladle on its hook",
+      "description": "A pouring ladle hanging from the overhead crane hook, full of melt. Overhead: drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6
+    },
+    "ladle-hook-melt.png": {
+      "id": "doodad.ruins-ladle-hook-melt",
+      "name": "Ladle melt",
+      "description": "Overlay: the hanging ladle's melt.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7
+    },
+    "ladle-hook-tipped.png": {
+      "id": "doodad.ruins-ladle-hook-tipped",
+      "name": "Ladle tipped mid-pour",
+      "description": "The same ladle on its hook, tipped mid-pour, its bowl near empty. Overhead: drawn above units.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8
+    },
+    "ladle-hook-tipped-pour.png": {
+      "id": "doodad.ruins-ladle-hook-tipped-pour",
+      "name": "Ladle pour",
+      "description": "Overlay: the melt pouring from the tipped ladle's lip.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9
+    },
+    "ore-car.png": {
+      "id": "doodad.ruins-ore-car",
+      "name": "Ore charge car",
+      "description": "An armoured ore charge car on its rail wheels, its hopper heaped with ore and scrap.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10
+    },
+    "ore-car-derailed.png": {
+      "id": "doodad.ruins-ore-car-derailed",
+      "name": "Derailed ore car",
+      "description": "The ore charge car jumped off its rail and slewed askew, a little of its load spilled.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11
+    },
+    "cooling-rack.png": {
+      "id": "doodad.ruins-cooling-rack",
+      "name": "Cooling rack",
+      "description": "An empty steel cooling rack: an open frame of rails and crossbars.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12
+    },
+    "cooling-rack-castings.png": {
+      "id": "doodad.ruins-cooling-rack-castings",
+      "name": "Cooling rack with castings",
+      "description": "The cooling rack with castings left on four of its shelves when the work stopped.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13
+    },
+    "fettling-bench.png": {
+      "id": "doodad.ruins-fettling-bench",
+      "name": "Fettling bench",
+      "description": "A heavy fettling bench with its grinding wheel, vice and tools.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14
+    },
+    "inspection-table.png": {
+      "id": "doodad.ruins-inspection-table",
+      "name": "Inspection table",
+      "description": "A steel inspection table with its gauge plate and scanner head.",
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15
+    },
+    "pour-head.png": {
+      "id": "doodad.ruins-pour-head",
+      "name": "Pour head",
+      "description": "The line's pour head module: an armoured nozzle unit on four clamps. A b3 haul.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16
+    },
+    "mould-master.png": {
+      "id": "doodad.ruins-mould-master",
+      "name": "Mould master",
+      "description": "The line's mould master module: a precision block with four master pattern faces. A b3 haul.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17
+    },
+    "fallen-girder.png": {
+      "id": "doodad.ruins-fallen-girder",
+      "name": "Fallen crane girder",
+      "description": "An overhead crane girder fallen across the bay floor under its runway: the hall's best cover.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        7,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18
+    }
+  }
+}

@@ -1,38 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "map": "heart-burn-town",
-  "biomes": {
-    "VERDANT": [ {"seed": 2, "note": "two mothers; landing 30,119"} ],
-    "ARID": [ {"seed": 2, "note": "two mothers; landing 30,119"} ],
-    "ROCK": [ {"seed": 2, "note": "two mothers; landing 30,119"} ],
-    "FROZEN": [ {"seed": 2, "note": "two mothers; landing 30,119"} ],
-    "IRRADIATED": [ {"seed": 2, "note": "two mothers; landing 30,119"} ],
-    "TOXIC": [ {"seed": 2, "note": "freight origin; 13 bores (2 mothers)"} ]
-  },
-  "candidates": {
-    "VERDANT": [
-      {"seed": 3, "note": "two mothers; landing 30,119"},
-      {"seed": 5, "note": "two mothers; landing 30,119"}
-    ],
-    "ARID": [
-      {"seed": 3, "note": "two mothers; landing 30,119"},
-      {"seed": 5, "note": "two mothers; landing 30,119"}
-    ],
-    "ROCK": [
-      {"seed": 3, "note": "two mothers; landing 30,119"},
-      {"seed": 5, "note": "two mothers; landing 30,119"}
-    ],
-    "FROZEN": [
-      {"seed": 3, "note": "two mothers; landing 30,119"},
-      {"seed": 5, "note": "two mothers; landing 30,119"}
-    ],
-    "IRRADIATED": [
-      {"seed": 3, "note": "two mothers; landing 30,119"},
-      {"seed": 5, "note": "two mothers; landing 30,119"}
-    ],
-    "TOXIC": [
-      {"seed": 3, "note": "research origin (no core); 13 bores (2 mothers)"},
-      {"seed": 5, "note": "workings origin; 13 bores (2 mothers)"}
-    ]
+  "home": "ARID",
+  "entry": {
+    "seed": 2,
+    "note": "two mothers; landing 30,119"
   }
 }

@@ -52,51 +52,32 @@ class StoryMapPoolTest {
                 "{\"bores\":[{\"x\":30,\"y\":40},{\"x\":50,\"y\":60}]}")));
     }
 
-    private static String pool(String map, String verdant) {
-        // Every other palette pools one map, so a palette added later needs no edit here.
-        StringBuilder others = new StringBuilder();
-        for (SurfacePalette biome : SurfacePalette.values())
-            if (biome != SurfacePalette.VERDANT) others.append(",\"").append(biome.name()).append("\":[{\"seed\":1}]");
-        return "{\"version\":2,\"map\":\"" + map + "\",\"biomes\":{\"VERDANT\":" + verdant + others + "}}";
+    private static String pool(String map, String home, String entry) {
+        return "{\"version\":3,\"map\":\"" + map + "\",\"home\":\"" + home + "\",\"entry\":" + entry + "}";
     }
 
     @Test
-    void aRollPicksTheSameEntryOfItsBiomeEveryTimeAndNegativeRollsWrap() throws Exception {
+    void everyWorldPlaysTheOneOwnedMapLaidOutOnItsHome() throws Exception {
         StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN,
-                new JSONObject(pool("heart-burn", "[{\"seed\":4},{\"seed\":9},{\"seed\":2}]")));
-        assertEquals(9, pool.pick(SurfacePalette.VERDANT, 1).seed());
-        assertEquals(9, pool.pick(SurfacePalette.VERDANT, 4).seed());
-        assertEquals(2, pool.pick(SurfacePalette.VERDANT, -1).seed());
-        assertEquals(1, pool.pick(SurfacePalette.FROZEN, 7).seed());
-        assertEquals(MapPatch.NONE, pool.entry(SurfacePalette.VERDANT, 4).patch());
-        assertNull(pool.entry(SurfacePalette.ROCK, 4));
+                new JSONObject(pool("heart-burn", "ARID", "{\"seed\":2,\"note\":\"the Burn\"}")));
+        for (SurfacePalette world : SurfacePalette.values()) {
+            assertEquals(2, pool.pick(world, 7).seed(), world.name());
+            assertEquals(2, pool.story(world).seed(), world.name());
+            assertEquals(SurfacePalette.ARID, pool.layoutFor(world), world.name());
+            assertEquals(List.of(pool.owned()), pool.entries(world));
+        }
+        assertEquals(MapPatch.NONE, pool.entry(SurfacePalette.TOXIC, 2).patch());
+        assertNull(pool.entry(SurfacePalette.TOXIC, 3));
     }
 
     @Test
-    void aWorldLaidOutAsAnotherPlaysThatOnesMaps() throws Exception {
-        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(pool("heart-burn", "[{\"seed\":4}]")));
-        assertSame(pool.entries(SurfacePalette.ROCK), pool.entries(SurfacePalette.VOLCANIC));
-        assertEquals(1, pool.pick(SurfacePalette.VOLCANIC, 3).seed());
-    }
-
-    @Test
-    void aPoolRefusesADuplicateSeedAMissingBiomeOrAnotherMapsFile() {
+    void aPoolRefusesAnOldVersionAHomeLaidOutAsAnotherOrAnotherMapsFile() {
+        assertThrows(Exception.class, () -> StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
+                pool("heart-burn", "ARID", "{\"seed\":2}").replace("\"version\":3", "\"version\":2"))));
         assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
-                new JSONObject(pool("heart-burn", "[{\"seed\":4},{\"seed\":4}]"))));
-        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
-                new JSONObject(pool("heart-burn", "[]"))));
+                new JSONObject(pool("heart-burn", "VOLCANIC", "{\"seed\":2}"))));
         assertThrows(Exception.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
-                new JSONObject(pool("heart-front", "[{\"seed\":4}]"))));
-    }
-    @Test
-    void aBiomeNamesAtMostOneStoryMapAndTheRestStayPooled() throws Exception {
-        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
-                pool("heart-burn", "[{\"seed\":4},{\"seed\":9,\"story\":true},{\"seed\":2}]")));
-        assertEquals(9, pool.story(SurfacePalette.VERDANT).seed());
-        assertEquals(3, pool.entries(SurfacePalette.VERDANT).size());
-        assertNull(pool.story(SurfacePalette.ROCK));
-        assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(
-                pool("heart-burn", "[{\"seed\":4,\"story\":true},{\"seed\":9,\"story\":true}]"))));
+                new JSONObject(pool("heart-front", "ARID", "{\"seed\":2}"))));
     }
 
     @Test

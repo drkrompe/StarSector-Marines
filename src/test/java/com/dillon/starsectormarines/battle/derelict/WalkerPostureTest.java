@@ -87,4 +87,33 @@ class WalkerPostureTest {
         zone.loseNode();
         assertEquals(Kind.HOLD, decide(LINE, zone, true, List.of(), List.of(), List.of()).kind());
     }
+
+    private static Order rounds(SecurityZone zone, boolean contingency, int[] round, boolean egressFits,
+                                List<Contact> pins, DerelictWalkerFrame frame) {
+        return WalkerPosture.decide(frame, zone, contingency, 20, 20, round, egressFits, pins, List.of(),
+                List.of(), EGRESS, 30f);
+    }
+
+    @Test
+    void aRoundsWalkerWalksItsRoundWhileItsZoneSleepsAndComesToAPinOnceAwake() {
+        int[] place = {28, 14};
+        SecurityZone zone = new SecurityZone(0, 20, 20, 15);
+        List<Contact> pins = List.of(new Contact(4, 25, 25, 0));
+        Order sleeping = rounds(zone, false, place, true, pins, DerelictWalkerFrame.ROUNDS);
+        assertEquals(Kind.ROUND, sleeping.kind());
+        assertEquals(28, sleeping.cellX());
+        assertEquals(Kind.HOLD, rounds(zone, false, place, true, pins, LINE).kind(), "a heavy is no patrol");
+        assertEquals(Kind.CLOSE, rounds(awake(), false, place, true, pins, DerelictWalkerFrame.ROUNDS).kind());
+        assertEquals(Kind.ROUND, rounds(awake(), false, place, true, List.of(), DerelictWalkerFrame.ROUNDS).kind(),
+                "awake with nothing pinned, it walks the round");
+        assertEquals(Kind.HOLD, rounds(zone, false, null, true, pins, DerelictWalkerFrame.ROUNDS).kind(),
+                "with no round it holds");
+    }
+
+    @Test
+    void aHallFrameWalksToTheEgressOnlyWhereItsWayFits() {
+        assertEquals(Kind.HOLD_EGRESS, rounds(awake(), true, null, true, List.of(), DerelictWalkerFrame.HALL).kind());
+        assertEquals(Kind.HOLD, rounds(awake(), true, null, false, List.of(), DerelictWalkerFrame.HALL).kind(),
+                "its way out is all corridor: it keeps its hall");
+    }
 }

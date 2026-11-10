@@ -1,0 +1,308 @@
+{
+  "sheet": "graphics/doodads/ruins-forge.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-great-crucible",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-great-crucible-melt",
+      "col": 12,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-furnace-core",
+      "col": 0,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-tapping-furnace",
+      "col": 3,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "doodad.ruins-tapping-furnace-melt",
+      "col": 9,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-hook",
+      "col": 15,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-hook-melt",
+      "col": 18,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-hook-tipped",
+      "col": 21,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-hook-tipped-pour",
+      "col": 0,
+      "row": 19,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ore-car",
+      "col": 15,
+      "row": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ore-car-derailed",
+      "col": 17,
+      "row": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cooling-rack",
+      "col": 19,
+      "row": 19,
+      "cover": "light",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-cooling-rack-castings",
+      "col": 21,
+      "row": 19,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-fettling-bench",
+      "col": 0,
+      "row": 22,
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-inspection-table",
+      "col": 15,
+      "row": 22,
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-pour-head",
+      "col": 17,
+      "row": 22,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-mould-master",
+      "col": 2,
+      "row": 23,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-fallen-girder",
+      "col": 4,
+      "row": 23,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        7,
+        1
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Great crucible",
+      "description": "The mega forge's head: a colossal tilting crucible on its working platform, its control core housed on its west flank and its spout pouring east onto the line."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Great crucible melt",
+      "description": "Overlay: the great crucible's melt and its spout's run, drawn over its body so the engine can pulse it."
+    },
+    {
+      "col": 0,
+      "row": 16,
+      "name": "Furnace control core",
+      "description": "The great crucible's control core, cut free and lying on its transport skid: the prize."
+    },
+    {
+      "col": 3,
+      "row": 16,
+      "name": "Tapping furnace",
+      "description": "The pour line's tapping furnace: a domed refractory roof ringed by charging ports, its taphole and spout trough running south toward the crane bay."
+    },
+    {
+      "col": 9,
+      "row": 16,
+      "name": "Tapping furnace melt",
+      "description": "Overlay: the melt in the tapping furnace's taphole and spout trough, so the engine can pulse it."
+    },
+    {
+      "col": 15,
+      "row": 16,
+      "name": "Ladle on its hook",
+      "description": "A pouring ladle hanging from the overhead crane hook, full of melt. Overhead: drawn above units."
+    },
+    {
+      "col": 18,
+      "row": 16,
+      "name": "Ladle melt",
+      "description": "Overlay: the hanging ladle's melt."
+    },
+    {
+      "col": 21,
+      "row": 16,
+      "name": "Ladle tipped mid-pour",
+      "description": "The same ladle on its hook, tipped mid-pour, its bowl near empty. Overhead: drawn above units."
+    },
+    {
+      "col": 0,
+      "row": 19,
+      "name": "Ladle pour",
+      "description": "Overlay: the melt pouring from the tipped ladle's lip."
+    },
+    {
+      "col": 15,
+      "row": 19,
+      "name": "Ore charge car",
+      "description": "An armoured ore charge car on its rail wheels, its hopper heaped with ore and scrap."
+    },
+    {
+      "col": 17,
+      "row": 19,
+      "name": "Derailed ore car",
+      "description": "The ore charge car jumped off its rail and slewed askew, a little of its load spilled."
+    },
+    {
+      "col": 19,
+      "row": 19,
+      "name": "Cooling rack",
+      "description": "An empty steel cooling rack: an open frame of rails and crossbars."
+    },
+    {
+      "col": 21,
+      "row": 19,
+      "name": "Cooling rack with castings",
+      "description": "The cooling rack with castings left on four of its shelves when the work stopped."
+    },
+    {
+      "col": 0,
+      "row": 22,
+      "name": "Fettling bench",
+      "description": "A heavy fettling bench with its grinding wheel, vice and tools."
+    },
+    {
+      "col": 15,
+      "row": 22,
+      "name": "Inspection table",
+      "description": "A steel inspection table with its gauge plate and scanner head."
+    },
+    {
+      "col": 17,
+      "row": 22,
+      "name": "Pour head",
+      "description": "The line's pour head module: an armoured nozzle unit on four clamps. A b3 haul."
+    },
+    {
+      "col": 2,
+      "row": 23,
+      "name": "Mould master",
+      "description": "The line's mould master module: a precision block with four master pattern faces. A b3 haul."
+    },
+    {
+      "col": 4,
+      "row": 23,
+      "name": "Fallen crane girder",
+      "description": "An overhead crane girder fallen across the bay floor under its runway: the hall's best cover."
+    }
+  ]
+}

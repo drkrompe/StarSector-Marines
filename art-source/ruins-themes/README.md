@@ -52,6 +52,26 @@ transparent, so the drop's melt shows through. The catwalk deck's span runs east
 drawn as the deck of the drop's own crossing cells. The drop's firebrick wall and cast-steel lip strip are textures,
 not props: `art-source/voids/foundry/` (`make_guide.py`, `derive.py`).
 
+The ruins' leaf doors (`ruins-doors`, `LeafDoorArt`): the `doors` family ships as single images in
+`mod/graphics/doors/` beside the ship's, at the leaves' 160 px a cell (`export.py`, `export_doors`): `ruins-leaf`,
+`ruins-leaf-sealed`, `ruins-cargo-leaf`, `ruins-blast-leaf` (each a single leaf, its jamb end left and its meeting
+end right, cut a little inside its frame and made opaque so it is solid to its ends), `ruins-leaf-torn`,
+`ruins-blast-clamp`, `ruins-door-jamb` (its lamp lens plain, for the renderer to tint) and `ruins-door-rubble`.
+The ship's own leaves, cargo pair, hardened leaves and jamb were the style references.
+
+The mega forge hall's head (`ruins-themed-environments`, pick b1) ships on its own sheet, `ruins-forge`
+(`_atlas-forge.json`): the 12x16 great crucible with its melt split off as `great-crucible-melt` (graded as the
+upright crucible's), its control core housed on its west flank and its spout flush with its east edge; and that core
+cut free on its skid, `furnace-core`, 3x3. Its guide is drawn at 112 px a cell (`make_guide.FAMILY_CELL`) so the
+whole crucible is one block-out ImageGen takes at once.
+
+The pour line (`forge-line`, 160 px a cell) shares that sheet: the 6x7 tapping furnace, its taphole and spout trough
+running to its south edge (`tapping-furnace-melt`); the 3x3 ladle on its crane hook, upright (`ladle-hook-melt`)
+and tipped mid-pour (`ladle-hook-tipped-pour`), with no cover since it hangs overhead; the 2x3 ore car and its
+derailed state; the 2x4 cooling rack, empty and with castings; the 2x2 fettling bench, inspection table, pour head
+and mould master (the b3 hauls); and the 7x1 fallen crane girder. Their hazard trim is muted as the spool drum's is,
+and their melt graded as the crucible's.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

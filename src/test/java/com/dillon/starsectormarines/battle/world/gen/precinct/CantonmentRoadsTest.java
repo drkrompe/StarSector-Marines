@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkKind;
+import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkSegment;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -138,5 +141,61 @@ class CantonmentRoadsTest {
         boolean east = true;
         for (int x = 19 - CantonmentRoads.LANE; x < W; x++) east &= owner[x][20] == 0;
         assertTrue(east, "with no road anywhere it runs toward the map's middle and on to the edge");
+    }
+
+    /**
+     * Of two sides as near a road, the road in takes the one meeting a planned street square: east would tee into its
+     * street six cells off another street's tee, so it goes north, where the street runs clear across its way.
+     */
+    @Test
+    void theRoadInMeetsAPlannedStreetSquareRatherThanBesideAnotherTee() {
+        List<TrunkSegment> streets = List.of(up(40, 0, 39), across(41, 59, 26), across(0, 59, 36));
+        int[][] claim = square();
+        int[][] owner = grid(GrownTrunkPlan.UNOWNED);
+        for (int y = 0; y < H; y++) owner[40][y] = 1;
+        for (int x = 41; x < W; x++) owner[x][26] = 1;
+        for (int x = 0; x < W; x++) owner[x][36] = 1;
+        int[][] plain = copy(owner);
+        CantonmentRoads.lay(square(), plain, 0, W, H, 1, 2, List.of());
+        assertEquals(0, plain[35][20], "with no plan it goes east, facing the map's middle");
+        CantonmentRoads.lay(claim, owner, 0, W, H, 1, 2, streets);
+        assertEquals(0, owner[20][35], "it goes north, to the street running square across its way");
+        assertEquals(GrownTrunkPlan.UNOWNED, owner[35][20], "and not east, beside the other tee");
+    }
+
+    /** A further gate goes where its road meets a planned street square before a nearer one that would not. */
+    @Test
+    void aFurtherGateMeetsAPlannedStreetSquareBeforeANearerOffsetTee() {
+        List<TrunkSegment> streets = List.of(up(40, 0, 39), across(0, 59, 4), up(26, 5, 9), across(0, 59, 36));
+        int[][] owner = grid(GrownTrunkPlan.UNOWNED);
+        for (int y = 0; y < H; y++) owner[40][y] = 1;
+        for (int x = 0; x < W; x++) owner[x][4] = 1;
+        for (int x = 0; x < W; x++) owner[x][36] = 1;
+        int[][] plain = copy(owner);
+        CantonmentRoads.lay(square(), plain, 0, W, H, 2, 2, List.of());
+        assertEquals(0, plain[20][6], "with no plan the nearer road, south, gets the gate");
+        CantonmentRoads.lay(square(), owner, 0, W, H, 2, 2, streets);
+        assertEquals(0, owner[20][34], "with the plan the north road meets its street square");
+        assertEquals(GrownTrunkPlan.UNOWNED, owner[20][6], "and the south, an offset tee, gets none");
+    }
+
+    private static int[][] square() {
+        int[][] claim = grid(GrownTrunkPlan.UNOWNED);
+        for (int x = 10; x < 30; x++) for (int y = 10; y < 30; y++) claim[x][y] = 0;
+        return claim;
+    }
+
+    private static int[][] copy(int[][] g) {
+        int[][] c = new int[g.length][];
+        for (int x = 0; x < g.length; x++) c[x] = g[x].clone();
+        return c;
+    }
+
+    private static TrunkSegment across(int x0, int x1, int y) {
+        return new TrunkSegment(x0, y, x1, y, TrunkKind.TERTIARY, true);
+    }
+
+    private static TrunkSegment up(int x, int y0, int y1) {
+        return new TrunkSegment(x, y0, x, y1, TrunkKind.TERTIARY, false);
     }
 }

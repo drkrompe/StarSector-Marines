@@ -78,6 +78,8 @@ public final class BattleForceScore {
             case HOUND, WARDEN -> 18f;
             case CRAWLER -> 14f;
             case SECURITY_WALKER -> 30f;
+            case SECURITY_ROUNDS -> 12f;
+            case SECURITY_HALL -> 55f;
         };
     }
 

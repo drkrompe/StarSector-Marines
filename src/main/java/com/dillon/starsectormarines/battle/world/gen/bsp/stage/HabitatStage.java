@@ -32,7 +32,7 @@ public final class HabitatStage implements GenStage {
     }
 
     /** Every town wall, in the habitat's material. */
-    static void rebuild(CellTopology topology, Habitat habitat) {
+    public static void rebuild(CellTopology topology, Habitat habitat) {
         for (int y = 0; y < topology.getHeight(); y++) {
             for (int x = 0; x < topology.getWidth(); x++) {
                 if (topology.getWorksStyle(x, y) != 0) continue;
