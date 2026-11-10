@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.TurretHead;
@@ -525,6 +526,9 @@ final class HeadlessBattleSprites extends BattleSprites {
      */
     @Override public ShuttleSpriteCache droneSprite() { return spriteByPath(Drone.SPRITE_PATH); }
     @Override public void ensureDroneSprite() { }
+    /** The drone hub's sprite, off the same disk roots, for the same reason: the base class's load is a stub here. */
+    @Override public ShuttleSpriteCache droneHubSprite() { return spriteByPath(DroneHub.SPRITE_PATH); }
+    @Override public void ensureDroneHubSprite() { }
     @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
     /** Same resource lookup as the live catalog; evidence must not silently omit shells. */

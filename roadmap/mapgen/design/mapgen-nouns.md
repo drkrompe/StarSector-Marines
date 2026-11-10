@@ -773,7 +773,9 @@ the same way along its whole length), which would swell the road into the
 yard, and narrows a broader band that a narrower street band running the same
 way overlaps to that street's breadth, on the line within it nearest the
 narrower's, so a street holds one width along its length rather than swelling
-where its frontage steps back at an end or where it jogs and widens at once;
+where its frontage steps back at an end or where it jogs and widens at once,
+and drops a band that narrowing leaves a cell off a longer street it runs
+along (a lip of asphalt along the kerb);
 it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
@@ -782,7 +784,11 @@ swept as a street to where its cells end, because left paved it reads as a
 stub of street with no road on it. It must run on at least two of its
 breadths past the street it leaves; a shorter one is a yard's mouth opening
 off the street and keeps its paving, since swept it is a blob of asphalt
-stepping out of the kerb line. Its mouth takes a kerb radius only where
+stepping out of the kerb line. Spurs do not comb: one within ten cells
+along the street of a side street or spur leaving its other side, off that
+one's line, keeps its paving (of two spurs, the one reaching further is
+swept), so yards opening where their lots fall do not leave stubs on
+alternate sides. Its mouth takes a kerb radius only where
 the turn would lie wholly on street or footway; where the spur opens
 straight onto its yard the corner stays square rather than being cut off at
 the yard's edge. A street that jogs a cell sideways, and a *link* between two
