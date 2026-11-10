@@ -1,0 +1,264 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "toxic-ground.crust"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ],
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ],
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
+        ]
+      ],
+      "id": "toxic-ground.sulphur"
+    },
+    {
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
+        ]
+      ],
+      "id": "toxic-ground.sludge"
+    }
+  ],
+  "cellPx": 56,
+  "cells": [
+    {
+      "col": 0,
+      "description": "crustvar-1",
+      "name": "toxic-ground.crust v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "crustvar-2",
+      "name": "toxic-ground.crust v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "crustvar-3",
+      "name": "toxic-ground.crust v3",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "crustvar-4",
+      "name": "toxic-ground.crust v4",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "crustvar-5",
+      "name": "toxic-ground.crust v5",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "crustvar-6",
+      "name": "toxic-ground.crust v6",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "crustvar-7",
+      "name": "toxic-ground.crust v7",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "crustvar-8",
+      "name": "toxic-ground.crust v8",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "sulphurvar-1",
+      "name": "toxic-ground.sulphur v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "sulphurvar-2",
+      "name": "toxic-ground.sulphur v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "sulphurvar-3",
+      "name": "toxic-ground.sulphur v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "sulphurvar-4",
+      "name": "toxic-ground.sulphur v4",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "sulphurvar-5",
+      "name": "toxic-ground.sulphur v5",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "sulphurvar-6",
+      "name": "toxic-ground.sulphur v6",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "sulphurvar-7",
+      "name": "toxic-ground.sulphur v7",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "sulphurvar-8",
+      "name": "toxic-ground.sulphur v8",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "sludgevar-1",
+      "name": "toxic-ground.sludge v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "sludgevar-2",
+      "name": "toxic-ground.sludge v2",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "sludgevar-3",
+      "name": "toxic-ground.sludge v3",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "sludgevar-4",
+      "name": "toxic-ground.sludge v4",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "sludgevar-5",
+      "name": "toxic-ground.sludge v5",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "sludgevar-6",
+      "name": "toxic-ground.sludge v6",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "sludgevar-7",
+      "name": "toxic-ground.sludge v7",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "sludgevar-8",
+      "name": "toxic-ground.sludge v8",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/toxic-ground.png"
+}

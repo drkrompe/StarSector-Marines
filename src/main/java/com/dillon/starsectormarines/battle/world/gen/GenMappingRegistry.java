@@ -56,6 +56,12 @@ public final class GenMappingRegistry {
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundRenderSources = new EnumMap<>(GroundKind.class);
+    /**
+     * {@link SurfacePalette} -> {@link GroundKind} -> the block that kind draws from on that world, where it is not
+     * {@link #groundRender}'s. Art only: the cell keeps its kind, so movement, cover and placement read it as before.
+     */
+    private final Map<SurfacePalette, Map<GroundKind, String>> paletteGroundRender = new EnumMap<>(SurfacePalette.class);
+    private final Map<String, CatalogSource> paletteGroundRenderSources = new HashMap<>();
     private final Map<GroundKind, String> groundDamage = new EnumMap<>(GroundKind.class);
     private final Map<GroundKind, CatalogSource> groundDamageSources = new EnumMap<>(GroundKind.class);
     /** {@link SurfaceRole} -> the tileset block/tile id that orthogonal surface renders as. The wall, doorway and roof half of render dispatch; {@code groundRender}'s sibling, separate because the two vocabularies are orthogonal per cell. */
@@ -119,6 +125,23 @@ public final class GenMappingRegistry {
                 requireUnique("ground render mapping", kind, groundRenderSources, source);
                 groundRender.put(kind, ground.getString(kindName));
                 groundRenderSources.put(kind, source);
+            }
+        }
+        JSONObject paletteGround = root.optJSONObject("paletteGroundRender");
+        if (paletteGround != null) {
+            for (Iterator<String> it = paletteGround.keys(); it.hasNext(); ) {
+                String paletteName = it.next();
+                SurfacePalette palette = SurfacePalette.valueOf(paletteName);
+                JSONObject kinds = paletteGround.getJSONObject(paletteName);
+                for (Iterator<String> k = kinds.keys(); k.hasNext(); ) {
+                    String kindName = k.next();
+                    GroundKind kind = GroundKind.valueOf(kindName);
+                    requireUnique("palette ground render mapping", paletteName + "/" + kindName,
+                            paletteGroundRenderSources, source);
+                    paletteGroundRender.computeIfAbsent(palette, p -> new EnumMap<>(GroundKind.class))
+                            .put(kind, kinds.getString(kindName));
+                    paletteGroundRenderSources.put(paletteName + "/" + kindName, source);
+                }
             }
         }
         JSONObject damage = root.optJSONObject("groundDamage");
@@ -236,6 +259,16 @@ public final class GenMappingRegistry {
      */
     public String groundBlockId(GroundKind kind) {
         return groundRender.get(kind);
+    }
+
+    /**
+     * The block {@code kind} draws from on a world of {@code palette}: the palette's own where it names one, else
+     * {@link #groundBlockId(GroundKind)}. A null palette is the default art.
+     */
+    public String groundBlockId(GroundKind kind, SurfacePalette palette) {
+        Map<GroundKind, String> own = palette == null ? null : paletteGroundRender.get(palette);
+        String id = own == null ? null : own.get(kind);
+        return id != null ? id : groundRender.get(kind);
     }
 
     /** Default blast overlay when the actual surface has no authored material pair. */
@@ -451,6 +484,16 @@ public final class GenMappingRegistry {
                         + entry.getKey() + "' from "
                         + groundRenderSources.get(entry.getKey()).describe()
                         + " references unknown tile or block id '" + id + "'");
+            }
+        }
+        for (Map.Entry<SurfacePalette, Map<GroundKind, String>> palette : paletteGroundRender.entrySet()) {
+            for (Map.Entry<GroundKind, String> entry : palette.getValue().entrySet()) {
+                if (!tiles.hasBlock(entry.getValue())) {
+                    String key = palette.getKey() + "/" + entry.getKey();
+                    throw new IllegalStateException("GenMappingRegistry: palette ground render mapping '" + key
+                            + "' from " + paletteGroundRenderSources.get(key).describe()
+                            + " references unknown block id '" + entry.getValue() + "'");
+                }
             }
         }
         for (Map.Entry<GroundKind, String> entry : groundDamage.entrySet()) {

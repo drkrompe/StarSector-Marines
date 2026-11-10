@@ -14,6 +14,13 @@
     "BRICK":     "floors.brick",
     "WATER":     "water.water"
   },
+  "paletteGroundRender": {
+    "TOXIC": {
+      "STONE": "toxic-ground.crust",
+      "SAND":  "toxic-ground.sulphur",
+      "WATER": "toxic-ground.sludge"
+    }
+  },
   "groundDamage": {
     "INDOOR": "terrain.blast-paving",
     "STREET": "terrain.blast-paving",
@@ -109,6 +116,26 @@
         "rockChance": 0.18,
         "plantPool": [],
         "rockPool": ["nature.rock-frost-small-1", "nature.rock-frost-small-2", "nature.rock-frost-medium-1", "nature.rock-frost-medium-2"]
+      }
+    },
+    "TOXIC": {
+      "NATURE_GRASSLAND": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.18,
+        "plantPool": [],
+        "rockPool": ["nature.rock-toxic-small-1", "nature.rock-toxic-small-2", "nature.rock-toxic-medium-1", "nature.rock-toxic-medium-2"]
+      },
+      "NATURE_BEACH": {
+        "groundPool": [
+          { "kind": "STONE", "w": 100 }
+        ],
+        "plantChance": 0.0,
+        "rockChance": 0.20,
+        "plantPool": [],
+        "rockPool": ["nature.rock-toxic-small-1", "nature.rock-toxic-small-2", "nature.rock-toxic-medium-1", "nature.rock-toxic-medium-2"]
       }
     }
   },

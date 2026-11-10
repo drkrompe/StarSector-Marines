@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
+import com.dillon.starsectormarines.battle.world.gen.nature.SludgeGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
@@ -74,6 +75,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
+        // The ground draws from the world's own art (a toxic world's stone is stained crust).
+        c.topology.setGroundPalette(field.world());
         // Every lawn has been laid by now; the planet decides whether it is lawn. Before the landscape, so a hill
         // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
         CultivatedGround.settle(c.topology, field);
@@ -114,6 +117,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         // A basin's woods grow on its floor and thin out toward its rim; the rim's own palette dresses the rest.
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
+        // Sludge pools and sulphur flats before the formations, so no boulder stands in a pool.
+        SludgeGround.paint(c, field.world(), reserved);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
         // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
@@ -801,7 +806,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
-        if(surface==SurfacePalette.ROCK) {
+        if(surface==SurfacePalette.ROCK || surface==SurfacePalette.TOXIC) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {

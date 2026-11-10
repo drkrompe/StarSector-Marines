@@ -54,7 +54,7 @@ class StoryMapPoolTest {
 
     private static String pool(String map, String verdant) {
         return "{\"version\":2,\"map\":\"" + map + "\",\"biomes\":{\"VERDANT\":" + verdant
-                + ",\"ROCK\":[{\"seed\":1}],\"ARID\":[{\"seed\":1}],\"FROZEN\":[{\"seed\":1}]}}";
+                + ",\"ROCK\":[{\"seed\":1}],\"ARID\":[{\"seed\":1}],\"FROZEN\":[{\"seed\":1}],\"TOXIC\":[{\"seed\":1}]}}";
     }
 
     @Test

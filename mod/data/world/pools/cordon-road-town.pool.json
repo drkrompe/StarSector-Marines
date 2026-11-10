@@ -57,6 +57,11 @@
         "seed": 10,
         "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"
       }
+    ],
+    "TOXIC": [
+      { "seed": 2, "note": "rear south; redoubt guns 6-7-6-6" },
+      { "seed": 7, "note": "rear south; redoubt guns 7-7-6-7" },
+      { "seed": 8, "note": "rear south; redoubt guns 7-7-6-6" }
     ]
   }
 }

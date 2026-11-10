@@ -1,0 +1,482 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "id": "toxic-ground.crust",
+      "layout": "variants"
+    },
+    {
+      "id": "toxic-ground.sulphur",
+      "layout": "variants"
+    },
+    {
+      "id": "toxic-ground.sludge",
+      "layout": "variants"
+    }
+  ],
+  "cellPx": 56,
+  "entries": [
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c0r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-1.png",
+      "note": "crustvar-1",
+      "rect": [
+        0,
+        0,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c1r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-2.png",
+      "note": "crustvar-2",
+      "rect": [
+        56,
+        0,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c2r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-3.png",
+      "note": "crustvar-3",
+      "rect": [
+        112,
+        0,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c3r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-4.png",
+      "note": "crustvar-4",
+      "rect": [
+        168,
+        0,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c4r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-5.png",
+      "note": "crustvar-5",
+      "rect": [
+        224,
+        0,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c5r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-6.png",
+      "note": "crustvar-6",
+      "rect": [
+        280,
+        0,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c6r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-7.png",
+      "note": "crustvar-7",
+      "rect": [
+        336,
+        0,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "toxic-ground.crust",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c7r0",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-crust-variants/crustvar-8.png",
+      "note": "crustvar-8",
+      "rect": [
+        392,
+        0,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c0r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-1.png",
+      "note": "sulphurvar-1",
+      "rect": [
+        0,
+        56,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c1r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-2.png",
+      "note": "sulphurvar-2",
+      "rect": [
+        56,
+        56,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c2r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-3.png",
+      "note": "sulphurvar-3",
+      "rect": [
+        112,
+        56,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c3r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-4.png",
+      "note": "sulphurvar-4",
+      "rect": [
+        168,
+        56,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c4r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-5.png",
+      "note": "sulphurvar-5",
+      "rect": [
+        224,
+        56,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c5r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-6.png",
+      "note": "sulphurvar-6",
+      "rect": [
+        280,
+        56,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c6r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-7.png",
+      "note": "sulphurvar-7",
+      "rect": [
+        336,
+        56,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "toxic-ground.sulphur",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c7r1",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sulphur-variants/sulphurvar-8.png",
+      "note": "sulphurvar-8",
+      "rect": [
+        392,
+        56,
+        56,
+        56
+      ],
+      "slot": "v8"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c0r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-1.png",
+      "note": "sludgevar-1",
+      "rect": [
+        0,
+        112,
+        56,
+        56
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c1r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-2.png",
+      "note": "sludgevar-2",
+      "rect": [
+        56,
+        112,
+        56,
+        56
+      ],
+      "slot": "v2"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c2r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-3.png",
+      "note": "sludgevar-3",
+      "rect": [
+        112,
+        112,
+        56,
+        56
+      ],
+      "slot": "v3"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c3r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-4.png",
+      "note": "sludgevar-4",
+      "rect": [
+        168,
+        112,
+        56,
+        56
+      ],
+      "slot": "v4"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c4r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-5.png",
+      "note": "sludgevar-5",
+      "rect": [
+        224,
+        112,
+        56,
+        56
+      ],
+      "slot": "v5"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c5r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-6.png",
+      "note": "sludgevar-6",
+      "rect": [
+        280,
+        112,
+        56,
+        56
+      ],
+      "slot": "v6"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c6r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-7.png",
+      "note": "sludgevar-7",
+      "rect": [
+        336,
+        112,
+        56,
+        56
+      ],
+      "slot": "v7"
+    },
+    {
+      "block": "toxic-ground.sludge",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.toxic-ground.c7r2",
+      "included": true,
+      "material": "art-source/tilesets/atlas-material-source/toxic-sludge-variants/sludgevar-8.png",
+      "note": "sludgevar-8",
+      "rect": [
+        392,
+        112,
+        56,
+        56
+      ],
+      "slot": "v8"
+    }
+  ],
+  "gridCols": 8,
+  "gridRows": 3,
+  "idPrefix": "doodad.toxic-ground",
+  "note": "A toxic world's ground, drawn in place of the default art by urban.mapping.json's paletteGroundRender for SurfacePalette.TOXIC: STONE is toxic-ground.crust (corroded, chemically stained olive regolith), SAND is toxic-ground.sulphur (crusted sulphur flats) and WATER is toxic-ground.sludge (standing acid sludge, impassable because it is WATER). Measured: 448x168, RGB with no alpha, a fused plate cut on its 8x3 grid of 56 px cells, one row per family of eight variants.\n\nEvery cell takes its picture from a tileable material under atlas-material-source/toxic-*-variants, so the plate is only a contact sheet of them: regenerate a family by re-running normalize_ground_variants.py on the masters in toxic-ground/ (crust --scale 3; sulphur --scale 3 --band 13; sludge --scale 4 --band 13, cut from 480 px crops, since its smooth liquid fails the seam check with the blend wrap), then rebuild this plate. Its own sheet rather than cells on Floors_Tiles, so other palettes' ground can be added without re-packing the shared floors atlas.",
+  "sheet": "art-source/tilesets/toxic-ground.raw.png",
+  "sheetName": "toxic-ground"
+}

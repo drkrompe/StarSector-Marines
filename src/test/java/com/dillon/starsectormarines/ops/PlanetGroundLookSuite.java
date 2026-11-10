@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
@@ -26,7 +27,9 @@ import java.util.Locale;
  * a frozen and a living world, so the colony's own ground can be judged against the planet's
  * ({@code mapgen-nouns.md}, cultivated ground). Each palette is framed whole ({@code <palette>-whole.png}) and at
  * play zoom on the town by the landing ({@code <palette>-town.png}), look preset; a desert and a frozen world under
- * storms add {@code <palette>-storm-*} with their drifts. Nothing is played.
+ * storms add {@code <palette>-storm-*} with their drifts, and a toxic world adds {@code toxic-pool.png}, play zoom on
+ * the sludge pool nearest the map's centre. {@code -Dsnapshot.planetGround.palettes=TOXIC,ROCK} renders only those
+ * palettes. Nothing is played.
  */
 public final class PlanetGroundLookSuite implements SnapshotSuite {
 
@@ -44,7 +47,12 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
             List<Object[]> cases = new ArrayList<>();
+            String only = System.getProperty("snapshot.planetGround.palettes", "");
             for (SurfacePalette palette : SurfacePalette.values()) cases.add(new Object[] {palette, Climate.NONE, ""});
+            if (!only.isBlank()) {
+                List<String> names = List.of(only.toUpperCase(Locale.ROOT).split(","));
+                cases.removeIf(k -> !names.contains(((SurfacePalette) k[0]).name()));
+            }
             Climate storms = new Climate(EnumSet.of(Climate.Hazard.STORMS));
             cases.add(new Object[] {SurfacePalette.ARID, storms, "-storm"});
             cases.add(new Object[] {SurfacePalette.FROZEN, storms, "-storm"});
@@ -70,9 +78,28 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
                             context.modRoot(), 1920, 1080, w * 0.3f, h * 0.5f,
                             BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
                             .withMissionMarkers().render(sim, "")));
+                    int[] pool = palette.bearsSludge() && k[2].equals("") ? nearestPool(sim) : null;
+                    if (pool != null) out.add(new SnapshotArtifact(name + "-pool.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), 1920, 1080, pool[0] + .5f, pool[1] + .5f,
+                            BattleReviewFrameRenderer.PLAY_ZOOM_CELLS)
+                            .withMissionMarkers().render(sim, "")));
                 }
             }
             return out;
         }
+    }
+
+    /** The open-ground pool cell nearest the map's centre, or null. */
+    private static int[] nearestPool(BattleSimulation sim) {
+        CellTopology topology = sim.getTopology();
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        int[] best = null;
+        long bestDistance = Long.MAX_VALUE;
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
+            if (topology.getGroundKind(x, y) != CellTopology.GroundKind.WATER) continue;
+            long dx = x - w / 2, dy = y - h / 2, distance = dx * dx + dy * dy;
+            if (distance < bestDistance) { bestDistance = distance; best = new int[]{x, y}; }
+        }
+        return best;
     }
 }

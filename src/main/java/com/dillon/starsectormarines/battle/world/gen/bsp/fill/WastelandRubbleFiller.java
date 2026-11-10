@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
@@ -316,7 +317,7 @@ public final class WastelandRubbleFiller implements BlockFiller {
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         TileRegistry registry = TileRegistry.installed();
         String block = kind == GroundKind.DIRT && registry != null && registry.hasBlock(TRODDEN) ? TRODDEN
-                : mapping == null ? null : mapping.groundBlockId(kind);
+                : mapping == null ? null : mapping.groundBlockId(kind, SurfaceField.of(ctx).world());
         if (block != null) ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(block));
     }
 

@@ -280,6 +280,76 @@
       "col": 7,
       "name": "nature.rock-frost-large-3-destroyed",
       "row": 3
+    },
+    {
+      "col": 8,
+      "name": "nature.rock-toxic-small-1-damaged",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "name": "nature.rock-toxic-small-1-destroyed",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "name": "nature.rock-toxic-small-2-damaged",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "name": "nature.rock-toxic-small-2-destroyed",
+      "row": 3
+    },
+    {
+      "col": 12,
+      "name": "nature.rock-toxic-medium-1-damaged",
+      "row": 3
+    },
+    {
+      "col": 13,
+      "name": "nature.rock-toxic-medium-1-destroyed",
+      "row": 3
+    },
+    {
+      "col": 14,
+      "name": "nature.rock-toxic-medium-2-damaged",
+      "row": 3
+    },
+    {
+      "col": 15,
+      "name": "nature.rock-toxic-medium-2-destroyed",
+      "row": 3
+    },
+    {
+      "col": 0,
+      "name": "nature.rock-toxic-large-1-damaged",
+      "row": 4
+    },
+    {
+      "col": 1,
+      "name": "nature.rock-toxic-large-1-destroyed",
+      "row": 4
+    },
+    {
+      "col": 2,
+      "name": "nature.rock-toxic-large-2-damaged",
+      "row": 4
+    },
+    {
+      "col": 3,
+      "name": "nature.rock-toxic-large-2-destroyed",
+      "row": 4
+    },
+    {
+      "col": 4,
+      "name": "nature.rock-toxic-large-3-damaged",
+      "row": 4
+    },
+    {
+      "col": 5,
+      "name": "nature.rock-toxic-large-3-destroyed",
+      "row": 4
     }
   ],
   "doodads": [
@@ -674,6 +744,104 @@
       "cover": "none",
       "id": "nature.rock-frost-large-3-destroyed",
       "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "nature.rock-toxic-small-1-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "nature.rock-toxic-small-1-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "nature.rock-toxic-small-2-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "nature.rock-toxic-small-2-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 12,
+      "cover": "light",
+      "id": "nature.rock-toxic-medium-1-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "nature.rock-toxic-medium-1-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 14,
+      "cover": "light",
+      "id": "nature.rock-toxic-medium-2-damaged",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "nature.rock-toxic-medium-2-destroyed",
+      "row": 3
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "heavy",
+      "id": "nature.rock-toxic-large-1-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "nature.rock-toxic-large-1-destroyed",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 2,
+      "cover": "heavy",
+      "id": "nature.rock-toxic-large-2-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "nature.rock-toxic-large-2-destroyed",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "heavy",
+      "id": "nature.rock-toxic-large-3-damaged",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "nature.rock-toxic-large-3-destroyed",
+      "row": 4
     }
   ],
   "sheet": "graphics/doodads/rock-damage.png"

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.model;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -59,6 +60,14 @@ public class CellTopology {
     private SurfaceField surfaceField;
     public SurfaceField surfaceField() { return surfaceField; }
     public void setSurfaceField(SurfaceField value) { surfaceField = value; }
+    /**
+     * The world palette whose ground art this map draws, or null for the default art: presentation only. A palette
+     * can draw an ordinary {@link GroundKind} from its own block ({@code GenMappingRegistry.groundBlockId(GroundKind,
+     * SurfacePalette)}), so a toxic world's STONE is corroded crust while every rule about STONE stays as it is.
+     */
+    private SurfacePalette groundPalette;
+    public SurfacePalette groundPalette() { return groundPalette; }
+    public void setGroundPalette(SurfacePalette value) { groundPalette = value; }
     /**
      * The raised ground the renderer draws as baked cliffs rather than as
      * cliff tiles, or null: presentation only, written once at generation.

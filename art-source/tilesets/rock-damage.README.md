@@ -27,7 +27,7 @@ from geometry guides, in order:
    the three states in register.
 
 Field stones follow the world's ground. `STONE_SETS` at the top of the refit
-script lists one set per biome, and `RockDamage.Biome` names the same four:
+script lists one set per biome, and `RockDamage.Biome` names the same five:
 
 | Set | Ids | Ground (`SurfacePalette`) | Folder and grade |
 |---|---|---|---|
@@ -35,6 +35,7 @@ script lists one set per biome, and `RockDamage.Biome` names the same four:
 | Sandstone | `nature.rock-sandstone-<group>` | ARID | `field-stones/sandstone/`, `dusty` |
 | Basalt | `nature.rock-basalt-<group>` | ROCK | `field-stones/basalt/`, `weathered` |
 | Frost | `nature.rock-frost-<group>` | FROZEN | `field-stones/frost/`, `none` |
+| Toxic | `nature.rock-toxic-<group>` | TOXIC | `field-stones/toxic/`, `none` |
 
 Each set's three states have their own prompts and provenance in its folder.
 The intact sheets reskin `field-stones-guide.png`, with the pale stones in

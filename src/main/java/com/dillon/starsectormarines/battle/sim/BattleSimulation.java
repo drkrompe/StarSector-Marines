@@ -2996,11 +2996,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@code squadId}. */
     public Collection<Squad> getSquads()   { return rosterService.getSquads(); }
-    /** The surface palette of the world this battle is fought over, null (bare rock) when none is stated. Presentation reads it to tint atmosphere effects; nothing in the simulation does. */
+    /** The surface palette of the world this battle is fought over, null (bare rock) when none is stated. Presentation reads it to tint atmosphere effects and to pick the ground's art; nothing in the simulation does. */
     private SurfacePalette surface;
     public SurfacePalette surface()        { return surface; }
     /** Called once by {@code BattleSetup} with the target profile's surface. */
-    public void setSurface(SurfacePalette surface) { this.surface = surface; }
+    public void setSurface(SurfacePalette surface) {
+        this.surface = surface;
+        // The ground draws from the world's palette too; a map generated for it already says so.
+        if (topology != null && surface != null) topology.setGroundPalette(surface);
+    }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
     public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
     /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */

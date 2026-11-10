@@ -25,7 +25,8 @@ public final class FormationBrush {
     }
 
     public static void scatter(GenContext c, SurfacePalette surface, boolean[] reserved) {
-        if(surface!=SurfacePalette.ROCK && surface!=SurfacePalette.FROZEN) return;
+        // A toxic world's stained rock stands in the same boulders and spires as bare rock does.
+        if(surface!=SurfacePalette.ROCK && surface!=SurfacePalette.FROZEN && surface!=SurfacePalette.TOXIC) return;
         boolean ice=surface==SurfacePalette.FROZEN;
         MineralFormation[] pool=ice?new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES}
                 :new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
@@ -86,7 +87,7 @@ public final class FormationBrush {
         props.addAll(additions);
     }
 
-    private static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
+    static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
         boolean natural=switch(topology.getGroundKind(x,y)){case STONE,DIRT,SNOW,SAND,GRASS -> true;default -> false;};
         if(!natural || !grid.isWalkable(x,y) || grid.isDoorway(x,y) || topology.isWall(x,y) || topology.isFixture(x,y)
                 || topology.getBuildingId(x,y)!=0 || topology.getSurface(x,y)!=0

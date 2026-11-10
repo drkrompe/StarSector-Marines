@@ -549,7 +549,7 @@ public final class GroundRenderSystem implements RenderSystem {
             kindSheet = new SpriteAPI[kinds.length];
             kindFill = new Color[kinds.length];
             for (CellTopology.GroundKind k : kinds) {
-                String id = (genMapping == null || tileReg == null) ? null : genMapping.groundBlockId(k);
+                String id = (genMapping == null || tileReg == null) ? null : genMapping.groundBlockId(k, topology.groundPalette());
                 if (id == null) continue;
                 GridBlockDef b = tileReg.block(id);
                 if (b == null) continue; // a sliced-tile mapping (e.g. STREET) — special-cased below
@@ -971,7 +971,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 boolean nature = system.nature != null
                         && (kind == CellTopology.GroundKind.GRASS || kind == CellTopology.GroundKind.DIRT);
                 String key = nature ? "kind:" + kind.name()
-                        : system.genMapping == null ? null : system.genMapping.groundBlockId(kind);
+                        : system.genMapping == null ? null : system.genMapping.groundBlockId(kind, topology.groundPalette());
                 kindPriority[kind.ordinal()] = usable(blocks, key);
             }
             return new Feather(base, topology, edge, sheet, blocks, surfacePriority, kindPriority);
@@ -1057,9 +1057,13 @@ public final class GroundRenderSystem implements RenderSystem {
             WaterShore.Band[] bands = WaterShore.Band.values();
             GridBlockDef[] blocks = new GridBlockDef[bands.length];
             SpriteAPI[] sheets = new SpriteAPI[bands.length];
+            String water = system.genMapping.groundBlockId(CellTopology.GroundKind.WATER, topology.groundPalette());
+            // A world whose liquid is not water (a toxic world's sludge) has no clear shallows: the liquid runs to
+            // its waterline, and only the wet film over the bank stays.
+            boolean ownLiquid = water != null
+                    && !water.equals(system.genMapping.groundBlockId(CellTopology.GroundKind.WATER));
             for (WaterShore.Band band : bands) {
-                String id = band.block != null ? band.block
-                        : system.genMapping.groundBlockId(CellTopology.GroundKind.WATER);
+                String id = band.block != null && !(ownLiquid && band == WaterShore.Band.SHALLOW) ? band.block : water;
                 GridBlockDef block = id == null ? null : system.tileReg.block(id);
                 SpriteAPI sheet = block == null ? null : system.sheetFor(block.sheetPath);
                 if (sheet == null) return null;

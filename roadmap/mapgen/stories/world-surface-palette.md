@@ -4,7 +4,7 @@ Status: IN PROGRESS — the palette reaches wild ground and the wild/cultivated
 line is pinned; worlds beyond rock, dust and ice are open.
 
 Written: 2026-08-31
-Updated: 2026-10-11 — remaining work is distinct toxic, irradiated, volcanic and ash material families.
+Updated: 2026-11-09 — toxic worlds have their own ground; irradiated, volcanic and ash material families remain.
 
 ## What this is
 
@@ -75,8 +75,10 @@ correctly grows nothing.
 
 ## What is open
 
-**Non-living worlds currently use ROCK, ARID and FROZEN.** Toxic, irradiated, volcanic and
-ash worlds all collapse into `ROCK`. Splitting them is a JSON block each plus a
+**Non-living worlds currently use ROCK, ARID, FROZEN and TOXIC.** Irradiated, volcanic and
+ash worlds still collapse into `ROCK`. `TOXIC` is the cheaper template: it restyles
+`STONE`, `SAND` and `WATER` through `paletteGroundRender` on a sheet of its own
+(`mapgen-nouns.md`) rather than adding a ground kind or Floors cells. Splitting them is a JSON block each plus a
 material family, once the art supports a visible difference.
 
 `mapgen-nouns.md` owns planet terrain and mineral-field behavior. Additional

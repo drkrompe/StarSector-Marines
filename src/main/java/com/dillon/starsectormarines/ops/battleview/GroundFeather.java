@@ -60,7 +60,9 @@ public final class GroundFeather {
     public static final List<String> MATERIALS = List.of(
             "floors.grass", "kind:GRASS",
             "floors.dirt", "kind:DIRT", "pavement.dirt.worn",
-            "floors.sand", "pavement.gravel.cracked", "floors.stone");
+            "floors.sand", "pavement.gravel.cracked", "floors.stone",
+            // A toxic world's own ground (SAND and STONE there): its sulphur flats spill onto the stained rock.
+            "toxic-ground.sulphur", "toxic-ground.crust");
 
     /** Noise fields a tile can sit in: one per combination of its four edge colours. */
     public static final int EDGE_CODES = 16;
