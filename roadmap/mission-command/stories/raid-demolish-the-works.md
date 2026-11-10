@@ -3,7 +3,7 @@
 Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
 `raid-demolition-effort`. Slices 1 to 4 are built; slice 5 (more works
-defences) waits on its own picks.
+defences) waits on its pick, `raid-works-defences`.
 
 Written: 2026-11-10
 
@@ -115,12 +115,16 @@ The owner: "We likely need to add a good amount of defenses still." Today a
 works has its wall, gates, two to four emplacements and its own guard. Proposed,
 scaled by security like everything else in `raid-mission.md`:
 
-- **Open**: the works' fence, its guard rooms held.
-- **Guarded**: adds wire and sandbagged firing points along the approach the
-  landing faces, and a bunker at each gate.
-- **Fortified**: adds a second gun per emplacement, a watch tower over each
-  hall, and hard cover inside the works so a hall is fought for once the wall
-  is passed.
+- **Open**: the wall and the works' own guard, as today.
+- **Guarded**: adds a hedgehog belt outside the wall and a sandbagged
+  checkpoint at each gate.
+- **Fortified**: adds a watchtower in each corner of the wall and sandbag
+  parapets round every hall, so a hall is fought for once the wall is passed.
+
+The pick `raid-works-defences` (pictures under
+`review/owned-maps/2026-11-10_raid-works-defences_win/`, mock-ups with the
+game's own props): (a) layered by security as above (recommended); (b) the
+wall line only; (c) round the halls only.
 
 Placed by the works' precinct like its emplacements (`PrecinctDefence`), named
 with the works' place so the works' guard seats them first
