@@ -7,13 +7,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
-import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
-import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
-import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -49,7 +45,7 @@ public final class StreetKitLookSuite implements SnapshotSuite {
     static final float AWNING_CELLS = 12f;
     /** Cells of sight round the awning that put the figure under it in the player's view. */
     static final int SEEN_RANGE = 4;
-    static final int LOBSTER_SEEDS = 16;
+    static final int LOBSTER_SEEDS = 64;
 
     @Override public String id() { return "street-kit-look"; }
 
@@ -62,11 +58,8 @@ public final class StreetKitLookSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
         MapScale scale = MapScale.COLONY;
-        // The plan the battle lays: a colony on a world whose habitat is enclosed is sealed (SealedTown.seal), and
-        // the rescue below is fought on the neutral world, bare rock and airless.
-        PrecinctPlan plan = BattleSetup.colonyPlanFor(scale, SEED);
-        if (PlanetSkin.sealsTowns(TargetProfile.NEUTRAL)) plan = SealedTown.seal(plan);
-        MapResult map = new BspCityGenerator().generate(scale.width, scale.height, SEED, null, null, plan);
+        MapResult map = new BspCityGenerator().generate(scale.width, scale.height, SEED, null, null,
+                RescueColony.plan(scale, SEED));
         if (map.mainStreets.isEmpty()) throw new IllegalStateException("seed " + SEED + " has no main street");
         MainStreet street = map.mainStreets.get(0);
         try (BattleSimulation sim = BattleSetup.createCivilianRescue(SEED, Collections.emptyList(), false,
@@ -102,7 +95,9 @@ public final class StreetKitLookSuite implements SnapshotSuite {
     /**
      * The lobster trade's dressing where colony maps lay it, each found on the first seed that carries it and framed
      * close with roofs off: a main street's licensed kitchen and its burst tank, a market fish stall's tank, and a
-     * freight yard's crates.
+     * freight yard's crates. A seed the rescue cannot lay at all (on the neutral world a sealed colony can leave the
+     * holdouts no building) is passed over, as the mission's own pool passes it over; a piece no seed up to
+     * {@link #LOBSTER_SEEDS} carries fails the suite, so a frame is never dropped without a word.
      */
     private static void lobster(SnapshotContext context, List<SnapshotArtifact> out) throws Exception {
         Map<String, String> wanted = new LinkedHashMap<>();
@@ -111,8 +106,15 @@ public final class StreetKitLookSuite implements SnapshotSuite {
         wanted.put("lobster-stall", "doodad.lobster-tank");
         wanted.put("lobster-freight", "doodad.lobster-crate");
         for (long seed = 1; seed <= LOBSTER_SEEDS && !wanted.isEmpty(); seed++) {
-            try (BattleSimulation sim = BattleSetup.createCivilianRescue(seed, Collections.emptyList(), false,
-                    RiskLevel.HIGH)) {
+            BattleSimulation laid;
+            try {
+                laid = BattleSetup.createCivilianRescue(seed, Collections.emptyList(), false, RiskLevel.HIGH);
+            } catch (IllegalStateException unlaid) {
+                System.out.printf(Locale.ROOT, "[street-kit-look] seed %d: the rescue lays no map (%s)%n", seed,
+                        unlaid.getMessage());
+                continue;
+            }
+            try (BattleSimulation sim = laid) {
                 for (Iterator<Map.Entry<String, String>> it = wanted.entrySet().iterator(); it.hasNext(); ) {
                     Map.Entry<String, String> want = it.next();
                     Doodad at = null;
@@ -130,6 +132,9 @@ public final class StreetKitLookSuite implements SnapshotSuite {
                     it.remove();
                 }
             }
+        }
+        if (!wanted.isEmpty()) {
+            throw new IllegalStateException("no seed up to " + LOBSTER_SEEDS + " lays " + wanted.keySet());
         }
     }
 

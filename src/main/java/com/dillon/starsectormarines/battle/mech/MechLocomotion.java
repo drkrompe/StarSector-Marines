@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -16,20 +17,29 @@ public final class MechLocomotion {
     public static final float MOVE_ALIGNMENT_DEGREES = 8f;
 
     /**
-     * A four-legged machine's turn at render scale one, degrees a second: the derelict line and Tri-Tachyon's crawler
-     * turn by stepping round, so a larger machine turns more slowly, in proportion to its size (owner: the derelict
-     * walkers turned so fast their legs tangled). UNTUNED.
+     * Tri-Tachyon's crawler's turn at render scale one, degrees a second: it turns by stepping round, so a larger one
+     * turns more slowly, in proportion to its size. UNTUNED.
      */
     public static final float LEGGED_TURN_AT_SCALE_ONE_DEGREES = 150f;
 
     private MechLocomotion() {}
 
-    /** The fastest {@code variant}'s hips turn, degrees a second. */
+    /**
+     * The fastest {@code variant}'s hips turn, degrees a second. A derelict walker turns by stepping its feet round
+     * (`derelict-watch.md`, How they turn), and they go round no faster than it walks: its top speed over the radius its
+     * feet stand at (owner: the walkers walked slowly but turned fast). The crawler keeps its own rate.
+     */
     public static float turnRateDegrees(MechVariant variant) {
         if (variant == null) return DEFAULT_TURN_RATE_DEGREES;
         MechBodyPlan plan = variant.bodyPlan();
-        if (plan != MechBodyPlan.DERELICT && plan != MechBodyPlan.CRAWLER) return DEFAULT_TURN_RATE_DEGREES;
-        return Math.min(DEFAULT_TURN_RATE_DEGREES, LEGGED_TURN_AT_SCALE_ONE_DEGREES / variant.renderScale);
+        if (plan == MechBodyPlan.DERELICT) {
+            float feet = DerelictLegRig.REST_CELLS * variant.renderScale / MechVariant.SECURITY_WALKER.renderScale;
+            return Math.min(DEFAULT_TURN_RATE_DEGREES, (float) Math.toDegrees(variant.moveSpeed / feet));
+        }
+        if (plan == MechBodyPlan.CRAWLER) {
+            return Math.min(DEFAULT_TURN_RATE_DEGREES, LEGGED_TURN_AT_SCALE_ONE_DEGREES / variant.renderScale);
+        }
+        return DEFAULT_TURN_RATE_DEGREES;
     }
 
     /** Sprite heading for a non-zero grid delta. */

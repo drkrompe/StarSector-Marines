@@ -23,11 +23,28 @@ final class DerelictWalkerGuns {
     /** The gun port's head, and the rack's cradle, each drawn centred on its mount's pivot. */
     static final String PORT_HEAD = "graphics/battle/derelict-walker/turret-head-port.png";
     static final String RACK_HEAD = "graphics/battle/derelict-walker/turret-head-rack.png";
-    /** A head's width as a share of its mount's gun-scale hull width. UNTUNED. */
-    static final float PORT_HEAD_SHARE = 0.24f;
-    static final float RACK_HEAD_SHARE = 0.36f;
+    /**
+     * A head's width as a share of its mount's gun-scale hull width (owner pick derelict-turret-heads: large heads that
+     * read as turrets, the weapon mostly hidden beneath, its barrel or tube box leaving the front).
+     */
+    static final float PORT_HEAD_SHARE = 0.40f;
+    static final float RACK_HEAD_SHARE = 0.50f;
+    /** Each head drawing's height over its width (turret-head-port.png 256x283, turret-head-rack.png 256x138). */
+    static final float PORT_HEAD_ASPECT = 283f / 256f;
+    static final float RACK_HEAD_ASPECT = 138f / 256f;
     /** How far behind the pivot the rack's cradle sits, as a share of the rack's drawn length, so its arms flank the box. */
     static final float RACK_HEAD_BACK = 0.12f;
+
+    /**
+     * How far ahead of its mount's pivot a head's front edge stands, in the mount's gun-scale hull widths: a port's head
+     * is centred on the pivot, a rack's cradle set {@link #RACK_HEAD_BACK} of the rack's length behind it. A weapon's
+     * muzzle, and so its flash, must stand past this to show.
+     */
+    static float headFront(boolean rack, float weaponLengthHullWidths) {
+        return rack ? RACK_HEAD_SHARE * RACK_HEAD_ASPECT / 2f - RACK_HEAD_BACK * weaponLengthHullWidths
+                : PORT_HEAD_SHARE * PORT_HEAD_ASPECT / 2f;
+    }
+
     /** The weapons beneath weathered toward the sentinel's plate (its torso drawing averages 106/92/71). UNTUNED. */
     static final float[] WEATHER = {0.90f, 0.84f, 0.72f};
     /** How wide a chaingun is drawn: the six-barrel drawing at half width, as on a centreline mount. */

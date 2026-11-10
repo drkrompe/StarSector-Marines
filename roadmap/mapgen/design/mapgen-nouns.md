@@ -2205,8 +2205,47 @@ roof draws as before.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
-lava drop (`voids.md`). Every other theme keeps its line halls, the first laid
-at the old foundry's 34x22.
+lava drop (`voids.md`). A plant with no works hall keeps its line halls, the
+first laid at the old foundry's 34x22.
+
+**Every other theme has a works hall of its own** (`WorksHall`; the designs and
+their art list are in `ruins-theme-halls.md` in the shared notes). A dressing names
+its hall, and the outer band takes it in the mega forge's slot and size, in place of
+the line halls (`RuinsDelve.PlantStage.WORKS`). The hall is planned in its own cells
+before it meets the ground (`WorksHallPlan`, one planner a hall), so its rules are
+unit-proved there. Every hall has the same bones (`HallFrame`):
+
+- the feed rail up the west aisle to the head;
+- the work down a line in the middle, in bays a period apart;
+- the east lane for the hall's waste or return;
+- service drops on both long walls;
+- every aisle a hall frame's three cells wide, and the middle left open.
+
+On those bones each theme lays its own:
+
+- process stations;
+- environment, as skins, shallow water or a drop;
+- overhead;
+- collapse.
+
+The halls by theme:
+
+- cryo: the cold hall;
+- vats: the culture hall;
+- drones: the print hall;
+- AI cores: the core hall;
+- lamps, dynamos and hypershunt taps: the field hall;
+- synchrotron: the ring hall;
+- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- catalytic core: the reactor train;
+- fullerene spool: the draw line;
+- holosuite: the stage hall;
+- depot: the high bay;
+- armory: the filling hall.
+
+A piece whose art has not shipped stands as its stand-in from the game's own
+sets, tiled over its footprint. A works hall and the mega forge take no loose
+chamber dressing. A hall narrower than 32 lays line runs instead.
 
 **Plant hall floors are zoned.** Every plant hall's floor is laid by zone after
 its furniture (`RuinsDelveStage.zoneFloor`), not as one slab:
@@ -2476,7 +2515,10 @@ pairing makes: streets, blocks and courts inside, ordinary doors on its building
 and a wall drawn on the outline of what grew, like a garrison's. Its wall keeps two
 locks, where its widest roads meet it, any more the map's road network needs to
 stay connected, and one onto every stretch of open ground it borders that no road
-reaches (`SealedTown.groundLocks`), so it never seals a field off. The wall is an
+reaches (`SealedTown.groundLocks`), so it never seals a field off. A lock is
+sited where its way in reaches the town's streets (`SealedTown.streetward`), not
+into a yard shut in by buildings, and the defences build nothing across its way
+in or out (`SealedTown.lockWays`). The wall is an
 envelope, not a line (`SealedTown.envelope`): a one-cell outline read as a thin
 line wrapped round the town (owner). It stands three cells through on the town's
 own outermost ground (`SealedTown.band`), which is held back from the town's
@@ -2496,9 +2538,9 @@ capped top, and a service pipe along its inner face (`FreestandingWalls`, Part).
 It owns no emplacements. Outside is bare
 ground with no outlying places. The garrison stays its own walled compound. Radiation
 is answered the same way: the wall stands for the whole shielded envelope, roof
-included, as it does for air. A story map on such a world plays its mission's
-sealed layout (`story-map-pools.md`, Sealed layout): every town the mission names
-sealed where it stands.
+included, as it does for air. An owned map on such a world, a story mission's
+or the Raid's, plays its sealed layout (`story-map-pools.md`, Sealed layout):
+every town it names sealed where it stands.
 
 A habitat is presentation only and never moves a wall, door, window or road: the
 town plan, walkability, sight and every rule are the open town's on the same seed,

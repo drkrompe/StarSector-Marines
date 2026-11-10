@@ -1,0 +1,91 @@
+{
+  "sheet": "graphics/doodads/ruins-works-giants.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-headframe",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        12,
+        12
+      ]
+    },
+    {
+      "id": "doodad.ruins-print-gantry",
+      "col": 12,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-proving-torus",
+      "col": 18,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        10,
+        8
+      ]
+    },
+    {
+      "id": "doodad.ruins-precursor-furnace",
+      "col": 12,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-proof-butt",
+      "col": 18,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        4
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Headframe",
+      "description": "Overhead: the shaft's headframe, a lattice frame round all four sides with corner towers and two sheave wheels; open in the middle so the shaft shows through. Drawn above units."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Print gantry",
+      "description": "Overhead: a print gantry over its bed, rails north and south, its bridge and head across the middle. Drawn above units."
+    },
+    {
+      "col": 18,
+      "row": 0,
+      "name": "Proving torus",
+      "description": "The great proving torus at the field hall's head: a ring vessel with sixteen field coils, its bore dark."
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "name": "Precursor furnace",
+      "description": "A fullerene precursor furnace: its firebox west, two flue stacks east."
+    },
+    {
+      "col": 18,
+      "row": 8,
+      "name": "Proof butt",
+      "description": "A range's proof butt: an earth berm faced on its south side with impact-pocked steel plate."
+    }
+  ]
+}

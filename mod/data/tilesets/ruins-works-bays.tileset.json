@@ -1,0 +1,345 @@
+{
+  "sheet": "graphics/doodads/ruins-works-bays.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-charge-cell",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-charge-cell-west",
+      "col": 5,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-charge-cell-open",
+      "col": 10,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-charge-cell-open-west",
+      "col": 15,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-bore-stand",
+      "col": 20,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-culture-vat-large",
+      "col": 25,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-culture-vat-burst",
+      "col": 25,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-print-bed",
+      "col": 0,
+      "row": 6,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-core-rack-row",
+      "col": 6,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-launch-rack",
+      "col": 12,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-core-racks-toppled",
+      "col": 18,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        6,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-sorter",
+      "col": 6,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        6,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-stacker-rail",
+      "col": 12,
+      "row": 8,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-stacker-toppled",
+      "col": 24,
+      "row": 8,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        7,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-reactor-column-fallen",
+      "col": 12,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        9,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-pipe-rack",
+      "col": 29,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-director-booth",
+      "col": 21,
+      "row": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        5
+      ]
+    },
+    {
+      "id": "doodad.ruins-print-gantry-fallen",
+      "col": 23,
+      "row": 10,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        7,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-spoil-heap",
+      "col": 6,
+      "row": 11,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-spoil-slide",
+      "col": 0,
+      "row": 12,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        4,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Charge cell",
+      "description": "A cryo charge cell open to the east (for a west bay): plated walls north, south and west round a frosted chamber, a sealed unit in its charging cradle."
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "Charge cell (open west)",
+      "description": "The charge cell open to the west, for an east bay."
+    },
+    {
+      "col": 10,
+      "row": 0,
+      "name": "Torn charge cell",
+      "description": "The charge cell's door torn off at its open east side, its unit frozen half-charged."
+    },
+    {
+      "col": 15,
+      "row": 0,
+      "name": "Torn charge cell (open west)",
+      "description": "The torn charge cell open to the west, for an east bay."
+    },
+    {
+      "col": 20,
+      "row": 0,
+      "name": "Bore stand",
+      "description": "A floor-level bore head assembly stand: two rails, cross ties and corner clamps, open in the middle for the head."
+    },
+    {
+      "col": 25,
+      "row": 0,
+      "name": "Great vat",
+      "description": "A great round culture vat: a bolted rim, its domed lid, a culture port."
+    },
+    {
+      "col": 25,
+      "row": 4,
+      "name": "Burst great vat",
+      "description": "The great vat split open east, its culture grown out over the floor to the south-east."
+    },
+    {
+      "col": 0,
+      "row": 6,
+      "name": "Print bed",
+      "description": "A drone print bed: a frame round a gridded build plate, flush to the floor."
+    },
+    {
+      "col": 6,
+      "row": 6,
+      "name": "Core rack row",
+      "description": "A row of eight server racks east-west, containment door frames at both ends."
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "name": "Launch rack",
+      "description": "A drone launch rack of four bays, a frame racked in each."
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "name": "Toppled core racks",
+      "description": "Six server racks fallen over like dominoes."
+    },
+    {
+      "col": 6,
+      "row": 8,
+      "name": "Sorter",
+      "description": "An automated sorter: its belt east-west, diverters north, outfeed chutes south."
+    },
+    {
+      "col": 12,
+      "row": 8,
+      "name": "Stacker rail",
+      "description": "Overhead: a stacker crane rail east-west, its carriage parked. Drawn above units."
+    },
+    {
+      "col": 24,
+      "row": 8,
+      "name": "Toppled stacker",
+      "description": "A stacker crane's mast fallen across a rack row."
+    },
+    {
+      "col": 12,
+      "row": 10,
+      "name": "Fallen reactor column",
+      "description": "A reactor column fallen on its side east-west, its head torn off at the east end, sludge pooled under it."
+    },
+    {
+      "col": 29,
+      "row": 0,
+      "name": "Pipe rack",
+      "description": "A pipe rack north-south: three pipes on four supports."
+    },
+    {
+      "col": 21,
+      "row": 9,
+      "name": "Director's booth",
+      "description": "The holosuite director's booth: its roof, its long window along the east side broken."
+    },
+    {
+      "col": 23,
+      "row": 10,
+      "name": "Fallen print gantry",
+      "description": "A print gantry's bridge fallen across a bay, its east end sheared."
+    },
+    {
+      "col": 6,
+      "row": 11,
+      "name": "Spoil heap",
+      "description": "A heap of rock spoil from the bore."
+    },
+    {
+      "col": 0,
+      "row": 12,
+      "name": "Spoil slide",
+      "description": "A low slide of rock spoil across the floor."
+    }
+  ]
+}

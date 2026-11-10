@@ -47,7 +47,7 @@ public final class FactoryRowLookSuite implements SnapshotSuite {
         MapScale scale = MapScale.COLONY;
         for (long seed = 1; seed <= SEEDS_SCANNED && maps < MAPS; seed++) {
             MapResult map = new BspCityGenerator().generate(scale.width, scale.height, seed, null, null,
-                    BattleSetup.colonyPlanFor(scale, seed));
+                    RescueColony.plan(scale, seed));
             if (map.serviceLanes.isEmpty()) {
                 System.out.printf(Locale.ROOT, "[%s] seed %d: no factory row%n", id(), seed);
                 continue;

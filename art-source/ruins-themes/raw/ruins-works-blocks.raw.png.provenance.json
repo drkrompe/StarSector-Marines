@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6a2-b4d6-72f0-84e6-0f2a6b4f2729",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6a2-b4d6-72f0-84e6-0f2a6b4f2729\\exec-3472b5dc-5992-4b2e-96cf-f84bfec3c353.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-works-blocks.raw.png",
+    "sha256": "0866e190c9881e5695b934cfde70f1089a23ec5296153b10264d2bc98c9d5a56",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\works-blocks.prompt.txt",
+  "promptSha256": "079b32d20850bed941f6cef902150cefe6d0ccc67e1cece7b46b18b4e9ff8296",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: block-out to reskin in place\nImage 2: Identity and material: the same complex's machinery; not layout\nImage 3: Identity and era: the same complex's skids, pods and runs; not layout\n\nAsset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nEra: spacefaring industry, automated and field-handled, as the same complex's hover skids and mag-rail feed pods (references 2 and 3). No wheels, no railway, nothing of a 20th-century factory.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper coil rings; the dull green area is a sealed culture port; the pale blue-white areas are frost. The square wall blocks fill their whole square to the edges, so a row of them laid side by side reads as one continuous wall.\nStyle: match reference 2 (the same complex's skids, pods and plant: blue-gray and gunmetal plate, rivets, worn ochre trim, ducted lift-fan rings) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.\nView: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.\nBackground: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.\n\nSubjects, top row left to right:\n1. waste-skid (3x3): a hover skid on four ducted lift-fan rings carrying a sealed rounded waste tank with one culture port.\n2. reject-skid (3x3): the same kind of hover skid carrying an open mesh-sided bin full of scrap.\n3. bed-changer-derailed (3x3): a hover bed-changer carriage (a lifting frame over a catalyst bed slot) crashed and slewed, one fan ring torn off and lying at its corner.\n4. unit-carrier (2x3): a mag-rail carrier: a long plated sled with copper coil bands at both ends and a frosted cradle holding one sealed cryo unit.\n5. unit-carrier-derailed (2x3): the same carrier thrown askew off its rail.\nMiddle row left to right:\n6. shield-block (1x1): a massive radiation shield block, a raised bolted face plate.\n7. shield-rubble (1x1): broken shield block chunks.\n8. blast-wall (1x1): a heavy blast wall section, ribbed armour plate.\n9. blast-baffle (1x1): a thick blast baffle plate standing east-west, scarred.\n10. blast-rubble (1x1): broken blast wall chunks.\n11. cage-fence (1x1): a flight-test cage fence running east-west across the cell: a heavy mesh panel with a post at its middle.\n12. housing-crate (3x2): a big reinforced transit crate for a field housing, steel ribs across it, corner castings.\n13. stack-crate (3x2): two tall transit crates side by side, raised lids.\nBottom row:\n14. hardware-crate (3x2): an armoured hardware crate, a recessed lid with four latch plates.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-works-blocks-guide.png",
+      "sha256": "d31ae1b0fa87506d42c133e84f6de5cd06edc7ea51ff6db090156269de943ca2",
+      "dimensions": [
+        2496,
+        1376
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: block-out to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-kit.raw.png",
+      "sha256": "b3bbc9d846deb6733ae98397748ecc6d1d9ef1fb363033d0609271536a06ccbe",
+      "dimensions": [
+        1654,
+        951
+      ],
+      "mode": "RGBA",
+      "role": "Identity and material: the same complex's machinery; not layout"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-a.raw.png",
+      "sha256": "ec134dcf4b357d96dcc559e57e97c01db367125e5787c9c33944720430662622",
+      "dimensions": [
+        1662,
+        946
+      ],
+      "mode": "RGBA",
+      "role": "Identity and era: the same complex's skids, pods and runs; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, preserving Image 1’s layout and matching the materials and era of Images 2 and 3."
+  ],
+  "usage": {
+    "input_tokens": 52790,
+    "cached_input_tokens": 39296,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1089,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 80.4
+}

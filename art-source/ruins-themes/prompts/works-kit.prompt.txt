@@ -1,0 +1,19 @@
+Asset: a sheet of separate top-down tactical-game pieces shared by the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same world's forge and mining megaworks (references 2 and 3). Nothing of a 20th-century factory: no hand wheels on everything, no wooden parts, no hand tools.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown areas are copper windings or busbars; the pale gold dots are small lit lamps; the pale blue-white areas are hoar frost; the dull green areas are sealed nutrient couplings. The conveyor (top right) is one length of a run that repeats north-south: keep it filling its block to the top and bottom edges, with an even roller pattern along its length.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim) and reference 3 for the machinery's design: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. cold-head (6x6): a cryo compressor stack on a heavy plinth: four big round compressor cylinder heads with dark centre ports, a central cold box between them, two insulated coolant headers leaving its north edge, frost rimed in a band across its middle.
+2. heat-exchanger (3x3): a shell-and-tube heat exchanger lying north-south on two heavy saddles, a domed end cap at each end, two flanged nozzles standing out east and west.
+3. coil-winder (3x3): a coil winding machine on a base plate: a mandrel across it between two heavy headstocks, wound thick with copper, a winding head on its traverse rail along the north side.
+4. works-conveyor (2x2): a heavy roller conveyor bed sunk in floor plate: two side frames, a dark bed, steel rollers across it at an even pitch.
+Bottom row left to right, wall service cabinets (each a plated cabinet with a vent grille at its north end and its service's couplings on its top):
+5. coolant-drop (1x2): two frosted insulated coolant couplings.
+6. nutrient-drop (1x2): three sealed green-grey nutrient couplings.
+7. powder-drop (1x2): a funnelled powder feed chute and its valve.
+8. power-drop (1x2): three copper busbars under a dim lamp strip.
+9. steam-drop (1x2): a lagged pipe stub through a valve ring.
+10. line-console (3x1): a run of three control desks seen from above: three dead dark screens, a key shelf below each, one small lamp.

@@ -48,9 +48,8 @@ class DerelictLegRigTest {
     }
 
     @Test
-    void atARunTheDiagonalPairsTrotAndLeaveTheGroundBetweenStrides() {
+    void atARunTheDiagonalPairsTrot() {
         DerelictLegRig rig = new DerelictLegRig();
-        boolean[] airborne = {false};
         walk(rig, 2.6f, 300, OPEN, () -> {
             if (rig.gait() != DerelictLegRig.Gait.RUN) return;
             int lifted = 0;
@@ -60,10 +59,8 @@ class DerelictLegRigTest {
                     if (rig.pair(i) == rig.pair(j) && lifted < 4) assertEquals(rig.stepping(i), rig.stepping(j));
                 }
             }
-            if (lifted == 4) airborne[0] = true;
         });
         assertEquals(DerelictLegRig.Gait.RUN, rig.gait());
-        assertTrue(airborne[0], "the run has a moment with every foot off the ground");
     }
 
     @Test
@@ -128,7 +125,7 @@ class DerelictLegRigTest {
     }
 
     @Test
-    void theBodySwaysAwayFromALiftedLegAndBouncesHarderAtARun() {
+    void theBodySwaysAwayFromALiftedLegAndRunsNoBouncierThanItWalks() {
         DerelictLegRig walker = new DerelictLegRig();
         float[] sway = {0f};
         float[] walkHeight = {0f, 0f};
@@ -150,7 +147,8 @@ class DerelictLegRigTest {
             runHeight[0] = Math.min(runHeight[0], runner.bodyHeight());
             runHeight[1] = Math.max(runHeight[1], runner.bodyHeight());
         });
-        assertTrue(runHeight[1] - runHeight[0] > walkHeight[1] - walkHeight[0], "the run bounces harder");
+        // Owner: the walker's run had too much jump; a heavy machine trots flat.
+        assertTrue(runHeight[1] - runHeight[0] <= walkHeight[1] - walkHeight[0], "the run bounces no more than the walk");
     }
 
     @Test
@@ -233,7 +231,7 @@ class DerelictLegRigTest {
         DerelictLegRig.Build rigid = new DerelictLegRig.Build(c.hipCells(), c.restCells(), c.gripCells(),
                 c.hipHeightCells(), c.thighCells(), c.shinCells(), c.wallFootCells(), c.stepLiftCells(), c.walkStride(),
                 c.runStride(), c.runSpeed(), c.walkSpeed(), c.stepSeconds(), c.scale(), c.motionScale(),
-                c.twistDegrees(), c.jointInsetCells(), 0f, c.turnDegreesPerSecond());
+                c.twistDegrees(), c.jointInsetCells(), 0f, c.turnDegreesPerSecond(), c.runSpring());
         float[] suspended = peakJolt(new DerelictLegRig(c));
         float[] stiff = peakJolt(new DerelictLegRig(rigid));
         assertTrue(suspended[0] < stiff[0] / 3f, "the body's acceleration: " + suspended[0] + " vs " + stiff[0]);
@@ -307,6 +305,29 @@ class DerelictLegRigTest {
                 assertTrue(turned, "it gets round in the end, by stepping, at speed " + speed);
             }
         }
+    }
+
+    @Test
+    void theWalkerRunsFlatWithAFootAlwaysDownWhileTheCrawlerStillLeavesTheGround() {
+        assertTrue(airborneFrames(DerelictLegRig.WALKER, 2.5f) == 0, "the walker's run never leaves the ground");
+        assertTrue(airborneFrames(DerelictLegRig.CRAWLER, 2.2f) > 0, "the crawler's trot is unchanged");
+    }
+
+    /** Frames of a steady run at {@code speed} in which no foot stands. */
+    private static int airborneFrames(DerelictLegRig.Build build, float speed) {
+        DerelictLegRig rig = new DerelictLegRig(build);
+        float dt = 1f / 60f;
+        float x = 10f;
+        int airborne = 0;
+        for (int f = 0; f < 60 * 6; f++) {
+            x += speed * dt;
+            rig.advance(x, 10f, -90f, dt, (cx, cy) -> false);
+            if (f < 60 || rig.gait() != DerelictLegRig.Gait.RUN) continue;
+            boolean anyDown = false;
+            for (int leg = 0; leg < rig.legs(); leg++) if (!rig.stepping(leg)) anyDown = true;
+            if (!anyDown) airborne++;
+        }
+        return airborne;
     }
 
     /** Whether segment a-b properly crosses segment c-d. */

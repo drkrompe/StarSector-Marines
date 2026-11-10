@@ -225,6 +225,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -252,7 +253,6 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -1447,6 +1447,10 @@ public final class BattleSetup {
                 : precinctPlanFor(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl);
         // A landform the map's design places: a drop across it, or walls sheltering its town (voids.md).
         precincts = Landform.apply(landform, precincts, scale.width, scale.height);
+        // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
+        // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
+        if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
@@ -3399,14 +3403,12 @@ public final class BattleSetup {
         // The world the colony is fought on: a world nobody lives on in the open plays the sealed layout.
         TargetProfile world = home != null ? (profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK))
                 : profile;
-        boolean sealed = colony && PlanetSkin.sealsTowns(world);
         String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
-            PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
-            if (sealed) colonyPlan = SealedTown.seal(colonyPlan);
+            PrecinctPlan colonyPlan = colony ? colonyPlanOn(scale, battleSeed, world) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
             if (home != null) map = PlanetSkin.apply(map, home, world);
@@ -3571,6 +3573,16 @@ public final class BattleSetup {
      */
     public static boolean isColonyBreachColony(RiskLevel risk, boolean stressTest) {
         return !stressTest && risk == RiskLevel.HIGH;
+    }
+
+    /**
+     * The colony plan a civilian rescue lays from {@code seed} on {@code world}: {@link #colonyPlanFor}, sealed
+     * ({@link SealedTown#seal}) on a world whose habitat is enclosed, where nobody lives in the open
+     * ({@link PlanetSkin#sealsTowns}). The one place the rescue's plan is decided, so a look that frames the
+     * rescue's map lays the same one.
+     */
+    public static PrecinctPlan colonyPlanOn(MapScale scale, long seed, TargetProfile world) {
+        return PlanetSkin.sealedFor(colonyPlanFor(scale, seed), world);
     }
 
     /**

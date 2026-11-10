@@ -14,6 +14,8 @@ import random
 
 from PIL import Image, ImageChops, ImageDraw
 
+import hall_kinds
+
 CELL = 320
 GUTTER = 64
 
@@ -96,8 +98,80 @@ FAMILIES["forge-era-b"] = [("ladle-lift", 3, 3, "yoke-up"), ("ladle-lift-tipped"
     ("finishing-cell", 2, 2, "robotcell"), ("metrology-bed", 2, 2, "metrology"), None,
     ("cooling-rack", 2, 4, "stacker"), ("cooling-rack-castings", 2, 4, "stacker-full"),
     ("crane-runway", 1, 4, "linearbeam"), ("fallen-girder", 7, 1, "beamdown")]
+# The theme works halls' pieces (``ruins-theme-halls``), drawn by ``hall_kinds``; a kind ``run/fallen`` is that run
+# fallen from overhead. ``works-kit``: what several halls share: the cold head, heat exchanger and coil winder, one
+# conveyor bed every hall's line lays, a wall service drop per service and the 3x1 console run.
+FAMILIES["works-kit"] = [("cold-head", 6, 6, "coldhead"), ("heat-exchanger", 3, 3, "exchanger"),
+    ("coil-winder", 3, 3, "winder"), ("works-conveyor", 2, 2, "conveyor"), None,
+    ("coolant-drop", 1, 2, "drop/coolant"), ("nutrient-drop", 1, 2, "drop/nutrient"), ("powder-drop", 1, 2, "drop/powder"),
+    ("power-drop", 1, 2, "drop/power"), ("steam-drop", 1, 2, "drop/steam"), ("line-console", 3, 1, "console")]
+# ``works-runs``: the halls' floor runs (2x2, north-south) and their overhead runs (1x2) with each fallen (1x4).
+FAMILIES["works-runs"] = [("coolant-return", 2, 2, "trench-frost"), ("coolant-loop", 2, 2, "twinpipe"),
+    ("transfer-pipe", 2, 2, "bigpipe"), ("tensile-bed", 2, 2, "tensile"), ("spoil-conveyor", 2, 2, "troughbelt"), None,
+    ("coolant-header", 1, 2, "header"), ("coolant-header-fallen", 1, 4, "header/fallen"),
+    ("feed-manifold", 1, 2, "manifoldrun"), ("feed-manifold-fallen", 1, 4, "manifoldrun/fallen"),
+    ("pipe-run", 1, 2, "piperun"), ("pipe-run-fallen", 1, 4, "piperun/fallen"),
+    ("powder-line", 1, 2, "duct"), ("powder-line-fallen", 1, 4, "duct/fallen")]
+# ``works-blocks``: walls laid a cell at a time (shield block, blast wall, baffle, cage fence) flush to their edges so
+# a run reads as one wall, their rubble, the dispatch crates, and the hover skids and mag-rail carriers.
+FAMILIES["works-blocks"] = [("waste-skid", 3, 3, "skid/tank"), ("reject-skid", 3, 3, "skid/bin"),
+    ("bed-changer-derailed", 3, 3, "skid/changer-crashed"), ("unit-carrier", 2, 3, "carrier"),
+    ("unit-carrier-derailed", 2, 3, "carrier/derailed"), None,
+    ("shield-block", 1, 1, "shieldblock"), ("shield-rubble", 1, 1, "rubble/shield"),
+    ("blast-wall", 1, 1, "blastwall"), ("blast-baffle", 1, 1, "baffle"), ("blast-rubble", 1, 1, "rubble/blast"),
+    ("cage-fence", 1, 1, "fence"), ("housing-crate", 3, 2, "crate/housing"), ("stack-crate", 3, 2, "crate/stack"),
+    None, ("hardware-crate", 3, 2, "crate/hardware")]
+# ``works-vessels-a`` and ``-b``: the halls' round vessels and towers seen from above, two sheets so each keeps its
+# detail: silos, the reactor column, tanks, the draw tower, coating chamber and lattice tank.
+FAMILIES["works-vessels-a"] = [("feedstock-silo", 5, 5, "silo"), ("feedstock-silo-split", 5, 5, "silo/split"),
+    ("reactor-column", 5, 5, "tank/column"), None, ("product-tank", 3, 3, "tank/product"),
+    ("lattice-tank", 2, 2, "tower/lattice"), ("coating-chamber", 4, 4, "tower/coating")]
+FAMILIES["works-vessels-b"] = [("nutrient-tank", 4, 4, "tank/nutrient"), ("feed-tank", 4, 4, "tank/feed"),
+    None, ("precursor-tank", 4, 4, "tank/precursor"), ("draw-tower", 4, 4, "tower/draw")]
+# ``works-stations``: the halls' benches and small stations, and their 3x3 presses, sealers and anchor.
+FAMILIES["works-stations"] = [("lattice-bench", 3, 2, "bench/lattice"), ("decanter", 2, 2, "bench/decanter"),
+    ("powder-hopper", 2, 2, "bench/hopper"), ("arming-bench", 2, 2, "bench/arming"), ("test-pylon", 2, 2, "bench/pylon"),
+    ("emitter-bench", 2, 2, "bench/emitter"), None,
+    ("holo-pedestal", 2, 2, "bench/pedestal"), ("charge-hopper", 2, 2, "bench/chargehopper"),
+    ("beam-diagnostics", 2, 2, "bench/diagnostics"), ("firing-point", 3, 1, "bench/firing"),
+    ("dancer-tower", 1, 2, "bench/dancer"), ("guide-roller", 2, 1, "bench/roller"),
+    ("guide-roller-fallen", 2, 1, "bench/roller-fallen"), None,
+    ("seal-press", 3, 3, "press/seal"), ("vat-filler", 3, 3, "press/filler"), ("cabinet-sealer", 3, 3, "press/cabinet"),
+    ("filling-press", 3, 3, "press/filling"), ("tether-anchor", 3, 3, "press/anchor")]
 FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160, "forge-wear": 160,
-               "forge-era-a": 160, "forge-era-b": 160}
+               "forge-era-a": 160, "forge-era-b": 160, "works-kit": 160, "works-runs": 160,
+               "works-blocks": 160, "works-vessels-a": 160, "works-vessels-b": 160,
+               "works-stations": 160}
+# ``works-plant-a`` and ``-b``: the halls' mid-size plant: chillers, the preheat furnace, the cold manifold, cryostat,
+# feed pumps and ice ridge; the hoist and spool winders, beam dump, ring segment, RF cavity, linac and two racks.
+FAMILIES["works-plant-a"] = [("chiller", 5, 4, "plant/chiller"), ("chiller-burst", 5, 4, "plant/chiller-burst"),
+    ("preheat-furnace", 5, 4, "plant/preheat"), None, ("cold-manifold", 4, 3, "plant/manifold"),
+    ("cryostat", 4, 3, "plant/cryostat"), ("feed-pumps", 4, 2, "plant/pumps"), ("ice-ridge", 3, 2, "plant/ridge")]
+FAMILIES["works-plant-b"] = [("hoist-winder", 4, 4, "plant/hoist"), ("winder", 4, 4, "plant/spoolwinder"),
+    ("beam-dump", 4, 4, "plant/beamdump"), None, ("ring-segment", 3, 3, "magnet/segment"),
+    ("rf-cavity", 2, 3, "magnet/cavity"), ("linac-section", 2, 3, "magnet/linac"), ("cutter-rack", 2, 4, "rack/cutter"),
+    ("drum-rack", 2, 4, "rack/drum")]
+# ``works-cells``: the bays' big pieces: the charge cell (open to the east; ``export.py`` mirrors it for the east
+# bays) whole and torn open, the bore stand; the great vat whole and burst, and the print bed.
+FAMILIES["works-cells-a"] = [("charge-cell", 5, 6, "cell/charge"), ("charge-cell-open", 5, 6, "cell/charge-open"),
+    ("bore-stand", 5, 6, "cell/borestand")]
+FAMILIES["works-cells-b"] = [("culture-vat-large", 4, 4, "cell/vat"), ("culture-vat-burst", 4, 4, "cell/vat-burst"),
+    ("print-bed", 6, 6, "cell/printbed")]
+# ``works-rows``: long pieces laid east-west (rack rows, the sorter, the stacker rail) and what fell across a bay.
+FAMILIES["works-rows-a"] = [("core-rack-row", 6, 2, "row/corerack"), ("launch-rack", 6, 2, "row/launchrack"), None,
+    ("core-racks-toppled", 6, 3, "row/toppled"), ("sorter", 6, 3, "row/sorter"), None,
+    ("stacker-rail", 6, 2, "row/stackerrail"), ("stacker-toppled", 7, 2, "row/stackerdown")]
+FAMILIES["works-rows-b"] = [("reactor-column-fallen", 9, 3, "row/columndown"), ("pipe-rack", 2, 6, "row/piperack"),
+    ("director-booth", 2, 5, "row/booth"), None, ("print-gantry-fallen", 7, 2, "row/gantrydown"),
+    ("spoil-heap", 4, 3, "row/heap"), ("spoil-slide", 4, 2, "row/slide")]
+# ``works-mega``: the giants, drawn smaller so each sheet stays whole: the shaft's headframe and the print gantry
+# (overhead, open in the middle so the shaft and bed show through), the proving torus, precursor furnace, proof butt.
+FAMILIES["works-mega-a"] = [("headframe", 12, 12, "mega/headframe"), ("print-gantry", 6, 6, "mega/gantry")]
+FAMILIES["works-mega-b"] = [("proving-torus", 10, 8, "mega/torus"), ("precursor-furnace", 6, 5, "mega/precursor"),
+    None, ("proof-butt", 12, 4, "mega/butt")]
+FAMILY_CELL.update({"works-mega-a": 112, "works-mega-b": 112})
+# Every works sheet is drawn at 160 px a cell unless it says otherwise.
+FAMILY_CELL.update({f: 160 for f in FAMILIES if f.startswith("works-") and f not in FAMILY_CELL})
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -337,6 +411,8 @@ def draw(family):
     rng = random.Random(family)
     for pid, x, y, w, h, kind in fr:
         inset = 18
+        if hall_kinds.draw_kind(im, d, kind, x, y, w, h):
+            continue
         if kind == "box":
             d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=body, outline=edge, width=8)
             d.rectangle((x + 60, y + 60, x + w - 60, y + h // 2 - 20), fill=light, outline=edge, width=4)

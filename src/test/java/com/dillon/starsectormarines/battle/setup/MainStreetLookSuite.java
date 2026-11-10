@@ -48,7 +48,7 @@ public final class MainStreetLookSuite implements SnapshotSuite {
         MapScale scale = MapScale.COLONY;
         for (long seed = 1; seed <= SEEDS_SCANNED && maps < MAPS; seed++) {
             MapResult map = new BspCityGenerator().generate(scale.width, scale.height, seed, null, null,
-                    BattleSetup.colonyPlanFor(scale, seed));
+                    RescueColony.plan(scale, seed));
             if (map.mainStreets.isEmpty()) {
                 System.out.printf(Locale.ROOT, "[%s] seed %d: no main street%n", id(), seed);
                 continue;

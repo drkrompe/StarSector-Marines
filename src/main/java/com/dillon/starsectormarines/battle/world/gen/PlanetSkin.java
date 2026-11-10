@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.gen;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HabitatStage;
 import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
@@ -101,6 +103,17 @@ public final class PlanetSkin {
     public static boolean sealsTowns(TargetProfile world) {
         if (world == null) return false;
         return new BiomeSkin(world.surface(), world.living(), world.signature(), climateOf(world)).habitat().enclosed();
+    }
+
+    /**
+     * The plan an owned map is laid out with for {@code world}: on a world whose towns are sealed ({@link #sealsTowns})
+     * every town in it walled with locks ({@link SealedTown#seal}), whatever home it is laid out on; otherwise the plan
+     * as it is. Every owned map decides it here (the story missions' and the Raid's), so none leaves a town open on a
+     * world nobody lives on in the open; a derived map seals its own ({@code PrecinctPlan.derive}). Sealing a sealed
+     * plan changes nothing.
+     */
+    public static PrecinctPlan sealedFor(PrecinctPlan plan, TargetProfile world) {
+        return plan != null && sealsTowns(world) ? SealedTown.seal(plan) : plan;
     }
 
     /**

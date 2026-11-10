@@ -751,13 +751,15 @@ public final class PrecinctWardStage implements GenStage {
         Fortification wall = places.get(group).fortification();
         List<PrecinctBoundary.Gate> gates = new ArrayList<>(PrecinctBoundary.openGates(merged, road, group,
                 ctx.width, ctx.height, wall.gates(), wall.gateWidth()));
-        gates.addAll(SealedTown.groundLocks(merged, group, open, gates));
+        boolean[] side = SealedTown.sealedSide(plan);
+        boolean[][] band = SealedTown.band(claim, sealed, side);
+        boolean[][] streetward = SealedTown.streetward(merged, group, open, band, road);
+        gates.addAll(SealedTown.groundLocks(merged, group, open, gates, streetward));
         boolean[][] outline = PrecinctBoundary.wall(merged, road, group, ctx.width, ctx.height,
                 wall.gates(), wall.gateWidth());
         for (PrecinctBoundary.Gate gate : gates) for (int[] c : gate.cells()) outline[c[0]][c[1]] = false;
-        boolean[] side = SealedTown.sealedSide(plan);
         SealedTown.Envelope envelope = SealedTown.envelope(merged, group,
-                SealedTown.facingOut(outline, merged, group, side), SealedTown.band(claim, sealed, side), road, gates);
+                SealedTown.facingOut(outline, merged, group, side), band, road, gates, open, streetward);
         boolean[][] cells = envelope.wall();
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
@@ -787,7 +789,8 @@ public final class PrecinctWardStage implements GenStage {
             chambers.addAll(lock.chamber());
         }
         markLocks(ctx, chambers);
-        PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), new boolean[ctx.width][ctx.height]);
+        PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), SealedTown.lockWays(envelope,
+                ctx.width, ctx.height));
         for (int i = 0; i < places.size(); i++) if (sealed[i]) works.put(i, shared);
     }
 
