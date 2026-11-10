@@ -35,13 +35,19 @@ RAWS = {
                                                      for s in ("whole", "half", "wrecked"))),
     "products-b": ("ruins-products-b.raw.png", tuple(f"{p}-{s}" for p in ("drone-frame", "forge-core")
                                                      for s in ("whole", "half", "wrecked"))),
+    "products-c": ("ruins-products-c.raw.png", tuple(f"{p}-{s}" for p in ('core-cabinet', 'field-housing', 'magnet-segment')
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-d": ("ruins-products-d.raw.png", tuple(f"{p}-{s}" for p in ('catalyst-bed', 'spool-drum')
+                                                     for s in ("whole", "half", "wrecked"))),
+    "products-e": ("ruins-products-e.raw.png", tuple(f"{p}-{s}" for p in ('bore-head', 'projector-stack')
+                                                     for s in ("whole", "half", "wrecked"))),
 }
 
 # Pieces cut at their exact guide frame instead of half a gutter wider: the dock door bled into the gutter beside
 # the racks, so a wider rack cut picks up its edge.
 # Products are cut at their frame too and keep the whole frame as their canvas, so a product's three states share one
 # scale and the wrecked one's fallen fragments stay where they lie.
-TIGHT = {"rack-stripped", "rack-crates"} | set(RAWS["products-a"][1]) | set(RAWS["products-b"][1])
+TIGHT = {"rack-stripped", "rack-crates"}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share

@@ -31,10 +31,11 @@ gap (its comment records the measured boxes). The empty cradle's middle is
 open: a 2x2 to 3x3 product stands in it.
 
 Per-theme products, each whole, half-built and wrecked (`ruins-vault-facility`): `products-a` (cryo rack unit,
-culture vat module) and `products-b` (drone frame, forge cradle core), ids `doodad.ruins-<product>-<state>` with
+culture vat module), `products-b` (drone frame, forge cradle core), `products-c` (AI core cabinet, fusion lamp
+field housing, synchrotron magnet segment), `products-d` (catalyst bed, fullerene spool drum) and `products-e`
+(mantle bore head, holosuite projector stack), ids `doodad.ruins-<product>-<state>` with
 states `whole`, `half`, `wrecked`. Each is cut at its guide frame and keeps the whole frame as its canvas on a 3x3
-footprint, so the three states share one scale and stand in a cradle or across a line module. The remaining themes'
-products follow the same guide kind (`make_guide.py`, `product`).
+footprint, so the three states share one scale and stand in a cradle or across a line module. Armory and depot keep their existing props.
 
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
