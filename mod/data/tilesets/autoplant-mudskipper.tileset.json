@@ -1,0 +1,50 @@
+{
+  "cellPx": 4,
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        16,
+        21
+      ],
+      "id": "autoplant.mudskipper-hull",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        16,
+        13
+      ],
+      "id": "autoplant.mudskipper-half",
+      "row": 8
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        16,
+        8
+      ],
+      "id": "autoplant.mudskipper-aft",
+      "row": 13
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        16,
+        8
+      ],
+      "id": "autoplant.mudskipper-nose",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/ships/mudskipper/mudskipper.png"
+}
