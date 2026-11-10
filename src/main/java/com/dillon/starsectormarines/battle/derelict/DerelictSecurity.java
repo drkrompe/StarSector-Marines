@@ -239,10 +239,13 @@ public final class DerelictSecurity {
             for (DerelictSecurityDirector.Walker w : walkers) {
                 if (!hallBound.contains(w.squadId())) continue;
                 if (egress.isEmpty()) break;
-                RuinsDelve.LeafDoor door = ramDoorOf(delve, w.postX(), w.postY(), egress.get(0));
                 // Only a door the frame can walk up to: a frame shut in a chamber by a narrow neck keeps its hall.
                 boolean[] reach = reachable(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius,
                         new int[] {w.postX(), w.postY()});
+                // The dead door on the edge of the ground it reaches, nearest its way out; else its hall's own door.
+                RuinsDelve.LeafDoor door = reach == null ? null
+                        : blockingDoor(delve.interior().doors(), reach, sim.getGrid().getWidth(), egress.get(0));
+                if (door == null) door = ramDoorOf(delve, w.postX(), w.postY(), egress.get(0));
                 int[] stand = door == null || reach == null ? null
                         : ramStand(sim.getGrid(), reach, door, w.postX(), w.postY());
                 if (stand != null) director.forceDoor(w.squadId(), door, stand[0], stand[1]);
@@ -419,6 +422,40 @@ public final class DerelictSecurity {
         }
         return best;
     }
+
+    /**
+     * The dead door that shuts a hall frame in (`derelict-watch.md`, Medium and large walkers): of the dead,
+     * non-cargo doors with a cell within {@link #BLOCK_REACH} of the ground the frame reaches ({@code reach},
+     * row-major, {@code width} wide), the one nearest its way out {@code toward}; null when none borders its ground.
+     * The door need not be on its hall's face: a frame that leaves its hall to find a dead door in the next room
+     * rams that one.
+     */
+    static RuinsDelve.LeafDoor blockingDoor(List<RuinsDelve.LeafDoor> doors, boolean[] reach, int width,
+                                            int[] toward) {
+        int height = reach.length / width;
+        RuinsDelve.LeafDoor best = null;
+        int bestD = Integer.MAX_VALUE;
+        for (RuinsDelve.LeafDoor door : doors) {
+            if (door.cargo() || door.stance() != RuinsDelve.DoorStance.DEAD) continue;
+            RuinsDelve.Area s = door.span();
+            boolean borders = false;
+            for (int y = s.bottom() - BLOCK_REACH; y <= s.top() + BLOCK_REACH && !borders; y++) {
+                for (int x = s.left() - BLOCK_REACH; x <= s.right() + BLOCK_REACH && !borders; x++) {
+                    if (x >= 0 && y >= 0 && x < width && y < height && reach[y * width + x]) borders = true;
+                }
+            }
+            if (!borders) continue;
+            int d = WalkerPosture.chebyshev(toward[0], toward[1], s.centreX(), s.centreY());
+            if (d < bestD) {
+                bestD = d;
+                best = door;
+            }
+        }
+        return best;
+    }
+
+    /** How near the frame's ground a dead door's cells lie to count as shutting it in, cells: within its ram reach. */
+    static final int BLOCK_REACH = 2;
 
     /**
      * Where a hall frame stands to ram {@code door}: the first cell it fits on the way from the door's middle to its
