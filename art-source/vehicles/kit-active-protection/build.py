@@ -5,7 +5,7 @@
 The active protection was the retired Parapet's own turret (art-source/vehicles/tank-screened, whose pack.py writes
 screened-turret-frame.png here): an interceptor
 launcher box on each rear flank of the turret and a sensor panel inset on each cheek, painted by ImageGen onto the
-approved breakthrough turret. Now that it is a compartment internal, those painted launchers and panels are lifted off
+approved tracked-hull turret. Now that it is a compartment internal, those painted launchers and panels are lifted off
 that turret as an overlay set on a gun tank's hull deck (the Onager wears the shared Hegemony head now, so no tank
 carries that housing), launchers on the rear flanks inside the tracks and panels on the front cheeks.
 

@@ -1,7 +1,7 @@
 """Pack the laser tank sheet: mod/graphics/battle/vehicles/army-tank-laser.png.
 
 Five 768x768 frames, all facing LEFT: live hull, live turret, wreck hull, wreck turret, firing turret.
-  * Hull frames come from edits of the breakthrough hull master, so they keep its registration:
+  * Hull frames come from edits of the retired tracked hull's master, so they keep its registration:
     the bearing (508,451) lands on the frame centre at 0.73 (the sheet's 178.6 px per cell).
   * Turret frames come from the up-res vanilla PD laser (pd-upres-raw.png and edits of it). The pivot
     is the vanilla sprite's centre, (627,627) on that canvas, and its 668-px body is turretBodyCells

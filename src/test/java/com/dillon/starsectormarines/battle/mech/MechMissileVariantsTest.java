@@ -22,7 +22,7 @@ class MechMissileVariantsTest {
             MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_15,
             MechWeaponComponent.LRM_5, MechWeaponComponent.LRM_15);
 
-    /** A line marine's plate, a Bulwark's and a breakthrough tank's. */
+    /** A line marine's plate, a Bulwark's and an Onager's. */
     private static final float MAN = 4f;
     private static final float BULWARK = 18f;
     private static final float TANK = 36f;

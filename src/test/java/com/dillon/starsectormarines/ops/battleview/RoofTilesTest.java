@@ -147,6 +147,7 @@ class RoofTilesTest {
         assertEquals(RoofStyle.CORRUGATED, RoofStyle.ofWorks(EmplacementStyle.EARTHWORK));
         assertEquals(RoofStyle.CLAY, RoofStyle.ofWallSurface("colony.masonry-wall"));
         assertEquals(RoofStyle.CORRUGATED, RoofStyle.ofWallSurface("colony.olive-wall"));
+        assertEquals(RoofStyle.HULL, RoofStyle.ofWallSurface("fallen-hull.hull-wall"));
         assertEquals(null, RoofStyle.ofWallSurface("floors.dirt"));
     }
 

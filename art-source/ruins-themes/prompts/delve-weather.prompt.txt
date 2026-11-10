@@ -1,0 +1,19 @@
+Asset: a sheet of separate flat floor decals for a top-down tactical game, the ruins of an abandoned Domain-era megastructure and the dead colony town round it, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide. Decals lie on the floor; they are not objects, except the broken chunks of fallen ceiling.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every decal inside its shape, at its size, position and soft irregular outline; do not move, enlarge, merge or add pieces. The space between shapes stays fully transparent. The tongues in the bottom row and the top-right one are widest along their bottom edge, where they come in through a doorway, and thin out upward.
+Material: reference 2 is the material and finish reference (the same ruins' floor stains): crisp painterly-pixel game sprite, restrained, weathered, desaturated, adult military sci-fi. Not cartoon, no thick outlines, no bright saturated flat colours.
+Subjects, top row left to right:
+1. fallen-ceiling (2x2): a fall of broken ceiling: grey cast-concrete chunks and a twisted ceiling-panel shard lying in a fan of pale dust and grit.
+2. fallen-panel (1x1): a few small concrete chips in a little dust.
+3. crack-web (2x2): a dark crack network in a cast concrete floor, spreading from one point, fine hairline branches.
+4. crack-run (1x3): a long settlement crack running the length, with fine branches.
+5. seep-stain (2x2): where water seeped from above for years: rust-brown and grey tide rings with a darker damp middle.
+6. dust-tongue (2x3): pale grey-brown grit and dust blown in through a doorway, thick at its bottom edge, thinning to fine streaks upward.
+Bottom row left to right:
+7. sand-tongue (2x3): desert sand blown in through a doorway: ochre sand, thick and rippled at its bottom edge, thinning to wind-streaked grains upward.
+8. snow-tongue (2x3): drifted snow and frost blown in through a doorway: white-blue snow, packed at its bottom edge, thinning to scattered rime and frost feathers upward.
+9. ash-tongue (2x3): volcanic ash blown in: dark charcoal-grey ash with fine black grit, thick at its bottom edge, thinning upward.
+10. sulphur-tongue (2x3): toxic sulphur dust blown in: pale yellow and stained grey-green crust, thick at its bottom edge, thinning upward.
+11. root-mat (2x2): a flat mat of creeping moss, dark-green and ochre lichen and fine root threads grown over the floor.
+12. root-run (1x3): pale woody roots reaching in from the bottom edge along the floor, branching as they go, flat to the floor.
+Every decal except the concrete chunks is semi-transparent so the floor shows through, flat with no raised geometry and no cast shadow. Strictly top-down.
+Background: true transparent background with clean alpha; no floor tile, border, labels or text.

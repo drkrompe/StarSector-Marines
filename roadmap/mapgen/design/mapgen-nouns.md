@@ -2083,6 +2083,22 @@ six cells short of every edge, trunks included, so the road graph has no perimet
 and no ground reinforcement can be offered. The landing's berths are the only
 berths on the map; a court's arrival area is the delve's, not the map's.
 
+**The world takes the ruin back** (`RuinsWeather`, the last stage of the
+ruins recipe). A site long dead is not a bare concrete block on any world: its
+own ground (sand, snow, basalt, sulphur, or grass on a living world) lies over
+the dead town's earth, rubble bed and lot floors in drifts and banks against
+every standing wall; it blows in through each mouth of the megastructure in a
+tongue that thins out within twelve cells down the corridor; dust, rime, ash or
+growth banks along the corridor walls, thicker near the mouths; water stands
+(ice on a frozen world) where the roof leaks; and ceiling has fallen here and
+there. It is look only: surface skins over cells that keep their ground kind,
+and flat decals with no cover (`ruins-delve-weather`), by coordinate noise on the
+site's seed. It leaves the landing ground, the courts, the aprons, the vault and
+the themed halls alone. Indoors its skins are coverings (`GroundFeather.COVERINGS`):
+they feather onto the megastructure's floor, so a drift ends soft, never in a step
+of cells. Pick `ruins-weather` open, building on it; `battle.ruins.weather` is
+its control.
+
 **A line stands only inside.** Inside the megastructure a layer line is a
 hull wall edge to edge, so its ways are the only crossings, and it sheds a bed
 of rubble against both faces, thinning over three cells (four for a collapsed
@@ -2236,12 +2252,37 @@ The halls by theme:
 - AI cores: the core hall;
 - lamps, dynamos and hypershunt taps: the field hall;
 - synchrotron: the ring hall;
-- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- mantle bore: the shaft hall, with a bore-shaft drop cut as the melt is;
 - catalytic core: the reactor train;
 - fullerene spool: the draw line;
 - holosuite: the stage hall;
 - depot: the high bay;
 - armory: the filling hall.
+
+**Every room serves the process** (`RuinsRoom`; the designs and their art list are
+in `ruins-theme-rooms.md` in the shared notes). The rooms off the plant's
+corridors are laid from what each did for the line, as a hall is, never dressed
+loose. The interior's plain chambers take their roles by how near they lie to
+the works hall (the hall's anchor, else the first plant hall, else the vault):
+
+- the nearest is the **control room**: the line's feeds in through the hall-side
+  wall to the mimic board, desk runs either side, the shift lead at the back;
+- the rest are a **workshop** (spares in from the stores, rejects from the lab
+  onto the rework stand under its hoist, units out to the line), a **lab**
+  (samples in through the hatch, the theme's instrument and benches, the sample
+  store, rejects binned for rework) and **crew quarters** (lockers by the way in,
+  the galley and mess table, bunks at the back), in turn;
+- a side room inside the megastructure is a **store**: stock shelved along the
+  back wall, tallied by the blast door, drawn out to the workshop.
+
+A room is planned in its own cells with its hall side north, its middle kept
+open round the cell its way in arrives at and one floor, so its rules are
+unit-proved there; the ground turns it to face its hall, its pieces' art turned
+with it (`WorksHallPlan.turned`). Its theme (`RoomTheme`) gives the board, the
+instrument, the unit on the stand, the stock and the spill; every room carries a
+collapse (a burned desk run, a fallen hoist load, a toppled shelf, the crew's
+tipped-table barricade, a split crate). Plant halls other than the works hall
+keep their dressing.
 
 A piece whose art has not shipped stands as its stand-in from the game's own
 sets, tiled over its footprint. A works hall and the mega forge take no loose
