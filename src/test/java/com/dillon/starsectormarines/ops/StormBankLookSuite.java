@@ -39,8 +39,10 @@ public final class StormBankLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            // world, wind, variant suffix, facing switch, standoff switch (null: the default)
+            // world, wind, variant suffix, facing switch, standoff switch (null: the default), industry, size, seed
             Object[][] cases = {
+                    {SurfacePalette.ARID, StormWind.Side.EAST, "-mine-size7", null, null, "mining", 7, 7L},
+                    {SurfacePalette.ARID, StormWind.Side.NORTH, "-mine-size7", null, null, "mining", 7, 7L},
                     {SurfacePalette.ARID, StormWind.Side.EAST, "", null, null},
                     {SurfacePalette.ARID, StormWind.Side.NORTH, "", null, null},
                     {SurfacePalette.ARID, StormWind.Side.SOUTH, "", null, null},
@@ -54,8 +56,9 @@ public final class StormBankLookSuite implements SnapshotSuite {
                 set(StormBank.FACING_PROPERTY, (String) k[3]);
                 set(StormBank.STANDOFF_PROPERTY, (String) k[4]);
                 Climate climate = new Climate(EnumSet.of(Climate.Hazard.STORMS), wind);
-                try (BattleSimulation sim = PlanetGroundLookSuite.site(palette, climate, SEED, 4, 3,
-                        OperationTier.ESTABLISHED)) {
+                boolean other = k.length > 5;
+                try (BattleSimulation sim = PlanetGroundLookSuite.site(palette, climate, other ? (Long) k[7] : SEED,
+                        other ? (Integer) k[6] : 4, 3, OperationTier.ESTABLISHED, other ? (String) k[5] : "heavyindustry")) {
                     int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
                     String name = palette.name().toLowerCase(Locale.ROOT) + "-" + wind.name().toLowerCase(Locale.ROOT)
                             + k[2];

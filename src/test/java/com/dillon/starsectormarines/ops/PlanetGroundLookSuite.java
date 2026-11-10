@@ -89,12 +89,18 @@ public final class PlanetGroundLookSuite implements SnapshotSuite {
     }
 
     static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
-                                         OperationTier tier) {
+                                 OperationTier tier) {
+        return site(palette, climate, seed, size, defence, tier, "heavyindustry");
+    }
+
+    /** The Raid site of {@code industry} on this world. */
+    static BattleSimulation site(SurfacePalette palette, Climate climate, long seed, int size, int defence,
+                                 OperationTier tier, String industry) {
         TargetProfile market = new TargetProfile(size, 5, defence, 2, "independent",
                 EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT, EconomicFunction.HABITATION),
                 palette, SettlementLink.ROAD).withClimate(climate);
         return BattleSetup.createRaidWorks(seed, BattleSetup.defaultManifest(), false, tier, RiskLevel.MEDIUM, market,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier), "heavyindustry");
+                FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null, RaidWorksLayout.machinesFor(tier), industry);
     }
 
     /** The centre of the close-up window holding the most cells whose surface the storm changed. */
