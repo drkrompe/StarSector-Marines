@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +20,8 @@ import java.util.List;
  *
  * <p>A raid to disrupt an industry has several sites, the machines of its works ({@link #works}). Each is wrecked
  * by the same law that seizes a target: a settled Marine combatant holding its pocket uncontested for the service
- * time, progress lost on interruption. Machines can be worked in any order and at once. The way out opens with the
+ * time, progress lost on interruption; or by bringing down the hall it stands in ({@link #withHalls}). Machines can
+ * be worked in any order and at once. The way out opens with the
  * first machine wrecked ({@link Phase#EGRESS}): leaving then is the player's call, and machines left standing can
  * still be wrecked on the way. {@link #share} is the fraction wrecked, which decides how long the industry stays
  * disrupted.
@@ -79,6 +83,7 @@ public final class RaidObjective implements Objective {
     private boolean failed;
     private int alarmRaisedTick = -1;
     private ServiceWindow window;
+    private List<List<int[]>> halls;
     private int lastTick;
 
     public RaidObjective(String targetId, String targetName,
@@ -128,6 +133,20 @@ public final class RaidObjective implements Objective {
 
     @Override public Faction owningFaction() { return Faction.MARINE; }
 
+    /**
+     * The halls of the works' machines ({@code raid-demolish-the-works.md}): {@code outlines.get(i)} is the outline
+     * ({@link BuildingStanding#outline}) of the building machine {@code i} stands in, or empty for a machine in the
+     * open. A machine whose hall is brought down ({@link BuildingStanding#demolished}) is wrecked with it, whatever
+     * brought it down; a charge still wrecks it too. Two machines in one hall share its outline and fall together.
+     */
+    public RaidObjective withHalls(List<List<int[]>> outlines) {
+        if (outlines.size() != sites.size()) throw new IllegalArgumentException("one hall outline per site");
+        List<List<int[]>> copy = new ArrayList<>(outlines.size());
+        for (List<int[]> outline : outlines) copy.add(List.copyOf(outline));
+        this.halls = List.copyOf(copy);
+        return this;
+    }
+
     /** Only within {@code window} may the target be served; a window missed fails the raid. */
     public RaidObjective withServiceWindow(ServiceWindow window) {
         this.window = window;
@@ -147,6 +166,13 @@ public final class RaidObjective implements Objective {
         marineServicing = false;
         for (int i = 0; i < sites.size(); i++) {
             if (done[i]) continue;
+            if (hallDown(sim, i)) {
+                if (alarmRaisedTick < 0) alarmRaisedTick = sim.getSimTickIndex();
+                progress[i] = serviceDuration;
+                done[i] = true;
+                doneCount++;
+                continue;
+            }
             Site site = sites.get(i);
             int zone = zoneAt(sim, site);
             boolean marinePresent = combatantPresent(sim, Faction.MARINE,
@@ -173,6 +199,25 @@ public final class RaidObjective implements Objective {
             marineServicing = false;
         }
     }
+
+    private boolean hallDown(BattleView sim, int site) {
+        if (halls == null || halls.get(site).isEmpty()) return false;
+        CellTopology topology = sim.getTopology();
+        return BuildingStanding.demolished(BuildingStanding.standingShare(halls.get(site), topology::isWall));
+    }
+
+    /**
+     * How far machine {@code site}'s hall is toward brought down, 0 whole to 1 down
+     * ({@link BuildingStanding#progress}); 0 for a machine in the open.
+     */
+    public float hallProgress(BattleView sim, int site) {
+        if (halls == null || halls.get(site).isEmpty()) return 0f;
+        CellTopology topology = sim.getTopology();
+        return BuildingStanding.progress(BuildingStanding.standingShare(halls.get(site), topology::isWall));
+    }
+
+    /** Whether machine {@code site} stands in a hall that can be brought down. */
+    public boolean hasHall(int site) { return halls != null && !halls.get(site).isEmpty(); }
 
     private static int zoneAt(BattleView sim, Site site) {
         int zone = sim.getZoneGraph().zoneIdAt(site.cellX(), site.cellY());

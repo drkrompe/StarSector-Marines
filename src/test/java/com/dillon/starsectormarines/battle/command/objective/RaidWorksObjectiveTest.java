@@ -8,13 +8,18 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** A disrupting raid's works ({@code raid-mission.md}, Break): several machines, the way out open from the first. */
+/**
+ * A disrupting raid's works ({@code raid-mission.md}, Break): several machines, the way out open from the first; a
+ * machine's hall brought down wrecks it ({@code raid-demolish-the-works.md}).
+ */
 class RaidWorksObjectiveTest {
 
     /** A charge of a tenth of a second: two ticks at the sim's step set one. */
@@ -93,6 +98,32 @@ class RaidWorksObjectiveTest {
     }
 
     @Test
+    void bringingDownAMachinesHallWrecksItWithNoChargeAndOpensTheWayOut() {
+        Fixture f = new Fixture();
+        // Machine 0 stands in a hall: a 3x3 floor at 4..6 walled round at 3 and 7, sixteen wall cells.
+        for (int x = 3; x <= 7; x++) for (int y = 3; y <= 7; y++) {
+            if (x == 3 || x == 7 || y == 3 || y == 7) f.topology.setWall(x, y, true);
+        }
+        int[] floorX = {4, 5, 6, 4, 5, 6, 4, 5, 6}, floorY = {4, 4, 4, 5, 5, 5, 6, 6, 6};
+        List<int[]> hall = BuildingStanding.outline(floorX, floorY, f.topology::isWall, 24, 24);
+        RaidObjective works = f.works().withHalls(List.of(hall, List.of(), List.of()));
+        assertTrue(works.hasHall(0));
+        assertFalse(works.hasHall(1));
+
+        for (int i = 0; i < 7; i++) f.topology.setWall(hall.get(i)[0], hall.get(i)[1], false);
+        works.tick(f.view);
+        assertEquals(0, works.sitesDone(), "seven of sixteen down is not half");
+        assertEquals(7f / 8f, works.hallProgress(f.view, 0), 1e-6);
+
+        f.topology.setWall(hall.get(7)[0], hall.get(7)[1], false);
+        works.tick(f.view);
+        assertTrue(works.siteDone(0));
+        assertTrue(works.egressOpen());
+        assertTrue(works.defenderAlarm().active());
+        assertEquals(0f, works.hallProgress(f.view, 1));
+    }
+
+    @Test
     void aSingleTargetRaidStillNeedsItsTargetBeforeTheWayOut() {
         Fixture f = new Fixture();
         RaidObjective raid = new RaidObjective("T", "target", 5, 5, f.zones.zoneIdAt(5, 5), 20, 20, CHARGE);
@@ -110,6 +141,7 @@ class RaidWorksObjectiveTest {
     private static final class Fixture {
         final NavigationGrid grid = new NavigationGrid(24, 24);
         final ZoneGraph zones = new ZoneGraph(grid);
+        final CellTopology topology = new CellTopology(24, 24);
         final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(24, 24), null);
         final List<Long> units = new ArrayList<>();
         final BattleView view;
@@ -121,6 +153,7 @@ class RaidWorksObjectiveTest {
             view = (BattleView) Proxy.newProxyInstance(BattleView.class.getClassLoader(),
                     new Class<?>[]{BattleView.class}, (proxy, method, args) -> switch (method.getName()) {
                         case "getZoneGraph" -> zones;
+                        case "getTopology" -> topology;
                         case "getSimTickIndex" -> 0;
                         case "world" -> roster.world();
                         case "identity" -> roster.identity();

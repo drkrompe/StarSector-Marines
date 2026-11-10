@@ -1,6 +1,6 @@
 # Raid mission: what the player came to do
 
-Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates), and each site is one owned map laid against a reference market and skinned for the planet (The owned map; the owner picked the guarded size-6 reference, one map per site and 400x240). The slices are `raid-wreck-the-works.md` and `raid-site-templates.md`.
+Status: ACTIVE — owner picks: the objective follows the raid's intent; break is "wreck the works" (`raid-break`); steal is graded by security (`raid-steal-scaling`), and every prize stands in a compound with a buffer in its own district; the map is an authored site per industry (`raid-mapgen`: site templates), and each site is one owned map laid against a reference market and skinned for the planet (The owned map; the owner picked the guarded size-6 reference, one map per site and 400x240). The slices are `raid-wreck-the-works.md`, `raid-site-templates.md` and `raid-demolish-the-works.md`.
 
 Written: 2026-11-09
 
@@ -42,7 +42,8 @@ succeeds without eliminating the defender.
   is its tank farm, a mine's its headframes and mills, a factory's its lines.
 - A **machine** is one part of the works a charge can wreck. Wrecking a machine
   takes a settled Marine combatant holding its pocket uncontested for its
-  charge time; it cannot be undone.
+  charge time, or bringing down its **hall** (the building it stands in) to
+  half its outline (`raid-demolish-the-works.md`); it cannot be undone.
 - The **stores** are where a market keeps its goods: warehouses for
   commodities, the depot for weapons, the laboratory for blueprints, the
   admin vault for AI cores and credits. The **bonded vault** is one walled,
@@ -258,7 +259,9 @@ drawn on it.
   ground stands in.
 - Its **machines** are the objective. Each takes a charge: a settled Marine
   combatant holding the machine's pocket, uncontested, for the charge time. An
-  interrupted charge starts again. The first charge raises the alarm.
+  interrupted charge starts again. The first charge raises the alarm. A
+  machine whose hall is brought down is wrecked with it, by whatever fire
+  brought it down (`raid-demolish-the-works.md`).
 - **Leaving is the player's call.** Once one machine is wrecked the way out is
   open: a Marine combatant settled at the Hermes' berth ends the raid. The player
   can stay to wreck more or pull out with what they have done.
