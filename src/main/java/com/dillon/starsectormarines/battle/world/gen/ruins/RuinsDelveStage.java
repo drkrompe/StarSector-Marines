@@ -82,6 +82,8 @@ public final class RuinsDelveStage implements GenStage {
     static final int SERVICE_WIDTH = 2, FREIGHT_WIDTH = 4;
     /** A mega forge hall's breadth and length, cells; vast's larger. Its pour line runs along its length. */
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
+    /** The mega forge's breakout pool round its middle: half its width and half its length, cells. */
+    static final int BREAKOUT_WIDE = 7, BREAKOUT_LONG = 8;
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
     static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
     /**
@@ -232,6 +234,11 @@ public final class RuinsDelveStage implements GenStage {
         PowerHall innerHall;
         /** Each interior layer's court, laid with its band so the spine runs through it. */
         final Map<Integer, Court> wells = new HashMap<>();
+        /**
+         * A works site's works hall, laid first in the outer interior band with the band's spine down its west side
+         * ({@code ruins-expedition.md}, The works hall is the trunk); null on a site without one.
+         */
+        Area trunkHall;
 
         Layout(GenContext ctx, RuinsGroundPlan plan, Random rng) {
             this.ctx = ctx;
@@ -967,6 +974,19 @@ public final class RuinsDelveStage implements GenStage {
             return new Court(RuinsDelve.layerName(index) + ".court", ground, area);
         }
 
+        /**
+         * {@link #court}, standing across column {@code spine} so the spine runs through it: its left edge anywhere
+         * that keeps the spine's three columns inside the court's walls.
+         */
+        Court courtOn(int index, Area region, int spine) {
+            int lo = Math.max(region.left() + 1, spine - COURT_WIDTH + 3), hi = Math.min(spine - 2,
+                    region.right() - COURT_WIDTH);
+            if (hi < lo) throw new IllegalStateException(RuinsDelve.layerName(index) + " seats no court on its spine");
+            // spot() keeps a cell of margin inside the area it searches, so the court's left edge lands in lo..hi.
+            Area column = new Area(lo - 1, region.bottom(), hi + COURT_WIDTH, region.top());
+            return court(index, column);
+        }
+
         PowerHall hall(int index, Area region) {
             Shell s = shellIn(region, HALL_WIDTH, HALL_HEIGHT, HALL_WALL, HALL_FLOOR, BuildingKind.INDUSTRIAL);
             if (s == null) throw new IllegalStateException(RuinsDelve.layerName(index) + " seats no power hall");
@@ -1321,10 +1341,26 @@ public final class RuinsDelveStage implements GenStage {
                 int regionLeft = drafts.get(k).lineRight + 3;
                 int regionRight = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 4 : zoneEnd;
                 Area region = new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3);
-                if (k == hallLayer) innerHall = hall(k, region);
-                Court well = court(k, region);
+                int spine;
+                Court well;
+                Area works = k == first && plan.dressing().works().any() ? plantHall(region, worksStage()) : null;
+                if (works != null) {
+                    // The works hall first, the band's biggest piece: the spine runs down its west side, through it
+                    // from its dispatch end to its head, and the court and power hall stand clear of that column.
+                    trunkHall = works;
+                    spine = works.left() + 1;
+                    well = courtOn(k, region, spine);
+                    reserve(new Area(spine - 1, region.bottom(), spine + 1, region.top()), 2);
+                    if (k == hallLayer) innerHall = hall(k, region);
+                    for (int y = works.bottom(); y <= works.top(); y++) {
+                        for (int x = spine - 1; x <= spine + 1; x++) aisle[i(x, y)] = true;
+                    }
+                } else {
+                    if (k == hallLayer) innerHall = hall(k, region);
+                    well = court(k, region);
+                    spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
+                }
                 wells.put(k, well);
-                int spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 for (int y = 2; y <= h - 3; y++) {
                     for (int x = spine - 1; x <= spine + 1; x++) {
                         carve(x, y, k);
@@ -1606,9 +1642,12 @@ public final class RuinsDelveStage implements GenStage {
             for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
                 boolean first = i == firstInside && stage == RuinsDelve.PlantStage.PRODUCTION
                         && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
-                Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
+                boolean trunk = trunkHall != null && i == firstInside && stage == worksStage()
+                        && plantHalls.stream().noneMatch(p -> p.footprint().equals(trunkHall));
+                Area floor = trunk ? trunkHall : plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
                 if (floor == null) continue;
-                connect(new Cell(floor.centreX(), floor.centreY()), i, null, FREIGHT_WIDTH);
+                // The trunk hall needs no way of its own: the spine runs through it.
+                if (!trunk) connect(new Cell(floor.centreX(), floor.centreY()), i, null, FREIGHT_WIDTH);
                 chambers.add(floor);
                 plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
                         stage, floor));
@@ -1625,7 +1664,7 @@ public final class RuinsDelveStage implements GenStage {
             boolean vast = plan.layers() >= 4;
             if (band == 0) {
                 // The works hall is placed first, while the band still has room for it; the intake after.
-                out.add(plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS);
+                out.add(worksStage());
                 out.add(RuinsDelve.PlantStage.INTAKE);
                 if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
             }
@@ -1634,6 +1673,11 @@ public final class RuinsDelveStage implements GenStage {
                 for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
             }
             return out;
+        }
+
+        /** The stage a works site's works hall is laid as: the mega forge's foundry, or the theme's works hall. */
+        RuinsDelve.PlantStage worksStage() {
+            return plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS;
         }
 
         /** A plant hall of {@code stage}'s size laid in {@code region}, its floor carved; null where none fits. */
@@ -1965,8 +2009,10 @@ public final class RuinsDelveStage implements GenStage {
                 if (Math.floorMod(top - 16 - y, 12) <= 1) continue;
                 meltBox(melt, hall, centre, cx - 1, y, cx, y);
             }
+            int[] crossings = new int[0];
             for (int y = top - 17; y >= bottom + 6; y -= 12) {
-                lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx - 1, y);
+                crossings = Arrays.copyOf(crossings, crossings.length + 1);
+                crossings[crossings.length - 1] = y;
             }
             // Production lines: a channel each way to a mould grid over its bed, a cooling rack beyond.
             int line = 0;
@@ -1999,8 +2045,8 @@ public final class RuinsDelveStage implements GenStage {
                 lay(registry, "doodad.ruins-floor-drain", cx - 4, y0 - 5, under);
                 lay(registry, "doodad.ruins-floor-drain", cx + 3, y0 - 5, under);
                 if (hash(cx, y0, 0x011) % 3 == 0) lay(registry, "doodad.ruins-oil-stain", cx + 14, y0 - 11, under);
-                // A crane girder fallen across the west aisle under its runway, the hall's best cover.
-                if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 1, y0 - 4, 7, 1, hall, centre);
+                // A crane girder fallen beside the trunk down the west wall, the hall's best cover.
+                if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 5, y0 - 4, 7, 1, hall, centre);
             }
             // The head, east of the line: ladles waiting by the spout, the charge racks feeding the crucible, the
             // pour pulpit watching the spout; the slag pit beyond the line. With no great crucible, a ladle each side
@@ -2030,6 +2076,11 @@ public final class RuinsDelveStage implements GenStage {
             }
             piece(registry, "doodad.ruins-slag-heap", cx + 15, top - 9, 2, 2, hall, centre);
             piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
+            breakout(melt, hall, centre);
+            // The line's crossings, each a grate catwalk, but where the breakout has taken the line.
+            for (int y : crossings) {
+                if (!melt[i(cx - 1, y)]) lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx - 1, y);
+            }
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
             if (great) {
@@ -2041,7 +2092,78 @@ public final class RuinsDelveStage implements GenStage {
                 feedRail(registry, hall, centre, gy);
             }
             dispatch(registry, hall, centre, under);
+            transferBridge(registry, hall, centre, melt);
             overheads(registry, hall, centre);
+        }
+
+        /**
+         * The breakout ({@code ruins-expedition.md}, The forge's transfer bridge): when the plant died the pour line
+         * burst its banks at the hall's middle and pooled there, a ragged pool of melt across the line. The transfer
+         * aisle stays clear of it, so it crosses the pool as the transfer bridge. Laid after the lines, round any
+         * piece already standing there (the tipped ladle that spilled it), and kept from later pieces.
+         */
+        private void breakout(boolean[] melt, Area hall, Cell centre) {
+            // As large as it can lie with the hall still one floor round it, never smaller than a pool.
+            for (int scale = 0; scale < 4; scale++) {
+                int wide = BREAKOUT_WIDE - scale, lng = BREAKOUT_LONG - 2 * scale;
+                List<Integer> pool = new ArrayList<>();
+                float mx = centre.x() - 0.5f, my = centre.y() + 0.5f;
+                for (int y = centre.y() - lng; y <= centre.y() + lng + 1; y++) {
+                    for (int x = centre.x() - wide; x <= centre.x() + wide - 1; x++) {
+                        float dx = (x + 0.5f - mx) / (wide + 0.5f), dy = (y + 0.5f - my) / (lng + 0.5f);
+                        // A ragged edge by coordinate hash: the melt ran further in some places than others.
+                        float edge = 0.8f + (hash(x, y, 0xB0E) % 100) / 400f;
+                        if (dx * dx + dy * dy > edge || !hall.contains(x, y) || melt[i(x, y)]) continue;
+                        boolean[] one = new boolean[w * h];
+                        meltBox(one, hall, centre, x, y, x, y);
+                        if (one[i(x, y)]) pool.add(i(x, y));
+                    }
+                }
+                if (pool.isEmpty() || splits(melt, pool, hall)) continue;
+                for (int k : pool) {
+                    melt[k] = true;
+                    kitFloor[k] = true;
+                }
+                return;
+            }
+        }
+
+        /** Whether melt over {@code pool}, with the melt already planned, would leave the hall more than one floor. */
+        private boolean splits(boolean[] melt, List<Integer> pool, Area hall) {
+            List<Integer> cut = new ArrayList<>(pool);
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (melt[i(x, y)] && grid.isWalkable(x, y)) cut.add(i(x, y));
+                }
+            }
+            for (int k : cut) grid.setWalkable(k % w, k / w, false);
+            boolean whole = oneFloor(hall);
+            for (int k : cut) grid.setWalkable(k % w, k / w, true);
+            return !whole;
+        }
+
+        /**
+         * The transfer bridge over the breakout: a deck four cells wide on the transfer aisle, from bank to bank of
+         * the pool, where a hall frame stands its post and the haul crosses the hall. Drawn as grate decking until
+         * the bridge's own art ships.
+         */
+        private void transferBridge(TileRegistry registry, Area hall, Cell centre, boolean[] melt) {
+            int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+            // The pool's own columns: a production line's beds beside the aisle are melt too, but no bridge's.
+            for (int x = centre.x() - BREAKOUT_WIDE; x <= centre.x() + BREAKOUT_WIDE - 1; x++) {
+                if (melt[i(x, centre.y() - 2)] || melt[i(x, centre.y() + 3)]) {
+                    lo = Math.min(lo, x);
+                    hi = Math.max(hi, x);
+                }
+            }
+            if (lo > hi) return;
+            // Bank to bank, on the pour line's columns' even step so the decking lines up with the line's crossings.
+            int start = centre.x() - 1 - 2 * ((centre.x() - 1 - (lo - 1) + 1) / 2);
+            for (int x = start; x <= hi + 1; x += 2) {
+                for (int y = centre.y() - 1; y <= centre.y() + 1; y += 2) {
+                    lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), x, y);
+                }
+            }
         }
 
         /**
@@ -2102,9 +2224,10 @@ public final class RuinsDelveStage implements GenStage {
          * another lies derailed in the aisle.
          */
         private void feedRail(TileRegistry registry, Area hall, Cell centre, int gy) {
-            int fx = hall.left() + 2;
+            // East of the trunk's three columns down the west wall, so a pod on the rail never closes the trunk.
+            int fx = hall.left() + 3;
             piece(registry, "doodad.ruins-feed-pod", fx, gy + 9, 2, 3, hall, centre);
-            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 2, 2, 3, hall, centre);
+            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 3, 2, 3, hall, centre);
             magRail(registry, fx, hall.bottom() + 8, hall.top() - 1, true);
         }
 
@@ -2326,7 +2449,7 @@ public final class RuinsDelveStage implements GenStage {
                 int cx = at % w, cy = at / w;
                 for (int dy = lo; dy < lo + width; dy++) {
                     for (int dx = lo; dx < lo + width; dx++) {
-                        if (!corridorCell(cx + dx, cy + dy, avoid)) continue;
+                        if (!corridorCell(cx + dx, cy + dy, avoid) || inTrunk(cx + dx, cy + dy)) continue;
                         carve(cx + dx, cy + dy, band);
                         if (freight) freightNet[i(cx + dx, cy + dy)] = true;
                     }
@@ -2343,10 +2466,19 @@ public final class RuinsDelveStage implements GenStage {
             int lo = stampLow(width);
             for (int dy = lo; dy < lo + width; dy++) {
                 for (int dx = lo; dx < lo + width; dx++) {
-                    if (!corridorCell(x + dx, y + dy, avoid)) return false;
+                    if (!corridorCell(x + dx, y + dy, avoid) || inTrunk(x + dx, y + dy)) return false;
                 }
             }
             return true;
+        }
+
+        /**
+         * Whether a cell is the trunk hall's or its wall: no way but the spine enters the works hall, so every other
+         * meets the spine beyond the hall's ends and the hall keeps its process layout whole.
+         */
+        boolean inTrunk(int x, int y) {
+            return trunkHall != null && x >= trunkHall.left() - 1 && x <= trunkHall.right() + 1
+                    && y >= trunkHall.bottom() - 1 && y <= trunkHall.top() + 1;
         }
 
         /**

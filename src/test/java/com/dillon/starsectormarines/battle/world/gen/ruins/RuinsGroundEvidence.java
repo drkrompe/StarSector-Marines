@@ -100,6 +100,11 @@ class RuinsGroundEvidence {
                             }
                         }
                     }
+                    // A works site lays its works hall wherever it has an interior band: the band's trunk runs through it.
+                    if ((seed & 1) == 1 && layers >= 2 && interior.halls().stream().noneMatch(hall ->
+                            hall.stage() == RuinsDelve.PlantStage.FOUNDRY || hall.stage() == RuinsDelve.PlantStage.WORKS)) {
+                        failures.add(where + "the works site laid no works hall");
+                    }
                     for (RuinsDelve.Area chamber : interior.chambers()) {
                         if (!roofed(map, chamber.centreX(), chamber.centreY())) {
                             failures.add(where + "a chamber at " + chamber + " is not roofed");
