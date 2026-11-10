@@ -1,0 +1,7 @@
+A single small impact crater on an airless barren world, for a top-down tactical battle game, seen from directly overhead (orthographic, straight down, no perspective tilt).
+
+Subject: a round bowl crater, centred. Inside: a shallow bowl of darker, shattered grey-brown regolith with fine rubble, slightly darker toward the centre, a few fractured rocks on the floor. Around it: a low raised lip of broken, overturned rock and paler crushed dust, then an ejecta blanket of scattered grit, small stones and short irregular radial rays splashing outward and thinning to nothing. Muted, grounded realism; soft light from the upper left so the lip's upper-left inner slope is in light shade and the lower-right inner slope catches light; subtle shading only.
+
+Colour: dust grey-browns matching the regolith ground in reference 1, darker in the bowl, paler on the lip; the outer ejecta must blend into that ground.
+
+Output: square canvas, the crater and its ejecta filling about 90% of it. True transparent background, including all space around the crater; the outer ejecta should fade to transparent with a soft irregular edge. No ground tile, no shadow slab, no border, no text, no other objects.
