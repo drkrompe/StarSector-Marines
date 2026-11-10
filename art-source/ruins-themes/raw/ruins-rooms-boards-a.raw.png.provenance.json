@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73c-0ce1-7983-b6ca-1d09573398ad",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73c-0ce1-7983-b6ca-1d09573398ad\\exec-a19babfc-5b9f-4c4e-8fec-13ba6d50424a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-boards-a.raw.png",
+    "sha256": "0c1b6e1261293b3da6176f0901c2735fdee08f2b3d9ec8a7325acde4f3802879",
+    "dimensions": [
+      1904,
+      826
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-boards-a.prompt.txt",
+  "promptSha256": "d8dc7a920a00cf85e8ca3a7c9fe14f153564b3304c0320865888ac9e34d5a4a3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nEach mimic board is a wall-mounted control-room board seen from above: a shallow steel cabinet along the wall, its long face a dark mimic panel showing a schematic of its own line in coloured lines, nodes and small lamps, all different: see the list.\nSubjects, top row, left to right:\n1. cold-loop-board (3x1): The control room's mimic board of its hall's line: cryostat loop temperatures.\n2. culture-board (3x1): The control room's mimic board of its hall's line: culture vat states.\n3. print-queue-board (3x1): The control room's mimic board of its hall's line: the print queue.\nSubjects, second row, left to right:\n4. lattice-board (3x1): The control room's mimic board of its hall's line: AI core burn-in states.\n5. field-board (3x1): The control room's mimic board of its hall's line: the fusion torus field.\n6. beam-board (3x1): The control room's mimic board of its hall's line: the synchrotron beam position.\nSubjects, third row, left to right:\n7. bore-board (3x1): The control room's mimic board of its hall's line: bore depth and torque.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-boards-a-guide.png",
+      "sha256": "acb1ca495e7c9887b34c06c5ac39e01b7ff790fd3e343bf8d2d5bc324de91dcc",
+      "dimensions": [
+        1696,
+        736
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using Image 1 for the exact layout and Image 2 for the materials and finish."
+  ],
+  "usage": {
+    "input_tokens": 45642,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 824,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 70.5
+}

@@ -134,6 +134,14 @@ sheet, `ruins-forge-bridge` (`_atlas-bridge.json`), from the `forge-bridge` fami
 `transfer-bridge-end` (the west abutment on its cast footing, mirrored for the east bank) and
 `transfer-bridge-span-damaged` (railing torn, deck split over the melt). All are floor: cover none.
 
+The rooms' furniture (`ruins-theme-rooms`, `RuinsRoom`) ships on `ruins-rooms` (`_atlas-rooms.json`): 61 pieces in
+ten families (`rooms-control`, `-lab`, `-shop`, `-crew`, `-boards-a/b`, `-instruments-a/b`, `-stocks-a/b`), listed
+once in `rooms_list.py` (id, footprint, block-out kind, layer, name, what) and drawn by `rooms_kinds.py` at 160 px a
+cell. Every piece stands against the north wall, its working face to the room; the ground turns it with its room.
+`stand` pieces block with medium cover, `floor` and `overhead` (the rework stand and its hoist) do not.
+`rooms_prompts.py` writes the briefs. The raws come back at their own aspect, so `export.register` fits the guide's
+frames to each raw's alpha bounds before cutting.
+
 The delve's weather (`RuinsWeather`) ships on its own sheet, `ruins-delve-weather` (`_atlas-weather.json`), from the
 `delve-weather` family, whose block-outs are drawn by `weather_kinds.py`: fallen ceiling and chips, a seep stain, the
 tongues of a world's ground blown in through a mouth (dust, sand, snow, ash, sulphur; each widest along its south edge,

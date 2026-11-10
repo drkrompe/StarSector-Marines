@@ -17,6 +17,8 @@ from PIL import Image, ImageChops, ImageDraw
 import hall_kinds
 import weather_kinds
 import bridge_kinds
+import rooms_kinds
+import rooms_list
 
 CELL = 320
 GUTTER = 64
@@ -187,6 +189,10 @@ FAMILY_CELL["delve-weather"] = 160
 FAMILIES["forge-bridge"] = [("transfer-bridge-span", 2, 4, "b/span"), ("transfer-bridge-end", 2, 4, "b/end"),
                             ("transfer-bridge-span-damaged", 2, 4, "b/damaged")]
 FAMILY_CELL["forge-bridge"] = 160
+# The ruins rooms' furniture (``ruins-theme-rooms``): the art list and block-out kinds are ``rooms_list.py``.
+for _fam, _entries in rooms_list.FAMILIES.items():
+    FAMILIES[_fam] = [e[:4] if e else None for e in _entries]
+    FAMILY_CELL[_fam] = 160
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -427,7 +433,8 @@ def draw(family):
     for pid, x, y, w, h, kind in fr:
         inset = 18
         if hall_kinds.draw_kind(im, d, kind, x, y, w, h) or weather_kinds.draw_kind(im, d, kind, x, y, w, h) \
-                or bridge_kinds.draw_kind(im, d, kind, x, y, w, h):
+                or bridge_kinds.draw_kind(im, d, kind, x, y, w, h) \
+                or rooms_kinds.draw_kind(im, d, kind, x, y, w, h):
             continue
         if kind == "box":
             d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=body, outline=edge, width=8)

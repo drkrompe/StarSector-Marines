@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73c-27d1-7be3-8f2f-54c593ef865e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73c-27d1-7be3-8f2f-54c593ef865e\\exec-b342f24a-a657-4429-9323-d63586c0760a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-instruments-b.raw.png",
+    "sha256": "fdd9995629bd34a55fc9c266187f2d15f623a7bdc9f6409c2137143188f3e084",
+    "dimensions": [
+      1477,
+      1065
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-instruments-b.prompt.txt",
+  "promptSha256": "51bfccc23f351619493ca34abe049e055a842fdf88be1b792d7dfaafb5f17bd9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nEach is a lab test instrument or bench on its own base, different in shape: see the list.\nSubjects, top row, left to right:\n1. core-sample-rack (2x2): Rock cores from the bore, racked. Seen from above: a low rack of long split cylindrical rock cores in trays, grey and rust-banded stone, labels as plain tags.\n2. assay-bench (2x2): A reagent assay bench. Seen from above: a reagent bench: rows of small stoppered bottles in a tray, a titration stand and a sealed glove box at one end.\n3. tally-bench (2x2): An inspection and tally bench. Seen from above: an inspection bench: a lit inspection plate with a scanning arm, a stack of totes at one side.\nSubjects, second row, left to right:\n4. charge-test-cell (2x2): A small armoured test cell. Seen from above: a small armoured test cell: a thick steel box with a heavy bolted lid and a blast vent, hazard banded.\n5. assay-furnace (2x2): A small assay furnace. Seen from above: a small assay furnace: a refractory brick block with a round crucible port glowing faintly, tongs on a hook, a vent hood.\n6. sorter-module (3x3): A sorter head, the high bay's spare on the rework stand. Seen from above: a robotic sorter head: a three-armed rotary picker on a square base, chutes and a reject flap, cables coiled.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-instruments-b-guide.png",
+      "sha256": "6e5fc2bf98fc46322ba0f210bb856cde0ab99e43d439a9959384ceaa7e44d1bb",
+      "dimensions": [
+        1376,
+        992
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using the first image’s exact layout and the second image’s material style."
+  ],
+  "usage": {
+    "input_tokens": 46174,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 920,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.1
+}

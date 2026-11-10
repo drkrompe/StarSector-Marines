@@ -2198,7 +2198,10 @@ of every piece and melt; the band's court stands across the same column and the
 power hall clear of it. No other way enters the hall: the ways through the
 lines, the other halls and the rooms meet the spine beyond the hall's ends. So
 the route through the band passes through the works hall
-(`ruins-expedition.md`, The works hall is the trunk). The hall is laid out from its process,
+(`ruins-expedition.md`, The works hall is the trunk). The interior publishes the hall's
+stand (`RuinsDelve.Interior.worksStand`), the floor cell its zone is held from:
+by the mega forge's pour pulpit, or at the east end of a works hall's transfer
+aisle. The hall is laid out from its process,
 head to the north:
 
 - the great crucible (12x16, `ruins-forge` sheet) west of the line, its
@@ -2220,7 +2223,9 @@ head to the north:
   pool would split the hall), and the **transfer bridge** across it, a deck
   four cells wide on the transfer aisle from bank to bank. It is the only way
   a hall frame or the haul crosses the line, and the frame's post stands on it
-  (`ruins-expedition.md`, The forge's transfer bridge);
+  (`ruins-expedition.md`, The forge's transfer bridge). It is laid from the
+  `ruins-forge-bridge` sheet: spans every two columns, an abutment on each
+  bank (the east one mirrored), one span split;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
