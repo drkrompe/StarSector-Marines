@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-11-10 — the Maps page, the editor for owned mission maps.
+Updated: 2026-11-10 — the Maps page edits a story map's owned seed: world dress and its pool patch.
 
 Page-by-page detail of the `gradlew.bat layerAuthoring` workbench (Layers, Turrets, Rooms, Map damage, Maps, Tilesets), moved verbatim from `CLAUDE.md` (Build & deploy). Read it when working on or with a workbench page.
 
@@ -101,35 +101,30 @@ Save writes `mod/data/world/damage/relief.damage.json` atomically. The shared
 document and brush are recipe-independent; Relief is the first linked host.
 `createSnapshots -Psnapshot=relief-damage` checks exact intact restoration,
 production destruction and editor gestures, and renders at 1920x1080 / 100%.
-The Maps page is the editor for owned mission maps (`owned-maps.md`). It opens
-an owned map document (`data/world/maps/<id>.map.json` with the road document it
-names), never an empty grid, built by the mission's own recipe
-(`OwnedMapRecipe`) and drawn whole by the battle renderer's look preset; the
-edits are drawn on that picture. Its tools write the document's own nouns:
-**drops** (RIVER or RIFT; a path clicked along its course, each point at its own
-depth share, and decked crossings clicked onto it), **banks** (a rise dragged
-out, with its height share; `NaturalRise` terraces it), **roads** (added to the
-road document), **sites** (the mission's named places, by kind), the **origin**,
-and **settlements by program and role** (town or works; a lot dragged out, with
-the drop it terraces into), never building style. Drag moves a drop's point, a
-site, a bank, the origin or a whole settlement; the wheel over a drop's point
-sets its depth; every edit is one undo step.
-The **world** switch builds the same document as each of ten worlds (rock,
-arid, verdant, jungle, tundra, ocean, frozen, volcanic, irradiated, toxic)
-through the campaign's skin (`BiomeSkin`): palette and signature, the drop's
-style and floor depth, and each settlement's adaptation (open, insulated, sealed
-perimeter, crevasse town). **All worlds sheet** draws them side by side, each
-labelled with its drop style and adaptations.
-**Checks run with every redraw**, and a save is refused while one fails on any
-world: the recipe's own (every pad, site, building and route reachable from the
-origin; a drop never cuts built ground) and the page's (`MapChecks`: every
-crossing open, on its drop and joining its banks; nothing built on a road,
-crossing deck or gate). Save writes the map and road documents atomically after
-reading them back equal. Headless, through `tools/authoring.sh`: `map_list`,
-`map_render` (a document and roads in place of the saved ones, one world or
-`ALL` for the sheet) and `map_save`. `createSnapshots -Psnapshot=maps-editor`
-drives the page on Relay Nine by its gestures, saves into a temporary folder,
-and captures it at 1920x1080 / 100% as three worlds with the all-worlds sheet.
+The Maps page edits a story map's one owned seed (`story-map-pools.md`). It
+opens the map's home entry from its pool (the ARID `story` entry, else the
+first ARID entry), generates it with its patch through the mission's own setup
+and draws it whole in the battle renderer's look preset, never an empty grid.
+The **world** switch dresses that same map as each of ten planet types (rock,
+arid, verdant, jungle, tundra, ocean, frozen, volcanic, irradiated, toxic):
+ground palette, wild ground and habitat walls, without moving anything a unit
+stands on. **All worlds sheet** shows them side by side. The dress is the
+page's own stand-in (`MapReskin`) until the owned-maps planet skin pass lands;
+land use (fields on a frozen world) is that pass's. The tools edit the entry's
+patch on the picture: **pin** a plan place where it should grow from, drag a
+**ruin** stroke (radius and mode), and **place** a layout structure by name at
+its footprint corner. A Colony Breach entry's lift, bores and holdouts are
+shown and kept. Every edit is one undo step and regenerates the map. **The
+mission's acceptance runs with every edit** (`StoryMapAcceptance`, the
+`storyMapPools` check), and a save is refused while it fails. Save rewrites
+only that entry's text in `data/world/pools/<map>.pool.json`, reads it back
+equal and replaces the file atomically; the other entries, the candidates and
+the hand formatting stay as they were. Headless, through `tools/authoring.sh`:
+`map_list`, `map_render` (a patch in place of the saved one, one world or `ALL`
+for the sheet; lists the places a pin moves and the structures a placement
+names) and `map_save`. `createSnapshots -Psnapshot=maps-editor` drives the page
+on Heart Front: a pin, a ruin stroke, a refused placement and its undo, and a
+save into a temporary folder.
 The Tilesets page opens on a question rather than on a workspace: **what are
 you doing?** Three ways in, each a walkthrough of numbered screens with Back
 and Next, and each screen holding only the controls its own step needs. The
