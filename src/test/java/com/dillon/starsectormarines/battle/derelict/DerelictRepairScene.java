@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -80,7 +81,7 @@ public final class DerelictRepairScene implements BehaviorScene {
         long node = sim.spawn(DerelictNode.create("node", Faction.DEFENDER, NODE_X, ROW_Y));
         director.standNode(0, node);
         long post = DerelictSecurity.standPost(sim, "post", 0, POST_X, ROW_Y, director);
-        long drone = DerelictSecurity.standRepairDrone(sim, 0, director);
+        long drone = DerelictSecurity.standRepairDrone(sim, 0, director, FlockLivery.DOMAIN);
         sim.installDerelictSecurity(director);
         sim.applyExternalDamage(post, 90f, 100f);
         if (NODE_DOWN.equals(id)) sim.applyExternalDamage(node, 1.0e6f, 1.0e6f);
