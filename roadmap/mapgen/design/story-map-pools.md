@@ -2,8 +2,10 @@
 
 Status: ACTIVE — every pooled story map (Colony Breach, the Cordon's and the
 Heart's, at every density) is one owned seed laid out on the mission's home
-palette and skinned for the world it is fought on (`PlanetSkin`); Conquest and
-the generic contracts stay fully random until they own a map too.
+palette and skinned for the world it is fought on (`PlanetSkin`); so is every
+generic Raid's map, one per Raid site, laid against a reference market
+(`raid-mission.md`, The owned map). Conquest and the other generic contracts
+stay fully random until they own a map too.
 
 Updated: 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
@@ -251,8 +253,12 @@ question about one map.
 
 ## Boundaries
 
-- Conquest, skirmish and every generated contract stay fully random: their
-  value is variety, and their evidence is a matrix over constructed fixtures.
+- Conquest, skirmish and every generated contract but the Raid stay fully
+  random: their value is variety, and their evidence is a matrix over
+  constructed fixtures. The Raid's maps are pooled like a story map's but laid
+  against a reference market, not the battle's (`raid-mission.md`, The owned
+  map); its acceptance is that a raid stands up with every machine of its
+  works reachable.
 - A pool is per story map, not per mission: The Burn and Broad Front are
   different forms at different sizes, so each has its own.
 - The pool does not hold the setup's tuning, timetables or rosters; those

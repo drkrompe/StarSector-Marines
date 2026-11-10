@@ -27,7 +27,6 @@ import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.setup.RaidWorksLayout;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -398,13 +397,18 @@ public final class MissionLaunch {
                 fixture = conquestFixture;
                 break;
             case RAID:
+                // A disrupting raid the player led wrecks the named industry's works (raid-mission.md, Break).
+                boolean raidWorks = m.source == MissionSource.MARKET_RAID && m.targetIndustryId != null;
+                int raidMachines = raidWorks ? BattleSetup.raidMachines(m.tier) : 0;
+                // Every campaign Raid plays its site's one owned map, skinned for this world (raid-mission.md,
+                // The owned map); the market still fields the defenders.
+                long raidSeed = BattleSetup.raidSeed(raidWorks ? m.targetIndustryId : null, raidMachines, seed);
                 RaidBattleFixture raidFixture = RaidBattleFixture.fromFactoryInputs(
-                        seed, constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                        raidSeed, constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
                         m.tier, m.risk, profile, constructionDetachment.marineWings,
                         m.enemyFighterSupport, sprawl);
-                // A disrupting raid the player led wrecks the named industry's works (raid-mission.md, Break).
-                if (m.source == MissionSource.MARKET_RAID && m.targetIndustryId != null) {
-                    raidFixture = raidFixture.withWorks(null, RaidWorksLayout.machinesFor(m.tier), m.targetIndustryId);
+                if (raidWorks) {
+                    raidFixture = raidFixture.withWorks(null, raidMachines, m.targetIndustryId);
                 }
                 builder = raidFixture::build;
                 fixture = raidFixture;

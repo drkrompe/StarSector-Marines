@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.tools.mapauthoring;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -17,6 +18,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapAcceptance;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -117,6 +119,11 @@ public final class StoryMapsSession implements AutoCloseable {
     /** The map as the campaign builds it for a world of {@code world}: laid out on home, skinned for the world. */
     private static Stood generate(StoryMap map, StoryMapPool.Entry entry, SurfacePalette world) {
         try {
+            if (RaidOwnedMap.isRaid(map)) {
+                RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(map, StoryMapPools.pool(map).layoutFor(world));
+                return new Stood(entry, world, BattleSetup.createPooledRaid(ground, world, entry.seed(),
+                        map != StoryMap.RAID, List.of()), List.of(), List.of(), null);
+            }
             if (map == StoryMap.COLONY_BREACH) {
                 return new Stood(entry, world, BattleSetup.createPooledColonyBreach(world, entry, List.of()), List.of(), List.of(), null);
             }
