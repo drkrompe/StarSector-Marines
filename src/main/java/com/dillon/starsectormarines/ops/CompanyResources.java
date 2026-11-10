@@ -96,7 +96,7 @@ public final class CompanyResources {
                 case "nameId" -> id + ":name"; case "shortId" -> id + ":short";
                 case "lineId" -> id + ":line";
                 case "name" -> name; case "icon" -> icon; case "label" -> label();
-                case "cost" -> note != null ? note : Strings.format("companyResourceCost", number(required));
+                case "cost" -> note != null ? note : number(required);
                 case "stock" -> note != null ? note : number(available);
                 case "shortage" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", number(shortfall())) : "";
                 case "required" -> number(required);

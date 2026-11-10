@@ -14,12 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompanyResourcesTest {
     @Test void billsShowOnlyOrderCostAndPositiveShortfall() {
         var shortRow = CompanyResources.cost("metals", "Metals", "", 41, 60);
-        assertEquals("Cost 60", shortRow.markupProperty("cost"));
+        assertEquals("60", shortRow.markupProperty("cost"));
         assertEquals("Short by 19", shortRow.markupProperty("shortage"));
         assertEquals("company-resource-cost short", shortRow.markupProperty("classes"));
         for (long available : List.of(60L, 15_000_000L, (long) Integer.MAX_VALUE)) {
             var row = CompanyResources.cost("metals", "Metals", "", available, 60);
-            assertEquals("Cost 60", row.markupProperty("cost"));
+            assertEquals("60", row.markupProperty("cost"));
             assertEquals("", row.markupProperty("shortage"));
         }
         assertEquals("", CompanyResources.creditBill(0, 10));

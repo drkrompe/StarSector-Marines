@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.NaturalRise;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
      * runs off the map runs on rather than ending in a wall; the field's cells are the map's shifted by this.
      */
     static final int MARGIN = 24;
+    /** A hovering hauler's shadow against a grounded one's: thrown far and soft over the drop. UNTUNED. */
+    static final float HOVER_SHADOW = .6f;
+    /** Farthest a hovering hauler's shadow is thrown from under it, cells: never off its bench into the drop. UNTUNED. */
+    static final float HOVER_SHADOW_REACH = 2.5f;
     /** Water: how fast it runs, metres a second, and how long one pattern lasts before it fades into the next. */
     static final float FLOW_SPEED = 1.6f, FLOW_PERIOD = 5f;
     /**
@@ -169,13 +174,15 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         }
         for (int k = n; k >= 0; k--) {
             drawBand(field.bands.get(k), k == n, time);
-            if (pit) drawMachines(k, -1);
+            if (pit) drawMachines(k, -1, false);
             if (k >= 1) drawWalls(field.walls.get(k - 1));
             if (k >= 1 && pit) {
                 drawRamps(k - 1);
-                drawMachines(k, k - 1);
+                drawMachines(k, k - 1, false);
             }
         }
+        // The haulers fly over the faces, so they are drawn over all of them.
+        if (pit) drawMachines(-1, -1, true);
         drawBridgeSides();
     }
 
@@ -665,9 +672,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
      * The machines working an open pit ({@link PitMachines}) that rest on band {@code step}: those on the haul road
      * down face {@code rampWall}, or with {@code rampWall} -1 those standing on the band itself. Each is its frame of
      * the sheet, turned to its heading and drawn at its depth's scale, shaded as deep rock is; one the rock hides
-     * from the eye is not drawn.
+     * from the eye is not drawn. A hovering hauler casts its own shape as a shadow on the band beneath, thrown away
+     * from the sun by its height, and is itself drawn only in the {@code flying} pass, over every face, for any band.
      */
-    private void drawMachines(int step, int rampWall) {
+    private void drawMachines(int step, int rampWall, boolean flying) {
         if (machines.isEmpty()) return;
         ShuttleSpriteCache sheet = sprites.spriteByPath(PitMachines.SHEET);
         if (sheet == null || sheet.pxW < 3 || sheet.pxH < 2) return;
@@ -676,10 +684,14 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         float margin = cell * 4f;
         float floorDepth = Math.max(1f, field.depth[field.steps()]);
         float lit = sun == null ? .9f : .8f + .2f * Math.min(1f, sun.risePerCell());
+        float sdx = sun == null ? .7f : -sun.dirX(), sdy = sun == null ? .7f : -sun.dirY();
+        float reach = sun == null || !sun.casts() ? .15f : 1f / Math.max(.25f, sun.risePerCell());
+        float shadeA = sun == null ? .3f : .45f * Math.min(1f, sun.shadowStrength() / .75f);
         for (PitMachines.Machine m : machines) {
-            if (m.step() != step || m.rampWall() != rampWall) continue;
+            boolean flies = m.hover() > 0f;
+            if (flying ? !flies : m.step() != step || m.rampWall() != rampWall) continue;
             float s = scale(m.depth());
-            if (!inView(m.x(), m.y(), s, margin) || hidden(m.x(), m.y(), m.depth())) continue;
+            if (!inView(m.x(), m.y(), s, margin) || (!flies && hidden(m.x(), m.y(), m.depth()))) continue;
             float px = sx(m.x(), s), py = sy(m.y(), s);
             float angle = (float) Math.toDegrees(Math.atan2(sy(m.y() + m.headingY(), s) - py,
                     sx(m.x() + m.headingX(), s) - px));
@@ -687,17 +699,27 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float h = m.kind().frameCellsH() * cell * s;
             float shade = lit * (1f - DEEP_MIX * m.depth() / floorDepth);
             int frame = m.kind().ordinal();
+            if (flies && !flying) {
+                float throw0 = Math.min(m.hover() * reach, HOVER_SHADOW_REACH);
+                float gx = m.x() + sdx * throw0, gy = m.y() + sdy * throw0;
+                float ground = field.depthAt(gx, gy), gs = scale(ground);
+                if (hidden(gx, gy, ground)) continue;
+                out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (frame % 4) * fw, (frame / 4) * fh, fw, fh,
+                        sx(gx, gs), sy(gy, gs), m.kind().frameCellsW() * cell * gs, m.kind().frameCellsH() * cell * gs,
+                        angle, 0f, 0f, 0f, shadeA * HOVER_SHADOW * alpha);
+                continue;
+            }
             out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (frame % 4) * fw, (frame / 4) * fh, fw, fh,
                     px, py, w, h, angle, shade, shade, shade * .97f, alpha);
         }
     }
 
     /**
-     * An open pit's spine ({@code voids.md}, the open pit): the covered conveyor gallery from the crushing station on
-     * the floor, climbing on its trestles over the benches to the transfer tower on the rim and running on over the
-     * ground to the works. Drawn over the ground tiles and under every unit: its shadow on the ground, the trestles'
-     * cross-beams, the gallery's bays end to end from {@link PitMachines#SHEET}, each at its depth's scale, and the
-     * tower over the rim.
+     * An open pit's mass driver ({@code voids.md}, the open pit): the rail from the loader on the floor, climbing on
+     * its trestles over the benches to the catch station on the rim, where the ore line takes the ore on. Drawn over
+     * the ground tiles and under every unit: its shadow on the ground, the trestles' cross-beams, the rail's bays end
+     * to end from {@link PitMachines#SHEET}, each at its depth's scale, the sealed capsules running up it hot from the
+     * coils, and the catch station over the rim.
      */
     private void drawBelts(float time) {
         ShuttleSpriteCache sheet = sprites.spriteByPath(PitMachines.SHEET);
@@ -751,9 +773,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
         if (sheet == null || sheet.pxW < 4 || sheet.pxH < 2) return;
         int fw = sheet.pxW / 4, fh = sheet.pxH / 2;
-        int gallery = PitMachines.Kind.GALLERY.ordinal();
-        int srcX = (gallery % 4) * fw + Math.round(PitMachines.BAY_U0 * fw);
-        int srcY = (gallery / 4) * fh + Math.round(PitMachines.BAY_V0 * fh);
+        int rail = PitMachines.Kind.RAIL.ordinal();
+        int srcX = (rail % 4) * fw + Math.round(PitMachines.BAY_U0 * fw);
+        int srcY = (rail / 4) * fh + Math.round(PitMachines.BAY_V0 * fh);
         int srcW = Math.round((PitMachines.BAY_U1 - PitMachines.BAY_U0) * fw);
         int srcH = Math.round((PitMachines.BAY_V1 - PitMachines.BAY_V0) * fh);
         for (float[] bay : bays) {
@@ -764,9 +786,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float ax1 = sx(bay[0] - bay[6], sa), ay1 = sy(bay[1] - bay[7], sa);
             sheetPatch(sheet, srcX, srcY, srcW, srcH, ax0, ay0, bx0, by0, bx1, by1, ax1, ay1);
         }
-        // The transfer tower over the rim, where the gallery leaves the pit.
-        int tower = PitMachines.Kind.TOWER.ordinal();
         float cell = cam.cellPxSize();
+        drawCapsules(sheet, fw, fh, floorDepth, lift, cell, time);
+        // The catch station over the rim, where the capsules are stopped and opened.
+        int tower = PitMachines.Kind.CATCHER.ordinal();
         for (NaturalVoid.Belt belt : belts) {
             float dx = belt.endX() - belt.rimX(), dy = belt.endY() - belt.rimY();
             if (Math.hypot(dx, dy) < .01f) { dx = belt.rimX() - belt.floorX(); dy = belt.rimY() - belt.floorY(); }
@@ -775,8 +798,44 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float angle = (float) Math.toDegrees(Math.atan2(sy(belt.rimY() + MARGIN + dy, s) - py,
                     sx(belt.rimX() + MARGIN + dx, s) - px));
             out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (tower % 4) * fw, (tower / 4) * fh, fw, fh, px, py,
-                    PitMachines.Kind.TOWER.frameCellsW() * cell * s, PitMachines.Kind.TOWER.frameCellsH() * cell * s,
+                    PitMachines.Kind.CATCHER.frameCellsW() * cell * s,
+                    PitMachines.Kind.CATCHER.frameCellsH() * cell * s,
                     angle, 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /**
+     * The ore capsules running up the mass driver from the loader to the catch station, {@link PitMachines#CAPSULE_EVERY}
+     * cells apart at {@link PitMachines#CAPSULE_SPEED}: each its frame of the sheet at its depth's scale, sized to the
+     * rail it rides, with the glow of its hot nose added over it.
+     */
+    private void drawCapsules(ShuttleSpriteCache sheet, int fw, int fh, float floorDepth, float lift, float cell,
+                              float time) {
+        SpriteAPI glow = sprites.engineGlowSprite();
+        int frame = PitMachines.Kind.CAPSULE.ordinal();
+        // The rail's bays are drawn bolder than their 5 m; the capsules ride them at the same boldness.
+        float bold = PitMachines.BAY_CELLS_WIDE / (5f * PitMachines.CELLS_PER_METER);
+        float phase = frac(time * PitMachines.CAPSULE_SPEED / PitMachines.CAPSULE_EVERY);
+        for (NaturalVoid.Belt belt : belts) {
+            float lx = belt.rimX() - belt.floorX(), ly = belt.rimY() - belt.floorY();
+            float len = (float) Math.hypot(lx, ly);
+            if (len < 1f) continue;
+            for (float along = phase * PitMachines.CAPSULE_EVERY; along < len; along += PitMachines.CAPSULE_EVERY) {
+                float t = along / len;
+                float x = belt.floorX() + lx * t + MARGIN, y = belt.floorY() + ly * t + MARGIN;
+                float z = floorDepth + (lift - floorDepth) * t, s = scale(z);
+                if (!inView(x, y, s, cell * 4f)) continue;
+                float px = sx(x, s), py = sy(y, s);
+                float angle = (float) Math.toDegrees(Math.atan2(sy(y + ly / len, s) - py, sx(x + lx / len, s) - px));
+                out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (frame % 4) * fw, (frame / 4) * fh, fw, fh, px, py,
+                        PitMachines.Kind.CAPSULE.frameCellsW() * bold * cell * s,
+                        PitMachines.Kind.CAPSULE.frameCellsH() * bold * cell * s, angle, 1f, 1f, 1f, alpha);
+                if (glow == null) continue;
+                float nose = .55f * bold * cell * s;
+                out.addAdditiveSprite(RenderLayer.GROUND, glow, px + (float) Math.cos(Math.toRadians(angle)) * nose,
+                        py + (float) Math.sin(Math.toRadians(angle)) * nose, 2.2f * cell * s, 2.2f * cell * s, 0f,
+                        1f, .62f, .28f, .6f * alpha);
+            }
         }
     }
 

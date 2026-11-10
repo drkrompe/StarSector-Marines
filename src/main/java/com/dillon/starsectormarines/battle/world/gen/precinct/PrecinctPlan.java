@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
-import com.dillon.starsectormarines.battle.world.gen.fortress.SealedComplex;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 
 import java.util.ArrayList;
@@ -641,10 +640,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         // somewhere the battle happens, so the settlement is only kept when
         // there is no garrison to be that.
         int mainIndex = -1;
-        // On a shielded world the settlement is a sealed complex: programmed, walled, its gates airlocks. It is added
-        // after the garrison so the garrison stays the objective, on the same seed draw.
-        boolean sealed = SealedComplex.on(profile);
-        Precinct sealedSettlement = null;
+        // On a world nobody lives on in the open the town is sealed inside one wall, its few gates airlocks.
+        boolean sealed = SealedTown.on(profile);
         if (sprawl != Sprawl.REMOTE || !garrison) {
             GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
             // One settlement always, because a battle happens somewhere: where
@@ -654,16 +651,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             // rather than coming out as a tighter map.
             int[] seed = placeSeed(taken, margin, separation, width, height, rng);
             if (seed == null) seed = emptiestSeed(taken, margin, width, height);
-            if (sealed) {
-                sealedSettlement = Precinct.garrison("settlement", seed[0], seed[1],
-                        GrownTrunkPlan.Profile.hamlet(),
-                        FortressProgram.habitat(profile.marketSize()).sealedComplex()
-                                .fittedTo(Math.round(FIT * width * height)),
-                        HABITAT_LOCKS);
-            } else {
-                mainIndex = out.size();
-                out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
-            }
+            mainIndex = out.size();
+            out.add(sealed ? SealedTown.settlement(seed[0], seed[1], main)
+                    : Precinct.settlement("settlement", seed[0], seed[1], main));
         }
 
         if (garrison) {
@@ -677,11 +667,10 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             }
             out.add(objectivePlace);
         }
-        if (sealedSettlement != null) out.add(sealedSettlement);
         out.addAll(lanePlaces);
         if (landingPlace != null) out.add(landingPlace);
 
-        // Nobody lives in the open on a sealed world, so it has no outlying places.
+        // Nobody lives outside a sealed town's wall, so it has no outlying places.
         for (int i = 0; !sealed && i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
             int[] hamletSeed = placeSeed(taken, margin, separation, width, height, rng);
             if (hamletSeed == null) break;
@@ -1238,17 +1227,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
     }
 
     static FortressProgram garrisonFor(TargetProfile profile) {
-        // A sealed garrison keeps no airfield: its ground is roofed hall (SealedComplex).
-        if (SealedComplex.on(profile)) return FortressProgram.garrison().withAirfields(0).sealedComplex();
         return FortressProgram.garrison()
                 .withAirfields(profile.defenseLevel() >= 4 ? 2 : 1);
     }
-
-    /**
-     * A sealed settlement's wall ({@code SealedComplex}): its shielding, three airlocks where its roads meet it, and no
-     * emplacements of its own, since it is where people live rather than a garrison.
-     */
-    static final Fortification HABITAT_LOCKS = new Fortification(3, 240);
 
     /**
      * A seed far enough from the ones already placed.
