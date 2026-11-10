@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.door.WallGate;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
@@ -26,9 +28,15 @@ public final class PortApronDressing {
 
     /** The apron's pavement, and the pad's plate, its rim and the burn the lifts leave on it. */
     static final String PAD_PLATE = "sky-port.pad-plate";
+    static final String CONCRETE = "installation.concrete-floor";
     static final String KEEP_CLEAR = "apron.keep-clear";
-    static final String SCORCH = "terrain.blast-paving";
-    static final String TANK = "doodad.industrial-fluid-tank";
+    /** A lift's burn on its pad, 5x4, and the lesser scorch marks round it, 2x2. */
+    static final String BURN = "workshop-damage.scorch";
+    static final String MARK = "ship-wear.scorch";
+    /** The yellow line an airfield's berths are edged with. */
+    static final String BERTH_EDGE = "doodad.fl-striped-yellow";
+    /** A fuel tank in the farm: stand-in art, the listening post's pressure sphere (2x2). */
+    static final String TANK = "doodad.oxygen-sphere";
     static final String TANKER = "doodad.parked-tanker-truck";
     static final String SKID = "shuttle-bay.fluid-skid";
     static final String CART = "shuttle-bay.service-cart";
@@ -43,7 +51,7 @@ public final class PortApronDressing {
     /** Columns along the fuel main's rack, every this many cells. */
     static final int RACK_BAY = 5;
     /** Share of a pad's burn ring that is scorched: a ring, broken, not a painted circle. UNTUNED. */
-    static final float SCORCH_SHARE = .7f;
+    static final float SCORCH_SHARE = .45f;
 
     private PortApronDressing() { }
 
@@ -57,31 +65,42 @@ public final class PortApronDressing {
         TileRegistry registry = TileRegistry.installed();
         pave(c, apron.paved());
         int plate = c.topology.surfaceIndex(PAD_PLATE), rim = c.topology.surfaceIndex(KEEP_CLEAR);
-        int scorch = c.topology.surfaceIndex(SCORCH);
+        DoodadDef burn = registry == null ? null : registry.doodad(BURN), mark = registry == null ? null
+                : registry.doodad(MARK);
+        DoodadDef line = registry == null ? null : registry.doodad(BERTH_EDGE);
         boolean deepEast = apron.deepX() >= apron.paved().x1();
         LandingPad.Approach out = deepEast ? LandingPad.Approach.EAST : LandingPad.Approach.WEST;
         int turnaround = rng.nextInt(apron.pads().size());
         int stands = 0;
         for (int i = 0; i < apron.pads().size(); i++) {
             PortApron.Rect pad = apron.pads().get(i);
+            // The stand's edge painted as an airfield berth's is, the keep-clear hatching inside it, and the plate
+            // the lighter stands on in the middle.
             for (int y = pad.y0(); y <= pad.y1(); y++) {
                 for (int x = pad.x0(); x <= pad.x1(); x++) {
                     if (!free(c, x, y)) continue;
                     boolean edge = x == pad.x0() || x == pad.x1() || y == pad.y0() || y == pad.y1();
-                    c.topology.setSurface(x, y, edge ? rim : plate);
+                    boolean hatched = !edge && (x == pad.x0() + 1 || x == pad.x1() - 1
+                            || y == pad.y0() + 1 || y == pad.y1() - 1);
+                    if (edge && line != null) c.doodads.add(new Doodad(x, y, line));
+                    else if (hatched) c.topology.setSurface(x, y, rim);
+                    else c.topology.setSurface(x, y, plate);
                 }
             }
-            // The burn: a broken ring where the exhaust meets the plate, round the stand's middle.
+            // The burn: the scorch every lift leaves where its exhaust meets the plate, and the lesser marks of the
+            // landings round it, some worn off.
             int cx = pad.centerX(), cy = pad.centerY();
-            for (int y = pad.y0() + 1; y < pad.y1(); y++) {
-                for (int x = pad.x0() + 1; x < pad.x1(); x++) {
-                    double d = Math.hypot(x - cx, y - cy);
-                    if (d < 1.5 || d > 4.6 || !free(c, x, y)) continue;
-                    if (rng.nextDouble() < SCORCH_SHARE) c.topology.setSurface(x, y, scorch);
+            if (burn != null) c.doodads.add(new Doodad(cx - 2, cy - 2, burn, rng.nextInt(4) % 2 == 0 ? 0 : 2));
+            if (mark != null) {
+                int[][] ring = {{-4, -4}, {2, -4}, {-4, 2}, {2, 2}, {-1, -5}, {-1, 3}};
+                for (int[] at : ring) {
+                    if (rng.nextDouble() < SCORCH_SHARE) c.doodads.add(new Doodad(cx + at[0], cy + at[1], mark));
                 }
             }
             if (i == turnaround) {
-                c.landingPads.add(new LandingPad(cx, cy, 1, 1, out, LandingPad.Purpose.PORT_LIGHTER));
+                // The freighter's hull reaches past its stand toward its tail: stood a cell in from the pad's
+                // middle, toward the terminal, it stays on its pad.
+                c.landingPads.add(new LandingPad(cx - out.dx, cy, 1, 1, out, LandingPad.Purpose.PORT_LIGHTER));
                 stands++;
             }
         }
@@ -94,11 +113,17 @@ public final class PortApronDressing {
 
     /** Paves the apron: asphalt over its ground, nothing under a building, door or road changed. */
     static void pave(GenContext c, PortApron.Rect paved) {
+        int concrete = c.topology.surfaceIndex(CONCRETE);
+        // The country's scatter goes with the ground it lay on: rubble and stones the fill left are swept off.
+        c.doodads.removeIf(d -> paved.contains(d.cellX, d.cellY) && free(c, d.cellX, d.cellY));
         for (int y = paved.y0(); y <= paved.y1(); y++) {
             for (int x = paved.x0(); x <= paved.x1(); x++) {
                 if (!free(c, x, y)) continue;
                 c.topology.setGroundKind(x, y, GroundKind.STREET);
-                c.topology.setSurface(x, y, 0);
+                c.topology.setSurface(x, y, concrete);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+                // Claimed against the landscape pass after it: no rock, scrub or drift is laid on made ground.
+                c.markMadeGround(x, y);
             }
         }
     }
@@ -127,20 +152,20 @@ public final class PortApronDressing {
     static void fuel(GenContext c, TileRegistry registry, PortApron apron) {
         PortApron.Rect farm = apron.fuelFarm();
         DoodadDef tank = registry.doodad(TANK);
+        int keep = c.topology.surfaceIndex(KEEP_CLEAR);
+        for (int y = farm.y0(); y <= farm.y1(); y++) {
+            for (int x = farm.x0(); x <= farm.x1(); x++) {
+                boolean edge = x == farm.x0() || x == farm.x1() || y == farm.y0() || y == farm.y1();
+                if (edge && free(c, x, y)) c.topology.setSurface(x, y, keep);
+            }
+        }
+        // Pressure spheres, two by two, in the bund the keep-clear marks out. Stand-in art: a port's fuel tank.
         if (tank != null) {
-            int keep = c.topology.surfaceIndex(KEEP_CLEAR);
-            for (int y = farm.y0(); y <= farm.y1(); y++) {
-                for (int x = farm.x0(); x <= farm.x1(); x++) {
-                    if (!free(c, x, y)) continue;
-                    boolean edge = x == farm.x0() || x == farm.x1() || y == farm.y0() || y == farm.y1();
-                    if (edge) {
-                        c.topology.setSurface(x, y, keep);
-                    } else if ((x - farm.x0()) % 2 == 1 && (y - farm.y0()) % 2 == 1) {
-                        c.doodads.add(new Doodad(x, y, tank));
-                        c.grid.setWalkable(x, y, false);
-                        c.grid.setSeeThrough(x, y, false);
-                        c.topology.setFixture(x, y, true);
-                    }
+            for (int ty = farm.y0() + 1; ty + 1 < farm.y1(); ty += 3) {
+                for (int tx = farm.x0() + 1; tx + 1 < farm.x1(); tx += 3) {
+                    if (!freeRect(c, tx, ty, tx + 1, ty + 1)) continue;
+                    fixtures(c, tx, ty, tx + 1, ty + 1, false);
+                    c.doodads.add(new Doodad(tx, ty, tank));
                 }
             }
         }
@@ -217,6 +242,110 @@ public final class PortApronDressing {
             c.doodads.add(new Doodad(x, crane.y0(), leg));
         }
         c.doodads.add(new Doodad(crane.x0(), crane.y0(), span));
+    }
+
+    /** Width of the terminal's rear gate onto the apron. */
+    static final int REAR_GATE = 3;
+    /** Furthest the rear lane walks from the apron toward the terminal before it gives up. */
+    static final int REAR_REACH = 24;
+
+    /**
+     * The terminal's rear gate: the way the bonded cargo goes out to staging. From the apron's edge on the terminal's
+     * side, along the rows level with the staging's middle, a lane is paved across the cleared ground and opened
+     * through the terminal's perimeter wall into its yard. Nothing is opened where the lane would meet a building
+     * first, or where it finds no wall within {@link #REAR_REACH}.
+     *
+     * @return whether the gate was opened
+     */
+    public static boolean rearGate(GenContext c, PortApron apron) {
+        boolean deepEast = apron.deepX() >= apron.paved().x1();
+        int step = deepEast ? -1 : 1;
+        int startX = deepEast ? apron.paved().x0() - 1 : apron.paved().x1() + 1;
+        int midY = apron.crane() != null ? apron.crane().centerY() : apron.paved().centerY();
+        int length = -1;
+        // Measured on the middle row; the gate is that run, REAR_GATE rows wide.
+        boolean walled = false;
+        for (int k = 0; k < REAR_REACH; k++) {
+            int x = startX + step * k;
+            if (x < 1 || x >= c.width - 1) return false;
+            for (int y = midY - REAR_GATE / 2; y <= midY + REAR_GATE / 2; y++) {
+                if (c.topology.getBuildingId(x, y) != 0 || c.grid.isDoorway(x, y)) return false;
+            }
+            boolean wall = c.topology.isWall(x, midY);
+            if (wall) walled = true;
+            if (walled && !wall && c.grid.isWalkable(x, midY)) {
+                length = k;
+                break;
+            }
+        }
+        if (length < 0) return false;
+        int concrete = c.topology.surfaceIndex(CONCRETE);
+        for (int k = 0; k < length; k++) {
+            int x = startX + step * k;
+            for (int y = midY - REAR_GATE / 2; y <= midY + REAR_GATE / 2; y++) {
+                boolean wall = c.topology.isWall(x, y);
+                if (!wall && !free(c, x, y)) continue;
+                for (Direction d : new Direction[]{Direction.N, Direction.E, Direction.S, Direction.W}) {
+                    c.grid.removeEdgeBarrier(x, y, d);
+                }
+                c.grid.setWalkable(x, y, true);
+                c.grid.setSeeThrough(x, y, true);
+                c.grid.setWallHp(x, y, 0);
+                c.topology.setWall(x, y, false);
+                c.topology.setWallDirMask(x, y, 0);
+                c.topology.setFixture(x, y, false);
+                c.topology.setGroundKind(x, y, GroundKind.STREET);
+                c.topology.setSurface(x, y, concrete);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+                c.markMadeGround(x, y);
+            }
+        }
+        return true;
+    }
+
+    /** Haulers queued at the terminal's gates, nose to tail on the verge, waiting on customs. */
+    static final String[] HAULERS = {"doodad.parked-cargo-truck", "doodad.parked-box-van", "doodad.parked-flatbed-truck"};
+    /** Haulers queued at each gate the town roads come in by. UNTUNED. */
+    static final int QUEUE = 3;
+    /** Cells between one queued hauler's nose and the next's. */
+    static final int QUEUE_PITCH = 5;
+
+    /**
+     * The intake queue ({@code raid-site-templates.md}, spaceport: the roads in from the planet's towns): at each of
+     * the terminal's gates but the one onto the apron, haulers waiting on customs in a line along the verge of the
+     * road out, from a few cells beyond the gate. A hauler stands only on free ground off the carriageway.
+     *
+     * @param claim  each cell's place index ({@code BspKeys.PRECINCT_CLAIM}), or null
+     * @param works  the terminal's index in the plan
+     * @param apronX a cell column on the apron's side of the terminal: the gate facing it holds no queue
+     */
+    public static void intakeQueue(GenContext c, int[][] claim, int works, int apronX, long seed) {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null || claim == null) return;
+        SplittableRandom rng = new SplittableRandom(seed);
+        for (WallGate gate : c.wallGates) {
+            int gx = gate.spanX() ? (gate.min() + gate.max()) / 2 : gate.across();
+            int gy = gate.spanX() ? gate.across() : (gate.min() + gate.max()) / 2;
+            int ix = gx - gate.outX(), iy = gy - gate.outY();
+            if (ix < 0 || iy < 0 || ix >= claim.length || iy >= claim[ix].length || claim[ix][iy] != works) continue;
+            if (gate.outX() != 0 && Integer.signum(apronX - gx) == gate.outX()) continue;
+            // The verge: beside the carriageway, on the side the queue keeps to.
+            int side = gate.width() / 2 + 2;
+            int placed = 0;
+            for (int step = 4; step < 4 + QUEUE * QUEUE_PITCH * 2 && placed < QUEUE; step += QUEUE_PITCH) {
+                DoodadDef def = registry.doodad(HAULERS[rng.nextInt(HAULERS.length)]);
+                if (def == null) continue;
+                int ax = gx + gate.outX() * step, ay = gy + gate.outY() * step;
+                // A hauler is 3 by 2 along x; along a road out north or south it is turned upright.
+                boolean upright = gate.outY() != 0;
+                int x = upright ? ax + side : ax, y = upright ? ay : ay + side;
+                int w = upright ? 2 : 3, h = upright ? 3 : 2;
+                if (!freeRect(c, x, y, x + w - 1, y + h - 1)) continue;
+                fixtures(c, x, y, x + w - 1, y + h - 1, false);
+                c.doodads.add(new Doodad(x, y, def, upright ? 1 : 0));
+                placed++;
+            }
+        }
     }
 
     private static void fixtures(GenContext c, int x0, int y0, int x1, int y1, boolean seeThrough) {

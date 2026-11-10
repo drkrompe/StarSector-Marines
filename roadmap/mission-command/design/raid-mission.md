@@ -187,7 +187,7 @@ The sites so far, each the same districts with the industry's own works:
 | Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RefiningWorks`) | a dense industrial quarter |
 | Light industry (`lightindustry`) | shop floors, a loading shed, stores (`LightIndustryWorks`) | a dense industrial quarter |
 | Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`FarmingWorks`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
-| Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`PortWorks`) | a dense industrial quarter |
+| Spaceport (`spaceport`, `megaport`) | the planet's only orbital lift, laid as the cargo moves: the customs hall at the gate the town roads come in by (haulers queued outside), a bonded shed per machine, the tower and pump house at the rear; out of a rear gate, the lighter apron held at the deep end as a mine's pit is: container staging under a gantry crane, the fuel main from the farm, three to six pads by market size with blast walls between, scorched, one freighter mid-turnaround on a `PORT_LIGHTER` stand no company lands on (`PortWorks`, `PortApron`) | a dense industrial quarter |
 | Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`MilitaryWorks`); the barracks are the garrison beside it | depots |
 
 The owner accepted heavy industry's site and asked for the rest in order

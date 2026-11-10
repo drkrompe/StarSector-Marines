@@ -11,13 +11,13 @@ import java.util.List;
  * <p>The apron is laid across the ground held beside the cargo terminal, from the terminal's side to the deep edge of
  * the map, where the lighters lift. Measured from the terminal outward ({@code u}):
  * <ol>
- *   <li><b>Container staging</b>: rows of containers stacked two deep, with lanes between them, cleared from the
- *       bonded sheds and waiting for a lighter, and a gantry crane over one lane.</li>
+ *   <li><b>Container staging</b>: a block per pad (two rows of containers back to back and the lane behind them),
+ *       cleared from the bonded sheds and waiting for a lighter, and a gantry crane over the first block.</li>
  *   <li><b>The fuel main</b>: one line along the back of the pads, from the fuel farm at its outer end past every
  *       pad, with a hydrant skid at each.</li>
  *   <li><b>The service lane</b> between the main and the pads, where the tankers and carts work a lighter.</li>
- *   <li><b>The pads</b>: a row of hardstands along the deep edge, a blast wall between each pair, each pad's
- *       approach clear to the edge.</li>
+ *   <li><b>The pads</b>: a row of hardstands facing the deep edge, a blast wall between each pair, the ground beyond
+ *       them clear.</li>
  * </ol>
  * Across the apron ({@code v}) the pads run from the end nearer the map's middle; the fuel farm stands at the outer
  * end, past the last pad, so a fire there burns away from the terminal's flank.
@@ -51,7 +51,9 @@ public record PortApron(Rect paved, List<Rect> pads, List<Rect> blastWalls, Rect
     /** Fewest pads an apron is laid with: one fewer and it is not the planet's lift. */
     public static final int MIN_PADS = 2;
     /** Most container rows a staging yard holds, however deep the ground. UNTUNED. */
-    public static final int MAX_STAGING_BLOCKS = 3;
+    public static final int MAX_STAGING_BLOCKS = 5;
+    /** Depth of one staging block: two rows of containers and the lane behind them. */
+    public static final int BLOCK = 2 * BOX_DEEP + LANE;
 
     /** An inclusive rectangle of cells. */
     public record Rect(int x0, int y0, int x1, int y1) {
@@ -93,7 +95,7 @@ public record PortApron(Rect paved, List<Rect> pads, List<Rect> blastWalls, Rect
 
     /** Cells of ground along {@code u} an apron needs before it holds no staging: pads, approach, lane, main. */
     public static int depthWithoutStaging() {
-        return APPROACH + PAD + SERVICE + 1 + YARD_ROAD;
+        return APPROACH + PAD + 1 + SERVICE + 1 + 1 + YARD_ROAD;
     }
 
     /**
@@ -114,10 +116,11 @@ public record PortApron(Rect paved, List<Rect> pads, List<Rect> blastWalls, Rect
         int count = Math.min(wanted, fit);
         if (count < MIN_PADS) return null;
         int run = count * PAD + (count - 1) * PAD_GAP;
-        // u: 0 at the terminal's side, rising toward the deep edge.
-        int uMax = depth - 1;
-        int padU1 = uMax - APPROACH, padU0 = padU1 - PAD + 1;
-        int mainU = padU0 - SERVICE - 1;
+        // u: 0 at the terminal's side. The apron is laid out from there in the order the cargo moves, a staging
+        // block per pad as the ground allows, and the ground past the pads is the lighters' approach.
+        int blocks = Math.min(Math.min(count, MAX_STAGING_BLOCKS), (depth - depthWithoutStaging()) / BLOCK);
+        int mainU = YARD_ROAD + blocks * BLOCK + 1;
+        int padU0 = mainU + SERVICE + 1, padU1 = padU0 + PAD - 1;
         Frame f = new Frame(x0, y0, x1, y1, deepEast, outerNorth);
         int v = 0;
         List<Rect> pads = new ArrayList<>(), walls = new ArrayList<>();
@@ -129,16 +132,13 @@ public record PortApron(Rect paved, List<Rect> pads, List<Rect> blastWalls, Rect
             v += PAD + PAD_GAP;
         }
         int farmV0 = run + PAD_GAP, farmV1 = farmV0 + FARM_BREADTH - 1;
-        int farmU1 = Math.min(uMax - APPROACH, mainU + FARM_DEPTH / 2), farmU0 = farmU1 - FARM_DEPTH + 1;
+        int farmU0 = mainU - FARM_DEPTH / 2, farmU1 = farmU0 + FARM_DEPTH - 1;
         Rect farm = f.rect(farmU0, farmV0, farmU1, farmV1);
         Rect main = f.rect(mainU, 0, mainU, farmV0 - 1);
-        // Staging: blocks of two container rows and a lane, from the yard road out to two short of the main.
+        // Staging: blocks of two container rows and a lane, from the yard road out to the main.
         List<Rect> boxes = new ArrayList<>();
         Rect crane = null;
-        int stagingEnd = mainU - 2;
-        int u = YARD_ROAD;
-        int blocks = 0;
-        while (blocks < MAX_STAGING_BLOCKS && u + 2 * BOX_DEEP - 1 <= stagingEnd) {
+        for (int b = 0, u = YARD_ROAD; b < blocks; b++, u += BLOCK) {
             for (int row = 0; row < 2; row++) {
                 int ru0 = u + row * BOX_DEEP;
                 for (int bv = 0; bv + BOX_LONG - 1 < run; bv += BOX_LONG + BOX_GAP) {
@@ -151,11 +151,8 @@ public record PortApron(Rect paved, List<Rect> pads, List<Rect> blastWalls, Rect
                 int cv = run / 2;
                 crane = f.rect(u - 1, cv - 1, u + 2 * BOX_DEEP + 1, cv + 1);
             }
-            u += 2 * BOX_DEEP + LANE;
-            blocks++;
         }
-        int paveU1 = uMax;
-        Rect paved = f.rect(0, 0, paveU1, Math.max(farmV1, run - 1));
+        Rect paved = f.rect(0, 0, padU1 + 1, Math.max(farmV1, run - 1));
         int deepX = deepEast ? x1 : x0;
         return new PortApron(paved, pads, walls, main, hydrants, farm, boxes, crane, deepX);
     }
