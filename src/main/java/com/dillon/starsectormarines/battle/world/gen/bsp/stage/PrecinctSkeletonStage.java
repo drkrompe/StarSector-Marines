@@ -118,7 +118,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
 
         // An open-field landing's country is surveyed, not grown.
-        RuralLayout rural = survey(plan, grown, ctx, weldBlocked);
+        RuralLayout rural = survey(plan, grown, ctx, weldAround);
         if (rural != null) ctx.put(BspKeys.RURAL_LAYOUT, rural);
 
         // The roads the mission's layout asks for, carved into the network as any grown arm is, so its gates, its
@@ -129,7 +129,7 @@ public final class PrecinctSkeletonStage implements GenStage {
             ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
             // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
             // piece of road on its own; the map is one network after it as before it.
-            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
         }
 
         // A cantonment's further gates, once every road the map will have is laid, so each meets the town's road.
