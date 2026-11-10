@@ -2,7 +2,7 @@
 
 The watchtower, saluting base and flag mast are cut from the painted raw (`raw/military-base.raw.png`, painted over
 `guide.png`); the raw's drawn extent is registered on the guide's frames, since ImageGen does not always keep the
-canvas. The parade square's painted markings are drawn here: worn off-white paint over the paving the layout lays,
+canvas. The parked armour is composited from the shipped vehicle sprites. The parade square's painted markings are drawn here: worn off-white paint over the paving the layout lays,
 each line along the middle of its cell row so the pieces join end to end and at corners.
 
 Usage: python art-source/raid-sites/military/export.py
@@ -25,9 +25,10 @@ import make_guide as G  # noqa: E402
 
 SHEET = "military-base"
 CELL_PX = 128
-PAINT = (226, 218, 192)
-PAINT_ALPHA = 200
-LINE = 0.07  # a painted line's width, in cells
+PAINT = (238, 234, 218)
+PAINT_ALPHA = 240
+# A painted line's width, in cells: bold, since the base close-up shows a cell at about 13 px.
+LINE = 0.25
 
 # id: (name, what, cells w, cells h, cover, extra)
 PIECES = {
@@ -41,7 +42,24 @@ PIECES = {
     "parade-ranks": ("Parade ranks", "A dashed rank line marking where a file stands; runs join end to end.", 4, 1,
                      "none", {}),
     "parade-centre": ("Parade centre", "The square's painted centre mark: a cross in a ring.", 2, 2, "none", {}),
+    "parked-tank": ("Parked tank", "A Hegemony medium tank parked in the vehicle park, turret and gun forward (west).",
+                    4, 2, "heavy", {"ballisticHalfHeight": 0.55}),
+    "parked-apc-army": ("Parked APC", "An army APC parked in the vehicle park, nose and turret forward (west).", 3, 2,
+                        "heavy", {"ballisticHalfHeight": 0.55}),
 }
+
+# Parked armour composited from the shipped vehicle sprites (graphics/battle/vehicles, plain livery, intact frames):
+# frame 0 the hull and frame 1 the turret, 768x576 each, nose to the west (-x). The turret is drawn on its ring
+# `mount` px ahead of the hull frame's centre, at `turret` times the hull's scale (VehicleType's turretVisualCells over
+# DRAWN_LENGTH). The vehicle is fitted inside its footprint with a small margin and given a soft shadow to the
+# south-east.
+VEHICLES = {
+    "parked-tank": ("heg-medium-tank.png", 54, 1.0),
+    "parked-apc-army": ("army-apc.png", 49, 1.42 / 2.4),
+}
+VEHICLE_FRAME = (768, 576)
+VEHICLE_MARGIN = 0.92
+SHADOW_ALPHA = 0.45
 
 
 def register(raw, frames):
@@ -67,15 +85,15 @@ def painted():
 
 
 def worn(mask, seed):
-    """Paint from a coverage mask: off-white, worn through in specks and scuffs."""
+    """Paint from a coverage mask: bright off-white with a crisp edge, lightly worn in specks and scuffs."""
     w, h = mask.size
     rnd = np.random.default_rng(seed)
     noise = Image.fromarray((rnd.random((h // 4 + 1, w // 4 + 1)) * 255).astype(np.uint8)).resize((w, h),
                                                                                                     Image.BILINEAR)
     fine = Image.fromarray((rnd.random((h, w)) * 255).astype(np.uint8))
-    wear = np.minimum(np.asarray(noise, np.float32) / 255 * 1.6, 1) * (0.6 + 0.4 * np.asarray(fine, np.float32) / 255)
-    alpha = np.asarray(mask.filter(ImageFilter.GaussianBlur(0.8)), np.float32) / 255 * wear * PAINT_ALPHA
-    alpha[alpha < 30] = 0
+    wear = np.clip(0.55 + np.asarray(noise, np.float32) / 255, 0, 1) * (0.85 + 0.15 * np.asarray(fine, np.float32) / 255)
+    alpha = np.asarray(mask, np.float32) / 255 * wear * PAINT_ALPHA
+    alpha[alpha < 60] = 0
     out = Image.new("RGBA", (w, h), PAINT)
     out.putalpha(Image.fromarray(alpha.astype(np.uint8)))
     return out
@@ -97,17 +115,44 @@ def markings():
 
     m = Image.new("L", (4 * c, c))
     d = ImageDraw.Draw(m)
-    for k in range(8):
-        x0 = k * c // 2 + c // 8
-        d.rectangle((x0, c // 2 - lw // 2, x0 + c // 4, c // 2 + lw // 2), fill=255)
+    for k in range(4):
+        x0 = k * c + c // 4
+        d.rectangle((x0, c // 2 - lw // 2, x0 + c // 2, c // 2 + lw // 2), fill=255)
     yield "parade-ranks", worn(m, 3)
 
     m = Image.new("L", (2 * c, 2 * c))
     d = ImageDraw.Draw(m)
-    d.ellipse((c * 0.35, c * 0.35, c * 1.65, c * 1.65), outline=255, width=lw)
-    d.rectangle((c - lw // 2, c * 0.55, c + lw // 2, c * 1.45), fill=255)
-    d.rectangle((c * 0.55, c - lw // 2, c * 1.45, c + lw // 2), fill=255)
+    d.ellipse((c * 0.15, c * 0.15, c * 1.85, c * 1.85), outline=255, width=lw)
+    d.rectangle((c - lw // 2, c * 0.45, c + lw // 2, c * 1.55), fill=255)
+    d.rectangle((c * 0.45, c - lw // 2, c * 1.55, c + lw // 2), fill=255)
     yield "parade-centre", worn(m, 4)
+
+
+def vehicles():
+    fw, fh = VEHICLE_FRAME
+    for pid, (sprite, mount, turret_scale) in VEHICLES.items():
+        sheet = Image.open(ROOT / "mod" / "graphics" / "battle" / "vehicles" / sprite).convert("RGBA")
+        hull = sheet.crop((0, 0, fw, fh))
+        top = sheet.crop((fw, 0, 2 * fw, fh))
+        if turret_scale != 1.0:
+            top = top.resize((round(fw * turret_scale), round(fh * turret_scale)), Image.LANCZOS)
+        body = hull.copy()
+        body.alpha_composite(top, (round(fw / 2 - mount - top.width / 2), round(fh / 2 - top.height / 2)))
+        body = body.crop(body.getbbox())
+        cw, ch = PIECES[pid][2], PIECES[pid][3]
+        w, h = cw * CELL_PX, ch * CELL_PX
+        scale = min(w * VEHICLE_MARGIN / body.width, h * VEHICLE_MARGIN / body.height)
+        body = body.resize((round(body.width * scale), round(body.height * scale)), Image.LANCZOS)
+        x, y = (w - body.width) // 2 - 3, (h - body.height) // 2 - 3
+        out = Image.new("RGBA", (w, h))
+        shade = Image.new("L", (w, h))
+        shade.paste(body.getchannel("A"), (x + 8, y + 8))
+        shade = shade.filter(ImageFilter.GaussianBlur(5)).point(lambda v: round(v * SHADOW_ALPHA))
+        dark = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+        dark.putalpha(shade)
+        out.alpha_composite(dark)
+        out.alpha_composite(body, (x, y))
+        yield pid, out
 
 
 def metadata():
@@ -123,7 +168,7 @@ def main():
     meta.write_text(json.dumps(metadata(), indent=2) + "\n", encoding="utf-8")
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
-        for pid, piece in (*painted(), *markings()):
+        for pid, piece in (*painted(), *markings(), *vehicles()):
             piece.save(staged / f"{pid}.png")
         build_atlas(BuildOptions(
             input_dir=staged,

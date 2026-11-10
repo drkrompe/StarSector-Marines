@@ -15,6 +15,7 @@ python art-source/fallen-hull/generate.py <job>     # prompts/<job>.prompt.txt, 
 python art-source/fallen-hull/export.py             # every candidate, build/fallen-hull-art (the cards)
 python art-source/fallen-hull/export.py --ship      # the picked looks into mod/
 python art-source/fallen-hull/tileset.py            # the map tileset: hull walls, trench floor, debris
+python art-source/fallen-hull/hull_roof.py          # the hull's roof: the picked lineage laid over the plan
 gradlew.bat createSnapshots -Psnapshot=fallen-hull-look      # the picture cards
 gradlew.bat createSnapshots -Psnapshot=long-survey-fall-look # The Fall played, the looks in place
 ```
@@ -28,10 +29,14 @@ gradlew.bat createSnapshots -Psnapshot=long-survey-fall-look # The Fall played, 
 | `trench` | seamless 2x2 trench floor, the lip strip, scorch / furrow / glassed patches | | 64 |
 | `stripper`, `hauler`, `rig` | walker masters on the derelict walker's layout: torso, thigh, shin, joint and the assembled walker (`rig` is pick `stripper-hauler` b, one unit) | the composer's | 128 |
 
-The hull's roof plating is the `hull` roof style (`art-source/roofs`,
-`RoofStyle.HULL`; its first painting, a plate and channel every cell, read as a
-grid and is kept as `raw/hull-v1`), a row of `mod/graphics/tilesets/roofs.png`
-drawn over any building whose walls carry a surface id naming `fallen-hull`.
+The hull's roof is the ship: `hull_roof.py` stretches the picked lineage's body
+(`raw/hull-survey.png`) over the plan's 88 x 32 cells into
+`mod/graphics/battle/fallen-hull/hull-roof.png`, and `HullRoof` cuts each roofed
+cell of the hull out of it, turned to the hull's heading, in place of the roof
+style's repeating field (damage still draws from the roof sheet). The `hull`
+roof style (`art-source/roofs`, `RoofStyle.HULL`; its first painting is kept as
+`raw/hull-v1`) is what any other building with `fallen-hull` walls wears, and
+the 2-cell field the hull's wall caps show where its roof is lifted.
 
 What ships, on each pick's recommended option until the owner answers:
 

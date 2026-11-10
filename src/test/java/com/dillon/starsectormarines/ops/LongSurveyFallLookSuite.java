@@ -23,9 +23,11 @@ import java.util.List;
 /**
  * The Long Survey's first chapter, The Fall, launched as the debug mission player launches it (LS1 on its owned seed),
  * played a short while for its strippers and printed walkers to walk out, and looked at through the look preset at
- * 1920x1080: the hull roofed on its trench ({@code 1-hull.png}), the forge hall with the roof lifted
- * ({@code 2-forge.png}), and the first stripper and hauler out on the claim ({@code 3-stripper.png},
- * {@code 4-hauler.png}). The fallen hull's looks in their places (`art-source/fallen-hull`). Nothing is judged.
+ * 1920x1080: the hull roofed on its trench ({@code 1-hull.png}, closer {@code 1b-hull-close.png}), the forge hall with
+ * the roof lifted ({@code 2-forge.png}), and the first stripper and hauler out on the claim, set side by side on open
+ * ground clear of the hull for the frame alone ({@code 3-stripper-hauler.png}: stripper west, hauler east). The fallen
+ * hull's looks in their places (`art-source/fallen-hull`). Nothing is judged; the battle is not stepped after the
+ * walkers are moved.
  * Opt-in; {@code -Dsnapshot.longSurveyFall.seconds} sets how long it plays first (default 150).
  */
 public final class LongSurveyFallLookSuite implements SnapshotSuite {
@@ -83,26 +85,61 @@ public final class LongSurveyFallLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact("2-forge.png", BattleReviewFrameRenderer.look(context.modRoot(), W,
                             H, fx - 4f, fy, 34f).withoutRoofs().render(sim, "")));
                 }
-                walker(context, sim, director, DerelictWalkerFrame.STRIPPER, "3-stripper.png", out);
-                walker(context, sim, director, DerelictWalkerFrame.HAULER, "4-hauler.png", out);
+                long stripper = first(sim, director, DerelictWalkerFrame.STRIPPER);
+                long hauler = first(sim, director, DerelictWalkerFrame.HAULER);
+                if (stripper != 0L && hauler != 0L) {
+                    int[] spot = openGround(sim, world.cellX(stripper), world.cellY(stripper), fx, fy);
+                    world.setPos(stripper, spot[0] - 2.5f, spot[1] + .5f);
+                    world.setPos(hauler, spot[0] + 3.5f, spot[1] + .5f);
+                    log("stripper %d and hauler %d set at (%d, %d); drawn at (%.1f, %.1f) and (%.1f, %.1f)", stripper,
+                            hauler, spot[0], spot[1], world.renderX(stripper), world.renderY(stripper),
+                            world.renderX(hauler), world.renderY(hauler));
+                    out.add(new SnapshotArtifact("3-stripper-hauler.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, spot[0] + .5f, spot[1] + .5f, 16f).withoutRoofs().render(sim, "")));
+                } else {
+                    log("stripper %d, hauler %d: not both out", stripper, hauler);
+                }
             }
         }
         return out;
     }
 
-    private static void walker(SnapshotContext context, BattleSimulation sim, DerelictSecurityDirector director,
-                               DerelictWalkerFrame frame, String name, List<SnapshotArtifact> out) throws Exception {
+    /** The first member of {@code frame}'s first walker squad still standing, or 0. */
+    private static long first(BattleSimulation sim, DerelictSecurityDirector director, DerelictWalkerFrame frame) {
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             if (w.frame() != frame || sim.squadMemberCount(w.squadId()) <= 0) continue;
             long id = sim.squadMemberAt(w.squadId(), 0);
-            float x = sim.world().renderX(id), y = sim.world().renderY(id);
-            log("%s %d at (%.1f, %.1f), variant %s, loadout %s", frame, id, x, y, sim.identity().mechVariant(id),
-                    sim.world().hasMechLoadout(id) ? sim.world().mechLoadout(id).variant : null);
-            out.add(new SnapshotArtifact(name, BattleReviewFrameRenderer.look(context.modRoot(), W, H, x, y, 24f)
-                    .withoutRoofs().render(sim, "")));
-            return;
+            log("%s %d at (%.1f, %.1f), variant %s", frame, id, sim.world().renderX(id), sim.world().renderY(id),
+                    sim.identity().mechVariant(id));
+            return id;
         }
-        log("no %s out", frame);
+        return 0L;
+    }
+
+    /**
+     * A cell of open ground near {@code (x, y)}, walked outward away from the forge at {@code (fx, fy)}, with a
+     * 14 x 8 cell patch round it walkable and under no building: somewhere the two walkers stand in plain light.
+     */
+    private static int[] openGround(BattleSimulation sim, int x, int y, float fx, float fy) {
+        float dx = x - fx, dy = y - fy;
+        float len = (float) Math.max(1e-3, Math.hypot(dx, dy));
+        dx /= len;
+        dy /= len;
+        for (int step = 0; step < 60; step++) {
+            int cx = Math.round(x + dx * step), cy = Math.round(y + dy * step);
+            if (clear(sim, cx, cy)) return new int[]{cx, cy};
+        }
+        return new int[]{x, y};
+    }
+
+    private static boolean clear(BattleSimulation sim, int cx, int cy) {
+        for (int yy = cy - 4; yy <= cy + 4; yy++) {
+            for (int xx = cx - 7; xx <= cx + 7; xx++) {
+                if (!sim.getGrid().inBounds(xx, yy) || !sim.getGrid().isWalkable(xx, yy)) return false;
+                if (sim.getTopology().getBuildingId(xx, yy) != 0 || sim.getTopology().isWall(xx, yy)) return false;
+            }
+        }
+        return true;
     }
 
     private static void log(String format, Object... args) {

@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -229,14 +230,27 @@ public final class MilitaryWorks implements RaidIndustry {
         int[] bounds = claimBounds(c, plan.precincts().indexOf(works));
         if (bounds != null) MilitaryGround.watchtowers(c, bounds);
         for (int i = 0; i < plan.precincts().size(); i++) {
-            if (RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) MilitaryGround.paradeSquare(c, i);
+            if (!RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) continue;
+            MilitaryGround.drillYards(c, i, MilitaryGround.paradeSquare(c, i));
         }
         vehiclePark(c, plan, works);
-        // The base's buildings and its garrison's are built alike, so the two read as one cantonment.
-        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) oliveWalls(c, b);
+        // The base's buildings and its garrison's are built alike, so the two read as one cantonment: olive sheet
+        // walls, hangar roofs over the sheds, the depot and the fuel house, hut roofs over dispatch and the barracks.
+        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
+            oliveWalls(c, b);
+            RoomPurpose purpose = WorksProps.purposeOf(c, b);
+            if (purpose == MOTOR_POOL || purpose == SUPPLY_DEPOT || purpose == FUEL_POINT) {
+                roof(c, b, CellTopology.RoofKind.HANGAR);
+            } else if (purpose == DISPATCH) {
+                roof(c, b, CellTopology.RoofKind.HUT);
+            }
+        }
         for (Precinct p : plan.precincts()) {
             if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
-            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) oliveWalls(c, b);
+            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) {
+                oliveWalls(c, b);
+                roof(c, b, CellTopology.RoofKind.HUT);
+            }
         }
         int n = 0;
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
@@ -344,6 +358,18 @@ public final class MilitaryWorks implements RaidIndustry {
         return x1 < 0 ? null : new int[]{x0, y0, x1, y1};
     }
 
+    /** Marks a building's roof {@code kind}; a gun lot's building keeps its fort works roof. */
+    private static void roof(GenContext c, PointOfInterest b, CellTopology.RoofKind kind) {
+        for (int x = b.left; x <= b.right; x++) {
+            for (int y = b.top; y <= b.bottom; y++) {
+                if (c.topology.getWorksStyle(x, y) != 0) return;
+            }
+        }
+        for (int x = b.left; x <= b.right; x++) {
+            for (int y = b.top; y <= b.bottom; y++) c.topology.setRoofKind(x, y, kind);
+        }
+    }
+
     /** Rebuilds a building's walls in {@link #BASE_WALL}. */
     private static void oliveWalls(GenContext c, PointOfInterest b) {
         int surface = c.topology.surfaceIndex(BASE_WALL);
@@ -376,11 +402,13 @@ public final class MilitaryWorks implements RaidIndustry {
                 x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
             }
         }
-        int placed = 0;
-        for (int y = y0 + PARK_CLEAR; y <= y1 - PARK_CLEAR && placed < PARK_MOST; y += PARK_RANKS) {
+        // A rank is one kind: the tanks drawn up together, the carriers in the next rank.
+        int placed = 0, rank = 0;
+        for (int y = y0 + PARK_CLEAR; y <= y1 - PARK_CLEAR && placed < PARK_MOST; y += PARK_RANKS, rank++) {
+            String vehicle = ARMOUR.get(rank % ARMOUR.size());
             for (int x = x0 + PARK_CLEAR; x <= x1 - PARK_CLEAR && placed < PARK_MOST; x += PARK_FILE) {
                 if (claim[x][y] != index || nearBuilding(c, x, y, PARK_CLEAR)) continue;
-                if (WorksProps.place(c, x, y, ARMOUR.get(placed % ARMOUR.size()), 1)) placed++;
+                if (WorksProps.place(c, x, y, vehicle, 1)) placed++;
             }
         }
     }
@@ -396,10 +424,10 @@ public final class MilitaryWorks implements RaidIndustry {
         return false;
     }
 
-    /** The patrols' own vehicles: armoured personnel carriers, the base's whole fleet but its logistics trucks. */
-    private static final List<String> ARMOUR = List.of("doodad.parked-armored-apc");
+    /** The base's own vehicles, the whole fleet but its logistics trucks: tanks and armoured personnel carriers. */
+    private static final List<String> ARMOUR = List.of("doodad.parked-tank", "doodad.parked-apc-army");
 
-    /** A row of patrol trucks along a motor shed's long side, and drums at its corner. */
+    /** A row of the base's vehicles along a motor shed's long side, and drums at its corner. */
     private static void motorPark(GenContext c, PointOfInterest shed, int n) {
         List<String> row = new ArrayList<>();
         for (int i = 0; i < 3; i++) row.add(ARMOUR.get((n + i) % ARMOUR.size()));

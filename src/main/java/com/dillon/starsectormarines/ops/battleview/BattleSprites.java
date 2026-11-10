@@ -229,6 +229,7 @@ public class BattleSprites {
     private final SheetTexture roadTex       = SheetTexture.grid(TileManifest.ROAD_SHEET);
     private final SheetTexture floorsTex     = SheetTexture.grid(TileManifest.FLOORS_SHEET);
     private final SheetTexture roofTex       = SheetTexture.grid(RoofTiles.SHEET);
+    private final SheetTexture hullRoofTex   = SheetTexture.grid(HullRoof.TEXTURE);
     private final SheetTexture waterTex       = SheetTexture.grid(TileManifest.WATER_SHEET);
     private final SheetTexture urbanTile3Tex = SheetTexture.sliced(TileManifest.STREET3_SHEET);
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
@@ -536,6 +537,10 @@ public class BattleSprites {
     public SpriteAPI roofSheet()                   { return roofTex.sprite(); }
     public int roofSheetPxW()                      { return roofTex.pxW(); }
     public int roofSheetPxH()                      { return roofTex.pxH(); }
+    /** The fallen hull's roof painting ({@link HullRoof}); null when not loaded. */
+    public SpriteAPI hullRoofSheet()               { return hullRoofTex.sprite(); }
+    public int hullRoofSheetPxW()                  { return hullRoofTex.pxW(); }
+    public int hullRoofSheetPxH()                  { return hullRoofTex.pxH(); }
     public SpriteAPI waterSheet()                  { return waterTex.sprite(); }
     public int waterSheetPxW()                     { return waterTex.pxW(); }
     public int waterSheetPxH()                     { return waterTex.pxH(); }
@@ -796,7 +801,10 @@ public class BattleSprites {
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(lease); }
 
     /** Lazy-loads the roof sheet ({@link RoofTiles}): a row of field, eave trims and damage frames per roof style. */
-    public void ensureRoofSheet()       { roofTex.ensureLoaded(lease); }
+    public void ensureRoofSheet() {
+        roofTex.ensureLoaded(lease);
+        hullRoofTex.ensureLoaded(lease);
+    }
 
     /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(lease); }
