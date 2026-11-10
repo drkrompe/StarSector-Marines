@@ -1,0 +1,24 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated and field-handled, as the same complex's hover skids and mag-rail feed pods (references 2 and 3). No wheels, no railway, nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The copper-brown bands are copper coil rings; the dull green area is a sealed culture port; the pale blue-white areas are frost. The square wall blocks fill their whole square to the edges, so a row of them laid side by side reads as one continuous wall.
+Style: match reference 2 (the same complex's skids, pods and plant: blue-gray and gunmetal plate, rivets, worn ochre trim, ducted lift-fan rings) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face or a side wall in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. waste-skid (3x3): a hover skid on four ducted lift-fan rings carrying a sealed rounded waste tank with one culture port.
+2. reject-skid (3x3): the same kind of hover skid carrying an open mesh-sided bin full of scrap.
+3. bed-changer-derailed (3x3): a hover bed-changer carriage (a lifting frame over a catalyst bed slot) crashed and slewed, one fan ring torn off and lying at its corner.
+4. unit-carrier (2x3): a mag-rail carrier: a long plated sled with copper coil bands at both ends and a frosted cradle holding one sealed cryo unit.
+5. unit-carrier-derailed (2x3): the same carrier thrown askew off its rail.
+Middle row left to right:
+6. shield-block (1x1): a massive radiation shield block, a raised bolted face plate.
+7. shield-rubble (1x1): broken shield block chunks.
+8. blast-wall (1x1): a heavy blast wall section, ribbed armour plate.
+9. blast-baffle (1x1): a thick blast baffle plate standing east-west, scarred.
+10. blast-rubble (1x1): broken blast wall chunks.
+11. cage-fence (1x1): a flight-test cage fence running east-west across the cell: a heavy mesh panel with a post at its middle.
+12. housing-crate (3x2): a big reinforced transit crate for a field housing, steel ribs across it, corner castings.
+13. stack-crate (3x2): two tall transit crates side by side, raised lids.
+Bottom row:
+14. hardware-crate (3x2): an armoured hardware crate, a recessed lid with four latch plates.

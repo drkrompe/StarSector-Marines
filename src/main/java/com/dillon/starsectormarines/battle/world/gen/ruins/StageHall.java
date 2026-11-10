@@ -83,7 +83,7 @@ final class StageHall {
                 f.stand("doodad.ruins-emitter-bench", "doodad.civic-workstation-bank", bx, y0 + 5, 2, 2, "assembly");
             }
             for (int y = y0; y + 1 <= y0 + 6; y += 2) {
-                p.floor("doodad.ruins-stack-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
+                p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
             }
         }
 

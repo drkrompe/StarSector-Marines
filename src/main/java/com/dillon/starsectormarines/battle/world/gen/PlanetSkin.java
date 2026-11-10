@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HabitatStage;
 import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
@@ -336,6 +338,37 @@ public final class PlanetSkin {
             SHED_SHORT = new Piece("doodad.hydro-shed-short", 3, 3),
             PUMPHOUSE = new Piece("doodad.hydro-pumphouse", 2, 3);
 
+    /**
+     * A shed is sunk into the ground with earth banked up its sides and only a low lit roof ridge above grade (owner:
+     * "I feel like we should 'embed them' into the earth"), so it stands as an earth mound: walked and driven over
+     * (the skin never closes a cell), never hiding anyone, and low cover to whoever lies on or behind its bank, as a
+     * parapet's bags are but lower ({@link #shed}).
+     */
+    public static final DoodadCover BANK = DoodadCover.LIGHT;
+    /** The bank's crossing silhouette: a waist-high mound, below a sandbag parapet's 0.4. */
+    public static final float BANK_HALF_HEIGHT = 0.18f;
+
+    /** A placed piece as it stands: a shed as its earth bank ({@link #BANK}); the pump house as its sheet says. */
+    public static Doodad shed(Placed p, DoodadDef def) {
+        boolean banked = p.piece() == SHED || p.piece() == SHED_SHORT;
+        return banked ? new Doodad(p.x(), p.y(), def, p.turns(), BANK.level(), BANK_HALF_HEIGHT)
+                : new Doodad(p.x(), p.y(), def, p.turns());
+    }
+
+    /**
+     * Whether a piece stands in the landing's field of fire. A mission that lands its force in the colony's fields
+     * promises that field clear of anything to hide behind ({@code MapFeature.OPEN_FIELD_LANDING}), and a bank is
+     * cover, so the farm leaves the landing ground bare: the plots there stay cleared (owner's pick of
+     * planet-skin-landing, over coverless sheds there).
+     */
+    public static boolean onLanding(Placed p, FieldOfFire field) {
+        if (field == null) return false;
+        for (int y = p.y(); y < p.y() + p.height(); y++)
+            for (int x = p.x(); x < p.x() + p.width(); x++) if (field.contains(x, y)) return true;
+        return false;
+    }
+
+
     /** One piece stood on a plot: its footprint's corner and quarter turns (1 when the rows run along y). */
     public record Placed(Piece piece, int x, int y, int turns) {
         public int width() { return turns % 2 == 0 ? piece.along() : piece.across(); }
@@ -431,9 +464,10 @@ public final class PlanetSkin {
             for (Placed p : covered(plot)) {
                 DoodadDef def = tiles.doodad(p.piece().id);
                 if (def == null || !clear(p, mask, taken, w, h)) continue;
+                if (onLanding(p, map.fieldOfFire)) continue;
                 for (int y = p.y(); y < p.y() + p.height(); y++)
                     for (int x = p.x(); x < p.x() + p.width(); x++) taken[y * w + x] = true;
-                map.doodads.add(new Doodad(p.x(), p.y(), def, p.turns()));
+                map.doodads.add(shed(p, def));
             }
         }
     }
