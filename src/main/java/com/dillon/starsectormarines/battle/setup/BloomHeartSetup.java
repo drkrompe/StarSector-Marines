@@ -626,7 +626,7 @@ public final class BloomHeartSetup {
     }
 
     /**
-     * Broad Front's company gets armour in its own sector, a breakthrough tank and a Hound pair stationed on its
+     * Broad Front's company gets armour in its own sector, an Onager and a Hound pair stationed on its
      * target and a fresh tank every two minutes, as the lanes either side have ({@code -Dbattle.heart.broadCompanyArmour}).
      */
     static final boolean BROAD_COMPANY_ARMOUR =
@@ -738,7 +738,7 @@ public final class BloomHeartSetup {
 
     /**
      * The Burn's allied front: a battlegroup on each lane across the approach, militia columns with their
-     * armour (an escort APC, a technical, a breakthrough tank and a Hound pair in each; the standard mix keeps
+     * armour (an escort APC, a technical, an Onager and a Hound pair in each; the standard mix keeps
      * the tanks beside the company and the Hounds on the outer flanks), all following the barrage on {@code screen}.
      */
     static HeartLanes burnFront(BattleSimulation sim, Form form, BarrageScreen screen, long seed) {

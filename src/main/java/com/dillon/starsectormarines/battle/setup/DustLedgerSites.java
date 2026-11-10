@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Sites;
 import com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossing;
 import com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossing.Layout;
-import com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossing.PostRole;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayList;
@@ -18,12 +17,8 @@ public final class DustLedgerSites {
     private DustLedgerSites() {}
 
     public static Sites from(Layout layout) {
-        return new Sites(area(layout.landing()), cell(layout.couplingCrate()), area(layout.ledgerRoom()),
-                cell(layout.burnBarrel()), cell(layout.brokerOffice()), cell(layout.skimmerBoarding()),
-                area(layout.exclusionRing()), area(layout.compound()), cells(layout.spotterPosts()),
-                area(layout.cantina()), cells(layout.posts().get(PostRole.CANTINA)), area(layout.wellHouseArea()),
-                area(layout.harrowYard()), cells(layout.salvageTeam()), cell(layout.gate()),
-                area(layout.feedJunctionArea()), cells(layout.reinforcementCells()));
+        return new Sites(area(layout.landing()), area(layout.ledgerRoom()), cell(layout.burnBarrel()),
+                cell(layout.brokerOffice()), cell(layout.skimmerBoarding()), area(layout.exclusionRing()), cells(layout.reinforcementCells()));
     }
 
     static Cell cell(DustLedgerCrossing.Cell cell) { return new Cell(cell.x(), cell.y()); }

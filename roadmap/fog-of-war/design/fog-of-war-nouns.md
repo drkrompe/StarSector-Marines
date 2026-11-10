@@ -39,8 +39,8 @@ position, and shots remain visible through fog.
   bitmap but has no battle-unit visibility row or cohort membership. It arrives
   through one of two channels. A **projected source** is pushed by a render host
   each frame — a shuttle, a flyby fighter, a warship. A **standing source** is held by a
-  mission while one of its conditions lasts — the Dust Ledger's rooftop spotters
-  over the compound yard (`dust-ledger-crossing.md`). The channels are separate
+  mission while one of its conditions lasts — Blind Watch's revealed bunkers
+  (`BlindWatchSequence`). The channels are separate
   because they are cleared by different owners at different cadences; each is
   replaced as a set, and all feed the one footprint rebuild.
 - A **unit visibility state** is the renderer's HIDDEN, VISIBLE, or FADING

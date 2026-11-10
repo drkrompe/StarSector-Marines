@@ -1,0 +1,56 @@
+{
+  "sheet": "graphics/doodads/ruins-forge-bridge.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-transfer-bridge-span",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-transfer-bridge-end",
+      "col": 2,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-transfer-bridge-span-damaged",
+      "col": 4,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        4
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Transfer bridge span",
+      "description": "A heavy deck on box girders over the melt, railings both sides; laid end to end east-west. Floor."
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "Transfer bridge end",
+      "description": "The bridge's abutment on a cast footing at the west bank, deck to the east; mirrored for the east bank. Floor."
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "Transfer bridge span, damaged",
+      "description": "A span with its north railing torn and the deck buckled and split over the melt. Floor."
+    }
+  ]
+}

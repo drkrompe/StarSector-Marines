@@ -18,8 +18,7 @@ class DustLedgerSitesTest {
         var layout = DustLedgerCrossing.generate(7, new TargetProfile(3, 5, 1, 0, "pirates", Set.of(),
                 SurfacePalette.ARID, SettlementLink.ROAD));
         var sites = DustLedgerSites.from(layout); // the Sites constructor holds the ring's inside and outside rules
-        assertEquals(layout.posts().get(DustLedgerCrossing.PostRole.CANTINA).size(), sites.drinkerCells().size());
-        assertEquals(layout.salvageTeam().size(), sites.salvageTeamCells().size());
+        assertEquals(layout.reinforcementCells().size(), sites.reinforcementCells().size());
         assertTrue(sites.ledgerRoom().contains(layout.ledgerTarget().x(), layout.ledgerTarget().y()));
     }
 

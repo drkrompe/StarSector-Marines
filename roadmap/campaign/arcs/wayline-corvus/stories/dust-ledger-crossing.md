@@ -1,7 +1,7 @@
 # The Dust Ledger — Saltwell Cross
 
 Status: IN PROGRESS — wired into the campaign: the chapter now plays Saltwell Cross with the quiet phase,
-burning ledger, broker and side objectives. A second, more detailed map pass and difficulty tuning remain.
+burning ledger and the broker as its one bonus objective. A second, more detailed map pass and difficulty tuning remain.
 Written: 2026-10-25
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus)
@@ -56,7 +56,7 @@ arc.
 
 1. **Quiet phase.** Company boats land on the freight apron. Sable is not
    yet hostile; civilians work the market. The player positions squads anywhere
-   outside the compound's **exclusion ring**, and may take side objectives.
+   outside the compound's **exclusion ring**.
    The HUD shows the broker's scheduled lift-off clock (starting value tuned in
    play, about five minutes).
 2. **Alarm.** The first of:
@@ -66,13 +66,12 @@ arc.
      margin, drawn on the map during the quiet phase);
    - the lift-off clock expiring, in which case the broker's skimmer leaves
      with him aboard and he radios the alarm on his way out.
-   Civilians flee the market (existing flee behaviour); hidden Sable
-   drinkers in the cantina arm and join unless the warden's watch holds them.
+   Civilians flee the market (existing flee behaviour).
 3. **Burning ledger.** From the alarm, clerks feed the books into the burn
    barrel: a visible progress bar (about 75 seconds, tuned in play). Seizing the
    ledger room (the existing Raid seizure: uncontested hold inside the room)
    stops the burn. Unburned share at seizure is the **ledger grade**.
-4. **Broker (optional).** On the alarm the broker leaves his office for the
+4. **Broker (bonus).** On the alarm the broker leaves his office for the
    skimmer pad beyond the canal crossing. A company unit reaching him first
    makes him surrender; he then follows his captors and must reach the freight
    apron alive. If he boards, he escapes. If the clock expired, he is already
@@ -85,56 +84,35 @@ ledger still yields the strongbox (Prell's signature, the Warion lead), so the
 story always advances on victory; grade and broker change only the debrief and
 any bonus (see Open questions).
 
-## Side objectives (quiet phase only)
+## Bonus objective: the broker
 
-All four jobs, the broker included, are side objectives on the toolkit
-(`mission-command-nouns.md`), declared in `DustLedgerSideObjectives`.
+The mission has one side objective on the toolkit (`mission-command-nouns.md`),
+declared in `DustLedgerSideObjectives`: take Teague alive. It pays 3,000
+credits, Wayline's price for him (owner, 2026-10-26), beside a Low,
+22,000-credit contract, and earns the mark "Wayline will remember".
 
-What each pays, beside a Low, 22,000-credit contract (owner, 2026-10-26:
-per job, as fits what it gives; the coupling fee and broker bounty decided).
+It is the one bonus because it is a real choice made under fire. When the alarm
+sounds the clerks start burning the ledger and Teague runs for his skimmer pad
+beyond the canal crossing, so the player either commits everything to the
+ledger room or splits a squad off to run him down and walk him back to the apron
+alive. The lift-off clock makes the quiet phase part of the same choice: wait too
+long and he leaves before the shooting starts.
 
-| Job | Credits | Mark and line |
-|---|---|---|
-| Coupling | 1,500, Wayline's delivery fee | Harrow will remember |
-| Warden's nod | none | The watch will remember |
-| Feed | none; the dark nests are the reward | mark only |
-| Broker | 3,000, Wayline's price for him alive | Wayline will remember |
+The pad has a marker from the start. His surrender, delivery and death are the
+job's own lines; his flight and boarding are the sequence's beats.
 
-Each must be completed before the alarm to pay off; one started and not finished
-pays nothing. All live entirely outside the exclusion ring, so their cost is
-clock time and squads not yet in position, never detection.
-
-**The salvagers' coupling.** The Harrow crew (led by Anneke Harrow), a Wayline account,
-sits stranded in their yard on the crawler road waiting for a drive coupling
-that is in this drop. A squad carries the crate from the apron to the yard
-through the market. Payoff: when the alarm sounds, a four-person armed salvage
-team (militia quality, allied, separate from the company) advances on the
-compound's east gate from the crawler road. They are a real force that can die;
-the company owes them nothing in settlement.
-
-**The warden's nod.** A squad leader walks to the warden's well house, chooses
-Respects on the prompt there, and stays briefly. Payoff: the town watch holds the cantina, so its hidden
-Sable drinkers never join, and two watchmen on market rooftops act as
-spotters, revealing the compound yard to the company until the alarm.
-
-**Cutting the feed.** Sable runs the compound's guns off an illegal tap on
-the town's old terraforming power line. The tap's junction box stands outside
-the ring, between the Harrow lane and the postern. The job is hidden: the
-briefing knows only that the nests are powered from somewhere, and it joins the
-checklist when a company combatant sights the box (12 cells) or reaches it,
-with Castle's line naming the tap. A squad that chooses Cut on the prompt at the box and works it for a
-short, unbroken time cuts the feed. Payoff: the gun nests are dead when the
-alarm sounds. Cutting Sable's own tap offends nobody in town. The pillboxes
-are manned, not powered, so the feed does not touch them.
-
-A fourth candidate, quietly cutting the compound's radio mast on the ridge to
-delay the burn, is deferred until these three are played.
+**Cut (owner, 2026-11-10).** Three quiet-phase jobs shipped and were removed for
+being errands whose payoffs came only after the alarm: carrying the Harrow
+crew's drive coupling to their yard (an allied salvage team at the alarm), the
+warden's nod at the well house (the watch holding the cantina's hidden drinkers,
+and rooftop spotters on the yard), and cutting the nests' power tap. The
+cantina's drinkers went with them. The map keeps the Harrow yard, the well house
+and the junction box as scenery.
 
 ## Defences (owner, 2026-10-25)
 
 The first headless runs on the larger compound read as a cakewalk. The owner
-asked for environmental dangers that a careful approach or a side objective
-evens out, built from the fort machinery (`forts.md`, `ground-defences.md`)
+asked for environmental dangers that a careful approach evens out, built from the fort machinery (`forts.md`, `ground-defences.md`)
 rather than new systems.
 
 - **Gun nests.** Three powered nests, machine gun or light cannon, never flak:
@@ -143,7 +121,7 @@ rather than new systems.
   - one in the east yard, covering the ledger room's yard doors.
 
   They are deadly to infantry in the open. They fall to rockets, the Hound or
-  charges, or go dead if the feed was cut. Rockets are in reach at this point in
+  charges. Rockets are in reach at this point in
   the campaign: the Convoy Escort Issue is on sale once Thunder Run settles
   (`campaign-kit-arc.md`). The nests are defences, never capture objectives.
 - **Pillboxes.** Small hardened bunkers with firing slits, each covering an
@@ -171,12 +149,13 @@ rather than new systems.
   keeping the one it holds unless another is clearly nearer. With armor in reach
   and in sight it stops and fires. Seen across open ground a Hound's chaingun
   outranges it, which is why it fights from behind corners rather than chasing.
-  With no company armor down it stays parked. It is not powered, so the feed cut
-  leaves it firing; rockets, the Hound's weapons and charges kill it.
+  With no company armor down it stays parked. Rockets, the Hound's weapons and
+  charges kill it.
 
-Difficulty is then tuned against the worst approach (autonomous company, no side
-objectives, which should cost real losses but still win) and the best approach
-(feed cut, rockets on the nests, which should be clearly easier).
+Difficulty is the owner's playtest: the autonomous company should cost real
+losses but still win, and a player who brings rockets to bear on the nests should
+find it clearly easier. With the feed cut gone the nests are always live, so the
+playtest checks they are not too harsh.
 
 ## Map
 
@@ -245,14 +224,12 @@ site and keeps all three approaches open.
 **B. Mission behaviour — `DustLedgerSequence`.** Quiet phase (defenders hold
 fire and do not perceive the company as hostile outside the ring), alarm
 triggers, lift-off clock, ledger burn and grade, broker flight, surrender,
-escort and escape, the two side objectives and their payoffs (allied salvage
-team; cantina held and spotters), objective checklist and markers. Takes its
+escort and escape, objective checklist and markers. Takes its
 own `Sites` input record so it is built and unit-tested against small
 synthetic grids, independent of piece A.
 
 **C. Story and text (written; `dust-ledger-dialogue.md`).** Briefing scene with Zoey and Castle (warden arrangement,
-broker, lift-off), side-objective field calls (Harrow, the warden), alarm and
-burn barks, and debrief variants over ledger grade x broker caught/escaped,
+broker, lift-off), alarm and burn barks, and debrief variants over ledger grade x broker caught/escaped,
 with the canonical Prell and Warion facts in all of them. Catalog strings under
 `corvusDustLedger*`; HUD and checklist keys belong to piece B under
 `dustLedgerHud*`. A chapter dialogue register beside the arc doc if the scene
@@ -276,25 +253,19 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [ ] Ledger burn stops at seizure and reports its grade; a burned ledger still
   completes the chapter.
 - [x] Broker surrender, escort, escape and clock departure each resolve.
-- [x] Each side objective pays off only if complete before the alarm.
+- [x] The broker is the only side objective, and pays only once delivered alive.
 - [x] Every victory debrief names Prell's authority and the Warion lead: the
   debrief selects Castle's opening by grade, Zoey's finding by grade and broker,
   and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
-- [ ] Headless playback with two squads wins with acceptable losses, with and
-  without side objectives. Baseline on the second-pass compound
+- [ ] Headless playback with two squads wins with acceptable losses. Baseline on the second-pass compound
   (`commanderEvidence -Pmission=corvus -Dbattle.corvus.chapter=DUST_LEDGER`):
   victory in 224 s, losing 5/24 infantry against a militia-only crew. The
   autonomous company walks into the ring, is sighted (alarm at tick 2860) and
-  takes no side objective, so this measures the worst approach only. On the
-  first compound the same run lost 12/24, and 24/24 with elite clerks. The
-  side-objective runs and live player-controlled tuning remain.
+  never chases the broker. On the first compound the same run lost 12/24, and
+  24/24 with elite clerks. Live player-controlled tuning remains.
 - [ ] Live play on Asharu in a campaign, including save/reload mid-arc.
 
 ## Open questions
 
-- **Bonus pay.** The arc pays each chapter once. Default: ledger grade and the
-  broker change only the debrief. Alternative: an optional-objective bonus
-  (`optional-objectives.md`) for a full ledger and the broker, which changes the
-  single-payment rule.
 - Names are settled: Saltwell Cross, Oskar Teague, Anneke Harrow, Tobias Ankrum (see `dust-ledger-dialogue.md`).
 - Starting clock and burn durations are tuning values, set in play.

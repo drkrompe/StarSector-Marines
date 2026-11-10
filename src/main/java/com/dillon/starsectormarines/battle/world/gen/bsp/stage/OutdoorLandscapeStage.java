@@ -32,7 +32,7 @@ import com.dillon.starsectormarines.battle.world.gen.elevation.CrevasseShelter;
 import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
+import com.dillon.starsectormarines.battle.world.gen.raid.MiningWorks;
 import java.util.Locale;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -204,7 +204,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<List<PointOfInterest>> chain = processingChain(c, plan);
         PointOfInterest receiving = !chain.isEmpty() && chain.get(0).size() == 1
                 && c.topology.getRoomPurpose(chain.get(0).get(0).interiorAnchorX, chain.get(0).get(0).interiorAnchorY)
-                == RaidWorksPrograms.MINE_RECEIVING ? chain.get(0).get(0) : pitWorksBuilding(c, plan);
+                == MiningWorks.RECEIVING ? chain.get(0).get(0) : pitWorksBuilding(c, plan);
         float[] works = receiving == null ? null : pitWorks(receiving, box);
         NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
         if (belt != null) belt = oreLine(c, pit, belt, receiving, chain, reserved);
@@ -347,7 +347,7 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /**
      * The works' processing chain in the plan's objective, step by step in the order the ore passes
-     * ({@code RaidWorksPrograms.mine}): each step the buildings whose room is that step's, nearest the objective
+     * ({@code MiningWorks.works}): each step the buildings whose room is that step's, nearest the objective
      * first. A step with no building is left out.
      */
     private static List<List<PointOfInterest>> processingChain(GenContext c, PrecinctPlan plan) {
@@ -357,8 +357,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
         int index = plan.precincts().indexOf(works);
         int reach = PIT_WORKS_REACH * PIT_WORKS_REACH * 2;
-        for (RoomPurpose step : List.of(RaidWorksPrograms.MINE_RECEIVING, RaidWorksPrograms.MINE_STOCKPILE,
-                RaidWorksPrograms.MINE_MILL, RaidWorksPrograms.MINE_SMELTER, RaidWorksPrograms.MINE_LOADOUT)) {
+        for (RoomPurpose step : MiningWorks.CHAIN) {
             List<PointOfInterest> found = new ArrayList<>();
             for (PointOfInterest poi : c.pois) {
                 if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;

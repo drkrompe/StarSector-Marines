@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c732-c511-7b71-862e-1526bc0da95b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c732-c511-7b71-862e-1526bc0da95b\\exec-0819178a-4a49-464f-b140-696e9e91d895.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-forge-bridge.raw.png",
+    "sha256": "e7dc40bb0c0e9c26dfabb06943584500354477733342352f952f3c4f039f81ea",
+    "dimensions": [
+      1578,
+      997
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\forge-bridge.prompt.txt",
+  "promptSha256": "7420923334ebe328c549d358f744d188fb101281efd25711cbbf9557877d6dd6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of three separate top-down tactical-game sprites for a vast abandoned Domain-era nanoforge foundry hall in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map: a heavy transfer bridge that carries the hall's transfer aisle east-west across a pool of molten metal. One cell is about one soldier wide. The bridge is automated heavy industry of a starfaring era, not a period foundry: no wooden planks, no rivet-and-lattice Victorian truss.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. The bridge runs left to right (east-west); its kerbs and railings run along the top and bottom edges of each piece.\nStyle: match reference 2 (the same foundry's machinery) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre hazard trim on the kerbs, soot and heat-scorch, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines.\nView: strictly top-down. Only the top surfaces are visible: the deck and the tops of its kerbs, railings and girder flanges; never a side face in perspective.\nSubjects, left to right:\n1. transfer-bridge-span (2 wide x 4 tall): a section of heavy steel deck on two box girders. Along the top and bottom edges: the girder flanges, their outer faces lit orange from the melt below, then a steel kerb with ochre hazard trim, then a heavy railing seen from above. The deck between has anti-slip plate panels with seams where shown and a centre seam. The deck runs flush off both the left and right edges with the same cross-section, so identical copies join end to end seamlessly.\n2. transfer-bridge-end (2 wide x 4 tall): the bridge's west abutment: on the left a cast concrete-and-steel footing block on the hall floor with four heavy anchor bolts, and the deck landing on it from the right with a bearing plate at its end; the deck continues flush off the right edge exactly as on the span.\n3. transfer-bridge-span-damaged (2 wide x 4 tall): the same span damaged: the top railing torn away, leaving stubs and one bent length; the deck buckled and split across its middle, the dark gap showing the glow of melt deep below.\nLight: soft upper-left object-local light; the only glow is the faint orange of the melt on the girders' outer edges and in the damaged split.\nBackground: true transparent background with clean alpha; no floor, lava, base tile, shadow slab, border, labels or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-forge-bridge-guide.png",
+      "sha256": "251a4ab05020e2686ad2ccfd30969275274b77e22a872e958d72e5fa520ebcbf",
+      "dimensions": [
+        1216,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-forge-era-b.raw.png",
+      "sha256": "08d98b3bbfb84e77f0b045ab2ed72c8538d234d8f76d7fa79e972bc5236f0c7a",
+      "dimensions": [
+        1639,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, using Image 1 for exact geometry and Image 2 for materials and style.\n"
+  ],
+  "usage": {
+    "input_tokens": 44942,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 819,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.5
+}

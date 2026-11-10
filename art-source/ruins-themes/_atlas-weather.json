@@ -1,0 +1,143 @@
+{
+  "defaults": {
+    "cover": "heavy",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "fallen-ceiling.png": {
+      "id": "doodad.ruins-fallen-ceiling",
+      "name": "Fallen ceiling",
+      "description": "Broken ceiling chunks and a panel shard in a fan of dust. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1
+    },
+    "fallen-panel.png": {
+      "id": "doodad.ruins-fallen-panel",
+      "name": "Ceiling chips",
+      "description": "A few concrete chips in a little dust. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2
+    },
+    "seep-stain.png": {
+      "id": "doodad.ruins-seep-stain",
+      "name": "Seep stain",
+      "description": "Rust and grey tide rings where water seeped from above for years. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3
+    },
+    "dust-tongue.png": {
+      "id": "doodad.ruins-dust-tongue",
+      "name": "Dust tongue",
+      "description": "Grit and dust blown in through a doorway, laid with its wide end at the mouth. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4
+    },
+    "sand-tongue.png": {
+      "id": "doodad.ruins-sand-tongue",
+      "name": "Sand tongue",
+      "description": "Desert sand blown in through a doorway, wide end at the mouth. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5
+    },
+    "snow-tongue.png": {
+      "id": "doodad.ruins-snow-tongue",
+      "name": "Snow tongue",
+      "description": "Drifted snow and frost blown in through a doorway, wide end at the mouth. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6
+    },
+    "ash-tongue.png": {
+      "id": "doodad.ruins-ash-tongue",
+      "name": "Ash tongue",
+      "description": "Volcanic ash blown in through a doorway, wide end at the mouth. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7
+    },
+    "sulphur-tongue.png": {
+      "id": "doodad.ruins-sulphur-tongue",
+      "name": "Sulphur tongue",
+      "description": "Toxic sulphur dust blown in through a doorway, wide end at the mouth. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8
+    },
+    "root-mat.png": {
+      "id": "doodad.ruins-root-mat",
+      "name": "Root mat",
+      "description": "Moss, lichen and root threads grown over the floor. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9
+    },
+    "root-run.png": {
+      "id": "doodad.ruins-root-run",
+      "name": "Root run",
+      "description": "Roots reaching along the floor from a gap, wide end at the gap. Overlay.",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10
+    }
+  }
+}

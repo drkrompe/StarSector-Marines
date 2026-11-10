@@ -1,4 +1,4 @@
-# Breakthrough tank and single cannon
+# Retired tracked tank hull and single cannon
 
 **Retired.** The Onager is now the heavy repulsor tank (`art-source/vehicles/heavy-repulsor`), and the sheet this
 package packed, `army-tank.png`, has been removed from `mod/`. The masters stay because the laser tank's hull guide

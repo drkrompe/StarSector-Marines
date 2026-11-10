@@ -212,7 +212,10 @@ Everything is in `battle.derelict`.
   frame mid-route, line frames outward in turn), sets the egress cells
   (`egressAlong`), launches the flocks and installs the director in place of
   `ExtractionDefenderCommand`. `RuinsExpeditionMissionFactory` names the
-  occupant's own faction for a derelict site.
+  occupant's own faction for a derelict site. Ground with no ruins vault
+  passes its own route and source cell to the route overload of `install`
+  (The Fall, `long-survey-arc.md`); with no vault objective the contingency
+  is never called.
 - **Interior posts.** On a site with an interior, `install(sim, grade, delve)`
   posts the walkers by `interiorPosts`: the vault frame on the vault's
   approach, the siege frame in the first entrance, line frames in the
