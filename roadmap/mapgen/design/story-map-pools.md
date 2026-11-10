@@ -60,7 +60,7 @@ note is for people: what the map is and why it is the one.
 | `heart-burn` (and its town and city) | 2 | the Wellhollow story map The Burn was tuned on |
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
-| `cordon-line`, `cordon-road`; town; urban | 3, 15; 14, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
