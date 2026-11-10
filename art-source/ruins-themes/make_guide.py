@@ -70,7 +70,21 @@ FAMILIES["forge-line"] = [("tapping-furnace", 6, 7, "furnace"), ("ladle-hook", 3
                           ("fettling-bench", 2, 2, "bench"), ("inspection-table", 2, 2, "table"),
                           ("pour-head", 2, 2, "pourhead"), ("mould-master", 2, 2, "mouldmaster"), None,
                           ("fallen-girder", 7, 1, "girder")]
-FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160}
+# The forge floor: the hall's movers and runs. Runs (rail bed, trench cover, drain gutter, crane runway, cable tray)
+# run north-south and fill their frame edge to edge, with a pattern whose period divides the frame's length, so
+# ``export.py`` heals each into a seamless repeat along its run. The curve meets the straight bed's cross-section at
+# its south and east edges (rails at 0.3 and 0.7 of the bed's width).
+FAMILIES["forge-floor"] = [("rail-bed", 2, 2, "rail"), ("rail-bed-curve", 4, 4, "railcurve"),
+    ("rail-buffer", 2, 2, "railbuffer"), ("slag-car", 2, 3, "slagcar"), ("slag-car-tipped", 3, 3, "slagtip"),
+    ("pallet-bay", 3, 3, "palletbay"), None,
+    ("trench-cover", 2, 2, "trench"), ("drain-gutter", 1, 2, "gutter"), ("floor-drain", 1, 1, "drain"),
+    ("crane-runway", 1, 4, "runway"), ("cable-tray", 1, 2, "tray"), ("cable-tray-fallen", 1, 4, "trayfallen")]
+# The forge's wear and its b2 consoles: stains laid along the traffic (low organic blots and streaks, faded in
+# ``export.py`` as the patches are), the line pulpit's roof and the recorder console.
+FAMILIES["forge-wear"] = [("oil-stain", 2, 2, "organic"), ("oil-trail", 1, 3, "streak"),
+    ("coolant-stain", 2, 2, "organic"), ("scorch-mark", 2, 2, "organic"), ("scorch-arc", 2, 2, "organic"),
+    ("skid-marks", 2, 3, "streak"), None, ("line-pulpit", 3, 3, "linepulpit"), ("recorder-console", 1, 2, "recorder")]
+FAMILY_CELL = {"doors": 320, "forge-mega": 112, "forge-line": 160, "forge-floor": 160, "forge-wear": 160}
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -539,6 +553,134 @@ def draw(family):
             for k in range(1, 14):
                 gx = x + k * w / 14
                 d.line((gx - 40, y + 40, gx + 40, y + h - 40), fill=EDGE, width=10)
+        elif kind == "rail":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 0.035 * h, x + 0.88 * w, sy + 0.035 * h), fill=EDGE)
+            for rx in (0.3, 0.7):
+                d.rectangle((x + rx * w - 10, y, x + rx * w + 10, y + h), fill=LIGHT)
+        elif kind == "railcurve":
+            c = FAMILY_CELL["forge-floor"]
+            ox, oy = x + w, y + h
+            d.pieslice((ox - 4 * c, oy - 4 * c, ox + 4 * c, oy + 4 * c), 180, 270, fill=BODY)
+            d.pieslice((ox - 2 * c, oy - 2 * c, ox + 2 * c, oy + 2 * c), 180, 270, fill=(0, 0, 0, 0))
+            for k in range(13):
+                a = math.radians(180 + (k + 0.5) * 90 / 13)
+                d.line((ox + 2.24 * c * math.cos(a), oy + 2.24 * c * math.sin(a), ox + 3.76 * c * math.cos(a),
+                        oy + 3.76 * c * math.sin(a)), fill=EDGE, width=22)
+            for r in (2.6, 3.4):
+                d.arc((ox - r * c, oy - r * c, ox + r * c, oy + r * c), 180, 270, fill=LIGHT, width=20)
+        elif kind == "railbuffer":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            for k in range(4, 8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 0.035 * h, x + 0.88 * w, sy + 0.035 * h), fill=EDGE)
+            for rx in (0.3, 0.7):
+                d.rectangle((x + rx * w - 10, y + 0.3 * h, x + rx * w + 10, y + h), fill=LIGHT)
+            d.rectangle((x + 0.1 * w, y + 0.12 * h, x + 0.9 * w, y + 0.36 * h), fill=EDGE, outline=DARK, width=8)
+            for rx in (0.3, 0.7):
+                d.ellipse((x + rx * w - 26, y + 0.33 * h, x + rx * w + 26, y + 0.33 * h + 52), fill=LIGHT,
+                          outline=DARK, width=6)
+        elif kind == "slagcar":
+            d.rectangle((x + 0.14 * w, y + 0.06 * h, x + 0.86 * w, y + 0.94 * h), fill=EDGE, outline=DARK, width=10)
+            for wy in (0.16, 0.84):
+                for wx in (0.04, 0.84):
+                    d.rectangle((x + wx * w, y + wy * h - 22, x + (wx + 0.12) * w, y + wy * h + 22), fill=DARK)
+            d.ellipse((x + 0.06 * w, y + 0.5 * h - 0.44 * w, x + 0.94 * w, y + 0.5 * h + 0.44 * w), fill=BODY,
+                      outline=EDGE, width=12)
+            d.ellipse((x + 0.2 * w, y + 0.5 * h - 0.3 * w, x + 0.8 * w, y + 0.5 * h + 0.3 * w), fill=DARK)
+            d.ellipse((x + 0.38 * w, y + 0.5 * h - 0.1 * w, x + 0.6 * w, y + 0.5 * h + 0.1 * w), fill=MELT)
+        elif kind == "slagtip":
+            car = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            cd = ImageDraw.Draw(car)
+            cd.rectangle((0.12 * w, 0.18 * h, 0.52 * w, 0.82 * h), fill=EDGE, outline=DARK, width=10)
+            for wy in (0.26, 0.74):
+                for wx in (0.06, 0.48):
+                    cd.rectangle((wx * w, wy * h - 18, (wx + 0.08) * w, wy * h + 18), fill=DARK)
+            car = car.rotate(9, resample=Image.BICUBIC)
+            im.alpha_composite(car, (x, y))
+            d.polygon([(x + 0.5 * w, y + 0.36 * h), (x + 0.72 * w, y + 0.3 * h), (x + w - 6, y + 0.4 * h),
+                       (x + w - 6, y + 0.66 * h), (x + 0.74 * w, y + 0.7 * h), (x + 0.52 * w, y + 0.62 * h)],
+                      fill=MELT)
+            d.ellipse((x + 0.3 * w, y + 0.26 * h, x + 0.66 * w, y + 0.74 * h), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + 0.38 * w, y + 0.36 * h, x + 0.62 * w, y + 0.64 * h), fill=DARK)
+        elif kind == "palletbay":
+            paint, t, ln = (196, 170, 70, 255), 16, 0.22 * w
+            for cx_, cy_, sx_, sy_ in ((x + 20, y + 20, 1, 1), (x + w - 20, y + 20, -1, 1),
+                                       (x + 20, y + h - 20, 1, -1), (x + w - 20, y + h - 20, -1, -1)):
+                d.rectangle((min(cx_, cx_ + sx_ * ln), min(cy_, cy_ + sy_ * t), max(cx_, cx_ + sx_ * ln),
+                             max(cy_, cy_ + sy_ * t)), fill=paint)
+                d.rectangle((min(cx_, cx_ + sx_ * t), min(cy_, cy_ + sy_ * ln), max(cx_, cx_ + sx_ * t),
+                             max(cy_, cy_ + sy_ * ln)), fill=paint)
+            d.rectangle((x + 0.38 * w, y + 0.8 * h, x + 0.62 * w, y + 0.9 * h), fill=paint)
+        elif kind == "trench":
+            d.rectangle((x, y, x + w, y + h), fill=EDGE)
+            for rx in (0, 0.9 * w):
+                d.rectangle((x + rx, y, x + rx + 0.1 * w, y + h), fill=DARK)
+            for k in range(4):
+                d.rectangle((x + 0.12 * w, y + k * h / 4 + 6, x + 0.88 * w, y + (k + 1) * h / 4 - 6), fill=BODY,
+                            outline=EDGE, width=6)
+        elif kind == "gutter":
+            d.rectangle((x, y, x + w, y + h), fill=BODY)
+            d.rectangle((x + 0.28 * w, y, x + 0.72 * w, y + h), fill=DARK)
+            for k in range(16):
+                sy = y + (k + 0.5) * h / 16
+                d.rectangle((x + 0.3 * w, sy - 4, x + 0.7 * w, sy + 4), fill=EDGE)
+        elif kind == "drain":
+            d.rectangle((x + 12, y + 12, x + w - 12, y + h - 12), fill=EDGE, outline=DARK, width=8)
+            d.rectangle((x + 34, y + 34, x + w - 34, y + h - 34), fill=DARK)
+            for k in range(1, 7):
+                d.line((x + 34 + k * (w - 68) / 7, y + 34, x + 34 + k * (w - 68) / 7, y + h - 34), fill=EDGE,
+                       width=6)
+        elif kind == "runway":
+            d.rectangle((x + 0.22 * w, y, x + 0.78 * w, y + h), fill=BODY)
+            d.rectangle((x + 0.44 * w, y, x + 0.56 * w, y + h), fill=LIGHT)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.22 * w, sy - 8, x + 0.78 * w, sy + 8), fill=EDGE)
+            d.rectangle((x + 0.06 * w, y + 0.44 * h, x + 0.94 * w, y + 0.56 * h), fill=EDGE, outline=DARK, width=6)
+        elif kind == "tray":
+            for rx in (0.12, 0.8):
+                d.rectangle((x + rx * w, y, x + (rx + 0.08) * w, y + h), fill=LIGHT)
+            for k in range(8):
+                sy = y + (k + 0.5) * h / 8
+                d.rectangle((x + 0.12 * w, sy - 5, x + 0.88 * w, sy + 5), fill=EDGE)
+            for k in range(5):
+                d.rectangle((x + (0.24 + 0.11 * k) * w, y, x + (0.31 + 0.11 * k) * w, y + h), fill=DARK)
+        elif kind == "trayfallen":
+            tray = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            td = ImageDraw.Draw(tray)
+            for rx in (0.3, 0.62):
+                td.rectangle((rx * w, 0.06 * h, (rx + 0.08) * w, 0.94 * h), fill=LIGHT)
+            for k in range(12):
+                sy = (0.08 + k * 0.074) * h
+                td.rectangle((0.3 * w, sy - 4, 0.7 * w, sy + 4), fill=EDGE)
+            tray = tray.rotate(-7, resample=Image.BICUBIC)
+            im.alpha_composite(tray, (x, y))
+            for k in range(4):
+                d.line((x + (0.36 + 0.07 * k) * w, y + 0.1 * h, x + (0.2 + 0.2 * k) * w, y + (0.3 + 0.18 * k) * h,
+                        x + (0.42 + 0.06 * k) * w, y + 0.92 * h), fill=DARK, width=12)
+        elif kind == "streak":
+            lanes = (0.5,) if w < h * 0.5 else (0.3, 0.7)
+            for lx in lanes:
+                pts = [(x + lx * w + 0.06 * w * math.sin(t / 10 * math.pi * 1.3 + lx * 7), y + 40 + t / 10 * (h - 80))
+                       for t in range(11)]
+                d.line(pts, fill=(150, 154, 160, 140), width=int(0.16 * w / len(lanes)) + 10, joint="curve")
+        elif kind == "linepulpit":
+            d.rectangle((x + 16, y + 16, x + w - 16, y + h - 70), fill=BODY, outline=EDGE, width=12)
+            for vy in (0.16, 0.36):
+                d.rectangle((x + 0.12 * w, y + vy * h, x + 0.62 * w, y + vy * h + 0.1 * h), fill=DARK)
+            d.ellipse((x + 0.74 * w, y + 0.12 * h, x + 0.86 * w, y + 0.24 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.7 * w, y + 0.36 * h, x + 0.9 * w, y + 0.62 * h), fill=EDGE)
+            d.rectangle((x + 0.08 * w, y + 0.62 * h, x + 0.62 * w, y + 0.72 * h), fill=LIGHT, outline=EDGE, width=6)
+            d.rectangle((x + 0.12 * w, y + h - 70, x + 0.88 * w, y + h - 16), fill=EDGE, outline=DARK, width=6)
+        elif kind == "recorder":
+            d.rectangle((x + 14, y + 14, x + w - 14, y + h - 14), fill=BODY, outline=EDGE, width=10)
+            d.rectangle((x + 34, y + 40, x + w - 34, y + 0.4 * h), fill=DARK)
+            d.ellipse((x + w / 2 - 34, y + 0.55 * h, x + w / 2 + 34, y + 0.55 * h + 68), fill=EDGE, outline=DARK,
+                      width=6)
+            d.rectangle((x + 30, y + h - 60, x + w - 30, y + h - 34), fill=LIGHT)
         elif kind == "ladle":
             d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)
