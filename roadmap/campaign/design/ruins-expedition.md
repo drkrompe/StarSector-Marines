@@ -640,10 +640,15 @@ the company commits. The prize's **theme** shows four ways:
   `RuinsDressing`). The vault room and the interior's chambers are furnished
   from the game's own props: server racks for a server hall, rifle racks and
   ammunition lockers for an armory, reactor housings and pumps for reactor
-  halls, crates for a depot, and so on. Each prop stands against a room's wall,
-  never in a doorway, and only where the room stays one floor. The dressing
-  draws nothing from the layout's random stream, so a site's ground is the
-  same whatever its prize.
+  halls, crates for a depot, and so on. Where those fall short a theme has
+  props of its own (the `ruins-themes` sheet): frozen cryo racks and frosted
+  heatsink banks for a cryoarithmetic engine, culture vats and overgrown grow
+  beds for soil nanites and a biofactory embryo. Each prop stands against a
+  room's wall, never in a doorway, and only where the room stays one floor.
+  Those themes also lay **floor patches** (frost sheets, biofilm mats): flat,
+  walkable, no cover, on open floor clear of every doorway and standing piece.
+  The dressing draws nothing from the layout's random stream, so a site's
+  ground is the same whatever its prize.
 - **A close reading.** At the stand before the vault's layer, the Delve row's
   close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
   the occupant's sign: the survey's tell, seen up close.

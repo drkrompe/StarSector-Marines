@@ -41,8 +41,10 @@ the ruins and guesses what is inside before committing the company.
    through the occupant's own instruments (`RuinsSurvey`).
 3. **Themed works and art.** Furniture and the close reading are built. Still
    owed, through picks with look shots:
-   - Art made for a theme where the shipped props fall short: frost, vats,
-     a forge floor.
+   - Art made for a theme where the shipped props fall short: frost and vats
+     are built (props and floor patches); a forge floor (nanoforge, drone
+     replicator) and hoist gear with a shaft head (mantle bore) are still
+     owed. Concepts: `art-source/ruins-themes/raw/ruins-forge-concept.png`.
    - Theme on the approach outside.
 
 ## Constraints
