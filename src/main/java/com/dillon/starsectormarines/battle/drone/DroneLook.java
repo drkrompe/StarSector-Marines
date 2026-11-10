@@ -36,7 +36,14 @@ public enum DroneLook {
     /** A midline hub's drone: an angular pod with a small turret forward and a belly thrust grille at each corner. */
     HUB_MIDLINE("graphics/battle/drones/hub-drone-midline.png", .9f),
     /** A high-tech hub's drone: a narrow lifting body with its emitter on the centreline. */
-    HUB_HIGH_TECH("graphics/battle/drones/hub-drone-high-tech.png", .95f);
+    HUB_HIGH_TECH("graphics/battle/drones/hub-drone-high-tech.png", .95f),
+    /**
+     * Derelict security's repair drone in Domain livery (`derelict-watch.md`, Repair): an unarmed service body, a
+     * welding arm folded along its nose, a stock canister on its back, a lift pod each side. Appended: looks are ordinals.
+     */
+    REPAIR_DOMAIN("graphics/battle/drones/repair-domain.png", .9f),
+    /** The repair drone in contingency security's livery. Appended: looks are ordinals. */
+    REPAIR_CONTINGENCY("graphics/battle/drones/repair-contingency.png", .9f);
 
     private final String spritePath;
     private final float heightCells;

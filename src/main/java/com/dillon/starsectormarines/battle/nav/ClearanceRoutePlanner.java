@@ -33,11 +33,25 @@ import java.util.List;
  * <p>Step budgets bound expanded lattice nodes, not wall-clock time. Initial
  * candidate enumeration is bounded by endpoint distance, while straight proofs
  * scan terrain along their swept bounds and may cover a large map rectangle.
+ *
+ * <p>A link costs its length, and {@link #BREACH_COST} times that inside a
+ * {@link NavigationGrid.CellTag#BREACH} cell of a wall-crushing walker's breach
+ * view ({@link #linkCost}); a straight proof through breach ground is left to
+ * the search to price. Costs only rise from the length, so the octile
+ * heuristic stays admissible.
  */
 public final class ClearanceRoutePlanner {
     /** Caps endpoint enumeration independently of the expansion budget. */
     public static final float MAX_ENDPOINT_DISTANCE = 8f;
     private static final float ATTACHMENT_DISTANCE = 1f;
+    /**
+     * What a route pays per cell of length its centre crosses inside a {@link NavigationGrid.CellTag#BREACH} cell,
+     * against one for open ground: a wall-crushing walker's breach view prices a pushable wall as a crushing hull's
+     * route does ({@code WallCrush}), so it pushes through only where going round is longer by more than this.
+     */
+    public static final float BREACH_COST = 8f;
+    /** How finely a straight proof's centre line is sampled for breach cells, cells. */
+    private static final float BREACH_SAMPLE = .25f;
     /**
      * {@code -Dbattle.pathfinding.shareExhaustedFlood=false} restores one full
      * flood per endpoint candidate after the first candidate proves unreachable.
@@ -175,7 +189,9 @@ public final class ClearanceRoutePlanner {
                     Point endpoint = new Point(w.x(goal), w.y(goal));
                     // Preserve candidate order: a direct proof never bypasses
                     // an unresolved nearer candidate or its exhausted budget.
-                    if (w.link(start.x(), start.y(), endpoint.x(), endpoint.y())) {
+                    // A straight run through breach ground is not proved cheapest: the search prices it.
+                    if (!crossesBreach(w.grid, start.x(), start.y(), endpoint.x(), endpoint.y())
+                            && w.link(start.x(), start.y(), endpoint.x(), endpoint.y())) {
                         List<Point> route = start.equals(endpoint) ? List.of(start) : List.of(start, endpoint);
                         return finish(Status.FOUND, endpoint, route);
                     }
@@ -211,7 +227,7 @@ public final class ClearanceRoutePlanner {
                             if (xx < 0 || yy < 0 || xx >= w.width || yy >= w.height) continue;
                             int next = yy * w.width + xx;
                             if (!w.legal(next) || !w.link(w.x(node), w.y(node), w.x(next), w.y(next))) continue;
-                            float cost = w.costs[slot] + (dx == 0 || dy == 0 ? 0.5f : (float) Math.sqrt(0.5d));
+                            float cost = w.costs[slot] + linkCost(w.grid, w.x(node), w.y(node), w.x(next), w.y(next));
                             w.offer(next, cost, slot);
                         }
                     }
@@ -295,6 +311,33 @@ public final class ClearanceRoutePlanner {
         }
         corners.add(route.get(route.size() - 1));
         return corners;
+    }
+
+    /**
+     * What one lattice link from ({@code fromX}, {@code fromY}) to a neighbouring point costs: its length, times
+     * {@link #BREACH_COST} where its midpoint lies in a breach cell. A half-cell link lies in one cell or along the
+     * line between two, so its midpoint places it.
+     */
+    static float linkCost(NavigationGrid grid, float fromX, float fromY, float toX, float toY) {
+        float length = fromX == toX || fromY == toY ? 0.5f : (float) Math.sqrt(0.5d);
+        int cx = (int) Math.floor((fromX + toX) * .5f), cy = (int) Math.floor((fromY + toY) * .5f);
+        return grid.hasTag(cx, cy, NavigationGrid.CellTag.BREACH) ? length * BREACH_COST : length;
+    }
+
+    /** Whether the straight centre line from one point to another passes through a breach cell. */
+    static boolean crossesBreach(NavigationGrid grid, float fromX, float fromY, float toX, float toY) {
+        float dx = toX - fromX, dy = toY - fromY;
+        int steps = Math.max(1, (int) Math.ceil(Math.hypot(dx, dy) / BREACH_SAMPLE));
+        int lastX = Integer.MIN_VALUE, lastY = Integer.MIN_VALUE;
+        for (int i = 0; i <= steps; i++) {
+            float t = (float) i / steps;
+            int cx = (int) Math.floor(fromX + dx * t), cy = (int) Math.floor(fromY + dy * t);
+            if (cx == lastX && cy == lastY) continue;
+            lastX = cx;
+            lastY = cy;
+            if (grid.hasTag(cx, cy, NavigationGrid.CellTag.BREACH)) return true;
+        }
+        return false;
     }
 
     private static List<Integer> pointsWithin(Workspace w, float x, float y, float distance) {
