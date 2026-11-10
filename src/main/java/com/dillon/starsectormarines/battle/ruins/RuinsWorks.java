@@ -484,6 +484,10 @@ public final class RuinsWorks {
                     vaultShell[3]);
         }
         for (LockedDoor lock : locks) lock.install(sim);
+        // The plant is dark under its roof until its power comes back (RuinsLighting); a map lit already keeps its own.
+        if (delve != null && sim.getTopology().nightLighting() == null) {
+            sim.getTopology().setNightLighting(RuinsLighting.lay(sim.getTopology(), delve, this));
+        }
         wasForced = new boolean[locks.size()];
         courtLifts = new int[courts.size()];
         for (int c = 0; c < courts.size(); c++) {
@@ -540,6 +544,7 @@ public final class RuinsWorks {
             }
         }
         settle(sim);
+        RuinsLighting.apply(sim.getTopology(), graph);
     }
 
     private void finish(BattleSimulation sim) {

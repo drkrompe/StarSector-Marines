@@ -612,7 +612,8 @@ public final class CivilDefenceCompound {
         lamps.addAll(added);
         Set<String> powered = new HashSet<>(night == null ? Set.of() : night.poweredCircuits());
         powered.add(LIGHT_CIRCUIT);
-        topology.setNightLighting(new NightLighting(night == null ? 0f : night.darkness(), lamps, powered));
+        topology.setNightLighting(night == null ? new NightLighting(0f, lamps, powered)
+                : new NightLighting(night.darkness(), night.roofedDarkness(), lamps, powered));
     }
 
     /**

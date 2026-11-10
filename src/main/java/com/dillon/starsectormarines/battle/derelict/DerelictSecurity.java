@@ -258,7 +258,7 @@ public final class DerelictSecurity {
         List<DerelictWalkerFrame> heavies = heavies(grade);
         int[] zoneOf = zoneOf(heavies, plans.size());
         int[] postsUsed = new int[plans.size()];
-        int[][] inside = interiorPosts(heavies, delve);
+        int[][] inside = interiorPosts(heavies, delve, plans, zoneOf);
         List<DerelictSecurityDirector.Walker> walkers = new ArrayList<>();
         for (int i = 0; i < heavies.size(); i++) {
             ZonePlan plan = plans.get(zoneOf[i]);
@@ -404,13 +404,24 @@ public final class DerelictSecurity {
     /**
      * Where each heavy stands on a site with an interior (`derelict-security-network.md`, Interiors): the vault frame
      * on the vault's approach, inside its forecourt; the siege frame just inside the first entrance; line frames in
-     * the interior's chambers in turn (the entrances when it has none). Null when the ground has no interior, and the
-     * route's posts serve.
+     * the interior's chambers in turn (the entrances when it has none); on install, a chamber in the frame's own zone
+     * first. Null when the ground has no interior, and the route's posts serve.
      */
     public static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve) {
+        return interiorPosts(heavies, delve, null, null);
+    }
+
+    /**
+     * As {@link #interiorPosts(List, RuinsDelve)}, each line frame first offered a chamber its own zone
+     * ({@code plans.get(zoneOf[i])}) keeps, nearest that zone's node and not yet taken; the chambers in turn when its
+     * zone keeps none free.
+     */
+    static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve, List<ZonePlan> plans,
+                                 int[] zoneOf) {
         if (delve == null || delve.interior() == null || delve.vault() == null) return null;
         RuinsDelve.Interior interior = delve.interior();
         List<RuinsDelve.Area> rooms = interior.chambers().isEmpty() ? interior.entrances() : interior.chambers();
+        boolean[] taken = new boolean[rooms.size()];
         int[][] out = new int[heavies.size()][];
         int nextRoom = 0;
         for (int i = 0; i < heavies.size(); i++) {
@@ -421,11 +432,29 @@ public final class DerelictSecurity {
                 RuinsDelve.Area entrance = interior.entrances().get(0);
                 out[i] = new int[] {entrance.centreX(), entrance.centreY()};
             } else {
-                RuinsDelve.Area room = rooms.get(nextRoom++ % rooms.size());
-                out[i] = new int[] {room.centreX(), room.centreY()};
+                int room = plans == null || zoneOf == null ? -1 : ownRoom(rooms, taken, plans.get(zoneOf[i]));
+                if (room < 0) room = nextRoom++ % rooms.size();
+                taken[room] = true;
+                out[i] = new int[] {rooms.get(room).centreX(), rooms.get(room).centreY()};
             }
         }
         return out;
+    }
+
+    /** The untaken room whose centre {@code plan}'s perimeter holds, nearest its node; -1 when none. */
+    private static int ownRoom(List<RuinsDelve.Area> rooms, boolean[] taken, ZonePlan plan) {
+        int best = -1;
+        int bestD = Integer.MAX_VALUE;
+        for (int r = 0; r < rooms.size(); r++) {
+            if (taken[r]) continue;
+            int d = Math.max(Math.abs(rooms.get(r).centreX() - plan.nodeX()),
+                    Math.abs(rooms.get(r).centreY() - plan.nodeY()));
+            if (d <= plan.perimeterCells() && d < bestD) {
+                bestD = d;
+                best = r;
+            }
+        }
+        return best;
     }
 
     /**
