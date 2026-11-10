@@ -173,4 +173,35 @@ class PrecinctInterconnectTest {
         assertTrue(rowStarts.size() <= 3 && columnStarts.size() <= 3,
                 "the weld stepped: rows start at " + rowStarts.size() + " columns, columns at " + columnStarts.size() + " rows");
     }
+
+    /**
+     * A weld a later road has made redundant is taken up, leg by leg, where the later road joins the same two
+     * networks, and the map stays one network; a weld that is still the only join stays.
+     */
+    @Test
+    void aWeldALaterRoadDoesTheWorkOfIsTakenUp() {
+        int[][] owner = new int[W][H];
+        for (int[] column : owner) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+        for (int x = 5; x <= 60; x++) for (int y = 5; y <= 7; y++) owner[x][y] = 0;    // a road along the bottom
+        for (int x = 5; x <= 60; x++) for (int y = 45; y <= 47; y++) owner[x][y] = 1;  // and one along the top
+        boolean[][] before = new boolean[W][H];
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) before[x][y] = owner[x][y] == GrownTrunkPlan.UNOWNED;
+        PrecinctInterconnect.weld(owner, W, H);
+        boolean[][] welded = new boolean[W][H];
+        int weldCells = 0;
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) {
+            welded[x][y] = before[x][y] && owner[x][y] != GrownTrunkPlan.UNOWNED;
+            if (welded[x][y]) weldCells++;
+        }
+        assertTrue(weldCells > 0, "the fixture needs a weld");
+        assertEquals(0, PrecinctInterconnect.untie(owner, welded, W, H), "the weld is the only join; it stays");
+
+        int col = -1;                                                                 // a later road beside it
+        for (int x = 0; x < W && col < 0; x++) if (welded[x][26]) col = x;
+        int road = col <= 30 ? col + 8 : col - 8;
+        for (int y = 8; y <= 44; y++) for (int x = road; x <= road + 2; x++)
+            if (owner[x][y] == GrownTrunkPlan.UNOWNED) owner[x][y] = 0;
+        assertEquals(weldCells, PrecinctInterconnect.untie(owner, welded, W, H), "the weld beside the later road");
+        assertEquals(1, PrecinctInterconnect.components(owner, W, H));
+    }
 }
