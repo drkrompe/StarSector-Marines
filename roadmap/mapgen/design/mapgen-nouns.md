@@ -2155,27 +2155,29 @@ head to the north:
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- a feed path, a marked lane along the head row from the east wall to the
-  crucible's charge hopper, kept clear. It is generic until the feed's own
-  pieces land: the owner ruled out ore cars and rail ("Ore car does not make
-  sense for a space faring civilization"), and the hall reads as automated
-  heavy industry, not a period foundry;
+- the feed: a mag-rail up the west aisle from the dispatch end to a
+  decelerator stop at the head, beside the crucible's flank, one sealed feed
+  pod waiting on it and another derailed in the aisle. The hall reads as
+  automated, spacefaring heavy industry, never a period foundry (owner: "Ore
+  car does not make sense for a space faring civilization");
+- the slag pit beside the slag heaps, a crashed hover skid on its lip, and
+  the slag lane, a mag-rail down the east aisle with a hover skid stopped on
+  it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
 - the dispatch end clear of the line: the trench runs on under covers,
-  pallet bays are marked along it, fettling and inspection benches stand by,
-  and a slag path (generic, like the feed path) leaves the slag heaps for the
-  east wall;
+  pallet bays are marked along it, and a finishing cell and a metrology bed
+  stand by;
 - a crane girder fallen across the west aisle as cover;
 - wear laid under it all: scorch round the spout and the core's flank,
-  coolant by the racks, a floor drain in each aisle, oil and skid marks at
-  dispatch. Markings, wear and overhead pieces are not work, so they never
+  coolant by the racks, a floor drain in each aisle, oil and a hover
+  skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
   turn a floor zone to deck plate.
 
-The hall's overhead structure (crane runways, cable trays, crane ladles) is
+The hall's overhead structure (crane runways, cable trays, ladle lifts) is
 authored to draw above units (`ruins-forge-motions`) but not yet laid: the
 roof pass draws overhead props after the roofs, so inside a roofed hall they
 would show on top of its shut roof. They wait until overhead props under a

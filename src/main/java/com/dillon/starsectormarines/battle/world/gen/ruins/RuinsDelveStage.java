@@ -1816,7 +1816,11 @@ public final class RuinsDelveStage implements GenStage {
                 piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
             }
             piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx + 13, top - 7, 2, 2, hall, centre);
+            // The slag pit, a crashed hover skid with its east edge on the pit's lip, the slag heaped below.
+            meltBox(melt, hall, centre, cx + 14, top - 7, cx + 16, top - 5);
+            if (piece(registry, "doodad.ruins-slag-skid-crashed", cx + 11, top - 7, 3, 3, hall, centre)) {
+                over(registry, "doodad.ruins-slag-skid-crashed-spill", cx + 11, top - 7);
+            }
             piece(registry, "doodad.ruins-slag-heap", cx + 15, top - 9, 2, 2, hall, centre);
             piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
             sealMelt(melt, hall);
@@ -1825,7 +1829,7 @@ public final class RuinsDelveStage implements GenStage {
                 // Scorch round the spout and the core's flank.
                 lay(registry, "doodad.ruins-scorch-mark", cx + 1, lineHead - 3, under);
                 lay(registry, "doodad.ruins-scorch-arc", gx - 2, gy + 6, under);
-                feedPath(hall, gx + GREAT_CRUCIBLE_WIDE / 2);
+                feedRail(registry, hall, centre, gy);
             }
             dispatch(registry, hall, centre, under);
         }
@@ -1845,36 +1849,61 @@ public final class RuinsDelveStage implements GenStage {
                 lay(registry, "doodad.ruins-pallet-bay", hall.left() + 2 + 4 * k, bottom + 1, under);
                 lay(registry, "doodad.ruins-pallet-bay", hall.right() - 4 - 4 * k, bottom + 1, under);
             }
-            piece(registry, "doodad.ruins-fettling-bench", cx - 9, bottom + 2, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-inspection-table", cx - 6, bottom + 2, 2, 2, hall, centre);
-            lay(registry, "doodad.ruins-skid-marks", cx - 4, bottom + 1, under);
+            piece(registry, "doodad.ruins-finishing-cell", cx - 9, bottom + 2, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-metrology-bed", cx - 6, bottom + 2, 2, 2, hall, centre);
+            lay(registry, "doodad.ruins-thrust-wash", cx - 4, bottom + 1, under);
             lay(registry, "doodad.ruins-oil-trail", cx + 3, bottom + 1, under);
             lay(registry, "doodad.ruins-oil-stain", cx - 8, bottom + 4, under);
-            int y = hall.top() - 11;
-            for (int x = cx + 12; x <= hall.right(); x++) {
-                if (!grid.isWalkable(x, y) || topology.isFixture(x, y)) continue;
-                feed[i(x, y)] = true;
-                kitFloor[i(x, y)] = true;
+            // The slag lane: a mag-rail down the east aisle from the pit to the dispatch end, a hover skid
+            // stopped on it half way.
+            int sx = cx + 17;
+            if (piece(registry, "doodad.ruins-slag-skid", sx - 1, hall.centreY(), 3, 3, hall, centre)) {
+                over(registry, "doodad.ruins-slag-skid-melt", sx - 1, hall.centreY());
+            }
+            magRail(registry, sx, bottom + 8, hall.top() - 11, false);
+        }
+
+        /**
+         * The feed to the great crucible: a mag-rail up the west aisle from the dispatch end to its stop at the head,
+         * beside the crucible's flank where the charge goes in. One sealed feed pod waits on the rail by the crucible,
+         * another lies derailed in the aisle.
+         */
+        private void feedRail(TileRegistry registry, Area hall, Cell centre, int gy) {
+            int fx = hall.left() + 2;
+            piece(registry, "doodad.ruins-feed-pod", fx, gy + 9, 2, 3, hall, centre);
+            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 2, 2, 3, hall, centre);
+            magRail(registry, fx, hall.bottom() + 8, hall.top() - 1, true);
+        }
+
+        /**
+         * A mag-rail two cells wide at {@code x}, run north-south from {@code from} to {@code to}: 2x2 lengths laid
+         * where the floor is clear (a piece standing on it, a pod or a skid, breaks the run under it), ending at
+         * {@code to} in a decelerator stop when {@code stop}. Its cells are kept clear of dressing and painted as a lane.
+         */
+        private void magRail(TileRegistry registry, int x, int from, int to, boolean stop) {
+            for (int y = from; y + 1 <= to; y += 2) {
+                boolean clear = true;
+                for (int dy = 0; dy < 2 && clear; dy++) {
+                    for (int dx = 0; dx < 2 && clear; dx++) {
+                        clear = grid.inBounds(x + dx, y + dy) && grid.isWalkable(x + dx, y + dy)
+                                && !topology.isFixture(x + dx, y + dy) && !kitFloor[i(x + dx, y + dy)];
+                    }
+                }
+                if (!clear) continue;
+                boolean end = stop && y + 3 > to;
+                lay(registry, end ? "doodad.ruins-mag-rail-end" : "doodad.ruins-mag-rail", x, y);
+                for (int dy = 0; dy < 2; dy++) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        feed[i(x + dx, y + dy)] = true;
+                        kitFloor[i(x + dx, y + dy)] = true;
+                    }
+                }
             }
         }
 
         /** A cooling rack at {@code x} on line {@code y0}: laden with castings, or by coordinate hash cleared. */
         private String coolingRack(int x, int y0) {
             return hash(x, y0, 0xC001) % 3 == 0 ? "doodad.ruins-cooling-rack" : "doodad.ruins-cooling-rack-castings";
-        }
-
-        /**
-         * The feed path to the great crucible's charge hopper: a marked lane along the hall's head row from its east
-         * wall to the hopper above the crucible's middle ({@code hopperX}), kept clear of furniture. Generic until the
-         * feed's own pieces land; {@link #zoneFloor} paints it.
-         */
-        private void feedPath(Area hall, int hopperX) {
-            int y = hall.top();
-            for (int x = hopperX; x <= hall.right(); x++) {
-                if (!grid.isWalkable(x, y) || topology.isFixture(x, y)) continue;
-                feed[i(x, y)] = true;
-                kitFloor[i(x, y)] = true;
-            }
         }
 
         /** Plans melt over a box of a hall's cells, keeping it off the walls, the doorways and the hall's middle. */
