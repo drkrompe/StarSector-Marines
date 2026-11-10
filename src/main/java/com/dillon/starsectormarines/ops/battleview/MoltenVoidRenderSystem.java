@@ -394,7 +394,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        if (!molten(ctx.sim.getTopology().naturalVoid()) || !drop.begin(ctx, out)) return;
+        if (!molten(drop.naturalVoid(ctx.sim.getTopology())) || !drop.begin(ctx, out)) return;
         NaturalVoidField field = drop.field();
         if (builtFrom != field) build(field);
         float time = FireLight.clock(ctx.animationTimeSeconds);

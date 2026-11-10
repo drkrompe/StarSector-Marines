@@ -168,7 +168,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      * that already draws a drop or a backdrop is left as it is.
      */
     private static void openPits(GenContext c, PrecinctPlan plan, boolean[] reserved) {
-        if (plan == null || plan.layout() == null || c.topology.naturalVoid() != null
+        if (plan == null || plan.layout() == null || outdoorDrop(c.topology)
                 || c.topology.voidBackdrop() != null) return;
         if (!(plan.layout().find(OpenPit.SITE) instanceof Site box) || box.purpose() != SitePurpose.GROUND) return;
         int w = c.width;
@@ -186,7 +186,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         float[] works = receiving == null ? null : pitWorks(receiving, box);
         NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
         if (belt != null) belt = oreLine(c, pit, belt, receiving, chain, reserved);
-        c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
+        c.topology.addNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)), pit);
     }
 
     /**
@@ -389,7 +389,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private boolean crevasseTown(GenContext c, SurfaceField field, boolean[] reserved) {
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         List<RidgePlanner.Band> bands = plan == null ? List.of() : CrevasseTown.wallsOf(plan.landscape());
-        if (bands.isEmpty() || c.topology.naturalVoid() != null || c.topology.naturalRise() != null
+        if (bands.isEmpty() || outdoorDrop(c.topology) || c.topology.naturalRise() != null
                 || c.topology.voidBackdrop() != null) return false;
         int w = c.width;
         // The edge band is held against growth, not against a crevasse's walls: ask again without it.
@@ -484,8 +484,14 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
-    /** The surface a crossing's footbridge is decked with. */
-    static final String DECK_SURFACE = "colony.timber";
+    /**
+     * Whether the map already draws a drop across its open country, which the landscape lays at most one of. A drop
+     * cut indoors (a foundry's melt) is not one: the rift outside is cut beside it, each owning its own cells.
+     */
+    static boolean outdoorDrop(CellTopology topology) {
+        for (NaturalVoid drop : topology.naturalVoids()) if (!drop.indoor()) return true;
+        return false;
+    }
 
     /**
      * Cuts a natural drop across open country where the map's design placed one ({@code voids.md}, placed by design;
@@ -496,7 +502,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      * backdrop, or whose line does not fit, keeps none.
      */
     private static void chasm(GenContext c, SurfaceField field, boolean[] reserved) {
-        if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
+        if (outdoorDrop(c.topology) || c.topology.voidBackdrop() != null) return;
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landform.Drop design = plan == null ? null : Landform.Drop.of(plan.landscape(), c.width, c.height);
         if (design == null) return;
@@ -507,9 +513,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (cut == null) return;
         cutDrop(c, cut.drop(), reserved);
         NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
-        // Each crossing is decked as a timber footbridge. A snow bridge on ice was tried: plain snow over the
-        // crevasse read as two pits with ground between them, not as a way across.
-        int timber = c.topology.surfaceIndex(DECK_SURFACE);
+        // Each crossing wears the drop's deck: a timber footbridge for every outdoor drop today.
+        int deck = drop.deck().surface() == null ? -1 : c.topology.surfaceIndex(drop.deck().surface());
         boolean[] decks = cut.decks();
         for (int i = 0; i < decks.length; i++) {
             if (!decks[i]) continue;
@@ -517,24 +522,25 @@ public final class OutdoorLandscapeStage implements GenStage {
             int x = i % w, y = i / w;
             c.topology.setNatureOverlayIndex(x, y, -1);
             c.topology.setGroundKind(x, y, GroundKind.DIRT);
-            c.topology.setSurface(x, y, timber);
+            if (deck >= 0) c.topology.setSurface(x, y, deck);
         }
-        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height));
+        c.topology.addNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height), cut.drop());
         // A volcanic world's lava river has broken its banks before: its older flows lie on the plain.
         if (field.world() == SurfacePalette.VOLCANIC) {
-            paintFlows(c, LavaFlows.offChannel(w, c.height, cut.drop(),
+            paintFlows(c, cut.drop(), LavaFlows.offChannel(w, c.height, cut.drop(),
                     i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                     i -> !decks[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                     (int) (c.seed ^ 0x4c46L)), reserved);
         }
     }
 
-    /** Lays the older flows ({@link LavaFlows#heat}) and keeps the landscape's later features off them. */
-    private static void paintFlows(GenContext c, boolean[] flows, boolean[] reserved) {
+    /**
+     * Lays the older flows ({@link LavaFlows#heat}) broken from the drop over {@code lava}'s cells, and keeps the
+     * landscape's later features off them.
+     */
+    private static void paintFlows(GenContext c, boolean[] lava, boolean[] flows, boolean[] reserved) {
         int w = c.width;
-        boolean[] lava = new boolean[flows.length];
         for (int i = 0; i < flows.length; i++) {
-            lava[i] = c.topology.getGroundKind(i % w, i / w) == GroundKind.VOID;
             if (!flows[i]) continue;
             reserved[i] = true;
             c.topology.setNatureOverlayIndex(i % w, i / w, -1);

@@ -463,3 +463,4 @@ com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsForgePicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsEnvironmentPicksSuite
 com.dillon.starsectormarines.ops.OwnedMapLookSuite
+com.dillon.starsectormarines.battle.world.gen.pool.StoryMapCandidatesSuite
