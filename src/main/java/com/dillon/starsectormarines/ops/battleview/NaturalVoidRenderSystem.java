@@ -48,6 +48,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     static final int MARGIN = 24;
     /** Water: how fast it runs, metres a second, and how long one pattern lasts before it fades into the next. */
     static final float FLOW_SPEED = 1.6f, FLOW_PERIOD = 5f;
+    /**
+     * The water's pace against an even reach's ({@link ChannelFlow}'s speed): past {@code RAPIDS} it breaks white,
+     * and it is carried no faster than {@code FLOW_FASTEST}, so a pinch does not smear its pattern.
+     */
+    static final float RAPIDS = 1.5f, FLOW_FASTEST = 2.5f;
     /** How dark a rise's shadow lies on the floor at its foot, at its fullest. */
     static final float FLOOR_SHADE = .32f;
 
@@ -456,9 +461,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 r = f[0]; g = f[1]; b = f[2];
             } else if (floor) {
                 float x = at[o], y = at[o + 1], light = at[o + 2], edge = at[o + 3];
-                float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6], sunlit = at[o + 7];
-                float along = x * fx + y * fy, across = -x * fy + y * fx;
-                float run = FLOW_SPEED * FLOW_PERIOD;
+                float sky = at[o + 6], sunlit = at[o + 7];
+                // Laid along the channel's own flow (ChannelFlow): its streamlines bend with the gorge, and the
+                // pattern is carried down them as fast as the water runs there, faster through a narrows.
+                float[] fl = band.flow;
+                float along = fl[q * 5], across = fl[q * 5 + 1], speed = Math.min(FLOW_FASTEST, fl[q * 5 + 4]);
+                float run = FLOW_SPEED * FLOW_PERIOD * speed * speed;
                 float s1 = NaturalVoidField.Noise.fbm((along - p1 * run) * .28f, across * 1.5f, seed + 3);
                 float s2 = NaturalVoidField.Noise.fbm((along - p2 * run) * .28f + 17f, across * 1.5f, seed + 5);
                 float streak = w1 * s1 + (1f - w1) * s2;
@@ -469,7 +477,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 r *= bright; g *= bright; b *= bright;
                 // White water along the walls and where the stream breaks.
                 float foam = clamp01((.75f - edge) * 1.6f) * (.55f + .45f * streak)
-                        + clamp01(streak - .45f) * .8f;
+                        + clamp01(streak - .45f) * .8f
+                        + clamp01((speed - RAPIDS) * .9f) * (.4f + .6f * streak);
                 foam = clamp01(foam) * (.5f + .5f * light);
                 r = lerp(r, .80f, foam * .75f); g = lerp(g, .84f, foam * .75f); b = lerp(b, .82f, foam * .75f);
                 if (sunlit > 0f && streak > .3f) { r += .08f; g += .08f; b += .07f; }

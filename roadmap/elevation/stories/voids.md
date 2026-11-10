@@ -586,12 +586,10 @@ Laws):
      pools: the crust's drift and the heat's run quicken from a 24 m melt's
      crawl (0.22 cells a second, the rift's) to a 4 m channel's run (1.1)
      (`LavaVoidLook.runShare`, `MoltenVoidRenderSystem.crustSpeed`), so the
-     plates are seen to travel. One pace for a whole melt, from its mean
-     depth, and once it runs at all its crust drifts as one sheet along the
-     melt's mean bearing: a crust carried far along a pace or a bearing that
-     changed cell to cell tore its image apart between them. A crawling
-     rift's crust still follows its bends. The 40 m rift stays the style's
-     standing depth, drawn as before.
+     plates are seen to travel. The pace is the melt's as a whole, from its
+     mean depth; along it the channel's flow quickens it through a narrows
+     or over a shallow (Flow, below). The 40 m rift stays the style's
+     standing depth.
    - **A rift that shallows** (`-Dsnapshot.lava.setup=vary`): 40 m in the
      west, 12 m by the bridge, 4 m in the east, by depth marks.
 
@@ -717,6 +715,35 @@ Laws):
    The field takes these as they are. Each style adds its floor drawing and
    its palette, and a crevasse its "no floor"; none needs a new shape rule.
 
+   **Flow** (owner, 2026-11-09: "a proper flow field that matches the
+   crevasse that we can re-use for lava/water"). A drop's floor runs along
+   it as one channel (`ChannelFlow`, worked out with the field): each run of
+   the drop's cells along the field's border is an **end**, the shallowest
+   end the **source** and every other an **outlet**, so a channel runs toward
+   its deeper end (ends as deep: toward the east and south). Between them the
+   **potential** is the steady flow of a sheet as deep as the floor, nothing
+   crossing the walls, solved once by over-relaxation. So the flow follows
+   every bend, parts round a pier and runs faster where the channel narrows
+   or shallows. A channel with fewer than two ends is **still**: a pool, a
+   lava lake, a closed crevasse. From it every floor piece takes **along**
+   (the potential, about a cell a cell), **across** (the stream function,
+   the same down a whole streamline) and **speed** (about 1 on an even
+   reach). Patterns are laid in along and across, never on the map's axes,
+   so they bend with the channel, and carried down it in two phases fading
+   one into the other, each place as fast as its own speed, so a pace that
+   changes along the channel stretches the pattern smoothly instead of
+   tearing it:
+   - **Gorge water**: streaks along the streamlines; white water where the
+     flow runs past half again its even pace (`RAPIDS`).
+   - **Lava**: the heat's streaks as the water's; the crust drifts by the
+     flow's velocity at each corner of each piece, so the image bends with
+     the channel and never tears between cells.
+   - **Ice**: the glint on the frozen pools drifts along the streamlines.
+   A rise has no flow: its floor is the battle's ground. Left: a flow hint on
+   the look for a generator that knows which way its brook runs; embers,
+   smoke and mist carried by the channel rather than the wind alone; a falls
+   where a floor steps.
+
    **Depth along a void** (owner, 2026-11-09, Model). Every natural drop and
    rise takes depth marks: the field blends a **gain** from them, the share of
    the steps' depth the void stands at, at every point (weights falling with
@@ -729,9 +756,8 @@ Laws):
    floor takes less of its deep blue where it shallows. Look suites:
    `-Dsnapshot.gorge.vary`, `-Dsnapshot.ice.vary`, `-Dsnapshot.ravine.vary`
    and the lava rift's `vary` setup. Left: a generator laying marks (a gorge
-   river deepest where its brook's valley is, shallowing to its fords);
-   water that runs faster where the gorge shallows; a falls where a floor
-   steps rather than slopes.
+   river deepest where its brook's valley is, shallowing to its fords); a
+   falls where a floor steps rather than slopes.
 
    **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
    generated maps lay natural voids by planet type, not only debug maps). Look
