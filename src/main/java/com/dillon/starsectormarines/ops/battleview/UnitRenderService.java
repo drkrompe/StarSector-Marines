@@ -11,7 +11,9 @@ import com.dillon.starsectormarines.battle.appearance.RavMatriarchRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -389,6 +391,8 @@ public final class UnitRenderService implements RenderSystem {
     private final Map<Long, Float> layerAngles = new HashMap<>();
     /** Each derelict walker's leg rig, and the sim tick it was last advanced on. */
     private final Map<Long, DerelictLegRig> derelictRigs = new HashMap<>();
+    /** A derelict walker's mount drawings by slot, filled per walker as it is drawn. */
+    private final int[] walkerGuns = new int[MechMountSlot.values().length];
 
     /** A walker's lost knees as a bit a leg, in the leg rig's order. */
     static int lostMask(WalkerKnees knees) {
@@ -1765,6 +1769,18 @@ public final class UnitRenderService implements RenderSystem {
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
                             walkerArt, rig, cam, roster.renderScale(entityId), size, unitAlpha);
+                    if (ctx.sim.world().hasMechLoadout(entityId)) {
+                        // Its guns on their hardpoints, riding the drawn body and turned to its aim.
+                        walkerGuns[MechMountSlot.ARMS.ordinal()] = mechArms[r];
+                        walkerGuns[MechMountSlot.LEFT_ARM.ordinal()] = mechLeftArm[r];
+                        walkerGuns[MechMountSlot.RIGHT_ARM.ordinal()] = mechRightArm[r];
+                        walkerGuns[MechMountSlot.LEFT_SHOULDER.ordinal()] = mechLeftShoulder[r];
+                        walkerGuns[MechMountSlot.RIGHT_SHOULDER.ordinal()] = mechRightShoulder[r];
+                        DerelictWalkerGuns.emit(out, mechAssets, sprites.vehicleGunMount(TurretMountStyle.GREEN), rig,
+                                cam, ctx.sim.world().mechLoadout(entityId).variant, roster.renderScale(entityId),
+                                walkerGuns, mechFacing[r], 0.025f * LayeredMechAppearance.recoil(mechChaingunPhase[r]),
+                                0.018f * LayeredMechAppearance.recoil(mechSrmPhase[r]), mechFlags[r], unitAlpha);
+                    }
                     DerelictWalkerComposer.marker(out, rig, cam, unitAlpha);
                     continue;
                 }

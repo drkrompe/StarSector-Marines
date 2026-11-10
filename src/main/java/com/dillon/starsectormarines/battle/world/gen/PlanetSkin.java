@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -47,7 +48,7 @@ public final class PlanetSkin {
         CROPS,
         /**
          * Grown under cover: the plot cleared to the planet's own ground and a covered farm stood on it in rows
-         * ({@link #covered}), greenhouse tunnels and grow domes a marine walks into and takes no cover behind. Paved
+         * ({@link #covered}), lit hydroponic buildings a marine walks into and takes no cover behind. Paved
          * hydroponic bays on the footprint were tried and read as concrete slabs (owner, 2026-11-10).
          */
         BARE
@@ -305,65 +306,91 @@ public final class PlanetSkin {
 
     // --- the covered farm --------------------------------------------------------------------------------------------
 
-    /** A piece of the covered farm. */
-    public enum Cover {
-        TUNNEL("doodad.greenhouse-tunnel", 6, 2),
-        SHORT_TUNNEL("doodad.greenhouse-tunnel-short", 3, 2),
-        DOME("doodad.grow-dome", 3, 3),
-        SKID("doodad.nutrient-skid", 2, 1);
+    /** A piece of the covered farm: its doodad and its footprint unturned, along a row then across it. */
+    public record Piece(String id, int along, int across) { }
 
-        public final String id;
-        /** Footprint unturned: along a row, then across it. */
-        public final int along, across;
+    /**
+     * What a covered farm is built as: a long piece the rows are made of, a short one that ends a row or fills a plot
+     * too short for a long one, and a plant piece (pumps, tanks, a boiler) that ends a row where only it fits. The
+     * owner rejected polytunnels ("They don't read like hydroponics", 2026-11-10); these three are the question put
+     * back, every piece lit by grow-light and piped.
+     */
+    public enum FarmLook {
+        /** Pressurised sheds with lit grow-light skylights in rows, a pump house to finish a row. */
+        SHEDS(new Piece("doodad.hydro-shed", 6, 3), new Piece("doodad.hydro-shed-short", 3, 3),
+                new Piece("doodad.hydro-pumphouse", 2, 3)),
+        /** Geodesic domes lit inside, in linked pairs, a tank station to finish a row. */
+        DOMES(new Piece("doodad.hydro-dome-pair", 9, 4), new Piece("doodad.hydro-dome", 4, 4),
+                new Piece("doodad.hydro-dome-tanks", 2, 4)),
+        /** Rigid glass halls over crop rows under grow-light bars, a boiler house to finish a row. */
+        GLASSHOUSES(new Piece("doodad.glasshouse", 8, 4), new Piece("doodad.glasshouse-short", 4, 4),
+                new Piece("doodad.glasshouse-boiler", 2, 4)),
+        /** No farm: the plot left as the planet's ground. The control the looks are judged against. */
+        BARE(null, null, null);
 
-        Cover(String id, int along, int across) {
-            this.id = id;
-            this.along = along;
-            this.across = across;
+        public final Piece row, end, plant;
+
+        FarmLook(Piece row, Piece end, Piece plant) {
+            this.row = row;
+            this.end = end;
+            this.plant = plant;
         }
     }
 
+    /**
+     * Which covered farm stands on a cleared field: the look {@code -Dbattle.planetSkin.farm=sheds|domes|glasshouses|bare}
+     * names, sheds by default.
+     * Temporary, for the owner's pick of hydroponics look (picks page, planet-skin-farm): remove it, with the looks
+     * not picked and their sheets, once the owner picks one.
+     */
+    static FarmLook farmLook() {
+        String v = System.getProperty("battle.planetSkin.farm", "sheds").trim().toUpperCase(Locale.ROOT);
+        for (FarmLook look : FarmLook.values()) if (look.name().equals(v)) return look;
+        return FarmLook.SHEDS;
+    }
+
     /** One piece stood on a plot: its footprint's corner and quarter turns (1 when the rows run along y). */
-    public record Placed(Cover piece, int x, int y, int turns) {
-        public int width() { return turns % 2 == 0 ? piece.along : piece.across; }
-        public int height() { return turns % 2 == 0 ? piece.across : piece.along; }
+    public record Placed(Piece piece, int x, int y, int turns) {
+        public int width() { return turns % 2 == 0 ? piece.along() : piece.across(); }
+        public int height() { return turns % 2 == 0 ? piece.across() : piece.along(); }
     }
 
     /** The lane left between two rows of the covered farm, and between pieces along a row, in cells. */
     static final int LANE = 1;
 
     /**
-     * The covered farm on a plot: inside a one-cell headland, rows two cells deep along the plot's crop rows with a
-     * {@link #LANE} between them, each row long tunnels a lane apart and finished with a short tunnel, or a tank skid
-     * where only that fits. A plot too short for a long tunnel along its rows takes grow domes on a grid instead,
-     * where one fits.
-     * Pure: what stands where depends on the plot alone.
+     * The covered farm of {@code look} on a plot: inside a one-cell headland, rows as deep as the long piece along the
+     * plot's crop rows with a {@link #LANE} between them, each row long pieces a lane apart finished with a short
+     * piece, or the plant piece where only that fits. A plot too short for a long piece along its rows takes short
+     * pieces on a grid instead, where one fits. Pure: what stands where depends on the plot and the look alone.
      */
-    public static List<Placed> covered(RuralLayout.Plot plot) {
+    public static List<Placed> covered(RuralLayout.Plot plot, FarmLook look) {
+        List<Placed> out = new ArrayList<>();
+        if (look.row == null) return out;
         int x0 = plot.x0() + 1, y0 = plot.y0() + 1, x1 = plot.x1() - 1, y1 = plot.y1() - 1;
         boolean alongX = plot.rowsAlongX();
         int length = alongX ? x1 - x0 + 1 : y1 - y0 + 1, depth = alongX ? y1 - y0 + 1 : x1 - x0 + 1;
         int turns = alongX ? 0 : 1;
-        List<Placed> out = new ArrayList<>();
-        if (length < Cover.TUNNEL.along && length >= Cover.DOME.along && depth >= Cover.DOME.across) {
-            for (int a = 0; a + Cover.DOME.across <= depth; a += Cover.DOME.across + LANE)
-                for (int l = 0; l + Cover.DOME.along <= length; l += Cover.DOME.along + LANE)
-                    out.add(at(Cover.DOME, alongX, x0, y0, l, a, 0));
+        Piece row = look.row, end = look.end, plant = look.plant;
+        if (length < row.along() && length >= end.along() && depth >= end.across()) {
+            for (int a = 0; a + end.across() <= depth; a += end.across() + LANE)
+                for (int l = 0; l + end.along() <= length; l += end.along() + LANE)
+                    out.add(at(end, alongX, x0, y0, l, a, turns));
             return out;
         }
-        for (int a = 0; a + Cover.TUNNEL.across <= depth; a += Cover.TUNNEL.across + LANE) {
+        for (int a = 0; a + row.across() <= depth; a += row.across() + LANE) {
             int l = 0;
-            while (l + Cover.TUNNEL.along <= length) {
-                out.add(at(Cover.TUNNEL, alongX, x0, y0, l, a, turns));
-                l += Cover.TUNNEL.along + LANE;
+            while (l + row.along() <= length) {
+                out.add(at(row, alongX, x0, y0, l, a, turns));
+                l += row.along() + LANE;
             }
-            if (l + Cover.SHORT_TUNNEL.along <= length) out.add(at(Cover.SHORT_TUNNEL, alongX, x0, y0, l, a, turns));
-            else if (l + Cover.SKID.along <= length) out.add(at(Cover.SKID, alongX, x0, y0, l, a, turns));
+            if (l + end.along() <= length) out.add(at(end, alongX, x0, y0, l, a, turns));
+            else if (l + plant.along() <= length) out.add(at(plant, alongX, x0, y0, l, a, turns));
         }
         return out;
     }
 
-    private static Placed at(Cover piece, boolean alongX, int x0, int y0, int along, int across, int turns) {
+    private static Placed at(Piece piece, boolean alongX, int x0, int y0, int along, int across, int turns) {
         return alongX ? new Placed(piece, x0 + along, y0 + across, turns) : new Placed(piece, x0 + across, y0 + along, turns);
     }
 
@@ -371,8 +398,9 @@ public final class PlanetSkin {
     private static void farm(MapResult map, boolean[] mask, TileRegistry tiles) {
         int w = map.topology.getWidth(), h = map.topology.getHeight();
         boolean[] taken = new boolean[w * h];
+        FarmLook look = farmLook();
         for (RuralLayout.Plot plot : map.fields) {
-            for (Placed p : covered(plot)) {
+            for (Placed p : covered(plot, look)) {
                 DoodadDef def = tiles.doodad(p.piece().id);
                 if (def == null || !clear(p, mask, taken, w, h)) continue;
                 for (int y = p.y(); y < p.y() + p.height(); y++)

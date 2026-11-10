@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -135,9 +136,16 @@ public final class DamageDollCanvas implements CanvasProducer {
         context.text(CAPTION_FONT, text, centreX - CAPTION_FONT.measureWidth(text) * .5f, y, CAPTION);
     }
 
+    /**
+     * A part's colour: its location's state, and for a mount's weapon shape ({@link MountGlyph}) only while the mount
+     * holds that kind of weapon.
+     */
     private Color colorOf(String part) {
-        DollLocation location = DollLocation.ofPart(part);
-        return location == null ? null : view.color(location.ordinal());
+        DollLocation location = DollLocation.ofPart(MountGlyph.location(part));
+        if (location == null) return null;
+        MountGlyph glyph = MountGlyph.ofPart(part);
+        if (glyph != null && view.glyphs[location.ordinal()] != glyph) return null;
+        return view.color(location.ordinal());
     }
 
     /** The colour of one location's state; null when the machine does not have it. */
@@ -224,6 +232,8 @@ public final class DamageDollCanvas implements CanvasProducer {
         private final float[] armor = new float[LOCATIONS];
         private final float[] structure = new float[LOCATIONS];
         private final boolean[] destroyed = new boolean[LOCATIONS];
+        /** The shape of the weapon each mount holds, null where it holds none. */
+        private final MountGlyph[] glyphs = new MountGlyph[LOCATIONS];
         private boolean crippled;
         private boolean sensorsLost;
         private boolean immobile;
@@ -247,6 +257,9 @@ public final class DamageDollCanvas implements CanvasProducer {
                     MechMountSlot slot = section.mount();
                     set(i, slot == null || loadout.mounts()[slot.ordinal()] != null, true, 1f, 1f, false);
                 }
+                MechMountSlot slot = section.mount();
+                MechWeaponMount mount = slot == null ? null : loadout.mounts()[slot.ordinal()];
+                if (mount != null) glyphs[i] = MountGlyph.of(mount.component);
             }
             // The back plate: its own armor in front of the torso's one structure pool. Before the chassis
             // has sections, or with no torso plate to split, it reads as the torso does.
@@ -275,6 +288,7 @@ public final class DamageDollCanvas implements CanvasProducer {
                 float structureLost = wear.structureLost(section);
                 set(DollLocation.of(section).ordinal(), slot == null || mech.weaponAt(slot) != null, true,
                         1f - wear.armorLost(section), 1f - structureLost, structureLost >= 1f);
+                if (slot != null) glyphs[DollLocation.of(section).ordinal()] = MountGlyph.of(mech.weaponAt(slot));
             }
             int torso = DollLocation.TORSO.ordinal();
             set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
@@ -393,6 +407,7 @@ public final class DamageDollCanvas implements CanvasProducer {
                 asset = SvgAsset.load(dollPath);
             }
             for (int i = 0; i < LOCATIONS; i++) set(i, false, false, 0f, 0f, false);
+            Arrays.fill(glyphs, null);
         }
 
         public void clear() {
