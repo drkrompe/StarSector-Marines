@@ -15,9 +15,11 @@ import java.util.List;
  * A cantonment's road in ({@code mapgen-nouns.md}, cantonment). A cantonment lays its own streets, square to one
  * avenue from its gate to its middle, and a road its growth threw across its square cuts its rows: the owner's notes
  * on the Raid site's garrison were that it read as messy. So every road inside its claim is taken up (a road another
- * place grew across it is welded back round it: {@link #block}), and one straight road is laid from the middle of its square out through the side nearest a road outside (the
- * side facing the middle of the map, where the rest of the site is, when two are as near), on until it meets that road.
- * That road is the avenue's line, and where it crosses the wall is the main gate. Meeting the town's road is what keeps
+ * place grew across it is welded back round it: {@link #block}), and one straight road is laid on the square's middle
+ * line out through the side nearest a road outside (the side facing the middle of the map, where the rest of the site
+ * is, when two are as near), from the patrol lane inside the wall on until it meets that road. It ends at the gate:
+ * the streets inside are the cantonment's own. That road is the avenue's line, and where it crosses the wall is the
+ * main gate. Meeting the town's road is what keeps
  * the map's roads whole without a second road welded in across the cantonment.
  *
  * <p>A base has more than one way in and out (owner: "they need multiple entrances and exits"): as many gates as its
@@ -108,7 +110,10 @@ public final class CantonmentRoads {
             }
         }
         if (out == null) out = Side.facing(width / 2 - cx, height / 2 - cy);
-        run(claim, owner, who, cx, cy, out, HALF, width, height);
+        // It ends at the gate, on the patrol lane: the streets inside are the cantonment's own (Cantonment), and a road
+        // run on to the square's middle stopped dead in the parade.
+        int[] gate = sideStart(square, out, glacis);
+        run(claim, owner, who, gate[0], gate[1], out, HALF, width, height);
         further(claim, owner, who, width, height, gates, glacis);
     }
 

@@ -19,7 +19,7 @@
       {"seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest"}
     ],
     "ROCK": [
-      {"seed": 18, "note": "rear north; redoubt guns 3-3-3-3; every redoubt on the crest; swapped in for seed 5 when main street's market square moved it"},
+      {"seed": 21, "note": "rear north; redoubt guns 7-7-7-8; every redoubt on the crest; swapped in for seed 18 when the street plan moved its redoubt 2 onto built ground"},
       {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
     ],
     "FROZEN": [
@@ -27,11 +27,11 @@
       {"seed": 5, "note": "rear north; redoubt guns 2-2-2-2; every redoubt on the crest"}
     ],
     "IRRADIATED": [
-      {"seed": 18, "note": "rear north; redoubt guns 3-3-3-3; every redoubt on the crest; swapped in for seed 5 when main street's market square moved it"},
+      {"seed": 21, "note": "rear north; redoubt guns 7-7-7-8; every redoubt on the crest; swapped in for seed 18 when the street plan moved its redoubt 2 onto built ground"},
       {"seed": 7, "note": "rear south; redoubt guns 2-2-2-2; every redoubt on the crest"}
     ],
     "TOXIC": [
-      {"seed": 18, "note": "rear north; redoubt guns 7-7-7-7"},
+      {"seed": 21, "note": "rear north; redoubt guns 7-7-7-8; swapped in for seed 18 when the street plan moved its redoubt 2 onto built ground"},
       {"seed": 7, "note": "rear south; redoubt guns 7-7-7-7"}
     ]
   }
