@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,6 +73,12 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
  * still collects and drains the per-sheet, per-cell stream — that frame is the
  * control, taken through the same collect and the same drain as the frame that
  * follows it rather than through this file's idea of what terrain looks like.
+ *
+ * <p>The two are compared to {@link SamePicture}'s rounding: a sheet's own
+ * texture is padded to a power of two and its coordinates are fractions of
+ * that, which an atlas slot's are not, so a tap can land a hair either side
+ * of the other route's and round a channel one level on a scattering of
+ * pixels. Every failure above moves whole cells by tens of levels.
  *
  * <p><b>It carries a control against measuring nothing.</b> The frame that draws
  * per-sheet is asserted to have taken several texture binds and the frame that
@@ -169,8 +174,8 @@ class GroundAtlasGlEvidence {
                     assertEquals(perSheetCounts.sheetQuads(), atlasCounts.sheetQuads(),
                             "the same quads, in the same order — only their texture moved");
 
-                    assertArrayEquals(perSheet, throughAtlas,
-                            "the atlas must draw exactly what the per-sheet path draws");
+                    SamePicture.assertSame(perSheet, throughAtlas, SURFACE_W, "per-sheet against atlas",
+                            "the atlas must draw what the per-sheet path draws");
 
                     // And the resident mesh takes the atlas too: a standalone
                     // frame bakes it, and what it bakes is one buffer against
