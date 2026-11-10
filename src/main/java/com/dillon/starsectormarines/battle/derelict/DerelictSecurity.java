@@ -167,7 +167,17 @@ public final class DerelictSecurity {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
         }
         if (vault == null || vault.liftPoints().isEmpty()) return null;
-        int[] route = vault.liftPoints().get(0).route();
+        return install(sim, grade, delve, livery, vault.liftPoints().get(0).route(), vault.sourceCellX(),
+                vault.sourceCellY());
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, RuinsGrade, RuinsDelve, FlockLivery)}, on ground with no ruins vault: the
+     * zones are laid along {@code route} (cell pairs, the guarded place first) and the haul's escort is read round
+     * {@code sourceX, sourceY}. A battle with no {@code RuinsVaultObjective} never calls the contingency.
+     */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
+                                                   FlockLivery livery, int[] route, int sourceX, int sourceY) {
         List<ZonePlan> plans = zonesAlong(route, zones(grade));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
@@ -249,7 +259,7 @@ public final class DerelictSecurity {
                     heavy.postX(), heavy.postY()));
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
-                vault.sourceCellX(), vault.sourceCellY());
+                sourceX, sourceY);
         for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
             director.walkRound(round.getKey(), round.getValue());
         }
