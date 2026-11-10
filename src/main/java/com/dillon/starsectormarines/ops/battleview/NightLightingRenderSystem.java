@@ -135,7 +135,7 @@ final class NightLightingRenderSystem implements RenderSystem {
                 floodlight(out, lamp, x, y, px, night.powered(lamp), ctx.alphaMult);
                 continue;
             }
-            if (!night.powered(lamp)) continue;
+            if (!night.powered(lamp) || lamp.fixture() == NightLighting.Fixture.GLOW) continue;
             for (int halo=3;halo>=1;halo--)
                 out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,px*(.14f+halo*.13f),lamp.red(),lamp.green(),lamp.blue(),.08f*ctx.alphaMult);
             StripFixtureArt.draw(out,layer(),x,y,px,false,lamp.red(),lamp.green(),lamp.blue(),1f,ctx.alphaMult);

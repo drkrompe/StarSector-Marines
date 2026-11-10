@@ -7,9 +7,11 @@ import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -21,6 +23,7 @@ import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
@@ -30,7 +33,8 @@ import java.util.function.BiPredicate;
  * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}), and on a world that plays the
  * sealed layout a town's lock ({@code -4-lock.png}). Nothing is played. Opt-in.
  * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} names the maps (any pooled map, the Raid's
- * {@code raid,raid-mining} included), {@code .worlds=frozen,toxic} the worlds.
+ * {@code raid,raid-mining} included), {@code .worlds=frozen,toxic} the worlds,
+ * {@code .night=true} adds night frames ({@code -4-night-whole.png}, {@code -5-night-fields.png}).
  */
 public final class PlanetSkinLookSuite implements SnapshotSuite {
 
@@ -39,6 +43,10 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
     private static final float CLOSE_CELLS = 70f;
     /** The window a close frame's spot is the densest of. */
     private static final int WINDOW = 24;
+    /** {@code -Dsnapshot.planetSkin.night=true} adds each world's whole map and fields after dark. */
+    private static final boolean NIGHT_TOO = Boolean.getBoolean("snapshot.planetSkin.night");
+    /** The dark the fire suites shoot their nights at, with no lamps of its own. */
+    private static final NightLighting NIGHT = new NightLighting(0.78f, List.of(), Set.of());
     private static final List<StoryMap> DEFAULT_MAPS = List.of(StoryMap.COLONY_BREACH, StoryMap.CORDON_ROAD,
             StoryMap.CORDON_LINE, StoryMap.HEART_BURN, StoryMap.HEART_FRONT);
 
@@ -87,6 +95,18 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                     if (woods != null) {
                         look.refocus(woods[0], woods[1], CLOSE_CELLS);
                         out.add(new SnapshotArtifact(base + "3-woods.png", look.render(sim, "")));
+                    }
+                    if (NIGHT_TOO) {
+                        // The same frames after dark, lit only by what the map itself lights: the farm's grow-light.
+                        CellTopology t = sim.getTopology();
+                        t.setNightLighting(PlanetSkin.lit(NIGHT, PlanetSkin.growLights(sim.getDoodads())));
+                        look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
+                        out.add(new SnapshotArtifact(base + "4-night-whole.png", look.render(sim, "")));
+                        if (fields != null) {
+                            look.refocus(fields[0], fields[1], CLOSE_CELLS);
+                            out.add(new SnapshotArtifact(base + "5-night-fields.png", look.render(sim, "")));
+                        }
+                        t.setNightLighting(null);
                     }
                     if (lock != null && PlanetSkin.sealsTowns(BloomHeartSetup.world(world))) {
                         look.refocus(lock[0], lock[1], CLOSE_CELLS);
