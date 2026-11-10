@@ -10,6 +10,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * where the texels either side differ that rounds a channel {@link #ROUNDING} level apart, on a scattering of pixels.
  * Anything the comparison is for (a quad in the wrong slot or place, a wrong frame or tint) moves pixels by tens of
  * levels across whole cells.
+ *
+ * <p>The bound is measured, not chosen (2026-11-10, RTX 3080): {@code RoofMeshGlEvidence} 50 and
+ * {@code GroundAtlasGlEvidence} 33 of 98304 pixels, one level each. For the roofs, giving both routes the same
+ * source pixels ({@link RoofTiles#framePixel}) took the worst from 106 levels to 1, and drawing every roof flat (lift
+ * 1) left 7 of the 50, all in a turned broken cell: what remains is the transform's float rounding. For the ground,
+ * every differing pixel is in a cell drawn from the nature sheet, whose own texture is padded to a power of two so
+ * its coordinates are inexact fractions where the atlas slot's are not. Comparisons that need not cross two routes
+ * stay exact (a patched roof against a fresh bake). Widen this only on the same kind of evidence: a trace showing
+ * the new difference is rounding, not a quad, frame or tint gone wrong.
  */
 final class SamePicture {
 
