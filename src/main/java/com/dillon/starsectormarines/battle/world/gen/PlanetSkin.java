@@ -358,7 +358,8 @@ public final class PlanetSkin {
     /**
      * Whether a piece stands in the landing's field of fire. A mission that lands its force in the colony's fields
      * promises that field clear of anything to hide behind ({@code MapFeature.OPEN_FIELD_LANDING}), and a bank is
-     * cover, so the farm leaves the landing ground bare: the plots there stay cleared.
+     * cover, so the farm leaves the landing ground bare: the plots there stay cleared (owner's pick of
+     * planet-skin-landing, over coverless sheds there).
      */
     public static boolean onLanding(Placed p, FieldOfFire field) {
         if (field == null) return false;
@@ -367,13 +368,6 @@ public final class PlanetSkin {
         return false;
     }
 
-    /**
-     * {@code -Dbattle.planetSkin.landingSheds=true} stands the sheds on the landing ground too, coverless, instead of
-     * leaving it bare. Temporary, for the owner's pick planet-skin-landing: remove it with the arm not picked.
-     */
-    static boolean shedsOnLanding() {
-        return Boolean.getBoolean("battle.planetSkin.landingSheds");
-    }
 
     /** One piece stood on a plot: its footprint's corner and quarter turns (1 when the rows run along y). */
     public record Placed(Piece piece, int x, int y, int turns) {
@@ -470,11 +464,10 @@ public final class PlanetSkin {
             for (Placed p : covered(plot)) {
                 DoodadDef def = tiles.doodad(p.piece().id);
                 if (def == null || !clear(p, mask, taken, w, h)) continue;
-                boolean landing = onLanding(p, map.fieldOfFire);
-                if (landing && !shedsOnLanding()) continue;
+                if (onLanding(p, map.fieldOfFire)) continue;
                 for (int y = p.y(); y < p.y() + p.height(); y++)
                     for (int x = p.x(); x < p.x() + p.width(); x++) taken[y * w + x] = true;
-                map.doodads.add(landing ? new Doodad(p.x(), p.y(), def, p.turns(), 0, 0f) : shed(p, def));
+                map.doodads.add(shed(p, def));
             }
         }
     }
