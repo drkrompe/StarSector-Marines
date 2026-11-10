@@ -58,8 +58,8 @@ public enum MechVariant {
      * small carapace low on four short legs, a chassis of its own (law 1), drawn by the walker's leg rig at the
      * crawler's size ({@code DerelictLegRig.CRAWLER}) with its own parts. High-tech by its numbers: fast, thin plate,
      * a light structure, precise. One gun in a socket at the front, drawn as its own layer (law 4), and no shoulder
-     * mounts ({@link #hasMount}); its compartment carries a shield emitter ({@link #shieldEmitter()}). Crewed for
-     * now. All numbers UNTUNED.
+     * mounts ({@link #hasMount}); its compartment carries a shield emitter ({@link #shieldEmitter()}). Crewed, a
+     * Tri-Tachyon pattern a company can buy (owner, 2026-11-09). All numbers UNTUNED.
      */
     CRAWLER("crawler", "@gearMechVariantCRAWLER", 220f, 160f, 8f, 1.85f, 0.50f, 55f,
             1.00f, 0.90f, 0.45f, 0.40f, 0.5f,
