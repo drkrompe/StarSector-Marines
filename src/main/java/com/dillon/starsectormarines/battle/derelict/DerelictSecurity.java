@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockField;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
@@ -305,7 +304,7 @@ public final class DerelictSecurity {
         }
         standPosts(sim, route, plans, network, delve, director);
         standWatchHousings(sim, route, plans, delve, port, livery, director);
-        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
+        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director, livery);
         if (delve != null && !delve.layers().isEmpty()) {
             for (ZonePlan plan : plans) {
                 director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
@@ -661,13 +660,14 @@ public final class DerelictSecurity {
     }
 
     /** Puts a zone's repair drone up over its node, homed there. */
-    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director) {
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director,
+                                 FlockLivery livery) {
         Long node = director.nodes().get(zoneId);
         if (node == null) return 0L;
         float hx = sim.world().x(node);
         float hy = sim.world().y(node);
         EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
-                (int) Math.floor(hy), 0L, DroneLook.TENDER).role(UnitRole.STRUCTURE);
+                (int) Math.floor(hy), 0L, livery.repairDrone()).role(UnitRole.STRUCTURE);
         long id = sim.spawn(drone);
         if (id == 0L) return 0L;
         AirBody body = sim.world().kinematics(id);

@@ -448,8 +448,8 @@ public final class FogOfWarService {
             // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
             // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
             if (!buildings.isEmpty()) {
-                BuildingVisibilityPass.update(buildings, cellRevealed, gridWidth, gridHeight, occupants,
-                        collectOccupants(roster));
+                collectOccupants(roster);
+                BuildingVisibilityPass.update(buildings, cellRevealed, gridWidth, gridHeight, occupants);
             }
             if (!propGround.isEmpty()) propGround.refresh(grid, cellRevealed, cellShown, changes);
             // One seal for the whole update, so a consumer never reads a picture
@@ -568,23 +568,21 @@ public final class FogOfWarService {
     }
 
     /** Cells the player's own units stand on, for the building open rule; reused across ticks. */
-    private int[] occupants = new int[64];
+    private final OccupantCells occupants = new OccupantCells(64);
 
-    /** Fills {@link #occupants} with the cells the player's units afoot stand on, and returns how many. */
-    private int collectOccupants(UnitRosterService roster) {
+    /** Fills {@link #occupants} with the cells the player's units afoot stand on. */
+    private void collectOccupants(UnitRosterService roster) {
         World world = roster.world();
-        int n = 0;
+        occupants.clear();
         for (FogCohort cohort : cohorts) {
             for (int i = 0, size = cohort.contributors.size(); i < size; i++) {
                 ContributorEntry e = cohort.contributors.get(i);
                 if (e.hull || !roster.isAliveById(e.unitId) || roster.isRiding(e.unitId)) continue;
                 int cx = world.cellX(e.unitId), cy = world.cellY(e.unitId);
                 if (cx < 0 || cy < 0 || cx >= gridWidth || cy >= gridHeight) continue;
-                if (n == occupants.length) occupants = Arrays.copyOf(occupants, n * 2);
-                occupants[n++] = cx + cy * gridWidth;
+                occupants.add(cx + cy * gridWidth);
             }
         }
-        return n;
     }
 
     private void tickFogCohort(FogCohort cohort, UnitRosterService roster,
