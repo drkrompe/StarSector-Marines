@@ -87,6 +87,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctLandingAr
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FreightYardParcelStage;
@@ -705,6 +706,12 @@ public final class BspCityGenerator implements MapGenerator {
         // Recipe selection is the conquest/legacy fork: axis present → the full
         // conquest sequence; axis absent → the legacy district recipe (which
         // omits the conquest-only stages rather than running them as no-ops).
+        // A town laid with no plan stands sealed on a world nobody lives on in the open, as a planned one does: the
+        // same town as a one-place plan, which the precinct recipe walls (SealedTown.alone). A conquest's crossroad
+        // city runs the map's length, past its edges, so it has no world outside to wall against.
+        if (precincts == null && axis == null && openingPlan == null && grownOverride == null) {
+            precincts = SealedTown.alone(profile, width, height);
+        }
         GenRecipe recipe = recipeFor(axis, profile, precincts);
         if (openingPlan != null) recipe = openingOperationRecipe(recipe);
         if (precincts != null && (!precincts.layout().isEmpty() || !precincts.landscape().knolls().isEmpty())) {

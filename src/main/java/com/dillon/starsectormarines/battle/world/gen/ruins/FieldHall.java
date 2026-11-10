@@ -34,7 +34,7 @@ final class FieldHall {
         int top = length - 2, sw = f.stationWidth();
 
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            p.floor("doodad.ruins-housing-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
+            p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
         }
         p.zone(f.cx, HallFrame.DISPATCH + 1, f.cx + 1, f.headY - 1, WorksHallPlan.Zone.LANE);
         f.feedRail("feed", top - 1);

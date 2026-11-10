@@ -4,7 +4,9 @@ Status: DRAFT — the direction for growing the mech roster beyond the three fir
 
 Written: 2026-10-23
 
-Updated: 2026-11-10 — the midline row is built as three articulated carriers, wheeled hulls (`convoy-nouns.md`, the
+Updated: 2026-11-10 — the low-tech row's first faction variants are built: the pirate Hauler, and the Luddic
+Path's Foundry Breaker and Pilgrim, each a body of its own over its frame (Order of work, step 2). Also 2026-11-10 —
+the midline row is built as three articulated carriers, wheeled hulls (`convoy-nouns.md`, the
 articulated carriers). Earlier 2026-11-09 — Tri-Tachyon's light crawler is built, the high-tech row's first line of its own, and is the
 only mech Tri-Tachyon fields: its heavy-shell stand-ins are off its roster (owner: "they're not good").
 
@@ -80,7 +82,22 @@ purchases, so the low-tech row comes first:
 1. **Low-tech medium and heavy.** Done as the Warden and Bulwark: the Hegemony,
    Independents and pirates walk the low-tech row (pirates in repaired-scrap bodies).
 2. **Low-tech variants** across the row, including the field-rig and salvage
-   variants that pirates and Independents would build.
+   variants that pirates and Independents would build. **First three built** (owner picks from the concept sheets in
+   art-source/mech-modular-topdown/sources/lowtech/variants/sheets; the Runner, Boarder and Cutter were rejected):
+   - the pirate **Hauler** (`MechVariant.HAULER`) on the Bulwark frame: a cargo cage on its back, a folding salvage
+     crane along its left shoulder, scrap slabs hung on chains, its left rack place shipping empty beside the crane;
+     the most durable and slowest heavy a pirate fields. Its loot-carrying role has no mechanic yet (open, below);
+   - the Path's **Foundry Breaker** (`MechVariant.FOUNDRY_BREAKER`) on the Hound frame: a foundry-cast breaching
+     collar round the nose and five shell canisters across its back, stock the Path's Hound issue (DC-5, SRM-5);
+   - the Path's **Pilgrim** (`MechVariant.PILGRIM`) on the Bulwark frame: a mining hauler with a dozer blade across
+     its front (the concept drew it at the back by mistake), ore-hopper ribs and prayer cloths, the slowest walker in
+     the row and the only one that crushes an ordinary wall by its weight, as the Onager does (`mechs-nouns.md`,
+     Family and doctrine).
+   A variant keeps its frame's legs, mounts, body plan, footprint and weight class (`MechVariant.frame`) and draws
+   its own body in their place: one ImageGen master per variant over a guide that is its frame's own master,
+   registered as the runtime fits it and shrunk inside a larger canvas so parts can hang past the frame's outline
+   (variants/bodies.py). Its weapons stay layers on its frame's mounts (law 4). Pirates field the Hauler; the Path
+   fields the two conversions in place of the Hound. All numbers UNTUNED; the Kit Ladder holds them at "none".
 3. **Midline.** It completes the row that Independents buy into. It takes the Eagle's material and colour (owner):
    weathered tan and khaki plate with engraved panel lines over grey machinery, round sockets, yellow-green lights,
    but never a ship's outline: the first concepts, built round the Eagle's forked prow and on bird legs, read as the
@@ -146,6 +163,9 @@ shares nothing with the Bulwark, and is a torso on reaching legs drawn by its
 own rig, with its own body plan.
 
 ## Open
+
+- **Whether the pirate Hauler carries loot off the field** (asked of the owner): today it is a durable heavy with its
+  stock fit and nothing more.
 
 - **Which low-tech cell first, medium or heavy**, and whether the Hound stays the light.
 - **Whether a stand-in is kept or replaced** when its line is designed.

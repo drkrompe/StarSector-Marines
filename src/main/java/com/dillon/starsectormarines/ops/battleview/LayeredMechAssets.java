@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+
+import java.util.Map;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,6 +41,20 @@ public final class LayeredMechAssets {
      * not loaded): bare fittings every livery shares.
      */
     public final ActiveProtection activeProtection;
+
+    /** The hardware variants' own bodies ({@link MechVariantBodies}), the same in every livery. */
+    private Map<MechVariant, LayeredSpriteCache> variantBodies = Map.of();
+
+    /** Gives this set the variants' bodies; returns it. */
+    public LayeredMechAssets withVariantBodies(Map<MechVariant, LayeredSpriteCache> bodies) {
+        variantBodies = bodies != null ? bodies : Map.of();
+        return this;
+    }
+
+    /** A hardware variant's own body, drawn in place of its frame's chassis, or null to draw the frame's. */
+    public LayeredSpriteCache variantBody(MechVariant variant) {
+        return variant == null ? null : variantBodies.get(variant);
+    }
 
     /** Active protection's overlay per chassis; any may be null, and that chassis then draws none. */
     public record ActiveProtection(LayeredSpriteCache bulwark, LayeredSpriteCache hound, LayeredSpriteCache warden) {

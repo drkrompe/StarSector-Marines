@@ -105,6 +105,26 @@ class SealedTownTest {
     }
 
     @Test
+    void aTownLaidWithNoPlanIsSealedAloneWhereTheWorldSealsIt() {
+        PrecinctPlan alone = SealedTown.alone(world(new Climate(EnumSet.of(Climate.Hazard.TOXIC))), 240, 144);
+        assertEquals(1, alone.precincts().size(), "the town and nothing else");
+        assertTrue(SealedTown.is(alone.precincts().get(0)));
+        assertEquals(null, SealedTown.alone(world(Climate.NONE), 240, 144), "a world people live on in the open");
+        TargetProfile noMarket = new TargetProfile(0, 5, 2, 1, "independent", EnumSet.of(EconomicFunction.HABITATION),
+                SurfacePalette.ROCK, SettlementLink.ROAD).withClimate(new Climate(EnumSet.of(Climate.Hazard.TOXIC)));
+        assertEquals(null, SealedTown.alone(noMarket, 240, 144), "no market, no town");
+    }
+
+    @Test
+    void aPocketTheTownClosesRoundIsTheTownsNotTheWorldOutside() {
+        int[][] claim = eastTown();
+        for (int x = 16; x < 19; x++) for (int y = 4; y < 7; y++) claim[x][y] = GrownTrunkPlan.UNOWNED; // a pocket
+        boolean[][] enclosed = SealedTown.enclosedGround(claim, 1);
+        assertTrue(enclosed[17][5], "the pocket inside the town");
+        assertFalse(enclosed[5][5], "not the country outside it");
+    }
+
+    @Test
     void groundNoRoadReachesGetsALockOfItsOwnWhereTheTownsGroundRunsDeepest() {
         int[][] claim = eastTown();
         boolean[][] open = allOpen();

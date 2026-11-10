@@ -103,8 +103,15 @@ through or built on (`PlanetSkinTest`). It swaps:
   Each roof carries two skylights lit by warm amber grow-light (owner, over
   ImageGen's pink: "Warm amber"). On a dark map the sheds are lamps too
   (`PlanetSkin.growLights`): amber pools down each shed's middle, drawn with no
-  fixture, so the roofs glow and spill onto the lanes. The sheds are walk-in
-  and coverless, so pathing, sight and cover are the home map's. Paved
+  fixture, so the roofs glow and spill onto the lanes. Each shed is sunk into
+  the ground, only its lit roof ridge above grade and earth banked up all four
+  sides (owner: "embed them into the earth"); the bank is painted as shading
+  only, so it is snow on a frozen world, crust on a toxic one and scorched soil
+  on an irradiated one. In the sim a shed is an earth mound
+  (`PlanetSkin.BANK`): every cell stays walkable and see-through and vehicles
+  pass, and the bank is light cover (half height 0.18, below a sandbag
+  parapet's 0.4) to whoever lies on or beside it. The pump house stands above
+  grade and is coverless. Pathing and sight are the home map's. Paved
   hydroponic bays were dropped (owner, 2026-11-10: "Do a bunch of paved beds
   make sense? Why would a planet have those?"), and so were polytunnels
   (owner: "They don't read like hydroponics"); sheds were picked over

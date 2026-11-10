@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.LongFunction;
 
 /**
  * Owns the spatial state slice that {@code BattleSimulation} previously held
@@ -133,6 +134,13 @@ public final class NavigationService implements AutoCloseable {
      */
     private UnitRosterService roster;
     private final AsyncClearanceRoutes clearanceRoutes;
+    /**
+     * Routes for the bodies that plan over a view of the grid of their own ({@link #setOwnRouteGrid}): a wall-crushing
+     * walker's breach view. Made on first use, so a battle with none starts no workers for it.
+     */
+    private AsyncClearanceRoutes ownGridRoutes;
+    /** The grid a body plans its route over when it is not the live grid, or null for the live grid. */
+    private LongFunction<NavigationGrid> ownRouteGrid = id -> null;
     /** Where refused mech proofs found their bodies can go ({@link MechReachability}). */
     private final MechReachability mechReachability = new MechReachability();
 
@@ -169,6 +177,22 @@ public final class NavigationService implements AutoCloseable {
 
     /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
     public void setRoster(UnitRosterService roster) { this.roster = roster; }
+
+    /**
+     * Installs the grid each mech plans its route over when that is not the live grid: a wall-crushing walker's
+     * breach view, where the walls it can push down stand open (`mech-lines.md`, the Pilgrim). Its body still moves
+     * over the live grid, which holds it at a wall until the wall is down. {@code null} from the function is the
+     * live grid.
+     */
+    public void setOwnRouteGrid(LongFunction<NavigationGrid> routeGrid) {
+        this.ownRouteGrid = routeGrid != null ? routeGrid : id -> null;
+    }
+
+    /** The grid mech {@code id} plans its route over: its own view ({@link #setOwnRouteGrid}), else the live grid. */
+    public NavigationGrid routeGrid(long id) {
+        NavigationGrid own = ownRouteGrid.apply(id);
+        return own != null ? own : grid;
+    }
 
     public NavigationGrid getGrid() { return grid; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
@@ -1134,7 +1158,10 @@ public final class NavigationService implements AutoCloseable {
         }
         // Only immutable Mech identities can submit clearance jobs. Infantry
         // path changes must not contend on that coordinator's snapshot lock.
-        if (mech) clearanceRoutes.forget(id);
+        if (mech) {
+            clearanceRoutes.forget(id);
+            if (ownGridRoutes != null) ownGridRoutes.forget(id);
+        }
         ContinuousRoute witness = roster.movement().continuousRoute(id);
         replacePath(id, newPath, newPath.length == 0 && witness != null && witness.completed()
                 ? witness : null);
@@ -1154,16 +1181,19 @@ public final class NavigationService implements AutoCloseable {
             return PathRequestStatus.READY;
         }
         float x = world.x(id), y = world.y(id), radius = roster.radius(id);
+        NavigationGrid ownGrid = ownRouteGrid.apply(id);
+        NavigationGrid routeGrid = ownGrid != null ? ownGrid : grid;
+        AsyncClearanceRoutes routes = ownGrid != null ? ownGridRoutes() : clearanceRoutes;
         ContinuousRoute current = roster.movement().continuousRoute(id);
         if (current != null && current.requestedCellX() == goalX && current.requestedCellY() == goalY
-                && current.topologyRevision() == grid.topologyRevision() && current.radius() == radius
+                && current.topologyRevision() == routeGrid.topologyRevision() && current.radius() == radius
                 && ManualTerrainMotion.canStand(grid, x, y, radius)
                 && ((!roster.movement().settled(id) && roster.movement().pathTargetsCell(id, goalX, goalY))
                 || (current.completed() && roster.movement().atCell(id, goalX, goalY)))) {
             return PathRequestStatus.READY;
         }
         var request = new AsyncClearanceRoutes.Request(x, y, goalX, goalY, radius);
-        var reply = clearanceRoutes.pollOrSubmit(id, request, grid);
+        var reply = routes.pollOrSubmit(id, request, routeGrid);
         if (reply.status() != PathRequestStatus.READY) {
             if (reply.proof() != null) mechReachability.learn(id, reply.proof().reached());
             if (!Paths.isEmpty(world.path(id)) || current != null) replacePath(id, GridPathfinder.EMPTY_PATH, null);
@@ -1172,7 +1202,7 @@ public final class NavigationService implements AutoCloseable {
         var points = reply.proof().waypoints();
         var start = points.get(0);
         if (!ManualTerrainMotion.canSweepStraight(grid, x, y, start.x() - x, start.y() - y, radius)) {
-            clearanceRoutes.forget(id);
+            routes.forget(id);
             replacePath(id, GridPathfinder.EMPTY_PATH, null);
             return PathRequestStatus.PENDING;
         }
@@ -1186,8 +1216,16 @@ public final class NavigationService implements AutoCloseable {
         }
         ContinuousRoute route = new ContinuousRoute(goalX, goalY, radius, reply.topologyRevision(), points);
         replacePath(id, route.projection(), route);
-        clearanceRoutes.forget(id);
+        routes.forget(id);
         return PathRequestStatus.READY;
+    }
+
+    private AsyncClearanceRoutes ownGridRoutes() {
+        if (ownGridRoutes == null) {
+            ownGridRoutes = new AsyncClearanceRoutes(
+                    Boolean.parseBoolean(System.getProperty(AsyncClearanceRoutes.ENABLED_PROPERTY, "true")));
+        }
+        return ownGridRoutes;
     }
 
     /** Install one route and its occupancy projection together, in its owner's update. */
@@ -1246,6 +1284,7 @@ public final class NavigationService implements AutoCloseable {
 
     public void beginClearanceTick(int tick) {
         clearanceRoutes.beginTick(tick);
+        if (ownGridRoutes != null) ownGridRoutes.beginTick(tick);
         mechReachability.beginTick(tick);
     }
 
@@ -1262,6 +1301,7 @@ public final class NavigationService implements AutoCloseable {
         lastSquadRoutePending = 0;
         lastSquadRouteOldestWaitTicks = 0;
         clearanceRoutes.close();
+        if (ownGridRoutes != null) ownGridRoutes.close();
     }
 
     /**

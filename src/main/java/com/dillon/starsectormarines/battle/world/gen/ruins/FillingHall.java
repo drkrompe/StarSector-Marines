@@ -53,8 +53,10 @@ final class FillingHall {
             for (int y = y0; y <= y0 + 7; y++) {
                 f.stand("doodad.ruins-blast-baffle", "doodad.industrial-crate-stack", f.cx + 3, y, 1, 1, "proof");
             }
-            f.stand("doodad.ruins-blast-baffle", "doodad.industrial-crate-stack", rl + 2 + (b % 2) * 4, y0 + 4, 4, 1,
-                    "proof");
+            for (int k = 0; k < 4; k++) {
+                f.stand("doodad.ruins-blast-baffle", "doodad.industrial-crate-stack", rl + 2 + (b % 2) * 4 + k, y0 + 4,
+                        1, 1, "proof");
+            }
             // The magazine behind the press: blast walls round three sides, open to the aisle.
             int ml = f.westL, mr = f.westR - 5;
             boolean cooked = b == 1;
@@ -78,7 +80,7 @@ final class FillingHall {
             f.stand("doodad.armoury-rifle-rack", null, ml, y0 + 5, Math.min(3, mr - ml), 1, "magazines");
         }
         for (int y = HallFrame.DISPATCH + 1; y + 1 <= f.headY - 1; y += 2) {
-            p.floor("doodad.ruins-shell-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "filling");
+            p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "filling");
         }
         for (int[] s : blast) p.wear("doodad.ruins-scorch-arc", s[0], s[1], 2, 2);
 

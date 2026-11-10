@@ -36,6 +36,11 @@ public record MechPattern(Kind kind, String definitionId) {
         CHASSIS_TIERS.put(MechVariant.BULWARK, EquipmentAccessTier.PRESTIGE);
         // Tri-Tachyon's light crawler: a light frame, but high-tech, so a step above the Hound.
         CHASSIS_TIERS.put(MechVariant.CRAWLER, EquipmentAccessTier.ADVANCED);
+        // The low-tech variants (mech-lines.md): a field rig or a conversion is a faction's pattern, a step above the
+        // Hound and below the Ordnance Board's own line walker.
+        CHASSIS_TIERS.put(MechVariant.HAULER, EquipmentAccessTier.ADVANCED);
+        CHASSIS_TIERS.put(MechVariant.FOUNDRY_BREAKER, EquipmentAccessTier.ADVANCED);
+        CHASSIS_TIERS.put(MechVariant.PILGRIM, EquipmentAccessTier.ADVANCED);
 
         WEAPON_TIERS.put(MechWeaponComponent.SRM_5, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.AC_6_QS, EquipmentAccessTier.COMMON);
@@ -162,7 +167,7 @@ public record MechPattern(Kind kind, String definitionId) {
         if (kind == Kind.VEHICLE) return weightClass(vehicleType());
         if (kind != Kind.CHASSIS) return null;
         switch (variant()) {
-            case HOUND, CRAWLER: return WeightClass.LIGHT;
+            case HOUND, FOUNDRY_BREAKER, CRAWLER: return WeightClass.LIGHT;
             case WARDEN: return WeightClass.MEDIUM;
             default: return WeightClass.HEAVY;
         }

@@ -122,6 +122,8 @@ public final class WallCrush {
     private int pushedSpend;
     /** Breach views by ceiling and base, rebuilt when the map's topology has moved. */
     private final List<View> views = new ArrayList<>(2);
+    /** The breach view walkers plan over ({@link #planningGrid(int, NavigationGrid)}). */
+    private View walkerView;
 
     public WallCrush(NavigationService navigation, MapEditor editor, DoodadService doodads) {
         this.navigation = navigation;
@@ -255,6 +257,17 @@ public final class WallCrush {
         View view = new View(most, hover);
         views.add(view);
         return view.caughtUp(base);
+    }
+
+    /**
+     * The breach view a walker whose ceiling is {@code most} plans over (a wall-crushing walker, `mech-lines.md`, the
+     * Pilgrim), laid over {@code base}, the live grid: kept and caught up as a hull's is.
+     */
+    public NavigationGrid planningGrid(int most, NavigationGrid base) {
+        // Kept apart from the hulls' views: a hull's base is often its own crush view, and one view over two bases
+        // would rebuild whole every time the other asked.
+        if (walkerView == null || walkerView.most != most) walkerView = new View(most, false);
+        return walkerView.caughtUp(base);
     }
 
     /**

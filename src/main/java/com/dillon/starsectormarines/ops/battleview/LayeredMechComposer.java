@@ -95,6 +95,22 @@ final class LayeredMechComposer {
                      int flags, int chassis, int arms, int leftArm, int rightArm,
                      int leftShoulder, int rightShoulder,
                      float alpha, LayerPose authoredPose, GaitPose gaitPose) {
+        emit(out, assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg, locomotionPhase,
+                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms, leftArm, rightArm,
+                leftShoulder, rightShoulder, alpha, authoredPose, gaitPose, null);
+    }
+
+    /**
+     * As above, with {@code body} drawn in place of the frame's chassis: a hardware variant's own body
+     * ({@link MechVariantBodies}), or null for the frame's. Everything else is the frame's ({@code chassis}).
+     */
+    static void emit(Sink out, LayeredMechAssets assets,
+                     float actorX, float actorY, float hullWidth,
+                     float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
+                     float chaingunPhase, float srmPhase, float lrmPhase,
+                     int flags, int chassis, int arms, int leftArm, int rightArm,
+                     int leftShoulder, int rightShoulder,
+                     float alpha, LayerPose authoredPose, GaitPose gaitPose, LayeredSpriteCache body) {
         boolean moving = (flags & LayeredMechAppearance.FLAG_MOVING) != 0;
         boolean turning = (flags & LayeredMechAppearance.FLAG_TURNING) != 0;
         boolean stepping = moving || turning;
@@ -198,7 +214,7 @@ final class LayeredMechComposer {
                     upperX, upperY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
-        LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
+        LayeredSpriteCache chassisSprite = body != null ? body : selectChassis(assets, chassis);
         out.section(MechSection.TORSO);
         if (gaitPose != null) {
             emitCentered(out, chassisSprite, upperX, upperY, hullWidth, torsoFacingDeg,

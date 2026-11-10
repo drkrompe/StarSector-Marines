@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6b2-7a4a-7731-80f8-5448e656911d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6b2-7a4a-7731-80f8-5448e656911d\\exec-bfe60ac4-03eb-421d-872f-552a0090ba27.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\breaker\\breaker-master.png",
+    "sha256": "4cd6e51902571fd8244a047f6369510176e1a33d19c568f13eb0130785d3c38f",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\breaker\\breaker.prompt.txt",
+  "promptSha256": "fc1ae877e7019255dfd528df2047c560db8561e1075b08c709976255fe1ae648",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is\nImage 2: Identity and detail of the chosen concept; not layout\nImage 3: Material and colour only; no shapes\n\nAsset type: production-source master for a top-down game sprite: the Luddic Path FOUNDRY BREAKER, a light demolition walker a Pather cell converted from an industrial machine.\n\nImage 1 is the edit target and the exact geometry authority: a light narrow walking machine seen from above, facing the top. Keep its outline, faceted pilot canopy, round hip bearings, flat dorsal deck and registration exactly where they are, in place and scale. The grey blocks are the Breaker's new parts, each rendered in the same place and at the same size:\n- the two dark blocks at the nose either side of the open channel: a heavy blunt BREACHING COLLAR of rough foundry casting framing the nose. The narrow channel between them stays OPEN and EMPTY (fully transparent), because the demolition cannon runs up it as a separate layer;\n- the five pale bars across the rear: a rack of FIVE FAT SHELL CANISTERS lying crosswise, strapped down with steel bands.\nAdd hazard-banded mining plate over the hips.\n\nImage 2 is the owner's chosen concept for this machine: identity and detail reference only. Follow image 1 for where everything goes.\n\nImage 3 is material and colour reference only, surface swatches from the Luddic Path's warships: repaint the whole machine in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, soot round vents, scuffed bare metal on worn edges, hand-welded repairs.\n\nStrict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.\n\nEvery weapon mount stays EMPTY: a flat bolted plate or a dark socket ring, with no gun, barrel, launcher or turret anywhere. Guns are separate layers added later.\n\nAvoid: guns or barrels of any kind; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\breaker\\guide.png",
+      "sha256": "6dbf55e72b0f5dbf0bc4a529f41d6f5272a2dfc40454141bab904a20251ef273",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\breaker\\concept.png",
+      "sha256": "787af46babf3ebe6d920847b0a63b3ccd883c4679a770e7cfc18c9b58a9f93b1",
+      "dimensions": [
+        430,
+        743
+      ],
+      "mode": "RGBA",
+      "role": "Identity and detail of the chosen concept; not layout"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\ref-path-material.png",
+      "sha256": "cc896f982f8a629111ad18c929470178b901baba60e53ec9f1489198e4af1063",
+      "dimensions": [
+        980,
+        660
+      ],
+      "mode": "RGBA",
+      "role": "Material and colour only; no shapes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using Image 1 for exact geometry and Images 2–3 for detail and paint.\n"
+  ],
+  "usage": {
+    "input_tokens": 43120,
+    "cached_input_tokens": 34176,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 654,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.7
+}

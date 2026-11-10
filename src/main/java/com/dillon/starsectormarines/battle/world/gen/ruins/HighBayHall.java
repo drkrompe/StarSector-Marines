@@ -32,7 +32,7 @@ final class HighBayHall {
         // The sorters at the head.
         f.stand("doodad.ruins-sorter", "doodad.stores-roller-conveyor", f.westR - 5, top - 4, 6, 3, "sort");
         f.stand("doodad.ruins-sorter", "doodad.stores-roller-conveyor", f.eastL, top - 4, 6, 3, "sort");
-        f.stand("doodad.ruins-line-pulpit", "doodad.industrial-control-console", f.cx - 1, top - 2, 3, 1, "sort");
+        f.stand("doodad.ruins-line-console", "doodad.industrial-control-console", f.cx - 1, top - 2, 3, 1, "sort");
         p.zone(f.westL, top - 6, f.eastR, top, WorksHallPlan.Zone.PLATE);
 
         // The transfer rail down the middle.
