@@ -4,12 +4,15 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.setup.RaidWorksLayout;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
@@ -29,7 +32,8 @@ import java.util.Locale;
  * sizes, as {@link RaidSiteLookSuite} lays heavy industry's. Each case is framed whole ({@code <case>-whole.png}), at
  * play zoom on the works' units ({@code <case>-works.png}), and on the plant from the units to the tank farm
  * ({@code <case>-plant.png}): the receiving manifold, the units' columns, the product rack over the haul road, the
- * bunded tanks and the loading rack. Look preset, with the battle's mission markers. Nothing is played.
+ * bunded tanks and the loading rack. Last, the owned map a campaign raid on a refinery plays ({@code owned-seed<n>}).
+ * Look preset, with the battle's mission markers. Nothing is played.
  */
 public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
 
@@ -64,48 +68,62 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
                 try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
                         false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
                         RaidWorksLayout.machinesFor(c.tier()), "refining")) {
-                    RaidObjective works = null;
-                    for (Objective objective : sim.getObjectives()) {
-                        if (objective instanceof RaidObjective raid && raid.works()) works = raid;
-                    }
-                    if (works == null) throw new IllegalStateException(c.id() + ": the site laid no works");
-                    float sx = 0, sy = 0;
-                    for (RaidObjective.Site site : works.sites()) {
-                        sx += site.cellX();
-                        sy += site.cellY();
-                    }
-                    int n = works.sites().size();
-                    float ux = sx / n + .5f, uy = sy / n + .5f;
-                    // The tank farm: the big vessels outside the works, their middle.
-                    float tx = 0, ty = 0;
-                    int tanks = 0;
-                    for (Doodad d : sim.getDoodads()) {
-                        if (d.footprintCellsX < TANK_MIN || !d.sheetPath.contains("ruins-works-plant")) continue;
-                        float dx = d.cellX + d.footprintCellsX / 2f, dy = d.cellY + d.footprintCellsY / 2f;
-                        if (Math.hypot(dx - ux, dy - uy) < 30) continue;
-                        tx += dx;
-                        ty += dy;
-                        tanks++;
-                    }
-                    System.out.printf(Locale.ROOT, "[%s] %s units %d, farm tanks %d%n", id(), c.id(), n, tanks);
-                    int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
-                    out.add(new SnapshotArtifact(c.id() + "-whole.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
-                            .withMissionMarkers().render(sim, "")));
-                    out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), 1920, 1080, ux, uy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
-                            .withMissionMarkers().render(sim, "")));
-                    if (tanks > 0) {
-                        float fx = tx / tanks, fy = ty / tanks;
-                        float span = Math.max(Math.abs(fx - ux) * 1.35f, Math.abs(fy - uy) * 1.35f * 16f / 9f) + 40f;
-                        out.add(new SnapshotArtifact(c.id() + "-plant.png", BattleReviewFrameRenderer.look(
-                                context.modRoot(), 1920, 1080, (fx + ux) / 2f, (fy + uy) / 2f,
-                                Math.max(BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f, span))
-                                .withMissionMarkers().render(sim, "")));
-                    }
+                    out.addAll(frames(context, c.id(), sim));
                 }
+            }
+            // The map a campaign raid on a refinery plays: the owned seed on the reference market.
+            RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(StoryMap.RAID_REFINING,
+                    StoryMapPools.pool(StoryMap.RAID_REFINING).home());
+            long owned = StoryMapPools.pool(StoryMap.RAID_REFINING).owned().seed();
+            try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, ground.home(), owned, true, List.of())) {
+                out.addAll(frames(context, "owned-seed" + owned, sim));
             }
             return out;
         }
+    }
+
+    /** The case whole, on the works' units, and on the plant from the units to the tank farm. */
+    private List<SnapshotArtifact> frames(SnapshotContext context, String id, BattleSimulation sim) throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        RaidObjective works = null;
+        for (Objective objective : sim.getObjectives()) {
+            if (objective instanceof RaidObjective raid && raid.works()) works = raid;
+        }
+        if (works == null) throw new IllegalStateException(id + ": the site laid no works");
+        float sx = 0, sy = 0;
+        for (RaidObjective.Site site : works.sites()) {
+            sx += site.cellX();
+            sy += site.cellY();
+        }
+        int n = works.sites().size();
+        float ux = sx / n + .5f, uy = sy / n + .5f;
+        // The tank farm: the big vessels outside the works, their middle.
+        float tx = 0, ty = 0;
+        int tanks = 0;
+        for (Doodad d : sim.getDoodads()) {
+            if (d.footprintCellsX < TANK_MIN || !d.sheetPath.contains("ruins-works-plant")) continue;
+            float dx = d.cellX + d.footprintCellsX / 2f, dy = d.cellY + d.footprintCellsY / 2f;
+            if (Math.hypot(dx - ux, dy - uy) < 30) continue;
+            tx += dx;
+            ty += dy;
+            tanks++;
+        }
+        System.out.printf(Locale.ROOT, "[%s] %s units %d, farm tanks %d%n", id(), id, n, tanks);
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        out.add(new SnapshotArtifact(id + "-whole.png", BattleReviewFrameRenderer.look(
+                context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
+                .withMissionMarkers().render(sim, "")));
+        out.add(new SnapshotArtifact(id + "-works.png", BattleReviewFrameRenderer.look(
+                context.modRoot(), 1920, 1080, ux, uy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
+                .withMissionMarkers().render(sim, "")));
+        if (tanks > 0) {
+            float fx = tx / tanks, fy = ty / tanks;
+            float span = Math.max(Math.abs(fx - ux) * 1.35f, Math.abs(fy - uy) * 1.35f * 16f / 9f) + 40f;
+            out.add(new SnapshotArtifact(id + "-plant.png", BattleReviewFrameRenderer.look(
+                    context.modRoot(), 1920, 1080, (fx + ux) / 2f, (fy + uy) / 2f,
+                    Math.max(BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f, span))
+                    .withMissionMarkers().render(sim, "")));
+        }
+        return out;
     }
 }
