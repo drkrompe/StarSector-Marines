@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 
 import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
@@ -10,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
+import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -54,6 +58,10 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
             SurfacePalette home = StoryMapPools.pool(chapter).home();
             if (!worlds.isEmpty()) {
                 out.addAll(worldShots(context, chapter, worlds));
+                continue;
+            }
+            if (Boolean.getBoolean("snapshot.longSurvey.boarding")) {
+                out.addAll(boardingShots(context, chapter, home));
                 continue;
             }
             LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, home);
@@ -107,6 +115,57 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
             }
         }
         return out;
+    }
+
+    /**
+     * Boarding the ship ({@code <chapter>/boarding-<n>.png}), roofs on, as a played battle draws them: the hull from
+     * outside; a fire team in the aft breach with the roof lifted over the hold they stand in, as standing in it lifts
+     * it, and the rest of the ship still roofed; and the forge hall with its roof lifted. Nobody moves.
+     * {@code -Dsnapshot.longSurvey.boarding=true}.
+     */
+    private static List<SnapshotArtifact> boardingShots(SnapshotContext context, StoryMap chapter, SurfacePalette home)
+            throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, home);
+        HullSite site = ground.hull();
+        try (BattleSimulation sim = LongSurveyGround.stand(ground, home)) {
+            Area hull = site.footprint();
+            BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
+                    hull.centreX(), hull.centreY(), Math.max(hull.width(), hull.height() * 16f / 9f) + 24f);
+            out.add(new SnapshotArtifact(chapter.id + "/boarding-1-outside.png", look.render(sim, "")));
+
+            // The aft breach into the first hold: the last way in.
+            List<Area> ways = site.interior().entrances();
+            Area breach = ways.get(ways.size() - 1);
+            Area hold = site.interior().chambers().get(0);
+            int placed = 0;
+            for (int y = breach.bottom() - 1; y <= breach.top() + 1 && placed < 5; y++) {
+                for (int x = breach.left(); x <= breach.right() && placed < 5; x++) {
+                    if (!sim.getGrid().isWalkable(x, y) || (x + y) % 2 != 0) continue;
+                    sim.spawn(new EntitySpec("Boarder " + (++placed), Faction.MARINE, UnitType.MARINE, x, y));
+                }
+            }
+            Building inside = buildingAt(sim, hold.centreX(), hold.centreY());
+            if (inside != null) inside.currentAlpha = inside.targetAlpha = 0f;
+            float cx = (2 * breach.centreX() + hold.centreX()) / 3f, cy = (2 * breach.centreY() + hold.centreY()) / 3f;
+            look.refocus(cx, cy, 44f);
+            out.add(new SnapshotArtifact(chapter.id + "/boarding-2-breach.png", look.render(sim, "")));
+            if (inside != null) inside.currentAlpha = inside.targetAlpha = 1f;
+
+            Area forge = site.forgeHall();
+            Building vault = buildingAt(sim, forge.centreX(), forge.centreY());
+            if (vault != null) vault.currentAlpha = vault.targetAlpha = 0f;
+            look.refocus(forge.centreX(), forge.centreY(), 56f);
+            out.add(new SnapshotArtifact(chapter.id + "/boarding-3-forge.png", look.render(sim, "")));
+            System.out.printf(Locale.ROOT, "[long-survey-ground-look] %s boarding: %d boarders, hold %s, forge %s%n",
+                    chapter.id, placed, inside == null ? "-" : inside.id, vault == null ? "-" : vault.id);
+        }
+        return out;
+    }
+
+    private static Building buildingAt(BattleSimulation sim, int x, int y) {
+        int id = sim.getTopology().getBuildingId(x, y);
+        return id == 0 ? null : sim.getBuildings().get(id);
     }
 
     /** The claim drawn over the map: haul roads, lattice points by ring, stakes by stage, the forge and the aprons. */
