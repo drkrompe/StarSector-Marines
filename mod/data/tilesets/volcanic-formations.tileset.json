@@ -1,0 +1,130 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "formation.basalt-boulders",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "formation.basalt-boulders-damaged",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "formation.basalt-boulders-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "formation.basalt-spires",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "formation.basalt-spires-damaged",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "formation.basalt-spires-destroyed",
+      "row": 5
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.basalt-boulders-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires-damaged",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.basalt-spires-destroyed",
+      "row": 5
+    }
+  ],
+  "sheet": "graphics/doodads/volcanic-formations.png"
+}

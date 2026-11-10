@@ -1,0 +1,5 @@
+A square, perfectly flat overhead (straight-down orthographic) photograph-like texture of cooled pahoehoe basalt lava ground on an airless volcanic world, for a top-down tactical game's ground tiles.
+
+Material: dark charcoal basalt with a very slight warm brown cast, average colour close to RGB (60, 55, 54). Low, ropy, wrinkled flow skin: fine folded rope-like ridges a few pixels wide, small gas vesicles and pits, thin hairline cooling cracks, a sparse grit of darker cinders. The ropes wander gently in different directions across the frame so that any small crop looks like a different arrangement of the same ground.
+
+Hard rules: no directional lighting, no cast shadows, no highlights or sheen, no vignette, no gradient across the frame; even, diffuse, low-contrast detail everywhere; nothing larger than about one twentieth of the frame; no glowing lava, no orange, no red; no rocks standing up, no objects, no text, no border, no frame. Fully opaque, edge to edge.

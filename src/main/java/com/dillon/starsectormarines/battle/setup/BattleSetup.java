@@ -137,6 +137,7 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorksTwist;
 import com.dillon.starsectormarines.battle.ruins.RuinsThemeDressing;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
@@ -1410,7 +1411,8 @@ public final class BattleSetup {
             sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
-            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
+            // The prize bends one rule of the works (RuinsWorksTwist): what the site was built round changes the play.
+            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence, RuinsWorksTwist.of(ruinsPrize)));
             // An occupied site stirs while the company is inside (ruins-pressure.md); an empty site's threat is time.
             // The vault's prize: its stake deepens the reserve and quickens the stir, and the guardians read it.
             sim.setRuinsPrize(ruinsPrize);

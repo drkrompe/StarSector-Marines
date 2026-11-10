@@ -128,8 +128,9 @@ final class GlacialVoidRenderSystem implements RenderSystem {
             // Cells in from the floor's edge, from the smooth field rather than the piece's own figure, which steps
             // between neighbouring pieces and would speckle the pools and drifts.
             float in = field.sample(field.reach[field.steps()], x, y);
-            float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6];
-            float along = x * fx + y * fy, across = -x * fy + y * fx;
+            float sky = at[o + 6];
+            // The glint drifts along the crevasse's own streamlines (ChannelFlow), bending with it.
+            float along = band.flow[q * 5], across = band.flow[q * 5 + 1];
             float pool = NaturalVoidField.Noise.fbm(x * .2f, y * .2f, seed + 61);
             float crack = NaturalVoidField.Noise.fbm(x * .35f, y * .35f, seed + 63);
             float glint = NaturalVoidField.Noise.value(along * .22f - time * .2f, across * .6f, seed + 67);
