@@ -33,7 +33,7 @@ COLLAPSED = (1168, 136)
 BURNT = (800, 520)
 
 VOID = (20, 18, 17)
-STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull')
+STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull', 'quonset', 'barracks')
 
 BASE = {
     'clay': (176, 92, 62),
@@ -41,6 +41,8 @@ BASE = {
     'corrugated': (128, 134, 126),
     'plate': (104, 112, 116),
     'hull': (150, 170, 160),
+    'quonset': (112, 118, 84),
+    'barracks': (150, 140, 104),
 }
 
 
@@ -99,6 +101,41 @@ def paint_field(draw, x0, y0, w, h, style, cell):
             for c in range(int(math.ceil(w / rib))):
                 cx = x0 + c * rib + rib * 0.25
                 draw.ellipse([cx - 3, yy + 8, cx + 3, yy + 14], fill=shade(base, 1.35))
+    elif style == 'quonset':
+        # An arched hangar's ribbed sheet: sixteen ribs a cell running along the grain (north-south), each rib lit and
+        # shaded in itself, and a lap seam with a bolt line every cell across them.
+        rib = cell / 16
+        for c in range(int(math.ceil(w / rib))):
+            left = x0 + c * rib
+            draw.rectangle([left, y0, left + rib * 0.3, y0 + h - 1], fill=shade(base, 1.25))
+            draw.rectangle([left + rib * 0.3, y0, left + rib * 0.7, y0 + h - 1], fill=base)
+            draw.rectangle([left + rib * 0.7, y0, left + rib - 1, y0 + h - 1], fill=shade(base, 0.72))
+        for k in range(0, int(h / cell) + 1):
+            yy = y0 + k * cell
+            draw.rectangle([x0, yy - 4, x0 + w - 1, yy + 4], fill=shade(base, 0.55))
+            for c in range(int(math.ceil(w / rib))):
+                cx = x0 + c * rib + rib * 0.5
+                draw.ellipse([cx - 3, yy + 8, cx + 3, yy + 14], fill=shade(base, 1.35))
+    elif style == 'barracks':
+        # A low hut's ridged sheet: broad standing-seam pans along the grain, a ridge cap across the middle of each
+        # cell, and a small vent in two cells of the swatch.
+        pan = cell / 6
+        for c in range(int(math.ceil(w / pan))):
+            left = x0 + c * pan
+            draw.rectangle([left, y0, left + pan - 1, y0 + h - 1], fill=base)
+            draw.rectangle([left, y0, left + 6, y0 + h - 1], fill=shade(base, 1.3))
+            draw.rectangle([left + 7, y0, left + 11, y0 + h - 1], fill=shade(base, 0.7))
+        for k in range(int(math.ceil(h / cell))):
+            yy = y0 + k * cell + cell / 2
+            draw.rectangle([x0, yy - 14, x0 + w - 1, yy + 14], fill=shade(base, 0.85))
+            draw.rectangle([x0, yy - 14, x0 + w - 1, yy - 8], fill=shade(base, 1.2))
+            draw.rectangle([x0, yy + 8, x0 + w - 1, yy + 14], fill=shade(base, 0.6))
+        if w >= cell * 2:
+            for (vx, vy) in ((0.6, 0.15), (1.4, 1.2)):
+                cx, cy = x0 + cell * vx, y0 + cell * vy
+                draw.ellipse([cx - 22, cy - 22, cx + 22, cy + 22], fill=shade(base, 0.75), outline=shade(base, 0.45),
+                             width=5)
+                draw.ellipse([cx - 9, cy - 9, cx + 9, cy + 9], fill=shade(base, 0.4))
     elif style == 'plate':
         # Two plates a cell along the grain, riveted round, a hatch in one cell of the swatch.
         pw, ph = cell / 2, cell / 2
@@ -116,27 +153,34 @@ def paint_field(draw, x0, y0, w, h, style, cell):
                            outline=shade(base, 0.45), width=6)
             draw.ellipse([hx + cell * 0.18, hy + cell * 0.18, hx + cell * 0.32, hy + cell * 0.32], fill=shade(base, 1.3))
     elif style == 'hull':
-        # A fallen starship's dorsal plating: one broad plate a cell, its seams on the cell lines, a narrow machinery
-        # channel across each plate's south quarter (greebles go there), a hatch and a vent block in the swatch.
-        for r in range(int(math.ceil(h / cell))):
-            for c in range(int(math.ceil(w / cell))):
-                left, top = x0 + c * cell, y0 + r * cell
-                draw.rectangle([left, top, left + cell - 1, top + cell - 1], fill=base, outline=shade(base, 0.5),
-                               width=5)
-                draw.line([left + 6, top + 6, left + cell - 7, top + 6], fill=shade(base, 1.25), width=4)
-                draw.rectangle([left + 5, top + cell * 0.72, left + cell - 6, top + cell * 0.86],
-                               fill=shade(base, 0.55))
-                for t in range(1, 6):
-                    bx = left + cell * t / 6
-                    draw.rectangle([bx - 8, top + cell * 0.74, bx + 8, top + cell * 0.84], fill=shade(base, 0.8))
+        # A fallen starship's dorsal plating: broad stepped slabs of different sizes across the whole two-by-two
+        # swatch, their seams off the cell lines and low in contrast, so a roof of many cells reads as one hull and
+        # not as a grid (the first painting, raw/hull-v1, drew a plate and a machinery channel in every cell). One
+        # narrow machinery channel, a vent block and a hatch.
+        slabs = ((0, 0, 1.3, 0.7), (1.3, 0, 2, 0.45), (1.3, 0.45, 2, 1.25), (0, 0.7, 0.55, 1.6),
+                 (0.55, 0.7, 1.3, 1.25), (0.55, 1.25, 2, 2), (0, 1.6, 0.55, 2))
+        for (a, b, c, d) in slabs:
+            for (gx, gy) in ((0, 0),):
+                l, t, r, bt = x0 + (a + gx) * cell, y0 + (b + gy) * cell, x0 + (c + gx) * cell, y0 + (d + gy) * cell
+                if l >= x0 + w or t >= y0 + h:
+                    continue
+                tone = 0.94 + 0.12 * ((int(a * 10) + int(b * 10)) % 3) / 2
+                draw.rectangle([l, t, r - 1, bt - 1], fill=shade(base, tone), outline=shade(base, 0.72), width=4)
+                draw.line([l + 5, t + 5, r - 6, t + 5], fill=shade(base, 1.15), width=3)
         if w >= cell * 2:
-            hx, hy = x0 + cell * 0.25, y0 + cell * 1.2
-            draw.rectangle([hx, hy, hx + cell * 0.4, hy + cell * 0.36], fill=shade(base, 0.85),
-                           outline=shade(base, 0.45), width=6)
-            vx, vy = x0 + cell * 1.3, y0 + cell * 0.2
-            draw.rectangle([vx, vy, vx + cell * 0.45, vy + cell * 0.3], fill=shade(base, 0.45))
+            cy = y0 + cell * 1.25
+            draw.rectangle([x0 + cell * 0.6, cy - cell * 0.05, x0 + cell * 1.95, cy + cell * 0.05],
+                           fill=shade(base, 0.55))
+            for t in range(9):
+                bx = x0 + cell * (0.68 + t * 0.15)
+                draw.rectangle([bx - 8, cy - cell * 0.035, bx + 8, cy + cell * 0.035], fill=shade(base, 0.8))
+            hx, hy = x0 + cell * 0.12, y0 + cell * 0.95
+            draw.rectangle([hx, hy, hx + cell * 0.32, hy + cell * 0.32], fill=shade(base, 0.85),
+                           outline=shade(base, 0.5), width=6)
+            vx, vy = x0 + cell * 1.45, y0 + cell * 0.65
+            draw.rectangle([vx, vy, vx + cell * 0.4, vy + cell * 0.26], fill=shade(base, 0.5))
             for t in range(5):
-                draw.line([vx + 10 + t * cell * 0.085, vy + 6, vx + 10 + t * cell * 0.085, vy + cell * 0.3 - 6],
+                draw.line([vx + 10 + t * cell * 0.075, vy + 6, vx + 10 + t * cell * 0.075, vy + cell * 0.26 - 6],
                           fill=shade(base, 0.85), width=5)
 
 
@@ -164,6 +208,9 @@ def paint_strip(draw, x0, y0, w, h, style):
     elif style == 'hull':
         for k in range(int(w / 64) + 1):
             draw.rectangle([x0 + k * 64 + 8, y0 + h * 0.3, x0 + k * 64 + 40, y0 + h * 0.7], fill=shade(base, 0.7))
+    elif style in ('quonset', 'barracks'):
+        for k in range(int(w / 48) + 1):
+            draw.ellipse([x0 + k * 48 + 18, y0 + h * 0.42, x0 + k * 48 + 28, y0 + h * 0.42 + 10], fill=shade(base, 1.35))
     elif style == 'corrugated':
         for k in range(int(w / 32) + 1):
             draw.rectangle([x0 + k * 32, y0 + h * 0.22, x0 + k * 32 + 14, y0 + h * 0.78], fill=shade(base, 1.15))
@@ -268,5 +315,6 @@ def guide(style):
 
 
 if __name__ == '__main__':
-    for s in STYLES:
+    import sys
+    for s in (sys.argv[1:] or STYLES):
         guide(s)

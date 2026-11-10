@@ -28,7 +28,7 @@ sys.path.insert(0, str(HERE))
 import make_guide as G  # noqa: E402
 
 OUT = ROOT / 'mod/graphics/tilesets/roofs.png'
-STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull')
+STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull', 'quonset', 'barracks')
 F = 128
 COLUMNS = 12
 # RoofCover.EAVE_DEPTH: an eave's open edge lies this far up the frame from its south edge.

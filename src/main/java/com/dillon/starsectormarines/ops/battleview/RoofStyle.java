@@ -28,7 +28,11 @@ public enum RoofStyle {
      * A fallen starship's dorsal plating over its interior (`fallen-hull-nouns.md`): broad greebled hull plate in the
      * derelict survey mothership's palette, its eave the hull's buckled armour rim.
      */
-    HULL;
+    HULL,
+    /** A military base's arched hangar of olive-drab ribbed sheet, its ribs along the grain, for hangars and sheds. */
+    QUONSET,
+    /** A military hut's low khaki-olive ridged sheet with a ridge cap and vents, for barracks, dispatch and stores. */
+    BARRACKS;
 
     /** Rows of the roof sheet, in this order. */
     public static final int COUNT = values().length;

@@ -12,8 +12,11 @@ cuts each piece at its guide frame.
 ```
 python art-source/fallen-hull/make_guide.py         # guides/*-guide.png, guides/layout.json
 python art-source/fallen-hull/generate.py <job>     # prompts/<job>.prompt.txt, raw/<job>.png (+ provenance)
-python art-source/fallen-hull/export.py [--root mod] # <root>/graphics/battle/fallen-hull/
-gradlew.bat createSnapshots -Psnapshot=fallen-hull-look   # the picture cards
+python art-source/fallen-hull/export.py             # every candidate, build/fallen-hull-art (the cards)
+python art-source/fallen-hull/export.py --ship      # the picked looks into mod/
+python art-source/fallen-hull/tileset.py            # the map tileset: hull walls, trench floor, debris
+gradlew.bat createSnapshots -Psnapshot=fallen-hull-look      # the picture cards
+gradlew.bat createSnapshots -Psnapshot=long-survey-fall-look # The Fall played, the looks in place
 ```
 
 | Sheet | Pieces | Footprint | Shipped density |
@@ -25,13 +28,23 @@ gradlew.bat createSnapshots -Psnapshot=fallen-hull-look   # the picture cards
 | `trench` | seamless 2x2 trench floor, the lip strip, scorch / furrow / glassed patches | | 64 |
 | `stripper`, `hauler`, `rig` | walker masters on the derelict walker's layout: torso, thigh, shin, joint and the assembled walker (`rig` is pick `stripper-hauler` b, one unit) | the composer's | 128 |
 
-The hull's roof plating is not here: it is the `hull` roof style
-(`art-source/roofs`, `RoofStyle.HULL`), a row of `mod/graphics/tilesets/roofs.png`
+The hull's roof plating is the `hull` roof style (`art-source/roofs`,
+`RoofStyle.HULL`; its first painting, a plate and channel every cell, read as a
+grid and is kept as `raw/hull-v1`), a row of `mod/graphics/tilesets/roofs.png`
 drawn over any building whose walls carry a surface id naming `fallen-hull`.
 
-Until the hull, its stakes and its salvage walkers are places and units in a
-battle, the cut art goes to `build/fallen-hull-art` and is carded by
-`FallenHullLookSuite` over real look-preset frames (the civilian-rescue town,
-the vast derelict ruin beside its real walkers). Shipping a look is
-`export.py --root mod` and a `ModTextures` read in the place's or unit's
-renderer.
+What ships, on each pick's recommended option until the owner answers:
+
+- `tileset.py` cuts the map tileset `fallen-hull` from the accepted paintings:
+  the hull's wall block `installation.dark-concrete-wall@fallen-hull` (walls
+  and roof one material; `CrashSiteStage.HULL_WALL`), the trench floor
+  `fallen-hull.trench` and the debris the hull shed on it
+  (`fallen-hull.debris-*`, `CrashSiteStage.SHED`).
+- `export.py --ship` cuts the ring forge (lit and put out), the spire stake's
+  three stages and the stripper's and hauler's parts. `FallenHullLook` draws
+  the forge and the stakes in the structure pass; `BattleSprites` gives the
+  stripper and hauler chassis their own parts on the derelict leg rig.
+
+`FallenHullLookSuite` cards every candidate over real look-preset frames;
+`LongSurveyFallLookSuite` launches The Fall as the debug player does and looks
+at the shipped pieces in place.

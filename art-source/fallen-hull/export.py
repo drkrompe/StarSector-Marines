@@ -5,7 +5,9 @@
 Every cut is mechanical: a raw is scaled back to its guide's 1536x1024 canvas and each piece cut at the frame
 `make_guide.py` gave it (guides/layout.json), then scaled to its shipped density. Nothing is trimmed or recentred, so a
 piece's frame is its footprint in whole cells. Written under <root>/graphics/battle/fallen-hull/; the default root is
-build/fallen-hull-art (an overlay for the look cards, `-Dsnapshot.artOverlay`), mod/ once a look ships.
+build/fallen-hull-art, every candidate, for the look cards. `--ship` writes only the picked looks into mod/ (SHIP_*
+below): graphics/battle/fallen-hull/forge-lit|out.png, stake-planted|raised|store.png and the walkers' parts under
+graphics/battle/derelict-stripper/ and derelict-hauler/.
 
   hull-<lineage>.png               the whole hull, guide rows 256-767 (64 x 21.33 cells), HULL_PX a cell
   forge-<design>-<lit|out>.png     6 x 6 cells, FORGE_PX a cell
@@ -77,7 +79,7 @@ def feather(img, margin):
     return img
 
 
-def export_walker(design, out):
+def export_walker(design, out, ship=False):
     raw = HERE / "raw" / f"{design}.png"
     if not raw.exists():
         print(f"{design}: no raw yet")
@@ -85,7 +87,7 @@ def export_walker(design, out):
     spec = LAYOUT["walkers"][design]
     rgba = walker.keyed(str(raw))
     sx, sy = rgba.shape[1] / CANVAS[0], rgba.shape[0] / CANVAS[1]
-    folder = out / f"walker-{design}"
+    folder = (out.parent / f"derelict-{design}") if ship else out / f"walker-{design}"
     folder.mkdir(parents=True, exist_ok=True)
     parts = spec["parts"]
     # export.py scales by its SCALE: the legs are drawn at 256 px a cell, the torso at its own density.
@@ -96,6 +98,8 @@ def export_walker(design, out):
     shin = walker.cut(rgba, parts["shin"], sx, sy, True)
     shin.save(folder / "shin.png")
     walker.joint(shin).save(folder / "joint.png")
+    if ship:
+        return
     # The assembled walker, drawn at 220 px a cell about the left panel's centre (512, 512).
     walker.SCALE = WALKER_PX / 220
     walker.cut(rgba, (0, 0, 1024, 1024), sx, sy, False).save(folder / "assembled.png")
@@ -104,7 +108,12 @@ def export_walker(design, out):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(ROOT / "build" / "fallen-hull-art"))
-    out = Path(ap.parse_args().root) / "graphics" / "battle" / "fallen-hull"
+    ap.add_argument("--ship", action="store_true", help="only the picked looks, into mod/ (see SHIP)")
+    args = ap.parse_args()
+    if args.ship:
+        ship()
+        return
+    out = Path(args.root) / "graphics" / "battle" / "fallen-hull"
     out.mkdir(parents=True, exist_ok=True)
     have = lambda n: (HERE / "raw" / f"{n}.png").exists()  # noqa: E731
 
@@ -141,6 +150,30 @@ def main():
     for design in ("stripper", "hauler", "rig"):
         export_walker(design, out)
     print("wrote", out)
+
+
+# The looks the game draws, picked meanwhile on each pick's recommended option (`FallenHullLook`): the ring forge, the
+# spire stake, two salvage walkers. The hull's walls, roof, trench floor and debris ship in the map tilesets instead
+# (`tileset.py`, `art-source/roofs`).
+SHIP_FORGE = "ring"
+SHIP_STAKE = "spire"
+SHIP_WALKERS = ("stripper", "hauler")
+
+
+def ship():
+    out = ROOT / "mod" / "graphics" / "battle" / "fallen-hull"
+    out.mkdir(parents=True, exist_ok=True)
+    img = sheet("forge")
+    for state in ("lit", "out"):
+        name = f"{SHIP_FORGE}-{state}"
+        cut(img, LAYOUT["forge"]["frames"][name], LAYOUT["forge"]["cellPx"], FORGE_PX).save(out / f"forge-{state}.png")
+    img = sheet("stake")
+    for stage in ("planted", "raised", "store"):
+        cut(img, LAYOUT["stake"]["frames"][f"{SHIP_STAKE}-{stage}"], LAYOUT["stake"]["cellPx"], STAKE_PX).save(
+            out / f"stake-{stage}.png")
+    for design in SHIP_WALKERS:
+        export_walker(design, out, ship=True)
+    print("shipped", out)
 
 
 if __name__ == "__main__":

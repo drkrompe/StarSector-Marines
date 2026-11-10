@@ -53,14 +53,23 @@ import java.util.Random;
  */
 public final class CrashSiteStage implements GenStage {
 
-    /** The ruins megastructure's hull and deck ({@code mapgen-nouns.md}, Ruins ground): one material set for both. */
-    static final String HULL_WALL = "installation.dark-concrete-wall";
+    /**
+     * The hull's walls and deck: the installation wall in the hull's own plate ({@code art-source/fallen-hull/tileset.py}),
+     * whose id roofs the hull in hull plating ({@code RoofStyle.HULL}), over the ruins megastructure's deck.
+     */
+    static final String HULL_WALL = "installation.dark-concrete-wall@fallen-hull";
     static final String HULL_FLOOR = "installation.concrete-floor";
     /** The forge hall's deck: plate, so the vault reads apart from the holds. */
     static final String FORGE_FLOOR = "sky-port.deck-plate";
     static final String RUBBLE_BED = "pavement.gravel.cracked";
     static final String TRODDEN = "pavement.dirt.worn";
     static final String SCRAP = "doodad.industrial-scrap-pile";
+    /** The trench floor's ploughed earth ({@code art-source/fallen-hull/tileset.py}); trodden earth where it is missing. */
+    static final String TRENCH = "fallen-hull.trench";
+    /** The pieces the hull shed on its trench floor, by hash; the plain scrap pile where they are missing. */
+    static final String[] SHED = {"fallen-hull.debris-plate-shard-a", "fallen-hull.debris-plate-shard-b",
+            "fallen-hull.debris-scrap-heap", "fallen-hull.debris-girder", "fallen-hull.debris-pod",
+            "fallen-hull.debris-bell"};
     /** The interior's building kind: the ruins megastructure's, so the ruins roof joins its mass ({@code RuinsRoofStage}). */
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
 
@@ -118,6 +127,16 @@ public final class CrashSiteStage implements GenStage {
     /** The trench floor at a cell: ploughed earth, broken here and there by rubble. */
     static GroundKind trenchGround(long seed, int x, int y) {
         return Math.floorMod(hash(seed, x, y, 0x5C), 5) == 0 ? GroundKind.RUBBLE : GroundKind.DIRT;
+    }
+
+    /**
+     * The surface the trench floor is drawn in: its own ploughed earth, over its broken cells too (they stay rubble
+     * underfoot), else as {@link #block}.
+     */
+    static String trenchBlock(GroundKind kind) {
+        TileRegistry registry = TileRegistry.installed();
+        boolean floor = kind == GroundKind.DIRT || kind == GroundKind.RUBBLE;
+        return floor && registry != null && registry.hasBlock(TRENCH) ? TRENCH : block(kind);
     }
 
     /** The surface a hull ground kind is drawn in: trodden earth, a rubble bed, or the kind's own block. */
@@ -261,7 +280,10 @@ public final class CrashSiteStage implements GenStage {
             for (int k = trenchCells.nextSetBit(0); k >= 0; k = trenchCells.nextSetBit(k + 1)) {
                 int x = k % w, y = k / w;
                 free(x, y);
-                ground(x, y, trenchGround(ctx.seed, x, y));
+                GroundKind kind = trenchGround(ctx.seed, x, y);
+                ground(x, y, kind);
+                String floor = trenchBlock(kind);
+                if (floor != null) topology.setSurface(x, y, topology.surfaceIndex(floor));
             }
             for (int k = lipCells.nextSetBit(0); k >= 0; k = lipCells.nextSetBit(k + 1)) {
                 int x = k % w, y = k / w;
@@ -271,7 +293,10 @@ public final class CrashSiteStage implements GenStage {
             }
             // Scrap the hull shed as it ploughed, loose on the trench floor.
             for (int k = trenchCells.nextSetBit(0); k >= 0; k = trenchCells.nextSetBit(k + 1)) {
-                if (Math.floorMod(hash(k % w, k / w, 0x5D), 70) == 0 && !inField(k % w, k / w, 3)) loose(SCRAP, k % w, k / w);
+                if (Math.floorMod(hash(k % w, k / w, 0x5D), 70) != 0 || inField(k % w, k / w, 3)) continue;
+                String piece = SHED[Math.floorMod(hash(k % w, k / w, 0x5E), SHED.length)];
+                TileRegistry registry = TileRegistry.installed();
+                loose(registry != null && registry.doodad(piece) != null ? piece : SCRAP, k % w, k / w);
             }
         }
 

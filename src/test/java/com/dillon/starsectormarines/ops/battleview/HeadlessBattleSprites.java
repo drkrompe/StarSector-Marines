@@ -138,6 +138,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final DerelictWalkerAssets crawler;
+    private final DerelictWalkerAssets stripper;
+    private final DerelictWalkerAssets hauler;
     private Map<MechVariant, LayeredSpriteCache> variantBodies;
     private final LayeredSpriteCache derelictPortHead;
     private final LayeredSpriteCache derelictRackHead;
@@ -222,6 +224,20 @@ final class HeadlessBattleSprites extends BattleSprites {
             }
         });
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, path -> {
+            try {
+                return optionalLayer(path);
+            } catch (IOException missing) {
+                return null;
+            }
+        });
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, path -> {
             try {
                 return optionalLayer(path);
             } catch (IOException missing) {
@@ -411,6 +427,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
+    @Override public DerelictWalkerAssets stripperSprites() { return stripper; }
+    @Override public DerelictWalkerAssets haulerSprites() { return hauler; }
 
     @Override public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() {
         if (variantBodies == null) {

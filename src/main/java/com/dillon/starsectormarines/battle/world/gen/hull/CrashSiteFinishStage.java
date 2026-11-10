@@ -53,9 +53,10 @@ public final class CrashSiteFinishStage implements GenStage {
             int x = k % ctx.width, y = k / ctx.width;
             if (!ctx.grid.isWalkable(x, y) || ctx.topology.isWall(x, y)) continue;
             CellTopology.GroundKind kind = CrashSiteStage.trenchGround(ctx.seed, x, y);
-            if (ctx.topology.getGroundKind(x, y) == kind) continue;
+            String block = CrashSiteStage.trenchBlock(kind);
+            if (ctx.topology.getGroundKind(x, y) == kind && (block == null
+                    || block.equals(ctx.topology.getSurfaceId(x, y)))) continue;
             ctx.topology.setGroundKind(x, y, kind);
-            String block = CrashSiteStage.block(kind);
             if (block != null) ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(block));
         }
         int w = ctx.width, h = ctx.height;

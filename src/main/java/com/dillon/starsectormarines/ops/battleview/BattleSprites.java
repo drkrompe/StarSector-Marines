@@ -163,6 +163,8 @@ public class BattleSprites {
     private boolean layeredMechSpritesLoadAttempted;
     private DerelictWalkerAssets derelictWalker;
     private DerelictWalkerAssets crawler;
+    private DerelictWalkerAssets stripper;
+    private DerelictWalkerAssets hauler;
     /** The hardware variants' own bodies, drawn over their frames' legs and mounts ({@link MechVariantBodies}). */
     private Map<MechVariant, LayeredSpriteCache> mechVariantBodies = Map.of();
     /** The machine flamers' drawings, the same in every livery ({@link LayeredMechAssets#withFlamers}). */
@@ -332,6 +334,30 @@ public class BattleSprites {
     }
     /** The derelict security walker's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
+
+    /**
+     * The parts a derelict chassis is drawn from: the fallen hull's stripper and hauler their own builds where they
+     * loaded, every other size the sentinel's at its scale.
+     */
+    public DerelictWalkerAssets derelictWalkerSprites(MechVariant variant) {
+        DerelictWalkerAssets own = variant == MechVariant.SECURITY_STRIPPER ? stripperSprites()
+                : variant == MechVariant.SECURITY_HAULER ? haulerSprites() : null;
+        return own != null ? own : derelictWalkerSprites();
+    }
+
+    /** The fallen hull's stripper's own parts, or null when incomplete. */
+    public DerelictWalkerAssets stripperSprites() { return stripper; }
+
+    /** The fallen hull's hauler's own parts, or null when incomplete. */
+    public DerelictWalkerAssets haulerSprites() { return hauler; }
+
+    /** The stripper's and hauler's own parts that loaded. */
+    public List<DerelictWalkerAssets> salvageWalkerSprites() {
+        List<DerelictWalkerAssets> out = new ArrayList<>();
+        if (stripperSprites() != null) out.add(stripperSprites());
+        if (haulerSprites() != null) out.add(haulerSprites());
+        return out;
+    }
     /** Tri-Tachyon's light crawler's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets crawlerSprites() { return crawler; }
     /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
@@ -1463,6 +1489,8 @@ public class BattleSprites {
         layeredMechSpritesLoadAttempted = true;
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
+        stripper = DerelictWalkerAssets.load(DerelictWalkerAssets.STRIPPER_ROOT, this::loadLayeredSprite);
+        hauler = DerelictWalkerAssets.load(DerelictWalkerAssets.HAULER_ROOT, this::loadLayeredSprite);
         mechVariantBodies = MechVariantBodies.load(this::loadLayeredSprite);
         mechFlamerBurner = loadLayeredSprite(MECH_ROOT + "fl-1.png");
         mechFlamerLance = loadLayeredSprite(MECH_ROOT + "fl-2.png");
