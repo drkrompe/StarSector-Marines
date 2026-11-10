@@ -842,6 +842,25 @@ a cross pulled apart) and *width steps* (a street running on into one of
 another breadth). It changes no ground; it is the measure street rules are
 judged by.
 
+**The street plan** (`StreetPlan`) plans a town's grown streets as one
+network before any place claims its ground. Growth lays arms from junctions
+at random lengths and stops each where it runs into something, so a town
+comes out with short dead ends, crossings pulled apart into two offset tees,
+and streets crowding a neighbour running the same way. The plan reads the
+grown streets, each one width, and improves the network with local moves:
+it takes up a *stub* (a dead end shorter than four breadths and twelve
+cells); it moves one of two side streets leaving a street on opposite sides
+within ten cells onto the other's line, making one cross, where its far end
+still meets what it met; and it takes up a street running beside a longer
+one with fewer than six cells between them, where no block could stand.
+Every move is kept only where the network stays in as few pieces as before,
+and no street is moved onto ground growth was kept off (the layout's held
+ground, sealed ground). It draws no random number. What is laid later
+(cantonment avenues and gate roads, gates, layout roads, welds, pad
+approaches) is laid onto the planned streets. It plans Raid sites only for
+now: the pooled story maps keep their grown streets until their pools are
+vetted on it. `-Dbattle.mapgen.streetPlan=false` is the control.
+
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
 asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
