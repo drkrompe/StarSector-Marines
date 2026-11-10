@@ -169,7 +169,7 @@ The sites so far, each the same districts with the industry's own works:
 | Industry | Works (its machines first) | Industry round it |
 |---|---|---|
 | Heavy industry (`heavyindustry`, `orbitalworks`) | machine halls, a generator hall, stores (`FortressProgram.works`) | a dense industrial quarter and yards |
-| Mining (`mining`, `techmining`) | the head works: a winding house over each shaft, the ore mill they feed, stores, on wide ore yards (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
+| Mining (`mining`, `techmining`) | the head works as an ore-processing chain: the receiving house the pit's ore line lands on, the stockpile shed, a mill line per machine, the smelter, the loadout, stores (`RaidWorksPrograms.mine`) | sparse ore yards and a railhead |
 | Refining (`refining`, `fuelprod`) | the refinery: a still per machine, the pump house, the control house (`RaidWorksPrograms.refinery`) | a dense industrial quarter |
 | Light industry (`lightindustry`) | shop floors, a loading shed, stores (`RaidWorksPrograms.shops`) | a dense industrial quarter |
 | Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`RaidWorksPrograms.farmPlant`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
