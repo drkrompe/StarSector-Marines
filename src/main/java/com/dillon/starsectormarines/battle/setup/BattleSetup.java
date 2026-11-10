@@ -3408,8 +3408,7 @@ public final class BattleSetup {
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
-            PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
-            if (colony) colonyPlan = PlanetSkin.sealedFor(colonyPlan, world);
+            PrecinctPlan colonyPlan = colony ? colonyPlanOn(scale, battleSeed, world) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
             if (home != null) map = PlanetSkin.apply(map, home, world);
@@ -3574,6 +3573,16 @@ public final class BattleSetup {
      */
     public static boolean isColonyBreachColony(RiskLevel risk, boolean stressTest) {
         return !stressTest && risk == RiskLevel.HIGH;
+    }
+
+    /**
+     * The colony plan a civilian rescue lays from {@code seed} on {@code world}: {@link #colonyPlanFor}, sealed
+     * ({@link SealedTown#seal}) on a world whose habitat is enclosed, where nobody lives in the open
+     * ({@link PlanetSkin#sealsTowns}). The one place the rescue's plan is decided, so a look that frames the
+     * rescue's map lays the same one.
+     */
+    public static PrecinctPlan colonyPlanOn(MapScale scale, long seed, TargetProfile world) {
+        return PlanetSkin.sealedFor(colonyPlanFor(scale, seed), world);
     }
 
     /**
@@ -5490,8 +5499,10 @@ public final class BattleSetup {
             spawnLegacyDefenderCluster(sim, cells, roster, groundRoster, rng);
             return;
         }
-        // Highest priority first — these get garrisons; the rest become patrol anchors.
-        defenderNodes.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
+        // A Raid works' guard posts first, then highest priority first: these get garrisons; the rest become
+        // patrol anchors (RaidWorksGuard).
+        defenderNodes = RaidWorksGuard.seatingOrder(defenderNodes);
+        Set<TacticalNode> worksPosts = new HashSet<>(RaidWorksGuard.posts(defenderNodes));
 
         // Two separate queues — mechs and infantry never share a squad.
         // The planner ships distinct goal/action libraries for each, and a
@@ -5512,7 +5523,8 @@ public final class BattleSetup {
         // from a single source queue (mechs first while available, then
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            boolean spawningMechs = !mechQueue.isEmpty();
+            // A works' guard post is held by riflemen while any are left; a mech does not stand in a guard room.
+            boolean spawningMechs = !mechQueue.isEmpty() && !(worksPosts.contains(node) && !infQueue.isEmpty());
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             if (sourceSize == 0) { patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();

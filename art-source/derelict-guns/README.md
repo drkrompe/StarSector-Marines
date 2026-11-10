@@ -1,13 +1,12 @@
-# Derelict walker gun art (concept)
+# Derelict walker guns: turret heads
 
-Concept for the derelict walkers' mount weapons (`MechBodyHardpoints`, `DerelictWalkerGuns`), raised as the owner pick
-`derelict-gun-art`. Not shipped: the walkers draw the company's weapon drawings until the pick is answered and
-production pieces exist.
+The derelict walkers draw each mount's weapon from its own drawing under a turret head in the walker's plate
+(`DerelictWalkerGuns`; owner: turret heads so any weapon renders underneath without art per weapon). Shipped heads:
+`mod/graphics/battle/derelict-walker/turret-head-port.png` (gun port cowl, barrel slot at the top) and
+`turret-head-rack.png` (rack cradle), each centred on its mount's pivot.
 
-- `guide.png`: the company drawings' silhouettes (HC-10, AC-6, chaingun, SRM rack, LRM rack) at 4.5x, the geometry
-  authority.
-- `concept-v2.png` (+ brief, provenance): codex-imagegen fill in the sentinel torso's plate. v1 was refused by the
-  image tool's filter on weapon wording; v2 describes the pieces as equipment modules.
-- Preview in-engine: cut each piece to its company drawing's canvas (same length and pivot) into a folder laid out
-  like `mod/` under `graphics/battle/mech-modular-topdown/`, then
-  `createSnapshots -Psnapshot=derelict-guns-look -Dsnapshot.artOverlay=<folder>`.
+- `turret-heads-guide.png`: the two silhouettes (port cowl centred at 420,512, cradle at 1110,512), geometry authority.
+- `turret-heads-v1.png` (+ brief, provenance): the codex-imagegen master the shipped heads are cut from. Each head is
+  cropped at alpha 128, padded so the image centre is its guide centre, and scaled to 256 px wide.
+- `concept-v2.png` (+ brief, provenance, `guide.png`): earlier per-weapon derelict gun concept, not picked; kept as the
+  material reference the heads were generated against.

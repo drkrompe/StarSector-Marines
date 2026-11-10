@@ -656,6 +656,17 @@ Laws):
      roof's edge (`BuildingFaces.segments`): the roof covers only the inner
      part of a wall cell, and a foot on the roof's line left the rest of
      the wall cell's flat art showing as a strip along the ground.
+   - **What hangs on a wall hangs on its face** (`WallMounts`): a shop
+     awning, a loading canopy or a wall lamp lies on the ground cell in
+     front of its wall, its rail along the face's foot. Its rail's corners
+     are stood up the face to the height it hangs from (an awning's rail
+     3 m, its valance 2.5 m), at the very point the face is painted there
+     (`BuildingFaces.onFace`); its outer edge takes the plain lift of its
+     own height. So it moves with its wall as the view pans, comes down
+     with the wall when the building is cut away, goes with it when the
+     building is razed, and is drawn between the faces and the roofs, so a
+     roof in front of it hides it. Look suite: `createSnapshots
+     -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80

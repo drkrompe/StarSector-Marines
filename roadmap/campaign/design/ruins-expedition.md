@@ -701,6 +701,27 @@ plan, the other halls' chains and the art list are in
 `ruins-themed-environments.md` in the shared notes. Picture cards:
 `createSnapshots -Psnapshot=ruins-mega-forge-picks`.
 
+**Every theme has its works hall** (owner: "Surely we need to have more ruin
+rooms being designed right now"). Each theme's production is one mega hall laid
+from its process, as the forge's is, in the forge's slot. The halls:
+
+- cold hall (cryo);
+- culture hall (vats);
+- print hall (drones);
+- core hall (AI cores);
+- field hall (lamps, dynamos, taps);
+- ring hall (synchrotron);
+- shaft hall (mantle bore);
+- reactor train (catalytic core);
+- draw line (fullerene spool);
+- stage hall (holosuite);
+- high bay (depot);
+- filling hall (armory).
+
+The prize is unchanged. The model is in `mapgen-nouns.md` (Every other theme has a works hall of its own). The
+designs and the art list are in `ruins-theme-halls.md` in the shared notes. The owner picked a works hall over a chain of halls
+for every theme (`ruins-<theme>-halls` a). Look shots: `createSnapshots -Psnapshot=ruins-works-hall-look`.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,

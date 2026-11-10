@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c69c-a548-7920-a34a-b2014fa484c7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c69c-a548-7920-a34a-b2014fa484c7\\exec-50a2d358-ca19-425e-9b5a-12e223da6eb2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\path-censer-sheet.png",
+    "sha256": "138acd412f41a35ddbbf468ba61e1e7082d5c55e1f4d67a9441f509e01b251db",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\path-censer.prompt.txt",
+  "promptSha256": "2f7d2b89818ba39623e29ad2d4034cc239571662bb9c8fd375c7dbf210c070c0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Frame identity only: the Warden (middle) this conversion is built from; keep its proportions, hip bearings, canopy and mount places; NOT its paint\nImage 2: Material, colour and surface detail only; contains no shapes to copy\n\nAsset type: concept sheet for a top-down game: a LUDDIC PATH FLAMER CONVERSION, the CENSER, an industrial medium walking machine (the Warden, middle in image 1) a Pather cell has converted to burn out what it calls corruption.\n\nThe machine: the Warden's body, its shoulders kept. Its back carries a large tall ribbed pressure tank of promethium fuel in a welded frame, like a church boiler or an industrial gas cylinder, with gauges, valves and a pipe manifold, joined by armoured hoses along its right side to its right arm. The right arm mount is EMPTY, a flat bolted plate with a hose coupling; the left arm keeps an empty mounting plate. Prayer cloth strips and simple painted devotional shapes (no text) hang from its plate. Scorch soot darkens the front of the body.\n\nImage 2 is material and colour reference only, a sheet of surface swatches cut from inside the Luddic Path's warships; it holds no shapes to copy. Paint the conversion in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, grime and sooty scorching, scuffed bare metal on worn edges, hand-welded repairs.\n\nThe loose part beside it: the Path flame projector, a long heavy industrial burner lance with a flared cowl at its tip, cooling fins, a pilot light and a hose coupling at its base, in dark scorched steel with a red band.\n\nLayout: one wide landscape sheet. On the left, the machine whole, large, facing the TOP edge of the sheet, symmetric about its own vertical centre line except where the brief says otherwise. On the right, with clear space between, its flame gun drawn on its own as a loose part, seen from above, pointing to the top, at the same scale. Nothing else on the sheet.\n\nImage 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. The machine must still read as the one named: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change only what the brief says. No thrusters or engines on its back, no claw, no saw blade.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, flame, smoke, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.\n\nAvoid: fire or flame effects; any gun other than the one flame gun; perspective, side view or isometric view; a starship's outline; bird or chicken legs; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\ref-lowtech-row.png",
+      "sha256": "55dfbad9033029c1e53a5cd6cff92700a1aa2dfbefdd50eac6206f2ea61c2a9f",
+      "dimensions": [
+        3020,
+        1060
+      ],
+      "mode": "RGBA",
+      "role": "Frame identity only: the Warden (middle) this conversion is built from; keep its proportions, hip bearings, canopy and mount places; NOT its paint"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\ref-path-material.png",
+      "sha256": "cc896f982f8a629111ad18c929470178b901baba60e53ec9f1489198e4af1063",
+      "dimensions": [
+        980,
+        660
+      ],
+      "mode": "RGBA",
+      "role": "Material, colour and surface detail only; contains no shapes to copy"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent concept sheet with the Warden frame, Pather materials, and detached flame projector."
+  ],
+  "usage": {
+    "input_tokens": 43892,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 694,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.7
+}

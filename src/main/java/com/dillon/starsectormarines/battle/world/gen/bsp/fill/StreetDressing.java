@@ -17,7 +17,8 @@ import java.util.function.IntFunction;
  * post) is a fixture: its cells are not walkable but stay see-through, and it is cover by its tileset's value. An
  * <b>overhead</b> piece (an awning, a wall lamp, a pipe rack cell) and the boom-gate arm block nothing and carry no
  * cover: a figure walks under them. The overhead ones draw in the roof pass, above the people under them, through
- * their motion catalog ({@code street-dressing-motions.tileset.json}).
+ * their motion catalog ({@code street-dressing-motions.tileset.json}); an awning or wall lamp is stood up on the face
+ * of the wall its north points to, at the height it hangs from ({@code WallMounts}).
  *
  * <p>Directions are grid steps, {@code (dx, dy)} with exactly one of them non-zero. Draws nothing from any random
  * stream. A piece whose art is not installed is skipped.

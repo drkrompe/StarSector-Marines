@@ -208,6 +208,8 @@ public final class RuinsDelveStage implements GenStage {
         final boolean[] kitFloor;
         /** Cells of a feed path to a great crucible's hopper, kept clear and painted as a lane. */
         final boolean[] feed;
+        /** Each works hall's plan by its footprint, for its floor's zones and skins. */
+        final Map<Long, WorksHallPlan> worksPlans = new HashMap<>();
         /** A plant hall's freight aisles: kept clear of furniture and melt, so a hall frame reaches its post. */
         final boolean[] aisle;
         /** Shell cells stamped here, for their wall and door masks. */
@@ -315,7 +317,7 @@ public final class RuinsDelveStage implements GenStage {
                 if (i == hallLayer) hall = in ? innerHall : hall(i, region);
                 if (i == 0) records = records(region);
                 // A forge works lays its halls before its side rooms, so its mega hall has the band's length.
-                boolean forge = plan.dressing().foundry();
+                boolean forge = plan.dressing().works().any();
                 if (in && forge) layHalls(i, firstInside, region, chambers, plantHalls);
                 List<SideRoom> rooms = new ArrayList<>();
                 for (int r = 0; r < ROOMS_PER_LAYER; r++) {
@@ -342,7 +344,13 @@ public final class RuinsDelveStage implements GenStage {
                         d.ways, rooms, court));
             }
             for (RuinsDelve.PlantHall plantHall : plantHalls) furnish(plantHall);
-            dress(plan.dressing(), vault, chambers);
+            // A great hall is furnished by its process alone: no loose dressing against its walls.
+            List<Area> dressed = new ArrayList<>(chambers);
+            for (RuinsDelve.PlantHall plantHall : plantHalls) {
+                if (plantHall.stage() == RuinsDelve.PlantStage.WORKS
+                        || plantHall.stage() == RuinsDelve.PlantStage.FOUNDRY) dressed.remove(plantHall.footprint());
+            }
+            dress(plan.dressing(), vault, dressed);
             for (RuinsDelve.PlantHall plantHall : plantHalls) zoneFloor(plantHall.footprint());
             finishMasks();
             repairPockets(landing.get(0).berth(0));
@@ -481,6 +489,7 @@ public final class RuinsDelveStage implements GenStage {
             int plate = topology.surfaceIndex(HALL_PLATE), walkway = topology.surfaceIndex(HALL_WALKWAY);
             int worn = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
             int feedLane = topology.surfaceIndex(HALL_FEED);
+            WorksHallPlan works = worksPlans.get(key(hall));
             boolean longX = hw >= hh;
             for (int y = hall.bottom(); y <= hall.top(); y++) {
                 for (int x = hall.left(); x <= hall.right(); x++) {
@@ -496,6 +505,18 @@ public final class RuinsDelveStage implements GenStage {
                             : (x == hall.left() || x == hall.right());
                     int surface = feed[i(x, y)] ? feedLane : aisle[i(x, y)] ? walkway : near ? plate
                             : wallSide ? walkway : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : worn;
+                    if (works != null) {
+                        int lx = x - hall.left(), ly = y - hall.bottom();
+                        switch (works.zone(lx, ly)) {
+                            case LANE -> surface = feedLane;
+                            case BAY -> surface = walkway;
+                            case PLATE -> surface = plate;
+                            case SPECIAL -> surface = topology.surfaceIndex(VAULT_ROOM_FLOOR);
+                            case DERIVED -> { }
+                        }
+                        String skin = works.skin(lx, ly);
+                        if (skin != null) surface = topology.surfaceIndex(skin);
+                    }
                     topology.setSurface(x, y, surface);
                 }
             }
@@ -1557,7 +1578,7 @@ public final class RuinsDelveStage implements GenStage {
          * Vast ground lays one more of each.
          */
         List<RuinsDelve.PlantStage> stages(int band, int bands) {
-            if (plan.dressing().foundry()) return forgeStages(band, bands);
+            if (plan.dressing().works().any()) return forgeStages(band, bands);
             List<RuinsDelve.PlantStage> out = new ArrayList<>();
             boolean outer = band == 0;
             if (outer) {
@@ -1603,8 +1624,8 @@ public final class RuinsDelveStage implements GenStage {
             List<RuinsDelve.PlantStage> out = new ArrayList<>();
             boolean vast = plan.layers() >= 4;
             if (band == 0) {
-                // The forge is placed first, while the band still has room for it; the intake after.
-                out.add(RuinsDelve.PlantStage.FOUNDRY);
+                // The works hall is placed first, while the band still has room for it; the intake after.
+                out.add(plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS);
                 out.add(RuinsDelve.PlantStage.INTAKE);
                 if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
             }
@@ -1621,16 +1642,18 @@ public final class RuinsDelveStage implements GenStage {
             int cw = switch (stage) {
                 case INTAKE -> 16;
                 case PRODUCTION -> vast ? 30 : 26;
-                case FOUNDRY -> vast ? 40 : 34;
+                case FOUNDRY, WORKS -> vast ? 40 : 34;
                 case STORAGE -> 18;
             };
             int ch = switch (stage) {
                 case INTAKE -> 12;
                 case PRODUCTION -> vast ? 18 : 16;
-                case FOUNDRY -> vast ? 24 : 22;
+                case FOUNDRY, WORKS -> vast ? 24 : 22;
                 case STORAGE -> 14;
             };
-            if (stage == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()) {
+            boolean mega = stage == RuinsDelve.PlantStage.WORKS
+                    || stage == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry();
+            if (mega) {
                 // A forge works' mega hall: a great crucible's pour line run down the band's length.
                 cw = vast ? MEGA_WIDE_VAST : MEGA_WIDE;
                 ch = Math.min(vast ? MEGA_LONG_VAST : MEGA_LONG, region.height() - 8);
@@ -1639,8 +1662,7 @@ public final class RuinsDelveStage implements GenStage {
             if (cw < 12) return null;
             int[] at = spot(region, cw, ch, 2);
             // A mega forge that finds no room at its full length is shortened, never below the layout's least.
-            while (at == null && stage == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()
-                    && ch - 8 >= MEGA_MIN_LONG) {
+            while (at == null && mega && ch - 8 >= MEGA_MIN_LONG) {
                 ch -= 8;
                 at = spot(region, cw, ch, 2);
             }
@@ -1665,9 +1687,9 @@ public final class RuinsDelveStage implements GenStage {
             Cell centre = new Cell(hall.centreX(), hall.centreY());
             boolean mega = plantHall.stage() == RuinsDelve.PlantStage.FOUNDRY && plan.dressing().foundry()
                     && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG;
-            // The mega forge keeps its process layout: one transfer aisle across its middle, over the pour line, joins
-            // the frame's post to the floor round its walls.
-            if (mega) aisleBox(hall, hall.left(), centre.y() - 1, hall.right(), centre.y() + 2);
+            // The mega forge and every works hall keep their process layout: one transfer aisle across the middle,
+            // over the line, joins the frame's post to the floor round its walls (WorksHallPlan keeps it clear).
+            if (mega || plantHall.stage() == RuinsDelve.PlantStage.WORKS) aisleBox(hall, hall.left(), centre.y() - 1, hall.right(), centre.y() + 2);
             else frameAisles(hall);
             switch (plantHall.stage()) {
                 case FOUNDRY -> {
@@ -1677,26 +1699,15 @@ public final class RuinsDelveStage implements GenStage {
                         foundry(registry, hall, centre);
                     }
                 }
-                case PRODUCTION -> {
-                    // Line runs east-west, three deep with a two-cell aisle between: a line end feeding modules, a
-                    // gap after every second module so a run is never a wall, and a module wrecked here and there.
-                    for (int y = hall.bottom() + 2; y + 2 <= hall.top() - 2; y += 5) {
-                        int x = hall.left() + 2;
-                        if (piece(registry, LINE_END, x, y, 3, 3, hall, centre)) x += 3;
-                        int run = 0;
-                        while (x + 5 <= hall.right() - 2) {
-                            if (run == 2) {
-                                x += 2;
-                                run = 0;
-                                continue;
-                            }
-                            if (hash(x, y, 0x11E) % 7 == 0) piece(registry, WRECK, x + 2, y + 1, 1, 1, hall, centre);
-                            else if (piece(registry, LINE_MODULE, x, y, 6, 3, hall, centre)) onLine(registry, x, y);
-                            x += 6;
-                            run++;
-                        }
-                    }
+                case WORKS -> {
+                    WorksHall works = plan.dressing().works();
+                    WorksHallPlan laid = hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG
+                            ? works.plan(hall.width(), hall.height(), worksSeed(hall))
+                            : null;
+                    if (laid != null) worksHall(registry, hall, centre, laid);
+                    else lines(registry, hall, centre);
                 }
+                case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
                     // Rack rows, two deep with a two-cell aisle, a gap between racks; most stripped, a few stocked.
                     for (int y = hall.bottom() + 2; y + 1 <= hall.top() - 2; y += 4) {
@@ -1719,6 +1730,130 @@ public final class RuinsDelveStage implements GenStage {
                             if (hash(x, y, 0xD0C) % 4 == 0) piece(registry, DOCK_STOCK, x, y, 1, 1, hall, centre);
                         }
                     }
+                }
+            }
+        }
+
+        /**
+         * A themed plant's works hall, stood from its plan ({@link WorksHallPlan}, {@code ruins-expedition.md}, A hall
+         * is laid out from its process): wear and floor kit drawn under everything, then the equipment, each piece
+         * only where the hall stays one floor, then the overlays and the structure overhead. A piece whose art has not
+         * shipped stands as its stand-in from the game's own sets, tiled over the piece's footprint. Shallow water
+         * is tagged on the grid; zones and skins are laid with the floor ({@link #zoneFloor}).
+         */
+        void worksHall(TileRegistry registry, Area hall, Cell centre, WorksHallPlan laid) {
+            worksPlans.put(key(hall), laid);
+            int x0 = hall.left(), y0 = hall.bottom();
+            for (int y = 0; y < laid.length(); y++) {
+                for (int x = 0; x < laid.width(); x++) {
+                    if (!laid.water(x, y) || !grid.isWalkable(x0 + x, y0 + y)) continue;
+                    topology.setTag(x0 + x, y0 + y, CellTopology.Tag.SHALLOW_WATER, true);
+                    grid.setTag(x0 + x, y0 + y, NavigationGrid.CellTag.SHALLOW_WATER, true);
+                }
+            }
+            // The hall's drop is held unwalkable while the pieces stand, so the hall is proved one floor with it cut.
+            boolean[] cut = null;
+            if (laid.dropKind() != null) {
+                cut = new boolean[w * h];
+                for (int y = 0; y < laid.length(); y++) {
+                    for (int x = 0; x < laid.width(); x++) {
+                        int gx = x0 + x, gy = y0 + y;
+                        if (!laid.drop(x, y) || !grid.isWalkable(gx, gy) || nearDoorway(gx, gy)) continue;
+                        cut[i(gx, gy)] = true;
+                        grid.setWalkable(gx, gy, false);
+                    }
+                }
+            }
+            int under = ctx.doodads.size();
+            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.WEAR, WorksHallPlan.Layer.FLOOR)) {
+                for (WorksHallPlan.Piece p : laid.pieces()) {
+                    if (p.layer() != layer) continue;
+                    int before = ctx.doodads.size();
+                    tile(registry, p, x0, y0, under, hall, centre);
+                    under += ctx.doodads.size() - before;
+                }
+            }
+            for (WorksHallPlan.Layer layer : List.of(WorksHallPlan.Layer.STAND, WorksHallPlan.Layer.OVER,
+                    WorksHallPlan.Layer.OVERHEAD)) {
+                for (WorksHallPlan.Piece p : laid.pieces()) {
+                    if (p.layer() == layer) tile(registry, p, x0, y0, -1, hall, centre);
+                }
+            }
+            // Floor kit is kept clear of anything laid after.
+            for (WorksHallPlan.Piece p : laid.pieces()) {
+                if (p.layer() != WorksHallPlan.Layer.FLOOR) continue;
+                for (int y = p.y(); y < p.y() + p.h(); y++) {
+                    for (int x = p.x(); x < p.x() + p.w(); x++) kitFloor[i(x0 + x, y0 + y)] = true;
+                }
+            }
+            if (cut != null) {
+                boolean whole = oneFloor(hall);
+                for (int k = 0; k < cut.length; k++) {
+                    if (!cut[k]) continue;
+                    grid.setWalkable(k % w, k / w, true);
+                    kitFloor[k] = true;
+                }
+                if (!whole) throw new IllegalStateException("a works hall's drop split its hall at " + hall);
+                ctx.put(RuinsKeys.MELT, cut);
+                ctx.put(RuinsKeys.MELT_DROP, switch (laid.dropKind()) {
+                    case MELT -> NaturalVoidZoning.FOUNDRY;
+                    case SHAFT -> NaturalVoidZoning.DRY_GORGE;
+                    case SLUDGE -> NaturalVoidZoning.TOXIC_GORGE;
+                });
+            }
+        }
+
+        /**
+         * Lays one planned piece at the hall's corner {@code (x0, y0)}: its own art when it has shipped, else its
+         * stand-in tiled over its footprint, centred. A standing piece blocks where the hall stays one floor; any
+         * other is drawn, at {@code under} when that is not negative.
+         */
+        private void tile(TileRegistry registry, WorksHallPlan.Piece p, int x0, int y0, int under, Area hall,
+                          Cell centre) {
+            DoodadDef def = registry.doodad(p.id());
+            if (def == null && p.standIn() != null) def = registry.doodad(p.standIn());
+            if (def == null) return;
+            int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
+            if (def.id.equals(p.id())) {
+                fx = p.w();
+                fy = p.h();
+            }
+            if (fx > p.w() || fy > p.h()) return;
+            int nx = p.w() / fx, ny = p.h() / fy;
+            int ox = x0 + p.x() + (p.w() - nx * fx) / 2, oy = y0 + p.y() + (p.h() - ny * fy) / 2;
+            for (int ty = 0; ty < ny; ty++) {
+                for (int tx = 0; tx < nx; tx++) {
+                    int ax = ox + tx * fx, ay = oy + ty * fy;
+                    switch (p.layer()) {
+                        case STAND -> dressProp(def, ax, ay, fx, fy, hall, centre);
+                        case OVER, OVERHEAD -> ctx.doodads.add(new Doodad(ax, ay, def));
+                        case WEAR, FLOOR -> ctx.doodads.add(Math.min(Math.max(0, under), ctx.doodads.size()),
+                                new Doodad(ax, ay, def));
+                    }
+                    if (under >= 0) under++;
+                }
+            }
+        }
+
+        /**
+         * A line hall's runs east-west, three deep with a two-cell aisle between: a line end feeding modules, a gap
+         * after every second module so a run is never a wall, and a module wrecked here and there.
+         */
+        void lines(TileRegistry registry, Area hall, Cell centre) {
+            for (int y = hall.bottom() + 2; y + 2 <= hall.top() - 2; y += 5) {
+                int x = hall.left() + 2;
+                if (piece(registry, LINE_END, x, y, 3, 3, hall, centre)) x += 3;
+                int run = 0;
+                while (x + 5 <= hall.right() - 2) {
+                    if (run == 2) {
+                        x += 2;
+                        run = 0;
+                        continue;
+                    }
+                    if (hash(x, y, 0x11E) % 7 == 0) piece(registry, WRECK, x + 2, y + 1, 1, 1, hall, centre);
+                    else if (piece(registry, LINE_MODULE, x, y, 6, 3, hall, centre)) onLine(registry, x, y);
+                    x += 6;
+                    run++;
                 }
             }
         }
@@ -2337,6 +2472,11 @@ public final class RuinsDelveStage implements GenStage {
             }
             return false;
         }
+    }
+
+    /** The seed a works hall's plan is drawn from: its footprint, so the same ground plans the same hall. */
+    static long worksSeed(Area hall) {
+        return hall.left() * 31L ^ (long) hall.bottom() << 20 ^ hall.width() * 7L ^ (long) hall.height() << 40;
     }
 
     static int clamp(int v, int lo, int hi) {

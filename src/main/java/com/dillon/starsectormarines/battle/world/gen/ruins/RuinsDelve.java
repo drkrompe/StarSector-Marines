@@ -130,6 +130,11 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
          * beds of melt ({@code ruins-expedition.md}, A forge works has a foundry).
          */
         FOUNDRY,
+        /**
+         * A themed plant's works hall ({@link WorksHall}), laid in the outer band in place of its line halls: the
+         * mega hall its product was made in, laid from its process.
+         */
+        WORKS,
         /** Rack bays: where it waited to ship. */
         STORAGE
     }
