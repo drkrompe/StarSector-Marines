@@ -29,6 +29,20 @@ class RuinsDoorStatesTest {
     }
 
     @Test
+    void aDoorTornWiderStandsAtItsNewSpanOnlyAlongItsOwnLine() {
+        RuinsDelve.LeafDoor hall = new RuinsDelve.LeafDoor(new RuinsDelve.Area(4, 7, 5, 7), true, false,
+                DoorStance.DEAD);
+        RuinsDoorStates states = new RuinsDoorStates(List.of(hall));
+        assertEquals(hall.span(), states.spanOf(hall));
+        assertThrows(IllegalArgumentException.class, () -> states.tear(hall, new RuinsDelve.Area(3, 6, 6, 7)));
+        assertThrows(IllegalArgumentException.class, () -> states.tear(hall, new RuinsDelve.Area(5, 7, 8, 7)));
+        RuinsDelve.Area wide = new RuinsDelve.Area(3, 7, 6, 7);
+        states.tear(hall, wide);
+        assertEquals(DoorStance.TORN, states.stanceOf(hall));
+        assertEquals(wide, states.spanOf(hall));
+    }
+
+    @Test
     void anAddedDoorIsHeldAfterTheLaidOnesAndASealedOneOpensToAnswer() {
         RuinsDelve.LeafDoor laid = door(0, DoorStance.ANSWERS), bulkhead = door(20, DoorStance.ANSWERS);
         RuinsDoorStates states = new RuinsDoorStates(List.of(laid));
