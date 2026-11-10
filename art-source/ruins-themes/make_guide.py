@@ -16,6 +16,7 @@ from PIL import Image, ImageChops, ImageDraw
 
 import hall_kinds
 import weather_kinds
+import bridge_kinds
 
 CELL = 320
 GUTTER = 64
@@ -181,6 +182,11 @@ FAMILIES["delve-weather"] = [("fallen-ceiling", 2, 2, "w/debris"), ("fallen-pane
     ("sand-tongue", 2, 3, "w/fan"), ("snow-tongue", 2, 3, "w/fan"), ("ash-tongue", 2, 3, "w/fan"),
     ("sulphur-tongue", 2, 3, "w/fan"), ("root-mat", 2, 2, "organic"), ("root-run", 1, 3, "w/roots")]
 FAMILY_CELL["delve-weather"] = 160
+# The mega forge's transfer bridge over the breakout's lava pool (``RuinsDelveStage.transferBridge``): a span that
+# joins end to end east-west, the abutment at the west bank (mirrored for the east) and a damaged span.
+FAMILIES["forge-bridge"] = [("transfer-bridge-span", 2, 4, "b/span"), ("transfer-bridge-end", 2, 4, "b/end"),
+                            ("transfer-bridge-span-damaged", 2, 4, "b/damaged")]
+FAMILY_CELL["forge-bridge"] = 160
 
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
@@ -420,7 +426,8 @@ def draw(family):
     rng = random.Random(family)
     for pid, x, y, w, h, kind in fr:
         inset = 18
-        if hall_kinds.draw_kind(im, d, kind, x, y, w, h) or weather_kinds.draw_kind(im, d, kind, x, y, w, h):
+        if hall_kinds.draw_kind(im, d, kind, x, y, w, h) or weather_kinds.draw_kind(im, d, kind, x, y, w, h) \
+                or bridge_kinds.draw_kind(im, d, kind, x, y, w, h):
             continue
         if kind == "box":
             d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=body, outline=edge, width=8)
