@@ -107,7 +107,7 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, 
             if (!used.contains(pin.place())) throw new IllegalArgumentException("the plan has no place " + pin.place());
         }
         return new PrecinctPlan(out, plan.attackerFrom(), plan.standoff(), plan.lanes(), plan.unplacedLanePlaces(),
-                plan.movedLaneWaypoints(), plan.landscape(), plan.layout());
+                plan.movedLaneWaypoints(), plan.landscape(), plan.layout(), plan.raidIndustry());
     }
 
     /** The map carrying the patch's ruin as one more initial-damage layer, applied when the battle is assembled. */

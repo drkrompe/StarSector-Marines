@@ -34,7 +34,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                            Standoff standoff, Lanes lanes,
                            List<String> unplacedLanePlaces,
                            List<String> movedLaneWaypoints,
-                           Landscape landscape, MissionLayout layout) {
+                           Landscape landscape, MissionLayout layout, String raidIndustry) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
@@ -50,6 +50,27 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         if (landscape == null) landscape = Landscape.STOCK;
         // And no mission layout: the layout stage is not run at all.
         if (layout == null) layout = MissionLayout.NONE;
+    }
+
+    /**
+     * A plan with every lane diagnostic, a stated landscape and a mission layout, laid for no Raid industry: every
+     * plan but a Raid site's.
+     */
+    public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
+                        Standoff standoff, Lanes lanes,
+                        List<String> unplacedLanePlaces,
+                        List<String> movedLaneWaypoints,
+                        Landscape landscape, MissionLayout layout) {
+        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, landscape, layout, null);
+    }
+
+    /**
+     * The same plan laid as the Raid site of an industry: the key of its {@code RaidIndustry}, which the generation
+     * stages ask to dress the works ({@code RaidWorksDressingStage}). Null for every other plan.
+     */
+    public PrecinctPlan withRaidIndustry(String raidIndustry) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
     }
 
     /** A plan with every lane diagnostic and a stated landscape, and no mission layout. */
@@ -109,13 +130,13 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
     }
 
     /** The same plan with its places restated: a place moved, say, off ground a landform holds. */
     public PrecinctPlan withPrecincts(List<Precinct> precincts) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
     }
 
     /**
@@ -125,7 +146,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withLandscape(Landscape landscape) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
     }
 
     /**
@@ -135,7 +156,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withLayout(MissionLayout layout) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
     }
 
     /**

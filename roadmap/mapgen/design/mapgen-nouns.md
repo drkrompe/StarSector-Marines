@@ -2252,12 +2252,37 @@ The halls by theme:
 - AI cores: the core hall;
 - lamps, dynamos and hypershunt taps: the field hall;
 - synchrotron: the ring hall;
-- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- mantle bore: the shaft hall, with a bore-shaft drop cut as the melt is;
 - catalytic core: the reactor train;
 - fullerene spool: the draw line;
 - holosuite: the stage hall;
 - depot: the high bay;
 - armory: the filling hall.
+
+**Every room serves the process** (`RuinsRoom`; the designs and their art list are
+in `ruins-theme-rooms.md` in the shared notes). The rooms off the plant's
+corridors are laid from what each did for the line, as a hall is, never dressed
+loose. The interior's plain chambers take their roles by how near they lie to
+the works hall (the hall's anchor, else the first plant hall, else the vault):
+
+- the nearest is the **control room**: the line's feeds in through the hall-side
+  wall to the mimic board, desk runs either side, the shift lead at the back;
+- the rest are a **workshop** (spares in from the stores, rejects from the lab
+  onto the rework stand under its hoist, units out to the line), a **lab**
+  (samples in through the hatch, the theme's instrument and benches, the sample
+  store, rejects binned for rework) and **crew quarters** (lockers by the way in,
+  the galley and mess table, bunks at the back), in turn;
+- a side room inside the megastructure is a **store**: stock shelved along the
+  back wall, tallied by the blast door, drawn out to the workshop.
+
+A room is planned in its own cells with its hall side north, its middle kept
+open round the cell its way in arrives at and one floor, so its rules are
+unit-proved there; the ground turns it to face its hall, its pieces' art turned
+with it (`WorksHallPlan.turned`). Its theme (`RoomTheme`) gives the board, the
+instrument, the unit on the stand, the stock and the spill; every room carries a
+collapse (a burned desk run, a fallen hoist load, a toppled shelf, the crew's
+tipped-table barricade, a split crate). Plant halls other than the works hall
+keep their dressing.
 
 A piece whose art has not shipped stands as its stand-in from the game's own
 sets, tiled over its footprint. A works hall and the mega forge take no loose

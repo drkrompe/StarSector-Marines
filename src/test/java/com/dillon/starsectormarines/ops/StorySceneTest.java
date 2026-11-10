@@ -21,7 +21,8 @@ class StorySceneTest {
             return scenario.mission();
         String route = BrokenSupplyRouteProgress.PREFIX;
         String id = switch (scenario) {
-            case MISSILE_AA, PROVING_GROUND, SKY_PORT, SKY_PORT_HEIST, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN, WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT -> throw new IllegalArgumentException("No authored campaign chapter art");
+            case MISSILE_AA, PROVING_GROUND, SKY_PORT, SKY_PORT_HEIST, CORDON_LINE, CORDON_ROAD, BROAD_FRONT, THE_BURN, WATER_UNDER_SEAL, LIMITED_WARRANT, YARD_OWNERS, TERMS_OF_PROTECTION, SMALL_WAR, DISTRICT_ESCORT,
+                 LONG_SURVEY_FALL, LONG_SURVEY_STAKES, LONG_SURVEY_LINE, LONG_SURVEY_SURVEYOR -> throw new IllegalArgumentException("No authored campaign chapter art");
             case RELIEF -> OpeningOperationKind.RELIEF.missionId;
             case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
             case JUNCTION -> route + "1_0_2";
@@ -51,7 +52,7 @@ class StorySceneTest {
         return Mission.builder(scenario.mission()).id(id).source(source).build();
     }
 
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"MISSILE_AA", "PROVING_GROUND", "SKY_PORT", "SKY_PORT_HEIST", "CORDON_LINE", "CORDON_ROAD", "BROAD_FRONT", "THE_BURN", "WATER_UNDER_SEAL", "LIMITED_WARRANT", "YARD_OWNERS", "TERMS_OF_PROTECTION", "SMALL_WAR", "DISTRICT_ESCORT"}, mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"MISSILE_AA", "PROVING_GROUND", "SKY_PORT", "SKY_PORT_HEIST", "CORDON_LINE", "CORDON_ROAD", "BROAD_FRONT", "THE_BURN", "WATER_UNDER_SEAL", "LIMITED_WARRANT", "YARD_OWNERS", "TERMS_OF_PROTECTION", "SMALL_WAR", "DISTRICT_ESCORT", "LONG_SURVEY_FALL", "LONG_SURVEY_STAKES", "LONG_SURVEY_LINE", "LONG_SURVEY_SURVEYOR"}, mode = EnumSource.Mode.EXCLUDE)
     void authoredArtAgreesAcrossDebugBriefingAndBothResultStates(DebugMissionCatalog.Scenario scenario) {
         var mission = campaign(scenario);
         var scene = StoryScene.forMission(mission);
