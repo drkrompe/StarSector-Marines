@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortSiting;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -222,6 +223,13 @@ public final class BspKeys {
      */
     public static final GenKey<Map<String, Map<DefensePostKind, Integer>>> UNPLACED_DEFENCES =
             GenKey.of("unplacedDefences");
+
+    /**
+     * What each walled place's ward left for its defences to be sited against, by precinct index: the gates its wall
+     * left open, the ground it keeps for moving (streets, parade, motor pool), and what its inner posts cover. Bound
+     * by {@code PrecinctWardStage}, read by {@code PrecinctDefenceStage}.
+     */
+    public static final GenKey<Map<Integer, PrecinctDefence.Works>> PRECINCT_WORKS = GenKey.of("precinctWorks");
 
     /**
      * The lane places the plan could not seat, by name, bound even when empty.

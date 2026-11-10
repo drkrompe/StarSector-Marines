@@ -1347,17 +1347,40 @@ generator places exactly that. It is the same 0-to-many shape a programmed
 precinct's building list has, for the same reason: a mission designer asking for
 "a garrison with no artillery but four heavy posts" should be able to say so.
 
-**Two bands, and what distinguishes them is what the emplacement is for.** The
-perimeter tiers are seeded a short way inside each open gate, widest gate first,
-so the heaviest guns cover the way most of the attack will come — a gate nobody
-is watching is a door. Artillery and drone hubs are seeded on the cells furthest
-from the outline, because their whole point is reaching past the wall from
-somewhere the attacker must get through the wall to reach; on the perimeter they
-are heavy weapons with no standoff, which is the one thing they are not. This is
-the same two-band shape the conquest fortress has always had — a kill zone in
-front and a rear battery band behind — derived from the precinct's own claimed
-outline rather than from a biome's bounding box, which is the substitution the
-whole precinct model is.
+**Defences are sited by doctrine, never drawn.** The owner's notes on the
+defended bases were that the guns cut the roads and their placement read as
+random, and both were true: the placer avoided only the road graph's one-cell
+centreline, which is built before a place's own road in, its gate crossings and
+its streets exist, so a post stood on the avenue or the parade; it seeded one
+post six cells in along each gate's own road; and every post after the first
+was a uniform draw from the claim, glacis included. `DefenceDoctrine` now sites
+every emplacement by role, heaviest first:
+
+- **gates**: a post either side of each gate's approach, set back behind the
+  wall, every gate once before any gate twice, the main gate first, so the
+  heaviest guns hold the way most of the attack will come — a gate nobody is
+  watching is a door;
+- **corners**: then the wall's corners, the one facing the threat (the landing)
+  first, each seeing down two faces and out over the approach;
+- **inner**: then beside what the place exists to keep, its motor pool and its
+  command;
+- **wall**: a loadout with posts to spare lines the ring behind the wall, the
+  face toward the threat first (a grown claim's corners are the ring's own
+  extremes, not its bounding box's);
+- **depth**: artillery and drone hubs on the deepest ground furthest from the
+  main gate, because their whole point is reaching past the wall from
+  somewhere the attacker must get through the wall to reach.
+
+Nothing stands on ground kept clear (`PrecinctDefence.keepClear`): every road
+the place's growth, artery or road in laid, the road graph's reservation, the
+ward's own streets, parade and motor pool, and each gate's approach, its width
+and a verge from ten cells inside the wall to fourteen beyond it. A site the
+ground refuses moves to the nearest cell that takes it and is otherwise left
+unplaced and recorded, never drawn elsewhere. A cantonment owes two posts per
+gate at least, made up with light posts, so its guns grow with its market
+through its gates and with its grade through its fortification. This is still
+the two-band shape the conquest fortress has always had — a kill zone in front
+and a rear battery band behind — derived from the place's own wall and gates.
 
 **What could not be emplaced is recorded**, under `BspKeys.UNPLACED_DEFENCES`,
 for the same reason the unbuilt program is. A citadel that found room for two of
@@ -1399,7 +1422,9 @@ one 200x140 port map that had been parking **no vehicles at all** and now parks
 its five. Latent is not the same as harmless; it only means nobody had looked.
 
 **Gate count is a cap, not a count.** Growth decides where roads cross the
-outline; the dial decides how many of those crossings stay open. A place whose
+outline; the dial decides how many of those crossings stay open. A cantonment is
+the exception: it lays its own roads in, as many as its market owes, and its
+wall opens every one of them whatever its grade's cap (`CantonmentRoads.wall`). A place whose
 roads all leave by one route has one gate however many it is allowed. The widest
 are kept, because a wide crossing is a main road and a narrow one is where a
 track happened to touch the line — and a sealed crossing leaves its road

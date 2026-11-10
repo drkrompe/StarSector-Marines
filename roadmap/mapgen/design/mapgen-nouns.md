@@ -1277,9 +1277,19 @@ works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
 **road in** laid straight from its middle to the town's nearest road
 (`CantonmentRoads`), and no weld between road networks is cut back across it.
-The **gate** is where that road comes in; the avenue runs from the gate side's
-middle, with a forecourt street inside the wall where the road enters off that
-line. Its parts:
+The **main gate** is where that road comes in, the widest road in; the avenue
+runs from the gate side's middle, with a forecourt street inside the wall where
+the road enters off that line. A base has more than one way in and out (owner:
+"multiple entrances and exits"): its market owes two gates, three from size 5,
+four from size 7 (`CantonmentRoads.gates`), and each **further gate** is a
+narrower road from the patrol lane inside the wall, out across the glacis, on
+until it meets the town's road, in the middle of each further side that faces
+one, nearest first. Every gate therefore joins the map's network; a side whose
+road would only leave the map has none. Planned, not built: a further gate opens
+on the patrol lane, which walks but does not drive, so the layout is to keep a
+way three cells wide from each further gate to the nearest street once the
+motor pool plan is picked. The grade does not close gates: it arms
+them (`precincts.md`, Defences are sited by doctrine). Its parts:
 
 - the **motor pool**: vehicle sheds whose door ends open on a paved
   **hardstand**, joined to the avenue, so every shed has a way out of the gate
