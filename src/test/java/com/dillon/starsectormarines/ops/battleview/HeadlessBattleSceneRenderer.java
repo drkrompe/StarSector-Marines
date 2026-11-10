@@ -838,6 +838,20 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                                     PolyMesh mesh) {
         if (mesh == null) return;
         for (int quad = 0; quad < mesh.quadCount(); quad++) {
+            if (mesh.isShaded(quad)) {
+                Color[] at = new Color[4];
+                for (int v = 0; v < 4; v++) {
+                    at[v] = new Color(clamp(mesh.cornerColour(quad, v, 0)), clamp(mesh.cornerColour(quad, v, 1)),
+                            clamp(mesh.cornerColour(quad, v, 2)), clamp(mesh.alpha(quad)));
+                }
+                context.fillQuadGradient(
+                        mesh.vertexX(quad, 0), surfaceHeight - mesh.vertexY(quad, 0),
+                        mesh.vertexX(quad, 1), surfaceHeight - mesh.vertexY(quad, 1),
+                        mesh.vertexX(quad, 2), surfaceHeight - mesh.vertexY(quad, 2),
+                        mesh.vertexX(quad, 3), surfaceHeight - mesh.vertexY(quad, 3),
+                        at[0], at[1], at[2], at[3]);
+                continue;
+            }
             Color color = new Color(clamp(mesh.red(quad)),
                     clamp(mesh.green(quad)), clamp(mesh.blue(quad)),
                     clamp(mesh.alpha(quad)));
