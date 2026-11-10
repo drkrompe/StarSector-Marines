@@ -14,8 +14,14 @@ import java.util.List;
  * whole hull, and a two-cell service door to the crew deck, which only the heavy and the rounds walker pass. The forge
  * hall is the interior's vault: the autoforge stands at its far end.
  *
- * <p>Entrances from open ground: the stern's cargo door (onto the trench), the launch bay's door on the port flank and
- * the breach torn through the starboard flank in the crash.
+ * <p>Entrances from open ground: the stern's cargo door (onto the trench), the launch bay's door on the port flank, and
+ * three breaches the crash tore through the shell: amidships on the starboard flank into the spine, and into the
+ * first and third holds. A breach is open to the sky: its cells are {@link Kind#TORN}.
+ *
+ * <p>The ship is built as a ship ({@code fallen-hull-nouns.md}, The ground): its {@link #shell outer shell}, the solid
+ * hull within {@link #SHELL_DEPTH} of the outside, is armour; the rest of its solid hull is bulkhead between
+ * compartments. Every open deck cell belongs to one {@link #compartment}: a hall (its floor and its dock), or the
+ * spine (the spine and the stern's door), so boarding one opens that compartment alone.
  */
 public final class HullPlan {
 
@@ -32,7 +38,7 @@ public final class HullPlan {
         HULL,
         /** Open deck under the roof. */
         FLOOR,
-        /** Deck torn open in the crash, strewn with the hull's own wreckage; walkable. */
+        /** Deck torn open in the crash, open to the sky and strewn with the hull's own wreckage; walkable. */
         TORN
     }
 
@@ -64,9 +70,16 @@ public final class HullPlan {
     /**
      * A way in from open ground: {@code door} its cells through the outer wall, {@code du, dv} the step outward.
      */
-    public record Entrance(String name, Rect door, int du, int dv) { }
+    public record Entrance(String name, Rect door, int du, int dv) {
+        /** Whether this way in is a breach the crash tore, rather than a door. */
+        public boolean torn() { return name.startsWith(BREACH); }
+    }
 
     public static final String STERN = "stern", BAY = "bay", BREACH = "breach";
+    /** The compartment that is no hall: the freight spine, with the stern's door. */
+    public static final String SPINE_NAME = "spine";
+    /** How deep the armour shell runs in from the outside, cells. */
+    public static final int SHELL_DEPTH = 2;
 
     /** The freight spine, keel-line, from the stern door to the forge hall's dock. */
     public static final Rect SPINE = new Rect(3, 14, 52, 17);
@@ -82,7 +95,9 @@ public final class HullPlan {
     private static final List<Entrance> ENTRANCES = List.of(
             new Entrance(STERN, new Rect(0, 14, 2, 17), -1, 0),
             new Entrance(BAY, new Rect(30, 0, 41, 0), 0, -1),
-            new Entrance(BREACH, new Rect(44, 18, 47, 31), 0, 1));
+            new Entrance(BREACH, new Rect(44, 18, 47, 31), 0, 1),
+            new Entrance(BREACH + ".port", new Rect(14, 0, 17, 1), 0, -1),
+            new Entrance(BREACH + ".aft", new Rect(8, 30, 11, 31), 0, 1));
 
     /** The autoforge's cell: on the forge hall's keel line, near its far wall. */
     public static final int FORGE_U = 69, FORGE_V = 15;
@@ -98,7 +113,7 @@ public final class HullPlan {
             carve(hall.floor(), Kind.FLOOR);
             carve(hall.door(), Kind.FLOOR);
         }
-        for (Entrance e : ENTRANCES) carve(e.door(), e.name().equals(BREACH) ? Kind.TORN : Kind.FLOOR);
+        for (Entrance e : ENTRANCES) carve(e.door(), e.torn() ? Kind.TORN : Kind.FLOOR);
     }
 
     private static final HullPlan PLAN = new HullPlan();
@@ -137,6 +152,39 @@ public final class HullPlan {
     public boolean open(int u, int v) {
         Kind k = at(u, v);
         return k == Kind.FLOOR || k == Kind.TORN;
+    }
+
+    /**
+     * Whether the cell is the hull's armour: solid hull with the outside within {@link #SHELL_DEPTH} cells, any way
+     * (a torn breach counts as outside: the crash opened the shell there).
+     */
+    public boolean shell(int u, int v) {
+        if (at(u, v) != Kind.HULL) return false;
+        for (int du = -SHELL_DEPTH; du <= SHELL_DEPTH; du++) {
+            for (int dv = -SHELL_DEPTH; dv <= SHELL_DEPTH; dv++) {
+                Kind k = at(u + du, v + dv);
+                if (k == Kind.OUTSIDE || k == Kind.TORN) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The compartment an open deck cell is in: a hall's name for its floor and dock, {@link #SPINE_NAME} for the spine,
+     * and for a door's cells the compartment it opens into; null off the deck and on a breach, which is open ground.
+     */
+    public String compartment(int u, int v) {
+        if (at(u, v) != Kind.FLOOR) return null;
+        for (Hall hall : HALLS) if (hall.floor().contains(u, v) || hall.door().contains(u, v)) return hall.name();
+        for (Entrance e : ENTRANCES) {
+            if (e.torn() || !e.door().contains(u, v)) continue;
+            // Step in from the door until the deck is a hall's or the spine's.
+            for (int k = 1; k < LENGTH; k++) {
+                int nu = u - e.du() * k, nv = v - e.dv() * k;
+                if (!e.door().contains(nu, nv)) return compartment(nu, nv);
+            }
+        }
+        return SPINE_NAME;
     }
 
     public List<Hall> halls() { return HALLS; }
