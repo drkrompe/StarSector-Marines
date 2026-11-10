@@ -51,6 +51,39 @@ class LayoutRoadsTest {
         assertTrue(LayoutRoads.enter(claim, owner, null, PLACE, mouth, W, H).isEmpty(), "a second way in was cut");
     }
 
+    @Test
+    void theWayInFromAGateRunsStraightAndTurnsOntoTheStreet() {
+        int[][] claim = claim(), owner = owner();
+        // A gate in the south side at x 12..14, off the street at x 19..21: the way in turns once onto it.
+        List<int[]> mouth = List.of(new int[]{12, 9}, new int[]{13, 9}, new int[]{14, 9});
+        List<int[]> cut = LayoutRoads.enter(claim, owner, null, PLACE, mouth, W, H);
+        assertTrue(!cut.isEmpty(), "nothing was cut");
+        int[] legs = null;
+        for (int row = 10; row <= 14 && legs == null; row++) {
+            boolean all = true;
+            for (int[] c : cut) all &= c[0] >= 12 && c[0] <= 14 || c[1] >= row - 1 && c[1] <= row + 1;
+            if (all) legs = new int[]{row};
+        }
+        assertTrue(legs != null, "the way in stepped across the yard instead of running up from the gate and turning");
+    }
+
+    @Test
+    void aRoadLeavesASideInLineWithWhereItGoes() {
+        int[] bounds = {10, 10, 29, 29};
+        // Off the map's north edge to a gate at x 24: straight in from the edge, not a dog-leg from the side's middle.
+        int[] a = LayoutRoads.inLine(new int[]{19, 38}, Endpoint.beside("p", Side.NORTH, 0, 10_000), bounds,
+                new int[]{24, 30}, W, H);
+        assertTrue(a[0] == 24 && a[1] == 38, "the feeder kept its jog");
+        // An endpoint offset across its side keeps its place, as does a gate's.
+        int[] kept = LayoutRoads.inLine(new int[]{22, 30}, Endpoint.beside("p", Side.NORTH, 3, 0), bounds,
+                new int[]{24, 38}, W, H);
+        assertTrue(kept[0] == 22, "an offset endpoint was moved");
+        // Where the far end lies beyond the side's span the road still dog-legs to it.
+        int[] beyond = LayoutRoads.inLine(new int[]{30, 20}, Endpoint.beside("p", Side.EAST, 0, 0), bounds,
+                new int[]{38, 35}, W, H);
+        assertTrue(beyond[1] == 20, "the road left from beyond its own side");
+    }
+
     /**
      * Three settled places in a row along y 15: a road from the first to the last is laid on open country only, so
      * across the middle place's ground it is missing unless it is laid through.

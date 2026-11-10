@@ -21,7 +21,7 @@ class NaturalChasmTest {
 
     @Test
     void aDropRunsAcrossOpenCountryAndStrandsNothingAndItsCrossingsAreDecked() {
-        NaturalChasm.Cut planned = NaturalChasm.plan(W, H, i -> true, i -> true, 5);
+        NaturalChasm.Cut planned = NaturalChasm.plan(W, H, true, .5f, i -> true, i -> true, 5);
         assertNotNull(planned);
         boolean[] cut = planned.drop();
         boolean west = false, east = false;
@@ -44,7 +44,7 @@ class NaturalChasmTest {
     @Test
     void aRoadAcrossItsLineIsLeftStandingAsABridge() {
         // A road the reservations keep, running north-south across the whole map.
-        NaturalChasm.Cut planned = NaturalChasm.plan(W, H, i -> Math.abs(i % W - 60) > 2, i -> true, 5);
+        NaturalChasm.Cut planned = NaturalChasm.plan(W, H, true, .5f, i -> Math.abs(i % W - 60) > 2, i -> true, 5);
         assertNotNull(planned);
         boolean[] cut = planned.drop();
         for (int y = 0; y < H; y++) for (int x = 58; x <= 62; x++) {

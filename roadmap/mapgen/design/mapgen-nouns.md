@@ -762,7 +762,11 @@ they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
 the same way along its whole length), which would swell the road into the
-yard, and a *pill* (a short band, under four breadths long, met by no
+yard, and narrows a broader band that a narrower street band running the same
+way overlaps to that street's breadth, on the line within it nearest the
+narrower's, so a street holds one width along its length rather than swelling
+where its frontage steps back at an end or where it jogs and widens at once;
+it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
 own, is a *spur*: a dead end off that street into a yard or a lot. It is
@@ -1139,6 +1143,12 @@ void prevents crossing while leaving sight across it open. They must not be
 represented by an opaque raised mass merely to obtain impassability. A place
 requiring traversable banks or a playable lower floor needs a separate access
 and elevation model; an excavation supplies neither.
+
+A **landform** is a natural drop across a map, or walls sheltering its town,
+that the map's design places (`Landform`; `voids.md`, placed by design). It is
+never rolled: a map has one because its design states it, and the world's
+palette only picks its skin. It is stated with the plan as held ground, so the
+places grow round it, and the landscape pass cuts or raises it on what was held.
 
 ## City, station, and ship families
 

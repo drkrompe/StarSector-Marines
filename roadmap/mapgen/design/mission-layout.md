@@ -40,7 +40,10 @@ optional (reported, and the map stands).
 - **Road.** A drivable road between two named places' sides (or their open
   gate nearest that side, so it arrives where the wall lets it in), by a
   dog-leg (out, across at halfway, in) and optionally through a point on the
-  way. It is carved into the road network as the places grow, so the gates,
+  way. A road leaving a place's side with no gate and no offset across it
+  leaves opposite its other end where that lies within the side's span, so it
+  runs straight rather than jogging a few cells (a feeder off the map's edge
+  runs straight in to its gate). It is carved into the road network as the places grow, so the gates,
   paving and road graph come from the stages that make every road. It is laid
   only on open country, not across another place's ground or the surveyed
   country (that ground's own streets serve), and only where it joins the
