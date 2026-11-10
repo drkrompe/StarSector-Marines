@@ -593,6 +593,16 @@ Laws):
    whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
    compound view full of buildings. Look suite:
    `createSnapshots -Psnapshot=building-faces-look`.
+   Freestanding walls (wall cells no building owns) stand up the same way
+   (`FreestandingWalls`): each connected run stands at its kind's height, read
+   from its surface: a sealed town's perimeter 7 m, an installation's 5 m, a
+   blast wall or a fort's works 3.5 m, a compound's masonry or an authored wall
+   2.4 m, an olive garden wall 1.6 m; a ruin's stub, or a sealed shell too short
+   to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
+   the view's centre run to a cap of its cells at that lift, drawn before the
+   buildings' faces and re-formed when a breach changes the topology. Fences,
+   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
+   as a staircase of cell blocks.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag

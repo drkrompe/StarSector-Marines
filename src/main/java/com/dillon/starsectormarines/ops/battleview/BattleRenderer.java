@@ -267,6 +267,10 @@ public class BattleRenderer {
     private final RoofStream roofStream = new RoofStream();
     /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces, and each building's outline. */
     private final PolyMesh buildingFaces = new PolyMesh(256);
+    /** Walls that are no building's, stood up at their own heights ({@link FreestandingWalls}). */
+    private final FreestandingWallFaces freestandingWalls = new FreestandingWallFaces();
+    /** Whether this frame draws the fog: what is drawn above it carries the fog itself only then. */
+    private boolean fogDrawn = true;
     private final IdentityHashMap<Building, float[]> buildingEdges = new IdentityHashMap<>();
     private Buildings edgesOf;
     private CellTopology edgesAt;
@@ -964,6 +968,8 @@ public class BattleRenderer {
      * of their own.
      */
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
+        // Freestanding walls stood up first, so every building's faces and roof stand over them.
+        freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
         Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
         CellTopology topology = sim.getTopology();
@@ -1846,6 +1852,7 @@ public class BattleRenderer {
             throw new IllegalArgumentException("render context and layers are required");
         }
         this.rc = rc;
+        fogDrawn = layers.contains(RenderLayer.FOG);
         growUnitAtlas();
         drawList.clear();
         drawList.setClosestZoomFactor(rc.camera == null || !(rc.camera.zoom() > 0f)
