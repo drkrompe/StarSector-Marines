@@ -8,12 +8,37 @@ public final class MechHardpointGeometry {
 
     private MechHardpointGeometry() {}
 
-    /** Resolves one installed component's launch point in world cells. */
+    /**
+     * Resolves one installed component's launch point in world cells, reading a body hardpoint's gun as standing on a
+     * body that faces the torso's bearing; {@link #muzzle(float, float, float, float, float, float,
+     * MechLoadoutComponent, MechWeaponMount, int)} where the hips' heading is known.
+     */
     public static Point muzzle(float bodyX, float bodyY,
                                float waistOffsetX, float waistOffsetY,
                                float torsoFacingDegrees,
                                MechLoadoutComponent loadout,
                                MechWeaponMount mount, int releaseIndex) {
+        return muzzle(bodyX, bodyY, waistOffsetX, waistOffsetY, torsoFacingDegrees, torsoFacingDegrees, loadout, mount,
+                releaseIndex);
+    }
+
+    /**
+     * Resolves one installed component's launch point in world cells. A mount on a twisting torso fires down the
+     * torso's bearing from its place on the torso; a body hardpoint ({@link MechBodyHardpoints}) from the tip of its own
+     * gun, standing where the body's heading {@code hipFacingDegrees} carries it and turned toward the torso's bearing
+     * within its arc.
+     */
+    public static Point muzzle(float bodyX, float bodyY,
+                               float waistOffsetX, float waistOffsetY,
+                               float hipFacingDegrees, float torsoFacingDegrees,
+                               MechLoadoutComponent loadout,
+                               MechWeaponMount mount, int releaseIndex) {
+        MechBodyHardpoints.Hardpoint point = MechBodyHardpoints.of(loadout.variant, mount.slot);
+        if (point != null) {
+            return MechBodyHardpoints.muzzle(bodyX + waistOffsetX, bodyY + waistOffsetY, hipFacingDegrees,
+                    torsoFacingDegrees, LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale), point,
+                    mount.component.appearanceSelector(mount.slot));
+        }
         LocalPoint local = localMuzzle(loadout, mount, releaseIndex);
         float hullWidth = LayeredMechAppearance.hullWidthCells(
                 loadout.variant.renderScale);
@@ -152,8 +177,20 @@ public final class MechHardpointGeometry {
      * drawing. A vehicle carrying the weapon draws and fires it at this length ({@code VehicleGun}).
      */
     public static float barrelHullWidths(MechWeaponComponent weapon) {
-        int appearance = weapon.appearanceSelector;
-        if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) {
+        return barrelHullWidths(weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS,
+                weapon.appearanceSelector);
+    }
+
+    /**
+     * As {@link #barrelHullWidths(MechWeaponComponent)}, for the drawing {@code appearance} names on {@code slot}: an arm
+     * gun's on an arm mount, a pod's on a shoulder (the two families number their selectors alike).
+     */
+    public static float barrelHullWidths(MechMountSlot slot, int appearance) {
+        return barrelHullWidths(slot.isArm(), appearance);
+    }
+
+    private static float barrelHullWidths(boolean armGun, int appearance) {
+        if (armGun) {
             float arm = sideArmForward(appearance);
             return Float.isNaN(arm) ? 0f : arm - ARM_PIVOT;
         }

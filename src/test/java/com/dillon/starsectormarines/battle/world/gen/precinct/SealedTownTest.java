@@ -159,6 +159,18 @@ class SealedTownTest {
         assertFalse(kept[18][0], "and the south edge");
     }
 
+    @Test
+    void theOuterCourseIsTheEnvelopesFaceToTheWorldNotToTheTownOrTheMapsEdge() {
+        int[][] claim = eastTown();
+        boolean[][] wall = new boolean[24][12];
+        for (int x = 12; x < 15; x++) for (int y = 0; y < 12; y++) wall[x][y] = true; // three cells through
+        boolean[][] course = SealedTown.outerCourse(wall, claim, 1, new boolean[]{false, true});
+        for (int y = 0; y < 12; y++) {
+            assertTrue(course[12][y], "the cells against the country");
+            assertFalse(course[13][y] || course[14][y], "not the body behind them, nor its face to the town");
+        }
+    }
+
     private static boolean has(List<int[]> cells, int x, int y) {
         return cells.stream().anyMatch(c -> c[0] == x && c[1] == y);
     }

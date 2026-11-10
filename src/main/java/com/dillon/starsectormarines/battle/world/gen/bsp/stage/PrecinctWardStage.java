@@ -776,7 +776,7 @@ public final class PrecinctWardStage implements GenStage {
                 ctx.topology.setWallDirMask(x, y, mask);
             }
         }
-        InstallationWalls.perimeter(ctx, cells);
+        dressEnvelope(ctx, cells, SealedTown.outerCourse(cells, merged, group, side));
         List<int[]> chambers = new ArrayList<>();
         for (SealedTown.Lock lock : envelope.locks()) {
             ctx.wallGates.add(WallGate.of(lock.outer(), lock.outX(), lock.outY()));
@@ -786,6 +786,26 @@ public final class PrecinctWardStage implements GenStage {
         markLocks(ctx, chambers);
         PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), new boolean[ctx.width][ctx.height]);
         for (int i = 0; i < places.size(); i++) if (sealed[i]) works.put(i, shared);
+    }
+
+    /**
+     * The envelope's surfaces: its own wall ({@link SealedTown#ENVELOPE_WALL}), the plinth along its outer course
+     * ({@link SealedTown#ENVELOPE_PLINTH}) and the buttresses standing out of it
+     * ({@link SealedTown#ENVELOPE_BUTTRESS}), on the perimeter's concrete footing. Only the material: walkability and
+     * wall HP are the wall's, set before.
+     */
+    private static void dressEnvelope(GenContext ctx, boolean[][] cells, boolean[][] course) {
+        int body = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_WALL);
+        int plinth = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_PLINTH);
+        int buttress = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_BUTTRESS);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!cells[x][y] || ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)
+                        || ctx.topology.isFixture(x, y) || ctx.topology.isWater(x, y)) continue;
+                ctx.topology.setSurface(x, y, !course[x][y] ? body : SealedTown.buttress(x, y) ? buttress : plinth);
+                ctx.topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+            }
+        }
     }
 
     /** Whether each cell is open ground now: walkable, and no wall, building or water. */

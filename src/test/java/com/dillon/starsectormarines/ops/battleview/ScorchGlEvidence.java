@@ -64,6 +64,8 @@ class ScorchGlEvidence {
     private static final int SURFACE_W = CELLS_W * CELL_PX, SURFACE_H = CELLS_H * CELL_PX;
     /** Fuel stops here: everything east of it is bare ground the singe reaches into. */
     private static final int BREAK_X = 14;
+    /** Columns between the lines the patch is lit along: within grass's spread of each other. */
+    private static final int IGNITE_EVERY = 5;
     /** Pavement east of the break, so the smudge branch is drawn too. */
     private static final int PAVED_FROM = 19;
     /** The ground under the burn, in exact 8-bit levels so the clear itself reads back unchanged. */
@@ -89,7 +91,11 @@ class ScorchGlEvidence {
             }
             FireField fire = new FireField(CELLS_W, CELLS_H, 7L,
                     idx -> idx % CELLS_W < BREAK_X ? (idx % 3 == 0 ? FireFuel.BRUSH.bit | FireFuel.GRASS.bit : FireFuel.GRASS.bit) : 0);
-            for (int y = 0; y < CELLS_H; y++) fire.addHeat(1, y, 3000);
+            // A fire carries only its fuel's spread from where it was lit (FireFuel.spread: grass 3 cells), so the
+            // patch is lit along a line every IGNITE_EVERY columns, and burns whole up to the break.
+            for (int x = 1; x < BREAK_X; x += IGNITE_EVERY) {
+                for (int y = 0; y < CELLS_H; y++) fire.addHeat(x, y, 3000);
+            }
             for (int t = 0; t < 30 * 40; t++) fire.tick(t);
             assertTrue(fire.burntCount() > 0, "the patch has to burn for there to be anything to compare");
 

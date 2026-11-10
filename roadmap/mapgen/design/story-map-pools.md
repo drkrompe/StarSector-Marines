@@ -96,14 +96,18 @@ through or built on (`PlanetSkinTest`). It swaps:
   world, or under air that kills, every worked field (`MapResult.fields`: the
   surveyed country's plots, the town's own fields and the lots' kitchen plots)
   is grown under cover: the plot is cleared to the planet's own ground and a
-  **covered farm** stands on it (`PlanetSkin.covered`): rows of greenhouse
-  tunnels two cells deep along the plot's crop rows, a lane between rows and
-  between pieces, each row finished with a short tunnel or a tank skid, and
-  grow domes on a plot too short for a long tunnel. The pieces
-  (`greenhouses` doodads) are walk-in and coverless, so pathing, sight and
-  cover are the home map's. Paved hydroponic bays on the footprint were tried
-  and dropped (owner, 2026-11-10: "Do a bunch of paved beds make sense? Why
-  would a planet have those?").
+  **covered farm** stands on it (`PlanetSkin.covered`): rows of lit
+  hydroponic buildings along the plot's crop rows, a lane between rows and
+  between pieces, each row of long pieces finished with a short one or a plant
+  piece (pumps, tanks, a boiler), and short pieces on a grid on a plot too
+  short for a long one. Three looks (`PlanetSkin.FarmLook`) await the owner's
+  pick, each piece lit by magenta grow-light and piped: pressurised sheds
+  (`hydro-sheds`), linked geodesic domes (`hydro-domes`) and glass halls
+  (`glasshouses`), with no farm as the control. The pieces are walk-in and
+  coverless, so pathing, sight and cover are the home map's. Paved hydroponic
+  bays were dropped (owner, 2026-11-10: "Do a bunch of paved beds make sense?
+  Why would a planet have those?"), and so were polytunnels (owner: "They
+  don't read like hydroponics").
 - **Buildings.** Every town wall in the world's habitat (`HabitatStage.rebuild`,
   `BiomeSkin.habitat`): shielded on an irradiated world, sealed on a toxic or
   airless one (bare rock is airless unless its profile says otherwise),

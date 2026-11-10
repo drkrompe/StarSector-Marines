@@ -607,8 +607,20 @@ Laws):
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag
    of its own:
-   - Homes, shops, offices and clinics have windows on every storey.
-   - Works and warehouses are blind above the ground.
+   - A window is drawn only where the battle has one (owner: "Windows are
+     real things already. They should be modeled."): a window on a wall
+     cell's outer edge (`SharedEdgeBarrier.Kind.WINDOW`, which sight and
+     fire pass and a body does not) or a slit pane in a wall cell
+     (`CellTopology.isWindow`). Every other length of wall is blind, so a
+     pane on a face always stands over an opening a marine can really see
+     and shoot through.
+   - On homes, shops, offices and clinics the upper storeys repeat the
+     window below them (`BuildingFaces.storeyFeature`); works and
+     warehouses are blind above the ground.
+   - A window's frame is read live: it darkens as its structure falls, and
+     once shot out it stands as an empty frame, open to a body as the
+     battle now has it. The cells that held a window are remembered for the
+     map, so a shot-out one never reads as a door.
    - A door is drawn only at an outside doorway; works' and warehouses'
      doors are loading doors.
    - The habitat comes from the wall's surface and the world's ground.
