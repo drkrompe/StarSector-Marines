@@ -8,70 +8,45 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
- * A garrison laid out as a military installation rather than packed ({@code raid-mission.md}, Garrison district):
- * a gate on the road in, a motor pool whose vehicles have a paved way out of that gate that no building stands on, a
- * quadrangle of barracks round a parade ground with the headquarters at its head, the depot to either hand, and a
- * flight line. The owner's notes it answers: the packed garrison read as "very messy", and the first rowed plans left
- * the motor pool's vehicles no clear way out and too small a motor pool and airfield for the garrison.
+ * A garrison laid out as a planned installation ({@code raid-mission.md}, Garrison district), in three bands across its
+ * square, each read by what it does, and laid out from its logistics outward (the owner's picks {@code raid-garrison}
+ * and {@code raid-garrison-districts}):
+ *
+ * <ul>
+ *   <li><b>Logistics</b> at the gate. Along the inside of the gate wall runs the front lane. The motor yard is on the
+ *       avenue: the vehicle sheds either side of it, their doors on the hardstand where vehicles park. To the wider
+ *       hand is the depot, its warehouses' loading doors on an unloading apron that opens on the first cross street.
+ *       To the other hand are the workshops, the generator and the vehicle fuel point.</li>
+ *   <li><b>The garrison</b> in the middle: a line of barracks and a mess along each side wall, each on its own street,
+ *       and the parade ground either side of the avenue between them.</li>
+ *   <li><b>Operations</b> at the back, on the second cross street: the flight line in the middle with the avenue
+ *       running on to its apron, the headquarters to one side, and to the other the armoury's magazines kept apart
+ *       with the flight line's own fuel point.</li>
+ * </ul>
+ *
+ * <p>A supply truck's round ({@link Laid#truckRoute}) runs from the gate up the avenue to the depot's apron, then to
+ * the fuel point, to the yard to park, and out of the gate again. The flight line is supplied on its own round
+ * ({@link Laid#flightRoute}) along the second cross street. Every gate's road inside the wall joins the streets
+ * ({@link #gateLanes}).
  *
  * <p>The layout is drawn in the place's own frame, with the gate at the near edge: {@code u} runs across the place and
  * {@code v} runs in from the gate. Every building is placed on a footprint (its floor and the wall ring round it) the
- * ground can take whole, so a road the town grew through the place is stepped round, never built over.
+ * ground can take whole, so ground the place cannot build on is stepped round, never built over.
  *
- * <p>Pure: it reads a buildable mask and returns placements, streets, the motor pool's hardstand and open ground, so it
- * is decided here and tested here; {@code PrecinctWardStage} authors and dresses what it returns.
+ * <p>Pure: it reads a buildable mask and returns placements, streets, paving, open ground and routes, so it is decided
+ * here and tested here; {@code PrecinctWardStage} authors and dresses what it returns.
  */
 public final class Cantonment {
-
-    /**
-     * How the garrison's districts are laid out across its square. Offered to the owner as picture options (picks
-     * {@code raid-garrison-districts}); the property {@value #LAYOUT_PROPERTY} chooses one for the cards and is removed,
-     * with the losing layouts, once the owner picks.
-     */
-    public enum Layout {
-        /** Everything along the avenue: the motor yard at the gate, the quadrangle behind it, the flight line at the back. */
-        YARD,
-        /**
-         * Three bands across the square, a cross street between each: logistics at the gate (workshops, the motor yard,
-         * stores), the garrison in the middle (barracks lines along both side walls, a wide parade ground, the
-         * headquarters at its head), operations at the back (the flight line and the magazines kept apart).
-         */
-        BANDS,
-        /**
-         * Two wings down the sides of the square, each on its own street: the barracks wing and the logistics wing
-         * (workshops, stores, the generator and, at its far end, the magazines). Down the middle: the motor yard at
-         * the gate, the parade ground with the headquarters at its head, the flight line at the back.
-         */
-        WINGS
-    }
-
-    /**
-     * Temporary A/B lever for the district-layout cards: {@code YARD}, {@code BANDS} or {@code WINGS}. Removed with the
-     * losing layouts once the owner picks {@code raid-garrison-districts}.
-     */
-    public static final String LAYOUT_PROPERTY = "battle.garrison.layout";
-
-    /** The layout the property names, {@link Layout#YARD} when it names none. */
-    public static Layout chosenLayout() {
-        String named = System.getProperty(LAYOUT_PROPERTY, "");
-        for (Layout layout : Layout.values()) {
-            if (layout.name().equalsIgnoreCase(named.trim())) return layout;
-        }
-        return Layout.YARD;
-    }
-
-    /** Width of a cross street between two districts, and of a district's own street. UNTUNED. */
-    static final int CROSS = 4;
-    /** Clear ground between two magazines, and round the magazine yard: kept apart so one going up takes no other. */
-    static final int DISPERSE = 5;
 
     /** Cells from the place's edge to the nearest footprint: the wall's own cell and a patrol lane inside it. */
     static final int MARGIN = 3;
@@ -85,8 +60,8 @@ public final class Cantonment {
     static final int FLARE = 3;
     /** Depth of a motor yard's hardstand in front of its sheds' doors: room to turn a vehicle out. UNTUNED. */
     static final int STAND = 9;
-    /** Half the parade ground's width beside its centre cell. UNTUNED. */
-    static final int PARADE_HALF = 10;
+    /** Depth of the depot's unloading apron behind its warehouses: a truck's length and room to turn. UNTUNED. */
+    static final int APRON = 10;
     /**
      * Cells added to a cantonment's side for a road another place grows through it, which its rows step round.
      * UNTUNED.
@@ -98,18 +73,22 @@ public final class Cantonment {
     private static final int SLIDE = 12;
     /** Cells across a vehicle's way out: its own width and a cell either side. */
     public static final int VEHICLE_WAY = 3;
+    /** Width of a cross street between two bands, the front lane, and a band's own street. UNTUNED. */
+    static final int CROSS = 4;
+    /** Clear ground between two magazines, and between a magazine and any other building. */
+    static final int DISPERSE = 5;
 
     /** One building of the order, as the program states its floor. */
     record Want(RoomPurpose purpose, RoomShape shape) { }
 
     /** What a garrison of this program owes, sorted into the roles the layout is made of. */
-    record Order(List<Want> barracks, List<Want> sheds, List<Want> depot, Want hq, Want gatehouse,
-                 List<Want> messes, int gatePosts, int towers, AirbaseLot.Size field) {
+    record Order(List<Want> barracks, List<Want> sheds, List<Want> warehouses, List<Want> workshops,
+                 List<Want> magazines, List<Want> fuel, Want hq, Want gatehouse, List<Want> messes, int gatePosts,
+                 int towers, AirbaseLot.Size field) {
 
         static Order of(FortressProgram program) {
-            List<Want> barracks = new ArrayList<>();
-            List<Want> sheds = new ArrayList<>();
-            List<Want> depot = new ArrayList<>();
+            List<Want> barracks = new ArrayList<>(), sheds = new ArrayList<>(), warehouses = new ArrayList<>();
+            List<Want> workshops = new ArrayList<>(), magazines = new ArrayList<>(), fuel = new ArrayList<>();
             List<Want> messes = new ArrayList<>();
             Want hq = null, gatehouse = null;
             int posts = 0;
@@ -123,13 +102,16 @@ public final class Cantonment {
                         case KEEP_ENTRY -> gatehouse = w;
                         case MESS_HALL -> messes.add(w);
                         case CONTROL_ROOM -> posts++;
-                        default -> depot.add(w);
+                        case ARMORY -> magazines.add(w);
+                        case STOCKROOM -> (b.shape().equals(FortressProgram.FUEL_POINT) ? fuel : warehouses).add(w);
+                        default -> workshops.add(w);
                     }
                 }
             }
             int gatePosts = Math.min(2, posts);
-            return new Order(barracks, sheds, depot, hq, gatehouse, messes, gatePosts,
-                    Math.min(4, posts - gatePosts), program.airfields() > 0 ? fieldFor(barracks.size()) : null);
+            return new Order(barracks, sheds, warehouses, workshops, magazines, fuel, hq, gatehouse, messes,
+                    gatePosts, Math.min(4, posts - gatePosts),
+                    program.airfields() > 0 ? fieldFor(barracks.size()) : null);
         }
     }
 
@@ -195,12 +177,30 @@ public final class Cantonment {
     record Stood(Want want, boolean turned, int u, int v, List<Face> doors) {
         int across() { return (turned ? want.shape.height() : want.shape.width()) + 2; }
         int deep() { return (turned ? want.shape.width() : want.shape.height()) + 2; }
+
+        /** The frame cell just outside the middle of its first door's face. */
+        int[] doorstep() {
+            return switch (doors.get(0)) {
+                case FRONT -> new int[]{u + across() / 2, v - 1};
+                case BACK -> new int[]{u + across() / 2, v + deep()};
+                case LEFT -> new int[]{u - 1, v + deep() / 2};
+                case RIGHT -> new int[]{u + across(), v + deep() / 2};
+            };
+        }
     }
 
     /** A rectangle of the place's own frame, inclusive of its near corner and exclusive of its far one. */
     record Rect(int u, int v, int across, int deep) {
         boolean overlaps(Rect o) {
             return u < o.u + o.across && o.u < u + across && v < o.v + o.deep && o.v < v + deep;
+        }
+
+        boolean contains(int cu, int cv) {
+            return cu >= u && cu < u + across && cv >= v && cv < v + deep;
+        }
+
+        int[] middle() {
+            return new int[]{u + across / 2, v + deep / 2};
         }
     }
 
@@ -219,22 +219,37 @@ public final class Cantonment {
                 case NORTH -> new int[]{left + u, top - v};
             };
         }
+
+        /** The frame cell of map cell {@code (x, y)}. */
+        int[] frameOf(int x, int y) {
+            return switch (gate) {
+                case WEST -> new int[]{y - bottom, x - left};
+                case EAST -> new int[]{y - bottom, right - x};
+                case SOUTH -> new int[]{x - left, y - bottom};
+                case NORTH -> new int[]{x - left, top - y};
+            };
+        }
     }
 
     /**
-     * What the layout came to, in map cells: rooms, streets (the avenue and any forecourt), the motor
-     * pool's hardstand, the parade ground, the flight line's lot, the gate's cell on the avenue just inside the wall,
-     * what had to be seated wherever there was room ({@code strays}: a road the town grew or the map took its place),
-     * and anything it could not seat at all.
+     * What the layout came to, in map cells: rooms; streets (the avenue, the front lane, the cross streets, the band
+     * streets and every gate's lane); the motor yard's hardstand; the depot's unloading apron; the parade ground; the
+     * flight line's lot; the main gate's cell on the avenue just inside the wall; a supply truck's round and the flight
+     * line's supply round, each a path of cells on the paving; what had to be seated wherever there was room
+     * ({@code strays}); and anything it could not seat at all.
      */
-    public record Laid(List<RoomPacker.Placed> rooms, List<int[]> streets, List<int[]> pool, List<int[]> parade,
-                       int[] airfield, AirbaseLot.Size airfieldSize, AirbaseLot.Facing facing, int[] gate,
-                       List<RoomPurpose> strays, List<RoomPurpose> unplaced) {
+    public record Laid(List<RoomPacker.Placed> rooms, List<int[]> streets, List<int[]> pool, List<int[]> apron,
+                       List<int[]> parade, int[] airfield, AirbaseLot.Size airfieldSize, AirbaseLot.Facing facing,
+                       int[] gate, List<int[]> truckRoute, List<int[]> flightRoute, List<RoomPurpose> strays,
+                       List<RoomPurpose> unplaced) {
         public Laid {
             rooms = List.copyOf(rooms);
             streets = List.copyOf(streets);
             pool = List.copyOf(pool);
+            apron = List.copyOf(apron);
             parade = List.copyOf(parade);
+            truckRoute = List.copyOf(truckRoute);
+            flightRoute = List.copyOf(flightRoute);
             strays = List.copyOf(strays);
             unplaced = List.copyOf(unplaced);
         }
@@ -247,6 +262,7 @@ public final class Cantonment {
     private final List<Rect> taken = new ArrayList<>();
     private final List<Rect> streets = new ArrayList<>();
     private final List<Rect> pool = new ArrayList<>();
+    private final List<Rect> apron = new ArrayList<>();
     private final List<Rect> parade = new ArrayList<>();
     private final List<RoomPurpose> unplaced = new ArrayList<>();
     private final List<RoomPurpose> strays = new ArrayList<>();
@@ -258,12 +274,23 @@ public final class Cantonment {
     private int front = MARGIN;
     /** The across-position the road comes in at. */
     private int entry;
+    /** Depth added to the motor yard's band and to the parade ground, from what the square leaves spare. */
+    private int yardExtra, paradeExtra;
+    /** The stops of a supply truck's round and of the flight line's, in the frame, in order. */
+    private final List<int[]> truckStops = new ArrayList<>();
+    private final List<int[]> flightStops = new ArrayList<>();
 
     private Cantonment(boolean[][] buildable, Frame frame, int axis) {
         this.buildable = buildable;
         this.frame = frame;
         this.axis = axis;
         this.entry = axis;
+    }
+
+    /** Lays a garrison's program with only its main gate: {@link #lay(boolean[][], int, int, int, int, Side, int, FortressProgram, List)}. */
+    public static Laid lay(boolean[][] buildable, int left, int bottom, int right, int top, Side gate, int axis,
+                           FortressProgram program) {
+        return lay(buildable, left, bottom, right, top, gate, axis, program, List.of());
     }
 
     /**
@@ -273,22 +300,52 @@ public final class Cantonment {
      * @param left      the place's square, map cells inclusive
      * @param gate      the side the main gate is on
      * @param axis      where the road comes in, as a map coordinate across the gate side
+     * @param further   the map cells where its further gates' roads come through the wall, each joined to the streets
      */
     public static Laid lay(boolean[][] buildable, int left, int bottom, int right, int top, Side gate, int axis,
-                           FortressProgram program) {
+                           FortressProgram program, List<int[]> further) {
         Frame frame = new Frame(left, bottom, right, top, gate);
         int entry = frame.swaps() ? axis - bottom : axis - left;
+        Cantonment c = laid(buildable, frame, entry, program, 0, 0);
+        // The square is as deep as it is across, and the bands rarely need all of it: what is left goes to the open
+        // ground that wants it (a third to the motor yard's hardstand and the depot's apron, the rest to the parade
+        // ground), rather than lying empty behind the flight line. Kept only where it seats as much as before;
+        // Halved until it does.
+        for (int give = c.slack(); give > 1; give /= 2) {
+            Cantonment d = laid(buildable, frame, entry, program, give / 3, give - give / 3);
+            if (d.unplaced.size() + d.strays.size() <= c.unplaced.size() + c.strays.size()
+                    && d.airfieldSize == c.airfieldSize) {
+                c = d;
+                break;
+            }
+        }
+        c.gateLanes(further);
+        return c.result();
+    }
+
+    private static Cantonment laid(boolean[][] buildable, Frame frame, int entry, FortressProgram program,
+                                   int yardExtra, int paradeExtra) {
         Cantonment c = new Cantonment(buildable, frame, frame.across() / 2);
+        c.yardExtra = yardExtra;
+        c.paradeExtra = paradeExtra;
         if (Math.abs(entry - c.axis) > AVENUE_HALF) c.forecourt(entry);
         Order order = Order.of(program);
         for (FortressBuilding b : program.buildings()) c.wanted.putIfAbsent(b.purpose(), new Want(b.purpose(), b.shape()));
-        switch (chosenLayout()) {
-            case BANDS -> c.bands(order);
-            case WINGS -> c.wings(order);
-            default -> c.yard(order);
-        }
+        c.bands(order);
         c.seatLeftovers();
-        return c.result();
+        return c;
+    }
+
+    /**
+     * Depth left behind the deepest building, open ground or flight line, inside the patrol lane; the corner towers,
+     * which stand against the back wall whatever the bands need, do not count.
+     */
+    private int slack() {
+        int used = 0;
+        for (Stood t : stood) if (t.want.purpose != RoomPurpose.CONTROL_ROOM) used = Math.max(used, t.v + t.deep());
+        for (List<Rect> rs : List.of(pool, apron, parade)) for (Rect r : rs) used = Math.max(used, r.v + r.deep);
+        if (airfield != null) used = Math.max(used, airfield.v + airfield.deep);
+        return depth() - MARGIN - used;
     }
 
     /**
@@ -315,8 +372,18 @@ public final class Cantonment {
     /** What a road in off the map's edge costs a gate: more than any width buys, so it is the last choice. */
     private static final double OFF_MAP = 100;
 
-    /** Where the main gate is: the side of the place it is in, and the road's centre across that side (map cells). */
-    public record Gate(Side side, int axis) { }
+    /** Where a gate is: the side of the place it is in, and the road's centre across that side (map cells). */
+    public record Gate(Side side, int axis) {
+        /** The map cell where this gate's road crosses the place's edge. */
+        public int[] cell(int left, int bottom, int right, int top) {
+            return switch (side) {
+                case NORTH -> new int[]{axis, top};
+                case SOUTH -> new int[]{axis, bottom};
+                case EAST -> new int[]{right, axis};
+                case WEST -> new int[]{left, axis};
+            };
+        }
+    }
 
     /**
      * The main gate: where a road the town grew comes in through the place's edge, the widest road first, on the side
@@ -334,34 +401,61 @@ public final class Cantonment {
         double norm = Math.max(1e-6, Math.hypot(tx, ty));
         Gate best = null;
         double bestScore = Double.NEGATIVE_INFINITY;
-        for (Side side : Side.values()) {
+        for (int[] run : entries(own, road, left, bottom, right, top)) {
+            Side side = Side.values()[run[0]];
+            int mid = run[1], width = run[2];
             boolean alongX = side == Side.NORTH || side == Side.SOUTH;
-            int fixed = switch (side) { case NORTH -> top; case SOUTH -> bottom; case EAST -> right; case WEST -> left; };
             int lo = alongX ? left : bottom, hi = alongX ? right : top;
-            int outX = alongX ? 0 : side.dx, outY = alongX ? side.dy : 0;
-            int runStart = -1;
-            for (int k = lo; k <= hi + 1; k++) {
-                int x = alongX ? k : fixed, y = alongX ? fixed : k;
-                boolean entry = k <= hi && x >= 0 && y >= 0 && x < w && y < h && own[x][y] && road[x][y];
-                if (entry && runStart < 0) runStart = k;
-                if (entry || runStart < 0) continue;
-                int mid = (runStart + k - 1) / 2;
-                int width = k - runStart;
-                runStart = -1;
-                int ox = (alongX ? mid : fixed) + outX, oy = (alongX ? fixed : mid) + outY;
-                boolean offMap = ox < 0 || oy < 0 || ox >= w || oy >= h;
-                double half = Math.max(1, (hi - lo) / 2.0);
-                double score = WIDE_ROAD * Math.min(width, 9) + (side.dx * tx + side.dy * ty) / norm
-                        - 0.5 * Math.abs(mid - (lo + hi) / 2.0) / half - (offMap ? OFF_MAP : 0);
-                if (score > bestScore) {
-                    bestScore = score;
-                    best = new Gate(side, mid);
-                }
+            int fixed = switch (side) { case NORTH -> top; case SOUTH -> bottom; case EAST -> right; case WEST -> left; };
+            int ox = (alongX ? mid : fixed) + (alongX ? 0 : side.dx), oy = (alongX ? fixed : mid) + (alongX ? side.dy : 0);
+            boolean offMap = ox < 0 || oy < 0 || ox >= w || oy >= h;
+            double half = Math.max(1, (hi - lo) / 2.0);
+            double score = WIDE_ROAD * Math.min(width, 9) + (side.dx * tx + side.dy * ty) / norm
+                    - 0.5 * Math.abs(mid - (lo + hi) / 2.0) / half - (offMap ? OFF_MAP : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                best = new Gate(side, mid);
             }
         }
         if (best != null) return best;
         Side side = Side.facing((int) Math.round(tx), (int) Math.round(ty));
         return new Gate(side, side == Side.NORTH || side == Side.SOUTH ? (left + right) / 2 : (bottom + top) / 2);
+    }
+
+    /**
+     * Every gate: each run of road crossing the place's edge, other than {@code main}. A further gate's road comes in
+     * across the glacis ({@code CantonmentRoads}) and the layout joins it to its streets.
+     */
+    public static List<Gate> further(boolean[][] own, boolean[][] road, int left, int bottom, int right, int top,
+                                     Gate main) {
+        List<Gate> out = new ArrayList<>();
+        for (int[] run : entries(own, road, left, bottom, right, top)) {
+            Side side = Side.values()[run[0]];
+            if (side == main.side() && Math.abs(run[1] - main.axis()) <= run[2]) continue;
+            out.add(new Gate(side, run[1]));
+        }
+        return out;
+    }
+
+    /** Each run of road on the place's edge: {@code {side ordinal, centre, width}}. */
+    private static List<int[]> entries(boolean[][] own, boolean[][] road, int left, int bottom, int right, int top) {
+        int w = own.length, h = own[0].length;
+        List<int[]> out = new ArrayList<>();
+        for (Side side : Side.values()) {
+            boolean alongX = side == Side.NORTH || side == Side.SOUTH;
+            int fixed = switch (side) { case NORTH -> top; case SOUTH -> bottom; case EAST -> right; case WEST -> left; };
+            int lo = alongX ? left : bottom, hi = alongX ? right : top;
+            int runStart = -1;
+            for (int k = lo; k <= hi + 1; k++) {
+                int x = alongX ? k : fixed, y = alongX ? fixed : k;
+                boolean on = k <= hi && x >= 0 && y >= 0 && x < w && y < h && own[x][y] && road[x][y];
+                if (on && runStart < 0) runStart = k;
+                if (on || runStart < 0) continue;
+                out.add(new int[]{side.ordinal(), (runStart + k - 1) / 2, k - runStart});
+                runStart = -1;
+            }
+        }
+        return out;
     }
 
     /**
@@ -379,63 +473,74 @@ public final class Cantonment {
     /** Depth of the street along the gate wall where the road in is off the avenue's line. */
     static final int FORECOURT = 6;
 
-    // ---- The layout --------------------------------------------------------------------------------------------
+    // ---- The layout ------------------------------------------------------------------------------------------
 
-    /**
-     * The motor pool on the avenue. Gate posts either side of the avenue; then the sheds either side of it, each
-     * standing with its door end on the avenue where it widens into the hardstand, the depot taking what that band
-     * leaves; then the quadrangle with the depot down both sides of it, and the flight line against the back wall.
-     */
-    private void yard(Order o) {
-        int inLo = MARGIN, inHi = frame.across() - MARGIN;
+    private void bands(Order o) {
+        int inLo = MARGIN, inHi = frame.across() - MARGIN, back = depth() - MARGIN;
         int av0 = axis - AVENUE_HALF, av1 = axis + AVENUE_HALF + 1;
         int v = front;
         int gate = gateRow(o, v, inLo, inHi);
-        if (gate > 0) v += gate + STREET;
-        // The sheds, their door ends on the hardstand; the depot fills the side with fewer.
-        int h0 = av0 - FLARE, h1 = av1 + FLARE;
-        List<Want> sl = new ArrayList<>(), sr = new ArrayList<>();
-        split(o.sheds, sl, sr);
-        int poolV = v;
-        int endL = stack(sl, false, h0 - 1, -1, v, Integer.MAX_VALUE, Face.RIGHT, ALLEY, inLo, inHi);
-        int endR = stack(sr, false, h1, +1, v, Integer.MAX_VALUE, Face.LEFT, ALLEY, inLo, inHi);
-        int poolEnd = Math.max(endL, endR);
-        List<Want> depot = new ArrayList<>(o.depot);
-        if (!o.sheds.isEmpty()) {
-            if (endL < poolEnd) fill(depot, h0 - 1, -1, endL, poolEnd, Face.RIGHT, inLo, inHi);
-            if (endR < poolEnd) fill(depot, h1, +1, endR, poolEnd, Face.LEFT, inLo, inHi);
-            pool.add(new Rect(h0, poolV, h1 - h0, poolEnd - poolV));
-            v = poolEnd - ALLEY + STREET;
+        towers(o.towers, inLo, inHi, front, back);
+        v += gate;
+        // The front lane along the inside of the gate wall, behind the gate row, from wall to wall across the avenue.
+        streets.add(new Rect(inLo, v, inHi - inLo, CROSS));
+        v += CROSS;
+
+        // ---- Logistics: the motor yard on the avenue; to the wider hand the depot, its warehouses down the wall with
+        // their loading doors on an unloading apron that runs the band's depth beside them; to the other the vehicle
+        // fuel point and the workshops down their own service street. Apron and street both run from the front lane
+        // to the cross street, so a truck drives through and never has to turn back.
+        int[] yard = sheds(o, v, inLo, inHi);
+        int lHi = yard[1] - ALLEY, rLo = yard[2] + ALLEY;
+        boolean depotLeft = lHi - inLo >= inHi - rLo;
+        List<Want> shops = new ArrayList<>();
+        if (!o.fuel.isEmpty()) shops.add(o.fuel.get(0));
+        shops.addAll(of(o.workshops, RoomPurpose.PARTS_CAGE));
+        int fuelIndex = stood.size();
+        // Depot: the apron against the yard, the warehouses between it and the wall. The workshops on the other hand,
+        // their street against the yard; where that hand is too narrow for them (one shed leaves it so), they stand
+        // on the depot's hand behind the warehouses, their street between.
+        int depotW = maxAcross(o.warehouses) + APRON, shopW = maxAcross(shops) + CROSS;
+        int otherW = depotLeft ? inHi - rLo : lHi - inLo;
+        boolean together = otherW < shopW;
+        int dir = depotLeft ? -1 : +1;
+        int aU = depotLeft ? lHi - APRON : rLo;
+        int depotEnd = stack(o.warehouses, false, depotLeft ? aU - 1 : aU + APRON, dir, v,
+                Integer.MAX_VALUE, depotLeft ? Face.RIGHT : Face.LEFT, ALLEY, inLo, inHi);
+        int sU;
+        int shopEnd;
+        if (together) {
+            // [yard | apron | warehouses | street | workshops | wall], mirrored on the left.
+            int behind = depotLeft ? aU - maxAcross(o.warehouses) - ALLEY : aU + depotW + ALLEY;
+            sU = depotLeft ? behind - CROSS : behind;
+            shopEnd = stack(shops, false, depotLeft ? sU - 1 : sU + CROSS, dir, v, Integer.MAX_VALUE,
+                    depotLeft ? Face.RIGHT : Face.LEFT, ALLEY, inLo, inHi);
+        } else {
+            sU = depotLeft ? rLo : lHi - CROSS;
+            shopEnd = stack(shops, false, depotLeft ? sU + CROSS : sU - 1, -dir, v, Integer.MAX_VALUE,
+                    depotLeft ? Face.LEFT : Face.RIGHT, ALLEY, inLo, inHi);
         }
-        int back = depth() - MARGIN;
-        streets.add(new Rect(av0, 0, av1 - av0, v + 1));
-        quadrangle(o, depot, v, inLo, inHi, back);
-        // The flight line against the back wall, nearest the avenue's line: behind the headquarters where the square
-        // is deep enough, beside it where it is not, so the back of the square is used rather than left open.
-        if (o.field != null) flightLine(o.field, away(), inLo, inHi, v, back, true);
-        towers(o.towers, inLo, inHi, front, back);
-    }
-
-    /**
-     * Three bands across the square, a cross street between each. Logistics at the gate: the motor yard on the avenue,
-     * the workshops and generator to one hand and the stores to the other, in rows off the cross street behind. The
-     * garrison in the middle: a line of barracks and a mess along each side wall on its own street, the parade ground
-     * across the width between them, the headquarters at its head. Operations at the back: the
-     * flight line against the back wall, the magazines kept apart in a back corner.
-     */
-    private void bands(Order o) {
-        int inLo = MARGIN, inHi = frame.across() - MARGIN, back = depth() - MARGIN;
-        int v = front;
-        int gate = gateRow(o, v, inLo, inHi);
-        towers(o.towers, inLo, inHi, front, back);
-        if (gate > 0) v += gate + STREET;
-        List<Want> over = new ArrayList<>();
-        int c1 = gateBand(o, v, inLo, inHi,
-                of(o.depot, RoomPurpose.PARTS_CAGE, RoomPurpose.ENGINE_ROOM, RoomPurpose.STOCKROOM), over);
+        int c1 = Math.max(yard[0], Math.max(depotEnd, shopEnd) - ALLEY) + yardExtra;
+        Rect unload = new Rect(aU, v, APRON, c1 - v);
+        apron.add(unload);
+        streets.add(new Rect(sU, v, CROSS, c1 - v));
+        pool.add(new Rect(av0 - FLARE, v, av1 - av0 + 2 * FLARE, c1 - v));
+        streets.add(new Rect(av0, 0, av1 - av0, c1));
         streets.add(new Rect(inLo, c1, inHi - inLo, CROSS));
+        List<Want> over = new ArrayList<>();
+        Stood fuel = null;
+        for (int i = fuelIndex; i < stood.size(); i++) {
+            if (!o.fuel.isEmpty() && stood.get(i).want == o.fuel.get(0)) fuel = stood.get(i);
+        }
+        int[] gateCell = {entry, 1};
+        truckStops.add(gateCell);
+        truckStops.add(unload.middle());
+        if (fuel != null) truckStops.add(fuel.doorstep());
+        truckStops.add(new Rect(av0 - FLARE, v, av1 - av0 + 2 * FLARE, c1 - v).middle());
+        truckStops.add(gateCell);
 
-        // The garrison: a line of barracks and a mess along each side wall, each on its street, the parade ground
-        // across the width between them and the headquarters at its head.
+        // ---- The garrison: a line of barracks and a mess along each side wall on its street, the parade either side
+        // of the avenue between them.
         int m0 = c1 + CROSS + ALLEY;
         List<Want> lines = new ArrayList<>(o.barracks);
         lines.addAll(o.messes);
@@ -443,100 +548,65 @@ public final class Cantonment {
         int ls = inLo + col + ALLEY, rs = inHi - col - ALLEY - CROSS;
         List<Want> bl = new ArrayList<>(), br = new ArrayList<>();
         split(lines, bl, br);
-        int colEnd = Math.max(stack(bl, false, ls - ALLEY - 1, -1, m0, back, Face.RIGHT, ALLEY, inLo, inHi),
-                stack(br, false, rs + CROSS + ALLEY, +1, m0, back, Face.LEFT, ALLEY, inLo, inHi)) - ALLEY;
-        int hqDeep = o.hq == null ? 0 : o.hq.shape.height() + 2;
-        int hv = Math.max(m0 + PARADE_MIN + ALLEY, colEnd - hqDeep);
-        parade.add(new Rect(ls + CROSS + ALLEY, m0, rs - ls - CROSS - 2 * ALLEY, hv - ALLEY - m0));
-        int midEnd = Math.max(colEnd, hv + headquarters(o, hv, ls + CROSS + ALLEY, rs - ALLEY));
-        int c2 = midEnd + ALLEY;
+        // Each line flush with its street, so every door opens on it.
+        int colEnd = Math.max(stack(bl, false, ls - 1, -1, m0, back, Face.RIGHT, ALLEY, inLo, inHi),
+                stack(br, false, rs + CROSS, +1, m0, back, Face.LEFT, ALLEY, inLo, inHi)) - ALLEY;
+        int c2 = Math.max(colEnd, m0 + PARADE_MIN) + paradeExtra + ALLEY;
+        if (av0 - ALLEY > ls + CROSS + ALLEY) {
+            parade.add(new Rect(ls + CROSS + ALLEY, m0, av0 - ALLEY - (ls + CROSS + ALLEY), c2 - ALLEY - m0));
+        }
+        if (rs - ALLEY > av1 + ALLEY) parade.add(new Rect(av1 + ALLEY, m0, rs - ALLEY - (av1 + ALLEY), c2 - ALLEY - m0));
+        streets.add(new Rect(av0, c1, av1 - av0, c2 - c1));
         streets.add(new Rect(ls, c1, CROSS, c2 - c1));
         streets.add(new Rect(rs, c1, CROSS, c2 - c1));
         streets.add(new Rect(inLo, c2, inHi - inLo, CROSS));
 
-        // Operations: the flight line against the back wall, the magazines kept apart in the back corner beside it.
-        int b0 = c2 + CROSS + ALLEY;
-        if (o.field != null) flightLine(o.field, away(), inLo, inHi, b0, back, true);
-        int fLo = airfield == null ? inLo : airfield.u, fHi = airfield == null ? inLo : airfield.u + airfield.across;
-        boolean left = fLo - inLo >= inHi - fHi;
-        dispersed(of(o.depot, RoomPurpose.ARMORY), left ? inLo : fHi + DISPERSE, left ? fLo - DISPERSE : inHi, b0,
-                back, left);
-        for (Want w : over) unplaced.add(w.purpose);
-    }
-
-    /**
-     * Two wings down the sides of the square behind the motor yard, each on its own street: the barracks wing with
-     * its messes, and the logistics wing with the stores and generator and, at its far end, the magazines kept apart.
-     * At the gate, the motor yard with its workshops beside it; down the middle between the wing streets, the parade
-     * ground with the headquarters at its head, a cross street, the flight line against the back wall.
-     */
-    private void wings(Order o) {
-        int inLo = MARGIN, inHi = frame.across() - MARGIN, back = depth() - MARGIN;
-        int v = front;
-        int gate = gateRow(o, v, inLo, inHi);
-        towers(o.towers, inLo, inHi, front, back);
-        if (gate > 0) v += gate + STREET;
-        List<Want> over = new ArrayList<>();
-        int c1 = gateBand(o, v, inLo, inHi, of(o.depot, RoomPurpose.PARTS_CAGE), over);
-        streets.add(new Rect(inLo, c1, inHi - inLo, CROSS));
-
-        int w0 = c1 + CROSS + ALLEY;
-        List<Want> lines = new ArrayList<>(o.barracks);
-        lines.addAll(o.messes);
-        List<Want> stores = of(o.depot, RoomPurpose.STOCKROOM, RoomPurpose.ENGINE_ROOM);
-        List<Want> magazines = of(o.depot, RoomPurpose.ARMORY);
-        int ls = inLo + maxAcross(lines) + ALLEY;
-        int rs = inHi - Math.max(maxAcross(stores), maxAcross(magazines)) - ALLEY - CROSS;
-        streets.add(new Rect(ls, c1, CROSS, back - c1));
-        streets.add(new Rect(rs, c1, CROSS, back - c1));
-        // Short of the back corner, where a tower stands.
-        int corner = o.towers > 0 ? POST.height() + 2 + ALLEY : 0;
-        over.addAll(column(lines, ls - ALLEY - 1, -1, w0, back - corner, Face.RIGHT, ALLEY));
-        // The magazine yard at the wing's far end, below the corner tower there and clear of the stores above.
-        int magDepth = o.towers > 0 ? POST.height() + 2 + DISPERSE : 0;
-        for (Want w : magazines) magDepth += w.shape.height() + 2 + DISPERSE;
-        int magV = Math.max(w0, back - magDepth);
-        over.addAll(column(stores, rs + CROSS + ALLEY, +1, w0, magV - DISPERSE, Face.LEFT, ALLEY));
-        dispersed(magazines, rs + CROSS + ALLEY, inHi, magV, back, false);
-
-        int cLo = ls + CROSS + ALLEY, cHi = rs - ALLEY;
-        int fieldDeep = o.field == null ? 0 : span(o.field, away())[1] + ALLEY + CROSS + ALLEY;
-        int hqDeep = o.hq == null ? 0 : o.hq.shape.height() + 2;
-        // The parade ground takes two thirds of the depth to spare, the flight line the rest to settle in.
-        int spare = Math.max(0, back - fieldDeep - hqDeep - (w0 + PARADE_MIN + ALLEY));
-        int hv = w0 + PARADE_MIN + ALLEY + spare * 2 / 3;
-        parade.add(new Rect(cLo, w0, cHi - cLo, hv - ALLEY - w0));
-        int c2 = hv + headquarters(o, hv, cLo, cHi) + ALLEY;
-        if (o.field != null) {
-            streets.add(new Rect(ls, c2, rs + CROSS - ls, CROSS));
-            flightLine(o.field, away(), cLo, cHi, c2 + CROSS + ALLEY, back, true);
+        // ---- Operations, on the second cross street: the flight line in the middle with the avenue run on to its
+        // apron, the headquarters to one hand, the armoury and the flight line's fuel point to the other.
+        int b0 = c2 + CROSS;
+        if (o.field != null) flightLine(o.field, away(), inLo, inHi, b0, back, false);
+        int fLo = airfield == null ? axis : airfield.u, fHi = airfield == null ? axis + 1 : airfield.u + airfield.across;
+        if (airfield != null && airfield.v > b0) streets.add(new Rect(av0, b0, av1 - av0, airfield.v - b0));
+        boolean hqLeft = fLo - inLo >= inHi - fHi;
+        int hqLo = hqLeft ? inLo : fHi + ALLEY, hqHi = hqLeft ? fLo - ALLEY : inHi;
+        headquarters(o, b0, hqLo, hqHi, hqLeft);
+        // The generator beside command, on the same street: the base's power where it is run from.
+        for (Want w : of(o.workshops, RoomPurpose.ENGINE_ROOM)) {
+            int across = w.shape.width() + 2, deep = w.shape.height() + 2;
+            Stood g = null;
+            for (int k = 0; k + across <= hqHi - hqLo && g == null; k++) {
+                int u = hqLeft ? hqHi - across - k : hqLo + k;
+                if (seats(u, b0, across, deep)) g = stand(w, false, u, b0, List.of(Face.FRONT));
+            }
+            if (g == null) unplaced.add(w.purpose);
+        }
+        int aLo = hqLeft ? fHi + ALLEY : inLo, aHi = hqLeft ? inHi : fLo - ALLEY;
+        Stood flightFuel = null;
+        if (o.fuel.size() > 1) {
+            Want w = o.fuel.get(1);
+            int across = w.shape.width() + 2, deep = w.shape.height() + 2;
+            for (int k = 0; k + across <= aHi - aLo && flightFuel == null; k++) {
+                int u = hqLeft ? aLo + k : aHi - across - k;
+                if (seats(u, b0, across, deep)) flightFuel = stand(w, false, u, b0, List.of(Face.FRONT));
+            }
+            if (flightFuel == null) unplaced.add(w.purpose);
+        }
+        int xLo = hqLeft && flightFuel != null ? flightFuel.u + flightFuel.across() + ALLEY : aLo;
+        int xHi = !hqLeft && flightFuel != null ? flightFuel.u - ALLEY : aHi;
+        List<Stood> magazines = armoury(o.magazines, xLo, xHi, b0, back);
+        for (int i = 2; i < o.fuel.size(); i++) over.add(o.fuel.get(i));
+        if (airfield != null) {
+            int[] lotFront = {airfield.u + airfield.across / 2, airfield.v};
+            for (Stood m : magazines) {
+                flightStops.add(m.doorstep());
+                flightStops.add(lotFront);
+            }
+            if (flightFuel != null) {
+                flightStops.add(flightFuel.doorstep());
+                flightStops.add(lotFront);
+            }
         }
         for (Want w : over) unplaced.add(w.purpose);
-    }
-
-    /**
-     * The band inside the gate: the motor yard on the avenue and {@code logistics} in rows to either hand, the wider
-     * hand first, off the cross street behind. Returns the depth the cross street starts at; what did not fit is added
-     * to {@code over}.
-     */
-    private int gateBand(Order o, int v, int inLo, int inHi, List<Want> logistics, List<Want> over) {
-        int av0 = axis - AVENUE_HALF, av1 = axis + AVENUE_HALF + 1;
-        int[] yard = sheds(o, v, inLo, inHi);
-        int lHi = yard[1] - ALLEY, rLo = yard[2] + ALLEY;
-        boolean leftFirst = lHi - inLo >= inHi - rLo;
-        int firstLo = leftFirst ? inLo : rLo, firstHi = leftFirst ? lHi : inHi;
-        int otherLo = leftFirst ? rLo : inLo, otherHi = leftFirst ? inHi : lHi;
-        List<Want> first = new ArrayList<>(logistics), second = new ArrayList<>();
-        while (!first.isEmpty() && rowsHold(first, firstHi - firstLo) < first.size()) {
-            second.add(0, first.remove(first.size() - 1));
-        }
-        int bandEnd = Math.max(yard[0], Math.max(v + need(first, firstHi - firstLo),
-                v + need(second, otherHi - otherLo)));
-        over.addAll(rows(first, firstLo, firstHi, v, bandEnd));
-        over.addAll(rows(second, otherLo, otherHi, v, bandEnd));
-        pool.add(new Rect(av0 - FLARE, v, av1 - av0 + 2 * FLARE, bandEnd - v));
-        streets.add(new Rect(av0, 0, av1 - av0, bandEnd + ALLEY));
-        return bandEnd + ALLEY;
     }
 
     /**
@@ -559,261 +629,44 @@ public final class Cantonment {
     }
 
     /**
-     * The headquarters at depth {@code hv} on the avenue's line, facing the gate, or as near it within
-     * {@code [inLo, inHi)} as the ground takes it (a road the town brought in to the middle); its depth.
+     * The headquarters on the second cross street at depth {@code v}, its door on the street, in {@code [lo, hi)} as
+     * near the flight line as the ground takes it ({@code nearHi}: the flight line is past {@code hi}).
      */
-    private int headquarters(Order o, int hv, int inLo, int inHi) {
-        if (o.hq == null) return 0;
+    private void headquarters(Order o, int v, int lo, int hi, boolean nearHi) {
+        if (o.hq == null) return;
         int across = o.hq.shape.width() + 2, deep = o.hq.shape.height() + 2;
-        int at = axis - across / 2;
-        for (int d = 0; d <= SLIDE; d++) {
-            for (int u : new int[]{at - d, at + d}) {
-                if (u >= inLo && u + across <= inHi && seats(u, hv, across, deep)) {
-                    return stand(o.hq, false, u, hv, List.of(Face.FRONT)).deep();
-                }
+        for (int k = 0; k + across <= hi - lo; k++) {
+            int u = nearHi ? hi - across - k : lo + k;
+            if (seats(u, v, across, deep)) {
+                stand(o.hq, false, u, v, List.of(Face.FRONT));
+                return;
             }
         }
         unplaced.add(o.hq.purpose);
-        return 0;
-    }
-
-    /** The buildings of {@code wants} of the given purposes, in order. */
-    private static List<Want> of(List<Want> wants, RoomPurpose... purposes) {
-        List<Want> out = new ArrayList<>();
-        for (Want w : wants) if (Arrays.asList(purposes).contains(w.purpose)) out.add(w);
-        return out;
-    }
-
-    /** The widest footprint across among {@code wants}, standing square to the frame. */
-    private static int maxAcross(List<Want> wants) {
-        int across = 0;
-        for (Want w : wants) across = Math.max(across, w.shape.width() + 2);
-        return across;
-    }
-
-    /** As many of {@code rest} as stand in one row {@code len} long, an alley apart, taken off its front. */
-    private static List<Want> take(List<Want> rest, int len) {
-        List<Want> out = new ArrayList<>();
-        int used = -ALLEY;
-        while (!rest.isEmpty() && used + ALLEY + rest.get(0).shape.width() + 2 <= len) {
-            used += ALLEY + rest.get(0).shape.width() + 2;
-            out.add(rest.remove(0));
-        }
-        return out;
-    }
-
-    private static int deepest(List<Want> wants) {
-        int deep = 0;
-        for (Want w : wants) deep = Math.max(deep, w.shape.height() + 2);
-        return deep;
-    }
-
-    /** How many of {@code wants}, from the front, {@link #rows} stands in its two rows {@code len} across. */
-    private static int rowsHold(List<Want> wants, int len) {
-        List<Want> rest = new ArrayList<>(wants);
-        return take(rest, len).size() + take(rest, len).size();
-    }
-
-    /** Depth {@link #rows} takes for {@code wants} in a block {@code len} across. */
-    private static int need(List<Want> wants, int len) {
-        List<Want> rest = new ArrayList<>(wants);
-        int a = deepest(take(rest, len)), b = deepest(take(rest, len));
-        return b == 0 ? a : a + ALLEY + b;
     }
 
     /**
-     * Up to two rows across {@code [u0, u1)} by depths {@code [v0, v1)}: the first flush with {@code v1}, its doors to
-     * the back on the street there, the second flush with {@code v0}, its doors to the front; each spread evenly along
-     * its length. Returns what did not fit.
-     */
-    private List<Want> rows(List<Want> wants, int u0, int u1, int v0, int v1) {
-        List<Want> rest = new ArrayList<>(wants);
-        List<Want> a = take(rest, u1 - u0), b = take(rest, u1 - u0);
-        if (deepest(a) + ALLEY + deepest(b) > v1 - v0) {
-            rest.addAll(0, b);
-            b.clear();
-        }
-        rest.addAll(spread(a, u0, u1, v1, Face.BACK));
-        rest.addAll(spread(b, u0, u1, v0, Face.FRONT));
-        return rest;
-    }
-
-    /** One row spread evenly across {@code [u0, u1)}, flush with depth {@code v} on its door side; what could not stand. */
-    private List<Want> spread(List<Want> row, int u0, int u1, int v, Face door) {
-        List<Want> out = new ArrayList<>();
-        if (row.isEmpty()) return out;
-        int sum = 0;
-        for (Want w : row) sum += w.shape.width() + 2;
-        int gap = Math.max(ALLEY, (u1 - u0 - sum) / (row.size() + 1));
-        int u = u0 + Math.max(0, (u1 - u0 - sum - gap * (row.size() - 1)) / 2);
-        for (Want w : row) {
-            int across = w.shape.width() + 2, deep = w.shape.height() + 2;
-            int at = door == Face.BACK ? v - deep : v;
-            Stood s = null;
-            for (int d = 0; d <= SLIDE && s == null; d++) {
-                for (int sign : new int[]{1, -1}) {
-                    int uu = u + sign * d;
-                    if (s == null && uu >= u0 && uu + across <= u1 && seats(uu, at, across, deep)) {
-                        s = stand(w, false, uu, at, List.of(door));
-                    }
-                }
-            }
-            if (s == null) out.add(w);
-            u += across + gap;
-        }
-        return out;
-    }
-
-    /**
-     * Stands {@code wants} one behind another down depths {@code [v0, v1)}, spread evenly, each with its door face
-     * toward the street at {@code u} and running away from it ({@code dir}); returns what did not fit.
-     */
-    private List<Want> column(List<Want> wants, int u, int dir, int v0, int v1, Face door, int gapMin) {
-        List<Want> fit = new ArrayList<>(), out = new ArrayList<>();
-        int used = -gapMin;
-        for (Want w : wants) {
-            if (used + gapMin + w.shape.height() + 2 <= v1 - v0) {
-                used += gapMin + w.shape.height() + 2;
-                fit.add(w);
-            } else {
-                out.add(w);
-            }
-        }
-        if (fit.isEmpty()) return out;
-        int sum = used - gapMin * (fit.size() - 1);
-        int gap = Math.max(gapMin, (v1 - v0 - sum) / (fit.size() + 1));
-        int v = v0 + Math.max(0, (v1 - v0 - sum - gap * (fit.size() - 1)) / 2);
-        for (Want w : fit) {
-            Stood s = null;
-            for (int d = 0; d <= SLIDE && s == null && v + d + w.shape.height() + 2 <= v1; d++) {
-                s = slide(w, false, u, dir, v + d, door, MARGIN, frame.across() - MARGIN, true);
-            }
-            if (s == null) out.add(w);
-            v = (s == null ? v : s.v) + w.shape.height() + 2 + gap;
-        }
-        return out;
-    }
-
-    /**
-     * The magazines in {@code [u0, u1)} by {@code [v0, v1)}, each {@link #DISPERSE} clear of every other building, from
-     * the back wall's corner on the {@code left} or right; what cannot stand is recorded unplaced.
-     */
-    private void dispersed(List<Want> magazines, int u0, int u1, int v0, int v1, boolean left) {
-        for (Want w : magazines) {
-            int across = w.shape.width() + 2, deep = w.shape.height() + 2;
-            Stood s = null;
-            for (int v = v1 - deep; v >= v0 && s == null; v--) {
-                for (int k = 0; k + across <= u1 - u0 && s == null; k++) {
-                    int u = left ? u0 + k : u1 - across - k;
-                    if (seats(u, v, across, deep) && apart(new Rect(u - DISPERSE, v - DISPERSE,
-                            across + 2 * DISPERSE, deep + 2 * DISPERSE))) {
-                        s = stand(w, false, u, v, List.of(Face.FRONT));
-                    }
-                }
-            }
-            if (s == null) unplaced.add(w.purpose);
-        }
-    }
-
-    /** Whether no building's footprint overlaps {@code r}. */
-    private boolean apart(Rect r) {
-        for (Rect t : taken) if (t.overlaps(r)) return false;
-        return true;
-    }
-
-    /**
-     * Posts either side of the avenue where it comes through the gate, the guardroom beside the right one; returns
-     * the row's depth, or 0 for none.
+     * Posts either side of the avenue where it comes through the gate, flush with it, and the guardroom beyond the
+     * right one opening on the front lane behind; returns the row's depth, or 0 for none.
      */
     private int gateRow(Order o, int v, int inLo, int inHi) {
         int av0 = axis - AVENUE_HALF, av1 = axis + AVENUE_HALF + 1;
         List<Want> left = new ArrayList<>(), right = new ArrayList<>();
         if (o.gatePosts >= 1) left.add(new Want(RoomPurpose.CONTROL_ROOM, POST));
         if (o.gatePosts >= 2) right.add(new Want(RoomPurpose.CONTROL_ROOM, POST));
-        if (o.gatehouse != null) right.add(o.gatehouse);
-        return Math.max(row(left, av0 - ALLEY - 1, -1, v, Face.RIGHT, inLo, inHi),
-                row(right, av1 + ALLEY, +1, v, Face.LEFT, inLo, inHi));
-    }
-
-    /**
-     * The quadrangle from depth {@code v}: the parade ground on the avenue's line with a column of barracks down each
-     * side facing it, and the headquarters across its head facing the gate with the messes either hand. Outside the
-     * barracks the depot stands in rows down both sides. Returns the depth it ends at.
-     */
-    private int quadrangle(Order o, List<Want> depot, int v, int inLo, int inHi, int limit) {
-        List<Want> bl = new ArrayList<>(), br = new ArrayList<>();
-        split(o.barracks, bl, br);
-        int colAcross = 0;
-        for (Want w : o.barracks) colAcross = Math.max(colAcross, w.shape.height() + 2);
-        int pLo = axis - PARADE_HALF, pHi = axis + PARADE_HALF + 1;
-        int endL = stack(bl, true, pLo - STREET - 1, -1, v, limit, Face.RIGHT, ALLEY, inLo, inHi);
-        int endR = stack(br, true, pHi + STREET, +1, v, limit, Face.LEFT, ALLEY, inLo, inHi);
-        int paradeEnd = Math.max(Math.max(endL, endR) - ALLEY, v + PARADE_MIN);
-        parade.add(new Rect(pLo, v, pHi - pLo, paradeEnd - v));
-        // The head row: the headquarters on the avenue's line, the messes either hand.
-        int hv = paradeEnd + STREET;
-        int headDeep = 0;
-        if (o.hq != null) {
-            int u = axis - (o.hq.shape.width() + 2) / 2;
-            if (seats(u, hv, o.hq.shape.width() + 2, o.hq.shape.height() + 2)) {
-                Stood s = stand(o.hq, false, u, hv, List.of(Face.FRONT));
-                headDeep = s.deep();
-            } else {
-                unplaced.add(o.hq.purpose);
-            }
-        }
-        int hqLo = o.hq == null ? axis : axis - (o.hq.shape.width() + 2) / 2;
-        int hqHi = o.hq == null ? axis + 1 : hqLo + o.hq.shape.width() + 2;
-        List<Want> ml = new ArrayList<>(), mr = new ArrayList<>();
-        split(o.messes, ml, mr);
-        headDeep = Math.max(headDeep, row(ml, hqLo - ALLEY - 1, -1, hv, Face.FRONT, inLo, inHi));
-        headDeep = Math.max(headDeep, row(mr, hqHi + ALLEY, +1, hv, Face.FRONT, inLo, inHi));
-        int end = hv + headDeep;
-        // Outside the barracks: the depot.
-        int outL = pLo - STREET - 1 - colAcross - ALLEY;
-        int outR = pHi + STREET + colAcross + ALLEY;
-        List<Want> dl = new ArrayList<>(), dr = new ArrayList<>();
-        split(depot, dl, dr);
-        end = Math.max(end, block(dl, outL, -1, v, limit, inLo, inHi));
-        end = Math.max(end, block(dr, outR, +1, v, limit, inLo, inHi));
-        depot.clear();
-        return end;
-    }
-
-    /**
-     * Lays {@code wants} in rows outward from {@code u} (direction {@code dir}), a street between rows, every door to
-     * the front; returns the depth the last row ends at. What cannot stand is recorded unplaced.
-     */
-    private int block(List<Want> wants, int u, int dir, int v, int limit, int inLo, int inHi) {
-        int end = v;
-        int i = 0;
-        while (i < wants.size() && v < limit) {
-            int at = u, deep = 0, start = i;
-            while (i < wants.size()) {
-                Want w = wants.get(i);
-                if (v + w.shape.height() + 2 > limit) break;
-                Stood s = slide(w, false, at, dir, v, Face.FRONT, inLo, inHi, true);
-                if (s == null) break;
-                at = dir < 0 ? s.u - ALLEY - 1 : s.u + s.across() + ALLEY;
-                deep = Math.max(deep, s.deep());
-                i++;
-            }
-            if (i == start) {
-                v++;
-                continue;
-            }
-            end = v + deep;
-            v += deep + STREET;
-        }
-        for (; i < wants.size(); i++) unplaced.add(wants.get(i).purpose);
-        return end;
+        int deep = Math.max(row(left, av0 - 1, -1, v, Face.RIGHT, inLo, inHi),
+                row(right, av1, +1, v, Face.LEFT, inLo, inHi));
+        if (o.gatehouse == null) return deep;
+        // The guardroom beyond the right post, its door at the back on the front lane.
+        int u = av1 + (right.isEmpty() ? 0 : POST.width() + 2 + ALLEY);
+        int at = v + Math.max(0, deep - (o.gatehouse.shape.height() + 2));
+        return Math.max(deep, at - v + row(List.of(o.gatehouse), u, +1, at, Face.BACK, inLo, inHi));
     }
 
     /** The flight line's facing with its strip toward the back wall, its sheds toward the gate. */
     private AirbaseLot.Facing away() {
         return AirbaseLot.Facing.valueOf(frame.gate().opposite().name());
     }
-
 
     // ---- Rows and columns --------------------------------------------------------------------------------------
 
@@ -825,8 +678,8 @@ public final class Cantonment {
     /**
      * Stands {@code wants} one behind another from depth {@code v}, each with its door face toward {@code u} and its
      * footprint running away from it in direction {@code dir}, {@code gap} apart, no deeper than {@code limit}. A
-     * building whose band is taken (a road the town grew) steps back until one seats it. Returns the depth after the
-     * last one and its gap; what cannot stand is recorded unplaced.
+     * building whose band is taken steps back until one seats it. Returns the depth after the last one and its gap;
+     * what cannot stand is recorded unplaced.
      */
     private int stack(List<Want> wants, boolean turned, int u, int dir, int v, int limit, Face door, int gap,
                       int inLo, int inHi) {
@@ -843,28 +696,6 @@ public final class Cantonment {
             v = s.v + s.deep() + gap;
         }
         return v;
-    }
-
-    /**
-     * Stands as many of {@code depot} as fit one behind another between depths {@code v} and {@code limit}, removing
-     * those it stands.
-     */
-    private void fill(List<Want> depot, int u, int dir, int v, int limit, Face door, int inLo, int inHi) {
-        for (int i = 0; i < depot.size(); ) {
-            Want w = depot.get(i);
-            int deep = w.shape.height() + 2;
-            if (v + deep > limit) {
-                i++;
-                continue;
-            }
-            Stood s = slide(w, false, u, dir, v, door, inLo, inHi, true);
-            if (s == null) {
-                i++;
-                continue;
-            }
-            depot.remove(i);
-            v = s.v + s.deep() + ALLEY;
-        }
     }
 
     /**
@@ -901,9 +732,69 @@ public final class Cantonment {
         return null;
     }
 
+    /** The buildings of {@code wants} of the given purposes, in order. */
+    private static List<Want> of(List<Want> wants, RoomPurpose... purposes) {
+        List<Want> out = new ArrayList<>();
+        for (Want w : wants) if (Arrays.asList(purposes).contains(w.purpose)) out.add(w);
+        return out;
+    }
+
+    /** The widest footprint across among {@code wants}, standing square to the frame. */
+    private static int maxAcross(List<Want> wants) {
+        int across = 0;
+        for (Want w : wants) across = Math.max(across, w.shape.width() + 2);
+        return across;
+    }
+
     /**
-     * Whether a footprint stands on buildable ground clear of every footprint, street, hardstand, open ground and
-     * flight line already laid.
+     * The armoury in {@code [u0, u1)} from the street at {@code v0} to {@code v1}: an ammunition lane off the street
+     * down the middle, the magazines either side of it with their doors on it, each {@link #DISPERSE} clear of every
+     * other building, so one going up takes no other; the lane runs as far as the last of them. What cannot stand is
+     * recorded unplaced; returns those stood.
+     */
+    private List<Stood> armoury(List<Want> magazines, int u0, int u1, int v0, int v1) {
+        List<Stood> out = new ArrayList<>();
+        if (magazines.isEmpty()) return out;
+        int lane = (u0 + u1) / 2 - CROSS / 2;
+        Rect full = new Rect(lane, v0, CROSS, v1 - v0);
+        streets.add(full);
+        int end = v0;
+        for (int i = 0; i < magazines.size(); i++) {
+            Want w = magazines.get(i);
+            int across = w.shape.width() + 2, deep = w.shape.height() + 2;
+            Stood s = null;
+            for (int v = v0; v + deep <= v1 && s == null; v++) {
+                for (int side = 0; side < 2 && s == null; side++) {
+                    boolean left = (i + side) % 2 == 0;
+                    int u = left ? lane - across : lane + CROSS;
+                    if (u < u0 || u + across > u1) continue;
+                    if (seats(u, v, across, deep) && apart(new Rect(u - DISPERSE, v - DISPERSE,
+                            across + 2 * DISPERSE, deep + 2 * DISPERSE))) {
+                        s = stand(w, false, u, v, List.of(left ? Face.RIGHT : Face.LEFT));
+                    }
+                }
+            }
+            if (s == null) {
+                unplaced.add(w.purpose);
+            } else {
+                out.add(s);
+                end = Math.max(end, s.v + s.deep());
+            }
+        }
+        streets.remove(full);
+        streets.add(new Rect(lane, v0, CROSS, end - v0));
+        return out;
+    }
+
+    /** Whether no building's footprint overlaps {@code r}. */
+    private boolean apart(Rect r) {
+        for (Rect t : taken) if (t.overlaps(r)) return false;
+        return true;
+    }
+
+    /**
+     * Whether a footprint stands on buildable ground clear of every footprint, street, hardstand, apron, open ground
+     * and flight line already laid.
      */
     private boolean seats(int u, int v, int across, int deep) {
         if (u < 0 || v < 0 || u + across > frame.across() || v + deep > frame.depth()) return false;
@@ -911,6 +802,7 @@ public final class Cantonment {
         for (Rect t : taken) if (t.overlaps(r)) return false;
         for (Rect t : streets) if (t.overlaps(r)) return false;
         for (Rect t : pool) if (t.overlaps(r)) return false;
+        for (Rect t : apron) if (t.overlaps(r)) return false;
         for (Rect t : parade) if (t.overlaps(r)) return false;
         if (airfield != null && airfield.overlaps(r)) return false;
         for (int du = 0; du < across; du++) {
@@ -988,7 +880,7 @@ public final class Cantonment {
     }
 
     /**
-     * Seats what the layout could not, where a road the town grew or the map's edge took its place: each at the free
+     * Seats what the layout could not, where ground the place cannot build on took its place: each at the free
      * position nearest the gate, square to the rest, its door toward the gate. Still squared, never lost.
      */
     private void seatLeftovers() {
@@ -1014,14 +906,130 @@ public final class Cantonment {
         return purpose == RoomPurpose.CONTROL_ROOM ? new Want(purpose, POST) : wanted.get(purpose);
     }
 
+    // ---- Gates and routes ------------------------------------------------------------------------------------
+
+    /**
+     * Joins each further gate's road to the streets: a lane {@link #VEHICLE_WAY} wide from where it comes through the
+     * wall, by the shortest way clear of every building and the flight line, to the nearest street. A gate whose road
+     * led nowhere inside would be a road for nothing.
+     */
+    private void gateLanes(List<int[]> further) {
+        int w = frame.across(), h = frame.depth();
+        boolean[][] clear = new boolean[w][h];
+        for (int u = 0; u < w; u++) {
+            for (int v = 0; v < h; v++) clear[u][v] = !blocked(u, v);
+        }
+        int half = VEHICLE_WAY / 2;
+        for (int[] cell : further) {
+            int[] at = frame.frameOf(cell[0], cell[1]);
+            List<int[]> path = search(at, (u, v) -> wayClear(clear, u, v, half), (u, v) -> onStreet(u, v));
+            for (int[] c : path) streets.add(new Rect(c[0] - half, c[1] - half, VEHICLE_WAY, VEHICLE_WAY));
+        }
+    }
+
+    /** Whether frame cell {@code (u, v)} is under a building or the flight line, or off the frame. */
+    private boolean blocked(int u, int v) {
+        if (u < 0 || v < 0 || u >= frame.across() || v >= frame.depth()) return true;
+        for (Rect t : taken) if (t.contains(u, v)) return true;
+        return airfield != null && airfield.contains(u, v);
+    }
+
+    /** Whether a vehicle's way centred on {@code (u, v)} is clear: every cell within {@code half} of it. */
+    private static boolean wayClear(boolean[][] clear, int u, int v, int half) {
+        for (int du = -half; du <= half; du++) {
+            for (int dv = -half; dv <= half; dv++) {
+                int a = u + du, b = v + dv;
+                // The wall's own cells at the gate: the lane comes through it.
+                if (a < 0 || b < 0 || a >= clear.length || b >= clear[0].length) continue;
+                if (!clear[a][b]) return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean onStreet(int u, int v) {
+        for (Rect r : streets) if (r.contains(u, v)) return true;
+        return false;
+    }
+
+    private boolean paved(int u, int v) {
+        for (List<Rect> rs : List.of(streets, pool, apron, parade)) {
+            for (Rect r : rs) if (r.contains(u, v)) return true;
+        }
+        return false;
+    }
+
+    /** A predicate over frame cells. */
+    private interface CellTest {
+        boolean test(int u, int v);
+    }
+
+    /**
+     * The shortest four-way path of frame cells from {@code start} through cells {@code pass} allows to the first
+     * cell {@code goal} accepts, both ends included; empty when there is none.
+     */
+    private List<int[]> search(int[] start, CellTest pass, CellTest goal) {
+        int w = frame.across(), h = frame.depth();
+        if (start[0] < 0 || start[1] < 0 || start[0] >= w || start[1] >= h) return List.of();
+        int[] from = new int[w * h];
+        Arrays.fill(from, -2);
+        ArrayDeque<Integer> queue = new ArrayDeque<>();
+        int s = start[0] * h + start[1];
+        from[s] = -1;
+        queue.add(s);
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int at = queue.poll();
+            int u = at / h, v = at % h;
+            if (goal.test(u, v)) {
+                List<int[]> path = new ArrayList<>();
+                for (int k = at; k >= 0; k = from[k]) path.add(new int[]{k / h, k % h});
+                Collections.reverse(path);
+                return path;
+            }
+            for (int[] d : steps) {
+                int nu = u + d[0], nv = v + d[1];
+                if (nu < 0 || nv < 0 || nu >= w || nv >= h || from[nu * h + nv] != -2 || !pass.test(nu, nv)) continue;
+                from[nu * h + nv] = at;
+                queue.add(nu * h + nv);
+            }
+        }
+        return List.of();
+    }
+
+    /**
+     * A round through {@code stops} on the paving, in map cells: each leg the shortest way over streets, hardstand,
+     * apron and parade ground from one stop to the next, each stop taken from the nearest paved cell to it. Empty when
+     * a leg has no way.
+     */
+    private List<int[]> round(List<int[]> stops) {
+        List<int[]> out = new ArrayList<>();
+        for (int i = 0; i + 1 < stops.size(); i++) {
+            int[] a = nearestPaved(stops.get(i)), b = nearestPaved(stops.get(i + 1));
+            if (a == null || b == null) return List.of();
+            List<int[]> leg = search(a, this::paved, (u, v) -> u == b[0] && v == b[1]);
+            if (leg.isEmpty()) return List.of();
+            for (int[] c : leg) out.add(frame.cell(c[0], c[1]));
+        }
+        return out;
+    }
+
+    /** The paved frame cell nearest {@code at}, or {@code null} for none. */
+    private int[] nearestPaved(int[] at) {
+        List<int[]> path = search(at, (u, v) -> true, this::paved);
+        return path.isEmpty() ? null : path.get(path.size() - 1);
+    }
+
     // ---- Onto the map ----------------------------------------------------------------------------------------
 
     private Laid result() {
         List<RoomPacker.Placed> rooms = new ArrayList<>();
         for (Stood s : stood) rooms.add(placed(s));
-        List<int[]> streetCells = new ArrayList<>(), poolCells = new ArrayList<>(), paradeCells = new ArrayList<>();
+        List<int[]> streetCells = new ArrayList<>(), poolCells = new ArrayList<>(), apronCells = new ArrayList<>();
+        List<int[]> paradeCells = new ArrayList<>();
         for (Rect r : streets) cells(r, streetCells);
         for (Rect r : pool) cells(r, poolCells);
+        for (Rect r : apron) cells(r, apronCells);
         for (Rect r : parade) cells(r, paradeCells);
         int[] lot = null;
         if (airfield != null) {
@@ -1029,9 +1037,9 @@ public final class Cantonment {
             int[] b = frame.cell(airfield.u + airfield.across - 1, airfield.v + airfield.deep - 1);
             lot = new int[]{Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
         }
-        return new Laid(rooms, streetCells, poolCells, paradeCells, lot, airfieldSize,
+        return new Laid(rooms, streetCells, poolCells, apronCells, paradeCells, lot, airfieldSize,
                 airfieldFacing == null ? away() : airfieldFacing,
-                frame.cell(entry, 1), strays, unplaced);
+                frame.cell(entry, 1), round(truckStops), round(flightStops), strays, unplaced);
     }
 
     private void cells(Rect r, List<int[]> out) {

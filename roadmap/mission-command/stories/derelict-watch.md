@@ -226,6 +226,64 @@ that gives the company targets to deny.
 5. **Bulkheads.** With the doors session's leaf door: bulkheads laid by the
    ground, sealed until the hunting stage.
 
+## What is built
+
+Everything is in `battle.derelict` unless named; slices 1 and 2 on option (a)
+of each pick, slice 3's comms lines.
+
+- **Rules (slice 1).** `PatrolRound` (a zone's places in its perimeter that the
+  walker can reach, the six nearest the node, ordered by bearing round it, a
+  pause at each; a place it makes no headway toward is given up); `ServiceDucts` (vents, transit by
+  length, the shorter-way test, collapse by a charge, shut while the zone is
+  offline or the ducts are down); `FacilityWake` (the stage from the stir's
+  level or the breach, reserve bays released deepest first and once, the hunting
+  alarm through `SecurityNetwork.alertAll`); `DerelictWalkerClass` (which ways
+  each size fits, strength by grade, the hall frame's `Ram` against a dead
+  door); `ServiceBay`, `Wreck` (raise cost and share, scrapping and blasts) and
+  `RepairDrone`'s order of work, loads and reloads. `WalkerPosture` gains the
+  round (`Kind.ROUND`) and the hall frame's fit to the egress.
+- **The new walkers.** `MechVariant.SECURITY_ROUNDS` (MG-25) and
+  `SECURITY_HALL` (MG-70), automated like the heavy, and
+  `DerelictWalkerFrame.ROUNDS` and `HALL` on them. Both are drawn by the
+  sentinel art and the walker's leg rig at their size
+  (`DerelictLegRig.Build.scaled`, chosen by the unit's render scale). Numbers
+  UNTUNED.
+- **Battle (slice 2).** `DerelictSecurity.install` stands a rounds walker a zone
+  on its round (`roundPlaces`: route posts, chambers, courts and side rooms) and
+  the grade's hall frames in the largest plant halls (`hallPosts`), marking a
+  hall frame hall-bound when a flood over the cells it fits (`reaches`) does not
+  reach the egress. `standWatchHousings` stands each zone's service bay beside
+  its node and its sealed reserve bay by its flock's home, lays a vent at each
+  flock's home and in each open-sky court, and wires the reserve launcher and
+  raised posts. The director, each pulse: walks the rounds; follows the stir
+  into the wake (`tickWake`: ducts up, bays opened, their housing giving way to
+  the new flock's cradle, the hunting alarm); sends a flock through a duct when
+  `ServiceDucts.plan` finds it shorter than its open way (`openWay`, the
+  straight way plus twice the roofed cells it crosses); keeps wrecks
+  (`tickWrecks`: fallen lances and posts, company infantry scrapping, company
+  charges blasting wrecks and collapsing vents); and has each repair drone raise
+  wrecks and reload at its bay. A raised walker stands in its own lance at 40%,
+  with fresh knees; a raised post on its cell. The vault frame leaves no wreck.
+- **Ducts in the flock model.** `FlockDuct` (battle.drone) is the transit clock;
+  `FlockSystem.sendThroughDuct` takes members off the field at the entry and
+  puts them up at the exit, and the leash is then held from the exit
+  (`Flock.leashFrom`) until the flock is home again. A flock up in a shut court
+  is kept to that court's light well (`FlockSystem.wellAt`): a duct is the only
+  way into or out of one.
+- **Cues (slice 3, part).** `DerelictWakeCommsPresenter` posts a line for each
+  stage the wake rises to. Stand-in looks: a service bay draws as the node's
+  cabinet, a sealed reserve bay as its lineage's cradle housing.
+
+Not built yet: bulkheads (slice 5, on the doors session's leaf door); the hall
+frame forcing a dead door (the `Ram` rule waits for door states in the grid);
+the vent and wreck markers and the drone's sparks over a wreck; the housings'
+own looks.
+
+Evidence: `PatrolRoundTest`, `ServiceDuctsTest`, `FacilityWakeTest`,
+`DerelictWalkerClassTest`, `WreckTest`, `RepairDroneTest`, `WalkerPostureTest`,
+`HallFrameReachTest`, `FlockDuctTest`. Picture cards: `createSnapshots
+-Psnapshot=derelict-watch-picks` (the four picks on the vast derelict ruin).
+
 ## Constraints
 
 - Strength and timings are not tuned from autopilot runs: they wait on the owner

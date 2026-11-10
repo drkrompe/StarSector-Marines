@@ -295,11 +295,13 @@ com.dillon.starsectormarines.battle.world.gen.elevation.FiringDownSceneSnapshotS
 com.dillon.starsectormarines.ops.battleview.ElevationLookSnapshotSuite
 com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPoolSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.pool.PlanetSkinLookSuite
 com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleFootprintLookSuite
 com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
+com.dillon.starsectormarines.battle.vehicle.MidlineCarriersLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
@@ -421,6 +423,7 @@ com.dillon.starsectormarines.battle.setup.RaidLandingOptionsSuite
 com.dillon.starsectormarines.battle.setup.RaidDirectionsSuite
 com.dillon.starsectormarines.ops.RaidWorksLookSuite
 com.dillon.starsectormarines.ops.RaidGarrisonLookSuite
+com.dillon.starsectormarines.ops.RaidGateLookSuite
 com.dillon.starsectormarines.ops.RaidSiteLookSuite
 com.dillon.starsectormarines.ops.PlanetGroundLookSuite
 com.dillon.starsectormarines.ops.StormBankLookSuite
@@ -440,6 +443,7 @@ com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
+com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite
 com.dillon.starsectormarines.battle.mech.CrawlerLookSuite
 com.dillon.starsectormarines.battle.derelict.RuinsGuardiansLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
@@ -458,6 +462,7 @@ com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite
 com.dillon.starsectormarines.ops.LavaFlowLookSuite
 com.dillon.starsectormarines.ops.CrevasseTownLookSuite
 com.dillon.starsectormarines.ops.BuildingFacesLookSuite
+com.dillon.starsectormarines.ops.BuildingDamageLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite
@@ -465,7 +470,6 @@ com.dillon.starsectormarines.battle.world.gen.ruins.RuinsForgePicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorPicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsEnvironmentPicksSuite
 com.dillon.starsectormarines.ops.OwnedMapLookSuite
-com.dillon.starsectormarines.battle.world.gen.pool.StoryMapCandidatesSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsMegaForgePicksSuite
 com.dillon.starsectormarines.tools.mapauthoring.MapsEditorSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorLookSuite

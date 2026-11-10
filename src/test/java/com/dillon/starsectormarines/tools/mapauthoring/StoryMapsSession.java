@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapAcceptance;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
-import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -32,23 +31,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * The Maps page's domain, shared by the workbench page and the headless tools: a story map's one owned seed
- * ({@code story-map-pools.md}), generated once on its home biome with its patch, drawn as every world, checked by the
- * mission's own acceptance ({@link StoryMapAcceptance}) and saved back into its pool file. The page edits the home
- * entry's patch (pins, ruin strokes, placed structures); a Colony Breach patch's lift, bores and holdouts are kept and
- * shown as they are.
+ * ({@code story-map-pools.md}), generated on its home palette with its patch, drawn as any world, checked by the
+ * mission's own acceptance ({@link StoryMapAcceptance}) and saved back into its pool file. A world is drawn the way
+ * the campaign builds it: the mission's setup lays the map out on the home palette and the planet skin re-dresses it
+ * ({@code PlanetSkin}). The page edits the entry's patch (pins, ruin strokes, placed structures); a Colony Breach
+ * patch's lift, bores and holdouts are kept and shown as they are.
  */
 public final class StoryMapsSession implements AutoCloseable {
 
-    /** The biome a story map's owned seed is laid out on and every other world is dressed from (owner: ARID). */
-    public static final SurfacePalette HOME = SurfacePalette.ARID;
-
-    /** A story map's home entry: its place among the home biome's entries and the entry as it is saved. */
-    public record Opened(StoryMap map, int index, StoryMapPool.Entry entry) { }
+    /** A story map's pool as saved: its home palette and its owned entry. */
+    public record Opened(StoryMap map, SurfacePalette home, StoryMapPool.Entry entry) { }
 
     /** A plan place a pin can move: its name and where it grew from. */
     public record Place(String name, int x, int y) { }
@@ -57,17 +56,18 @@ public final class StoryMapsSession implements AutoCloseable {
     public record LaidStructure(String name, int x0, int y0, int x1, int y1) { }
 
     /**
-     * The entry generated on its home biome: its battle (null when the setup refused the map, {@code failure} saying
-     * why), the places a pin can move and the structures a placement can name.
+     * The entry generated for one world: its battle (null when the setup refused the map, {@code failure} saying why),
+     * the places a pin can move and the structures a placement can name.
      */
-    public record Stood(StoryMapPool.Entry entry, BattleSimulation sim, List<Place> places, List<LaidStructure> structures,
-                        String failure) { }
+    public record Stood(StoryMapPool.Entry entry, SurfacePalette world, BattleSimulation sim, List<Place> places,
+                        List<LaidStructure> structures, String failure) { }
 
     private final Path projectRoot;
     private final MapsRender render;
     private final HeadlessStrings strings;
     private Stood stood;
-    private MapReskin reskin;
+    /** Frames of the standing entry on worlds other than home, each generated once. */
+    private final Map<SurfacePalette, MapsRender.Frame> frames = new EnumMap<>(SurfacePalette.class);
 
     public StoryMapsSession(Path projectRoot) throws Exception {
         this.projectRoot = projectRoot;
@@ -89,14 +89,16 @@ public final class StoryMapsSession implements AutoCloseable {
         throw new IllegalArgumentException("no story map " + id + "; known: " + maps());
     }
 
-    /** The map's home entry as saved: the home biome's story entry, else its first. */
+    /** Every world a map is drawn as: each world palette the campaign skins a pooled map for. */
+    public static List<SurfacePalette> worlds() {
+        return List.of(SurfacePalette.values());
+    }
+
+    /** The map's pool as saved on disk under the project. */
     public Opened open(String id) throws Exception {
         StoryMap map = mapOf(id);
         StoryMapPool pool = StoryMapPool.read(map, new JSONObject(Files.readString(poolFile(projectRoot, map))));
-        List<StoryMapPool.Entry> entries = pool.entries(HOME);
-        int index = 0;
-        for (int k = 0; k < entries.size(); k++) if (entries.get(k).story()) index = k;
-        return new Opened(map, index, entries.get(index));
+        return new Opened(map, pool.home(), pool.owned());
     }
 
     /** The entry with {@code patch} in place of its own. */
@@ -104,32 +106,32 @@ public final class StoryMapsSession implements AutoCloseable {
         return new StoryMapPool.Entry(e.seed(), e.note(), patch, e.story());
     }
 
-    /** Generates {@code entry} on the home biome, unless it is the entry already standing. */
-    public synchronized Stood stand(StoryMap map, StoryMapPool.Entry entry) {
+    /** Generates {@code entry} on its home palette, unless it is the entry already standing. */
+    public synchronized Stood stand(Opened o, StoryMapPool.Entry entry) {
         if (stood != null && stood.entry().equals(entry)) return stood;
         dropStood();
-        try {
-            stood = generate(map, entry);
-            reskin = new MapReskin(stood.sim(), HOME);
-        } catch (IllegalStateException | IllegalArgumentException refused) {
-            stood = new Stood(entry, null, List.of(), List.of(), sentence(refused));
-        }
+        stood = generate(o.map(), entry, o.home());
         return stood;
     }
 
-    private static Stood generate(StoryMap map, StoryMapPool.Entry entry) {
-        if (map == StoryMap.COLONY_BREACH) {
-            return new Stood(entry, BattleSetup.createPooledColonyBreach(HOME, entry, List.of()), List.of(), List.of(), null);
+    /** The map as the campaign builds it for a world of {@code world}: laid out on home, skinned for the world. */
+    private static Stood generate(StoryMap map, StoryMapPool.Entry entry, SurfacePalette world) {
+        try {
+            if (map == StoryMap.COLONY_BREACH) {
+                return new Stood(entry, world, BattleSetup.createPooledColonyBreach(world, entry, List.of()), List.of(), List.of(), null);
+            }
+            if (BloomHeartSetup.formOf(map) != null) {
+                BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), world,
+                        BloomHeartSetup.densityOf(map), entry);
+                return new Stood(entry, world, built.sim(), places(built.plan()), structures(built.map().layout), null);
+            }
+            CordonVariant variant = CordonSetup.variantOf(map);
+            CordonSetup.CordonMap cordon = CordonSetup.map(variant, CordonSetup.densityOf(map), world, entry);
+            BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD);
+            return new Stood(entry, world, sim, places(cordon.plan()), structures(cordon.map().layout), null);
+        } catch (IllegalStateException | IllegalArgumentException refused) {
+            return new Stood(entry, world, null, List.of(), List.of(), sentence(refused));
         }
-        if (BloomHeartSetup.formOf(map) != null) {
-            BloomHeartSetup.Built built = BloomHeartSetup.country(BloomHeartSetup.formOf(map), HOME,
-                    BloomHeartSetup.densityOf(map), entry);
-            return new Stood(entry, built.sim(), places(built.plan()), structures(built.map().layout), null);
-        }
-        CordonVariant variant = CordonSetup.variantOf(map);
-        CordonSetup.CordonMap cordon = CordonSetup.map(variant, CordonSetup.densityOf(map), HOME, entry);
-        BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(), CordonSequence.Timetable.STANDARD);
-        return new Stood(entry, sim, places(cordon.plan()), structures(cordon.map().layout), null);
     }
 
     private static List<Place> places(PrecinctPlan plan) {
@@ -149,24 +151,32 @@ public final class StoryMapsSession implements AutoCloseable {
         return out;
     }
 
-    /** The standing map dressed as {@code world} and drawn whole; null when the map was refused. */
-    public synchronized MapsRender.Frame frame(MapWorld world, int width, int height) throws Exception {
-        if (stood == null || stood.sim() == null) return null;
-        reskin.apply(world);
-        try {
-            return render.whole(stood.sim(), width, height);
-        } finally {
-            reskin.restore();
+    /**
+     * The entry drawn whole as {@code world}, 1920x1080: the standing home map itself, or the entry built again for
+     * that world as the campaign builds it (once per entry). Null when the map was refused.
+     */
+    public synchronized MapsRender.Frame frame(Opened o, StoryMapPool.Entry entry, SurfacePalette world) throws Exception {
+        Stood home = stand(o, entry);
+        if (home.sim() == null) return null;
+        if (world == o.home()) return render.whole(home.sim(), MapsRender.WIDTH, MapsRender.HEIGHT);
+        MapsRender.Frame cached = frames.get(world);
+        if (cached != null) return cached;
+        Stood dressed = generate(o.map(), entry, world);
+        if (dressed.sim() == null) throw new IllegalStateException(dressed.failure());
+        try (BattleSimulation sim = dressed.sim()) {
+            MapsRender.Frame f = render.whole(sim, MapsRender.WIDTH, MapsRender.HEIGHT);
+            frames.put(world, f);
+            return f;
         }
     }
 
     /**
      * Every check {@code entry} must pass before it is saved: its patch inside the map, and the mission's acceptance
-     * on the home biome ({@link StoryMapAcceptance}, the regeneration check's own). Empty when all pass.
+     * on the home palette ({@link StoryMapAcceptance}, the regeneration check's own). Empty when all pass.
      */
-    public List<String> check(StoryMap map, StoryMapPool.Entry entry) {
+    public List<String> check(Opened o, StoryMapPool.Entry entry) {
         List<String> problems = new ArrayList<>();
-        Stood s = stand(map, entry);
+        Stood s = stand(o, entry);
         if (s.sim() == null) {
             problems.add(s.failure());
             return problems;
@@ -180,7 +190,7 @@ public final class StoryMapsSession implements AutoCloseable {
         for (Structure st : p.place()) outside(problems, "Placed " + st.name(), st.x(), st.y(), w, h);
         if (!problems.isEmpty()) return problems;
         try {
-            StoryMapAcceptance.check(map, HOME, entry);
+            StoryMapAcceptance.check(o.map(), o.home(), entry);
         } catch (Exception | AssertionError e) {
             problems.add(sentence(e));
         }
@@ -192,19 +202,21 @@ public final class StoryMapsSession implements AutoCloseable {
     }
 
     /**
-     * Saves {@code entry} as the home entry of {@code opened}'s pool file under {@code root}/mod, after every check
-     * passes: only that entry's text changes, the file is read back to the same entry, then replaced atomically.
+     * Saves {@code entry} as {@code o}'s owned entry in its pool file under {@code root}/mod, after every check
+     * passes: the file is written in the pool files' own form (so only the edited entry's lines change), read back to
+     * the same pool, then replaced atomically.
      */
-    public Path save(Opened opened, StoryMapPool.Entry entry, Path root) throws Exception {
-        List<String> problems = check(opened.map(), entry);
+    public Path save(Opened o, StoryMapPool.Entry entry, Path root) throws Exception {
+        List<String> problems = check(o, entry);
         if (!problems.isEmpty()) throw new IllegalStateException("Not saved: " + String.join(" ", problems));
-        Path source = poolFile(projectRoot, opened.map()), target = poolFile(root, opened.map());
-        String text = Files.readString(Files.exists(target) ? target : source);
-        String out = PoolEntryText.replace(text, HOME, opened.index(), PoolEntryText.entry(entry));
-        StoryMapPool.Entry back = StoryMapPool.read(opened.map(), new JSONObject(out)).entries(HOME).get(opened.index());
-        if (!back.equals(entry)) throw new IllegalStateException("Not saved: the pool file does not read back as the page holds it.");
+        Path target = poolFile(root, o.map());
+        String out = PoolEntryText.file(o.map(), o.home(), entry);
+        StoryMapPool back = StoryMapPool.read(o.map(), new JSONObject(out));
+        if (back.home() != o.home() || !back.owned().equals(entry)) {
+            throw new IllegalStateException("Not saved: the pool file does not read back as the page holds it.");
+        }
         Files.createDirectories(target.getParent());
-        Path temp = Files.createTempFile(target.getParent(), opened.map().id + "-", ".pool.json.tmp");
+        Path temp = Files.createTempFile(target.getParent(), o.map().id + "-", ".pool.json.tmp");
         Files.writeString(temp, out);
         try {
             Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
@@ -214,24 +226,28 @@ public final class StoryMapsSession implements AutoCloseable {
         return target;
     }
 
-    /** The standing map as every world, side by side. */
-    public BufferedImage contactSheet(StoryMap map, StoryMapPool.Entry entry) throws Exception {
-        Stood s = stand(map, entry);
+    /** The entry as every world, side by side. */
+    public BufferedImage contactSheet(Opened o, StoryMapPool.Entry entry) throws Exception {
+        Stood s = stand(o, entry);
         if (s.sim() == null) throw new IllegalStateException(s.failure());
         List<MapsRender.Tile> tiles = new ArrayList<>();
-        for (MapWorld world : MapWorld.values()) {
-            MapsRender.Frame f = frame(world, MapsRender.WIDTH, MapsRender.HEIGHT);
-            BiomeSkin skin = world.skin();
-            tiles.add(new MapsRender.Tile(world, f.image(),
-                    "ground: " + skin.palette().name().toLowerCase(Locale.ROOT),
-                    "settlements: " + habitat(skin)));
+        for (SurfacePalette world : worlds()) {
+            MapsRender.Frame f = frame(o, entry, world);
+            tiles.add(new MapsRender.Tile(label(world), f.image(),
+                    world == o.home() ? "the home layout" : "laid out on " + label(o.home()).toLowerCase(Locale.ROOT) + ", skinned",
+                    "settlements: " + habitat(world)));
         }
-        return MapsRender.contactSheet(map.id + " · seed " + entry.seed() + " (laid out on " + HOME.name().toLowerCase(Locale.ROOT)
-                + ") · the same map on every world", tiles);
+        return MapsRender.contactSheet(o.map().id + " · seed " + entry.seed() + " · one map, every world", tiles);
     }
 
-    static String habitat(BiomeSkin skin) {
-        return switch (skin.habitat()) {
+    public static String label(SurfacePalette p) {
+        String n = p.name().toLowerCase(Locale.ROOT);
+        return Character.toUpperCase(n.charAt(0)) + n.substring(1);
+    }
+
+    /** How a world of {@code p} builds its settlements, as the campaign reads a world of that palette. */
+    static String habitat(SurfacePalette p) {
+        return switch (BiomeSkin.of(BloomHeartSetup.world(p)).habitat()) {
             case OPEN -> "open";
             case INSULATED -> "insulated";
             case SEALED -> "sealed perimeter";
@@ -249,7 +265,7 @@ public final class StoryMapsSession implements AutoCloseable {
     private void dropStood() {
         if (stood != null && stood.sim() != null) stood.sim().close();
         stood = null;
-        reskin = null;
+        frames.clear();
     }
 
     @Override

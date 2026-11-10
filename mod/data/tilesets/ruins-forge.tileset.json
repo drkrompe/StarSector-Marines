@@ -1,0 +1,662 @@
+{
+  "sheet": "graphics/doodads/ruins-forge.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-great-crucible",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-great-crucible-melt",
+      "col": 12,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "doodad.ruins-furnace-core",
+      "col": 0,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-tapping-furnace",
+      "col": 3,
+      "row": 16,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "doodad.ruins-tapping-furnace-melt",
+      "col": 9,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        7
+      ]
+    },
+    {
+      "id": "doodad.ruins-cooling-rack",
+      "col": 15,
+      "row": 16,
+      "cover": "light",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-cooling-rack-castings",
+      "col": 17,
+      "row": 16,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-pour-head",
+      "col": 19,
+      "row": 16,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-mould-master",
+      "col": 21,
+      "row": 16,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-fallen-girder",
+      "col": 15,
+      "row": 20,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        7,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-pallet-bay",
+      "col": 0,
+      "row": 19,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-trench-cover",
+      "col": 19,
+      "row": 18,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-drain-gutter",
+      "col": 23,
+      "row": 16,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-floor-drain",
+      "col": 21,
+      "row": 18,
+      "cover": "none"
+    },
+    {
+      "id": "doodad.ruins-crane-runway",
+      "col": 22,
+      "row": 18,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-cable-tray",
+      "col": 23,
+      "row": 18,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-cable-tray-fallen",
+      "col": 23,
+      "row": 20,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-oil-stain",
+      "col": 15,
+      "row": 21,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-oil-trail",
+      "col": 17,
+      "row": 21,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-stain",
+      "col": 18,
+      "row": 21,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-scorch-mark",
+      "col": 20,
+      "row": 21,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-scorch-arc",
+      "col": 0,
+      "row": 22,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-line-pulpit",
+      "col": 2,
+      "row": 23,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-recorder-console",
+      "col": 22,
+      "row": 22,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-mag-rail",
+      "col": 5,
+      "row": 23,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-mag-rail-curve",
+      "col": 7,
+      "row": 23,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-mag-rail-end",
+      "col": 11,
+      "row": 23,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-pod",
+      "col": 13,
+      "row": 23,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-pod-derailed",
+      "col": 15,
+      "row": 23,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-slag-skid",
+      "col": 18,
+      "row": 23,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-slag-skid-melt",
+      "col": 21,
+      "row": 24,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-slag-skid-crashed",
+      "col": 0,
+      "row": 26,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-slag-skid-crashed-spill",
+      "col": 3,
+      "row": 26,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-thrust-wash",
+      "col": 11,
+      "row": 25,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-lift",
+      "col": 13,
+      "row": 26,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-lift-melt",
+      "col": 16,
+      "row": 26,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-lift-tipped",
+      "col": 6,
+      "row": 27,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-ladle-lift-tipped-pour",
+      "col": 19,
+      "row": 27,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-finishing-cell",
+      "col": 0,
+      "row": 24,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-metrology-bed",
+      "col": 9,
+      "row": 27,
+      "cover": "light",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        2,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Great crucible",
+      "description": "The mega forge's head: a colossal tilting crucible on its working platform, its control core housed on its west flank and its spout pouring east onto the line."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Great crucible melt",
+      "description": "Overlay: the great crucible's melt and its spout's run, drawn over its body so the engine can pulse it."
+    },
+    {
+      "col": 0,
+      "row": 16,
+      "name": "Furnace control core",
+      "description": "The great crucible's control core, cut free and lying on its transport skid: the prize."
+    },
+    {
+      "col": 3,
+      "row": 16,
+      "name": "Tapping furnace",
+      "description": "The pour line's tapping furnace: a domed refractory roof ringed by charging ports, its taphole and spout trough running south toward the crane bay."
+    },
+    {
+      "col": 9,
+      "row": 16,
+      "name": "Tapping furnace melt",
+      "description": "Overlay: the melt in the tapping furnace's taphole and spout trough, so the engine can pulse it."
+    },
+    {
+      "col": 15,
+      "row": 16,
+      "name": "Cooling stack",
+      "description": "An automated cooling stack: heavy shelf beams with its stacker carriage parked on the rail along its west side, empty."
+    },
+    {
+      "col": 17,
+      "row": 16,
+      "name": "Cooling stack with castings",
+      "description": "The cooling stack with castings left in field cradles on four of its shelves when the work stopped."
+    },
+    {
+      "col": 19,
+      "row": 16,
+      "name": "Pour head",
+      "description": "The line's pour head module: an armoured nozzle unit on four clamps. A b3 haul."
+    },
+    {
+      "col": 21,
+      "row": 16,
+      "name": "Mould master",
+      "description": "The line's mould master module: a precision block with four master pattern faces. A b3 haul."
+    },
+    {
+      "col": 15,
+      "row": 20,
+      "name": "Fallen runway beam",
+      "description": "A gantry runway beam fallen across the bay floor under its runway, its east end sheared with torn cables: the hall's best cover."
+    },
+    {
+      "col": 0,
+      "row": 19,
+      "name": "Pallet bay marking",
+      "description": "Worn bay markings for dispatch: four corner brackets and a bay label bar, the rest transparent. Lay side by side for a row of bays."
+    },
+    {
+      "col": 19,
+      "row": 18,
+      "name": "Trench cover",
+      "description": "Chequer-plate covers over a service trench between steel kerbs. A run north-south; repeats seamlessly."
+    },
+    {
+      "col": 23,
+      "row": 16,
+      "name": "Drain gutter",
+      "description": "A slotted drain channel in floor plate. A run north-south; repeats seamlessly."
+    },
+    {
+      "col": 21,
+      "row": 18,
+      "name": "Floor drain",
+      "description": "A square floor drain grate in its frame."
+    },
+    {
+      "col": 22,
+      "row": 18,
+      "name": "Gantry runway",
+      "description": "Overhead: a gantry runway box beam with a copper linear-drive stator strip, a column cap at its middle. Drawn above units. A run north-south; repeats seamlessly every 4 cells."
+    },
+    {
+      "col": 23,
+      "row": 18,
+      "name": "Cable tray",
+      "description": "Overhead: a ladder cable tray with its cables. Drawn above units. A run north-south; repeats seamlessly."
+    },
+    {
+      "col": 23,
+      "row": 20,
+      "name": "Fallen cable tray",
+      "description": "A cable tray fallen to the floor, bent, its cables spilled."
+    },
+    {
+      "col": 15,
+      "row": 21,
+      "name": "Oil stain",
+      "description": "An old dark oil stain on the floor. Overlay, laid along the traffic."
+    },
+    {
+      "col": 17,
+      "row": 21,
+      "name": "Oil trail",
+      "description": "A trail of oil drips and smears along a traffic lane, north-south."
+    },
+    {
+      "col": 18,
+      "row": 21,
+      "name": "Coolant stain",
+      "description": "A dried coolant spill, crusted pale blue-green."
+    },
+    {
+      "col": 20,
+      "row": 21,
+      "name": "Scorch mark",
+      "description": "A heat scorch on the floor, sooty with a burnt-steel fringe."
+    },
+    {
+      "col": 0,
+      "row": 22,
+      "name": "Arc burn",
+      "description": "An electrical arc burn: a blast star with forked burn lines, for a blown cabinet."
+    },
+    {
+      "col": 2,
+      "row": 23,
+      "name": "Line pulpit",
+      "description": "The line's control pulpit seen from above: its armoured roof, visor strip along its south edge. Where b2 wakes the line."
+    },
+    {
+      "col": 22,
+      "row": 22,
+      "name": "Recorder console",
+      "description": "A line recorder console: dead screen at its north end, a data-core socket, an amber status bar. b2's recorder."
+    },
+    {
+      "col": 5,
+      "row": 23,
+      "name": "Mag-rail",
+      "description": "The feed mag-rail sunk flush in floor plate: a ribbed trough between guide rails, copper coil rings across it. A run: lay copies end to end north-south (rotate for east-west); it repeats seamlessly. Also the slag skid's lane."
+    },
+    {
+      "col": 7,
+      "row": 23,
+      "name": "Mag-rail curve",
+      "description": "The mag-rail turning a quarter circle, meeting a straight rail at its south and east edges."
+    },
+    {
+      "col": 11,
+      "row": 23,
+      "name": "Mag-rail end",
+      "description": "The end of a mag-rail: a decelerator coil block at its north end, the rail running out of its south edge."
+    },
+    {
+      "col": 13,
+      "row": 23,
+      "name": "Feed capsule pod",
+      "description": "A sealed feed capsule pod riding the mag-rail, its nose a dim charge window: the furnace's charge."
+    },
+    {
+      "col": 15,
+      "row": 23,
+      "name": "Derailed feed pod",
+      "description": "The feed capsule thrown off its rail askew, a band split, ore spilled."
+    },
+    {
+      "col": 18,
+      "row": 23,
+      "name": "Hover slag skid",
+      "description": "A hover slag skid on four lift-fan rings, a slag pot on its spine."
+    },
+    {
+      "col": 21,
+      "row": 24,
+      "name": "Slag skid glow",
+      "description": "Overlay: the glowing crack in the slag skid's crust."
+    },
+    {
+      "col": 0,
+      "row": 26,
+      "name": "Crashed slag skid",
+      "description": "The slag skid crashed at the slag pit's lip, a fan ring torn off, its pot tipped east. Lay it with its east edge on the pit's edge."
+    },
+    {
+      "col": 3,
+      "row": 26,
+      "name": "Slag skid spill",
+      "description": "Overlay: the slag running out of the tipped pot to its east edge, into the pit."
+    },
+    {
+      "col": 11,
+      "row": 25,
+      "name": "Thrust wash",
+      "description": "Faint scorch streaks from hover skids' lift fans, north-south, laid along their lanes."
+    },
+    {
+      "col": 13,
+      "row": 26,
+      "name": "Ladle in its manipulator",
+      "description": "A pouring ladle in the clamp yoke of an overhead manipulator, full of melt. Overhead: drawn above units."
+    },
+    {
+      "col": 16,
+      "row": 26,
+      "name": "Ladle melt",
+      "description": "Overlay: the ladle's melt."
+    },
+    {
+      "col": 6,
+      "row": 27,
+      "name": "Ladle tipped mid-pour",
+      "description": "The manipulator holding the ladle tipped mid-pour, its bowl near empty. Overhead: drawn above units."
+    },
+    {
+      "col": 19,
+      "row": 27,
+      "name": "Ladle pour",
+      "description": "Overlay: the melt pouring from the tipped ladle's lip."
+    },
+    {
+      "col": 0,
+      "row": 24,
+      "name": "Finishing cell",
+      "description": "A robotic finishing cell: a robot arm on its turret plinth reaching to a clamped casting."
+    },
+    {
+      "col": 9,
+      "row": 27,
+      "name": "Metrology bed",
+      "description": "A metrology bed with its scanning arch across it."
+    }
+  ]
+}

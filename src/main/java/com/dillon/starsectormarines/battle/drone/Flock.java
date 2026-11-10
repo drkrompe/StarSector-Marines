@@ -39,6 +39,10 @@ public final class Flock implements DroneAnchor {
     /** The open cells this flock is kept to when it is shut in a light well, row-major; null for the outside. */
     boolean[] well;
     private volatile boolean nodeStands = true;
+    /** The duct the flock is going through, or null (`derelict-watch.md`, Movement). */
+    FlockDuct duct;
+    /** Where the leash is held from: home, or the vent a duct last brought the flock up at. */
+    private float leashX, leashY;
     /** Tick the field was last built, for the rebuild cadence. */
     int fieldTick = Integer.MIN_VALUE / 2;
 
@@ -74,6 +78,20 @@ public final class Flock implements DroneAnchor {
         this.y = homeY;
         this.stationX = homeX;
         this.stationY = homeY;
+        this.leashX = homeX;
+        this.leashY = homeY;
+    }
+
+    /** Whether the flock is going through a service duct now. */
+    public boolean inDuct() { return duct != null; }
+
+    /** The duct it is going through, or null. */
+    public FlockDuct duct() { return duct; }
+
+    /** Holds the leash from {@code (x, y)}: the vent a duct brought the flock up at, or home again. */
+    void leashFrom(float x, float y) {
+        leashX = x;
+        leashY = y;
     }
 
     public int id() { return id; }
@@ -231,10 +249,10 @@ public final class Flock implements DroneAnchor {
     }
 
     private float[] leashed(float gx, float gy) {
-        float dx = gx - homeX, dy = gy - homeY;
+        float dx = gx - leashX, dy = gy - leashY;
         float d = (float) Math.sqrt(dx * dx + dy * dy);
         if (d <= leash) return new float[]{gx, gy};
-        return new float[]{homeX + dx * leash / d, homeY + dy * leash / d};
+        return new float[]{leashX + dx * leash / d, leashY + dy * leash / d};
     }
 
     // ---- what the members read (parallel) ----

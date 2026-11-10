@@ -574,11 +574,15 @@ Laws):
    **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
    get that partially 3d look"; kept for every building). The rise's pinhole
    camera turned on buildings (`BuildingFaces`): each building's roof is
-   lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
-   and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
+   lifted to its eave at the height of what it was built as
+   (`BuildingFaces.heightClass`, the one place it is decided; an author's
+   height from the map patch would go there): sheds, huts and pillboxes a low
+   3.2 m storey; homes one to three storeys, mostly two; stores one, shops two;
+   works one tall bay, the biggest tall works at 15 m; civic halls two or
+   three; a sealed town's blocks a storey higher; a tower's room a tower. Each
+   building's own number steps a street up and down (UNTUNED). It is scaled about the view's centre as a rise's top is,
    and each wall turned to the camera is a face from its foot to the eave,
-   tinted from the building's own and lit by its side, with a window to each
-   cell on every storey. A wall turned away lies under its own roof. All faces
+   tinted from the building's own and lit by its side. A wall turned away lies under its own roof. All faces
    are drawn before all roofs. A face is built on the outline of the roof as
    drawn (its eaves stop short of each outside cell, `RoofCover.rects`), never
    on its cells, so its top is the roof's edge at any view; the first pass
@@ -589,6 +593,35 @@ Laws):
    whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
    compound view full of buildings. Look suite:
    `createSnapshots -Psnapshot=building-faces-look`.
+   **Wall styles and damage** (owner: "wall styles (windows/no
+   windows/doors) and also damage next"). Each cell's length of face shows
+   what stands under it, read from the building and its cells, never a tag
+   of its own:
+   - Homes, shops, offices and clinics have windows on every storey.
+   - Works and warehouses are blind above the ground.
+   - A door is drawn only at an outside doorway; works' and warehouses'
+     doors are loading doors.
+   - The habitat comes from the wall's surface and the world's ground.
+     Sealed (ceramic) towns get round ports and airlock doors, shielded
+     (light-concrete) walls get slits, and frozen towns get deep-set
+     insulated windows.
+
+   Damage is read live from the battle's own state:
+   - A wall's lost HP scorches its upper part, blows its windows and tears
+     holes through it.
+   - A breached cell opens dark to the room behind.
+   - Once half a building's roof has fallen in or burnt
+     (`BuildingFaces.DESTROYED_SHARE`), it drops flat to its rubble.
+     A broken first storey left standing was tried: under the 120 m eye it
+     stands only a few pixels deep at play zoom, so it was dropped.
+
+   Each segment's kind and its building's habitat are settled once per
+   topology change. Windows and doors are drawn only where a cell spans
+   10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);
+   the 280x168 compound view stays at about 0.3 ms. Look suite:
+   `createSnapshots -Psnapshot=building-damage-look` (an open and a frozen
+   crevasse town, intact, damaged and destroyed through the map damage
+   layer).
    Next: each terrace a walkable tier (elevation's terraces,
    `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
    walkways crossing the floor, heat and glow from below (lit windows, vents
@@ -683,13 +716,19 @@ Laws):
      (`LavaFlows`, `CellTopology.lavaFlows`): tongues of cooled crust that broke
      from the melt, widening to rounded toes and now and then splitting, hot
      where they leave the melt and cold at the toe. They are walkable ground
-     whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
-     laid dark, its cracks glowing by the heat, the margin rounded), and they
+     whose look alone changes (`LavaFlowShading`, one shader pass: the crust
+     image laid dark, its cracks glowing by the heat, the margin a curve where
+     the flow's blurred cover crosses a half, lobed and frayed by noise, never
+     the cells' steps, a flow's root running on into the melt so it meets
+     the river's lip as a curve), and they
      keep the landscape's later features off what they buried. The owner picked
      the river with its older flows (2026-11-10, of the rift, the river, the
      river with its flows and the flows alone): a volcanic world's drop is the
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
-     it. Look suite `lava-flow-look`.
+     it. Its scorched lip is laid whole out to the fray's wandering end, and
+     the fray lies on the drop's own cells outside the smoothed edge, so the
+     bank shows no cell steps (`NaturalVoidField`). Look suite
+     `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so
        the melt is seen to run down past it (`LavaBerm.source`,
@@ -707,9 +746,8 @@ Laws):
        meanwhile. A town too far from the river, or with no room, has none.
        Its crossings are causeways of dressed basalt (`Deck.BASALT`), where
        an outdoor drop elsewhere lays timber.
-       Left: the breaks where a walled place or a road stands on the
-       river's line, each left as ground; the line is the design's, never
-       searched for, so steering it round built ground is its own change.
+       A road across the river stands as a bridge; a walled place never
+       stands on it (Where, below).
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -1020,14 +1058,20 @@ Laws):
      (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
      the basalt wall was tried on rock and read as holes at a wide zoom.
    - **Where.** A drop runs edge to edge along its design's line
-     (`NaturalChasm`), wandering, 7 to 12 cells wide. It takes only ground the landscape pass's reservations leave
-     (`OutdoorLandscapeStage`), after the open pit and before anything grows:
-     so it never covers a road, building, doorway, fixture, prop, landing or
-     its approach, or a spawn, and each of those that crosses its line is
-     left standing across it as a bridge. A route between required places is
-     not kept out: its five reserved cells left standing read as the drop
-     stopping, so a crossing is left where the route's own line meets the
-     drop's and the drop takes the rest of the route's ground.
+     (`NaturalChasm`), wandering at most 14 cells off it, 7 to 12 cells wide.
+     The design holds a band as wide as it can reach (`Landform.Drop`), and
+     moves every programmed place's seed off that band's held ground, so a
+     walled place's claim keeps off it (`FortReservations.dropGround`) and the
+     drop runs past its wall. It takes only ground the landscape pass's
+     reservations leave (`OutdoorLandscapeStage`), after the open pit and
+     before anything grows: so it never covers a road, building, doorway,
+     fixture, prop, landing or a spawn, and each of those that crosses its
+     line is left standing across it as a bridge. A route between required
+     places is not kept out: its five reserved cells left standing read as the
+     drop stopping, so a crossing is left where the route's own line meets the
+     drop's and the drop takes the rest of the route's ground. A landing's
+     approach to the edge keeps only trees and rises off a flight path, so the
+     drop runs under it.
    - **Crossings.** Every 34 cells along its line, and wherever a route
      crosses it, a crossing four cells wide is left standing; a regular
      crossing within 17 cells of a route's gives way to it, so no sliver of

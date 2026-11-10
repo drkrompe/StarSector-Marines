@@ -164,6 +164,22 @@ public final class EffectsService {
         smokingWrecks.add(new SmokingWreck(rearX, rearY, 55f, .12f, .6f * scale, 10f));
     }
 
+    /**
+     * A midline carrier: a blast at the hull's centre, smoke off the mission module's sockets {@code moduleAftCells}
+     * aft, and the long fire in the drive cab's engine {@code engineAheadCells} ahead, scaled by {@code scale}.
+     */
+    public void spawnCarrierWreck(float x, float y, float facingDeg, float engineAheadCells, float moduleAftCells,
+                                  float scale) {
+        double angle = Math.toRadians(facingDeg);
+        float sin = (float) Math.sin(angle), cos = (float) Math.cos(angle);
+        float moduleX = x + sin * moduleAftCells, moduleY = y - cos * moduleAftCells;
+        float engineX = x - sin * engineAheadCells, engineY = y + cos * engineAheadCells;
+        spawnHeavyImpact(x, y, .72f * scale);
+        fireBurstsThisFrame.add(new float[]{engineX, engineY, .3f * scale});
+        smokingWrecks.add(new SmokingWreck(moduleX, moduleY, 20f, .05f, .4f * scale, 3f));
+        smokingWrecks.add(new SmokingWreck(engineX, engineY, 55f, .12f, .6f * scale, 10f));
+    }
+
     /** Thin-skinned pickup: a small blast, front-engine fire and brief pintle/ammo flash. */
     public void spawnTechnicalWreck(float x, float y, float facingDeg) {
         double angle = Math.toRadians(facingDeg);

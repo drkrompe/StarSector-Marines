@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.terrain;
 import com.dillon.starsectormarines.battle.world.gen.CellContour;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import java.util.Arrays;
+import java.util.function.IntUnaryOperator;
 
 /** Retained, clipped texture geometry. Borrowed arrays are read-only. No render-time shape generation. */
 public final class TerrainSurface {
@@ -97,6 +98,18 @@ public final class TerrainSurface {
      * ground lays a ramp's floor this way, in a layer that draws after the
      * bands its cut would otherwise show.
      */
+    /** The same geometry with every patch's surface passed through {@code map}: a reskin that moves no edge. */
+    public TerrainSurface remapped(IntUnaryOperator map) {
+        Patch[][] next=new Patch[patches.length][];
+        for(int layer=0;layer<patches.length;layer++) {
+            next[layer]=patches[layer].clone();
+            for(int i=0;i<next[layer].length;i++) {
+                Patch p=next[layer][i];
+                if(p!=null)next[layer][i]=new Patch(map.applyAsInt(p.surface()),p.vertices());
+            }
+        }
+        return new TerrainSurface(width,next,excavated);
+    }
     public TerrainSurface withPatches(int layer,Patch[] cellPatches) {
         Patch[][] next=patches.clone();
         next[layer]=patches[layer].clone();

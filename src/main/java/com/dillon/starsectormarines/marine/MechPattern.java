@@ -86,6 +86,10 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.HEAVY_SKIMMER, EquipmentAccessTier.PRESTIGE);
+        // The midline carriers: the standard every other row is argued against, one tier a weight.
+        VEHICLE_TIERS.put(VehicleType.LIGHT_CARRIER, EquipmentAccessTier.COMMON);
+        VEHICLE_TIERS.put(VehicleType.MEDIUM_CARRIER, EquipmentAccessTier.ADVANCED);
+        VEHICLE_TIERS.put(VehicleType.HEAVY_CARRIER, EquipmentAccessTier.PRESTIGE);
 
     }
 
