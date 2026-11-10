@@ -31,7 +31,8 @@ import java.util.Locale;
  * preset. The layout is the same in every frame; only the skin differs. Per world, the whole map
  * ({@code <world>-1-whole.png}), the works ({@code -2-works.png}), the west gate at play zoom
  * ({@code -3-gate.png}), where a sealed works shows its lock, and the map's first drop ({@code -4-drop.png}). Nothing is played. Opt-in.
- * {@code -Dsnapshot.ownedMaps.worlds=jungle,toxic} picks the worlds; {@code -Dsnapshot.ownedMaps.map=<id>} the map.
+ * {@code -Dsnapshot.ownedMaps.worlds=jungle,toxic} picks the worlds; {@code -Dsnapshot.ownedMaps.map=<id>} the map;
+ * {@code -Dsnapshot.ownedMaps.noDrops=true} draws it without its drops, for a pick between the two.
  */
 public final class OwnedMapLookSuite implements SnapshotSuite {
 
@@ -74,14 +75,20 @@ public final class OwnedMapLookSuite implements SnapshotSuite {
                         .withSignature(SurfaceZoning.signatureFor(world.planetType()))
                         .withLivingWorld(SurfaceZoning.livingWorld(world.planetType()));
                 OwnedMap owned = OwnedMapCatalog.map(mapId);
-                MapResult map = mapId.equals(OwnedMapCatalog.RELAY_NINE) ? RelayNineCompound.generate(8101, profile).map()
+                boolean noDrops = Boolean.getBoolean("snapshot.ownedMaps.noDrops");
+                if (noDrops) owned = new OwnedMap(owned.id(), owned.width(), owned.height(), owned.roads(),
+                        owned.roadGraphFrom(), owned.terrain(), owned.origin(), owned.objective(), owned.grounds(),
+                        owned.pads(), owned.sites(), owned.settlements(), owned.walls(), owned.props(), List.of(),
+                        owned.rises(), owned.routes());
+                MapResult map = mapId.equals(OwnedMapCatalog.RELAY_NINE) && !noDrops
+                        ? RelayNineCompound.generate(8101, profile).map()
                         : OwnedMapRecipe.result(OwnedMapRecipe.build(owned, profile, 8101));
                 BiomeSkin skin = BiomeSkin.of(profile);
                 try (BattleSimulation sim = new BattleSimulation(map.grid, map.topology)) {
                     for (Doodad d : map.doodads) sim.addDoodad(d);
                     sim.setSurface(profile.surface());
                     int w = map.topology.getWidth(), h = map.topology.getHeight();
-                    String tag = mapId + "-" + world.tag() + "-";
+                    String tag = mapId + (noDrops ? "-nodrops-" : "-") + world.tag() + "-";
                     BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
                             w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
                     out.add(new SnapshotArtifact(tag + "1-whole.png", look.render(sim, "")));
