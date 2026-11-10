@@ -39,6 +39,8 @@ public final class CampaignState implements Serializable {
     public ShepherdRecoveryProgress shepherdRecovery;
     /** Null in older saves and until the first Wellhollow launch; *The Wellhollow Bloom* on Asharu. */
     public WellhollowBloomProgress wellhollowBloom;
+    /** Null in older saves and until the first launch; *The Long Survey*, the fallen-hull arc. */
+    public LongSurveyProgress longSurvey;
     /** Null in older saves; the first Agreus launch freezes its authored attempt. */
     public AgreusArcProgress agreusArc;
     /** Null until the first District Escort launch after *A Small War*; separate from the arc's receipts. */
