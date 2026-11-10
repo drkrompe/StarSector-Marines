@@ -377,6 +377,32 @@ final class LayeredMechComposer {
         };
     }
 
+    /**
+     * The drawing {@code appearance} names on {@code slot}: an arm gun's on an arm mount, a pod's on a shoulder; null for
+     * none.
+     */
+    static LayeredSpriteCache mountSprite(LayeredMechAssets assets, MechMountSlot slot, int appearance) {
+        if (slot.isArm()) return armSprite(assets, appearance);
+        return switch (appearance) {
+            case LayeredMechAppearance.POD_LL_3 -> assets.ll3;
+            case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
+            case LayeredMechAppearance.POD_SRM_3_QS -> assets.srm3QsPod;
+            case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_SMALL_LRM -> assets.srmPod;
+            case LayeredMechAppearance.POD_LARGE_SRM, LayeredMechAppearance.POD_LARGE_LRM -> assets.lrmPod;
+            default -> null;
+        };
+    }
+
+    /** Whether the drawing {@code appearance} names on {@code slot} flashes on the SRM track rather than the LRM. */
+    static boolean srmPod(int appearance) {
+        return isSrmPod(appearance);
+    }
+
+    /** Whether an arm gun's drawing kicks back as it fires. */
+    static boolean armKicks(int gun) {
+        return armRecoils(gun);
+    }
+
     private static LayeredSpriteCache armSprite(LayeredMechAssets assets, int gun) {
         return switch (gun) {
             case LayeredMechAppearance.ARMS_CHAINGUN,

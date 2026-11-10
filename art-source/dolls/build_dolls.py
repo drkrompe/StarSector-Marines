@@ -106,6 +106,7 @@ class Doll:
         self.width = width
         self.parts = {}   # location -> list of panels, in drawing order
         self.details = {}  # location -> thin lines drawn inside its panels
+        self.glyphs = {}   # "LOCATION.KIND" -> svg elements: a mount's weapon, shown only while it holds that kind
 
     def panel(self, location, points, cx, convex=True):
         """One outline. A mech part may be concave (a leg, a side torso with its pod), a hull panel may not."""
@@ -128,6 +129,14 @@ class Doll:
         self.shape(left, points, cx, details)
         self.shape(right, flip(points), cx, flip_lines(details))
 
+    def glyph(self, location, kind, circles, lines, cx):
+        """One weapon shape in a mount (MountGlyph): circles (x, y, r) and lines, drawn only while the mount holds a
+        weapon of that kind, in the mount's state colour."""
+        out = self.glyphs.setdefault(f"{location}.{kind}", [])
+        out.extend(f'<circle cx="{cx + x:.1f}" cy="{y:.1f}" r="{r:.1f}"/>' for x, y, r in circles)
+        out.extend(f'<line x1="{cx + a[0]:.1f}" y1="{a[1]:.1f}" x2="{cx + b[0]:.1f}" y2="{b[1]:.1f}"/>'
+                   for a, b in lines)
+
     def pair(self, left, right, points, cx):
         """A panel authored on the viewer's left, and its mirror on the right."""
         self.panel(left, points, cx)
@@ -146,6 +155,9 @@ class Doll:
                     if lines else "")
             body.append(f'<g id="part-{location}" fill="currentColor" fill-opacity="{FILL_OPACITY}" '
                         f'stroke="currentColor" stroke-width="{STROKE}" stroke-linejoin="miter">{shapes}{thin}</g>')
+        for part, elements in self.glyphs.items():
+            body.append(f'<g id="part-{part}" fill="none" stroke="currentColor" stroke-width=".9">'
+                        + "".join(elements) + "</g>")
         svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.width} {H}">'
                f'<title>{self.name} damage doll</title>' + "".join(body) + "</svg>\n")
         (OUT / f"{self.name}.svg").write_text(svg, encoding="utf-8", newline="\n")
@@ -378,25 +390,48 @@ def bulwark(name):
     return d.write()
 
 
+def port_weapons(d, location, cx, x, y):
+    """The guns a flank port may hold, seen down the bore from in front, centred on (x, y)."""
+    ring = [(x + 3.4 * cos(radians(a)), y + 3.4 * sin(radians(a)), 1.0) for a in range(0, 360, 60)]
+    d.glyph(location, "ROTARY", [(x, y, 5.6)] + ring, [], cx)
+    d.glyph(location, "CANNON", [(x, y, 5.4), (x, y, 2.6)], [((x - 6.5, y), (x - 5.4, y)), ((x + 5.4, y), (x + 6.5, y))],
+            cx)
+    d.glyph(location, "LASER", [(x, y, 4.8), (x, y, 1.6)], [((x - 4.8, y), (x - 1.6, y)), ((x + 1.6, y), (x + 4.8, y))],
+            cx)
+
+
+def rack_weapons(d, location, cx, x0, y0, x1, y1):
+    """The packs a back rack may hold: two by two tubes for a small pack, three by three for a large."""
+    for kind, n in (("SMALL_RACK", 2), ("LARGE_RACK", 3)):
+        w, h = (x1 - x0) / n, (y1 - y0) / n
+        r = min(w, h) * 0.34
+        d.glyph(location, kind, [(x0 + w * (i + .5), y0 + h * (j + .5), r) for i in range(n) for j in range(n)], [],
+                cx)
+
+
 def derelict(name):
     """The derelict security walkers' one chassis: a low armoured torso slung between legs that reach up to a high
     knee and down to a wide-planted foot, a gun port in each flank, two racks on its back and a small sensor cluster
     for a head. The heavy, the rounds walker and the hall frame share it; a port or rack a frame leaves empty draws
-    as outline."""
+    as outline. Each port and rack draws the weapon it holds (port_weapons, rack_weapons): the heavy's line, siege
+    and vault frames carry different guns on the one body."""
     d = Doll(name)
     port = [(-16, 64), (-31, 64), (-31, 82), (-16, 82)]
-    barrels = [((-29, 70), (-18, 70)), ((-29, 76), (-18, 76))]
     rack = [(-18, 50), (-6, 50), (-6, 64), (-18, 64)]
     leg = [(-31, 64), (-42, 42), (-48, 42), (-54, 52), (-54, 118), (-57, 130), (-43, 130), (-46, 118), (-46, 62),
            (-31, 82)]
     for cx, rear in views():
         sl, sr = shoulders(rear)
         d.panel("TORSO_REAR" if rear else "TORSO", [(-16, 64), (16, 64), (16, 88), (-16, 88)], cx)
-        d.mirrored(sl, sr, rack, cx, tubes(-18, 50, -6, 64, 2, 2))
+        d.mirrored(sl, sr, rack, cx)
+        rack_weapons(d, sl, cx, -17, 51, -7, 63)
+        rack_weapons(d, sr, cx, 7, 51, 17, 63)
         if rear:
             continue
         d.panel("HEAD", [(-4, 54), (4, 54), (6, 64), (-6, 64)], cx)
-        d.mirrored("RIGHT_ARM", "LEFT_ARM", port, cx, barrels)
+        d.mirrored("RIGHT_ARM", "LEFT_ARM", port, cx)
+        port_weapons(d, "RIGHT_ARM", cx, -23.5, 73)
+        port_weapons(d, "LEFT_ARM", cx, 23.5, 73)
         d.mirrored("LEGS", "LEGS", leg, cx, [((-54, 52), (-46, 62)), ((-54, 118), (-46, 118))])
     return d.write()
 

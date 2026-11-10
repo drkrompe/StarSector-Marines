@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c66e-051d-7021-8523-fde86ed40132",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c66e-051d-7021-8523-fde86ed40132\\exec-4597add6-6f95-4868-8287-26639f9310eb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\hydro-sheds.raw.png",
+    "sha256": "2f932725dbef726532f6cbcbf41c0d8a8a1f07196721bcdfb7223431f801f37e",
+    "dimensions": [
+      1448,
+      1086
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\hydro-sheds.prompt.txt",
+  "promptSha256": "746d6d5159f0fcc7bcf6f77db8e215842bffc82cc2eb2ec7902bf9244640f185",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact edit target, keep every outline, position and size\nImage 2: Material/style only; not layout\n\nUse case: sketch-to-render reskin of a production transparent sprite sheet for a gritty science-fiction overhead tactical game (Starsector Marines). Image 1 is the exact geometry guide and edit target: keep the 1536x1152 canvas, every object's position, outline, size, proportions and orientation exactly as drawn, and keep all empty space empty. Image 2 is a material and rendering-style reference only (painted, worn, grounded top-down game sprites from the same game); do not copy its objects or layout.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight down. No perspective, no visible vertical side faces, no cast shadows, no ground or soil around the objects.\n\nPaint a frontier colony's hydroponic farm, grown sealed indoors under artificial light because the planet outside is frozen, irradiated or poisonous. It must read at a glance, even small, as enclosed hydroponic growing: wherever the guide paints magenta, paint glowing magenta-pink LED grow light (a bright saturated core with a soft pink bloom) shining on dense green leafy crops in hydroponic trays; never paint the magenta as paint, fabric or flat colour. Three pieces, in reading order:\n1. Top, a long pressurised hydroponic shed seen from above: a rigid off-white ribbed steel roof (ribs where the guide draws them), split lengthwise by two long glazed skylights through which glowing magenta grow-light bars and racks of green crops show, three round extractor fans on the roof ridge, a dark steel airlock box at the west end, and a pair of teal-insulated pipes running along the south eave.\n2. Bottom left, the same shed, half as long, with the same roof, two lit skylights, one fan, airlock and eave pipes.\n3. Bottom right, a pump house on a dark steel skid: two round white water and nutrient tanks with hatches, a blue-grey pump block, a vertical riser pipe joining them and a teal header pipe along the bottom edge.\n\nGrounded painted Starsector-style sprite aesthetic: credible industrial materials, worn steel, bolts, seams, hazard stencils without letters, a little grime and frost on edges; soft neutral overhead light with shallow local shading only, the grow light the one saturated accent. Readable broad forms at small game scale. No chunky pixel-art outlines, no cartoon style, no text, numbers or letters anywhere.\n\nTrue alpha transparency around every object and in every gap of the guide; no floor, no background, no shadow slab, no border, no labels, no watermark. Paint only these three objects and nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\hydro-sheds-guide.png",
+      "sha256": "f39f119a823825d5cf17e841295c85ee4edbbf342b6eedf602533c6369d8b446",
+      "dimensions": [
+        1536,
+        1152
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: exact edit target, keep every outline, position and size"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\street-dressing.png",
+      "sha256": "92db899d8e76ee4e2071ef8608d359bd7a20f43d66e1181f74e3d26ed352a566",
+      "dimensions": [
+        1152,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving the guide’s geometry and transparent gaps."
+  ],
+  "usage": {
+    "input_tokens": 80940,
+    "cached_input_tokens": 65920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 741,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 64.0
+}

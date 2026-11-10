@@ -179,10 +179,16 @@ public final class RoofTiles {
         return 1f - (1f - channel) * TINT_SHARE;
     }
 
-    /** A frame coordinate held half a texel inside a frame {@code framePx} across, out of the next frame's reach. */
-    public static float insideFrame(float t, float framePx) {
-        float inset = 0.5f / Math.max(1f, framePx);
-        return Math.max(inset, Math.min(1f - inset, t));
+    /**
+     * The sheet pixel a roof draws frame coordinate {@code t} of frame {@code index} at, along one axis of frames
+     * {@code framePx} across: a whole pixel, as a sheet quad's source rectangle is, and held a texel inside the frame
+     * so a bilinear tap never reaches the next one. The streamed roof and the resident mesh both address the sheet
+     * through it, so the two draw the same texels.
+     */
+    public static int framePixel(int index, float t, float framePx) {
+        int first = Math.round(index * framePx) + 1;
+        int last = Math.round((index + 1) * framePx) - 1;
+        return Math.max(first, Math.min(last, Math.round((index + t) * framePx)));
     }
 
     private static int hash(int x, int y) {
