@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -28,6 +29,16 @@ final class FreestandingWallFaces {
     private List<FreestandingWalls.Run> runs = List.of();
     /** Each cell's part of a sealed town's envelope ({@link FreestandingWalls#part}), its ordinal + 1; 0 where none. */
     private byte[] parts = new byte[0];
+    private final CreepPalette creepPalette = CreepPalette.active();
+    private final float[] capTone = new float[3];
+    /** The share of the face now held that the cell being painted spans, and the creep's alpha. */
+    private float cu0, cu1, calpha;
+    private final float[] creepTone = new float[3];
+    /** Creep up the stroke's side now held in {@link #face} ({@link CreepClimb}), within one cell's share of it. */
+    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, r, g, b) -> {
+        creepTone[0] = r; creepTone[1] = g; creepTone[2] = b;
+        this.face.band(cu0 + (cu1 - cu0) * t0, cu0 + (cu1 - cu0) * t1, z0, z1, creepTone, 1f, calpha);
+    };
 
     /**
      * This frame's walls into the roof layer.
@@ -54,6 +65,9 @@ final class FreestandingWallFaces {
         VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6, gridW,
                 topology.getHeight());
         mesh.reset();
+        CreepField creep = sim.creepFieldIfPresent();
+        if (creep != null && creep.isEmpty()) creep = null;
+        boolean detail = Math.abs(camera.cellToScreenX(1f) - camera.cellToScreenX(0f)) >= 10f;
         footing.reset();
         for (FreestandingWalls.Run run : runs) {
             if (!view.intersects(run.minX(), run.maxX(), run.minY(), run.maxY())) continue;
@@ -63,7 +77,7 @@ final class FreestandingWallFaces {
                 envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
                 continue;
             }
-            strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
+            strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.ROOFS, mesh);
         if (!footing.isEmpty()) out.addPoly(RenderLayer.DECALS, footing);
@@ -85,7 +99,7 @@ final class FreestandingWallFaces {
      * its cells' corners.
      */
     private void strokes(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
-                         int gridW, int gridH, float unseen, float alphaMult) {
+                         int gridW, int gridH, float unseen, float alphaMult, CreepField creep, boolean detail) {
         float meters = run.meters(), lift = BuildingFaces.lift(meters);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
@@ -127,6 +141,20 @@ final class FreestandingWallFaces {
             int cells = Math.max(1, Math.round((float) Math.hypot(bx - ax, by - ay)));
             face.set(camera, sx, sy, ax, ay, bx, by, meters);
             dressFace(kind, base, cells, cell * 4 + e % 4, light, alphaMult);
+            if (creep != null) {
+                // Cell by cell along the face, each the coverage of the wall cell just inside it.
+                calpha = alphaMult;
+                for (int slice = 0; slice < cells; slice++) {
+                    float t = (slice + .5f) / cells;
+                    int at = cellAt(ax + (bx - ax) * t - ed[e + 4] * .3f, ay + (by - ay) * t - ed[e + 5] * .3f,
+                            gridW, gridH);
+                    if (at < 0) continue;
+                    cu0 = slice / (float) cells;
+                    cu1 = (slice + 1) / (float) cells;
+                    CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette, light,
+                            detail, creepOnFace);
+                }
+            }
         }
         Cap c = new Cap(camera, sx, sy, lift);
         float[] top = scale(base, 1.06f), coping = scale(base, 1.22f), joint = scale(base, .86f);
@@ -136,6 +164,20 @@ final class FreestandingWallFaces {
             float fog = fog(shown, (int) x0 + (int) y0 * gridW, gridW, gridH, unseen);
             FreestandingWalls.corners(x0, y0, x1, y1, FreestandingWalls.HALF, q);
             c.quad(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], top, fog, alphaMult);
+            int cells = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) + 1);
+            for (int k = 0; creep != null && k < cells; k++) {
+                // An old creep crusts over the wall's top too, as it did the wall cell on the ground.
+                float f = cells <= 1 ? 0f : k / (float) (cells - 1);
+                int at = cellAt(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, gridW, gridH);
+                float crust = at < 0 ? 0f : CreepClimb.crust(creep.coverageAt(at));
+                if (crust <= 0f) continue;
+                CreepClimb.tone(creepPalette.flesh(), creepPalette.dead(), creep.vitalityAt(at), 1f, capTone);
+                float u0 = k / (float) cells, u1 = (k + 1) / (float) cells;
+                c.quad(q[0] + (q[2] - q[0]) * u0, q[1] + (q[3] - q[1]) * u0,
+                        q[0] + (q[2] - q[0]) * u1, q[1] + (q[3] - q[1]) * u1,
+                        q[6] + (q[4] - q[6]) * u1, q[7] + (q[5] - q[7]) * u1,
+                        q[6] + (q[4] - q[6]) * u0, q[7] + (q[5] - q[7]) * u0, capTone, fog, alphaMult * crust);
+            }
         }
         // The coping round the outline, so it turns every joint where strokes meet.
         for (int e = 0; e < ed.length; e += FreestandingWalls.EDGE) {
@@ -158,6 +200,12 @@ final class FreestandingWallFaces {
 
     private final float[] strokeQuad = new float[8], foot = new float[8];
     private long[] order = new long[64];
+
+    /** The cell holding the point {@code (x, y)}, as an index, or -1 off the map. */
+    private static int cellAt(float x, float y, int gridW, int gridH) {
+        int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
+        return cx < 0 || cy < 0 || cx >= gridW || cy >= gridH ? -1 : cx + cy * gridW;
+    }
 
     private static boolean near(VisibleCellRect view, float x0, float y0, float x1, float y1) {
         return view.intersects((int) Math.min(x0, x1) - 1, (int) Math.max(x0, x1) + 1,

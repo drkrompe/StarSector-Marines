@@ -57,7 +57,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
                 PolyTess.appendAnnulus(mesh, rawX, rawY, Math.max(0, radiusPx - .75f), radiusPx + .75f,
                         64, r, g, b, decoration * alpha);
             }
-            if (focus && active && !marker.footprint().isEmpty()) {
+            boolean ownRing = marker.progress() >= 0;
+            if ((focus || ownRing) && active && !marker.footprint().isEmpty()) {
                 var cells = new HashSet<>(marker.footprint());
                 for (var cell : cells) {
                     float left = camera.cellToScreenX(cell.x()), right = camera.cellToScreenX(cell.x() + 1);
@@ -80,8 +81,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
             // so the map reads "must" apart from "may".
             if (item.optional()) PolyTess.appendAnnulus(mesh, x, y, 7, 10, 24, r, g, b, alpha);
             else PolyTess.appendAnnulus(mesh, x, y, 9, 12, 4, r, g, b, alpha);
-            if (focus && item.progress() >= 0 && active)
-                PolyTess.appendArc(mesh, x, y, 15, 18, Math.min(1, item.progress()), 40, r, g, b, alpha);
+            float ring = ownRing ? marker.progress() : focus ? item.progress() : -1;
+            if (ring >= 0 && active) PolyTess.appendArc(mesh, x, y, 15, 18, Math.min(1, ring), 40, r, g, b, alpha);
             if (blocked) {
                 out.addLine(layer(), x - 3, y - 4, x - 3, y + 4, 2, r, g, b, alpha);
                 out.addLine(layer(), x + 3, y - 4, x + 3, y + 4, 2, r, g, b, alpha);

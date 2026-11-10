@@ -2003,7 +2003,17 @@ against its own control in `renderEvidence`.
   and the roof, sight and cover follow it. Creep that withers stops the count;
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
   creep field knows nothing of roofs. An infested building is no shelter twice
-  over: no colonist stops in it, and given time it has no roof.
+  over: no colonist stops in it, and given time it has no roof. Drawn stood up
+  (`voids.md`, buildings in depth), its walls stay standing round the fallen
+  roof as a gutted shell; only walls breached to rubble raze a building.
+- **Creep climbs the walls it holds** (`CreepClimb`). A wall cell's coverage is
+  how long the creep has held it, and a stood-up wall shows it up its face:
+  veins reaching from the foot on a young wall, a lumpy crust banded up from
+  the foot on an old one with the veins running on above it, a storey and a
+  little more at most. Living creep wears the palette's flesh, rim and veins
+  with a glow in the crust; dying creep greys to the palette's dead tone. It
+  climbs a building's street side and, seen in a cutaway, the room's side,
+  and a freestanding wall's faces, crusting its top once old.
 - **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
   is fuel, living or dying; creep under a fire crisps away in seconds, and
   burnt ground refuses the creep for about three minutes before the sources
