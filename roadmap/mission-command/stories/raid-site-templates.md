@@ -93,7 +93,7 @@ road.
 - [x] A site for every industry a raid can name: refining, light industry,
   farming, spaceport and military too (`raid-<industry>-site-look` suites).
 - [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
-  as its process after the owner rejected the generic shops (`FabricationWorks`,
+  as its process after the owner rejected the generic shops (`LightIndustryWorks`,
   `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`).
 
 ## Constraints

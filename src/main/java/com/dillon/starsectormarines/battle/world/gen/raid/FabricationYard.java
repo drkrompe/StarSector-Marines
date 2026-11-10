@@ -1,14 +1,11 @@
-package com.dillon.starsectormarines.battle.world.gen.precinct;
+package com.dillon.starsectormarines.battle.world.gen.raid;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OreLine;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FabricationWorks;
-import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
-import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
-import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Props;
-import com.dillon.starsectormarines.battle.world.gen.layout.Worked;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -26,16 +23,16 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 
 /**
- * The yard of light industry's fabrication works ({@link FabricationWorks}), dressed for the work it does once its
+ * The yard of light industry's fabrication works ({@link LightIndustryWorks}), dressed for the work it does once its
  * halls stand: what tells a raider, from the yard, what this place is and which way the work runs.
  *
  * <ul>
  *   <li><b>The parts line.</b> An overhead conveyor links the halls in the order the work passes: receiving dock to
  *   parts stores, stores to each fabrication shop, each shop to the assembly hall, assembly to finishing, finishing
  *   to each dispatch shed. Its trestle legs stand in the yard as cover.</li>
- *   <li><b>The feeders' trucks.</b> One truck per feeding shop is queued at the receiving dock, backed in to unload,
- *   up to what the dock's face takes ({@link #MAX_TRUCKS}), with the stock they brought staged beside them: bar
- *   stock, cable reels, drums, pallets.</li>
+ *   <li><b>The feeders' trucks.</b> The feeding shops' trucks are queued at the receiving dock, backed in to
+ *   unload ({@link #MAX_TRUCKS}, alongside where there is no room to back in), with the stock they brought staged
+ *   beside them: bar stock, cable reels, drums, pallets.</li>
  *   <li><b>Work in progress.</b> Part bins and pallets at the stores and the shops; totes and pallets at assembly;
  *   paint drums at finishing; crated goods, a loader and a van at each dispatch shed.</li>
  *   <li><b>The shifts.</b> Mess tables and a bin outside the canteen, and trodden paths from its door to each
@@ -44,15 +41,19 @@ import java.util.function.IntPredicate;
  *
  * Each hall's kit is set by its doors first, then its stock again along what is left of its faces ({@link #FILL}).
  * Everything stands against the wall of the hall it belongs to, off its doors and off the roads, with a lane at least
- * {@link #LANE} cells wide left open beyond it, so the dressing never closes a way through the works. Laid as a
- * {@link Deferred} piece in the works phase, from the grown ground; its draws come from the ground's own seed.
+ * {@link #LANE} cells wide left open beyond it, so the dressing never closes a way through the works. Laid by
+ * {@link LightIndustryWorks#dressWorks} once the halls stand; its draws come from the map's own seed.
  */
 public final class FabricationYard {
 
-    /** The deferred piece's name; its laid pieces are this with a suffix. */
+    /** The dressing's name: the key its draws are seeded from. */
     public static final String NAME = "fabrication-yard";
 
-    /** Trucks the receiving dock queues at most, however many shops feed it. UNTUNED. */
+    /**
+     * Trucks queued at the receiving dock: the hub is fed by more shops than its dock takes at once
+     * ({@link com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate#feedersFor} is never
+     * under three), so its face is full. UNTUNED.
+     */
     static final int MAX_TRUCKS = 4;
     /** Cells of open ground left beyond anything set against a wall. UNTUNED. */
     static final int LANE = 3;
@@ -113,30 +114,28 @@ public final class FabricationYard {
     private FabricationYard() { }
 
     /**
-     * The deferred piece that dresses the works' yard once its halls stand.
-     *
-     * @param feeders the shops that feed the works ({@link RaidSiteTemplate#feedersFor}), one truck each at the dock
+     * Dresses the works named {@code worksName} on the built map: plans the yard from its halls and lays it, the
+     * shifts' paths as trodden ground, then the parts line, its legs and the props, each through the ordinary prop
+     * placement, which skips one whose ground is no longer open.
      */
-    public static Deferred piece(int feeders) {
-        return new Deferred(NAME, Phase.WORKS, ground -> pieces(ground, feeders), false);
-    }
-
-    static List<Piece> pieces(LayoutGround ground, int feeders) {
-        int[] works = ground.claimBounds(RaidSiteTemplate.WORKS);
-        if (works == null) return List.of();
+    public static void dress(GenContext c, String worksName) {
+        LayoutGround ground = new LayoutGround(c);
+        int[] works = ground.claimBounds(worksName);
+        if (works == null) return;
         TileRegistry registry = TileRegistry.installed();
-        String line = registry != null && registry.doodad(LINE_ART + "straight") != null ? LINE_ART : LINE_STAND_IN;
+        if (registry == null) return;
+        String line = registry.doodad(LINE_ART + "straight") != null ? LINE_ART : LINE_STAND_IN;
         Function<String, int[]> footprint = id -> {
-            DoodadDef def = registry == null ? null : registry.doodad(id);
+            DoodadDef def = registry.doodad(id);
             return def == null ? null : new int[]{def.footprintCellsX, def.footprintCellsY};
         };
-        Dressing d = plan(halls(ground, works), adapt(ground, works), feeders, ground.seed(NAME), line, footprint);
-        List<Piece> out = new ArrayList<>();
-        if (!d.paths().isEmpty()) out.add(new Worked(NAME + "-paths", d.paths(), false));
-        if (!d.line().isEmpty()) out.add(new Props(NAME + "-line", d.line(), false));
-        if (!d.legs().isEmpty()) out.add(new Props(NAME + "-legs", d.legs(), false));
-        if (!d.props().isEmpty()) out.add(new Props(NAME + "-stock", d.props(), false));
-        return out;
+        Dressing d = plan(halls(ground, works), adapt(ground, works), ground.seed(NAME), line, footprint);
+        for (int[] cell : d.paths()) PreparedGround.workedGround(c, cell[0], cell[1]);
+        for (List<Props.Placement> props : List.of(d.line(), d.legs(), d.props())) {
+            for (Props.Placement p : props) {
+                PreparedGround.prop(c, p.x(), p.y(), registry.doodad(p.doodad()), p.quarterTurns());
+            }
+        }
     }
 
     private static Ground adapt(LayoutGround g, int[] works) {
@@ -207,7 +206,7 @@ public final class FabricationYard {
     }
 
     static boolean isStep(RoomPurpose p) {
-        return FabricationWorks.PROCESS.contains(p) || p == FabricationWorks.CANTEEN;
+        return LightIndustryWorks.PROCESS.contains(p) || p == LightIndustryWorks.CANTEEN;
     }
 
     /**
@@ -217,7 +216,7 @@ public final class FabricationYard {
      * @param line      the parts line's art prefix, its shapes named after {@link OreLine.Shape}
      * @param footprint a doodad's footprint unturned, {@code {x, y}}, or {@code null} when it is not installed
      */
-    public static Dressing plan(List<Hall> halls, Ground g, int feeders, long seed, String line,
+    public static Dressing plan(List<Hall> halls, Ground g, long seed, String line,
                                 Function<String, int[]> footprint) {
         int w = g.width(), h = g.height();
         boolean[] taken = new boolean[w * h];
@@ -237,7 +236,7 @@ public final class FabricationYard {
             return g.open(x, y) && !g.road(x, y) && !nearDoor(doors, x, y, DOOR_CLEAR) && laneAround(g, x, y);
         };
         List<RoomPurpose> steps = new ArrayList<>();
-        for (RoomPurpose step : FabricationWorks.PROCESS) if (byStep.containsKey(step)) steps.add(step);
+        for (RoomPurpose step : LightIndustryWorks.PROCESS) if (byStep.containsKey(step)) steps.add(step);
         for (int k = 0; k + 1 < steps.size(); k++) {
             for (Hall from : byStep.get(steps.get(k))) {
                 for (Hall to : byStep.get(steps.get(k + 1))) {
@@ -249,11 +248,11 @@ public final class FabricationYard {
         // The shifts' paths: from the canteen's door to the doors of the halls they work in.
         List<int[]> paths = new ArrayList<>();
         boolean[] trodden = new boolean[w * h];
-        for (Hall canteen : byStep.getOrDefault(FabricationWorks.CANTEEN, List.of())) {
+        for (Hall canteen : byStep.getOrDefault(LightIndustryWorks.CANTEEN, List.of())) {
             if (canteen.doors().isEmpty()) continue;
             int[] start = canteen.doors().get(0);
             for (Hall hall : halls) {
-                if (hall.step() != FabricationWorks.SHOP) continue;
+                if (hall.step() != LightIndustryWorks.SHOP) continue;
                 if (hall.doors().isEmpty()) continue;
                 int[] end = nearest(hall.doors(), start);
                 IntPredicate walk = i -> {
@@ -275,56 +274,55 @@ public final class FabricationYard {
         // The props, hall by hall in the order of the work.
         SplittableRandom rng = new SplittableRandom(seed);
         List<Props.Placement> props = new ArrayList<>();
-        List<RoomPurpose> order = new ArrayList<>(FabricationWorks.PROCESS);
-        order.add(FabricationWorks.CANTEEN);
+        List<RoomPurpose> order = new ArrayList<>(LightIndustryWorks.PROCESS);
+        order.add(LightIndustryWorks.CANTEEN);
         for (RoomPurpose step : order) {
             for (Hall hall : byStep.getOrDefault(step, List.of())) {
-                set(hall, kit(step, feeders, rng), g, taken, doors, footprint, props);
+                set(hall, kit(step, rng), g, taken, doors, footprint, props);
             }
         }
         return new Dressing(pieces, legs, props, paths);
     }
 
     /** What stands against a hall's wall, by its step, in the order it is set down. */
-    static List<Item> kit(RoomPurpose step, int feeders, SplittableRandom rng) {
+    static List<Item> kit(RoomPurpose step, SplittableRandom rng) {
         List<Item> out = new ArrayList<>();
-        if (step == FabricationWorks.RECEIVING) {
+        if (step == LightIndustryWorks.RECEIVING) {
             String[] trucks = {"doodad.parked-cargo-truck", "doodad.parked-flatbed-truck", "doodad.parked-box-van"};
-            int n = Math.min(MAX_TRUCKS, Math.max(1, feeders));
-            for (int i = 0; i < n; i++) out.add(Item.across(trucks[rng.nextInt(trucks.length)]));
+            for (int i = 0; i < MAX_TRUCKS; i++) out.add(Item.across(trucks[rng.nextInt(trucks.length)]));
             out.add(Item.along("machine-shop.bar-stock"));
             out.add(Item.along("doodad.industrial-cable-reel"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
             out.add(Item.along("doodad.industrial-drum-cluster"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
-        } else if (step == FabricationWorks.STORES) {
+        } else if (step == LightIndustryWorks.STORES) {
             out.add(Item.along("doodad.stores-bin-rack"));
             out.add(Item.along("doodad.stores-bin-rack"));
             out.add(Item.along("loading-bay.pallet-tug"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
-        } else if (step == FabricationWorks.SHOP) {
+        } else if (step == LightIndustryWorks.SHOP) {
             out.add(Item.along("machine-shop.bearings"));
             out.add(Item.along("doodad.stores-bin-rack"));
             out.add(Item.along(rng.nextBoolean() ? "machine-shop.electrical" : "machine-shop.bar-stock"));
             out.add(Item.along("doodad.industrial-scrap-pile"));
-        } else if (step == FabricationWorks.ASSEMBLY) {
+        } else if (step == LightIndustryWorks.ASSEMBLY) {
             out.add(Item.along("loading-bay.insulated-tote"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
             out.add(Item.along("doodad.stores-cargo-loader"));
             out.add(Item.along("loading-bay.insulated-tote"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
-        } else if (step == FabricationWorks.FINISHING) {
+        } else if (step == LightIndustryWorks.FINISHING) {
             out.add(Item.along("doodad.industrial-drum-cluster"));
             out.add(Item.along("doodad.industrial-drum-cluster"));
             out.add(Item.along("doodad.industrial-fluid-tank"));
             out.add(Item.along("doodad.industrial-pallet-stack"));
-        } else if (step == FabricationWorks.DISPATCH) {
+        } else if (step == LightIndustryWorks.DISPATCH) {
             out.add(Item.across("doodad.parked-box-van"));
             out.add(Item.along("doodad.industrial-crate-stack"));
             out.add(Item.along("doodad.industrial-crate-stack"));
             out.add(Item.along("doodad.stores-cargo-loader"));
             out.add(Item.along("doodad.industrial-crate-stack"));
-        } else if (step == FabricationWorks.CANTEEN) {
+        } else if (step == LightIndustryWorks.CANTEEN) {
             out.add(Item.along("doodad.mess-table-long"));
             out.add(Item.along("doodad.mess-table-long"));
             out.add(Item.along("doodad.industrial-dumpster"));

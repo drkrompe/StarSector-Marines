@@ -1,15 +1,16 @@
-package com.dillon.starsectormarines.battle.world.gen.precinct;
+package com.dillon.starsectormarines.battle.world.gen.raid;
 
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FabricationWorks;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
-import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Props;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Light industry's fabrication works ({@link FabricationWorks}) and the yard it is dressed with
+ * Light industry's fabrication works ({@link LightIndustryWorks}) and the yard it is dressed with
  * ({@link FabricationYard}): the process's order on the ground, and dressing that shows it without closing a way.
  * The yard is planned on a hand-drawn ground of eight halls; no map is generated.
  */
@@ -40,14 +41,14 @@ class FabricationYardTest {
     }
 
     private static final List<FabricationYard.Hall> HALLS = List.of(
-            hall(FabricationWorks.RECEIVING, 4, 46, 17, 53, new int[]{10, 45}),
-            hall(FabricationWorks.STORES, 26, 46, 37, 52, new int[]{31, 45}),
-            hall(FabricationWorks.SHOP, 4, 28, 15, 35, new int[]{9, 36}),
-            hall(FabricationWorks.SHOP, 26, 28, 37, 35, new int[]{31, 36}),
-            hall(FabricationWorks.ASSEMBLY, 46, 28, 63, 36, new int[]{45, 32}),
-            hall(FabricationWorks.FINISHING, 46, 6, 57, 13, new int[]{51, 14}),
-            hall(FabricationWorks.DISPATCH, 26, 6, 37, 12, new int[]{31, 13}),
-            hall(FabricationWorks.CANTEEN, 4, 6, 13, 12, new int[]{8, 13}));
+            hall(LightIndustryWorks.RECEIVING, 4, 46, 17, 53, new int[]{10, 45}),
+            hall(LightIndustryWorks.STORES, 26, 46, 37, 52, new int[]{31, 45}),
+            hall(LightIndustryWorks.SHOP, 4, 28, 15, 35, new int[]{9, 36}),
+            hall(LightIndustryWorks.SHOP, 26, 28, 37, 35, new int[]{31, 36}),
+            hall(LightIndustryWorks.ASSEMBLY, 46, 28, 63, 36, new int[]{45, 32}),
+            hall(LightIndustryWorks.FINISHING, 46, 6, 57, 13, new int[]{51, 14}),
+            hall(LightIndustryWorks.DISPATCH, 26, 6, 37, 12, new int[]{31, 13}),
+            hall(LightIndustryWorks.CANTEEN, 4, 6, 13, 12, new int[]{8, 13}));
 
     private static boolean inHall(int x, int y) {
         for (FabricationYard.Hall h : HALLS) if (x >= h.x0() && x <= h.x1() && y >= h.y0() && y <= h.y1()) return true;
@@ -77,8 +78,8 @@ class FabricationYardTest {
         return new int[]{1, 1};
     };
 
-    private static FabricationYard.Dressing plan(int feeders, long seed) {
-        return FabricationYard.plan(HALLS, GROUND, feeders, seed, "line.", FOOTPRINT);
+    private static FabricationYard.Dressing plan(long seed) {
+        return FabricationYard.plan(HALLS, GROUND, seed, "line.", FOOTPRINT);
     }
 
     private static List<int[]> cells(Props.Placement p) {
@@ -92,35 +93,33 @@ class FabricationYardTest {
     /** The works is its process: receiving and stores by the feeders at the rear, dispatch by the haul gate. */
     @Test
     void theWorksStandsInTheOrderOfItsProcess() {
-        FortressProgram works = FabricationWorks.program(4);
-        assertEquals(4, works.countOf(FabricationWorks.SHOP), "one shop per machine");
-        assertEquals(FabricationWorks.DISPATCH_SHEDS, works.countOf(FabricationWorks.DISPATCH));
-        assertEquals(1, works.countOf(FabricationWorks.CANTEEN));
+        FortressProgram works = new LightIndustryWorks().works(4);
+        assertEquals(4, works.countOf(LightIndustryWorks.SHOP), "one shop per machine");
+        assertEquals(LightIndustryWorks.DISPATCH_SHEDS, works.countOf(LightIndustryWorks.DISPATCH));
+        assertEquals(1, works.countOf(LightIndustryWorks.CANTEEN));
         assertTrue(works.detached(), "each step is a hall of its own, for the parts line to run between");
         for (FortressBuilding b : works.buildings()) {
-            if (b.purpose() == FabricationWorks.RECEIVING || b.purpose() == FabricationWorks.STORES) {
+            if (b.purpose() == LightIndustryWorks.RECEIVING || b.purpose() == LightIndustryWorks.STORES) {
                 assertEquals(Ward.REAR, b.ward(), b.purpose() + " stands by the feeders' gates");
             }
-            if (b.purpose() == FabricationWorks.DISPATCH) assertEquals(Ward.FRONTAGE, b.ward(), "dispatch by the haul gate");
+            if (b.purpose() == LightIndustryWorks.DISPATCH) assertEquals(Ward.FRONTAGE, b.ward(), "dispatch by the haul gate");
         }
-        assertTrue(FabricationWorks.program(5).apron() > FabricationWorks.program(3).apron(), "more shops, more yard");
-        assertEquals(FabricationWorks.PROCESS.size(), EnumSet.copyOf(FabricationWorks.PROCESS).size(),
+        assertTrue(new LightIndustryWorks().works(5).apron() > new LightIndustryWorks().works(3).apron(), "more shops, more yard");
+        assertEquals(LightIndustryWorks.PROCESS.size(), EnumSet.copyOf(LightIndustryWorks.PROCESS).size(),
                 "every step is its own room, so the finished map tells them apart");
     }
 
-    /** Light industry's site lays the works and dresses its yard, from the shops that feed it. */
+    /** Light industry's site lays the fabrication works, every shop kept when it is fitted to the map. */
     @Test
-    void theLightIndustrySiteDressesItsYard() {
+    void theLightIndustrySiteLaysTheFabricationWorks() {
         RaidSiteTemplate site = RaidSiteTemplate.forIndustry("lightindustry");
-        TargetProfile market = new TargetProfile(6, 5, 3, 1, "independent",
+        TargetProfile market = new TargetProfile(4, 5, 3, 1, "independent",
                 EnumSet.of(EconomicFunction.HEAVY_INDUSTRY), SurfacePalette.ROCK, SettlementLink.ROAD);
-        PrecinctPlan plan = site.lay(market, Fortification.Demand.UNSTATED, 4, 400, 240, new Random(3L));
-        assertEquals(4, plan.objective().program().countOf(FabricationWorks.SHOP), "fitted with every shop kept");
-        assertEquals(1, plan.objective().program().countOf(FabricationWorks.FINISHING));
-        assertTrue(plan.layout().find(FabricationYard.NAME) instanceof Deferred, "the yard is dressed once its halls stand");
-        assertTrue(RaidSiteTemplate.forIndustry("heavyindustry")
-                .lay(market, Fortification.Demand.UNSTATED, 4, 400, 240, new Random(3L))
-                .layout().find(FabricationYard.NAME) == null, "only light industry's");
+        PrecinctPlan plan = site.lay(market, Fortification.Demand.UNSTATED, 4, 280, 168, new Random(3L));
+        assertEquals("light-industry", plan.raidIndustry());
+        assertEquals(4, plan.objective().program().countOf(LightIndustryWorks.SHOP), "fitted with every shop kept");
+        assertEquals(1, plan.objective().program().countOf(LightIndustryWorks.FINISHING));
+        assertEquals(1, plan.objective().program().countOf(LightIndustryWorks.CANTEEN));
     }
 
     /**
@@ -129,11 +128,11 @@ class FabricationYardTest {
      */
     @Test
     void thePartsLineLinksTheStepsInOrder() {
-        FabricationYard.Dressing d = plan(5, 1L);
+        FabricationYard.Dressing d = plan(1L);
         assertFalse(d.line().isEmpty());
         for (Props.Placement p : d.line()) assertFalse(inHall(p.x(), p.y()), "the line never runs through a hall");
         for (FabricationYard.Hall h : HALLS) {
-            if (h.step() == FabricationWorks.RECEIVING || h.step() == FabricationWorks.CANTEEN) continue;
+            if (h.step() == LightIndustryWorks.RECEIVING || h.step() == LightIndustryWorks.CANTEEN) continue;
             boolean fed = false;
             for (Props.Placement p : d.line()) {
                 if (!p.doodad().equals("line.drive")) continue;
@@ -155,7 +154,7 @@ class FabricationYardTest {
      */
     @Test
     void theDressingNeverClosesAWay() {
-        FabricationYard.Dressing d = plan(9, 2L);
+        FabricationYard.Dressing d = plan(2L);
         assertFalse(d.props().isEmpty());
         boolean[] used = new boolean[W * H];
         for (Props.Placement p : d.line()) used[p.y() * W + p.x()] = true;
@@ -180,19 +179,18 @@ class FabricationYardTest {
         assertFalse(FabricationYard.fits(GROUND, taken, List.of(), 23, 30, 2, 1, 3), "its lane runs into shop B");
     }
 
-    /** The receiving dock queues a truck per feeding shop, up to what it takes. */
+    /** The receiving dock's face is full of the feeding shops' trucks. */
     @Test
-    void theDockQueuesATruckPerFeeder() {
-        assertEquals(2, trucksAtReceiving(plan(2, 4L)));
-        assertEquals(FabricationYard.MAX_TRUCKS, trucksAtReceiving(plan(11, 4L)), "a big planet's queue is capped");
+    void theDockQueuesTheFeedersTrucks() {
+        assertEquals(FabricationYard.MAX_TRUCKS, trucksAtReceiving(plan(4L)));
     }
 
     /** The shifts' paths run from the canteen's door to each shop's. */
     @Test
     void theShiftsWalkFromTheCanteenToTheShops() {
-        FabricationYard.Dressing d = plan(5, 5L);
+        FabricationYard.Dressing d = plan(5L);
         for (FabricationYard.Hall h : HALLS) {
-            if (h.step() != FabricationWorks.SHOP) continue;
+            if (h.step() != LightIndustryWorks.SHOP) continue;
             int[] door = h.doors().get(0);
             boolean reached = false;
             for (int[] c : d.paths()) reached |= c[0] == door[0] && c[1] == door[1];
@@ -202,7 +200,7 @@ class FabricationYardTest {
 
     @Test
     void theSameSeedDressesTheSameYard() {
-        FabricationYard.Dressing a = plan(7, 9L), b = plan(7, 9L);
+        FabricationYard.Dressing a = plan(9L), b = plan(9L);
         assertEquals(a.props(), b.props());
         assertEquals(a.line(), b.line());
         assertNotNull(a.paths());

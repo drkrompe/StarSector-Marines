@@ -22,8 +22,8 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Ravs on a cannon tank: <b>does a tank with Ravs clawing at its hull still use its gun?</b> A deployed breakthrough
- * tank, a pack of Runners spawned at its side and a second wave coming on from inside the cannon's reach. The twin
+ * Ravs on a cannon tank: <b>does a tank with Ravs clawing at its hull still use its gun?</b> A deployed
+ * Onager, a pack of Runners spawned at its side and a second wave coming on from inside the cannon's reach. The
  * cannon's burst would reach its own hull at claw range ({@link GunDeadZone}), so the crew holds any round at the
  * pack; the gun has to take the Ravs further off instead of keeping its aim on the nearest.
  *

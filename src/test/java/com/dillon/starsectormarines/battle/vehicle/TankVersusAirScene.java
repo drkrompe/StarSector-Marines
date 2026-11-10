@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * A tank under a gunship: <b>does a gun that reaches the air put its rounds into a hostile craft, and does it go back
  * to the ground when the sky is empty?</b> A hostile Mudskipper is put on station over a planted tank; the laser tank's
- * mount engages air ({@code TurretMountDef#engagesAir}) and the breakthrough tank's twin cannon does not, which makes
+ * mount engages air ({@code TurretMountDef#engagesAir}) and the Onager's cannon does not, which makes
  * the cannon tank the control. A third loop adds a rifle section in the laser's reach, so the gun has both to choose
  * from.
  *

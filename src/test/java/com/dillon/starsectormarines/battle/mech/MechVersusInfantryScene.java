@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * <p>One planted chaingun Bulwark and a twelve-strong rifle section fifteen cells east of it, played
  * with two SRM-15 fragmentation racks and again with two anti-armor racks. A third loop puts an
- * anti-armor Bulwark in front of a smaller screen with a breakthrough tank behind it: the mixed
+ * anti-armor Bulwark in front of a smaller screen with an Onager behind it: the mixed
  * fight, where the racks must turn the torso to the tank while they are loaded. Two more loops put a
  * factory Warden thirty cells from the section, beyond its cannon, with fragmentation and then
  * anti-armor LRM-5s: the artillery the Warden now ships with, against the rack it replaced.

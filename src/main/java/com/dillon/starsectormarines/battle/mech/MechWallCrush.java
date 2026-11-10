@@ -20,10 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A wall-crushing walker ({@link MechVariant#crushesWalls()}: the Pilgrim, `mech-lines.md`) pushing down the ordinary
- * walls it walks into by its weight, as a heavy hull does ({@link WallCrush}): the same walls and barricades under the
- * same ceiling ({@link WallCrush#HEAVY_CEILING}) at a heavy hull's rate ({@link WallCrush#HEAVY_PER_SECOND}), a
- * fortified wall still holding until fire has worn it under.
+ * A wall-crushing walker ({@link MechVariant#crushesWalls()}: every heavy-lift walker, `mechs-nouns.md`, Wall crush)
+ * pushing down the ordinary walls and props it walks into by its weight, as a heavy hull does ({@link WallCrush}): the
+ * same walls, barricades and props under the same ceiling ({@link WallCrush#HEAVY_CEILING}), a fortified wall still
+ * holding until fire has worn it under. It pushes at a heavy hull's rate ({@link WallCrush#HEAVY_PER_SECOND}), or an
+ * ultra-heavy's ({@link WallCrush#ULTRA_HEAVY_PER_SECOND}) for a chassis that {@link MechVariant#crushesFast()}.
+ *
+ * <p>What it costs the walker is time: it stands at the wall while it pushes, its guns free, until the wall falls.
+ * Its plate and structure take nothing from the push.
  *
  * <p>Its route is planned over the breach view ({@link WallCrush#planningGrid(int, NavigationGrid)}, installed on
  * {@link NavigationService#setOwnRouteGrid}), so a wall it can push is open ground to its planner, while its body
@@ -60,9 +64,23 @@ public final class MechWallCrush {
                 components.MOVEMENT, components.HEALTH}, null);
     }
 
-    /** The structure a walker's push spends this tick, carrying the fraction to the next: {@code [whole, carried]}. */
+    /** Structure {@code variant} pushes down per second: none for a walker that crushes no walls. */
+    static float rate(MechVariant variant) {
+        if (!variant.crushesWalls()) return 0f;
+        return variant.crushesFast() ? WallCrush.ULTRA_HEAVY_PER_SECOND : WallCrush.HEAVY_PER_SECOND;
+    }
+
+    /** {@link #spend(float, float, float)} at a heavy hull's rate. */
     static float[] spend(float carried, float dt) {
-        float pending = carried + WallCrush.HEAVY_PER_SECOND * dt;
+        return spend(carried, WallCrush.HEAVY_PER_SECOND, dt);
+    }
+
+    /**
+     * The structure a walker's push of {@code rate} a second spends this tick, carrying the fraction to the next:
+     * {@code [whole, carried]}.
+     */
+    static float[] spend(float carried, float rate, float dt) {
+        float pending = carried + rate * dt;
         int whole = (int) pending;
         return new float[]{whole, pending - whole};
     }
@@ -131,13 +149,13 @@ public final class MechWallCrush {
                 float dx = Paths.cellX(path, pathIdx[row]) + .5f - posX[row];
                 float dy = Paths.cellY(path, pathIdx[row]) + .5f - posY[row];
                 if (dx * dx + dy * dy < 1e-4f) continue;
-                bear(grid, topology, id, posX[row], posY[row], dx, dy, roster.radius(id), dt);
+                bear(grid, topology, id, posX[row], posY[row], dx, dy, roster.radius(id), rate(variant), dt);
             }
         }
     }
 
     private void bear(NavigationGrid grid, CellTopology topology, long id, float x, float y, float dx, float dy,
-                      float radius, float dt) {
+                      float radius, float rate, float dt) {
         int most = WallCrush.HEAVY_CEILING;
         int[] cells = new int[64];
         int[] count = {0};
@@ -157,7 +175,7 @@ public final class MechWallCrush {
             carry.remove(id);
             return;
         }
-        float[] spent = spend(carry.getOrDefault(id, 0f), dt);
+        float[] spent = spend(carry.getOrDefault(id, 0f), rate, dt);
         carry.put(id, spent[1]);
         int amount = (int) spent[0];
         if (amount <= 0) return;

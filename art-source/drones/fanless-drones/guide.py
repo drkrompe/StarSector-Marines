@@ -14,6 +14,9 @@ Writes beside this script, each a 1024x1024 sheet of four 512x512 panels, 256 px
                      high    a narrow lifting body, the emitter on its centreline, edge fins
   swarm-guide.png    the flock's swarm dart, once per livery side by side so both are one machine (top row only)
                      a small stamped dart with a short barrel, a sensor lens, two tail fins and one nozzle
+  repair-guide.png   the derelict network's unarmed repair drone, once per livery (top row only)
+                     a squat service body, a welding arm folded along its nose with the torch at its tip, a stock
+                     canister on its back and a lift nozzle pod on an outrigger each side
 
 Nothing round drives any of them: no fans, rotors or ducts. Flat colours say what each region is, not its material.
 PANELS is shared with pack.py, which cuts the painted sheets into sprites.
@@ -40,7 +43,9 @@ PANELS = {
     "tt": {"escort": (0, 0), "sensor": (1, 0), "halo": (0, 1), "strike": (1, 1)},
     "family": {"low": (0, 0), "mid": (1, 0), "high": (0, 1)},
     "swarm": {"domain": (0, 0), "contingency": (1, 0)},
+    "repair": {"repair-domain": (0, 0), "repair-contingency": (1, 0)},
 }
+REPAIR_SCALE = 1.4
 # Drawn this many times larger than its cell size, for detail; pack.py scales every sprite to its own pixel size.
 SWARM_SCALE = 1.6
 
@@ -159,7 +164,37 @@ def _swarm(d, cx, cy):
     nozzle(d, cx, cy, .22, 0, .08, .07)
 
 
-DRAW = {"escort": escort, "sensor": sensor, "halo": halo, "strike": strike,
+def repair(d, cx, cy):
+    global PX
+    base, PX = PX, round(PX * REPAIR_SCALE)
+    try:
+        _repair(d, cx, cy)
+    finally:
+        PX = base
+
+
+def _repair(d, cx, cy):
+    # Body: a squat box, the hazard band across its back third.
+    rect(d, cx, cy, -.2, -.14, .22, .14, HULL)
+    rect(d, cx, cy, .1, -.14, .16, .14, HAZARD)
+    # Stock canister on the back, a mid-grey block with end caps.
+    rect(d, cx, cy, -.08, -.07, .1, .07, SEAM)
+    rect(d, cx, cy, -.1, -.05, -.08, .05, DARK)
+    # Welding arm folded along the nose, offset to one side: two links and the torch at its tip.
+    rect(d, cx, cy, -.34, .03, -.16, .07, SEAM)
+    rect(d, cx, cy, -.42, .02, -.34, .06, DARK)
+    rect(d, cx, cy, -.45, .03, -.42, .05, ACCENT)
+    # Sensor lens on the other side of the nose.
+    rect(d, cx, cy, -.24, -.08, -.19, -.03, LENS)
+    # Lift nozzle pods on short outriggers.
+    for side in (-1, 1):
+        rect(d, cx, cy, -.02, min(side * .14, side * .2), .06, max(side * .14, side * .2), SEAM)
+        nozzle(d, cx, cy, -.06, side * .25, .16, .09)
+    # Rear thrust nozzle.
+    nozzle(d, cx, cy, .22, 0, .07, .1)
+
+
+DRAW = {"repair-domain": repair, "repair-contingency": repair, "escort": escort, "sensor": sensor, "halo": halo, "strike": strike,
         "low": low, "mid": mid, "high": high, "domain": swarm, "contingency": swarm}
 
 

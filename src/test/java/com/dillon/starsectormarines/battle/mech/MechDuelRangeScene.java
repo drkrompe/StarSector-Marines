@@ -48,7 +48,7 @@ import java.util.Map;
  *       and still stop short of contact.</li>
  * </ul>
  *
- * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (vehicle
+ * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed Onager (vehicle
  * engagement off so the pair asks about the mech alone). The player's tank, carrying a gun that out-reaches the
  * Hound's chaingun, is set down forty-four cells from a holding Hound with no order ({@link VehicleEngagement} on, and off as the control): it should drive to a
  * band outside the Hound's reach. And the player's tank is ordered once onto the Hound: an explicit move wins over
@@ -196,7 +196,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
         TANK_ORDERED
     }
 
-    /** A breakthrough tank and a Hound with no steering script. */
+    /** An Onager and a Hound with no steering script. */
     private Trace playVehicle(FrameSink frames, String loopId, VehicleCase kind, boolean vehicleRule) {
         VehicleEngagement.setEnabledForEvidence(vehicleRule);
         boolean tankOrdered = kind != VehicleCase.HOUND_ATTACKS;
