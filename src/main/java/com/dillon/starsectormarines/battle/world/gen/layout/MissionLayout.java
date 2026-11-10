@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSitePlan;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,8 +21,12 @@ import java.util.Set;
  * a structure of the same name takes the placed one instead of searching ({@link #placed(String)}).
  *
  * <p>{@code ways} is how the layout treats the map's ways ({@link Ways}).
+ *
+ * <p>{@code crash} is a fallen hull a story map's patch lays over the country ({@code fallen-hull-nouns.md}), or null:
+ * its trench, debris and hull are laid before the tactical link and finalize, its claim on the finished ground
+ * ({@code CrashSiteStage}).
  */
-public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways ways) {
+public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways ways, HullSitePlan crash) {
 
     /**
      * How a layout keeps its ways clear. {@code columnBand}: cells either side of a column way (a road, a country or
@@ -49,6 +55,10 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways way
         }
     }
 
+    public MissionLayout(List<Piece> pieces, List<Structure> placed, Ways ways) {
+        this(pieces, placed, ways, null);
+    }
+
     public MissionLayout(List<Piece> pieces) {
         this(pieces, List.of(), Ways.NONE);
     }
@@ -59,7 +69,12 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways way
 
     /** The same layout keeping its ways as {@code ways} says. */
     public MissionLayout withWays(Ways ways) {
-        return new MissionLayout(pieces, placed, ways);
+        return new MissionLayout(pieces, placed, ways, crash);
+    }
+
+    /** The same layout with a fallen hull laid over the country, or none. */
+    public MissionLayout withCrash(HullSitePlan crash) {
+        return new MissionLayout(pieces, placed, ways, crash);
     }
 
     public boolean isEmpty() { return pieces.isEmpty(); }
@@ -72,7 +87,7 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways way
 
     /** The same layout with these structures placed by hand. */
     public MissionLayout withPlaced(List<Structure> structures) {
-        return new MissionLayout(pieces, structures, ways);
+        return new MissionLayout(pieces, structures, ways, crash);
     }
 
     /**
@@ -124,6 +139,6 @@ public record MissionLayout(List<Piece> pieces, List<Structure> placed, Ways way
             }
         }
         if (!found) throw new IllegalArgumentException("the layout has no piece " + name);
-        return new MissionLayout(out, placed, ways);
+        return new MissionLayout(out, placed, ways, crash);
     }
 }

@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -48,6 +50,7 @@ public final class StoryMapAcceptance {
     /** The entry's reading on this biome when it passes; throws, naming what it lacks, when it does not. */
     public static String check(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
         Form form = BloomHeartSetup.formOf(map);
+        if (map.longSurvey()) return longSurvey(map, biome, entry);
         if (RaidOwnedMap.isRaid(map)) return raid(map, biome, entry);
         return map == StoryMap.COLONY_BREACH ? colony(biome, entry)
                 : form != null ? heart(map, biome, entry) : cordon(map, biome, entry);
@@ -164,6 +167,51 @@ public final class StoryMapAcceptance {
                     sim.getTopology().getWidth(), sim.getTopology().getHeight()));
         }
         return detail.toString();
+    }
+
+    /**
+     * A Long Survey chapter's acceptance ({@code long-survey-arc.md}, Seeds): its base mission's ground still carries
+     * what the chapter fights over (The Fall: the colony's rescue stands up, shelter, lift and holdouts; The Line: the
+     * Cordon's line; The Surveyor: its airbases where they were placed), and its fallen hull keeps every law
+     * ({@code HullSiteCheck}) with each starting stake on a lattice point with a haul road home.
+     */
+    static String longSurvey(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
+        String base = switch (map) {
+            case LONG_SURVEY_FALL -> "colony " + colony(biome, entry);
+            case LONG_SURVEY_LINE -> "cordon " + cordon(StoryMap.CORDON_LINE, biome, entry).split("; layout")[0];
+            default -> "";
+        };
+        LongSurveyGround.Ground ground = LongSurveyGround.ground(map, biome, entry);
+        for (Structure placed : ground.plan().layout().placed()) {
+            Laid piece = ground.map().layout.find(placed.name());
+            if (piece == null || !piece.isLaid() || piece.cells().get(0)[0] != placed.x()
+                    || piece.cells().get(0)[1] != placed.y()) {
+                throw new IllegalStateException(placed.name() + " was placed at " + placed.x() + "," + placed.y()
+                        + " but " + (piece == null ? "not laid" : piece.isLaid() ? "laid elsewhere" : "refused: " + piece.reason()));
+            }
+        }
+        HullSite site = ground.hull();
+        if (site == null) throw new AssertionError("no fallen hull was laid");
+        if (!site.problems().isEmpty()) throw new AssertionError("the hull: " + String.join("; ", site.problems()));
+        if (site.stakes().size() != entry.patch().hull().stakes().size()) {
+            throw new AssertionError(site.stakes().size() + " of " + entry.patch().hull().stakes().size() + " stakes seated");
+        }
+        int rings = 0, roadless = 0;
+        for (HullSite.LatticePoint p : site.lattice()) {
+            rings = Math.max(rings, p.ring());
+            if (site.road(p.index()) == null) roadless++;
+        }
+        StringBuilder stakes = new StringBuilder();
+        for (HullSite.Stake stake : site.stakes()) {
+            HullSite.LatticePoint p = site.point(stake.point());
+            stakes.append(stakes.length() == 0 ? "" : ", ").append(stake.stage().name().toLowerCase(Locale.ROOT))
+                    .append(" at ").append(p.cell().x()).append(',').append(p.cell().y())
+                    .append(" (road ").append(site.road(p.index()).cells().size()).append(')');
+        }
+        return (base.isEmpty() ? "" : base + "; ") + String.format(Locale.ROOT,
+                "hull %d,%d heading %s; lattice %d points over %d rings (%d without a road home); %d haul roads; %d debris; stakes [%s]",
+                site.footprint().centreX(), site.footprint().centreY(), site.heading(), site.lattice().size(), rings,
+                roadless, site.roads().size(), site.debris().size(), stakes);
     }
 
     private static RaidObjective raidObjective(BattleSimulation sim) {

@@ -3408,7 +3408,8 @@ public final class BattleSetup {
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
-            PrecinctPlan colonyPlan = colony ? colonyPlanOn(scale, battleSeed, world) : null;
+            // A chapter's patch may lay a fallen hull over the colony (long-survey-arc.md, The Fall).
+            PrecinctPlan colonyPlan = colony ? patch.pinned(colonyPlanOn(scale, battleSeed, world)) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
             if (home != null) map = PlanetSkin.apply(map, home, world);
