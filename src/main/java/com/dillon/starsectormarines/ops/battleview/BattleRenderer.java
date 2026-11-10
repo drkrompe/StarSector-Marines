@@ -1218,7 +1218,7 @@ public class BattleRenderer {
         float cellY = rc.camera.cellToScreenY(1f) - rc.camera.cellToScreenY(0f);
         VisibleCellRect view = rc.camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6,
                 grid.getWidth(), grid.getHeight());
-        boolean detail = Math.abs(cellX) >= FACE_DETAIL_PX;
+        float cellPx = Math.abs(cellX);
         FacePainter paint = facePainter;
         CreepField creep = sim.creepFieldIfPresent();
         if (creep != null && creep.isEmpty()) creep = null;
@@ -1274,6 +1274,9 @@ public class BattleRenderer {
                 float fax = rc.camera.cellToScreenX(segs[e + 8]), fay = rc.camera.cellToScreenY(segs[e + 9]);
                 float fbx = rc.camera.cellToScreenX(segs[e + 10]), fby = rc.camera.cellToScreenY(segs[e + 11]);
                 paint.wall(ax, ay, bx, by, fax, fay, fbx, fby, sx, sy, lift, nx * cellX, ny * cellY, roofAlpha);
+                // How tall it stands on screen: its foot's distance from the view's centre, times how far it lifts.
+                float facePx = (float) Math.hypot((ax + bx) / 2f - sx, (ay + by) / 2f - sy) * (lift - 1f);
+                boolean detail = BuildingFaces.detailed(cellPx, facePx / storeys);
                 int code = (int) segs[e + 7];
                 int corners = code & 3;
                 int cell = (int) segs[e + 6], cx = cell % gridW, cy = cell / gridW;
@@ -1357,8 +1360,6 @@ public class BattleRenderer {
 
     private static final BuildingFaces.Segment[] SEGMENTS = BuildingFaces.Segment.values();
     private static final BuildingFaces.Look[] LOOKS = BuildingFaces.Look.values();
-    /** Pixels a cell must span for a face's windows and doors to be drawn. */
-    private static final float FACE_DETAIL_PX = 10f;
 
     /**
      * A building's faces cut by cell ({@link BuildingFaces#segments}), each segment's spare slot holding its corners

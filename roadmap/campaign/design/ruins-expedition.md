@@ -777,6 +777,36 @@ stores, each with the theme's own pieces, its spill and its collapse. The model 
 serves the process). Look shots and plans: `createSnapshots -Psnapshot=ruins-room-look`. Picks `ruins-rooms-<kind>`
 are open, building on a (rooms laid from their role).
 
+**The plant is designed intact first** (owner, on the room cards: tiny rooms, dead space, "doodads tossed into a
+room"; "how would this vault like structure be designed in a vacuum, THEN turn it into a sealed ruin"). The interior
+is the plant its architect briefed, and only then a ruin.
+- **The brief.** A sealed works with about 120 crew in three shifts of 40. Each space it needed is sized for the people
+  and machines in it, and stands where its job put it (`PlantBrief`):
+  - the control gallery down the works hall's wall;
+  - maintenance at the hall's head;
+  - the QA lab at its outfeed;
+  - the raw stock store and freight dock at its dispatch end;
+  - the habitat by a quiet way in;
+  - plant services by the power hall;
+  - line two, finished goods and the vault deeper in.
+- **Who reaches what.** Frame-wide spaces (the stores, the dock, maintenance, line two) are joined by freight ways and
+  are plant halls. The rest are reached only by service corridors, where infantry shakes off a frame.
+- **Then it is ruined,** in order:
+  1. supply fails;
+  2. the last haulers strip finished goods;
+  3. a safe shutdown seals each section;
+  4. the crew evacuates by the suit room;
+  5. the derelict watch stays on in the maintenance shop;
+  6. centuries of breaches, collapses and spill follow.
+
+The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
+undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+Still to come:
+- a block plan per band, the spaces sharing walls along their ways;
+- the hull drawn round the plant;
+- each space dressed from its own plan;
+- stores holding the game's commodities.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,

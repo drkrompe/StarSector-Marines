@@ -121,6 +121,17 @@ public interface PrecinctClaim {
      * {@code null} for none.
      */
     static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop) {
+        return byKind(precincts, held, drop, null);
+    }
+
+    /**
+     * {@link #byKind(List, boolean[][], boolean[][])}, with a cantonment's square also kept off {@code grounds}: the
+     * plan's {@code SitePurpose.GROUND} sites, ground held for authored terrain and kept clear of works. The square is
+     * stood where it covers the least of them, then cut back to the rectangle clear of them ({@link #clipOff}), so
+     * its wall, laid round its claim, never crosses a site's tracks or bands. {@code null} for none.
+     */
+    static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop, boolean[][] grounds) {
+        boolean[][] avoid = union(held, grounds);
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];
             for (int[] column : claim) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
@@ -172,13 +183,20 @@ public interface PrecinctClaim {
                 // A cantonment is laid on its whole square: kept on the map rather than cut by its edge, and moved
                 // the least it takes off ground a place before it already holds (a Raid site's works).
                 if (precinct.program().cantonment()) {
-                    int[] at = clearSquare(claim, held, side, Math.max(0, Math.min(x0, width - side)),
+                    int[] at = clearSquare(claim, avoid, side, Math.max(0, Math.min(x0, width - side)),
                             Math.max(0, Math.min(y0, height - side)), width, height);
                     x0 = at[0];
                     y0 = at[1];
                 }
-                for (int x = x0; x < Math.min(width, x0 + side); x++) {
-                    for (int y = y0; y < Math.min(height, y0 + side); y++) {
+                int x1 = Math.min(width, x0 + side) - 1, y1 = Math.min(height, y0 + side) - 1;
+                if (precinct.program().cantonment()) {
+                    int[] clear = clipOff(grounds, x0, y0, x1, y1);
+                    if (clear != null) {
+                        x0 = clear[0]; y0 = clear[1]; x1 = clear[2]; y1 = clear[3];
+                    }
+                }
+                for (int x = x0; x <= x1; x++) {
+                    for (int y = y0; y <= y1; y++) {
                         if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
                         claim[x][y] = i;
                         taken[i]++;
@@ -221,6 +239,55 @@ public interface PrecinctClaim {
      * {@code null}), nearest {@code (x0, y0)} among those: {@code (x0, y0)} itself when that is clear. Its near corner,
      * {@code {x, y}}.
      */
+    /** Cells true in either mask; either may be null, and null when both are. */
+    static boolean[][] union(boolean[][] a, boolean[][] b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        boolean[][] out = new boolean[a.length][];
+        for (int x = 0; x < a.length; x++) {
+            out[x] = a[x].clone();
+            for (int y = 0; y < out[x].length && x < b.length && y < b[x].length; y++) out[x][y] |= b[x][y];
+        }
+        return out;
+    }
+
+    /**
+     * The largest inclusive rectangle {x0, y0, x1, y1} inside the given one with no cell of {@code off} in it: the
+     * square cut back clear of held ground, the most ground kept. Returns the rectangle unchanged when {@code off} is
+     * null or none lies in it, and null when nothing is left.
+     */
+    static int[] clipOff(boolean[][] off, int x0, int y0, int x1, int y1) {
+        if (off == null || x1 < x0 || y1 < y0) return new int[]{x0, y0, x1, y1};
+        int w = x1 - x0 + 1, h = y1 - y0 + 1;
+        // Row by row, the run of clear cells above each column, and its largest rectangle by a stack.
+        int[] run = new int[w];
+        int[] best = null;
+        long bestArea = 0;
+        for (int dy = 0; dy < h; dy++) {
+            for (int dx = 0; dx < w; dx++) {
+                int x = x0 + dx, y = y0 + dy;
+                boolean held = x >= 0 && x < off.length && y >= 0 && y < off[x].length && off[x][y];
+                run[dx] = held ? 0 : run[dx] + 1;
+            }
+            int[] stack = new int[w + 1];
+            int top = 0;
+            for (int dx = 0; dx <= w; dx++) {
+                int height = dx == w ? 0 : run[dx];
+                while (top > 0 && run[stack[top - 1]] >= height) {
+                    int tall = run[stack[--top]];
+                    int from = top == 0 ? 0 : stack[top - 1] + 1;
+                    long area = (long) tall * (dx - from);
+                    if (tall > 0 && area > bestArea) {
+                        bestArea = area;
+                        best = new int[]{x0 + from, y0 + dy - tall + 1, x0 + dx - 1, y0 + dy};
+                    }
+                }
+                stack[top++] = dx;
+            }
+        }
+        return best;
+    }
+
     static int[] clearSquare(int[][] claim, boolean[][] held, int side, int x0, int y0, int width, int height) {
         if (side > width || side > height) return new int[]{x0, y0};
         int[][] sum = new int[width + 1][height + 1];

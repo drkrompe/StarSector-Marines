@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.LoadingBay;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ServiceLane;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.OperationTier;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,7 +22,9 @@ import java.util.function.Predicate;
  * industry the player named.
  *
  * <p>On an industry's own Raid site ({@code RaidSiteTemplate}) the works is a walled compound and its machines
- * are its halls: the depots nearest the compound's seed, within {@link #WORKS_REACH}. Elsewhere, until every
+ * are its halls: its machine houses ({@link RoomPurpose#PARTS_CAGE}, as the industry's program lays them) and then
+ * its other depots, each nearest the compound's seed first, within {@link #WORKS_REACH}. A machine is taken at its
+ * building's interior anchor. Elsewhere, until every
  * industry has a site, the map's industrial ground stands in for it. Candidates are taken in this order, the first
  * source that has any leading:
  * <ol>
@@ -74,8 +78,8 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
                 && !map.grid.isDoorway(cell[0], cell[1])
                 && GridPathfinder.findPath(map.grid, egress.centerX, egress.centerY, cell[0], cell[1]).length > 0;
         List<int[]> chosen = worksSeed == null ? List.of()
-                : pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1]), count, MIN_SPACING, usable,
-                        List.of());
+                : pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1],
+                        poi -> machineHouse(map.topology, poi)), count, MIN_SPACING, usable, List.of());
         if (chosen.size() < count) chosen = pick(worksCandidates(map), count, MIN_SPACING, usable, chosen);
         if (chosen.size() < count) {
             chosen = pick(fallbackCandidates(map, chosen), count, MIN_SPACING, usable, chosen);
@@ -113,15 +117,39 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
      * are its own.
      */
     static List<int[]> compoundHalls(List<PointOfInterest> pois, int seedX, int seedY) {
+        return compoundHalls(pois, seedX, seedY, poi -> false);
+    }
+
+    /**
+     * A works compound's halls, its machine houses ({@code machine}) leading: within each group the depots within
+     * {@link #WORKS_REACH} of its seed, nearest first by the building's middle. A works' other houses (its receiving
+     * shed, its stores, its pump house) are taken only when the machine houses run out.
+     */
+    static List<int[]> compoundHalls(List<PointOfInterest> pois, int seedX, int seedY,
+                                     Predicate<PointOfInterest> machine) {
         int reach = WORKS_REACH * WORKS_REACH;
-        List<int[]> out = new ArrayList<>();
+        List<PointOfInterest> near = new ArrayList<>();
         for (PointOfInterest poi : pois) {
             if (poi.kind != PointOfInterest.Kind.DEPOT) continue;
-            int dx = poi.interiorAnchorX - seedX, dy = poi.interiorAnchorY - seedY;
-            if (dx * dx + dy * dy <= reach) out.add(new int[]{poi.interiorAnchorX, poi.interiorAnchorY});
+            int dx = poi.centerX() - seedX, dy = poi.centerY() - seedY;
+            if (dx * dx + dy * dy <= reach) near.add(poi);
         }
-        out.sort(Comparator.comparingInt(c -> (c[0] - seedX) * (c[0] - seedX) + (c[1] - seedY) * (c[1] - seedY)));
+        near.sort(Comparator.<PointOfInterest>comparingInt(poi -> machine.test(poi) ? 0 : 1)
+                .thenComparingInt(poi -> (poi.centerX() - seedX) * (poi.centerX() - seedX)
+                        + (poi.centerY() - seedY) * (poi.centerY() - seedY)));
+        List<int[]> out = new ArrayList<>();
+        for (PointOfInterest poi : near) out.add(new int[]{poi.interiorAnchorX, poi.interiorAnchorY});
         return out;
+    }
+
+    /** Whether a building holds a machine room: any of its cells is a {@link RoomPurpose#PARTS_CAGE}. */
+    static boolean machineHouse(CellTopology topology, PointOfInterest poi) {
+        for (int y = poi.top; y <= poi.bottom; y++) {
+            for (int x = poi.left; x <= poi.right; x++) {
+                if (topology.inBounds(x, y) && topology.getRoomPurpose(x, y) == RoomPurpose.PARTS_CAGE) return true;
+            }
+        }
+        return false;
     }
 
     private static List<int[]> worksCandidates(MapResult map) {

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ruins;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -136,7 +137,12 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
          */
         WORKS,
         /** Rack bays: where it waited to ship. */
-        STORAGE
+        STORAGE,
+        /**
+         * The plant's maintenance shop: rework bays under hoists, where the line's frames and modules were serviced
+         * and the derelict watch's repair drones still dock ({@link PlantBrief}).
+         */
+        MAINTENANCE
     }
 
     /**
@@ -226,17 +232,29 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * door). A court inside is a light well open to the sky, so every lift point is under open sky.
      * {@code worksStand} is where the works hall's zone is held from ({@code ruins-expedition.md}, Beats through the
      * facility): a floor cell by the mega forge's pour pulpit, or at the east end of a works hall's transfer aisle;
-     * null on a site with no works hall.
+     * null on a site with no works hall. {@code spaces} are the plant's spaces by name ({@link PlantBrief}), each also a
+     * chamber, when the interior is laid as its plant's brief; empty otherwise.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
-                           List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand) {
+                           List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
+                           Map<String, Area> spaces) {
         public Interior {
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
             halls = halls == null ? List.of() : List.copyOf(halls);
             doors = doors == null ? List.of() : List.copyOf(doors);
+            spaces = spaces == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(spaces));
         }
+
+        /** An interior with no plant spaces by name. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, worksStand, null);
+        }
+
+        /** The name of the plant's space {@code space} ({@link PlantBrief.Space#name}). */
+        public static String spaceName(String space) { return INTERIOR + "." + space; }
 
         /** An interior with no works hall's stand. */
         public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
@@ -298,6 +316,7 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
         out.put(COLLAPSE, collapse.shortWay().span());
         if (interior != null) {
             out.put(INTERIOR, interior.footprint());
+            out.putAll(interior.spaces());
             for (int k = 0; k < interior.chambers().size(); k++) {
                 out.put(Interior.chamberName(k), interior.chambers().get(k));
             }

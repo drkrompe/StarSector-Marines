@@ -239,11 +239,14 @@ public final class TileRegistry {
             "data/tilesets/ore-conveyor.tileset.json",
             "data/tilesets/ore-conveyor-motions.tileset.json",
             "data/tilesets/refinery-plant.tileset.json",
+            "data/tilesets/refinery-utilities.tileset.json",
             "data/tilesets/origin-lab-annex.tileset.json",
             "data/tilesets/origin-lab-kit.tileset.json",
             "data/tilesets/origin-park-bandstand.tileset.json",
             "data/tilesets/origin-park-pond.tileset.json",
-            "data/tilesets/origin-park-play.tileset.json");
+            "data/tilesets/origin-park-play.tileset.json",
+            "data/tilesets/autoplant-aeroshuttle.tileset.json",
+            "data/tilesets/autoplant-mudskipper.tileset.json");
 
     private static volatile TileRegistry installed;
 

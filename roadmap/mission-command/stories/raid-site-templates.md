@@ -60,7 +60,7 @@ rest of the planet's sites feed. Three things carry that.
 | Heavy industry | the planet's assembly works, which every foundry ships into | feeder lines in; machine halls; yards beyond |
 | Mining | the central concentrator, which every dig feeds | the open pit beside the head works (`RaidSiteTemplate.PIT`); ore lines in from the other digs; ore stockpiles |
 | Refining | the only cracking and distillation plant | pipelines in on racks from the map's edges; units with their columns; the product rack over the haul road; a bunded tank farm and loading rack before the works; a flare stack |
-| Light industry | the central fabrication works | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road |
+| Light industry | the central fabrication works, an autoplant | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road; light hulls in stages down the assembly line beside the works |
 | Farming | the central grain elevator and processing hub | farm roads in off the edges through the fields; haulers queued at the intake; the grain gallery from intake through dryer, the round bins of the silo battery and mill to cold store and loadout; spilt grain; long fields to the edges, a rare centre pivot and fish ponds among them; the grain elevators (leg house and bins) are the machines (`GrainHub`) |
 | Spaceport | the only orbital lift | the lighter apron held at the deep end (pads, blast walls, scorch, fuel main, container staging, a freighter mid-turnaround); bonded sheds; haulers queued on the roads in from the planet's towns |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
@@ -102,11 +102,15 @@ sight lines before the works' wall.
   farming, spaceport and military too (`raid-<industry>-site-look` suites).
 - [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
   as its process after the owner rejected the generic shops (`LightIndustryWorks`,
-  `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`).
+  `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`),
+  then as an autoplant on the owner's note (`AssemblyLine`; hull stages are crops
+  of the vanilla sprite until stage art is drawn; roofs still hide each hall's role).
   Refining rebuilt as its process after the owner rejected the generic stills
   (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; its own sheet,
   `refinery-plant`, for the columns, flare, floating-roof tanks, volatiles
-  spheres and spills; bund walls, loading rack and tankers still stand-ins;
+  spheres and spills, and `refinery-utilities` for what each house does:
+  furnace stacks, cooling tower, pump skids, comms mast, lab gas rack, loading
+  islands; bund walls and tankers still stand-ins;
   `createSnapshots -Psnapshot=raid-refinery-site-look`).
 
 ## Constraints
