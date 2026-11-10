@@ -1,0 +1,146 @@
+{
+  "sheetName": "jungle-canopies",
+  "sheet": "art-source/living-worlds/fitted/jungle-canopies.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Jungle rainforest reskin of forest-canopies (a jungle world's woods (LivingWorld.JUNGLE)): same cells, cuts, footprints, cover, fog surfaces and ballistic heights as the green tileset; ids are the green ids with -jungle after the species. Sheet is art-source/living-worlds/raw/jungle-canopies.raw.png clipped to its guide and fitted onto it by art-source/living-worlds/fit_sheets.py. Preserve alpha; never trim or recenter. Prompt: art-source/living-worlds/prompts/jungle-canopies.prompt.txt.",
+  "entries": [
+    {
+      "id": "forest.oak-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        16,
+        16,
+        480,
+        480
+      ],
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ]
+    },
+    {
+      "id": "forest.oak-small-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        528,
+        16,
+        480,
+        480
+      ],
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ]
+    },
+    {
+      "id": "forest.birch-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1040,
+        64,
+        480,
+        384
+      ],
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ]
+    },
+    {
+      "id": "forest.pine-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        16,
+        528,
+        480,
+        480
+      ],
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ]
+    },
+    {
+      "id": "forest.pine-large-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        528,
+        528,
+        480,
+        480
+      ],
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ]
+    },
+    {
+      "id": "forest.cedar-jungle",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1120,
+        528,
+        320,
+        480
+      ],
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ]
+    }
+  ]
+}

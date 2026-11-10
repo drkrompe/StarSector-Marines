@@ -25,8 +25,15 @@ public final class SurfaceField {
     private final Basin basin;
     private final int width, height;
     private final long seed;
+    private final LivingWorld living;
 
     public SurfaceField(SurfacePalette world, Basin basin, int width, int height, long seed) {
+        this(world, basin, width, height, seed, LivingWorld.TEMPERATE);
+    }
+
+    /** As above, on a living world of this look ({@link #living}). */
+    public SurfaceField(SurfacePalette world, Basin basin, int width, int height, long seed, LivingWorld living) {
+        this.living = living == null ? LivingWorld.TEMPERATE : living;
         this.world = world == null ? SurfacePalette.ROCK : world;
         this.basin = basin == null ? Basin.NONE : basin;
         this.width = width;
@@ -39,7 +46,16 @@ public final class SurfaceField {
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
         return profile == null
                 ? new SurfaceField(SurfacePalette.ROCK, Basin.NONE, c.width, c.height, c.seed)
-                : new SurfaceField(profile.surface(), profile.basin(), c.width, c.height, c.seed);
+                : new SurfaceField(profile.surface(), profile.basin(), c.width, c.height, c.seed, profile.living());
+    }
+
+    /**
+     * Which living world the map's own living ground is ({@link LivingWorld}): the profile's look when the world's
+     * surface is {@link SurfacePalette#VERDANT}, and {@link LivingWorld#TEMPERATE} otherwise, so a desert's green
+     * basin floor is the temperate one.
+     */
+    public LivingWorld living() {
+        return world == SurfacePalette.VERDANT ? living : LivingWorld.TEMPERATE;
     }
 
     /** The world's own surface: the rim, and the whole map when there is no basin. */

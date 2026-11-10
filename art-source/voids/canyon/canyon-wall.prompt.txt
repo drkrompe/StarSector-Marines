@@ -1,0 +1,16 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of the sheer wall of a
+desert canyon, as it would be mapped onto a vertical cliff of sandstone.
+Layered sedimentary sandstone: horizontal strata running across the tile in
+bands of uneven thickness, alternating rust red, burnt orange, ochre, pale
+cream and a few thin dark maroon and chocolate-brown shale bands; some bands
+cross-bedded with fine slanted laminations, some harder bands standing out
+as small overhanging ledges with a crumbling lip, softer bands weathered
+back. Dark desert-varnish streaks staining down across the strata in
+places, fine vertical joints and cracks, a few honeycomb weathering pits,
+a little loose sand caught on the ledges. Lit evenly by soft neutral light
+from straight in front, no cast shadows from outside the tile, no bright
+glare. Even density across the whole tile with no focal point, so it
+repeats horizontally and vertically. Palette: rust red, terracotta, ochre,
+sand cream, maroon, dusty brown. No sky, no plants, no people, no text, no
+border, no vignette. Square canvas.

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a5-2f52-72f3-a504-7ee71754d65f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a5-2f52-72f3-a504-7ee71754d65f\\exec-c1cf3d68-ad4a-424f-84a5-acf3e554d62a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\living-worlds\\raw\\jungle-undergrowth.raw.png",
+    "sha256": "6a2fa717ab7b89212817c936021dc5b66c0ebe64c3f148ee6a5028aaa930336e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\living-worlds\\prompts\\jungle-undergrowth.prompt.txt",
+  "promptSha256": "2e042099054d4a439c9d5ec0c459374e61a35906ce8c29632a8375fd2ffd8475",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move\nImage 2: Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette\nImage 3: Palette reference only: the trees this growth stands beside\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead undergrowth sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted forest undergrowth. Match its painterly realistic rendering, camera, detail scale and soft diffuse overhead light; do NOT copy its temperate woodland plants or palette. Image 3 is the palette/identity reference: the jungle trees this growth stands beneath; match its foliage colours, not its shapes.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every silhouette's center, size, aspect and outline. Each plant fills its guide silhouette out to the edge (small serrations may refine it inward) and nothing grows beyond it. Do not move, enlarge, tilt or rearrange anything.\nCamera looks STRAIGHT DOWN from directly above: orthographic plan view of low jungle-floor growth, roughly waist to head high. No side view, no perspective.\nSetting: the humid floor of a jungle world's rainforest. Lush, wet, glossy, saturated deep greens and emerald with lime highlights.\nTop row left to right:\n1. Liana and rattan tangle (wide): a low tangle of ropy dark vines and spiny rattan fronds, glossy leaves along the vines. Keep the guide's gaps as genuine transparent holes.\n2. Creeping vines (narrow strip): a single short run of the same tangle, with transparent gaps.\n3. Giant elephant-ear thicket (large, round): a dense mound of huge heart-shaped glossy leaves with pale veins, overlapping, completely opaque, dark recesses between leaves.\nBottom row left to right:\n4. Fern clump: a compact radial clump of lacy bright-green fern fronds, completely opaque.\n5. Swamp reed and sedge bed (long strip): dense blade-like reeds and sedge tufts seen from above, from several crowns, opaque.\n6. Palm seedlings: three young fan-palm seedlings, each a small radiating crown at its guide circle; transparent ground between the crowns.\nHand-painted realistic tactical-game environment art, coherent medium detail readable at 1-4 world cells per plant. No baked ground shadow outside the silhouettes, no soil disc, no water, no rocks, no labels, no text, no border.\nTrue transparent background, including the named gaps. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-standing.png",
+      "sha256": "c9288090838ea7595157d48018d362088c2bb67e759b30b9b97dc4bdd589aa32",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-undergrowth.raw.png",
+      "sha256": "976911bbb0223d6b10fff6d075440ce9657bcb9c5d90fb86dd95c735b14cf09b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\jungle-canopies.raw.png",
+      "sha256": "a0a883e996cc32bd976e5b42e7abeba2f1a3653d5fbc28ed183cbb779b57a0ce",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Palette reference only: the trees this growth stands beside"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to reskin the guide, preserving its layout and transparent gaps.\n"
+  ],
+  "usage": {
+    "input_tokens": 49864,
+    "cached_input_tokens": 40448,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 714,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.5
+}

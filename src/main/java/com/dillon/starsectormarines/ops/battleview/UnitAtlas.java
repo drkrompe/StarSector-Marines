@@ -217,6 +217,8 @@ public final class UnitAtlas extends SpriteAtlas {
         addLayers(candidates, sprites.bloodPools());
         DerelictWalkerAssets derelictWalker = sprites.derelictWalkerSprites();
         if (derelictWalker != null) addLayers(candidates, derelictWalker.layers());
+        DerelictWalkerAssets crawler = sprites.crawlerSprites();
+        if (crawler != null) addLayers(candidates, crawler.layers());
         LayeredMechAssets baseMech = sprites.layeredMechSprites();
         if (baseMech != null) addLayers(candidates, baseMech.layers());
         addHulls(candidates, sprites.turretSprites().values(), "turret");

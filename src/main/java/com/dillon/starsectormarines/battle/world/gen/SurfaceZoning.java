@@ -64,6 +64,23 @@ public final class SurfaceZoning {
     }
 
     /**
+     * Which living world a planet type is, read alongside {@link #forPlanetType}: {@code jungle} a rainforest,
+     * {@code tundra} the boreal edge, {@code water} and {@code ocean} a sea of islands, and every other type, the
+     * {@code terran} family among them, {@link LivingWorld#TEMPERATE}. Only a {@link SurfacePalette#VERDANT}
+     * surface reads it; a type that is not living answers {@code TEMPERATE}.
+     *
+     * @param planetTypeId vanilla planet type id, or {@code null} when nothing is known about the target.
+     */
+    public static LivingWorld livingWorld(String planetTypeId) {
+        if (forPlanetType(planetTypeId) != SurfacePalette.VERDANT) return LivingWorld.TEMPERATE;
+        String id = planetTypeId.toLowerCase(Locale.ROOT);
+        if (id.contains("jungle")) return LivingWorld.JUNGLE;
+        if (id.contains("tundra")) return LivingWorld.TUNDRA;
+        if (id.contains("water") || id.contains("ocean")) return LivingWorld.OCEAN;
+        return LivingWorld.TEMPERATE;
+    }
+
+    /**
      * The detail a planet type wears over its palette ({@link SurfaceSignature}): what tells it apart from the other
      * types that share the palette. Chosen apart from the palette, so a type keeps its signature whichever palette it
      * comes to read as. Matched by substring as the palette is; a type with nothing of its own, or an unknown or null

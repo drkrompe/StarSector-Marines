@@ -28,7 +28,7 @@ public final class MechRepairs {
 
     static float daysAtFullWear(MechVariant variant) {
         return switch (variant) {
-            case HOUND -> LIGHT_DAYS_AT_FULL_WEAR;
+            case HOUND, CRAWLER -> LIGHT_DAYS_AT_FULL_WEAR;
             case WARDEN -> MEDIUM_DAYS_AT_FULL_WEAR;
             case BULWARK -> HEAVY_DAYS_AT_FULL_WEAR;
             // Never repaired by the company (MechVariant.automated): keeps the switch whole.

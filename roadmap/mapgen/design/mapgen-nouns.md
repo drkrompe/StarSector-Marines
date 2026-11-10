@@ -1264,23 +1264,40 @@ wall is. `compound-programs.md` owns the model, the measurements behind its
 sizing rules, and what remains before an ordinary compound can be built the same
 way.
 
-A **cantonment** is a garrison laid in rows rather than packed (`Cantonment`;
-owner note on the Raid site: a packed garrison read as "very messy"). Its claim
-is a square kept whole on the map, walled and glacised like a square place. The
-**gate** is where the town's road comes in, the widest road on the side facing
-the rest of the site; the avenue runs from the gate side's middle, with a
-forecourt street inside the wall where the road enters off that line. Every
-building stands on a footprint the ground takes whole, faces a street, and steps
-round any road the town grew through the square; what the rows cannot seat
-takes the nearest free spot, square to them. The program
-(`FortressProgram.cantonment`) counts barracks, workshops and stores from the
-market's size, and the guardroom, corner towers and magazines from its security.
-It keeps at most one flight line, placed where the rows leave room. Only a Raid
-site's garrison is a cantonment (`PrecinctPlan.raidGarrison`); every other
-garrison is packed as before. The row arrangement is the owner's pick
-`raid-garrison` (`battle.garrison.plan` until it is decided): a parade avenue
-from the gate to the HQ, a quadrangle round one parade square, or quadrants
-about two crossing avenues.
+A **cantonment** is a garrison laid out as an installation rather than packed
+(`Cantonment`; owner notes on the Raid site: a packed garrison read as "very
+messy", and the first rowed plans gave the motor pool no clear way out and too
+small a motor pool and airfield). Its claim is a square kept whole on the map
+and slid the least it takes off ground a place before it holds (a Raid site's
+works), walled and glacised like a square place; it is laid on the largest
+square of its own ground. Every road across its claim is taken up and one
+**road in** laid straight from its middle to the town's nearest road
+(`CantonmentRoads`), and no weld between road networks is cut back across it.
+The **gate** is where that road comes in; the avenue runs from the gate side's
+middle, with a forecourt street inside the wall where the road enters off that
+line. Its parts:
+
+- the **motor pool**: vehicle sheds whose door ends open on a paved
+  **hardstand**, joined to the avenue, so every shed has a way out of the gate
+  at least three cells wide that no building stands on (`CantonmentTest`);
+- the **quadrangle**: a column of barracks down each side of the parade ground
+  facing it, the headquarters across its head facing the gate, the messes
+  either hand;
+- the **depot** (magazines, stores, workshops, generator) in rows outside the
+  barracks, and the **flight line**.
+
+Every building stands on a footprint the ground takes whole and steps round any
+ground it cannot take; what cannot be seated in its place takes the nearest free
+spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
+(one, two from size 6), workshops and stores from the
+market's size, and the guardroom, corner towers and magazines from its
+security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
+pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
+(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
+the motor pool and flight line stand is the owner's pick `raid-garrison`
+(`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
+the gate with the flight line beside the quadrangle (`YARD`), or one apron
+inside the gate shared by the sheds and the flight line (`APRON`).
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
@@ -2250,6 +2267,37 @@ world's finish, so they stand as rock outcrops in the green and on the sand
 alike, and a baked cliff lip over sand, stone or snow is bare rather than
 turfed. All of it is arithmetic on the map's size and seed with no random draw,
 so a map with no basin is the map it was.
+
+**A living world has a look, not a palette of its own.** `terran`, `jungle`,
+`tundra` and `water` all resolve to `VERDANT`, and every rule the palette owns
+holds for each: open water belongs, the colony's lawn is grass, the woods grow,
+the stones are mossed, a hill is grass-topped, and each story map pool vets one
+living list of seeds. What differs is what grows and how much of the ground is
+wet, and that is a `LivingWorld` (`SurfaceZoning.livingWorld`, carried on
+`TargetProfile.living` and read through `SurfaceField.living`): `TEMPERATE`,
+`JUNGLE`, `TUNDRA` or `OCEAN`. A look picks the woods' species (`Flora`: the
+green twins under `-jungle` or `-taiga`, as the dry scrub is under `-dry`) and
+how thick they grow, and the closing landscape pass dresses the wild grass for
+it before the woods grow (`LivingGround`): drifts of lying snow and bare
+permafrost on a tundra, still all walked; swamp mud with standing pools on a
+jungle; and on an ocean world a sea along the map's most open edge with a sand
+beach above it, and marsh with lagoons inland. Each was a palette candidate and
+was not made one: it would have restated `VERDANT` in every exhaustive switch
+over the palette, in a vetted seed list in every story map pool and in a block
+of surface fillers, all to say the same thing. Patches are a two-octave smooth
+noise under a level, so they come out as rounded blobs (a lattice of square
+patches showed every step under white snow), and snow is the last of the
+feathering grounds so the grass and earth round it fray into it. Standing water
+is real water with the shore's rounded edge; a wade over a swamp's worth of
+ground drew as a grid of ford shallows and was taken out. A pool is laid only
+where the woods' own local proof says it closes no way round, for infantry and a
+tank's lane; the sea is laid whole or not at all, by a whole-map check that
+every cell of the walkable main body before it is still joined after. It keeps
+off the landscape's places, props and roads but not the edge band, and may start
+just inside a road round the map's rim. A map built from a palette alone (a story
+map, a fixture) and a desert's green basin floor are `TEMPERATE`, so no vetted
+map moves. The open look work: a tundra's own short grass (its lawn is the green
+tile), and offshore islands.
 
 **A surface signature tells apart the types that share a palette.** Thirty landable
 vanilla types fall into a handful of palettes, so a bombarded rock, a cast-iron one
