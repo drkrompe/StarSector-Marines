@@ -745,9 +745,11 @@ look only, shallows are a wade, melt is a drop.
 | b | The theme deepens with the delve: bare at the entrances, full in the secure store |
 | c | As a, and it spills out of the plant's entrances into the dead town |
 
-What the tools lack indoors is the work: soft edges between skins (outdoor
-ground feathers; a hall floor ends in hard cell steps), coolant skins, static
-glow lights and vent emitters. The plan by theme is the
+What the tools lack indoors is the work: soft edges for the skins that are not
+coverings (dust, sand, earth and scorch still end in hard cell steps; the
+coverings feather onto the hall floor, `battle-render-nouns.md`), coolant skins,
+static glow lights and vent emitters. Raised and stage floors keep clean edges
+over a floor trim. The plan by theme is the
 shared note `ruins-themed-environments.md`. Picture options:
 `createSnapshots -Psnapshot=ruins-environment-picks`.
 
