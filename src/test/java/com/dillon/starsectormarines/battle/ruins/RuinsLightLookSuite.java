@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -31,8 +32,9 @@ import java.util.List;
  * thrown to the store, so the hall and the store burn while the way on stays dark; and lit, every junction on the way
  * on. The power is routed through the works' own rules, not drawn; the roofs are off so the interior shows.
  * {@code -Dsnapshot.ruinsLight.seed} picks the site (default 31), {@code -Dsnapshot.ruinsLight.grade} the grade
- * (default EXTENSIVE), {@code -Dsnapshot.ruinsLight.focus} where the camera stands: {@code hall} (default) or
- * {@code works}. {@code -Psnapshot=ruins-light-look}.
+ * (default EXTENSIVE), {@code -Dsnapshot.ruinsLight.focus} where the camera stands: {@code hall} (default), {@code entrance} (the first way in), {@code court} (the first light well inside) or
+ * {@code works}, {@code -Dsnapshot.ruinsLight.roofed} the darkness under the roof, for a dimmer start to compare
+ * (default {@link RuinsLighting#ROOFED_DARKNESS}). {@code -Psnapshot=ruins-light-look}.
  */
 public final class RuinsLightLookSuite implements SnapshotSuite {
 
@@ -55,12 +57,31 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
                 grade, RuinsOccupant.NOBODY)) {
             for (int t = 0; t < Math.round(5f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
             RuinsWorks works = sim.getRuinsWorks();
+            String roofed = System.getProperty("snapshot.ruinsLight.roofed");
+            NightLighting night = sim.getTopology().nightLighting();
+            if (roofed != null && night != null) {
+                sim.getTopology().setNightLighting(new NightLighting(night.darkness(), Float.parseFloat(roofed),
+                        night.lamps(), night.poweredCircuits()));
+            }
             RuinsDelve delve = works.delve();
             RuinsDelve.Cell stand = delve.interior() == null ? null : delve.interior().worksStand();
             float cx, cy;
+            RuinsDelve.Area entrance = delve.interior() == null || delve.interior().entrances().isEmpty() ? null
+                    : delve.interior().entrances().get(0);
+            RuinsDelve.Court court = null;
+            for (RuinsDelve.Layer layer : delve.layers()) {
+                if (court == null && layer.court() != null && delve.interior() != null
+                        && delve.interior().contains(layer.index())) court = layer.court();
+            }
             if (focus.equals("works") && stand != null) {
                 cx = stand.x();
                 cy = stand.y();
+            } else if (focus.equals("entrance") && entrance != null) {
+                cx = entrance.centreX();
+                cy = entrance.centreY();
+            } else if (focus.equals("court") && court != null) {
+                cx = court.ground().centreX();
+                cy = court.ground().centreY();
             } else {
                 cx = works.hall().x();
                 cy = works.hall().y();
