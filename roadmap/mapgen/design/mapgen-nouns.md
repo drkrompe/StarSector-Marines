@@ -2030,9 +2030,15 @@ over roof strips with bare hull between them. Rooms and the power hall inside
 are built of the hull; the power hall stands inside at extensive and vast, and
 at widespread, whose only layer before the last is outside, it stays out.
 
-**The vault is the site's hardened heart.** Buttressed dark cast concrete,
-an antechamber and the vault room behind an inner door, the haul crated in its
-corners: the one shell on the map that reads intact and strong.
+**The vault is the plant's secure store** (`ruins-expedition.md`, The site is
+the plant that made the prize). Buttressed dark cast concrete, an antechamber
+and the cradle hall behind an inner door: the one shell on the map that reads
+intact and strong. It grows with the layer count, 15x11 at scattered, 21x15,
+25x17 and 29x19 at vast (`RuinsDelveStage.VAULT_WIDTHS`). Rows of 3x3 cradle
+pads stand along its long walls with an aisle down the middle from the inner
+door. Units were pulled out of most cradles and wrecked in others, and the
+breach is held on the aisle before the far cradle, where the prize still
+stands. The cradles' props are stand-ins until the plant kit's art lands.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the

@@ -599,8 +599,9 @@ and empty cradles.
 (storage and a small secure store in its bunker). Widespread has intake, one
 production hall and the secure store in its one interior band. Extensive adds
 storage bays and a second production hall across two bands. Vast widens every
-hall and runs two lines per production hall. The secure store is about 24x16
-cells rather than an 11x9 room.
+hall and runs two lines per production hall. The secure store is built: a
+cradle hall from 15x11 at scattered to 29x19 at vast rather than an 11x9 room
+(`mapgen-nouns.md`, Ruins ground). The plant's other halls are still owed.
 
 **One plant kit, one product a theme.** The halls wear a generic plant kit:
 line modules, line ends, cradles, rack rows and dock doors. The theme adds its
