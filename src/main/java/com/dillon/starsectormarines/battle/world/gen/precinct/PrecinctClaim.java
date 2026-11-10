@@ -103,6 +103,14 @@ public interface PrecinctClaim {
      * whole allowance and built everything.
      */
     static PrecinctClaim byKind(List<Precinct> precincts) {
+        return byKind(precincts, null);
+    }
+
+    /**
+     * {@link #byKind(List)}, with a cantonment's square also kept off {@code held}: ground the landscape holds open
+     * (a storm bank's ridges and the run in to them), or {@code null} for none.
+     */
+    static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held) {
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];
             for (int[] column : claim) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
@@ -154,7 +162,7 @@ public interface PrecinctClaim {
                 // A cantonment is laid on its whole square: kept on the map rather than cut by its edge, and moved
                 // the least it takes off ground a place before it already holds (a Raid site's works).
                 if (precinct.program().cantonment()) {
-                    int[] at = clearSquare(claim, side, Math.max(0, Math.min(x0, width - side)),
+                    int[] at = clearSquare(claim, held, side, Math.max(0, Math.min(x0, width - side)),
                             Math.max(0, Math.min(y0, height - side)), width, height);
                     x0 = at[0];
                     y0 = at[1];
@@ -199,16 +207,17 @@ public interface PrecinctClaim {
     }
 
     /**
-     * Where a {@code side}-cell square on the map overlaps the least ground already claimed, nearest {@code (x0, y0)}
-     * among those: {@code (x0, y0)} itself when that is clear. Its near corner, {@code {x, y}}.
+     * Where a {@code side}-cell square on the map overlaps the least ground already claimed or {@code held} (may be
+     * {@code null}), nearest {@code (x0, y0)} among those: {@code (x0, y0)} itself when that is clear. Its near corner,
+     * {@code {x, y}}.
      */
-    static int[] clearSquare(int[][] claim, int side, int x0, int y0, int width, int height) {
+    static int[] clearSquare(int[][] claim, boolean[][] held, int side, int x0, int y0, int width, int height) {
         if (side > width || side > height) return new int[]{x0, y0};
         int[][] sum = new int[width + 1][height + 1];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 sum[x + 1][y + 1] = sum[x][y + 1] + sum[x + 1][y] - sum[x][y]
-                        + (claim[x][y] != GrownTrunkPlan.UNOWNED ? 1 : 0);
+                        + (claim[x][y] != GrownTrunkPlan.UNOWNED || held != null && held[x][y] ? 1 : 0);
             }
         }
         int[] best = {x0, y0};
