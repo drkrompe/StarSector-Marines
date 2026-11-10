@@ -29,8 +29,17 @@ public record MissionObjectiveSnapshot(List<Item> objectives, List<SquadActivity
 
     /** A named place or tracked friendly payload; a beacon does not imply a capture radius. */
     public record Cell(int x, int y) { }
-    public record Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint, float radius) {
+    /**
+     * One place on the map. {@code progress} is this place's own reading, 0 to 1, drawn as a ring at its locator
+     * whether or not it is the focus, with its footprint outlined while it stands (a Raid machine's hall,
+     * {@code raid-demolish-the-works.md}); -1 for a place that only shows its item's progress when focused.
+     */
+    public record Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint, float radius,
+                         float progress) {
         public Marker { footprint = List.copyOf(footprint); }
+        public Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint, float radius) {
+            this(id, name, x, y, status, state, footprint, radius, -1);
+        }
         public Marker(String id, String name, int x, int y, String status, State state, List<Cell> footprint) {
             this(id, name, x, y, status, state, footprint, 0);
         }

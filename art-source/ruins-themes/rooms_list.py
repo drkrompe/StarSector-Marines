@@ -94,6 +94,21 @@ for k, (pid, kind, what) in enumerate(STOCKS):
     fam.append((pid, 2, 1, kind, "stand", pid.replace("-", " ").capitalize(), f"A store shelf's load: {what}."))
 
 
+# The control room's desks, redrawn on a sheet of their own: the first drawing gave wall cabinets with a loose plank in
+# front, not desks (owner: "bad desks"). Their entries stay in ``rooms-control``, whose guide places the other pieces,
+# but they are cut from here.
+FAMILIES["rooms-desks"] = [
+    ("control-desk", 3, 1, "r/desk-run", "stand", "Control desk",
+     "One continuous operator desk along the wall: three screens on a raised back bank, a worktop with keyboards, "
+     "three chairs pulled up to it."),
+    ("control-desk-burnt", 3, 1, "r/desk-run-burnt", "stand", "Control desk, burnt",
+     "The operator desk burned out: screens blown, the worktop scorched and holed, a chair knocked over."),
+    ("shift-desk", 2, 1, "r/shift", "stand", "Shift desk",
+     "The shift lead's desk: a worktop with one terminal, papers and a lamp, a chair at it."),
+]
+REDRAWN = {e[0]: "rooms-desks" for e in FAMILIES["rooms-desks"]}
+
+
 def pieces():
-    """Every piece's entry, in family order."""
-    return [e for fam in FAMILIES.values() for e in fam if e]
+    """Every piece's entry, in family order, each once: a redrawn piece from its new family."""
+    return [e for f, fam in FAMILIES.items() for e in fam if e and REDRAWN.get(e[0], f) == f]
