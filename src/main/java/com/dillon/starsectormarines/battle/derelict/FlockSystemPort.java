@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import com.dillon.starsectormarines.battle.drone.Flock;
+import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockTask;
 
 import java.util.ArrayList;
@@ -22,6 +23,26 @@ final class FlockSystemPort implements FlockCommandPort {
     private final Map<Integer, Flock> flocks = new TreeMap<>();
     private final Map<Integer, Integer> zoneOf = new TreeMap<>();
     private final Map<Integer, float[]> station = new TreeMap<>();
+    private FlockSystem system;
+
+    /** The flock model the port moves flocks through ducts in. */
+    void through(FlockSystem system) {
+        this.system = system;
+    }
+
+    @Override
+    public boolean inDuct(int flockId) {
+        Flock flock = flocks.get(flockId);
+        return flock != null && flock.inDuct();
+    }
+
+    @Override
+    public void duct(int flockId, ServiceDucts.Transit transit) {
+        Flock flock = flocks.get(flockId);
+        if (flock == null || system == null || transit == null) return;
+        system.sendThroughDuct(flock, transit.entry().cellX() + 0.5f, transit.entry().cellY() + 0.5f,
+                transit.exit().cellX() + 0.5f, transit.exit().cellY() + 0.5f, transit.seconds());
+    }
 
     void add(Flock flock, int zoneId) {
         flocks.put(flock.id(), flock);

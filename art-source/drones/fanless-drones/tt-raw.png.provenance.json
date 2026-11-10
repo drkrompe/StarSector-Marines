@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c60a-3249-7f80-b3bf-761dd1d372ec",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c60a-3249-7f80-b3bf-761dd1d372ec\\exec-8b8bd83d-ae5e-4bd0-80f9-c5feff8ac977.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\fanless-drones\\tt-raw.png",
+    "sha256": "335c0e49df83f6202991fb23a66a85bfc58a84b6b13c4e8f1fea676502e1256a",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\drones\\fanless-drones\\tt-brief.txt",
+  "promptSha256": "607c8c36d070e4aacad5aeb8b0ba9cba0d143e75e138b8e28781679ece493234",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material\nImage 2: Approved design concept: panelling, parts and detailing of each drone; not layout, heading or scale\nImage 3: Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale\nImage 4: Rendering style and detail level only; not layout, palette, shape or subject\n\nPaint image 1, a flat-colour geometry guide, as a sheet of four finished top-down game sprites of small Tri-Tachyon corporate robotic DRONE units for a science-fiction strategy game, each about a metre long, hovering low over a battlefield map on VECTORED THRUST: hard-edged faceted pods held up and steered by small swivelling thrust nozzles and slot vents, never by fans.\n- top-left, ESCORT: a long narrow pod built along a pulse-emitter tube on its spine with a cyan lens at the muzzle, two angled nozzle cowls at the hips with cyan exhaust slots.\n- top-right, SENSOR: a teardrop pod whose whole front is one large dark faceted sensor aperture with a cyan glint, two thin antenna blades swept back, twin tail nozzles.\n- bottom-left, POINT-DEFENCE: a broad octagonal pod carrying a compact twin-emitter turret, a cyan vent slot at each corner for station keeping.\n- bottom-right, STRIKE: a loitering missile, a slim body with a brass nose cone, a cyan band behind it, two swept tail fins and one rear thrust nozzle.\nImage 2 is the approved concept for these four drones: follow its panelling, parts and detailing, but the guide's outline, size and heading win wherever they differ. Tri-Tachyon high-tech livery: pearl white and pale grey composite with fine graphite seams, restrained cyan lights; image 3, a Tri-Tachyon starship, is livery and material reference only, not layout or shape.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Every drone faces LEFT (nose toward the left edge), exactly where the guide puts it, at exactly the guide's size, position and outline; never move, rotate, rescale or recompose anything, add nothing between the drones and leave any empty guide panel empty. In the guide, flat colours only say what each region is: pale grey is hull plating, mid grey is structure, frames and fins, near-black bars are barrels and emitter tubes, dark slate blocks are thrust nozzle cowls, cyan marks soft cyan lights, lenses and exhaust glow, dark navy is sensor glass.\nBANNED SHAPES, never draw any of these: fans, fan blades, rotors, rotor rings or discs, propellers, ducted props, round ducts or grilles over round ducts, quadcopter arms. These drones fly on thrust nozzles and vents only.\nRendered as finished top-down game sprites matching the rendering scale and level of detail of the attached approved vehicle sprite (rendering style only, not layout, palette or subject): grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art. True transparent background with genuine alpha outside every silhouette, including gaps between fins, antenna blades, pods and body; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\drones\\fanless-drones\\tt-guide.png",
+      "sha256": "bc0efcd6149564c8582726ab5b76677afdd070fbfcfff5246ae92ade98b65444",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material"
+    },
+    {
+      "path": "art-source\\drones\\concepts-fanless\\a-vectored-raw.png",
+      "sha256": "9d9c302f5c0748051accb19b8e89554b35d40398804a6499961cd58418b5d16e",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Approved design concept: panelling, parts and detailing of each drone; not layout, heading or scale"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\tempest.png",
+      "sha256": "b1811fa2e74ac737e94479f097025bab8e3a5d0c8b6c04128561001babecfc36",
+      "dimensions": [
+        64,
+        92
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one sprite sheet, preserving the guide’s silhouettes and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 85902,
+    "cached_input_tokens": 66944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1017,
+    "reasoning_output_tokens": 19
+  },
+  "elapsedSeconds": 84.4
+}

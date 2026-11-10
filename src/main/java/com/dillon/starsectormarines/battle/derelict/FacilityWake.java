@@ -22,7 +22,9 @@ import java.util.function.IntPredicate;
  * </ul>
  *
  * A reserve bay destroyed while shut never opens; one whose zone is dark or has lost its node stays shut until the
- * zone is online again at that stage or later. A bay opens once.
+ * zone is online again at that stage or later. A bay opens once. Its flock is out to be seen: while its zone sleeps it
+ * sweeps the zone, a corner of the perimeter at a time ({@link #sweepPoint}), and once the zone wakes it is tasked as
+ * any flock of the zone.
  */
 public final class FacilityWake {
 
@@ -48,6 +50,11 @@ public final class FacilityWake {
             };
         }
     }
+
+    /** How long a reserve flock's sweep holds each corner, ticks (10 s). UNTUNED. */
+    public static final int SWEEP_TICKS = 600;
+    /** How far toward the perimeter's corner a sweep reaches, as a share of the perimeter. */
+    static final float SWEEP_REACH = 0.6f;
 
     private Stage stage = Stage.QUIET;
     private boolean sounded;
@@ -99,6 +106,17 @@ public final class FacilityWake {
             out.add(zoneId);
         }
         return out;
+    }
+
+    /**
+     * Where a released reserve flock sweeps at {@code tick} while its zone sleeps: a corner of the zone's perimeter, drawn
+     * in toward the node, going round counter-clockwise from the north-east a corner every {@link #SWEEP_TICKS}.
+     */
+    public static int[] sweepPoint(SecurityZone zone, int tick) {
+        int corner = Math.floorMod(tick / SWEEP_TICKS, 4);
+        int reach = Math.max(1, Math.round(zone.perimeterCells * SWEEP_REACH));
+        int[][] corners = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}};
+        return new int[] {zone.nodeCellX + corners[corner][0] * reach, zone.nodeCellY + corners[corner][1] * reach};
     }
 
     /** Whether a zone's reserve bay has opened. */

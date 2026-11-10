@@ -773,7 +773,9 @@ the same way along its whole length), which would swell the road into the
 yard, and narrows a broader band that a narrower street band running the same
 way overlaps to that street's breadth, on the line within it nearest the
 narrower's, so a street holds one width along its length rather than swelling
-where its frontage steps back at an end or where it jogs and widens at once;
+where its frontage steps back at an end or where it jogs and widens at once,
+and drops a band that narrowing leaves a cell off a longer street it runs
+along (a lip of asphalt along the kerb);
 it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
@@ -782,7 +784,11 @@ swept as a street to where its cells end, because left paved it reads as a
 stub of street with no road on it. It must run on at least two of its
 breadths past the street it leaves; a shorter one is a yard's mouth opening
 off the street and keeps its paving, since swept it is a blob of asphalt
-stepping out of the kerb line. Its mouth takes a kerb radius only where
+stepping out of the kerb line. Spurs do not comb: one within ten cells
+along the street of a side street or spur leaving its other side, off that
+one's line, keeps its paving (of two spurs, the one reaching further is
+swept), so yards opening where their lots fall do not leave stubs on
+alternate sides. Its mouth takes a kerb radius only where
 the turn would lie wholly on street or footway; where the spur opens
 straight onto its yard the corner stays square rather than being cut off at
 the yard's edge. A street that jogs a cell sideways, and a *link* between two
@@ -2155,17 +2161,33 @@ head to the north:
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- a feed path, a marked lane along the head row from the east wall to the
-  crucible's charge hopper, kept clear. It is generic until the feed's own
-  pieces land: the owner ruled out ore cars and rail ("Ore car does not make
-  sense for a space faring civilization"), and the hall reads as automated
-  heavy industry, not a period foundry;
+- the feed: a mag-rail up the west aisle from the dispatch end to a
+  decelerator stop at the head, beside the crucible's flank, one sealed feed
+  pod waiting on it and another derailed in the aisle. The hall reads as
+  automated, spacefaring heavy industry, never a period foundry (owner: "Ore
+  car does not make sense for a space faring civilization");
+- the slag pit beside the slag heaps, a crashed hover skid on its lip, and
+  the slag lane, a mag-rail down the east aisle with a hover skid stopped on
+  it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
-- the dispatch end left clear.
+- the dispatch end clear of the line: the trench runs on under covers,
+  pallet bays are marked along it, and a finishing cell and a metrology bed
+  stand by;
+- a crane girder fallen across the west aisle as cover;
+- wear laid under it all: scorch round the spout and the core's flank,
+  coolant by the racks, a floor drain in each aisle, oil and a hover
+  skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
+  turn a floor zone to deck plate.
+
+The hall's overhead structure (crane runways, cable trays, ladle lifts) is
+authored to draw above units (`ruins-forge-motions`) but not yet laid: the
+roof pass draws overhead props after the roofs, so inside a roofed hall they
+would show on top of its shut roof. They wait until overhead props under a
+roof draw beneath it and show as it fades.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`

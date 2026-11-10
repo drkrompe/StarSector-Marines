@@ -18,6 +18,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlanetSkinTest {
 
@@ -112,4 +113,33 @@ class PlanetSkinTest {
         PlanetSkin.apply(map, SurfacePalette.ARID, world(SurfacePalette.ARID));
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) assertEquals(GroundKind.GRASS, topology.getGroundKind(x, y));
     }
+
+    @Test
+    void theCoveredFarmStandsInsideItsHeadlandInRowsWithALaneRoundEveryPiece() {
+        for (boolean alongX : new boolean[]{true, false}) {
+            RuralLayout.Plot plot = alongX ? new RuralLayout.Plot(10, 20, 40, 33, RuralLayout.Use.ROW_CROP, true, false)
+                    : new RuralLayout.Plot(10, 20, 23, 50, RuralLayout.Use.GRAIN, false, false);
+            List<PlanetSkin.Placed> farm = PlanetSkin.covered(plot);
+            assertTrue(farm.stream().anyMatch(p -> p.piece() == PlanetSkin.Cover.TUNNEL));
+            for (PlanetSkin.Placed p : farm) {
+                assertEquals(alongX ? 0 : 1, p.turns());
+                assertTrue(p.x() > plot.x0() && p.y() > plot.y0()
+                        && p.x() + p.width() - 1 < plot.x1() && p.y() + p.height() - 1 < plot.y1(), p.toString());
+                for (PlanetSkin.Placed q : farm) {
+                    if (p == q) continue;
+                    boolean apart = p.x() + p.width() + PlanetSkin.LANE <= q.x() || q.x() + q.width() + PlanetSkin.LANE <= p.x()
+                            || p.y() + p.height() + PlanetSkin.LANE <= q.y() || q.y() + q.height() + PlanetSkin.LANE <= p.y();
+                    assertTrue(apart, p + " and " + q);
+                }
+            }
+        }
+    }
+
+    @Test
+    void aPlotTooShortForATunnelTakesGrowDomes() {
+        List<PlanetSkin.Placed> farm = PlanetSkin.covered(
+                new RuralLayout.Plot(0, 0, 5, 9, RuralLayout.Use.ROW_CROP, true, false));
+        assertTrue(!farm.isEmpty() && farm.stream().allMatch(p -> p.piece() == PlanetSkin.Cover.DOME));
+    }
 }
+

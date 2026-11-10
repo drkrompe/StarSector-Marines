@@ -2,8 +2,10 @@
 
 Status: ACTIVE — every pooled story map (Colony Breach, the Cordon's and the
 Heart's, at every density) is one owned seed laid out on the mission's home
-palette and skinned for the world it is fought on (`PlanetSkin`); Conquest and
-the generic contracts stay fully random until they own a map too.
+palette and skinned for the world it is fought on (`PlanetSkin`); so is every
+generic Raid's map, one per Raid site, laid against a reference market
+(`raid-mission.md`, The owned map). Conquest and the other generic contracts
+stay fully random until they own a map too.
 
 Updated: 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
@@ -93,11 +95,15 @@ through or built on (`PlanetSkinTest`). It swaps:
   (`PlanetSkin.fieldsOn`). On a frozen, bare-rock, volcanic, irradiated or toxic
   world, or under air that kills, every worked field (`MapResult.fields`: the
   surveyed country's plots, the town's own fields and the lots' kitchen plots)
-  is cleared to the planet's own ground, as walkable as it was; the farmsteads
-  stand. Paved hydroponic bays on the footprint were tried and dropped (owner,
-  2026-11-10: "Do a bunch of paved beds make sense? Why would a planet have
-  those?"): a hazardous world grows its food under cover, so what belongs on
-  those plots is greenhouses or domes, which wait for their own art.
+  is grown under cover: the plot is cleared to the planet's own ground and a
+  **covered farm** stands on it (`PlanetSkin.covered`): rows of greenhouse
+  tunnels two cells deep along the plot's crop rows, a lane between rows and
+  between pieces, each row finished with a short tunnel or a tank skid, and
+  grow domes on a plot too short for a long tunnel. The pieces
+  (`greenhouses` doodads) are walk-in and coverless, so pathing, sight and
+  cover are the home map's. Paved hydroponic bays on the footprint were tried
+  and dropped (owner, 2026-11-10: "Do a bunch of paved beds make sense? Why
+  would a planet have those?").
 - **Buildings.** Every town wall in the world's habitat (`HabitatStage.rebuild`,
   `BiomeSkin.habitat`): shielded on an irradiated world, sealed on a toxic or
   airless one (bare rock is airless unless its profile says otherwise),
@@ -247,8 +253,12 @@ question about one map.
 
 ## Boundaries
 
-- Conquest, skirmish and every generated contract stay fully random: their
-  value is variety, and their evidence is a matrix over constructed fixtures.
+- Conquest, skirmish and every generated contract but the Raid stay fully
+  random: their value is variety, and their evidence is a matrix over
+  constructed fixtures. The Raid's maps are pooled like a story map's but laid
+  against a reference market, not the battle's (`raid-mission.md`, The owned
+  map); its acceptance is that a raid stands up with every machine of its
+  works reachable.
 - A pool is per story map, not per mission: The Burn and Broad Front are
   different forms at different sizes, so each has its own.
 - The pool does not hold the setup's tuning, timetables or rosters; those

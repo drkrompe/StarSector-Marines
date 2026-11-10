@@ -1,0 +1,85 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c60a-3220-7822-a293-60485ed84a65",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c60a-3220-7822-a293-60485ed84a65\\exec-bd83f22f-7634-4bd1-9ac3-615a8ebd1ac4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\fanless-drones\\swarm-raw.png",
+    "sha256": "c71b214f2a53a3d979b5ce0bc7bc721e099ca538c8e411b5923116e8f02b7c58",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\drones\\fanless-drones\\swarm-brief.txt",
+  "promptSha256": "e78d687c1960f07ff58340d4ce8814f39ac512be3a7249bc8bf138f93c302153",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material\nImage 2: Approved design concept: panelling, parts and detailing of the swarm drone only; not layout, heading or scale\nImage 3: Rendering style and detail level only; not layout, palette, shape or subject\nImage 4: Domain livery and material reference only; not shape or layout\nImage 5: Contingency livery and material reference only; not shape or layout\n\nPaint image 1, a flat-colour geometry guide, as two finished top-down game sprites of the same small expendable SWARM DRONE for a science-fiction strategy game: a cheap mass-produced half-metre dart of an old abandoned automated site-security network that flies low in flocks of sixteen. A stamped body, a short barrel at the nose, a sensor lens, a marking band, two small swept tail fins and one rear thrust nozzle; no fan. Both drones are the identical machine in two liveries; the bottom half of the guide is empty: leave it empty.\n- top-left, DOMAIN livery: gunmetal and weathered grey pressed-steel panels with rivets, worn hazard-yellow and black chevrons where the guide has yellow, a small red sensor lens where the guide has red, a tiny stencilled serial block, dust and chipped paint. Image 4 is the old sprite in this livery (livery and material only, not shape).\n- top-right, CONTINGENCY livery: Tri-Tachyon high-tech composite in white and pale grey with graphite seams GONE DULL after decades unattended: yellowed, dust-greyed and scorched, cracked panels; a thin dull cyan accent band where the guide has yellow and a dim cyan sensor lens where it has red. Image 5 is the old sprite in this livery (livery and material only, not shape).\nImage 2 is the approved concept for this drone (the SWARM one): follow its panelling, parts and detailing, but the guide's outline, size and heading win wherever they differ.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. Every drone faces LEFT (nose toward the left edge), exactly where the guide puts it, at exactly the guide's size, position and outline; never move, rotate, rescale or recompose anything, add nothing between the drones and leave any empty guide panel empty. In the guide, flat colours only say what each region is: pale grey is hull plating, mid grey is structure, frames and fins, near-black bars are barrels and emitter tubes, dark slate blocks are thrust nozzle cowls, cyan marks soft cyan lights, lenses and exhaust glow, dark navy is sensor glass.\nBANNED SHAPES, never draw any of these: fans, fan blades, rotors, rotor rings or discs, propellers, ducted props, round ducts or grilles over round ducts, quadcopter arms. These drones fly on thrust nozzles and vents only.\nRendered as finished top-down game sprites matching the rendering scale and level of detail of the attached approved vehicle sprite (rendering style only, not layout, palette or subject): grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art. True transparent background with genuine alpha outside every silhouette, including gaps between fins, antenna blades, pods and body; no ground, scene, cast-shadow slab, labels, text, border, grid or checkerboard. Same square canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\drones\\fanless-drones\\swarm-guide.png",
+      "sha256": "44ab743a38abc746b98646111c242cff7ae2abb591c06271f540aac01f42f2e0",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement, scale and heading; flat colours are placeholders, not material"
+    },
+    {
+      "path": "art-source\\drones\\concepts-fanless\\d-factions-v2-raw.png",
+      "sha256": "27f8ba3d27f2e7037dac113b2207af5527e002643b6e1d947542152940cc1165",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Approved design concept: panelling, parts and detailing of the swarm drone only; not layout, heading or scale"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    },
+    {
+      "path": "mod\\graphics\\battle\\drones\\swarm-domain.png",
+      "sha256": "72e3cc897a08cb61345e54ba09a678e54e0042996d8082f9b375c09b19b270d7",
+      "dimensions": [
+        62,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Domain livery and material reference only; not shape or layout"
+    },
+    {
+      "path": "mod\\graphics\\battle\\drones\\swarm-contingency.png",
+      "sha256": "8753448c933c956fda3a31f09c10def948d10ae39f6ae3351b4e63704a636b74",
+      "dimensions": [
+        63,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Contingency livery and material reference only; not shape or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, using the guide for exact geometry and the other references for detailing, rendering style, and liveries."
+  ],
+  "usage": {
+    "input_tokens": 47380,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 705,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 76.5
+}

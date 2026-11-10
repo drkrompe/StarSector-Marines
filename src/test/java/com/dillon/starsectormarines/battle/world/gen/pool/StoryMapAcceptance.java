@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.cordon.CordonFront;
 import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
 import com.dillon.starsectormarines.battle.cordon.CordonGapNests;
@@ -43,6 +45,7 @@ public final class StoryMapAcceptance {
     /** The entry's reading on this biome when it passes; throws, naming what it lacks, when it does not. */
     public static String check(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
         Form form = BloomHeartSetup.formOf(map);
+        if (RaidOwnedMap.isRaid(map)) return raid(map, biome, entry);
         return map == StoryMap.COLONY_BREACH ? colony(biome, entry)
                 : form != null ? heart(map, biome, entry) : cordon(map, biome, entry);
     }
@@ -117,6 +120,40 @@ public final class StoryMapAcceptance {
             return holdouts.size() + " holdouts; " + bores.size() + " bore sites"
                     + (holdouts.isEmpty() || bores.isEmpty() ? "" : String.format(Locale.ROOT, "; nearest holdout to bore %.0f cells", nearest));
         }
+    }
+
+    /**
+     * A Raid map's acceptance ({@code raid-mission.md}, The owned map): the owned ground, skinned for {@code biome},
+     * stands a raid up on its first generation. A site's map holds a works with every one of
+     * {@link RaidOwnedMap#MACHINES} machines reachable; the generic map stands a raid for a target and, for an industry
+     * with no site, a works of the same machines.
+     */
+    static String raid(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) {
+        if (!entry.patch().isEmpty()) throw new IllegalStateException("a Raid entry takes no patch yet");
+        RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(map, StoryMapPools.pool(map).layoutFor(biome));
+        StringBuilder detail = new StringBuilder(map == StoryMap.RAID ? "generic" : ground.site().key());
+        if (map == StoryMap.RAID) {
+            try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, biome, entry.seed(), false, List.of())) {
+                RaidObjective target = raidObjective(sim);
+                detail.append(String.format(Locale.ROOT, "; target %s at %d,%d; egress %d,%d", target.targetName(),
+                        target.targetCellX(), target.targetCellY(), target.egressCellX(), target.egressCellY()));
+            }
+        }
+        try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, biome, entry.seed(), true, List.of())) {
+            RaidObjective works = raidObjective(sim);
+            if (!works.works() || works.sites().size() != ground.machines()) {
+                throw new AssertionError("works holds " + works.sites().size() + " of " + ground.machines() + " machines");
+            }
+            detail.append(String.format(Locale.ROOT, "; works %d machines, egress %d,%d; map %dx%d",
+                    works.sites().size(), works.egressCellX(), works.egressCellY(),
+                    sim.getTopology().getWidth(), sim.getTopology().getHeight()));
+        }
+        return detail.toString();
+    }
+
+    private static RaidObjective raidObjective(BattleSimulation sim) {
+        for (var objective : sim.getObjectives()) if (objective instanceof RaidObjective raid) return raid;
+        throw new AssertionError("the battle has no Raid objective");
     }
 
     static String heart(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {

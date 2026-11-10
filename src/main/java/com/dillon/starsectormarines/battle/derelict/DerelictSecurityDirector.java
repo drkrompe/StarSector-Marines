@@ -10,12 +10,16 @@ import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Report;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Kind;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.derelict.WalkerPosture.Order;
+import com.dillon.starsectormarines.battle.drone.FlockSystem;
+import com.dillon.starsectormarines.battle.drone.FlockTask;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.FxHash;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService.ChargeView;
 import com.dillon.starsectormarines.battle.modifier.UnitModifier;
 import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -24,10 +28,12 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +64,10 @@ public final class DerelictSecurityDirector {
     static final int EGRESS_RADIUS = 4;
     /** How near a place of its round a rounds walker stands before it counts as there. */
     static final int ROUND_RADIUS = 1;
+    /** How near a dead door's middle a forcing frame holds. */
+    static final int FORCE_RADIUS = 1;
+    /** How near a dead door's middle, in cells, a hall frame stands pressed against it. */
+    static final float RAM_CELLS = 3f;
     /** Confidence a relayed sighting is handed to a siege frame at. */
     static final float SPOT_CONFIDENCE = 0.9f;
 
@@ -81,6 +91,66 @@ public final class DerelictSecurityDirector {
     private final Map<Long, Integer> posts = new TreeMap<>();
     private final Map<Integer, Integer> junctions = new TreeMap<>();
     private final List<Tender> tenders = new ArrayList<>();
+    /** Each rounds walker's round, by lance (`derelict-watch.md`, Movement). */
+    private final Map<Integer, PatrolRound> rounds = new TreeMap<>();
+    /** Each hall-bound frame's dead door, and its ram against it (`derelict-watch.md`, Medium and large walkers). */
+    private final Map<Integer, RuinsDelve.LeafDoor> deadDoors = new TreeMap<>();
+    private final Map<Integer, DerelictWalkerClass.Ram> rams = new TreeMap<>();
+    private final List<RuinsDelve.LeafDoor> forced = new ArrayList<>();
+    /** The security bulkheads, shut until the hunting stage. */
+    private List<Bulkheads.Bulkhead> bulkheads = List.of();
+    private boolean bulkheadsOpened;
+    /** Hall frames whose way to the egress is too narrow: they keep their hall in the contingency. */
+    private final Set<Integer> hallBound = new TreeSet<>();
+
+    // ---- the facility's wake (`derelict-watch.md`, Waking) ----
+    private final FacilityWake wake = new FacilityWake();
+    private ServiceDucts ducts = new ServiceDucts(List.of());
+    /** Each zone's sealed reserve bay, by zone. */
+    private final Map<Integer, Long> reserveBays = new TreeMap<>();
+    private ReserveLauncher reserveLauncher = (zoneId, x, y) -> -1;
+    /** The flocks released from reserve bays, by flock id: they sweep while their zone sleeps. */
+    private final Set<Integer> sweeping = new TreeSet<>();
+
+    /** Puts a zone's second flock up where its reserve bay stood; returns its flock id, or -1 when none went up. */
+    public interface ReserveLauncher {
+        int launch(int zoneId, float x, float y);
+    }
+
+    // ---- repair (`derelict-watch.md`, Repair) ----
+    /** A zone's service bay in the field: its entity and the stock it holds. */
+    private static final class Bay {
+        final long id;
+        final ServiceBay rules = new ServiceBay();
+
+        Bay(long id) {
+            this.id = id;
+        }
+    }
+
+    private final Map<Integer, Bay> serviceBays = new TreeMap<>();
+    private final Map<Integer, Long> serviceBayIds = new TreeMap<>();
+    private final List<Wreck> wrecks = new ArrayList<>();
+    private long nextWreck = 1L;
+    /** Each walker lance's last place while it stood, for its wreck. */
+    private final Map<Integer, float[]> lastStood = new TreeMap<>();
+    /** Each post's cell while it stood, for its wreck. */
+    private final Map<Long, int[]> postCells = new TreeMap<>();
+    /** Lances and posts already raised once: their next fall leaves scrap. */
+    private final Set<Integer> raisedLances = new TreeSet<>();
+    private final Set<Long> raisedPosts = new TreeSet<>();
+    /** Where each company charge armed at the last look stands, to hear it go off. */
+    private Map<Long, float[]> armedCharges = new HashMap<>();
+    /** Raised posts the network stands, by the zone they answer to; read by the install's post stander. */
+    private PostStander postStander = (zoneId, x, y) -> 0L;
+
+    /** Stands a raised post of a zone at a cell; returns it, or 0 when it cannot. */
+    public interface PostStander {
+        long stand(int zoneId, int x, int y);
+    }
+
+    /** How near a wreck, in cells, a unit of the watch contests the company's scrapping. */
+    static final float CONTEST_CELLS = 4f;
 
     /** A zone's repair drone in the field: its entity, zone, home, rules and current goal. */
     private static final class Tender {
@@ -317,6 +387,105 @@ public final class DerelictSecurityDirector {
         return look;
     }
 
+    /** Stands a zone's sealed reserve bay (`derelict-watch.md`, Waking). */
+    public void standReserveBay(int zoneId, long entityId) {
+        reserveBays.put(zoneId, entityId);
+    }
+
+    /** How a released reserve bay's flock goes up. */
+    public void launchReserves(ReserveLauncher launcher) {
+        reserveLauncher = launcher == null ? (zoneId, x, y) -> -1 : launcher;
+    }
+
+    /** Lays the site's service ducts. */
+    public void layDucts(ServiceDucts ducts) {
+        this.ducts = ducts == null ? new ServiceDucts(List.of()) : ducts;
+    }
+
+    public ServiceDucts ducts() {
+        return ducts;
+    }
+
+    public FacilityWake wake() {
+        return wake;
+    }
+
+    /** Each zone's reserve bay entity, by zone; a bay that has opened or fallen is still listed. */
+    public Map<Integer, Long> reserveBays() {
+        return Collections.unmodifiableMap(reserveBays);
+    }
+
+    /** Stands a zone's service bay (`derelict-watch.md`, Repair): where its repair drone takes on loads. */
+    public void standServiceBay(int zoneId, long entityId) {
+        serviceBays.put(zoneId, new Bay(entityId));
+        serviceBayIds.put(zoneId, entityId);
+    }
+
+    /** Each zone's service bay entity, by zone. */
+    public Map<Integer, Long> serviceBays() {
+        return Collections.unmodifiableMap(serviceBayIds);
+    }
+
+    /** The stock a zone's service bay still holds, or -1 with none. */
+    public float bayStock(int zoneId) {
+        Bay bay = serviceBays.get(zoneId);
+        return bay == null ? -1f : bay.rules.stock();
+    }
+
+    /** Every wreck the network's units have left, in the order they fell. */
+    public List<Wreck> wrecks() {
+        return Collections.unmodifiableList(wrecks);
+    }
+
+    /** How a raised post is stood again. */
+    public void standPostsWith(PostStander stander) {
+        postStander = stander == null ? (zoneId, x, y) -> 0L : stander;
+    }
+
+    /** Puts a rounds walker's lance on its zone's round (`derelict-watch.md`, Movement). */
+    public void walkRound(int squadId, PatrolRound round) {
+        rounds.put(squadId, round);
+    }
+
+    /** The round a lance walks, or null for a walker with none. */
+    public PatrolRound roundOf(int squadId) {
+        return rounds.get(squadId);
+    }
+
+    /** Keeps a hall frame on its hall in the contingency: its way to the egress does not fit it. */
+    public void keepHall(int squadId) {
+        hallBound.add(squadId);
+    }
+
+    /**
+     * Gives a hall-bound frame the dead door it forces once awake: its leaves give way after
+     * {@link DerelictWalkerClass#FORCE_SECONDS} pressed against it, and the frame is bound no longer.
+     */
+    public void forceDoor(int squadId, RuinsDelve.LeafDoor door) {
+        if (door.stance() != RuinsDelve.DoorStance.DEAD) throw new IllegalArgumentException("only a dead door is forced");
+        deadDoors.put(squadId, door);
+        rams.put(squadId, new DerelictWalkerClass.Ram());
+    }
+
+    /** The dead doors hall frames have forced, in the order they gave way. */
+    public List<RuinsDelve.LeafDoor> forcedDoors() {
+        return Collections.unmodifiableList(forced);
+    }
+
+    /** Lays the site's security bulkheads, shut until the hunting stage. */
+    public void layBulkheads(List<Bulkheads.Bulkhead> laid) {
+        bulkheads = List.copyOf(laid);
+    }
+
+    public List<Bulkheads.Bulkhead> bulkheads() {
+        return bulkheads;
+    }
+
+    /** Whether the bulkheads stand open. */
+    public boolean bulkheadsOpened() {
+        return bulkheadsOpened;
+    }
+
     /** Stands a zone's node: the structure whose loss isolates the zone (slice 5). */
     public void standNode(int zoneId, long entityId) {
         nodes.put(zoneId, entityId);
@@ -441,6 +610,8 @@ public final class DerelictSecurityDirector {
             if (before != null && now < before - 0.5f) network.stir(post.getValue(), tick);
         }
         network.settle(tick);
+        tickWake(sim);
+        tickWrecks(sim);
         for (Map.Entry<Long, Integer> post : posts.entrySet()) {
             long id = post.getKey();
             if (sim.resolveUnit(id) == 0L) continue;
@@ -456,9 +627,17 @@ public final class DerelictSecurityDirector {
             SecurityZone zone = network.zone(walker.zoneId());
             // A zone whose flock is gone is its walkers' own eyes: they come to and fire on what they hold.
             boolean blind = !flocked.contains(walker.zoneId());
+            PatrolRound round = rounds.get(walker.squadId());
+            int[] place = null;
+            if (round != null) {
+                long lead = sim.squadMemberAt(walker.squadId(), 0);
+                place = round.advance(sim.world().x(lead), sim.world().y(lead), PULSE_TICKS * BattleSimulation.TICK_DT);
+            }
             Order order = WalkerPosture.decide(walker.frame(), zone, network.contingency(),
-                    walker.postX(), walker.postY(), blind ? merge(pins, own) : pins,
+                    walker.postX(), walker.postY(), place, !hallBound.contains(walker.squadId()),
+                    blind ? merge(pins, own) : pins,
                     blind ? all : flockSeen, haulIds, egress, walker.frame().maxWeaponRange());
+            order = ram(sim, walker, zone, order);
             apply(sim, walker, order, tick);
         }
         for (Tender tender : tenders) directTender(sim, tender, all, tick);
@@ -468,6 +647,20 @@ public final class DerelictSecurityDirector {
             int[] stir = stirredAt.getOrDefault(zone.id, new int[] {zone.nodeCellX, zone.nodeCellY});
             FlockTasking.Order order = FlockTasking.decide(report, zone, network.contingency(), all, haulContacts,
                     stir[0], stir[1]);
+            if (sweeping.contains(report.flockId()) && zone.state() != SecurityZone.State.AWAKE
+                    && !network.contingency() && report.strength() * 3f >= 1f) {
+                // A released reserve flock is out to be seen: it sweeps its sleeping zone a corner at a time.
+                int[] sweep = FacilityWake.sweepPoint(zone, tick);
+                order = new FlockTasking.Order(FlockTask.PROBE, sweep[0], sweep[1], -1L);
+            }
+            if (order != null && ducts.opened() && !report.docked() && !flocks.inDuct(report.flockId())) {
+                // The way round a megastructure is long: a flock takes a duct where it is the shorter way.
+                ServiceDucts.Transit transit = ducts.plan(network, zone.id, report.cellX() + 0.5f,
+                        report.cellY() + 0.5f, order.anchorX(), order.anchorY(),
+                        openWay(sim, report.cellX(), report.cellY(), order.anchorX(), order.anchorY()),
+                        FlockSystem.ANCHOR_SPEED);
+                if (transit != null) flocks.duct(report.flockId(), transit);
+            }
             if (order != null) {
                 flocks.order(report.flockId(), order.task(), order.anchorX(), order.anchorY(), order.targetUnitId());
             }
@@ -492,8 +685,17 @@ public final class DerelictSecurityDirector {
             }
         }
         SecurityZone zone = network.zone(tender.zoneId);
+        List<RepairDrone.Fallen> fallen = new ArrayList<>();
+        for (Wreck wreck : wrecks) {
+            if (wreck.zoneId == tender.zoneId && wreck.raisable()) {
+                fallen.add(new RepairDrone.Fallen(wreck.id, wreck.x, wreck.y));
+            }
+        }
+        Bay bay = serviceBays.get(tender.zoneId);
+        RepairDrone.Bay at = bay == null || sim.resolveUnit(bay.id) == 0L ? null
+                : new RepairDrone.Bay(world.x(bay.id), world.y(bay.id), bay.rules.stock());
         tender.goal = tender.rules.decide(x, y, tender.homeX, tender.homeY, zone != null && zone.online(),
-                hit || threatened, charges(sim, tender.zoneId), tick);
+                hit || threatened, charges(sim, tender.zoneId), fallen, at, tick);
     }
 
     /** What a zone's repair drone may mend: its posts, its flock's cradle and its walkers, with how whole each is. */
@@ -539,6 +741,18 @@ public final class DerelictSecurityDirector {
                 tender.rules.refund(points - mend(world, goal.entityId(), points));
                 continue;
             }
+            if (goal.kind() == RepairDrone.Kind.RAISE) {
+                Wreck wreck = wreck(goal.entityId());
+                if (wreck == null || !wreck.raisable()) continue;
+                tender.rules.refund(wreck.work(tender.rules.drawRaise(dt)));
+                if (wreck.state() == Wreck.State.RAISED) raise(sim, wreck);
+                continue;
+            }
+            if (goal.kind() == RepairDrone.Kind.RELOAD) {
+                Bay bay = serviceBays.get(tender.zoneId);
+                if (bay != null && sim.resolveUnit(bay.id) != 0L) tender.rules.reload(bay.rules);
+                continue;
+            }
             float x = world.x(tender.id);
             float y = world.y(tender.id);
             float dx = goal.x() - x;
@@ -553,6 +767,173 @@ public final class DerelictSecurityDirector {
             if (body != null) body.teleport(nx, ny, heading);
             world.setPos(tender.id, nx, ny);
         }
+    }
+
+    /**
+     * A flock's way over open ground from one cell to another, as the director reckons it: the straight way, and twice
+     * every roofed cell it crosses again for the way round. A reckoning, not a route: the flock's own field flies it.
+     */
+    static float openWay(BattleSimulation sim, int fromX, int fromY, int toX, int toY) {
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (sim.getTopology() == null || length < 1f) return length;
+        int roofed = 0;
+        int steps = (int) Math.ceil(length);
+        for (int i = 0; i <= steps; i++) {
+            int x = (int) Math.floor(fromX + 0.5f + dx * i / steps);
+            int y = (int) Math.floor(fromY + 0.5f + dy * i / steps);
+            if (sim.getTopology().isRoofIntact(x, y)) roofed++;
+        }
+        return length + 2f * roofed;
+    }
+
+    /**
+     * The facility's wake each pulse (`derelict-watch.md`, Waking): the stage follows the site's stir, or the contingency;
+     * the ducts come up, the reserve bays open (each one's housing gives way to its flock's cradle) and the hunting
+     * alarm sounds as their stages come.
+     */
+    private void tickWake(BattleSimulation sim) {
+        RuinsPressure pressure = sim.ruinsPressure();
+        FacilityWake.Stage seen = FacilityWake.of(pressure == null ? RuinsPressure.Level.QUIET : pressure.level(),
+                network.contingency());
+        wake.advance(seen);
+        if (wake.stage().ventsOpen() && !ducts.opened()) ducts.open();
+        List<Integer> open = wake.release(network, new ArrayList<>(reserveBays.keySet()),
+                zone -> sim.resolveUnit(reserveBays.get(zone)) != 0L);
+        for (int zoneId : open) {
+            long bay = reserveBays.get(zoneId);
+            float x = sim.world().x(bay);
+            float y = sim.world().y(bay);
+            sim.takeOffTheField(bay);
+            int flock = reserveLauncher.launch(zoneId, x, y);
+            if (flock >= 0) sweeping.add(flock);
+        }
+        wake.sound(network);
+        if (wake.stage().bulkheadsOpen() && !bulkheadsOpened) {
+            bulkheadsOpened = true;
+            for (Bulkheads.Bulkhead bulkhead : bulkheads) {
+                for (int[] c : bulkhead.cells()) sim.mapEditor().openPassage(c[0], c[1], bulkhead.likeX(), bulkhead.likeY());
+            }
+        }
+    }
+
+    /**
+     * A hall-bound frame, awake and with nothing to close on or fire at, goes to its dead door and presses against it;
+     * once forced, the door's end cells open and the frame is bound no longer.
+     */
+    private Order ram(BattleSimulation sim, Walker walker, SecurityZone zone, Order order) {
+        RuinsDelve.LeafDoor door = deadDoors.get(walker.squadId());
+        if (door == null || !hallBound.contains(walker.squadId())) return order;
+        boolean roused = network.contingency() || zone.state() == SecurityZone.State.AWAKE;
+        if (!roused || (order.kind() != Kind.HOLD && order.kind() != Kind.HOLD_EGRESS)) return order;
+        RuinsDelve.Area span = door.span();
+        long lead = sim.squadMemberAt(walker.squadId(), 0);
+        boolean against = Math.max(Math.abs(sim.world().x(lead) - (span.centreX() + 0.5f)),
+                Math.abs(sim.world().y(lead) - (span.centreY() + 0.5f))) <= RAM_CELLS;
+        if (rams.get(walker.squadId()).tick(PULSE_TICKS * BattleSimulation.TICK_DT, against)) {
+            int likeX = span.centreX(), likeY = span.centreY();
+            sim.mapEditor().openPassage(span.left(), span.bottom(), likeX, likeY);
+            sim.mapEditor().openPassage(span.right(), span.top(), likeX, likeY);
+            forced.add(door);
+            hallBound.remove(walker.squadId());
+            return order;
+        }
+        return new Order(Kind.FORCE, span.centreX(), span.centreY(), -1L);
+    }
+
+    /**
+     * Wrecks each pulse (`derelict-watch.md`, Repair): a walker lance or post of the network that has fallen leaves its
+     * wreck where it last stood (the vault frame, a guardian, leaves none); company infantry standing on a wreck
+     * uncontested scraps it; a company charge going off scraps the wrecks and collapses the vents near it.
+     */
+    private void tickWrecks(BattleSimulation sim) {
+        World world = sim.world();
+        float dt = PULSE_TICKS * BattleSimulation.TICK_DT;
+        for (Walker walker : walkers) {
+            if (sim.squadMemberCount(walker.squadId()) > 0) {
+                long lead = sim.squadMemberAt(walker.squadId(), 0);
+                lastStood.put(walker.squadId(), new float[] {world.x(lead), world.y(lead)});
+                continue;
+            }
+            float[] at = lastStood.remove(walker.squadId());
+            if (at == null || walker.frame() == DerelictWalkerFrame.VAULT) continue;
+            wrecks.add(new Wreck(nextWreck++, Wreck.Kind.WALKER, walker.zoneId(), at[0], at[1], walker.frame(),
+                    walker.squadId(), raisedLances.contains(walker.squadId())));
+        }
+        for (Map.Entry<Long, Integer> post : new ArrayList<>(posts.entrySet())) {
+            long id = post.getKey();
+            if (sim.resolveUnit(id) != 0L) {
+                postCells.putIfAbsent(id, new int[] {world.cellX(id), world.cellY(id)});
+                continue;
+            }
+            int[] cell = postCells.remove(id);
+            if (cell == null) continue;
+            posts.remove(id);
+            wrecks.add(new Wreck(nextWreck++, Wreck.Kind.POST, post.getValue(), cell[0] + 0.5f, cell[1] + 0.5f, null,
+                    -1, raisedPosts.contains(id)));
+        }
+        Map<Long, float[]> armed = new HashMap<>();
+        for (ChargeView charge : sim.satchelCharges().activeCharges()) {
+            if (charge.sourceFaction() == Faction.MARINE) armed.put(charge.id(), new float[] {charge.x(), charge.y()});
+        }
+        for (Map.Entry<Long, float[]> was : armedCharges.entrySet()) {
+            if (armed.containsKey(was.getKey())) continue;
+            float[] at = was.getValue();
+            for (Wreck wreck : wrecks) wreck.blast(at[0], at[1]);
+            ducts.charge(at[0], at[1]);
+        }
+        armedCharges = armed;
+        for (Wreck wreck : wrecks) {
+            if (!wreck.raisable()) continue;
+            boolean companyOn = false;
+            boolean contested = false;
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                long unit = sim.liveUnitAt(i);
+                UnitType type = sim.identity().type(unit);
+                if (!type.combatant) continue;
+                float dx = world.x(unit) - wreck.x;
+                float dy = world.y(unit) - wreck.y;
+                float d2 = dx * dx + dy * dy;
+                Faction side = sim.identity().faction(unit);
+                if (side == Faction.MARINE && !type.isMech() && d2 <= Wreck.REACH_CELLS * Wreck.REACH_CELLS) {
+                    companyOn = true;
+                } else if (side == Faction.DEFENDER && d2 <= CONTEST_CELLS * CONTEST_CELLS) {
+                    contested = true;
+                }
+            }
+            wreck.scrap(dt, companyOn, contested);
+        }
+    }
+
+    private Wreck wreck(long id) {
+        for (Wreck wreck : wrecks) if (wreck.id == id) return wreck;
+        return null;
+    }
+
+    /**
+     * A raised wreck stands again: a walker in its own lance at the wreck, a post on its cell, each at
+     * {@link Wreck#RAISE_SHARE} of its plate and structure, with fresh knees on a walker. Its next fall leaves scrap.
+     */
+    private void raise(BattleSimulation sim, Wreck wreck) {
+        World world = sim.world();
+        long id;
+        if (wreck.kind == Wreck.Kind.WALKER) {
+            id = DerelictSecurity.spawnInto(sim, wreck.frame, (int) Math.floor(wreck.x), (int) Math.floor(wreck.y),
+                    wreck.squadId);
+            if (id == 0L) return;
+            raisedLances.add(wreck.squadId);
+            bodies.put(id, new Body(null));
+            durability.remove(wreck.squadId);
+            issued.remove(wreck.squadId);
+            walking.remove(wreck.squadId);
+        } else {
+            id = postStander.stand(wreck.zoneId, (int) Math.floor(wreck.x), (int) Math.floor(wreck.y));
+            if (id == 0L) return;
+            raisedPosts.add(id);
+        }
+        world.setHp(id, world.maxHp(id) * Wreck.RAISE_SHARE);
+        if (world.hasArmor(id)) world.setArmor(id, world.maxArmor(id) * Wreck.RAISE_SHARE);
     }
 
     /** Lays up to {@code points} on a charge: plate then structure, or plate only on a walker. Returns what was laid. */
@@ -610,6 +991,7 @@ public final class DerelictSecurityDirector {
         return switch (stand.kind()) {
             case HOLD_EGRESS -> EGRESS_RADIUS;
             case ROUND -> ROUND_RADIUS;
+            case FORCE -> FORCE_RADIUS;
             default -> HOLD_RADIUS;
         };
     }
@@ -632,6 +1014,7 @@ public final class DerelictSecurityDirector {
             case FIRE -> walker.frame() + " fires on what the watch sees";
             case HOLD_EGRESS -> walker.frame() + " holds the egress in the contingency";
             case ROUND -> walker.frame() + " walks its zone's round";
+            case FORCE -> walker.frame() + " forces the dead door shutting it in its hall";
         };
     }
 
