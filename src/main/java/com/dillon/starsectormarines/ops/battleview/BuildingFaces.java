@@ -264,6 +264,18 @@ final class BuildingFaces {
         return Math.max(1, (int) (heightMeters / 3.6f));
     }
 
+    /** Pixels a cell must span, or a storey stand, on screen for a face's trim, windows and doors to be drawn. */
+    static final float DETAIL_CELL_PX = 10f, DETAIL_STOREY_PX = 7f;
+
+    /**
+     * Whether a face is big enough on screen to be dressed (trim, storey lines, windows, doors) rather than shown as
+     * its shaded material: its cells wide enough, or its storeys tall enough. Zoomed out, the faces far from the
+     * view's centre stand tall while their cells are narrow, and a tall face bare of storeys reads as a blank slab.
+     */
+    static boolean detailed(float cellPx, float storeyPx) {
+        return cellPx >= DETAIL_CELL_PX || storeyPx >= DETAIL_STOREY_PX;
+    }
+
     /** How much a plan {@code h} metres up is scaled about the view's centre. */
     static float lift(float heightMeters) {
         return EYE_METERS / (EYE_METERS - heightMeters);

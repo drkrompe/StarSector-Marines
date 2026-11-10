@@ -159,11 +159,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 }
             } else if (mainTurret != null) {
                 for (MountedGun gun : mainTurret.secondaries) {
-                    if (gun.mount().part() != null) {
-                        // A fitted part (the Onager's coax) stands on a bare ring on the deck, as a carrier's does.
-                        collectFittedSecondary(type, gun, body, paint, wrecked, cam, cellPx, alphaMult, out);
-                        continue;
-                    }
+                    // A coax rides the turret and is drawn with it, over its head.
+                    if (gun.mount().ridesTurret()) continue;
                     collectMountTurret(gun.mount().structure(), gun.turret().facingDeg, gun.mount().mountX(),
                             gun.mount().mountY(), body, wrecked, cam, cellPx, alphaMult, out);
                 }
@@ -349,6 +346,16 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawTurretHead(out, sprites, type, headPoint, paint, cam.cellToScreenX(body.x + mountWorldX),
                             cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing + wreckSkewDeg, wrecked,
                             alphaMult, false);
+                }
+                if (turret != null && !bareRing) {
+                    float coaxFacing = turretStateFacing
+                            + (wrecked ? Math.floorMod(id ^ TURRET_SEED, 31L) - 15f : 0f);
+                    for (MountedGun coax : turret.secondaries) {
+                        if (coax.mount().ridesTurret()) {
+                            collectCoax(type, coax, body.x + mountWorldX, body.y + mountWorldY, coaxFacing, paint,
+                                    wrecked, cam, cellPx, alphaMult, out);
+                        }
+                    }
                 }
                 if (locations != null && locations.turret() != null
                         && wornPlateOnTurretFrame(modular || bareRing, bareRing, gun != null)) {
@@ -606,7 +613,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     /** The gun a carrier's secondary socket carries, drawn as the light machine gun part. */
     private static final MechWeaponComponent CARRIER_SECONDARY_GUN = MechWeaponComponent.LIGHT_MACHINE_GUN;
     /** How far a secondary gun's muzzle stands past its ring, cells. */
-    static final float SECONDARY_PROTRUSION_CELLS = .14f;
+    private static final float SECONDARY_PROTRUSION_CELLS = .14f;
 
     /**
      * A carrier's secondary mount: the bare ring on its socket, and its gun turning on it as a layer of its own
@@ -621,16 +628,25 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 alphaMult, out);
     }
 
-    /** A secondary mount fitted with a part on a rigid hull: its ring and gun at the mount, turning with the hull. */
-    private void collectFittedSecondary(VehicleType type, MountedGun gun, GroundBody body, VehiclePaint paint,
-                                        boolean wrecked, BattleCamera cam, float cellPx, float alphaMult,
-                                        DrawList out) {
-        float cRad = (float) Math.toRadians(body.facingDegrees);
-        float cc = (float) Math.cos(cRad);
-        float cs = (float) Math.sin(cRad);
+    /**
+     * A coax ({@link com.dillon.starsectormarines.battle.vehicle.VehicleMount#ridesTurret}): its part's drawing on the turret's cheek beside the main barrel,
+     * pointing along it, its pivot at the mount offset turned with the turret about the ring at {@code ringX, ringY}.
+     */
+    private void collectCoax(VehicleType type, MountedGun gun, float ringX, float ringY, float facing,
+                             VehiclePaint paint, boolean wrecked, BattleCamera cam, float cellPx, float alphaMult,
+                             DrawList out) {
+        LayeredSpriteCache art = VehicleGunArt.sprite(sprites, type, gun.mount().part(), paint);
+        if (art == null) return;
+        float bearing = (float) Math.toRadians(facing);
+        float cos = (float) Math.cos(bearing);
+        float sin = (float) Math.sin(bearing);
         float localX = gun.mount().mountX(), localY = gun.mount().mountY();
-        collectSecondaryOnRing(type, gun, body.x + localX * cc - localY * cs, body.y + localX * cs + localY * cc,
-                gun.mount().part(), paint, wrecked, cam, cellPx, alphaMult, out);
+        float length = VehicleGun.coaxLengthCells(type, gun.mount().part());
+        float ahead = localY + (.5f - VehicleGun.RING_FROM_REAR) * length;
+        float x = ringX + localX * cos - ahead * sin;
+        float y = ringY + localX * sin + ahead * cos;
+        VehicleGunArt.draw(out, art, cam.cellToScreenX(x), cam.cellToScreenY(y), length * cellPx, facing, 1f, 1f,
+                wrecked ? WRECK_SHADE : 1f, alphaMult);
     }
 
     /** The bare ring at {@code ringX, ringY} and {@code part}'s drawing turning on it at the mount's facing. */

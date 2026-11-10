@@ -20,6 +20,8 @@ class RoofStyleTest {
         assertEquals(RoofStyle.QUONSET, RoofStyle.of(b, topology));
         topology.setRoofKind(2, 2, CellTopology.RoofKind.HUT);
         assertEquals(RoofStyle.BARRACKS, RoofStyle.of(b, topology));
+        topology.setRoofKind(2, 2, CellTopology.RoofKind.HULL);
+        assertEquals(RoofStyle.HULL, RoofStyle.of(b, topology));
         topology.setRoofKind(2, 2, null);
         assertEquals(RoofStyle.PLATE, RoofStyle.of(b, topology));
     }
