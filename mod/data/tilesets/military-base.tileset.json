@@ -1,0 +1,151 @@
+{
+  "sheet": "graphics/doodads/military-base.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.watchtower",
+      "col": 0,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.saluting-base",
+      "col": 3,
+      "row": 0,
+      "cover": "light",
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.flag-mast",
+      "col": 6,
+      "row": 0,
+      "cover": "none"
+    },
+    {
+      "id": "doodad.parade-line",
+      "col": 7,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        1
+      ]
+    },
+    {
+      "id": "doodad.parade-corner",
+      "col": 6,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.parade-ranks",
+      "col": 8,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        1
+      ]
+    },
+    {
+      "id": "doodad.parade-centre",
+      "col": 3,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.parked-tank",
+      "col": 8,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "doodad.parked-apc-army",
+      "col": 0,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        3,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Watchtower",
+      "description": "A perimeter lookout tower: a sandbagged platform on legs, cabin, searchlight, ladder."
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "Saluting base",
+      "description": "The low reviewing dais at the head of the parade square."
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "Flag mast",
+      "description": "A tall flag mast and plain pennant, with its long shadow."
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "Parade line",
+      "description": "A painted line along the middle of its row; runs join end to end."
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "name": "Parade corner",
+      "description": "The painted border's corner: lines along the middle of its north row and west column, open to the south and east."
+    },
+    {
+      "col": 8,
+      "row": 1,
+      "name": "Parade ranks",
+      "description": "A dashed rank line marking where a file stands; runs join end to end."
+    },
+    {
+      "col": 3,
+      "row": 2,
+      "name": "Parade centre",
+      "description": "The square's painted centre mark: a cross in a ring."
+    },
+    {
+      "col": 8,
+      "row": 2,
+      "name": "Parked tank",
+      "description": "A Hegemony medium tank parked in the vehicle park, turret and gun forward (west)."
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "name": "Parked APC",
+      "description": "An army APC parked in the vehicle park, nose and turret forward (west)."
+    }
+  ]
+}

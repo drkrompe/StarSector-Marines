@@ -173,6 +173,7 @@ public final class TileRegistry {
             "data/tilesets/ruins-delve-weather.tileset.json",
             "data/tilesets/ruins-forge-bridge.tileset.json",
             "data/tilesets/ruins-rooms.tileset.json",
+            "data/tilesets/military-base.tileset.json",
             "data/tilesets/water-shore.tileset.json",
             "data/tilesets/water-ford.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",

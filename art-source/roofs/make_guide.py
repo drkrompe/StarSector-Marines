@@ -33,7 +33,7 @@ COLLAPSED = (1168, 136)
 BURNT = (800, 520)
 
 VOID = (20, 18, 17)
-STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull')
+STYLES = ('clay', 'slab', 'corrugated', 'plate', 'hull', 'quonset', 'barracks')
 
 BASE = {
     'clay': (176, 92, 62),
@@ -41,6 +41,8 @@ BASE = {
     'corrugated': (128, 134, 126),
     'plate': (104, 112, 116),
     'hull': (150, 170, 160),
+    'quonset': (112, 118, 84),
+    'barracks': (150, 140, 104),
 }
 
 
@@ -99,6 +101,41 @@ def paint_field(draw, x0, y0, w, h, style, cell):
             for c in range(int(math.ceil(w / rib))):
                 cx = x0 + c * rib + rib * 0.25
                 draw.ellipse([cx - 3, yy + 8, cx + 3, yy + 14], fill=shade(base, 1.35))
+    elif style == 'quonset':
+        # An arched hangar's ribbed sheet: sixteen ribs a cell running along the grain (north-south), each rib lit and
+        # shaded in itself, and a lap seam with a bolt line every cell across them.
+        rib = cell / 16
+        for c in range(int(math.ceil(w / rib))):
+            left = x0 + c * rib
+            draw.rectangle([left, y0, left + rib * 0.3, y0 + h - 1], fill=shade(base, 1.25))
+            draw.rectangle([left + rib * 0.3, y0, left + rib * 0.7, y0 + h - 1], fill=base)
+            draw.rectangle([left + rib * 0.7, y0, left + rib - 1, y0 + h - 1], fill=shade(base, 0.72))
+        for k in range(0, int(h / cell) + 1):
+            yy = y0 + k * cell
+            draw.rectangle([x0, yy - 4, x0 + w - 1, yy + 4], fill=shade(base, 0.55))
+            for c in range(int(math.ceil(w / rib))):
+                cx = x0 + c * rib + rib * 0.5
+                draw.ellipse([cx - 3, yy + 8, cx + 3, yy + 14], fill=shade(base, 1.35))
+    elif style == 'barracks':
+        # A low hut's ridged sheet: broad standing-seam pans along the grain, a ridge cap across the middle of each
+        # cell, and a small vent in two cells of the swatch.
+        pan = cell / 6
+        for c in range(int(math.ceil(w / pan))):
+            left = x0 + c * pan
+            draw.rectangle([left, y0, left + pan - 1, y0 + h - 1], fill=base)
+            draw.rectangle([left, y0, left + 6, y0 + h - 1], fill=shade(base, 1.3))
+            draw.rectangle([left + 7, y0, left + 11, y0 + h - 1], fill=shade(base, 0.7))
+        for k in range(int(math.ceil(h / cell))):
+            yy = y0 + k * cell + cell / 2
+            draw.rectangle([x0, yy - 14, x0 + w - 1, yy + 14], fill=shade(base, 0.85))
+            draw.rectangle([x0, yy - 14, x0 + w - 1, yy - 8], fill=shade(base, 1.2))
+            draw.rectangle([x0, yy + 8, x0 + w - 1, yy + 14], fill=shade(base, 0.6))
+        if w >= cell * 2:
+            for (vx, vy) in ((0.6, 0.15), (1.4, 1.2)):
+                cx, cy = x0 + cell * vx, y0 + cell * vy
+                draw.ellipse([cx - 22, cy - 22, cx + 22, cy + 22], fill=shade(base, 0.75), outline=shade(base, 0.45),
+                             width=5)
+                draw.ellipse([cx - 9, cy - 9, cx + 9, cy + 9], fill=shade(base, 0.4))
     elif style == 'plate':
         # Two plates a cell along the grain, riveted round, a hatch in one cell of the swatch.
         pw, ph = cell / 2, cell / 2
@@ -171,6 +208,9 @@ def paint_strip(draw, x0, y0, w, h, style):
     elif style == 'hull':
         for k in range(int(w / 64) + 1):
             draw.rectangle([x0 + k * 64 + 8, y0 + h * 0.3, x0 + k * 64 + 40, y0 + h * 0.7], fill=shade(base, 0.7))
+    elif style in ('quonset', 'barracks'):
+        for k in range(int(w / 48) + 1):
+            draw.ellipse([x0 + k * 48 + 18, y0 + h * 0.42, x0 + k * 48 + 28, y0 + h * 0.42 + 10], fill=shade(base, 1.35))
     elif style == 'corrugated':
         for k in range(int(w / 32) + 1):
             draw.rectangle([x0 + k * 32, y0 + h * 0.22, x0 + k * 32 + 14, y0 + h * 0.78], fill=shade(base, 1.15))
@@ -275,5 +315,6 @@ def guide(style):
 
 
 if __name__ == '__main__':
-    for s in STYLES:
+    import sys
+    for s in (sys.argv[1:] or STYLES):
         guide(s)
