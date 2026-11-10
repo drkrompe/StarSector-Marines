@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c7de-5976-7521-b3db-bf4efb102c8f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c7de-5976-7521-b3db-bf4efb102c8f\\exec-8b035505-375a-4e72-9d4d-c04edf98868b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-light\\raw\\ruins-light.raw.png",
+    "sha256": "133ecfcfe4033ab3409e33ad034a78f2aea4543454d6d6c1edb0df0377450b8f",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-light\\prompts\\ruins-light.prompt.txt",
+  "promptSha256": "6de05ac69a65cf2ac075e3fadceaa9105cedaebe3b26a28d850f7aa0e26a1e4f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position, outline and lens\nImage 2: Material/style only; not layout\n\nAsset: a sheet of four separate top-down tactical-game sprites: the ceiling light fixtures of an abandoned Domain-era megastructure plant in a spacefaring civilization, seen from directly below the ceiling looking up is NOT wanted: they are drawn as seen from directly above (orthographic, 90 degrees, no perspective), as a top-down battle map shows a ceiling lamp, for the Starsector Marines battle map. One block-out frame is one map cell, about one soldier wide; the fixtures are small inside it.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every fixture exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The lighter grey area in each block is the lens: keep the lens exactly where and as large as it is drawn. Transparent space stays fully transparent.\nState: every fixture is UNLIT and long dead: its lens is dark, dusty, faintly tinted glass (warm grey for the two white ceiling lamps, dark oxblood red for the two emergency lamps), no glow, no light, no bloom.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, gunmetal and blue-gray industrial steel, dark seams, small bolts, worn ochre trim, adult military sci-fi, heavy and utilitarian; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines.\nView: strictly top-down. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no ceiling, floor, base tile, shadow slab, border, labels or text.\n\nSubjects, left to right:\n1. ceiling-strip: an industrial caged strip lamp: a long steel housing with mounting brackets at each end, a long diffuser lens behind a welded wire guard cage.\n2. ceiling-highbay: a round high-bay lamp: a heavy round steel reflector rim around a round domed lens, a spoked wire guard across it.\n3. emergency-strip: a short emergency strip lamp: a compact armoured housing with end brackets around a narrow red lens.\n4. emergency-beacon: an emergency beacon: a small caged dome lamp with a red lens on a square bolted mounting plate.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-light-guide.png",
+      "sha256": "800ac5940046f2ab83ba7f8e519eb7b0aa41dfa2f8a7730b1e88f8ef800c371e",
+      "dimensions": [
+        1504,
+        448
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position, outline and lens"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, preserving Image 1’s geometry and using Image 2’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 43547,
+    "cached_input_tokens": 34560,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 558,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 39.4
+}
