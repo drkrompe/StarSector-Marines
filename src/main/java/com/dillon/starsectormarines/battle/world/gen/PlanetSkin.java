@@ -27,7 +27,7 @@ import java.util.Set;
  *
  * <p><b>The layout never moves.</b> No cell changes whether it can be walked, seen through or built on: the skin swaps
  * what ground, trees, stones, cliffs and walls are drawn as, and substitutes worked fields for what a colony grows on
- * a world where open fields make no sense, on the same footprint and as walkable as they were. Every rule here is a
+ * a world where open fields make no sense: the plot cleared to the planet's own ground, as walkable as it was. Every rule here is a
  * pure function of the home palette and the world, so a test states it without a map.
  *
  * <p>What it does not do, because each would move the layout: raise a sealed perimeter round a town, add a drop, grow
@@ -41,34 +41,15 @@ public final class PlanetSkin {
     public enum FieldUse {
         /** Open crops, grain and pasture, as laid: a world where things grow in the open. */
         CROPS,
-        /** Hydroponic beds on the field's footprint: paved bays between walkways, a sealed colony's farm. */
-        BEDS,
-        /** Cleared ground of the planet's own surface: nothing grown there at all. */
+        /**
+         * Cleared ground of the planet's own surface: nothing grown there in the open. Paved hydroponic bays on the
+         * footprint were tried and read as concrete slabs (owner, 2026-11-10); covered growing waits for its own art.
+         */
         BARE
     }
 
-    /**
-     * {@code -Dbattle.planetSkin.fields=bare} lays fields a world cannot grow in the open as bare ground instead of
-     * hydroponic beds: the arms of the owner's pick between the two (picks question {@code planet-skin-fields}).
-     * Temporary: remove it, and {@link FieldUse} arm the owner did not pick, once the pick is answered.
-     */
-    public static final String FIELDS_PROPERTY = "battle.planetSkin.fields";
-
-    /** What a world's fields become when it cannot grow them in the open. */
-    public static final FieldUse SUBSTITUTE =
-            "bare".equalsIgnoreCase(System.getProperty(FIELDS_PROPERTY)) ? FieldUse.BARE : FieldUse.BEDS;
-
-    /** {@code map}, generated on {@code home}, skinned for {@code world} in place, fields substituted the usual way. */
+    /** {@code map}, generated on {@code home}, skinned for {@code world} in place. Returns {@code map}. */
     public static MapResult apply(MapResult map, SurfacePalette home, TargetProfile world) {
-        return apply(map, home, world, SUBSTITUTE);
-    }
-
-    /**
-     * {@code map}, generated on {@code home}, skinned for {@code world} in place; fields a world cannot grow in the open
-     * are laid as {@code substitute}. Returns {@code map}. A world of the home palette with nothing more to say is the
-     * map as generated.
-     */
-    public static MapResult apply(MapResult map, SurfacePalette home, TargetProfile world, FieldUse substitute) {
         if (map == null || world == null) return map;
         SurfacePalette to = world.surface();
         LivingWorld living = to == SurfacePalette.VERDANT ? world.living() : LivingWorld.TEMPERATE;
@@ -89,7 +70,7 @@ public final class PlanetSkin {
         }
         if (world.signature() != null) topology.setSignature(world.signature());
         FieldUse use = fieldsOn(to, climateOf(world));
-        if (use != FieldUse.CROPS) fields(map, field, use == FieldUse.BEDS ? substitute : use, to, mapping);
+        if (use != FieldUse.CROPS) fields(map, field, use, to);
         Habitat habitat = new BiomeSkin(to, living, world.signature(), climateOf(world)).habitat();
         if (habitat != Habitat.OPEN) HabitatStage.rebuild(topology, habitat);
         return map;
@@ -109,14 +90,14 @@ public final class PlanetSkin {
 
     /**
      * How a world's colony grows its food. In the open only where things grow and the air lets them: a living or
-     * desert world with breathable air. Under cover everywhere else: no open fields on a frozen, bare-rock, volcanic,
+     * desert world with breathable air. Nowhere else: no open fields on a frozen, bare-rock, volcanic,
      * irradiated or toxic world, nor under air that kills (owner: "farm fields don't make sense on a frozen world").
      */
     public static FieldUse fieldsOn(SurfacePalette world, Climate climate) {
         boolean open = world == SurfacePalette.VERDANT || world == SurfacePalette.ARID;
         boolean air = climate == null || !(climate.has(Climate.Hazard.TOXIC) || climate.has(Climate.Hazard.AIRLESS)
                 || climate.has(Climate.Hazard.RADIATION));
-        return open && air ? FieldUse.CROPS : FieldUse.BEDS;
+        return open && air ? FieldUse.CROPS : FieldUse.BARE;
     }
 
     /**
@@ -150,23 +131,10 @@ public final class PlanetSkin {
         return world == SurfacePalette.VERDANT || world == SurfacePalette.ARID;
     }
 
-    /**
-     * What a cell of a worked field is laid as. Crops as laid ({@link RuralGround#plotGround}); hydroponic beds as
-     * paved bays ({@link GroundKind#TILE}) on the crop's rows between courtyard walkways ({@link GroundKind#COURTYARD})
-     * along its headland and tramlines; bare fields as the world's own wild ground.
-     */
+    /** What a cell of a worked field is laid as: crops as laid ({@link RuralGround#plotGround}), else the world's own wild ground. */
     public static GroundKind fieldGround(RuralLayout.Plot plot, int x, int y, FieldUse use, SurfacePalette world) {
         GroundKind crop = RuralGround.plotGround(plot, x, y);
-        return switch (use) {
-            case CROPS -> crop;
-            case BARE -> world.inlandGround();
-            case BEDS -> {
-                boolean headland = x == plot.x0() || x == plot.x1() || y == plot.y0() || y == plot.y1();
-                if (headland) yield GroundKind.COURTYARD;
-                int across = plot.rowsAlongX() ? y - plot.y0() : x - plot.x0();
-                yield Math.floorMod(across, 3) == 0 ? GroundKind.COURTYARD : GroundKind.TILE;
-            }
-        };
+        return use == FieldUse.CROPS ? crop : world.inlandGround();
     }
 
     // --- the passes -----------------------------------------------------------------------------------------------
@@ -300,9 +268,8 @@ public final class PlanetSkin {
         return part.equals("talus") || part.equals("rock") || part.matches("face\\.[0-6]") ? part : null;
     }
 
-    /** Every worked field laid as {@code use}, hedges off it where it is no longer open country. */
-    private static void fields(MapResult map, boolean[] mask, FieldUse use, SurfacePalette world,
-                               GenMappingRegistry mapping) {
+    /** Every worked field laid as {@code use}: cleared to the world's own ground, its hedges off it. */
+    private static void fields(MapResult map, boolean[] mask, FieldUse use, SurfacePalette world) {
         CellTopology topology = map.topology;
         int w = topology.getWidth();
         for (RuralLayout.Plot plot : map.fields) {
@@ -311,8 +278,7 @@ public final class PlanetSkin {
                     if (!mask[y * w + x]) continue;
                     GroundKind kind = fieldGround(plot, x, y, use, world);
                     topology.setGroundKind(x, y, kind);
-                    String block = use == FieldUse.BARE || mapping == null ? null : mapping.groundBlockId(kind);
-                    topology.setSurface(x, y, block == null ? 0 : topology.surfaceIndex(block));
+                    topology.setSurface(x, y, 0);
                     topology.setNatureOverlayIndex(x, y, -1);
                 }
             }
