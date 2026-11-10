@@ -676,10 +676,14 @@ Laws):
      the ground.
    - Where a room's roof has fallen in or burnt, the wall over it loses its
      upper storeys to a ragged, charred edge, with rubble at its foot.
-   - Once half a building's roof has fallen in or burnt
-     (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
-     than a storey high, its corners tallest, drawn over its roof's
-     remnants, with rubble heaped round it.
+   - A roof fallen in or burnt away (a shell, a fire, the creep's weight)
+     leaves the walls standing as a gutted shell. Once half a building's
+     outer walls are breached to rubble (`BuildingFaces.DESTROYED_SHARE`),
+     it stands as a broken shell no more than a storey high, its corners
+     tallest, drawn over its roof's remnants, with rubble heaped round it.
+   - Hive creep climbs the faces it holds, veins then crust, living to dying
+     (`CreepClimb`; `colony-breach-nouns.md`, Creep). Look suite:
+     `createSnapshots -Psnapshot=building-creep-look`.
 
    Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
    worlds, intact, cut away and damaged).

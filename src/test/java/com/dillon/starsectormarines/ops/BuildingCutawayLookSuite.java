@@ -102,7 +102,7 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
         return dx > 0 ? Direction.E : dx < 0 ? Direction.W : dy > 0 ? Direction.N : Direction.S;
     }
 
-    private static BattleSimulation create(long seed) {
+    static BattleSimulation create(long seed) {
         TargetProfile market = new TargetProfile(5, 5, 2, 1, "independent",
                 EnumSet.of(EconomicFunction.HABITATION, EconomicFunction.MINING), SurfacePalette.VERDANT,
                 SettlementLink.ROAD);
@@ -112,7 +112,7 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
     }
 
     /** The windowed building nearest the map's middle with the most windows, homes first. */
-    private static Building home(BattleSimulation sim) {
+    static Building home(BattleSimulation sim) {
         int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
         Building best = null;
         float bestScore = -Float.MAX_VALUE;
@@ -131,7 +131,7 @@ public final class BuildingCutawayLookSuite implements SnapshotSuite {
     }
 
     /** A building's windows: each as the cell inside it, the cell it looks out on, and its edge facing out. */
-    private static List<int[]> windows(BattleSimulation sim, Building b) {
+    static List<int[]> windows(BattleSimulation sim, Building b) {
         List<int[]> out = new ArrayList<>();
         for (SharedEdgeBarrier e : sim.getGrid().getEdgeBarriers()) {
             if (e.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;

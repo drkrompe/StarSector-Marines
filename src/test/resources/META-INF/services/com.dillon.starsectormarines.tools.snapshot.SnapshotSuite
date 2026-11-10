@@ -467,6 +467,7 @@ com.dillon.starsectormarines.ops.CrevasseTownLookSuite
 com.dillon.starsectormarines.ops.BuildingFacesLookSuite
 com.dillon.starsectormarines.ops.BuildingDamageLookSuite
 com.dillon.starsectormarines.ops.BuildingCutawayLookSuite
+com.dillon.starsectormarines.ops.BuildingCreepLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite

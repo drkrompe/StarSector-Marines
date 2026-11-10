@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -25,6 +26,24 @@ final class FreestandingWallFaces {
     private List<FreestandingWalls.Run> runs = List.of();
     /** Each cell's part of a sealed town's envelope ({@link FreestandingWalls#part}), its ordinal + 1; 0 where none. */
     private byte[] parts = new byte[0];
+    private final CreepPalette creepPalette = CreepPalette.active();
+    private final float[] capTone = new float[3];
+    /** The face creep is now being painted on: its foot from {@code a} to {@code b}, the view's centre and its lift. */
+    private float cax, cay, cbx, cby, csx, csy, clift, calpha;
+    /** Creep up the face now held ({@link CreepClimb}), each quad mapped from its foot to its lifted top. */
+    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, r, g, b) -> mesh.appendQuad(
+            faceX(t0, z0), faceY(t0, z0), faceX(t1, z0), faceY(t1, z0),
+            faceX(t1, z1), faceY(t1, z1), faceX(t0, z1), faceY(t0, z1), r, g, b, calpha);
+
+    private float faceX(float t, float z) {
+        float foot = cax + (cbx - cax) * t;
+        return foot + (csx + (foot - csx) * clift - foot) * z;
+    }
+
+    private float faceY(float t, float z) {
+        float foot = cay + (cby - cay) * t;
+        return foot + (csy + (foot - csy) * clift - foot) * z;
+    }
 
     /**
      * This frame's walls into the roof layer.
@@ -51,6 +70,9 @@ final class FreestandingWallFaces {
         VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6, gridW,
                 topology.getHeight());
         mesh.reset();
+        CreepField creep = sim.creepFieldIfPresent();
+        if (creep != null && creep.isEmpty()) creep = null;
+        boolean detail = Math.abs(camera.cellToScreenX(1f) - camera.cellToScreenX(0f)) >= 10f;
         for (FreestandingWalls.Run run : runs) {
             if (!view.intersects(run.minX(), run.maxX(), run.minY(), run.maxY())) continue;
             float lift = BuildingFaces.lift(run.meters());
@@ -74,6 +96,11 @@ final class FreestandingWallFaces {
                         sx + (bx - sx) * lift, sy + (by - sy) * lift,
                         sx + (ax - sx) * lift, sy + (ay - sy) * lift,
                         kind.r * light, kind.g * light, kind.b * light, alphaMult);
+                if (creep != null) {
+                    cax = ax; cay = ay; cbx = bx; cby = by; csx = sx; csy = sy; clift = lift; calpha = alphaMult;
+                    CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), run.meters(), 1f, cell,
+                            creepPalette, light, detail, creepOnFace);
+                }
             }
             for (int cell : run.cells()) {
                 int cx = cell % gridW, cy = cell / gridW;
@@ -87,6 +114,14 @@ final class FreestandingWallFaces {
                 float by = sy + (camera.cellToScreenY(cy + 1) - sy) * lift;
                 mesh.appendQuad(ax, ay, bx, ay, bx, by, ax, by,
                         kind.r * light, kind.g * light, kind.b * light, alphaMult);
+                float crust = creep == null ? 0f : CreepClimb.crust(creep.coverageAt(cell));
+                if (crust > 0f) {
+                    // An old creep crusts over the wall's top too, as it did the wall cell on the ground.
+                    CreepClimb.tone(creepPalette.flesh(), creepPalette.dead(), creep.vitalityAt(cell), light,
+                            capTone);
+                    mesh.appendQuad(ax, ay, bx, ay, bx, by, ax, by, capTone[0], capTone[1], capTone[2],
+                            alphaMult * crust);
+                }
             }
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.ROOFS, mesh);

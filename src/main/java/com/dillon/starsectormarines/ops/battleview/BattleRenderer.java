@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -273,6 +274,9 @@ public class BattleRenderer {
     private final RoofStream roofStream = new RoofStream();
     /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces in their dress, and their rubble. */
     private final FacePainter facePainter = new FacePainter();
+    /** Creep up a stood-up wall's face ({@link CreepClimb}), painted onto the wall {@link #facePainter} holds. */
+    private final CreepClimb.Sink creepOnFace = facePainter::quad;
+    private final CreepPalette creepPalette = CreepPalette.active();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
     private final PolyMesh ruinShells = new PolyMesh(64);
     /** The overhead props' pass, which also draws the props hung on walls for the roof pass ({@link WallMounts}). */
@@ -1104,15 +1108,25 @@ public class BattleRenderer {
             buildingEdges.clear();
             classesAt = now;
         }
-        return buildingClass.computeIfAbsent(b, k -> {
-            int[] cells = roofPlans.of(topology, buildings, k).cells;
-            int ruined = 0;
-            for (int at : cells) {
-                RoofDamage d = topology.getRoofDamage(at % topology.getWidth(), at / topology.getWidth());
-                if (d == RoofDamage.COLLAPSED || d == RoofDamage.BURNT) ruined++;
+        return buildingClass.computeIfAbsent(b, k -> BuildingFaces.heightClass(built(topology, k), breachedShare(topology, k)));
+    }
+
+    /**
+     * The share of a building's outer walls breached to rubble: each wall cell beside its floor that is not its own
+     * floor, counted as standing (a wall or window) or breached (rubble). A roof fallen in (creep, a shell) or burnt
+     * away leaves the walls standing, so it counts for nothing here.
+     */
+    private static float breachedShare(CellTopology topology, Building b) {
+        int standing = 0, breached = 0;
+        for (int i = 0; i < b.cellsX.length; i++) {
+            for (int d = 0; d < 4; d++) {
+                int x = b.cellsX[i] + (d == 0 ? 1 : d == 1 ? -1 : 0), y = b.cellsY[i] + (d == 2 ? 1 : d == 3 ? -1 : 0);
+                if (!topology.inBounds(x, y) || topology.getBuildingId(x, y) == b.id) continue;
+                if (topology.isWall(x, y) || topology.isWindow(x, y)) standing++;
+                else if (topology.isRubble(x, y)) breached++;
             }
-            return BuildingFaces.heightClass(built(topology, k), cells.length == 0 ? 0f : ruined / (float) cells.length);
-        });
+        }
+        return standing + breached == 0 ? 0f : breached / (float) (standing + breached);
     }
 
     /** What a building was built as, for its height ({@link BuildingFaces#heightClass}). */
@@ -1176,6 +1190,8 @@ public class BattleRenderer {
                 grid.getWidth(), grid.getHeight());
         boolean detail = Math.abs(cellX) >= FACE_DETAIL_PX;
         FacePainter paint = facePainter;
+        CreepField creep = sim.creepFieldIfPresent();
+        if (creep != null && creep.isEmpty()) creep = null;
         paint.reset();
         ruinShells.reset();
         for (Building b : buildings.all()) {
@@ -1236,6 +1252,12 @@ public class BattleRenderer {
                                 alphaMult * Math.min(1f, cut));
                         paint.shaded(0f, 1f, 0f, 1f, ir * .8f, ig * .8f, ib * .8f, ir, ig, ib);
                         paint.quad(0f, 1f, 0f, .9f / meters, ir * .72f, ig * .72f, ib * .72f);
+                        if (creep != null) {
+                            // The creep climbs the room's side of the wall as well as the street's.
+                            int at = (int) segs[e + 6];
+                            CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette,
+                                    in, detail, creepOnFace);
+                        }
                     }
                     continue;
                 }
@@ -1288,6 +1310,10 @@ public class BattleRenderer {
                 else if (broken) hurt = Math.max(hurt, .5f);
                 paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
                         broken, hurt, glassHurt, upper, shade, detail);
+                if (creep != null) {
+                    CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, upright, cell,
+                            creepPalette, shade, detail, creepOnFace);
+                }
             }
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
