@@ -773,6 +773,13 @@ public enum VehicleType {
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden, and a skirt has none. */
     public boolean hasAnimatedTreads() { return (isApc() || isTank()) && !isHover(); }
 
+    /**
+     * Whether the hull's drawn tyres or tracks roll with its travel, so the body keeps the travel they read
+     * ({@link GroundBody#visualTravelCells}): the treaded hulls, and the articulated carriers, whose tyres roll on
+     * their bending modules.
+     */
+    public boolean recordsVisualTravel() { return hasAnimatedTreads() || isMidlineCarrier(); }
+
     /** Multiplier on the hull sprite's colour; white for every hull drawn as painted. */
     public float[] hullTint() { return NO_TINT; }
 

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.control.ManualIntent;
+import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -24,6 +25,8 @@ import java.util.List;
  *   <li>{@code carrier-reverse-<weight>}: each carrier driven by hand, as direct control drives it: full left lock
  *       forward, so its train bends round, then straight back, so the cab pushes the bent modules further round until
  *       the hinge rams stop them.</li>
+ *   <li>{@code carrier-roll}: the heavy carrier driven by hand at half throttle, straight, recorded every tick so its
+ *       tyres' tread is seen rolling rather than aliased by a sparse frame rate.</li>
  *   <li>{@code carrier-wrecks}: the three wrecked where they stand.</li>
  * </ul>
  * Each at play zoom and close. Opt-in: a look study, not part of {@code all}.
@@ -48,6 +51,7 @@ public final class MidlineCarriersLookSuite implements SnapshotSuite {
         out.addAll(LookReview.record(context.modRoot(), line()));
         out.addAll(LookReview.record(context.modRoot(), turn()));
         for (int i = 0; i < LINE.length; i++) out.addAll(LookReview.record(context.modRoot(), reverse(i)));
+        out.addAll(LookReview.record(context.modRoot(), roll()));
         out.addAll(LookReview.record(context.modRoot(), wrecks()));
         return out;
     }
@@ -111,6 +115,18 @@ public final class MidlineCarriersLookSuite implements SnapshotSuite {
         }, placement -> List.of(LookReview.View.follow("close", placement, 10f + 2f * i, NAMES[i]),
                 LookReview.View.followAtPlay(placement, NAMES[i])), LOCK_TICKS + BACK_TICKS + 12)
                 .withStills(LOCK_TICKS / 6, (LOCK_TICKS + BACK_TICKS / 3) / 6, (LOCK_TICKS + BACK_TICKS) / 6);
+    }
+
+    static LookReview.Shot roll() {
+        return new LookReview.Shot("carrier-roll", LookGround.verdant(), W, H, placement -> {
+            BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
+            long hull = spawn(sim, placement, 2, W / 2f - 8f, H / 2f, -90f);
+            if (!sim.directControl().enter(hull)) throw new IllegalStateException("direct control refused the carrier");
+            placement.beforeTick(s -> s.directControl().submit(
+                    new ManualIntent(0f, .5f, Float.NaN, Float.NaN, false, false)));
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 7f, NAMES[2])), 120, 1, 2,
+                new int[] {60, 61});
     }
 
     static LookReview.Shot wrecks() {

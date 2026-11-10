@@ -153,8 +153,6 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                     sim.world().renderY(heavy), CLOSE, true, "movement-today");
         }
         add(out, "movement/a-rounds-and-ducts.png", pair(roundShot, ductShot));
-        add(out, "movement/b-rounds-only.png", roundShot);
-        add(out, "movement/c-ducts-only.png", ductShot);
         add(out, "movement/today-posts.png", today);
     }
 
@@ -181,8 +179,6 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         BufferedImage outerRoused = outerAt == null ? null
                 : look(context, roused, outerAt[0], outerAt[1], WIDE, false, "waking-roused");
         add(out, "waking/a-stir-roused.png", outerRoused);
-        add(out, "waking/b-depth.png", pair(outerRoused, innerQuiet));
-        add(out, "waking/c-breach-only.png", outerQuiet);
         add(out, "waking/today-quiet.png", outerQuiet);
     }
 
@@ -333,7 +329,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
 
     private static void sizes(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
-        for (String option : new String[] {"a-medium-and-large", "b-large-only", "c-medium-only", "today-heavy"}) {
+        for (String option : new String[] {"a-medium-and-large", "today-heavy"}) {
             BattleSimulation sim = settled(fixture, SETTLE_TICKS);
             DerelictSecurityDirector director = sim.derelictSecurity();
             RuinsDelve delve = sim.getRuinsWorks() == null ? null : sim.getRuinsWorks().delve();
@@ -366,7 +362,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
 
     private static void repair(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
-        for (String option : new String[] {"a-bay-and-raise", "b-bay-only", "c-raise-no-bay"}) {
+        for (String option : new String[] {"a-bay-and-raise"}) {
             BattleSimulation sim = settled(fixture, SETTLE_TICKS);
             DerelictSecurityDirector director = sim.derelictSecurity();
             DerelictSecurityDirector.Walker felled = null;
