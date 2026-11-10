@@ -46,7 +46,7 @@ load):
 
 **Biomes.** A bloom surfaces on any world, so its story is fought on that
 world's own ground: the event world's `SurfacePalette` (verdant, arid, rock,
-frozen) picks the pool, and every biome must have maps. A seed names a
+frozen, toxic) picks the pool, and every biome must have maps. A seed names a
 different map on each biome (the palette feeds generation), so a seed is
 vetted per biome; the same seed pooled on several biomes keeps one layout
 under different ground, which makes the biome the only difference between
@@ -86,7 +86,7 @@ station airbase were tuned on (owner, 2026-10-31): switching one is moving the
 flag to another entry. The biome's other entries
 stay in the pool for bloom events on other worlds.
 
-**Size.** Three per biome, twelve per story map (owner, 2026-10-23): few
+**Size.** Three per biome (owner, 2026-10-23), so fifteen per story map over five biomes: few
 enough that each is owned and tuned, and the whole pool plays in one evidence
 run. The pool is a dial, not a constant: add a map when one earns it.
 

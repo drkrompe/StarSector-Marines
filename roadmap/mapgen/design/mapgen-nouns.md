@@ -1092,7 +1092,7 @@ Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy
 summits, frozen worlds use narrow glacial pressure ridges, and barren worlds
-use open crescent crater rims. Irradiated worlds use the same crater rims in a
+use open crescent crater rims, as do toxic worlds. Irradiated worlds use the same crater rims in a
 glassed finish (`TerrainPlan.Finish.GLASSED`). Other palettes keep bare rock. Forest crowns may sit entirely
 on full grassy summit cells; they do not straddle cliff faces or talus. Summit
 trees add appearance to already inaccessible ground, never a playable upper
@@ -1107,7 +1107,7 @@ placement and collision rules, and the preview uses the battle renderer.
 ## Planet mineral fields
 
 A **mineral formation** is a multi-cell solid obstacle with a code-owned overhead
-silhouette. Barren worlds use clustered boulders and rock spires; frozen worlds
+silhouette. Barren worlds and toxic worlds use clustered boulders and rock spires; frozen worlds
 use ice blocks and pinnacles; irradiated worlds use dead husks, squat pairs and
 tall split spires, each only on its own world's wild ground
 (`FormationBrush.pool`, `MineralFormation.Material`). Fields of these formations provide forest-like
@@ -2236,7 +2236,7 @@ never grows weather it did not ask for.
 
 A storm world drifts its own ground against its town (`StormDrift`): on the
 face of every wall toward the seed's wind (`StormWind`), one to four cells of
-sand (desert, or dust on a rock) or snow (frozen), its depth a slow coordinate
+sand (desert, or dust on a rock), snow (frozen) or sulphur dust (toxic), its depth a slow coordinate
 noise. A drift is a surface skin (`floors.sand`, `floors.snow`), never ground:
 the cell keeps its ground kind, so walkability, cover, fire and every placement
 that reads pavement are unchanged, and it crosses a street only on the apron
@@ -2417,9 +2417,9 @@ nothing anywhere reported a problem. A dead enum value is not a neutral
 placeholder; it is a silent verdict that some quarter of the map space does not
 exist.
 
-That is the shape of the remaining gap rather than a closed question. Toxic
-and volcanic worlds still collapse into rock for exactly the same reason, and
-will until each has a material family of its own.
+That is the shape of the remaining gap rather than a closed question. Volcanic,
+irradiated and toxic worlds each have a look of their own now; a planet type
+that matches no palette still collapses into rock for exactly the same reason.
 
 **An irradiated world is scorched, glassed and bleached.** `irradiated` resolves
 to `IRRADIATED`, whose wild ground is its own kind, `GroundKind.HARDPAN`: pale,
@@ -2433,6 +2433,25 @@ ground composite grades an irradiated world's sunlit ground pale and washed out,
 with hard neutral shadows (`WorldLight`); every other palette's light is neutral
 and its ground draws exactly as its tiles paint it. No hazard reaches the
 simulation: radiation is carried on `Climate` and is not yet built on.
+
+**A palette may restyle a ground kind instead of adding one.** `TOXIC` (vanilla
+`toxic`) is corroded, chemically stained rock with crusted sulphur flats and
+pools of acid sludge, and none of it is a new `GroundKind`: the stained rock is
+`STONE`, a flat is `SAND` and a pool is `WATER`. The mapping's
+`paletteGroundRender` names the block each kind draws from on that world
+(`GenMappingRegistry.groundBlockId(GroundKind, SurfacePalette)`, falling back to
+`groundRender`), and the map carries its palette for the renderer
+(`CellTopology.groundPalette`). So a pool is impassable and see-through exactly
+as water is, a flat is open going, and every rule about stone holds; only the
+picture changes. The art is its own sheet (`toxic-ground`), not cells on the
+Floors plate. `SludgeGround` lays the pools and flats on wild ground in the
+closing outdoor pass, before the mineral fields: a pool is all or nothing, needs
+open wild ground for two cells around it and the local detour proof, and is
+ringed with sulphur; flats follow a slow patch noise. Its rocks are the toxic
+field-stone set, its hills crescent crater rims and its fields boulders and
+spires, as on bare rock. No toxic ground harms anyone; hazard is not a ground
+rule. `toxic_cold` stays `FROZEN`: its air is toxic but its ground is ice at
+cryogenic cold, where nothing pools as liquid.
 
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open

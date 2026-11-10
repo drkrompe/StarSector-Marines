@@ -1061,9 +1061,13 @@ public final class GroundRenderSystem implements RenderSystem {
             WaterShore.Band[] bands = WaterShore.Band.values();
             GridBlockDef[] blocks = new GridBlockDef[bands.length];
             SpriteAPI[] sheets = new SpriteAPI[bands.length];
+            String water = system.genMapping.groundBlockId(CellTopology.GroundKind.WATER, topology.groundPalette());
+            // A world whose liquid is not water (a toxic world's sludge) has no clear shallows: the liquid runs to
+            // its waterline, and only the wet film over the bank stays.
+            boolean ownLiquid = water != null
+                    && !water.equals(system.genMapping.groundBlockId(CellTopology.GroundKind.WATER));
             for (WaterShore.Band band : bands) {
-                String id = band.block != null ? band.block
-                        : system.genMapping.groundBlockId(CellTopology.GroundKind.WATER);
+                String id = band.block != null && !(ownLiquid && band == WaterShore.Band.SHALLOW) ? band.block : water;
                 GridBlockDef block = id == null ? null : system.tileReg.block(id);
                 SpriteAPI sheet = block == null ? null : system.sheetFor(block.sheetPath);
                 if (sheet == null) return null;

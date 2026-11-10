@@ -255,6 +255,12 @@ public final class UnitSpatialIndex {
     private UnitRosterService roster;
     /** Fort cores no squad shoots at in passing; see {@link FortRestraint}. Empty unless a fort is built. */
     private FortRestraint restraint = new FortRestraint();
+    /**
+     * Bodies that are no threat while they lie dormant, left out of hostile scans until they wake: a ruins battery
+     * with its power cut. Nobody fires on dead machinery in passing.
+     */
+    private final LongOpenHashSet dormant = new LongOpenHashSet();
+
     /** Bodies a mission's quiet phase leaves out of hostile scans; see {@link ScanCover}. */
     private ScanCover cover = ScanCover.NONE;
     /** Ids {@link #cover} covered at the last rebuild or add. Empty while the cover is {@link ScanCover#NONE}. */
@@ -326,7 +332,7 @@ public final class UnitSpatialIndex {
                         (byte) ((Faction) factions[row]).ordinal();
                 scratchCombatants[denseIndex] =
                         (byte) (((UnitType) types[row]).combatant && !restraint.restrains(id)
-                                && !covers(id, (Faction) factions[row], posX[row], posY[row]) ? 1 : 0);
+                                && !dormant.contains(id) && !covers(id, (Faction) factions[row], posX[row], posY[row]) ? 1 : 0);
             }
         }
 
@@ -390,7 +396,7 @@ public final class UnitSpatialIndex {
             if (bucket == null) continue;
             Faction faction = roster.identity().faction(id);
             bucket.add(id, x, y, (byte) faction.ordinal(),
-                    roster.identity().type(id).combatant && !covers(id, faction, x, y));
+                    roster.identity().type(id).combatant && !dormant.contains(id) && !covers(id, faction, x, y));
         }
     }
 
@@ -429,7 +435,8 @@ public final class UnitSpatialIndex {
         if (bucket != null) {
             Faction faction = roster.identity().faction(id);
             bucket.add(id, x, y, (byte) faction.ordinal(),
-                    roster.identity().type(id).combatant && !restraint.restrains(id) && !covers(id, faction, x, y));
+                    roster.identity().type(id).combatant && !restraint.restrains(id) && !dormant.contains(id)
+                            && !covers(id, faction, x, y));
         }
     }
 
@@ -465,7 +472,19 @@ public final class UnitSpatialIndex {
      * the restraint alone.
      */
     public boolean withheld(long id) {
-        return restraint.restrains(id) || !covered.isEmpty() && covered.contains(id);
+        return restraint.restrains(id) || !dormant.isEmpty() && dormant.contains(id)
+                || !covered.isEmpty() && covered.contains(id);
+    }
+
+    /** Marks {@code id} dormant or awake; it takes effect at the next rebuild. */
+    public void setDormant(long id, boolean asleep) {
+        if (asleep) dormant.add(id);
+        else dormant.remove(id);
+    }
+
+    /** Whether {@code id} lies dormant, out of hostile scans. */
+    public boolean dormant(long id) {
+        return !dormant.isEmpty() && dormant.contains(id);
     }
 
     /** Whether the quiet-phase cover hid {@code id} at the last rebuild. */

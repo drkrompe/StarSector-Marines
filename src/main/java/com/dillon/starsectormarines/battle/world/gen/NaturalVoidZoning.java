@@ -49,6 +49,10 @@ public final class NaturalVoidZoning {
     public static final Drop DRY_GORGE = new Drop(NaturalVoid.Style.DRY_GORGE, List.of(
             new NaturalVoid.Step(13f, .6f), new NaturalVoid.Step(27f, 1.3f), new NaturalVoid.Step(40f, 1.9f)),
             "graphics/battle/voids/regolith-wall.png", 12f);
+    /** A toxic world's gorge: acid-pitted olive strata, sulphur on the ledges, acid sludge 34 m down. */
+    public static final Drop TOXIC_GORGE = new Drop(NaturalVoid.Style.TOXIC, List.of(
+            new NaturalVoid.Step(11f, .6f), new NaturalVoid.Step(23f, 1.3f), new NaturalVoid.Step(34f, 1.9f)),
+            "graphics/battle/voids/toxic-wall.png", 11f);
     /** A volcanic rift: basalt walls lit from below by a river of molten rock 40 m down. */
     public static final Drop LAVA_RIFT = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(14f, .6f), new NaturalVoid.Step(27f, 1.2f), new NaturalVoid.Step(40f, 1.7f)),
@@ -73,6 +77,7 @@ public final class NaturalVoidZoning {
             case ARID -> CANYON;
             // An irradiated world's drop is rock's dry gorge until a glassed wall of its own exists.
             case ROCK, IRRADIATED -> DRY_GORGE;
+            case TOXIC -> TOXIC_GORGE;
             // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
             case VOLCANIC -> LAVA_RIFT;
         };

@@ -615,7 +615,11 @@ the company commits. The prize's **theme** shows four ways:
 - **The survey's tell** (`RuinsVaultPrizes.tellKeys`): the briefing's last
   survey line, for example "Cold racks humming below; something keeps a hall
   lit and its repair drones at work.", then for a core its hinted tier ("The
-  hall draws a steady load: likely a beta core.").
+  hall draws a steady load: likely a beta core."). The theme's line is spoken
+  through the occupant's own instruments (`RuinsVaultPrizes.voiceKey`): an
+  empty site's deep scan, the scavengers' open channel, the Rav's lifesigns,
+  security traffic, or Tri-Tachyon contingency codes. The core line stays
+  plain.
 - **The approach**: what the company sees outside.
 - **The interior's art.**
 - **The works' twist.**
@@ -639,10 +643,15 @@ the company commits. The prize's **theme** shows four ways:
   `RuinsDressing`). The vault room and the interior's chambers are furnished
   from the game's own props: server racks for a server hall, rifle racks and
   ammunition lockers for an armory, reactor housings and pumps for reactor
-  halls, crates for a depot, and so on. Each prop stands against a room's wall,
-  never in a doorway, and only where the room stays one floor. The dressing
-  draws nothing from the layout's random stream, so a site's ground is the
-  same whatever its prize.
+  halls, crates for a depot, and so on. Where those fall short a theme has
+  props of its own (the `ruins-themes` sheet): frozen cryo racks and frosted
+  heatsink banks for a cryoarithmetic engine, culture vats and overgrown grow
+  beds for soil nanites and a biofactory embryo. Each prop stands against a
+  room's wall, never in a doorway, and only where the room stays one floor.
+  Those themes also lay **floor patches** (frost sheets, biofilm mats): flat,
+  walkable, no cover, on open floor clear of every doorway and standing piece.
+  The dressing draws nothing from the layout's random stream, so a site's
+  ground is the same whatever its prize.
 - **A close reading.** At the stand before the vault's layer, the Delve row's
   close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
   the occupant's sign: the survey's tell, seen up close.
@@ -718,17 +727,19 @@ stand on the approach outside, wired to the power hall:
 - Dark while the hall is cold, so dark when the company lands.
 - Restarting the hall, which powers the vault, wakes them too, unless a junction
   cuts their branch: power for the prize against guns on the way out.
-- The occupant never commands them.
+- They answer to nobody: they fire on the company, its allies and the occupant
+  alike, and all of them fight back.
 
 In the battle (`RuinsBatteryGuns`) each is the existing heavy machine-gun
 emplacement, standing 9 cells out from an entrance's apron toward the landing,
 on open ground outside the aprons and the interior. They hang on the first
 junction's way on, beside the first layer's gate. Throwing that junction to its
 store cuts the guns, but it also cuts the gate's power. The count comes from
-the prize. They stand on the
-defenders' side, so they fire on the company and its allies. Firing on the
-occupant too needs a side hostile to everyone, which the battle does not have
-yet. Dark and awake still look the same; a powered-down look is owed.
+the prize. They stand on the hazard side (`Faction.HAZARD`), hostile to every
+fighting side and never to civilians. A dark or cut battery is dormant
+(`UnitSpatialIndex.setDormant`): nobody fires on dead machinery in passing, so
+the guns are only fought once they wake. A powered-down hazard gun draws cold
+and dark, so dark and awake read apart.
 The batteries are a works hazard, not a guardian (`ruins-guardians.md`). An
 occupied site with batteries keeps its vault guardian, and a layer guardian
 from extensive up. On an empty site the batteries count as the vault's own

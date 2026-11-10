@@ -11,8 +11,14 @@ package com.dillon.starsectormarines.battle.world.gen.layout;
  * is not carved: it is the way along the streets already standing between its
  * ends, the widest first, cleared of the props in its carriageway
  * ({@code LayoutStreets}; its {@code via} and {@code width} are not read).
+ *
+ * <p>A road laid {@code through} is carved across a settled place's ground too, as that place's own street, so a
+ * road the mission draws across the map (a works' feeder line) shows through a quarter rather than giving way to
+ * whatever streets the quarter grew. A walled place, held ground and the surveyed country still stop it. It is also
+ * kept where it reaches the map's edge, being a road off the map, and the weld joins it to the rest.
  */
-public record Road(String name, Endpoint from, Endpoint via, Endpoint to, int width, boolean required) implements Piece {
+public record Road(String name, Endpoint from, Endpoint via, Endpoint to, int width, boolean required,
+                   boolean through) implements Piece {
 
     public Road {
         if (name == null || name.isEmpty()) throw new IllegalArgumentException("a road needs a name");
@@ -20,8 +26,18 @@ public record Road(String name, Endpoint from, Endpoint via, Endpoint to, int wi
         if (width < 1) throw new IllegalArgumentException("a road is at least a cell wide: " + name);
     }
 
+    /** A road laid on open country only. */
+    public Road(String name, Endpoint from, Endpoint via, Endpoint to, int width, boolean required) {
+        this(name, from, via, to, width, required, false);
+    }
+
     /** A road straight between two places, by a dog-leg. */
     public Road(String name, Endpoint from, Endpoint to, int width, boolean required) {
         this(name, from, null, to, width, required);
+    }
+
+    /** This road, laid {@code through} settled places' ground. */
+    public Road laidThrough() {
+        return new Road(name, from, via, to, width, required, true);
     }
 }

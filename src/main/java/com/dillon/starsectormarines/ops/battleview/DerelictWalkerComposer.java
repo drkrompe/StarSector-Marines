@@ -14,8 +14,6 @@ final class DerelictWalkerComposer {
 
     /** The torso's width, cells, at render scale one. */
     static final float TORSO_CELLS = 0.85f;
-    /** How far a part's root joint centre sits in from its sprite's end, cells, on the walker (scaled by build). */
-    static final float JOINT_INSET_CELLS = 0.16f;
     /** How much larger a part draws per cell of height. */
     static final float HEIGHT_GROWTH = 0.10f;
     /** The torso's own growth per cell of rise: stronger than a leg's, so its bob reads from above. */
@@ -50,7 +48,7 @@ final class DerelictWalkerComposer {
     static void emitBody(LayeredUnitComposer.SpriteEmitter out, DerelictWalkerAssets art, DerelictLegRig rig,
                          BattleCamera cam, float torsoCells, float alpha) {
         DerelictLegRig.Build build = rig.build();
-        float inset = JOINT_INSET_CELLS * build.scale();
+        float inset = build.jointInsetCells();
         float[] knee = new float[3];
         for (int pass = 0; pass < 2; pass++) {
             for (int i = 0; i < rig.legs(); i++) {
@@ -84,7 +82,7 @@ final class DerelictWalkerComposer {
         float torsoW = torsoCells * ppc * (1f + TORSO_HEIGHT_GROWTH * rig.bodyHeight());
         float torsoH = torsoW * art.torso.pxHeight / Math.max(1f, art.torso.pxWidth);
         out.add(art.torso, cam.cellToScreenX(rig.bodyX()), cam.cellToScreenY(rig.bodyY()), torsoW, torsoH,
-                rig.facing(), 1f, 1f, 1f, alpha);
+                rig.bodyFacing(), 1f, 1f, 1f, alpha);
     }
 
     /**
@@ -115,6 +113,7 @@ final class DerelictWalkerComposer {
     /**
      * One leg part from its root joint at (x0, y0) to its far end at (x1, y1), cells: its root joint centred on the
      * root, its length the seen distance (a part reaching up or down looks shorter from above), its width as authored.
+     * It is never drawn longer than authored: a leg foreshortens, it does not stretch.
      */
     private static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
                              float x0, float y0, float x1, float y1, float height, float inset, float shade,
@@ -126,9 +125,9 @@ final class DerelictWalkerComposer {
         float ux = dx / seen;
         float uy = dy / seen;
         float grow = 1f + HEIGHT_GROWTH * height;
-        float length = seen + inset;
-        float cx = x0 + ux * (seen - inset) / 2f;
-        float cy = y0 + uy * (seen - inset) / 2f;
+        float length = Math.min(seen + inset, part.pxHeight / DerelictWalkerAssets.PX_PER_CELL);
+        float cx = x0 + ux * (length / 2f - inset);
+        float cy = y0 + uy * (length / 2f - inset);
         float ppc = cam.cellPxSize();
         float width = part.pxWidth / DerelictWalkerAssets.PX_PER_CELL * ppc * grow;
         // Sprites are authored head-up: turned so the part's top lies along root to far end (0 = +y, counter-clockwise).
