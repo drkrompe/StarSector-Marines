@@ -1792,12 +1792,14 @@ swarm action, flown by `FlockFlight`.
   session's mission run.
 - **Look and sound.** A flock wears its lineage's livery (`FlockLivery`):
   Domain security's grey steel and hazard yellow, or contingency security's
-  Tri-Tachyon white gone dull. Owner picks: the dart drone
-  (`derelict-swarm-drone`), the carousel cradle (`derelict-flock-cradle`) and
+  Tri-Tachyon white gone dull. The drone is a stamped dart on one rear thrust
+  nozzle, never a fan (owner, 2026-11-10: the drones were "too into the 'fan'
+  concept"). Owner picks: the carousel cradle (`derelict-flock-cradle`) and
   the buzz whine (`derelict-swarm-whine`). The whine (`FlockAudio`) is one
   placed loop on each of the nearest flocks, rising with the flock's speed and
   thinning with its numbers. The art is painted from geometry guides
-  (`art-source/drones/swarm-drones/`), the voices are designed loops
+  (the drone in `art-source/drones/fanless-drones/`, the cradle in
+  `art-source/drones/swarm-drones/`), the voices are designed loops
   (`asset-pipeline/.../audio/flock/`).
 - **Not the Rav.** A flock never uses the Rav's prey field or its spawning; its
   numbers are its cradle's.

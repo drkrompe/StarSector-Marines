@@ -131,6 +131,47 @@ class GeneratedRoadsTest {
         assertNull(surface.underlay(12, 13));
     }
 
+    @Test void yardMouthsOnAlternateSidesOfAStreetAreNotSweptAsAComb() {
+        boolean[][] road = new boolean[48][48];
+        fill(road, 20, 1, 22, 46);   // a street
+        fill(road, 13, 10, 19, 12);  // a yard's mouth west of it
+        fill(road, 23, 15, 30, 17);  // a deeper one east of it, five cells along: the pair would read as an offset tee
+        fill(road, 12, 30, 19, 32);  // one west of it ...
+        fill(road, 23, 30, 30, 32);  // ... and one east of it on its line: a cross
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var straight = GeneratedRoads.streets(road, road, new boolean[48][48], 3, 9, style).routes().stream()
+                .filter(r -> r.points().size() == 2).toList();
+        assertEquals(3, straight.size(), "the street, the further of the offset pair, and the cross as one band through it: " + straight);
+        assertTrue(straight.stream().anyMatch(r -> r.points().get(0).y() == 16 || r.points().get(1).y() == 16),
+                "the mouth reaching further is swept: " + straight);
+        assertTrue(straight.stream().noneMatch(r -> r.points().get(0).y() == 11 && r.points().get(1).y() == 11),
+                "its offset partner keeps its paving: " + straight);
+    }
+
+    @Test void aYardMouthOffsetFromASideStreetAcrossTheWayIsNotSwept() {
+        boolean[][] road = new boolean[48][48];
+        fill(road, 20, 1, 22, 46);   // a street
+        fill(road, 23, 20, 46, 22);  // a side street east of it, running to the map's edge
+        fill(road, 13, 26, 19, 28);  // a yard's mouth west of it, six cells along
+        fill(road, 13, 38, 19, 40);  // another, clear of it
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var straight = GeneratedRoads.streets(road, road, new boolean[48][48], 3, 9, style).routes().stream()
+                .filter(r -> r.points().size() == 2).toList();
+        assertTrue(straight.stream().noneMatch(r -> r.points().get(0).y() == 27), "the offset mouth: " + straight);
+        assertTrue(straight.stream().anyMatch(r -> r.points().get(0).y() == 39), "the clear one: " + straight);
+    }
+
+    @Test void aPavedBlockBesideAStreetIsNotSweptAsALipACellOffItsLine() {
+        boolean[][] road = new boolean[64][32];
+        fill(road, 20, 10, 62, 12);  // a street
+        fill(road, 19, 1, 21, 6);    // a side street off it ...
+        fill(road, 19, 7, 32, 11);   // ... meeting it across a paved block that stops a cell short of its far kerb
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var straight = GeneratedRoads.streets(road, road, new boolean[64][32], 3, 9, style).routes().stream()
+                .filter(r -> r.points().size() == 2 && r.points().get(0).y() == r.points().get(1).y()).toList();
+        for (var r : straight) assertEquals(11.0, r.points().get(0).y(), "every stretch on the street's line: " + straight);
+    }
+
     private static void fill(boolean[][] road, int x0, int y0, int x1, int y1) {
         fill(road, x0, y0, x1, y1, true);
     }

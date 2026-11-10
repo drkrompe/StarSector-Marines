@@ -135,6 +135,8 @@ MELT = (214, 120, 48, 255)
 # Copper coil and a lit lens in the era guides, so the reskin knows them from plate.
 COIL = (150, 98, 64, 255)
 GLOW = (236, 200, 120, 255)
+# Painted floor marks: ``export.py`` paints these flat from the guide rather than taking ImageGen's.
+PAINT = (196, 170, 70, 255)
 
 
 def crucible_melt(x, y, w, h, kind):
@@ -622,7 +624,7 @@ def draw(family):
             d.ellipse((x + 0.3 * w, y + 0.26 * h, x + 0.66 * w, y + 0.74 * h), fill=BODY, outline=EDGE, width=12)
             d.ellipse((x + 0.38 * w, y + 0.36 * h, x + 0.62 * w, y + 0.64 * h), fill=DARK)
         elif kind == "palletbay":
-            paint, t, ln = (196, 170, 70, 255), 16, 0.22 * w
+            paint, t, ln = PAINT, 16, 0.22 * w
             for cx_, cy_, sx_, sy_ in ((x + 20, y + 20, 1, 1), (x + w - 20, y + 20, -1, 1),
                                        (x + 20, y + h - 20, 1, -1), (x + w - 20, y + h - 20, -1, -1)):
                 d.rectangle((min(cx_, cx_ + sx_ * ln), min(cy_, cy_ + sy_ * t), max(cx_, cx_ + sx_ * ln),
