@@ -151,14 +151,18 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   apron and two berths. A breach is open sky over rubble, its edge the armour's
   broken stubs, and has no door.
 - **Shell and bulkheads.** The solid hull within two cells of the outside or a
-  breach is the **armour** (`fallen-hull.armour-wall` once the art ships it,
-  the hull-plate installation wall until then); the rest is the ship deck's own
-  bulkhead. Each **compartment** (the spine with the stern door, and each hall
+  breach is the **armour** (the hull-plate installation wall, whose door,
+  window and rubble are the armour's hatch, port and torn breach roots); the
+  rest is the ship deck's own bulkhead. Each **compartment** (the spine with the stern door, and each hall
   with its dock) has its kit's deck: passage plate, worn hold plate, bay deck,
-  crew deck, bolted plate in the forge hall. `HullDressing` racks what is left
-  of the cargo against the holds' walls, stands the forge hall's plant in its aft
-  corners and switchgear on its flanks (all clear of the docks, the ways in and
-  the autoforge's ground), and strews wear, grime and debris flat on every deck.
+  crew deck, bolted plate in the forge hall. `HullDressing` fits it out with the
+  hull's own pieces (`fallen-hull.*`) over the ship kits: a conduit run and
+  frame ribs down the spine; cargo, survey racks and crushed bulkheads against
+  the holds' walls; launch cradles in the bay; consoles and a sensor drum on the
+  crew deck; plant, coolant, hoppers and switchgear in the forge hall with
+  cables run toward the autoforge; torn plating in the breaches. Pieces with
+  cover stand clear of the docks, the ways in and the autoforge's ground; wear,
+  grime and debris lie flat on every deck.
 - **The roof.** Every hull cell but a breach is marked `RoofKind.HULL`, so the
   whole ship roofs as hull plating (drawn from the ship's painting) whatever
   its walls are. The solid mass is one building (`RuinsRoofStage.roofSolid`)
