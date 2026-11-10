@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -233,6 +234,27 @@ public final class DerelictSecurity {
             director.walkRound(round.getKey(), round.getValue());
         }
         for (int squad : hallBound) director.keepHall(squad);
+        if (delve != null && delve.interior() != null) {
+            // A hall frame shut in by a dead door forces it once awake; the network's bulkheads wait for hunting.
+            for (DerelictSecurityDirector.Walker w : walkers) {
+                if (!hallBound.contains(w.squadId())) continue;
+                RuinsDelve.LeafDoor door = deadDoorOf(delve, w.postX(), w.postY());
+                if (door != null) director.forceDoor(w.squadId(), door);
+            }
+            List<RuinsDelve.Area> halls = new ArrayList<>();
+            for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
+            NavigationGrid grid = sim.getGrid();
+            CellTopology topology = sim.getTopology();
+            director.layBulkheads(Bulkheads.lay(new Bulkheads.Ground() {
+                public int width() { return grid.getWidth(); }
+
+                public int height() { return grid.getHeight(); }
+
+                public boolean floor(int x, int y) { return grid.isWalkable(x, y); }
+
+                public boolean wall(int x, int y) { return !grid.isWalkable(x, y) && topology.isWall(x, y); }
+            }, halls, delve.interior().doors()));
+        }
         director.wearLook(DerelictLook.of(livery));
         director.armWalkers(sim);
         FlockSystemPort port = new FlockSystemPort();
@@ -368,6 +390,29 @@ public final class DerelictSecurity {
      * Where the grade's hall frames stand (`derelict-watch.md`, Medium and large walkers): the middles of the plant's
      * largest halls, largest first, else the interior's largest chambers; none on ground without an interior.
      */
+    /** The dead leaf door nearest {@code (x, y)} on the face of the plant hall holding it; null when none. */
+    static RuinsDelve.LeafDoor deadDoorOf(RuinsDelve delve, int x, int y) {
+        RuinsDelve.LeafDoor best = null;
+        int bestD = Integer.MAX_VALUE;
+        for (RuinsDelve.PlantHall hall : delve.interior().halls()) {
+            RuinsDelve.Area f = hall.footprint();
+            if (!f.contains(x, y)) continue;
+            for (RuinsDelve.LeafDoor door : delve.interior().doors()) {
+                if (door.stance() != RuinsDelve.DoorStance.DEAD) continue;
+                RuinsDelve.Area s = door.span();
+                boolean onFace = s.right() >= f.left() - 1 && s.left() <= f.right() + 1 && s.top() >= f.bottom() - 1
+                        && s.bottom() <= f.top() + 1;
+                if (!onFace) continue;
+                int d = WalkerPosture.chebyshev(x, y, s.centreX(), s.centreY());
+                if (d < bestD) {
+                    bestD = d;
+                    best = door;
+                }
+            }
+        }
+        return best;
+    }
+
     static List<int[]> hallPosts(RuinsDelve delve, int count) {
         if (count <= 0 || delve == null || delve.interior() == null) return List.of();
         List<RuinsDelve.Area> halls = new ArrayList<>();

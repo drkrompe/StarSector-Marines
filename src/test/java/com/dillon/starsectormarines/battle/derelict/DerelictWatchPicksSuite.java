@@ -60,6 +60,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
             throws Exception {
         BattleSimulation sim = settled(fixture, SETTLE_TICKS);
         DerelictSecurityDirector director = sim.derelictSecurity();
+        log("bulkheads laid %d", director.bulkheads().size());
         // The rounds walker on its round: played on a while it walks.
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             if (w.frame() != DerelictWalkerFrame.ROUNDS) continue;

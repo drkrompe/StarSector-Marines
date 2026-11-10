@@ -41,7 +41,9 @@ public final class WalkerPosture {
         /** Walk to the egress cell and hold it. */
         HOLD_EGRESS,
         /** Walk the zone's round: on to the round's place at {@code cell}. */
-        ROUND
+        ROUND,
+        /** A hall frame shut in its hall: walk to the dead door at {@code cell} and force it. */
+        FORCE
     }
 
     /** The answer: what to do, the cell it is about, and the unit (-1 none). */
