@@ -4,7 +4,8 @@ Status: IN PROGRESS — the owner picked (a) on `derelict-movement`,
 `derelict-waking`, `derelict-walker-sizes`, `derelict-repair` and
 `hall-frame-ram` ("It should tear and we should have wider doors as well for
 these facilities": the facility's doors and ways are widened by the ground).
-Open, built on (a) meanwhile: `derelict-tender` and `derelict-rearm`.
+The owner also picked (a) on `derelict-tender` and `derelict-rearm` (the
+zone-0 tender may keep the vault frame).
 What is built is listed under each mechanic.
 
 Written: 2026-11-10
@@ -218,7 +219,7 @@ that gives the company targets to deny.
 
 ## 5. Field repair: the tender
 
-Pick `derelict-tender` (open; building (a) meanwhile).
+Picked `derelict-tender`: (a), by the owner.
 
 The owner (2026-11-10): "crawlers or drones patching walkers". The repair drone
 keeps the site up between fights: it mends charges and raises wrecks, and it
@@ -252,7 +253,7 @@ a walker whose job is to do that.
 
 ## 6. Re-arming: racks fill at the service bay
 
-Pick `derelict-rearm` (open; building (a) meanwhile).
+Picked `derelict-rearm`: (a), by the owner.
 
 The owner: "the facility re-arming". Today a derelict walker's missile racks
 recharge in the field like any mech's, so the facility's supply never matters.
@@ -362,11 +363,24 @@ of each pick, slice 3's comms lines.
   (charge in hand, shadowing, weld, reload); `DerelictWalkerClass.tenders`
   counts them, and `DerelictSecurity.install` stands one beside each zone's first
   heavy (`beside`: the nearest clear cell a ring at a time). The director's `tend` lays the pulse's plate through `mend` and walks
-  the tender by a hold order. Every derelict walker spawns with
+  the tender by a hold order: walking there by a withdrawal, not an attack
+  move, since a lance with no gun declines every attack goal and breaks contact
+  (`DerelictSecurityDirector.walk`; it walked away from its charge before). Every derelict walker spawns with
   `MissileReplenisherComponent.NONE`; `BayRearm` is the re-arming rule, and the
   director's `rearm` sends a walker to stand just off its bay (`bayStand`, the
   bay's own cell being the housing's) and puts packs in with
   `MechWeaponMount.resupplyOne`.
+
+- **The works hall is the layer's stand** (`ruins-expedition.md`, pick
+  `ruins-facility-beats` (a)). On a site whose interior publishes a works stand
+  (`RuinsDelve.Interior.worksStand`: by the mega forge's pour pulpit, or at the
+  east end of a works hall's transfer aisle), the zone nearest it along the
+  route (never the vault's) keeps its node there, its posts round the route
+  cell nearest it and its perimeter over the hall (`DerelictSecurity.anchorAt`);
+  its service bay and repair drone stand by the node as anywhere. `hallPosts`
+  takes a works hall first, so a hall frame keeps its middle (the transfer
+  bridge); where a heavy already holds that cell the frame stands at the nearest
+  cell round it that it fits (`beside`), its post still the middle.
 
 Not built yet:
 the vent and wreck markers and the drone's sparks over a wreck; the housings'

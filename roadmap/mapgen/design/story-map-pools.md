@@ -60,7 +60,8 @@ note is for people: what the map is and why it is the one.
 | `heart-burn` (and its town and city) | 2 | the Wellhollow story map The Burn was tuned on |
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
-| `cordon-line`, `cordon-road`; town; urban | 3, 15; 14, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 1, 3, 5 | the Long Survey's chapters: the colony's, a Sabotage country's, the Cordon line's and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
@@ -257,8 +258,10 @@ instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
 - **`bores`** `[{x, y, mother?}]`: the first wave in eruption order and exactly
   one mother, each on the doorstep of the place nearest it (within 10 cells) or
   else on the open ground nearest it (within 16).
-- **`holdouts`** `[[x, y]]`: in redoubt order, the held building each cell falls
-  inside.
+- **`holdouts`** `[[x, y]]`: in redoubt order, the held building with room that
+  each cell falls inside, or else the nearest one (within 16 cells), none named
+  twice. The sealed layout lays its own street plan from the same seed, so a cell
+  inside a building on the open layout may fall in a street on the sealed one.
 
 They replace the setup's choices and its clearances; a placement that cannot
 seat fails the map like any other acceptance.
@@ -274,6 +277,18 @@ Any entry may also **place** a mission layout's structures by name
   in `storyMapPools`. Broad Front's story map places its two allied airbases
   this way (`heart-nouns.md`, Allied airbase). Asharu's ARID entry is placed
 this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
+
+Any entry may also lay a **fallen hull** over its ground
+(`fallen-hull-nouns.md`, The ground):
+
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}]}`: the hull's
+  middle cell, the way its bow points (`north` is +y), the trench's length
+  behind its stern, and the stakes standing at the start, each `planted`,
+  `raised` or `established` on the lattice point nearest its cell. It rides the
+  plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
+  lays it; a Long Survey chapter's acceptance is its base mission's own (the
+  colony's rescue, the Cordon's line, the placed airbases) and the hull's
+  (`HullSiteCheck`, every stake seated with a haul road home).
 
 Patches are edited on the workbench's Maps page (`layer-authoring-workbench.md`)
 or headless through `map_render` and `map_save`: pins, ruin strokes and

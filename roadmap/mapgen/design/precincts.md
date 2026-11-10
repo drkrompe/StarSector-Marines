@@ -294,9 +294,8 @@ bend, six cells' worth, so the way back is straight runs along the grid's axes
 joined by a few deliberate bends; it still bends round whatever it must. The
 way a layout road is carried in through a gate (`LayoutRoads.enter`, which also
 starts outside the gate's middle so it runs straight in rather than turning
-along the wall's inside) and the drawn joins take it. The weld does not yet:
-taking it moved welds so that four pooled Cordon seeds lost a crest redoubt's
-terrace to built ground, and that seam is open.
+along the wall's inside), the drawn joins and the weld itself
+(`PrecinctInterconnect`) take it.
 
 **Connected underneath is not connected on screen, and both are owed.** The
 road-owner grid came out whole, yet raid maps read as islands of road: the

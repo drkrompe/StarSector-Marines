@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -28,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Ruins ground over every grade and surface ({@code mapgen-nouns.md}, Ruins ground): each map generates, keeps every
  * delve law ({@link DelveCheck}, which generation already enforces), and is a ruin: no road leaves it, its streets
  * end short of every edge, and it has no berth but its own landing's. The vault, every room inside the interior
- * and every chamber is under a roof; every lift point is under open sky. Writes {@code build/reports/ruins-ground/summary.md} with each map's
+ * and every chamber is under a roof; every lift point is under open sky. No machine may be dropped at the vault or in a chamber, and every landing
+ * berth takes one. Writes {@code build/reports/ruins-ground/summary.md} with each map's
  * layers, ways, rooms and route length.
  */
 @Tag("generated-space-evidence")
@@ -107,6 +109,23 @@ class RuinsGroundEvidence {
                             hall.stage() == RuinsDelve.PlantStage.FOUNDRY || hall.stage() == RuinsDelve.PlantStage.WORKS)) {
                         failures.add(where + "the works site laid no works hall");
                     }
+                    if ((seed & 1) == 1 && layers >= 2 && interior.worksStand() == null) {
+                        failures.add(where + "the works hall publishes no stand for its zone");
+                    }
+                    // The route from the vault to the landing (the battle's first lift point's) crosses the works hall.
+                    for (RuinsDelve.PlantHall hall : interior.halls()) {
+                        if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY && hall.stage() != RuinsDelve.PlantStage.WORKS) {
+                            continue;
+                        }
+                        var landingBerth = delve.landing().get(0).berth(0);
+                        int[] route = GridPathfinder.findPath(map.grid, delve.vault().source().x(),
+                                delve.vault().source().y(), landingBerth.centerX, landingBerth.centerY);
+                        boolean crosses = false;
+                        for (int k = 0; k + 1 < route.length; k += 2) {
+                            crosses |= hall.footprint().contains(route[k], route[k + 1]);
+                        }
+                        if (!crosses) failures.add(where + "the route to the vault skips the works hall");
+                    }
                     for (RuinsDelve.Area chamber : interior.chambers()) {
                         if (!roofed(map, chamber.centreX(), chamber.centreY())) {
                             failures.add(where + "a chamber at " + chamber + " is not roofed");
@@ -120,6 +139,22 @@ class RuinsGroundEvidence {
                         }
                     }
                     failures.addAll(crushable(map, delve, where));
+                    var vault = delve.vault().source();
+                    if (!map.grid.hasTag(vault.x(), vault.y(), NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                        failures.add(where + "a machine may be dropped at the vault");
+                    }
+                    for (RuinsDelve.Area chamber : interior.chambers()) {
+                        if (!map.grid.hasTag(chamber.centreX(), chamber.centreY(), NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                            failures.add(where + "a machine may be dropped in the chamber at " + chamber);
+                        }
+                    }
+                    for (var area : delve.landing()) {
+                        for (var berth : area.berths()) {
+                            if (map.grid.hasTag(berth.centerX, berth.centerY, NavigationGrid.CellTag.NO_MACHINE_DROP)) {
+                                failures.add(where + "no machine may be dropped on the landing");
+                            }
+                        }
+                    }
                     var start0 = delve.landing().get(0).berth(0);
                     boolean[] reach = DelveCheck.reach(map.grid, start0.centerX, start0.centerY, null);
                     out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)

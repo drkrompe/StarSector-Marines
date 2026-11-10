@@ -124,7 +124,13 @@ public class NavigationGrid {
          * its centre crosses inside one, so it breaches only where going round is dearer. The live grid never carries
          * it.
          */
-        BREACH;
+        BREACH,
+        /**
+         * Ground no machine is set down on by drop or lift: inside a ruins facility, under its roof, in its halls,
+         * corridors and light wells (owner: "We should also likewise prevent dropping mechs inside of the facility").
+         * Infantry, movement, sight and cover never read it.
+         */
+        NO_MACHINE_DROP;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -303,6 +309,14 @@ public class NavigationGrid {
         if (!inBounds(x, y)) return;
         if (on) cellFlags[index(x, y)] |= CellTag.HARDENED.mask();
         else cellFlags[index(x, y)] &= ~CellTag.HARDENED.mask();
+    }
+
+    /**
+     * Marks a cell {@link CellTag#NO_MACHINE_DROP}. Like {@link #markWorks} it changes nothing that moves or sees, so
+     * it records no topology change and wakes no rebuild.
+     */
+    public void markNoMachineDrop(int x, int y) {
+        if (inBounds(x, y)) cellFlags[index(x, y)] |= CellTag.NO_MACHINE_DROP.mask();
     }
 
     public boolean hasTagAt(int idx, CellTag tag) {

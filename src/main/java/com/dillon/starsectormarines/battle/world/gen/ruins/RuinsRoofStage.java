@@ -25,9 +25,18 @@ public final class RuinsRoofStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         RuinsDelve delve = ctx.get(RuinsKeys.DELVE);
+        if (delve == null || delve.interior() == null) return;
+        roofSolid(ctx, delve.interior().footprint(), RuinsDelveStage.HULL_KIND);
+    }
+
+    /**
+     * Registers the solid hull inside {@code box} (walls of {@code kind} with no building, touching no open cell) as one
+     * building of its own, so the roof runs on unbroken over a megastructure's mass. A fallen hull's ground uses it too
+     * ({@code CrashSiteFinishStage}).
+     */
+    public static void roofSolid(GenContext ctx, RuinsDelve.Area box, BuildingKind kind) {
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
-        if (delve == null || delve.interior() == null || buildings == null) return;
-        RuinsDelve.Area box = delve.interior().footprint();
+        if (buildings == null) return;
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         int count = 0;
@@ -35,7 +44,7 @@ public final class RuinsRoofStage implements GenStage {
         for (int y = box.bottom(); y <= box.top(); y++) {
             for (int x = box.left(); x <= box.right(); x++) {
                 if (!topology.isWall(x, y) || topology.getBuildingId(x, y) != 0
-                        || topology.getBuildingKindHint(x, y) != RuinsDelveStage.HULL_KIND) continue;
+                        || topology.getBuildingKindHint(x, y) != kind) continue;
                 if (touchesOpen(grid, x, y)) continue;
                 solid[y * ctx.width + x] = true;
                 count++;
@@ -62,12 +71,12 @@ public final class RuinsRoofStage implements GenStage {
         }
         Building largest = null;
         for (Building b : buildings.all()) {
-            if (b.kind != RuinsDelveStage.HULL_KIND || !box.contains(b.cellsX[0], b.cellsY[0])) continue;
+            if (b.kind != kind || !box.contains(b.cellsX[0], b.cellsY[0])) continue;
             if (largest == null || b.cellCount() > largest.cellCount()) largest = b;
         }
         float r = largest == null ? 1f : largest.tintR, g = largest == null ? 1f : largest.tintG;
         float bl = largest == null ? 1f : largest.tintB;
-        buildings.add(new Building(id, RuinsDelveStage.HULL_KIND, minX, maxX, minY, maxY, cellsX, cellsY, r, g, bl));
+        buildings.add(new Building(id, kind, minX, maxX, minY, maxY, cellsX, cellsY, r, g, bl));
     }
 
     /** Whether any of the eight cells round {@code (x, y)} is open ground. */

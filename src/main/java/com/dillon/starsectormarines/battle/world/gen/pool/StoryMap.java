@@ -28,12 +28,31 @@ public enum StoryMap {
     RAID_LIGHT_INDUSTRY("raid-light-industry"),
     RAID_FARMING("raid-farming"),
     RAID_SPACEPORT("raid-spaceport"),
-    RAID_MILITARY("raid-military");
+    RAID_MILITARY("raid-military"),
+    /**
+     * The Long Survey's chapters ({@code long-survey-arc.md}, Seeds): each a shipped mission's ground on an owned seed
+     * with a fallen hull laid over it by its patch. A chapter's map names the story map whose ground it is built on,
+     * or none where it owns ground of its own (Stakes, a Sabotage country).
+     */
+    LONG_SURVEY_FALL("long-survey-fall", COLONY_BREACH),
+    LONG_SURVEY_STAKES("long-survey-stakes", null),
+    LONG_SURVEY_LINE("long-survey-line", CORDON_LINE),
+    LONG_SURVEY_SURVEYOR("long-survey-surveyor", HEART_FRONT);
 
     /** The pool file's name and the {@code map} it declares. */
     public final String id;
+    /** The story map whose ground a Long Survey chapter is laid on, or null. */
+    public final StoryMap base;
 
-    StoryMap(String id) { this.id = id; }
+    StoryMap(String id) { this(id, null); }
+
+    StoryMap(String id, StoryMap base) {
+        this.id = id;
+        this.base = base;
+    }
+
+    /** Whether this is one of the Long Survey's chapters, a fallen hull laid over its ground. */
+    public boolean longSurvey() { return id.startsWith("long-survey-"); }
 
     /** The pool file, relative to the mod folder. */
     public String path() { return "data/world/pools/" + id + ".pool.json"; }

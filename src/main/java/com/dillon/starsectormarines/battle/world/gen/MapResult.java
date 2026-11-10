@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import java.util.Collections;
 import java.util.List;
@@ -216,6 +217,11 @@ public final class MapResult {
      * null on every map that is not a ruins site's.
      */
     public final RuinsDelve ruinsDelve;
+    /**
+     * A fallen hull's site ({@code fallen-hull-nouns.md}): the hull, its trench and debris, its interior, the claim
+     * lattice, the haul roads and the chapter's starting stakes; null on every map without a crashed hull.
+     */
+    public final HullSite hullSite;
     /** The gates in walled places' walls, hung with sliding leaves ({@link WallGate}); empty where none. */
     public final List<WallGate> wallGates;
     /**
@@ -497,6 +503,7 @@ public final class MapResult {
         this.cordonedFacilities = List.of();
         this.industrialZones = List.of();
         this.ruinsDelve = null;
+        this.hullSite = null;
         this.wallGates = List.of();
         this.fields = List.of();
     }
@@ -572,7 +579,7 @@ public final class MapResult {
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
                       List<MainStreet> streets, List<CordonedFacility> facilities,
                       List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates,
-                      List<RuralLayout.Plot> worked) {
+                      List<RuralLayout.Plot> worked, HullSite site) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -609,6 +616,7 @@ public final class MapResult {
         ruinsDelve = delve;
         wallGates = gates;
         fields = worked;
+        hullSite = site;
     }
 
     /** The same map, carrying the fields its colony works. */
@@ -619,7 +627,13 @@ public final class MapResult {
     private MapResult(MapResult base, List<RuralLayout.Plot> worked) {
         this(base, base.initialDamage, base.fieldOfFire, base.layout, base.loadingBays, base.openSquares,
                 base.serviceLanes, base.mainStreets, base.cordonedFacilities, base.industrialZones, base.ruinsDelve,
-                base.wallGates, worked);
+                base.wallGates, worked, base.hullSite);
+    }
+
+    /** The same map, carrying the fallen hull its ground laid. */
+    public MapResult withHullSite(HullSite site) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
+                mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates, fields, site);
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
@@ -627,6 +641,6 @@ public final class MapResult {
                       List<MainStreet> streets, List<CordonedFacility> facilities,
                       List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates) {
         this(base, damage, field, laid, bays, squares, laidLanes, streets, facilities, zones, delve, gates,
-                base.fields);
+                base.fields, base.hullSite);
     }
 }

@@ -2146,6 +2146,10 @@ was the owner's pick (2026-11-09) over a dedicated megastructure roof set and
 over roof strips with bare hull between them. Rooms and the power hall inside
 are built of the hull; the power hall stands inside at extensive and vast, and
 at widespread, whose only layer before the last is outside, it stays out.
+Every cell inside, from the hull face in (on scattered ground the bunker's box),
+light wells included, is tagged `NO_MACHINE_DROP` on the navigation grid, and
+no machine is set down on a tagged cell (`ruins-expedition.md`, No machine is
+dropped inside).
 
 **The vault is the plant's secure store** (`ruins-expedition.md`, The site is
 the plant that made the prize). Buttressed dark cast concrete, an antechamber
@@ -2196,9 +2200,14 @@ whole, so it is always laid at full size. The band's spine then runs down its
 west wall, in at the dispatch end and out at the head, three cells kept clear
 of every piece and melt; the band's court stands across the same column and the
 power hall clear of it. No other way enters the hall: the ways through the
-lines, the other halls and the rooms meet the spine beyond the hall's ends. So
+lines, the other halls and the rooms meet the spine beyond the hall's ends:
+the ways in from the west south of the hall, the ways on to the east (or the
+vault's apron, in the last band) north of it (`RuinsDelveStage.keepOff`). So
 the route through the band passes through the works hall
-(`ruins-expedition.md`, The works hall is the trunk). The hall is laid out from its process,
+(`ruins-expedition.md`, The works hall is the trunk). The interior publishes the hall's
+stand (`RuinsDelve.Interior.worksStand`), the floor cell its zone is held from:
+by the mega forge's pour pulpit, or at the east end of a works hall's transfer
+aisle. The hall is laid out from its process,
 head to the north:
 
 - the great crucible (12x16, `ruins-forge` sheet) west of the line, its
@@ -2220,7 +2229,9 @@ head to the north:
   pool would split the hall), and the **transfer bridge** across it, a deck
   four cells wide on the transfer aisle from bank to bank. It is the only way
   a hall frame or the haul crosses the line, and the frame's post stands on it
-  (`ruins-expedition.md`, The forge's transfer bridge);
+  (`ruins-expedition.md`, The forge's transfer bridge). It is laid from the
+  `ruins-forge-bridge` sheet: spans every two columns, an abutment on each
+  bank (the east one mirrored), one span split;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
@@ -2325,6 +2336,17 @@ against room walls, never in a doorway, and only where a room stays one floor.
 It draws them by a coordinate hash, not from the layout's stream, so the same
 seed lays the same ground whatever it wears, and the delve laws above still
 hold it.
+
+## Fallen hull ground
+
+A story map's patch may lay a crashed survey mothership over the country it
+grew (`fallen-hull-nouns.md`, The ground): `CrashSiteStage` lays the trench,
+debris and hull before the tactical link, so its shells are ordinary buildings,
+and `CrashSiteFinishStage` roofs it, lays the claim lattice and haul roads on
+the finished ground and publishes `MapResult.hullSite`. The hull's interior is
+the ruins' vocabulary (`RuinsDelve.Interior`, leaf doors, the solid hull's one
+roof), not a second one; only a plan whose mission layout carries a crash runs
+either stage.
 
 ## Rural country
 

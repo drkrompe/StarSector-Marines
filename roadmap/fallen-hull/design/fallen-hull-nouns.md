@@ -1,7 +1,8 @@
 # Fallen hull — Nouns
 
 Status: DRAFT — the model for a derelict capital ship down on a world and the
-watch it pours out; nothing built. Its first instance is the authored arc
+watch it pours out; its ground (The ground) and its battle rules and the stripper and hauler are built on
+the recommended picks (What is built). Its first instance is the authored arc
 `long-survey-arc.md`, played on owned seeds before any campaign phenomenon.
 
 Written: 2026-11-10
@@ -130,6 +131,47 @@ stake is fought as a zone: kill its node and it is stranded and blind.
   scrap wrecks before strippers take them (`derelict-watch.md`, Denial); in the
   last chapter, put the autoforge out.
 
+## The ground (built)
+
+The crash site is laid by mapgen over a story map's own ground, from the pool
+entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
+`MapResult.hullSite` (`HullSite`), the seam the rules read:
+
+- **The hull** is one survey mothership plan (`HullPlan`, 88 by 32 cells, its
+  bow tapering), laid on a cardinal heading in the ruins megastructure's
+  materials under one roof (`RuinsRoofStage.roofSolid`), its interior published
+  as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls, leaf doors). A
+  four-cell freight spine runs from the stern's cargo door to the **forge
+  hall** (the interior's vault, the autoforge on its keel line near the bow),
+  with four-cell cargo docks into three holds and the **launch bay** and a
+  two-cell service door to the crew deck (`derelict-watch.md`, section 3). Ways
+  in: the stern door onto the trench, the bay's door on the port flank, and a
+  breach torn through the starboard flank, each with an apron and two berths.
+- **The trench** runs behind the stern for the patch's length, 24 cells wide
+  at the stern narrowing to 8 where the hull first touched down, ploughed earth
+  and rubble with spoil on its lips and scrap on its floor. **Debris** is up to
+  14 short runs of hull plate standing beside the trench and round the hull,
+  never on a road, building or apron and never touching another wall. A road
+  the hull lies across is cut from the road graph; the trench cuts nothing.
+- **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
+  `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
+  meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
+  within a quarter spacing or left a hole. **Haul roads** (`HaulRoads`) are one
+  shortest-path tree from the hull's aprons, so roads merge into trunks; only
+  an established stake's road is worn into the ground.
+- **Starting stakes** are the patch's cells, each taking the nearest lattice
+  point. `HullSiteCheck` holds the laws on the finished grid (every way in
+  open, the forge, halls and aprons reached, a hall frame walking hall to
+  hall), and a story map's acceptance fails on any problem the site reports.
+- **The rules' reading.** `LongSurveyGround.rulesSite` fills `FallenHullSite`
+  from it: the hull and its trench as the root zone's footprint, the forge, the
+  bay's apron berth as the mouth, the lattice with `linkCells` a lattice step
+  and a quarter (so neighbours that moved to their stake ground still link, and
+  a stake's zone, half of it, meets its neighbours'), each haul road from the
+  hull outward, the starting stakes and the ways in as egress. The chapter
+  supplies the salvage, the walkers out and the store. Acceptance holds that
+  every starting stake chains back to the hull.
+
 ## Campaign (later, not work)
 
 A fallen hull is meant to become a sector phenomenon like a bloom, once the
@@ -151,6 +193,94 @@ the event gate are not designed yet.
 - `stripper-hauler`: (a, recommended) two units, the stripper and the hauler,
   of the derelict line. (b) one unit that cuts and carries.
 
+## What is built
+
+Everything is in `battle.derelict`, on the recommended option of every pick.
+Numbers UNTUNED.
+
+- **The rules.** `Autoforge` (the forge cycle, `CYCLE_SECONDS`; prints the next
+  item only with feedstock for it, passes over an item with nowhere to go at no
+  cost, prints nothing once put out; breached below `BREACH_SHARE` of whole);
+  `BuildQueue` (the fixed program, round and round, read ahead by `peek`; the
+  stand-in `survey()` order); `Feedstock` (a store, and the forge's draw over
+  the hull's and the linked stakes' stores, all or nothing, the hull's first);
+  `ClaimLattice` (links within `linkCells` of a point or the hull's footprint;
+  `nextPlantable`: the open point nearest the hull's middle that links to the
+  hull or to an anchor, an established stake whose chain holds, its parent the
+  hull where it can be, else the nearest anchor); `SurveyStake` (planted,
+  raised, established on `RAISE_SECONDS` and `ESTABLISH_SECONDS`, counting only
+  while it builds; a store from established; killed planted it is scrap;
+  stranded it keeps its stage for good); `RelayChain` (a stake's chain is cut by
+  its own node, any node on the way to the hull, or the forge going out);
+  `Salvage` (metal on the claim; a wreck of the watch's cut to nothing is
+  stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
+  `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
+  hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
+  chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
+  reaching its point, scrap if its hauler dies first, the point open again);
+  `HaulRoads` (a walk with both ends near a road follows it, waypoint by
+  waypoint; any other goes straight).
+- **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and
+  `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
+  derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
+  (`worker()`). Both are drawn as the sentinel at their size until the art
+  session's looks ship (pick `stripper-hauler`, option a).
+
+- **The seam from the ground.** `FallenHullSite` is what the crash-site ground
+  fills and the battle stands on: the hull's footprint (`Rect`), the forge's
+  cell (the vault, deep in the forge hall), the bay mouth (open ground outside
+  the hull where everything printed walks out), the hull zone's perimeter, the
+  lattice points and their link distance, the haul roads (polylines of cells),
+  the stakes already standing with their stage (`StartingStake`), the metal on
+  the claim (`Pile`: headframes, fences, vehicles, the town's structures), the
+  walkers already out (`Posting`: frame and cell), the egress cells the hull's
+  walkers hold in the contingency, and the hull store's metal at the start.
+  `FallenHullFixtures` (tests) stands one in on open ground meanwhile.
+- **The battle.** `FallenHull.install(sim, site, queue, livery)` stands the
+  hull's zone (`HULL_ZONE`) over the footprint with the autoforge as its node
+  and vault (an armoured, unarmed structure at the forge cell), its flock at the
+  mouth, its service bay and repair drone; the ground's stakes nearest first,
+  each chained through the anchors before it (one the chain cannot reach is
+  stranded from the start); the walkers already out, each in the zone keeping
+  its post; and the network's `DerelictSecurityDirector`, which runs
+  `FallenHull.pulse` each half second before its walkers take their postures.
+  Each pulse: a gone forge is put out; a planted stake whose pylon is gone is
+  scrap and its point open; `RelayChain` strands what is cut; stakes count
+  down; trains walk their haul road out and plant (the escort guards the pylon,
+  the carrier goes to work hauling) or are scrapped (the escort goes to the
+  frontier); the watch's lying wrecks and the company's and garrison's fallen
+  machines become salvage; strippers cut the salvage inside the hull's and
+  every linked stake's perimeter, and haulers carry it to the nearest linked
+  store (none while the forge is out); then the forge cycle prints, a stake
+  as a train to the next plantable point, a walker posted round the newest
+  anchor (the frontier), else the mouth. A raised stake is an ordinary
+  `SecurityZone` (`zoneOf`: `STAKE_ZONE_BASE` plus its point) with its node,
+  its relay to the zone its chain runs through, its docked flock and its repair
+  drone, and its escort reposted to it; established, it adds a service bay,
+  `DerelictPost.PER_ZONE` folded posts and its store. The forge's breach
+  (`Autoforge.BREACH_SHARE`) calls the contingency. The director gained
+  `addWalker` (a printed walker joins with its body armed), `repost` and
+  `attachHull`; unarmed walkers (tender, stripper, hauler) are walked by a
+  withdrawal, since a lance with no gun declines every attack goal
+  (`DerelictSecurityDirector.walk`).
+
+Evidence: `AutoforgeTest`, `ClaimLatticeTest`, `SurveyStakeTest`,
+`HullWorkersTest`; `sceneEvidence -Pscene=fallen-hull` (train-plants: the
+forge prints a stake, its train walks out and plants, and sixty seconds on the
+stake rises into a zone linked to the hull's with its node and a flock;
+train-scrapped: the hauler killed on the way leaves the stake scrap and the
+point open; stranded: an established stake's node destroyed strands it and the
+planted stake beyond, which never rises; feedstock: a stripper cuts a pile and a
+hauler carries the metal into the hull's store).
+
+Not built yet: the claim-edge pursuit law (walkers keep their zone's perimeter,
+as at a site network); a stake's rounds walker on a round; cutting a stripped
+structure out of the map (a pile is metal at a cell); the forge's power cut
+other than its destruction; the stripper's and hauler's own looks and the
+stake's three stages drawn (stand-ins: the sentinel at size, the node's
+structure for pylon and node); the briefing and rail reading the build queue
+(`BuildQueue.peek`); a seed's real hull site from the ground.
+
 ## Boundaries
 
 - Units, their sizes and their doctrine stay in the derelict domain
@@ -158,4 +288,4 @@ the event gate are not designed yet.
   the derelict line (`mech-lines.md`, law 1).
 - The arc, its world, cast, chapters and seeds: `long-survey-arc.md`.
 - The ground (hull, trench, lattice, haul roads): mapgen, through the owned
-  story maps (`story-map-pools.md`).
+  story maps (`story-map-pools.md`); built as The ground describes.
