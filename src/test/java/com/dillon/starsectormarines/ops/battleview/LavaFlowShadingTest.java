@@ -36,6 +36,19 @@ class LavaFlowShadingTest {
     }
 
     @Test
+    void aFlowsRootRunsOnIntoTheMeltItBrokeFromAndNoFurther() {
+        // A melt down columns 20.., a flow west of it touching it on rows 10..14 only.
+        float[] heat = new float[W * H];
+        boolean[] melt = new boolean[W * H];
+        for (int y = 0; y < H; y++) for (int x = 20; x < W; x++) melt[y * W + x] = true;
+        for (int y = 10; y <= 14; y++) for (int x = 12; x < 20; x++) heat[y * W + x] = .5f;
+        float[] rooted = LavaFlowShading.rooted(heat, melt, W, H);
+        assertTrue(rooted[12 * W + 20] > 0f && rooted[12 * W + 21] > 0f, "the root runs on into the melt");
+        assertEquals(0f, rooted[12 * W + 20 + LavaFlowShading.ROOT_REACH], "no further than its reach");
+        assertEquals(0f, rooted[30 * W + 20], "the melt elsewhere stays the melt's");
+    }
+
+    @Test
     void theMarginWandersAcrossTheCellsRatherThanRunningAlongTheirSides() {
         LavaFlowShading.Field field = westOf20();
         LavaFlowShading.Scratch s = new LavaFlowShading.Scratch();
