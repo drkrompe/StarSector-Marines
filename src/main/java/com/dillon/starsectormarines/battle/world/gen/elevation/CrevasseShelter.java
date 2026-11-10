@@ -22,7 +22,7 @@ import java.util.function.IntPredicate;
 public final class CrevasseShelter {
 
     /** How deep each wall stands in from its edge, in cells, and how far its foot wanders either way. UNTUNED. */
-    static final float DEPTH = 17f, WANDER = 4f;
+    static final float DEPTH = 20f, WANDER = 4f;
     /** Cells the walls are opened by. */
     static final int OPEN_RADIUS = 2;
     /** The fewest cells a piece of wall keeps. */
