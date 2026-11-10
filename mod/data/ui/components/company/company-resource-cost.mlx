@@ -1,6 +1,7 @@
 <template props="row">
   <div id="{row.id}" class="{row.classes}">
     <div id="{row.lineId}" class="company-resource-cost-line">
+      <div id="{row.nameId}" class="label company-resource-cost-name">{row.name}</div>
       <img id="{row.iconId}" class="company-resource-cost-icon" src="{row.icon}" />
       <div id="{row.labelId}" class="label company-resource-cost-value">{row.cost}</div>
     </div>
@@ -8,10 +9,12 @@
   </div>
 </template>
 <style>
-  .company-resource-cost { flex-direction: column; width: 100%; height: 34px; padding: 1px 3px; border-width: 1px; border-color: #315166; background-color: #071014; }
+  .company-resource-cost { flex-direction: column; justify-content: center; width: 100%; height: 34px; padding: 1px 6px; border-width: 1px; border-color: #315166; background-color: #071014; }
   .company-resource-cost.short { border-color: #a05d52; }
-  .company-resource-cost-line { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 4px; }
+  .company-resource-cost-line { flex-direction: row; align-items: center; width: 100%; height: 18px; gap: 5px; }
+  .company-resource-cost-name { width: 0px; flex-grow: 1; height: 18px; color: #9fb4c2; }
   .company-resource-cost-icon { width: 16px; height: 16px; }
-  .company-resource-cost-value { width: 0px; flex-grow: 1; height: 16px; text-align: right; color: #dfc588; }
-  .company-resource-short { height: 14px; color: #eea296; text-align: right; }
+  .company-resource-cost-value { width: auto; height: 18px; text-align: right; color: #dfc588; }
+  .company-resource-short { height: 0px; color: #eea296; text-align: right; }
+  .company-resource-cost.short .company-resource-short { height: 14px; }
 </style>
