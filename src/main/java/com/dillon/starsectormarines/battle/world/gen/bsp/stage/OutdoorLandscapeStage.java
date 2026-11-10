@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.LavaBerm;
 import com.dillon.starsectormarines.battle.world.gen.LavaFlows;
 import com.dillon.starsectormarines.battle.world.gen.LivingWorld;
 import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
@@ -124,17 +125,34 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
         openPits(c, plan, reserved);
-        if (!crevasseTown(c, field, reserved)) chasm(c, field, reserved);
+        RidgePlanner.Band berm = crevasseTown(c, field, reserved) ? null : chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
+        // A lava berm (LavaBerm) is raised on the ground and access its planner proved: at once, before the hills
+        // can close a way past it, unless the mission's own ridges are still to come, when it is raised with them.
+        // Either way its ground is held from the hills and plateaus until the ridge pass.
+        List<RidgePlanner.Band> highGround = ridges;
+        boolean[] bermHeld = null;
+        if (berm != null) {
+            highGround = new ArrayList<>(ridges);
+            highGround.add(berm);
+            if (ridges.isEmpty() && c.grid.elevation() == null) {
+                ridges(c, reserved, reserved, List.of(berm), false, List.of(), new boolean[c.width * c.height], null);
+            } else {
+                ridges = highGround;
+            }
+            bermHeld = hold(c, reserved, berm);
+        }
         // No stock hill grows where the mission named high ground: it would be all the ridge found there.
-        boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
+        boolean[][] ridgeGround = highGround.isEmpty() ? null
+                : RidgePlanner.heldGround(highGround, c.width, c.height, 0);
         SurfaceSignature signature = c.topology.signature();
         List<TerrainPlan.Stroke> signed = c.topology.terrainSurface() == null
                 ? hills(c, field, reserved, ridgeGround, random, signature) : List.of();
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
+        if (bermHeld != null) for (int i = 0; i < bermHeld.length; i++) if (bermHeld[i]) reserved[i] = false;
         if (!ridges.isEmpty() && c.grid.elevation() == null) {
             ridges(c, reserved, reserved, ridges, false, List.of(), new boolean[c.width * c.height],
                     landscape.sealed().isEmpty() ? null : mainBody(c));
@@ -499,18 +517,19 @@ public final class OutdoorLandscapeStage implements GenStage {
      * run edge to edge along the design's line over the ground the reservations leave, every road and route crossing
      * it left standing as a bridge and natural crossings between, and proved to strand nothing ({@link NaturalChasm}).
      * After the open pit, before anything is grown. A map whose design places none, that already draws a drop or a
-     * backdrop, or whose line does not fit, keeps none.
+     * backdrop, or whose line does not fit, keeps none. Returns a volcanic town's lava berm, for the ridges, or
+     * null.
      */
-    private static void chasm(GenContext c, SurfaceField field, boolean[] reserved) {
-        if (outdoorDrop(c.topology) || c.topology.voidBackdrop() != null) return;
+    private static RidgePlanner.Band chasm(GenContext c, SurfaceField field, boolean[] reserved) {
+        if (outdoorDrop(c.topology) || c.topology.voidBackdrop() != null) return null;
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landform.Drop design = plan == null ? null : Landform.Drop.of(plan.landscape(), c.width, c.height);
-        if (design == null) return;
+        if (design == null) return null;
         int w = c.width;
         NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height, design.alongX(), design.across(),
                 i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
                 i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
-        if (cut == null) return;
+        if (cut == null) return null;
         cutDrop(c, cut.drop(), reserved);
         NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
         // Each crossing wears the drop's deck: a timber footbridge for every outdoor drop today.
@@ -524,28 +543,118 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setGroundKind(x, y, GroundKind.DIRT);
             if (deck >= 0) c.topology.setSurface(x, y, deck);
         }
-        c.topology.addNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height), cut.drop());
-        // A volcanic world's lava river has broken its banks before: its older flows lie on the plain.
-        if (field.world() == SurfacePalette.VOLCANIC) {
-            paintFlows(c, cut.drop(), LavaFlows.offChannel(w, c.height, cut.drop(),
-                    i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                    i -> !decks[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                    (int) (c.seed ^ 0x4c46L)), reserved);
+        NaturalVoid look = drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height);
+        if (field.world() != SurfacePalette.VOLCANIC) {
+            c.topology.addNaturalVoid(look, cut.drop());
+            return null;
         }
+        Precinct town = town(c, cut.drop());
+        // The melt comes from the river's end farthest from the town and runs down past it.
+        int[] source = town == null ? null : LavaBerm.source(w, c.height, cut.drop(), town.seedX(), town.seedY());
+        if (source != null) look = look.withSource(new NaturalVoid.Source(source[0] + .5f, source[1] + .5f));
+        c.topology.addNaturalVoid(look, cut.drop());
+        LavaBerm.Plan bank = lavaFlows(c, cut, town, reserved);
+        return bank == null ? null : bank.band();
     }
 
     /**
-     * Lays the older flows ({@link LavaFlows#heat}) broken from the drop over {@code lava}'s cells, and keeps the
-     * landscape's later features off them.
+     * A volcanic world's lava river and what it has done to the plain ({@code voids.md}, Lava flows): the older flows
+     * that broke from it ({@link LavaFlows}), and where a town stands near it, the berm the town raised upstream of
+     * itself ({@link LavaBerm}) with one older flow run down against its face. Returns the berm, for the landscape
+     * pass to raise with the mission's ridges, or null.
      */
-    private static void paintFlows(GenContext c, boolean[] lava, boolean[] flows, boolean[] reserved) {
-        int w = c.width;
+    private static LavaBerm.Plan lavaFlows(GenContext c, NaturalChasm.Cut cut, Precinct town, boolean[] reserved) {
+        int w = c.width, h = c.height;
+        boolean[] lava = cut.drop(), decks = cut.decks();
+        IntPredicate free = i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w);
+        IntPredicate lip = i -> !decks[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w);
+        // The berm takes only ground the ridge pass would raise it on, and the first the ridge planner accepts.
+        LavaBerm.Plan berm = null;
+        if (town != null) {
+            IntPredicate ridgeFree = ridgeFree(c, reserved, false);
+            for (LavaBerm.Plan candidate : LavaBerm.candidates(w, h, lava, town.seedX(), town.seedY(),
+                    townGround(c, town), ridgeFree, BERM_TRIES)) {
+                ElevationPlan raised = RidgePlanner.plan(w, h, c.seed ^ RIDGE_SALT, List.of(candidate.band()),
+                        ridgeFree, layout -> keepsAccess(c, layout, new boolean[w * h]), List.of());
+                if (raised != null) {
+                    berm = candidate;
+                    break;
+                }
+            }
+        }
+        boolean[][] held = berm == null ? null
+                : RidgePlanner.heldGround(List.of(berm.band()), w, h, BERM_MARGIN);
+        IntPredicate open = held == null ? free : i -> free.test(i) && !held[i % w][i / w];
+        boolean[] flows = LavaFlows.offChannel(w, h, lava, open, lip, (int) (c.seed ^ 0x4c46L));
+        if (berm != null) {
+            boolean[] core = LavaBerm.core(berm, w, h);
+            float[] aim = LavaBerm.aim(w, h, lava, berm, lip);
+            if (aim != null) {
+                boolean[] toe = LavaFlows.offChannelToward(w, h, lava, i -> free.test(i) && !core[i], lip,
+                        aim[0], aim[1], aim[2], (int) aim[3] + LavaBerm.THICKNESS, (int) (c.seed ^ 0x4c42L));
+                for (int i = 0; i < flows.length; i++) flows[i] |= toe[i];
+            }
+        }
+        // The berm's held ground is left for the ridge pass to raise it on: a flow there is look alone.
         for (int i = 0; i < flows.length; i++) {
             if (!flows[i]) continue;
-            reserved[i] = true;
+            if (held == null || !held[i % w][i / w]) reserved[i] = true;
             c.topology.setNatureOverlayIndex(i % w, i / w, -1);
         }
-        c.topology.setLavaFlows(LavaFlows.heat(w, c.height, flows, lava));
+        c.topology.setLavaFlows(LavaFlows.heat(w, h, flows, lava));
+        return berm;
+    }
+
+    /** Reserves a band's held ground where nothing else has, returning the cells it reserved, to give back later. */
+    private static boolean[] hold(GenContext c, boolean[] reserved, RidgePlanner.Band band) {
+        boolean[][] held = RidgePlanner.heldGround(List.of(band), c.width, c.height, BERM_MARGIN);
+        boolean[] took = new boolean[reserved.length];
+        for (int i = 0; i < reserved.length; i++) {
+            if (!held[i % c.width][i / c.width] || reserved[i]) continue;
+            reserved[i] = true;
+            took[i] = true;
+        }
+        return took;
+    }
+
+    /** Cells past a lava berm's held ground kept clear for it too: the ridge planner's faces reach that far. */
+    static final int BERM_MARGIN = 2;
+
+    /** How many of a lava berm's best placements the ridge planner is asked about before the town goes without. */
+    static final int BERM_TRIES = 12;
+
+    /**
+     * The place a lava river runs past: the plan's place whose claimed ground ({@code BspKeys.PRECINCT_CLAIM}) comes
+     * nearest the river ({@code lava}); null with no plan or claim.
+     */
+    private static Precinct town(GenContext c, boolean[] lava) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+        if (plan == null || claim == null) return null;
+        float[] fromLava = LavaBerm.clearance(c.width, c.height, i -> !lava[i]);
+        int best = -1;
+        float near = Float.MAX_VALUE;
+        for (int x = 0; x < Math.min(c.width, claim.length); x++) {
+            for (int y = 0; y < Math.min(c.height, claim[x].length); y++) {
+                int owner = claim[x][y];
+                if (owner < 0 || owner >= plan.precincts().size()) continue;
+                float d = fromLava[y * c.width + x];
+                if (d < near) { near = d; best = owner; }
+            }
+        }
+        return best < 0 ? null : plan.precincts().get(best);
+    }
+
+    /** The town's own ground: the cells its place claims. */
+    private static IntPredicate townGround(GenContext c, Precinct town) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+        int index = plan.precincts().indexOf(town);
+        int w = c.width;
+        return i -> {
+            int x = i % w, y = i / w;
+            return x < claim.length && y < claim[x].length && claim[x][y] == index;
+        };
     }
 
     /**

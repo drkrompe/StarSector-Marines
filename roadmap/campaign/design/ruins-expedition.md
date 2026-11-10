@@ -669,6 +669,33 @@ The art is the art session's, to `ruins-forge-area.md` and the texture contract
 in `ruins-forge-hall.md`. Picture cards:
 `createSnapshots -Psnapshot=ruins-forge-picks`.
 
+**A hall is laid out from its process** (owner, 2026-11-10: "the room itself is
+still just so boring and doesn't make sense... it just feels like a random
+assortment of doodads"; "where does it's metal come from? Where do the parts
+go?"; "a much larger mega facility room... a huge furnace crucible with
+production lines set down it's pour line. The "part" where here to steal is a
+large thing or even the entire room itself is the "tech""; pick
+`ruins-forge-process` open). Every piece in a hall answers where its input comes
+from and where its output goes. A hall lays its chain as one line from its feed
+door to its dispatch door, and the next hall's feed is this hall's dispatch. The
+floor is zoned from that line: deck plate under the work, grating over the
+trenches, rail beds where material moves, painted bays and walkways, and worn
+concrete only in the aisles. The overhead structure follows the movers, and the
+collapse is told on the same line: work stopped mid-step. The forge is the test
+case:
+
+| Option | Shape | Prize |
+| --- | --- | --- |
+| a | Today's foundry slot, laid out feed to dispatch: rail spur, charge bins, tapping furnace, ladle crane, pour trench, mould grid, cooling racks, fettling, dispatch | Unchanged |
+| b1 | One mega forge hall (about 84x44 at extensive) in place of the production halls: a great crucible at its head, six production lines off its pour line | The furnace's control core, one Hermes load, hauled as today |
+| b2 | The same hall | The line is the tech: hold its pulpit while each line's recorder runs, then carry the record cores out |
+| b3 | The same hall | The line is stripped: each key module is a haul and a Hermes load of its own |
+
+The Hermes is the player's only lift, so no variant lifts the room itself. The
+plan, the other halls' chains and the art list are in
+`ruins-themed-environments.md` in the shared notes. Picture cards:
+`createSnapshots -Psnapshot=ruins-mega-forge-picks`.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,
@@ -719,6 +746,41 @@ by the layers' boundaries and never a standing line. Its size follows the
 grade, from a pad and a yard at scattered to a full port at vast. It is laid by
 coordinate hash like the rest of the dead town, so the same site has the same
 port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
+
+**The ruins' doors are leaf doors** (owner: "we have nice automated doors we
+use on ships in the engineering tab renderer... We should look at reusing the
+tech there to make better vault/facility doors than a 1x1"; pick `ruins-doors`
+open, building on a). Today the plant's halls meet at open three-cell gaps, and
+the vault's doors and the works' seals are one cell. The ship's sliding door
+(`RoomDoor`, drawn by `RoomDoorRenderSystem`) is two leaves parting from a seam
+into their jambs, any width, along either axis, and answers whoever stands in
+line with it. The ruins reuse it rather than drawing a door of their own. It
+needs three changes:
+
+- **A door kind.** `RoomDoor` gains a kind: a hall door (two leaves), a cargo
+  door (two telescoping leaves each way) and a blast door (two thick leaves,
+  the seam clamped when sealed). Each kind has its own leaf art.
+- **A derelict state.** A door answers while its works are powered. It stands
+  dead where its power died, part-open: the cells under its leaves are wall, so
+  a dead door narrows the way. It is sealed while its `SealDoor` is shut, and
+  forced for good once a breach forces it, one leaf torn out onto the floor. A
+  ruins door's state is the works' (`LockedDoor` open, forced and hardened), so
+  passage stays the grid's and the `LockedDoor`'s, as on a ship.
+- **Fed from the battle.** Ruins doors are built from the ground (the plant
+  halls' joins, the interior's entrances, the works' seals and the vault's
+  doors), not from a ship's compartments. The animation that moves the leaves
+  for the bodies near them, today in `ShipDeckBattleScene`, moves to the battle
+  view for every map.
+
+| Option | What becomes a leaf door |
+| --- | --- |
+| a (recommended) | Every hall join (hall door), every intake dock (cargo door, four leaves), the vault and secure stores (blast doors widened to three cells), all with the four states |
+| b | Only the works' seals (gates, stores, bunker, vault), sealed and forced; the joins stay open gaps |
+| c | The joins answer as a ship's do, with no derelict states; the seals stay as today |
+
+The leaf art is ruins-theme-art's (`ruins-doors.md` in the shared notes holds
+the piece list). The cards use today's ship leaves, forcible and hardened plates
+as stand-ins. Picture cards: `createSnapshots -Psnapshot=ruins-door-picks`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:

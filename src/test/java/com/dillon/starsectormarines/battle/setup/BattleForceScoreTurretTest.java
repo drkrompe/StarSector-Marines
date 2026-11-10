@@ -32,6 +32,19 @@ class BattleForceScoreTurretTest {
         assertTrue(selected.isEmpty());
     }
 
+    /** Emplacements the map stated are fortification, not a force priced against the attack: all of them stand. */
+    @Test
+    void aPlaceThatStatedItsEmplacementsKeepsThemAllWhateverTheAttack() {
+        List<ShuttleAssignment> attackers = valkyries(1);
+        DefenderRoster roster = rosterFor(attackers);
+        float score = BattleForceScore.attackers(attackers);
+
+        List<DefensePost> stated = candidates();
+        assertEquals(stated, BattleForceScore.standingDefensePosts(stated, true, roster, score, 0f));
+        assertTrue(BattleForceScore.standingDefensePosts(candidates(), false, roster, score, 0f).isEmpty(),
+                "the setup-time scatter is still priced");
+    }
+
     @Test
     void alliedLiftRetainsAStableAffordablePrefixInsteadOfRerollingTheMap() {
         List<ShuttleAssignment> attackers = valkyries(4);

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5ca-221c-78b0-ab94-8bbbd75d5b7f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5ca-221c-78b0-ab94-8bbbd75d5b7f\\exec-4e81c8aa-de6f-4b8e-95a6-b23cd3467e86.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\e-sheet.png",
+    "sha256": "ba49d79d8a0204c053a063bf800b0765332a5fb9ffe740d68ccfbc268673022c",
+    "dimensions": [
+      1717,
+      916
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\midline\\frames\\e.prompt.txt",
+  "promptSha256": "c39a8e3daef1a5a5fe08f0eb6a5a679d6fd4ea269510d9a2d693ed1b7fce75be",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, colour and surface detail only; contains no shapes to copy\n\nAsset type: concept sheet for a top-down game: the three machines of a new MIDLINE wheeled combat machine row, light, medium and heavy, drawn whole.\n\nThe row is ARTICULATED CARRIERS: each machine is two armoured modules, one behind the other, joined by a visible articulation joint (a hinge with exposed pistons and cables) so the body bends in the middle to steer, and each module rides on its own pair of chunky wheels. The front module is a short, blunt drive cab with a flat front and narrow vision slits; the rear module is a swappable mission box with a flat top. LIGHT: two short modules, four wheels in all, one empty round weapon socket on the rear module. MEDIUM: a longer rear module, six wheels in all, two empty round sockets and one empty square missile hatch. HEAVY: three modules in a chain (cab, power module, mission module), eight wheels in all, two large empty round sockets and two empty square missile hatches.\n\nEvery weapon mount is drawn EMPTY: a dark recessed round socket ring or a square hatch, with no gun, barrel, launcher or turret in it. Guns are separate parts added later.\n\nLayout: one wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale so the heavy is clearly the biggest (about twice the light's length). Every machine faces the TOP edge of the sheet. Each machine is symmetric about its own vertical centre line.\n\nThe reference image is a sheet of surface swatches cut from Starsector's midline warships: take only their material, colour and surface detail, never any shape. Weathered tan, khaki and bone-coloured armour plate with olive-grey shading and crisp engraved panel lines, chamfered slab panels bolted in clean overlapping layers, over dark grey and gunmetal machinery (pistons, conduits, vents) showing in the gaps; round recessed socket rings; small yellow-green indicator lights; light grime in the recesses; light from the upper left. These are compact ground machines about the size of a tank or an armoured car.\n\nStrict 90-degree zenith orthographic top-down view of the machines' top surfaces. True transparent background, including all negative space between wheels, legs and parts; no ground, shadow slab, cast shadow, halo, border, text, labels or logos. Paint at full resolution as crisp, detailed game-sprite concept art, not pixel art.\n\nAvoid: any resemblance to a starship; a forked or split prow, twin prongs or a V-shaped nose; a dome; bird or chicken legs; guns or barrels of any kind; tracks; a hovering skimmer; a two-legged walker; rusty scrap; steel-blue or white plastic; a cockpit canopy; a pilot figure; perspective, side view or isometric view; cropped machines; more or fewer than three machines; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\midline\\ref-midline-material.png",
+      "sha256": "7f8160abd234bf83a773054cd4cd716acc0cf4a15cf537e90ba8e32d9f507b1b",
+      "dimensions": [
+        1580,
+        540
+      ],
+      "mode": "RGBA",
+      "role": "Material, colour and surface detail only; contains no shapes to copy"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet using the reference’s materials and colours."
+  ],
+  "usage": {
+    "input_tokens": 60353,
+    "cached_input_tokens": 52608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 669,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.5
+}
