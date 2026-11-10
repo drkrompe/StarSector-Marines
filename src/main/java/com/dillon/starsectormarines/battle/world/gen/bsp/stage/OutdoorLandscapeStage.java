@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.StormBank;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
@@ -453,7 +454,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setGroundKind(x, y, GroundKind.DIRT);
             c.topology.setSurface(x, y, timber);
         }
-        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L), cut.drop(), w, c.height));
     }
 
     /**
@@ -743,7 +744,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             if (point != null) anchors.add(point);
         }
         for (int i = 0; i < hostAnchors.length; i += 2) anchors.add(new int[]{hostAnchors[i], hostAnchors[i + 1]});
-        boolean[][] stops = trackStops(c);
+        boolean[][] stops = approachStops(c);
         for (var pad : c.landingPads) {
             anchors.add(new int[]{pad.centerX, pad.centerY});
             int l = pad.left() - 4, r = pad.right() + 4, b = pad.bottom() - 4, t = pad.top() + 4;
@@ -811,7 +812,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
-        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c));
+        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c), heldBands(c));
         return reserved;
     }
 
@@ -831,6 +832,22 @@ public final class OutdoorLandscapeStage implements GenStage {
         return out;
     }
 
+    /**
+     * Where a landing pad's approach stops short of the edge: the {@link #trackStops}, and a storm bank's ground
+     * ({@link StormBank#ground}), so an approach toward the windward edge never reserves a stretch of the bank away.
+     */
+    private static boolean[][] approachStops(GenContext c) {
+        boolean[][] stops = trackStops(c);
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
+        if (plan == null || plan.landscape().kept().isEmpty() || !StormBank.raises(profile)) return stops;
+        boolean[][] bank = StormBank.ground(profile.climate().wind(), c.width, c.height);
+        if (stops == null) return bank;
+        boolean[][] out = new boolean[c.width][c.height];
+        for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) out[x][y] = stops[x][y] || bank[x][y];
+        return out;
+    }
+
     /** Cells a route keeps off a sealed band's apron: the two either side of its line it reserves, and one more. */
     static final int ROUTE_CLEARANCE = 3;
 
@@ -843,6 +860,21 @@ public final class OutdoorLandscapeStage implements GenStage {
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         if (plan == null || plan.landscape().sealed().isEmpty()) return null;
         boolean[][] band = RidgePlanner.sideGround(plan.landscape().sealed(), c.width, c.height, ROUTE_CLEARANCE);
+        boolean[] out = new boolean[c.width * c.height];
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) out[y * c.width + x] = band[x][y];
+        return out;
+    }
+
+    /**
+     * The ground across the plan's held bands, ridges and the storm bank alike, without their ends, and the two cells
+     * either side a route's width reserves: what the access routes cross rather than follow, so a bank or ridge raised
+     * round them keeps its passes where they were planned ({@code elevation-nouns.md}, Held ground); null when the
+     * landscape holds none.
+     */
+    private static boolean[] heldBands(GenContext c) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        if (plan == null || plan.landscape().held().isEmpty()) return null;
+        boolean[][] band = RidgePlanner.sideGround(plan.landscape().held(), c.width, c.height, 2);
         boolean[] out = new boolean[c.width * c.height];
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) out[y * c.width + x] = band[x][y];
         return out;

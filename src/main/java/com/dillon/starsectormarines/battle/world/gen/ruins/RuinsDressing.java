@@ -16,16 +16,43 @@ import java.util.List;
  * @param chambers props along the interior chambers' walls
  * @param floor    walkable patches on the open floor of the vault room and the chambers
  */
-public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor) {
+public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product) {
 
     /** Plain ground: the ruins as they stand. */
-    public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of());
+    public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of(), null);
 
     public RuinsDressing {
         vault = List.copyOf(vault);
         chambers = List.copyOf(chambers);
         floor = List.copyOf(floor);
     }
+
+    /**
+     * Props and floor patches, with no product of the theme's own: the secure store's last cradle holds a stand-in.
+     */
+    public RuinsDressing(List<String> vault, List<String> chambers, List<String> floor) {
+        this(vault, chambers, floor, null);
+    }
+
+    /**
+     * The same dressing whose product is {@code product}: the base id of the theme's unit on the {@code ruins-themes}
+     * sheet, for example {@code doodad.ruins-cryo-unit}, whose states are {@code -whole}, {@code -half} and
+     * {@code -wrecked}.
+     */
+    public RuinsDressing withProduct(String product) {
+        return new RuinsDressing(vault, chambers, floor, product);
+    }
+
+    /** The product whole, as the prize stands in its cradle; null without a product. */
+    public String whole() { return state("-whole"); }
+
+    /** The product half-built, as it was left on the line; null without a product. */
+    public String half() { return state("-half"); }
+
+    /** The product wrecked, on the line or in a cradle; null without a product. */
+    public String wrecked() { return state("-wrecked"); }
+
+    private String state(String suffix) { return product == null ? null : product + suffix; }
 
     /** Props only, bare floors. */
     public RuinsDressing(List<String> vault, List<String> chambers) {

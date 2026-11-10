@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ruins;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
@@ -27,6 +28,8 @@ public final class RuinsBatteryGuns {
 
     /** The emplacement a battery is built on: the heavy machine gun's gun and durability. */
     public static final String STRUCTURE = "structure.turret-heavy-mg";
+    /** How the old colony built them: its own steel, rusted with the plant they kept. */
+    public static final EmplacementStyle STYLE = EmplacementStyle.DERELICT;
     /** The junction whose way on feeds the batteries: the first layer's. */
     static final int JUNCTION = 0;
     /** How far out from an entrance's apron centre a battery stands, cells. UNTUNED. */
@@ -126,6 +129,7 @@ public final class RuinsBatteryGuns {
             int y = sites.get(i)[1];
             long gun = sim.spawn(MapTurret.create("ruins-battery-" + (i + 1), Faction.HAZARD, STRUCTURE, x, y));
             if (gun == 0L) continue;
+            sim.setStructureStyle(gun, STYLE);
             grid.setWalkable(x, y, false);
             grid.setSeeThrough(x, y, true);
             grid.recomputeCoverAt(x + 1, y);

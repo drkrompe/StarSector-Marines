@@ -39,6 +39,10 @@ public final class RuinsThemeDressing {
     private static final String FROST_HEATSINK = "doodad.ruins-frost-heatsink";
     private static final String CULTURE_VAT = "doodad.ruins-culture-vat";
     private static final String GROW_BED = "doodad.ruins-grow-bed";
+    private static final String CRYO_UNIT = "doodad.ruins-cryo-unit";
+    private static final String VAT_UNIT = "doodad.ruins-vat-unit";
+    private static final String FORGE_CORE = "doodad.ruins-forge-core";
+    private static final String DRONE_FRAME = "doodad.ruins-drone-frame";
     private static final List<String> FROST = List.of("doodad.ruins-frost-patch-a", "doodad.ruins-frost-patch-b");
     private static final List<String> GROWTH = List.of("doodad.ruins-growth-patch-a", "doodad.ruins-growth-patch-b");
 
@@ -58,17 +62,21 @@ public final class RuinsThemeDressing {
                     List.of(RIFLE_RACK, ISSUE_COUNTER, CLEANING_BENCH, AMMO_LOCKER));
             case SERVER_HALL -> set(List.of(SERVER_RACK, SERVER_RACK, SWITCHBOARD),
                     List.of(SERVER_RACK, WORKSTATIONS, CONSOLE));
-            case PRISTINE_NANOFORGE, CORRUPTED_NANOFORGE, DRONE_REPLICATOR ->
-                    set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD));
+            case PRISTINE_NANOFORGE, CORRUPTED_NANOFORGE ->
+                    set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
+                            .withProduct(FORGE_CORE);
+            case DRONE_REPLICATOR ->
+                    set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
+                            .withProduct(DRONE_FRAME);
             case SYNCHROTRON -> set(List.of(SWITCHBOARD, GENERATOR), List.of(SWITCHBOARD, CABLE_REEL, CONSOLE));
             case FUSION_LAMP, PLASMA_DYNAMO, HYPERSHUNT_TAP ->
                     set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR));
             case MANTLE_BORE -> set(List.of(ENGINE_BOARD, CABLE_REEL), List.of(CABLE_REEL, DRUMS, ENGINE_BOARD));
             case CATALYTIC_CORE, FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS));
             case SOIL_NANITES, BIOFACTORY_EMBRYO -> new RuinsDressing(List.of(CULTURE_VAT, GROW_BED),
-                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH);
+                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH).withProduct(VAT_UNIT);
             case CRYOARITHMETIC_ENGINE -> new RuinsDressing(List.of(CRYO_RACK, CRYO_RACK, FROST_HEATSINK),
-                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST);
+                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST).withProduct(CRYO_UNIT);
             case DEALMAKER_HOLOSUITE -> set(List.of(CONFERENCE, WORKSTATIONS), List.of(CONFERENCE, WORKSTATIONS, CONSOLE));
         };
     }

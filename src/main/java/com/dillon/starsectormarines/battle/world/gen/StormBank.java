@@ -55,6 +55,12 @@ public final class StormBank {
      * stretch (its graded end, ramp and held margin reach some nine cells beyond it). A primary arm and its shoulders.
      */
     public static final int OPEN_HALF = 8;
+    /**
+     * Cells past the held ground that the kept strips run on the lee: the planner's apron reaches a cell past the
+     * held margin, and a road the town lays beside held ground reserves two cells round it, so without these the
+     * apron's last row is reserved and the whole stretch is refused.
+     */
+    static final int LEE_KEPT = 3;
     /** Open ground between everything the bank holds and the nearest place's region, cells. */
     public static final int STANDOFF = 6;
 
@@ -98,14 +104,14 @@ public final class StormBank {
 
     /**
      * The ground windward of the bank, kept open before anything grows ({@code Landscape.withKept}): the strip from
-     * the edge to the bank's far face the whole length of the edge (kept ground is never raised, and the bank is
-     * held besides), and past each end of the bank the corner out
+     * the edge past the bank's lee apron the whole length of the edge, {@link #LEE_KEPT} beyond its held ground
+     * (kept ground is never raised, and the bank is held besides), and past each end of the bank the corner out
      * as deep as the bank holds, so no place grows round the bank onto its windward side. The planned passes are
      * left open, so the roads through them still reach the edge.
      */
     public static List<Landscape.Track> windward(StormWind.Side wind, int width, int height, List<Integer> passes) {
         int length = wind.alongX() ? width : height;
-        int corner = depth(wind, width, height);
+        int corner = depth(wind, width, height), lee = corner + LEE_KEPT;
         boolean[] gap = new boolean[length];
         for (int at : passes) {
             for (int a = Math.max(0, at - OPEN_HALF); a <= Math.min(length - 1, at + OPEN_HALF); a++) gap[a] = true;
@@ -116,7 +122,7 @@ public final class StormBank {
             boolean open = a < length && !gap[a];
             if (open && start < 0) start = a;
             if (!open && start >= 0) {
-                out.add(strip(wind, width, height, start, a - 1, OFFSET + THICKNESS));
+                out.add(strip(wind, width, height, start, a - 1, lee));
                 start = -1;
             }
         }
@@ -150,6 +156,23 @@ public final class StormBank {
             band = RidgePlanner.Band.rect(x0, a0, x1, a1, false, toward, RAMP);
         }
         return band.berm();
+    }
+
+    /**
+     * The bank's ground on a {@code width} x {@code height} map, indexed {@code [x][y]}: every cell from the windward
+     * edge to {@link #depth} in, its passes included. What reaches the edge across it (a landing pad's approach) stops
+     * here rather than reserving the bank away.
+     */
+    public static boolean[][] ground(StormWind.Side wind, int width, int height) {
+        int depth = depth(wind, width, height);
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int in = wind.alongX() ? (wind.low() ? y : height - 1 - y) : (wind.low() ? x : width - 1 - x);
+                out[x][y] = in < depth;
+            }
+        }
+        return out;
     }
 
     /** How far in from the windward edge the bank holds ground, cells: {@link #reach} without its open standoff. */

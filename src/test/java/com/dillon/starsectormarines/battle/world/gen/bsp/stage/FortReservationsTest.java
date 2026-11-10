@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -128,5 +129,22 @@ class FortReservationsTest {
         assertNotNull(mask);
         assertTrue(mask[200][40] && mask[260][70] && mask[230][55]);
         assertTrue(!mask[199][55] && !mask[261][55] && !mask[230][71]);
+    }
+
+    @Test
+    void keptGroundIsReleasedFromEveryClaimButThePlacesOwnTerrace() {
+        List<Precinct> places = List.of(
+                Precinct.garrison("works", 5, 5, GrownTrunkPlan.Profile.hamlet(), FortressProgram.garrison()),
+                Precinct.garrison("keep", 15, 5, GrownTrunkPlan.Profile.hamlet(), FortressProgram.garrison()),
+                Precinct.settlement("town", 25, 5, GrownTrunkPlan.Profile.hamlet()));
+        int[][] claim = new int[30][10];
+        for (int x = 0; x < 30; x++) for (int y = 0; y < 10; y++) claim[x][y] = x / 10;
+        // A strip kept open to the edge along y 0..2, and the keep's own terrace round its seed.
+        List<Landscape.Track> kept = List.of(new Landscape.Track(0, 0, 29, 2), new Landscape.Track(12, 3, 18, 7));
+        FortReservations.releaseKept(claim, kept, places);
+        assertEquals(GrownTrunkPlan.UNOWNED, claim[5][1], "a programmed place's claim leaves the strip by the bank");
+        assertEquals(GrownTrunkPlan.UNOWNED, claim[25][1], "and so does a zoned one's");
+        assertEquals(1, claim[15][5], "but a place keeps its own terrace");
+        assertEquals(0, claim[5][5], "and everything off the kept ground");
     }
 }

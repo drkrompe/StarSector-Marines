@@ -17,7 +17,10 @@ import java.util.Arrays;
  *
  * <p><b>Weight.</b> The drawn body is not the torso's path: it sways over the feet that stand (toward their middle, so
  * away from a lifted leg), dips as a leg lifts its share of the weight, bounces twice a stride at the run and leans
- * into its speed ({@link #bodyX()}, {@link #bodyHeight()}). The hips ride on the drawn body.
+ * into its speed ({@link #bodyX()}, {@link #bodyHeight()}). The hips ride on the drawn body. A build with a
+ * suspension ({@link Build#suspensionSeconds()}) carries its body on a critically damped spring instead: the body
+ * eases into each sway and dip, keeps a little way on when the path stops and settles back, so it never starts or
+ * stops in a frame (a crewed body, carried smoothly).
  *
  * <p><b>Reach.</b> Each leg chooses for itself: a wall face within {@link #GRIP_CELLS} along its line, or one splay
  * step out to the side, takes the foot up on it, gripping; in the open the foot stands on the floor at
@@ -120,27 +123,32 @@ public final class DerelictLegRig {
      * @param motionScale     the body's motion on its legs against the walker's
      * @param twistDegrees    how far the body yaws toward a lifted leg's diagonal at full lift (the walker none)
      * @param jointInsetCells how far a leg part's joint centre sits in from its drawing's end
+     * @param suspensionSeconds how long the body's spring takes to settle onto its pose, seconds; zero for none (the
+     *                        body then settles by {@link #SETTLE_SECONDS}' lag)
      */
     public record Build(float hipCells, float restCells, float gripCells, float hipHeightCells, float thighCells,
                         float shinCells, float wallFootCells, float stepLiftCells, float walkStride, float runStride,
                         float runSpeed, float walkSpeed, float stepSeconds, float scale, float motionScale,
-                        float twistDegrees, float jointInsetCells) {
+                        float twistDegrees, float jointInsetCells, float suspensionSeconds) {
     }
 
     /** The derelict security walker: a heavy torso on long reaching legs. */
     public static final Build WALKER = new Build(HIP_CELLS, REST_CELLS, GRIP_CELLS, DerelictLegPose.HIP_HEIGHT_CELLS,
             DerelictLegPose.THIGH_CELLS, DerelictLegPose.SHIN_CELLS, DerelictLegPose.WALL_FOOT_HEIGHT_CELLS,
             DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f, 1f, 0f,
-            0.16f);
+            0.16f, 0f);
 
     /**
      * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light): a small carapace low on four short legs, quick
      * on its feet. UNTUNED. The thigh and shin are its drawn parts' lengths between joint centres
      * (mod/graphics/battle/tt-crawler: 48 and 70 px at 128 px a cell), so a leg is drawn at its own length; the
      * cadence is quicker than the walker's, the feet lift higher for their size and the body bobs and twists on them.
+     * Its body rides a suspension (owner: the crew inside must not feel the steps), so it eases through its gait.
      */
     public static final Build CRAWLER = new Build(0.42f, 1.05f, 1.45f, 0.30f, 0.375f, 0.55f, 0.30f, 0.30f,
-            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f);
+            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f, 0.45f);
+    /** The spring's integration step at most, seconds, so a long frame stays stable. */
+    private static final float SPRING_STEP = 1f / 120f;
 
     private final Build build;
 
@@ -167,6 +175,11 @@ public final class DerelictLegRig {
     private float offY;
     private float height;
     private float twist;
+    /** The suspended body's rates, per second: its velocity in the world, its rise and its yaw. */
+    private float bodyVX;
+    private float bodyVY;
+    private float heightV;
+    private float twistV;
     private final boolean[] lost = new boolean[LEGS];
     private final boolean[] dragging = new boolean[LEGS];
     private boolean downed;
@@ -246,6 +259,7 @@ public final class DerelictLegRig {
             pathY = y;
             velX = velY = 0f;
             offX = offY = height = twist = 0f;
+            bodyVX = bodyVY = heightV = twistV = 0f;
             gait = Gait.STAND;
             Arrays.fill(swing, -1f);
             float[] spot = new float[3];
@@ -263,6 +277,8 @@ public final class DerelictLegRig {
             velX += ((x - pathX) / dt - velX) * k;
             velY += ((y - pathY) / dt - velY) * k;
         }
+        float movedX = x - pathX;
+        float movedY = y - pathY;
         pathX = x;
         pathY = y;
         float speed = (float) Math.sqrt(velX * velX + velY * velY);
@@ -272,7 +288,7 @@ public final class DerelictLegRig {
         if (gait == Gait.STAND) stand(dt, solid);
         else stride(moved, speed, solid);
         drag(solid);
-        pose(dt, speed);
+        pose(dt, speed, movedX, movedY);
     }
 
     /** Moving: the clock runs on distance and each leg swings in its window of the cycle. */
@@ -373,7 +389,7 @@ public final class DerelictLegRig {
     }
 
     /** The body's weight on its feet: sway over the standing feet, dip for lifted ones, the run's bounce, the lean. */
-    private void pose(float dt, float speed) {
+    private void pose(float dt, float speed, float movedX, float movedY) {
         float sx = 0f;
         float sy = 0f;
         int standing = 0;
@@ -413,11 +429,44 @@ public final class DerelictLegRig {
             ty += velY / speed * lean;
         }
         if (gait == Gait.RUN) th += moved(RUN_BOUNCE_CELLS) * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        float tw = build.twistDegrees() * Math.max(-1f, Math.min(1f, yaw));
+        if (build.suspensionSeconds() > 0f) {
+            suspend(dt, movedX, movedY, tx, ty, th, tw);
+            return;
+        }
         float k = dt <= 0f ? 1f : 1f - (float) Math.exp(-dt / SETTLE_SECONDS);
         offX += (tx - offX) * k;
         offY += (ty - offY) * k;
         height += (th - height) * k;
-        twist += (build.twistDegrees() * Math.max(-1f, Math.min(1f, yaw)) - twist) * k;
+        twist += (tw - twist) * k;
+    }
+
+    /**
+     * The suspended body: a critically damped spring pulls the drawn body toward the path plus its pose
+     * ({@code tx, ty}), its height toward {@code th} and its yaw toward {@code tw}, settling within the build's
+     * suspension. The body is carried with the path's smoothed velocity, so it rides along without lag at a steady
+     * pace, keeps a little way on when the path stops short and eases off when it starts.
+     */
+    private void suspend(float dt, float movedX, float movedY, float tx, float ty, float th, float tw) {
+        if (dt <= 0f) return;
+        // Where the body was drawn last frame, in the world: the path has since moved on under it.
+        float dx = pathX - movedX + offX;
+        float dy = pathY - movedY + offY;
+        float w = 4f / build.suspensionSeconds();
+        int steps = Math.max(1, (int) Math.ceil(dt / SPRING_STEP));
+        float h = dt / steps;
+        for (int s = 0; s < steps; s++) {
+            bodyVX += (w * w * (pathX + tx - dx) + 2f * w * (velX - bodyVX)) * h;
+            bodyVY += (w * w * (pathY + ty - dy) + 2f * w * (velY - bodyVY)) * h;
+            dx += bodyVX * h;
+            dy += bodyVY * h;
+            heightV += (w * w * (th - height) - 2f * w * heightV) * h;
+            height += heightV * h;
+            twistV += (w * w * (tw - twist) - 2f * w * twistV) * h;
+            twist += twistV * h;
+        }
+        offX = dx - pathX;
+        offY = dy - pathY;
     }
 
     /**

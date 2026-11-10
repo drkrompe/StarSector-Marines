@@ -298,8 +298,14 @@ public final class Cantonment {
         return 240;
     }
 
-    /** Weight per cell of a road's width in choosing the gate: the town's arterial before a side street. UNTUNED. */
-    private static final double WIDE_ROAD = 0.15;
+    /**
+     * Weight per cell of a road's width in choosing the gate. Large enough that the widest road in is the main gate
+     * whichever side it is on: a cantonment lays its avenue wider than its further gates' roads
+     * ({@code CantonmentRoads}), and its rows are laid square to the avenue. UNTUNED.
+     */
+    private static final double WIDE_ROAD = 3.0;
+    /** What a road in off the map's edge costs a gate: more than any width buys, so it is the last choice. */
+    private static final double OFF_MAP = 100;
 
     /** Where the main gate is: the side of the place it is in, and the road's centre across that side (map cells). */
     public record Gate(Side side, int axis) { }
@@ -338,7 +344,7 @@ public final class Cantonment {
                 boolean offMap = ox < 0 || oy < 0 || ox >= w || oy >= h;
                 double half = Math.max(1, (hi - lo) / 2.0);
                 double score = WIDE_ROAD * Math.min(width, 9) + (side.dx * tx + side.dy * ty) / norm
-                        - 0.5 * Math.abs(mid - (lo + hi) / 2.0) / half - (offMap ? 3 : 0);
+                        - 0.5 * Math.abs(mid - (lo + hi) / 2.0) / half - (offMap ? OFF_MAP : 0);
                 if (score > bestScore) {
                     bestScore = score;
                     best = new Gate(side, mid);

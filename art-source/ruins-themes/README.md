@@ -14,14 +14,32 @@ ruin). Geometry-first (`geometry-first-imagegen.md`):
    provenance live in `raw/`.
 3. `python art-source/ruins-themes/export.py` cuts the shipped pieces and packs
    `mod/graphics/doodads/ruins-themes.png` with
-   `mod/data/tilesets/ruins-themes.tileset.json` at 128 px a cell; metadata
+   `mod/data/tilesets/ruins-themes.tileset.json` at 128 px a cell, 16 cells wide; metadata
    (ids, cover, footprints) is `_atlas.json`.
 
 Shipped: `frost` (cryo rack, frost heatsink), `vats` (culture vat, grow bed),
-`patches` (two frost, two growth). The frost and vats sheets' own patches are
-concept-only and not exported. `raw/ruins-forge-concept.png` is the forge floor
-and shaft head concept (assembly cradle, shaft head, hoist winch), not yet
-shipped.
+`patches` (two frost, two growth), and the plant kit every theme's halls share:
+`plant-line` (line module 6x3, line end 3x3, empty cradle 3x3) and
+`plant-store` (rack rows 6x2 stripped and with crates, dock door 4x2). The
+plant sheets used the shipped `industrial-machine-tool` source in place of the
+cold store as a material reference.
+
+The line module joins end to end along its long axis (east-west as shipped)
+and the line end's bed leaves by its east edge: `export.py` cuts both at
+roller-gap centres from one shared vertical window, so every seam meets gap to
+gap (its comment records the measured boxes). The empty cradle's middle is
+open: a 2x2 to 3x3 product stands in it.
+
+Per-theme products, each whole, half-built and wrecked (`ruins-vault-facility`): `products-a` (cryo rack unit,
+culture vat module), `products-b` (drone frame, forge cradle core), `products-c` (AI core cabinet, fusion lamp
+field housing, synchrotron magnet segment), `products-d` (catalyst bed, fullerene spool drum) and `products-e`
+(mantle bore head, holosuite projector stack), ids `doodad.ruins-<product>-<state>` with
+states `whole`, `half`, `wrecked`. Each is cut at its guide frame and keeps the whole frame as its canvas on a 3x3
+footprint, so the three states share one scale and stand in a cradle or across a line module. Armory and depot keep their existing props.
+
+The frost and vats sheets' own patches are concept-only and not exported.
+`raw/ruins-forge-concept.png` is the forge floor and shaft head concept
+(assembly cradle, shaft head, hoist winch), not yet shipped.
 
 Review: `gradlew.bat createSnapshots -Psnapshot=ruins-themed-site-look`, the
 `inside/` cryoarithmetic-engine and soil-nanites shots.

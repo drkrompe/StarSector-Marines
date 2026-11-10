@@ -734,8 +734,10 @@ Laws):
      ledges, shade toward near-black. The floor is dust and rubble with the
      plain's basalt field stones lying thick on it (a palette's
      `stoneShare`); no haze, an airless world's gorge.
-   First pass: three ledges to a floor 40 m down, a gorge 9 to 21 cells
-   across. Left: the owner's pick of depth; dust sifting off the lip;
+   First pass: three ledges, a gorge 9 to 21 cells across. **No one
+   depth** (owner, 2026-11-10: "Should we just vary instead of having a
+   hard floor?"): the floor lies 28 to 55 m down, varying along the cut
+   (Depth along a void, below). Left: dust sifting off the lip;
    impact-shattered blocks bigger than the field stones.
 
    **Toxic gorge** (owner, 2026-11-09: a drop for every ground palette,
@@ -758,9 +760,8 @@ Laws):
    - **Placement.** Toxic worlds (`SurfacePalette.TOXIC`) are cut by it
      (`NaturalVoidZoning.TOXIC_GORGE`).
    - **Battle.** Unchanged: no hazard (as the lava rift's heat, undecided).
-   First pass: three ledges to sludge 34 m down, a gorge 10 to 22 cells
-   across. Left: the owner's look against the real toxic ground, once it is
-   on main; fumes rising off the lip; a faint glow off the sludge at dusk.
+   First pass: three ledges, a gorge 10 to 22 cells across, the sludge 22
+   to 48 m down varying along it as the dry gorge's floor does. Left: fumes rising off the lip; a faint glow off the sludge at dusk.
 
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
@@ -915,9 +916,15 @@ Laws):
    are; the wall image's strata thin where the face is shorter; a crevasse's
    floor takes less of its deep blue where it shallows. Look suites:
    `-Dsnapshot.gorge.vary`, `-Dsnapshot.ice.vary`, `-Dsnapshot.ravine.vary`
-   and the lava rift's `vary` setup. Left: a generator laying marks (a gorge
-   river deepest where its brook's valley is, shallowing to its fords); a
-   falls where a floor steps rather than slopes.
+   and the lava rift's `vary` setup. **On a generated map**
+   (`NaturalVoidZoning`): a zoning row may carry a depth band instead of one
+   depth, and the cut is then marked every 30 cells along its longer run, at
+   its middle, the depths drawn spread over the band so every cut reaches
+   near both ends of it (`NaturalVoidZoning.marks`). The dry and toxic gorges
+   carry one; the dry and toxic look suites shoot it as `varied` unless
+   `.depth` fixes one. Left: the other natural rows (each still an owner's
+   depth); a gorge river deepest where its brook's valley is, shallowing to
+   its fords; a falls where a floor steps rather than slopes.
 
    **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
    generated maps lay natural voids by planet type, not only debug maps). Look

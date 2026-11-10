@@ -84,13 +84,14 @@ public final class PrecinctSkeletonStage implements GenStage {
         }
         boolean[][] weldBlocked = FortReservations.weldBlocked(ctx, plan);
 
-        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up and one
-        // road laid in from the town's nearest, and no weld is cut back across it (Raid garrisons only).
+        // A cantonment lays its own streets square to one avenue: the roads across its claim are taken up, the avenue
+        // and a road to each further gate laid in from the town's nearest, and no weld is cut back across it (Raid
+        // garrisons only).
         boolean[][] weldAround = weldBlocked;
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
-            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height);
+            CantonmentRoads.lay(claim, grown.owner(), i, ctx.width, ctx.height, 1, precinct.fortification().glacis());
             if (weldAround == weldBlocked) weldAround = CantonmentRoads.blocked(weldBlocked, ctx.width, ctx.height);
             CantonmentRoads.block(weldAround, claim, grown.owner(), i, ctx.width, ctx.height);
         }
@@ -117,7 +118,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
 
         // An open-field landing's country is surveyed, not grown.
-        RuralLayout rural = survey(plan, grown, ctx, weldBlocked);
+        RuralLayout rural = survey(plan, grown, ctx, weldAround);
         if (rural != null) ctx.put(BspKeys.RURAL_LAYOUT, rural);
 
         // The roads the mission's layout asks for, carved into the network as any grown arm is, so its gates, its
@@ -128,7 +129,15 @@ public final class PrecinctSkeletonStage implements GenStage {
             ctx.put(BspKeys.LAYOUT_ROADS, layoutRoads);
             // A layout road is carved where its course runs, and one that meets only a wall or the map's edge is a
             // piece of road on its own; the map is one network after it as before it.
-            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldBlocked);
+            PrecinctInterconnect.weld(grown.owner(), ctx.width, ctx.height, weldAround);
+        }
+
+        // A cantonment's further gates, once every road the map will have is laid, so each meets the town's road.
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            Precinct precinct = plan.precincts().get(i);
+            if (!precinct.isProgrammed() || !precinct.program().cantonment()) continue;
+            CantonmentRoads.further(claim, grown.owner(), i, ctx.width, ctx.height,
+                    CantonmentRoads.wall(precinct).gates(), precinct.fortification().glacis());
         }
 
         List<TrunkPlan.TrunkSegment> trunks = grown.plan().trunks;

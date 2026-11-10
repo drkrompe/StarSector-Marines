@@ -4,11 +4,11 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -22,48 +22,34 @@ import java.util.Map;
  * {@link Fortification#posts} is the dial that decides the fight and this is
  * where it lands.
  *
- * <p>Two bands, and the difference between them is what the emplacement is for:
- *
- * <ul>
- *   <li><b>Overwatching the gates.</b> The perimeter tiers are seeded a short
- *       way inside each open crossing, widest gate first, so the heaviest guns
- *       cover the way most of the attack will come. A gate nobody is watching is
- *       a door; a gate under a heavy post is a decision.
- *   <li><b>Deep inside.</b> Artillery and drone hubs are seeded on the cells
- *       furthest from the outline, because their whole point is reaching past
- *       the wall from somewhere the attacker has to get through the wall to
- *       reach. Placed on the perimeter they are heavy weapons with no standoff,
- *       which is the one thing they are not.
- * </ul>
- *
- * <p>This is the same two-band shape the conquest fortress has always had — a
- * kill zone in front and a rear battery band behind — derived from the
- * precinct's own claimed outline instead of from a biome's bounding box, which
- * is the substitution the whole precinct model is.
+ * <p>Where each one stands is {@link DefenceDoctrine}'s: flanking every gate,
+ * at the wall's corners facing the threat, beside the motor pool and command,
+ * and the standoff weapons deepest. This class gathers what the doctrine is
+ * sited against — the gates the wall left open, the ground behind the wall, and
+ * the ground nothing defensive may stand on — and stamps the sites. That ground
+ * is every road (the town's, the place's own road in, its streets, parade and
+ * motor pool) and every gate's approach: the owner's notes were that the guns
+ * cut the roads, and a placer that only knew the road graph's centreline let
+ * them.
  */
 public final class PrecinctDefence {
 
     private PrecinctDefence() {}
 
-    /**
-     * How far inside a gate its overwatch sits.
-     *
-     * <p>Far enough that the post is behind the wall rather than in the opening
-     * — a post stamped across the crossing seals it, and the placer's own
-     * partition guard would refuse it, costing a gun rather than moving it.
-     * Close enough that the gate is well within the turret's reach.
-     */
-    private static final int GATE_OVERWATCH_SETBACK = 6;
+    /** Cells beside a road an emplacement's footprint keeps off: the verge. */
+    static final int VERGE = 1;
 
     /**
-     * How far from the outline a deep emplacement wants to be.
-     *
-     * <p>A soft preference rather than a rule: the seeds are drawn from cells at
-     * least this deep, and a precinct with no such cell falls back to the random
-     * picks like anything else. A garrison too small to have an inside is not a
-     * garrison that should be denied its battery.
+     * What a walled place's ward leaves for its defences: the gates its wall left
+     * open, what its inner posts cover (motor pool, command; most important first)
+     * and the ground it keeps for moving, map-sized.
      */
-    private static final int DEEP_SETBACK = 10;
+    public record Works(List<PrecinctBoundary.Gate> gates, List<int[]> hearts, boolean[][] kept) {
+        public Works {
+            gates = List.copyOf(gates);
+            hearts = List.copyOf(hearts);
+        }
+    }
 
     /** What the fortification asked for, and what the ground actually took. */
     public record Result(Map<DefensePostKind, Integer> placed,
@@ -101,144 +87,161 @@ public final class PrecinctDefence {
         if (fortification == null || fortification.postCount() == 0) {
             return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
         }
-        int[] bbox = bounds(claim, who, ctx.width, ctx.height);
-        if (bbox == null) return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
+        int w = ctx.width, h = ctx.height;
+        // The place's own ground inside its glacis; behind its wall, the part a gun may stand on.
+        boolean[][] own = own(claim, who, fortification.square() ? fortification.glacis() : 0, w, h);
+        boolean[][] inside = new boolean[w][h];
+        boolean any = false;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                inside[x][y] = own[x][y] && !ctx.topology.isWall(x, y);
+                any |= inside[x][y];
+            }
+        }
+        if (!any) return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
 
-        List<int[]> gateSeeds = gateSeeds(ctx, claim, road, who, fortification);
-        List<int[]> deepSeeds = deepSeeds(ctx, claim, who);
-        DefensePostStamper.Ground ground = (x, y) ->
-                x >= 0 && x < ctx.width && y >= 0 && y < ctx.height && claim[x][y] == who;
+        Map<Integer, Works> allWorks = ctx.get(BspKeys.PRECINCT_WORKS);
+        Works works = allWorks == null ? null : allWorks.get(who);
+        List<PrecinctBoundary.Gate> open = works != null ? works.gates()
+                : PrecinctBoundary.openGates(claim, road, who, w, h, fortification.gates());
+        List<DefenceDoctrine.Gate> gates = new ArrayList<>();
+        for (PrecinctBoundary.Gate gate : open) {
+            DefenceDoctrine.Gate g = DefenceDoctrine.gateOf(gate.cells(), own);
+            if (g != null) gates.add(g);
+        }
 
-        for (DefensePostKind kind : Fortification.PRECEDENCE) {
-            int wanted = fortification.posts(kind);
-            if (wanted == 0) continue;
-            int got = DefensePostStamper.stampInto(ctx.grid, ctx.topology, ground,
-                    ctx.get(BspKeys.ROAD_RESERVATION), ctx.doodads, ctx.tactical,
-                    ctx.defensePosts, ctx.rng, kind, wanted,
-                    isDeep(kind) ? deepSeeds : gateSeeds,
-                    bbox[0], bbox[1], bbox[2], bbox[3]);
-            if (got > 0) placed.put(kind, got);
-            if (got < wanted) unplaced.put(kind, wanted - got);
+        boolean[][] clear = keepClear(road, ctx.get(BspKeys.ROAD_RESERVATION),
+                works == null ? null : works.kept(), gates, w, h);
+        DefenceDoctrine.Fits fits = (x, y, kind) -> fits(ctx, inside, clear, x, y, kind);
+        int[] threat = threat(ctx);
+        List<int[]> hearts = works == null ? List.of() : works.hearts();
+        Map<DefensePostKind, Integer> wanted = owed(fortification, precinct, gates.size());
+
+        DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
+        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(inside, gates, hearts, threat, wanted, fits)) {
+            int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, clear, ctx.doodads,
+                    ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
+            if (got > 0) placed.merge(site.kind(), got, Integer::sum);
+        }
+        for (Map.Entry<DefensePostKind, Integer> e : wanted.entrySet()) {
+            int short_ = e.getValue() - placed.getOrDefault(e.getKey(), 0);
+            if (short_ > 0) unplaced.put(e.getKey(), short_);
         }
         return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
     }
 
-    /** Whether this tier's reason for existing is standoff rather than overwatch. */
-    private static boolean isDeep(DefensePostKind kind) {
-        return kind == DefensePostKind.ARTILLERY || kind == DefensePostKind.DRONE_HUB;
+    /**
+     * The posts a place is owed. Its fortification's, and for a cantonment two
+     * flanking each of its gates at least, made up with light posts: a gate
+     * nobody is watching is a door, and a cantonment's gates grow with its market
+     * ({@link CantonmentRoads#gates}), so its guns do too.
+     */
+    static Map<DefensePostKind, Integer> owed(Fortification fortification, Precinct precinct, int gates) {
+        Map<DefensePostKind, Integer> posts = new EnumMap<>(DefensePostKind.class);
+        for (DefensePostKind kind : Fortification.PRECEDENCE) {
+            if (fortification.posts(kind) > 0) posts.put(kind, fortification.posts(kind));
+        }
+        if (precinct.isProgrammed() && precinct.program().cantonment()) {
+            int perimeter = 0;
+            for (DefensePostKind kind : DefenceDoctrine.PERIMETER) perimeter += posts.getOrDefault(kind, 0);
+            int short_ = 2 * gates - perimeter;
+            if (short_ > 0) posts.merge(DefensePostKind.LIGHT, short_, Integer::sum);
+        }
+        return posts;
     }
 
     /**
-     * One anchor per open gate, set back inside the precinct, widest gate first.
-     *
-     * <p>Inward is toward the claim's centroid, which is right for the shapes a
-     * grown claim actually takes and wrong for none of them badly: a seed that
-     * lands somewhere unusable slides, and a seed the slide cannot rescue costs
-     * a gate its dedicated post rather than losing the post.
+     * Ground no emplacement may stand on: every road, the road graph's
+     * reservation, the place's own streets and yards, and every gate's approach.
      */
-    private static List<int[]> gateSeeds(GenContext ctx, int[][] claim, int[][] road,
-                                         int who, Fortification fortification) {
-        List<int[]> seeds = new ArrayList<>();
-        int[] centre = centroid(claim, who, ctx.width, ctx.height);
-        if (centre == null) return seeds;
-        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(
-                claim, road, who, ctx.width, ctx.height, fortification.gates())) {
-            int gx = 0;
-            int gy = 0;
-            for (int[] cell : gate.cells()) {
-                gx += cell[0];
-                gy += cell[1];
+    static boolean[][] keepClear(int[][] road, boolean[][] reservation, boolean[][] kept,
+                                 List<DefenceDoctrine.Gate> gates, int w, int h) {
+        boolean[][] clear = DefenceDoctrine.approaches(gates, w, h);
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (road[x][y] != GrownTrunkPlan.UNOWNED
+                        || reservation != null && reservation[x][y]
+                        || kept != null && kept[x][y]) clear[x][y] = true;
             }
-            gx /= gate.cells().size();
-            gy /= gate.cells().size();
-            double dx = centre[0] - gx;
-            double dy = centre[1] - gy;
-            double len = Math.hypot(dx, dy);
-            if (len < 1e-3) {
-                seeds.add(new int[]{gx, gy});
-                continue;
-            }
-            seeds.add(new int[]{
-                    (int) Math.round(gx + dx / len * GATE_OVERWATCH_SETBACK),
-                    (int) Math.round(gy + dy / len * GATE_OVERWATCH_SETBACK)});
         }
-        return seeds;
+        return clear;
     }
 
     /**
-     * The precinct's own cells furthest from anything that is not the precinct,
-     * shuffled.
-     *
-     * <p>A multi-source flood from outside the claim, so "deep" means deep in the
-     * shape the precinct actually grew rather than near the middle of its
-     * bounding box — a claim shaped like an L has no cells near the middle of its
-     * box at all.
+     * Whether an emplacement of {@code kind} can stand at {@code (x, y)}: its
+     * footprint's box behind the wall on open walkable ground, and that box and a
+     * verge round it off the ground kept clear.
      */
-    private static List<int[]> deepSeeds(GenContext ctx, int[][] claim, int who) {
-        int w = ctx.width;
-        int h = ctx.height;
-        int[][] depth = new int[w][h];
-        Deque<int[]> frontier = new ArrayDeque<>();
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (claim[x][y] == who) {
-                    depth[x][y] = -1;
-                } else {
-                    depth[x][y] = 0;
-                    frontier.add(new int[]{x, y});
-                }
+    private static boolean fits(GenContext ctx, boolean[][] inside, boolean[][] clear, int x, int y,
+                                DefensePostKind kind) {
+        int r = reach(kind);
+        int w = ctx.width, h = ctx.height;
+        for (int dx = -r - VERGE; dx <= r + VERGE; dx++) {
+            for (int dy = -r - VERGE; dy <= r + VERGE; dy++) {
+                int nx = x + dx, ny = y + dy;
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h) return false;
+                if (clear[nx][ny]) return false;
+                if (Math.abs(dx) > r || Math.abs(dy) > r) continue;
+                if (!inside[nx][ny] || !ctx.grid.isWalkable(nx, ny) || ctx.grid.isDoorway(nx, ny)) return false;
             }
         }
-        while (!frontier.isEmpty()) {
-            int[] cell = frontier.poll();
-            for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-                int nx = cell[0] + step[0];
-                int ny = cell[1] + step[1];
-                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-                if (depth[nx][ny] != -1) continue;
-                depth[nx][ny] = depth[cell[0]][cell[1]] + 1;
-                frontier.add(new int[]{nx, ny});
-            }
-        }
-        List<int[]> seeds = new ArrayList<>();
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (depth[x][y] >= DEEP_SETBACK) seeds.add(new int[]{x, y});
-            }
-        }
-        Collections.shuffle(seeds, ctx.rng);
-        return seeds;
+        return true;
     }
 
-    /** Bounding box of the precinct's claim, or null when it claimed nothing. */
-    private static int[] bounds(int[][] claim, int who, int w, int h) {
-        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE;
-        int right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (claim[x][y] != who) continue;
-                if (x < left) left = x;
-                if (x > right) right = x;
-                if (y < top) top = y;
-                if (y > bottom) bottom = y;
-            }
-        }
-        return left == Integer.MAX_VALUE ? null : new int[]{left, top, right, bottom};
+    /** Half the widest footprint a kind stamps: a heavy post's five cells, three for the rest. */
+    static int reach(DefensePostKind kind) {
+        return kind == DefensePostKind.LARGE || kind == DefensePostKind.ARTILLERY ? 2 : 1;
     }
 
-    /** Mean of the claimed cells, or null when it claimed nothing. */
-    private static int[] centroid(int[][] claim, int who, int w, int h) {
-        long sumX = 0;
-        long sumY = 0;
-        long count = 0;
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (claim[x][y] != who) continue;
-                sumX += x;
-                sumY += y;
-                count++;
+    /** Where an attack comes from: the plan's landing place, or null where the plan has none. */
+    private static int[] threat(GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        Precinct landing = plan == null ? null : plan.landingPlace();
+        return landing == null ? null : new int[]{landing.seedX(), landing.seedY()};
+    }
+
+    /** The claim's cells further than {@code glacis} from anything that is not the claim. */
+    static boolean[][] own(int[][] claim, int who, int glacis, int w, int h) {
+        boolean[][] mine = new boolean[w][h];
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) mine[x][y] = claim[x][y] == who;
+        if (glacis <= 0) return mine;
+        int[][] depth = DefenceDoctrine.depth(mine);
+        boolean[][] own = new boolean[w][h];
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) own[x][y] = depth[x][y] > glacis;
+        return own;
+    }
+
+    /**
+     * Adds to {@code hearts} what a programmed place's inner posts cover: its
+     * motor pool (its first vehicle shed, where nothing has named a pool yet) and
+     * its command.
+     */
+    public static void hearts(List<RoomPacker.Placed> rooms, List<int[]> hearts) {
+        if (hearts.isEmpty()) {
+            for (RoomPacker.Placed room : rooms) {
+                if (room.purpose() != RoomPurpose.VEHICLE_BAY) continue;
+                hearts.add(centre(room));
+                break;
             }
         }
-        return count == 0 ? null : new int[]{(int) (sumX / count), (int) (sumY / count)};
+        for (RoomPacker.Placed room : rooms) {
+            if (room.purpose() != RoomPurpose.KEEP_THRONE) continue;
+            hearts.add(centre(room));
+            break;
+        }
+    }
+
+    /** The middle of a list of cells. */
+    public static int[] middle(List<int[]> cells) {
+        long sx = 0, sy = 0;
+        for (int[] c : cells) {
+            sx += c[0];
+            sy += c[1];
+        }
+        return new int[]{(int) (sx / cells.size()), (int) (sy / cells.size())};
+    }
+
+    private static int[] centre(RoomPacker.Placed room) {
+        return new int[]{room.originX() + room.shape().width() / 2, room.originY() + room.shape().height() / 2};
     }
 }

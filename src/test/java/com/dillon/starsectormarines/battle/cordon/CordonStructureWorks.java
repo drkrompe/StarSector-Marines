@@ -403,6 +403,8 @@ final class CordonStructureWorks {
             case PREFAB_SHORT_MODULE -> new int[]{9, 5};
             case PREFAB_TUBE -> new int[]{5, 3};
             case PREFAB_NARROW_TUBE -> new int[]{3, 3};
+            case TERRACE_BLOCK -> new int[]{9, 5};
+            case TERRACE_ROW -> new int[]{15, 5};
         };
         return (turns & 1) == 0 ? s : new int[]{s[1], s[0]};
     }
