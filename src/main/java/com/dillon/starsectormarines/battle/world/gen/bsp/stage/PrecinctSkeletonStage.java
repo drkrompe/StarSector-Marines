@@ -66,7 +66,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
         int[][] claim = PrecinctClaim.byKind(plan.precincts(), FortReservations.held(ctx, plan),
-                        FortReservations.dropGround(ctx, plan))
+                        FortReservations.dropGround(ctx, plan), FortReservations.groundSites(ctx, plan))
                 .assign(grown.owner(), ctx.width, ctx.height, allowance);
 
         // A mission that sited its forts as barriers keeps open ground for them, before the town has grown into it.
