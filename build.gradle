@@ -1854,12 +1854,13 @@ def unsignedHex(int code) {
  * the NTSTATUS values name a cause: an illegal instruction points at the JVM's
  * experimental -XX:UseAVX / vector flags rather than at anything in the mod, and
  * an access violation points at native or driver code. Zero is the one to read
- * carefully -- it means the process was asked to stop, so if no shutdown banner
- * was logged it was killed from outside rather than having crashed.
+ * carefully -- it means the process was asked to stop (a window close, a quit,
+ * or a kill from outside such as another session's gradlew --stop) rather than
+ * having crashed.
  */
 def describeExitCode(int code) {
     switch (code & 0xFFFFFFFFL) {
-        case 0L:          return 'asked to stop -- with no shutdown banner logged, killed from outside the JVM'
+        case 0L:          return 'asked to stop -- a normal quit, or killed from outside the JVM'
         case 1L:          return 'generic failure'
         case 0xC0000005L: return 'ACCESS_VIOLATION -- native crash in driver or JNI code'
         case 0xC000001DL: return 'ILLEGAL_INSTRUCTION -- suspect the experimental -XX:UseAVX / vector flags in vmparams'
