@@ -701,6 +701,27 @@ plan, the other halls' chains and the art list are in
 `ruins-themed-environments.md` in the shared notes. Picture cards:
 `createSnapshots -Psnapshot=ruins-mega-forge-picks`.
 
+**Every theme has its works hall** (owner: "Surely we need to have more ruin
+rooms being designed right now"). Each theme's production is one mega hall laid
+from its process, as the forge's is, in the forge's slot. The halls:
+
+- cold hall (cryo);
+- culture hall (vats);
+- print hall (drones);
+- core hall (AI cores);
+- field hall (lamps, dynamos, taps);
+- ring hall (synchrotron);
+- shaft hall (mantle bore);
+- reactor train (catalytic core);
+- draw line (fullerene spool);
+- stage hall (holosuite);
+- high bay (depot);
+- filling hall (armory).
+
+The prize is unchanged. The model is in `mapgen-nouns.md` (Every other theme has a works hall of its own). The
+designs and the art list are in `ruins-theme-halls.md` in the shared notes. The owner picked a works hall over a chain of halls
+for every theme (`ruins-<theme>-halls` a). Look shots: `createSnapshots -Psnapshot=ruins-works-hall-look`.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,
@@ -797,6 +818,27 @@ a frame rams too narrow for it is **torn** out wider, jambs and all, and is
 drawn at its new span: rubble at both ends and a leaf on the floor.
 Whoever opens or shuts a door's cells (`MapEditor`) also tells the
 registry.
+
+**Ways sized for machines** (owner, on `hall-frame-ram`: "It should tear and
+we should have wider doors as well for these facilities"). The plant was built
+for its machines, so its main ways carry them:
+
+- **Freight ways**, four cells wide, join every plant hall, every way through a
+  layer line and every entrance to the spine (`RuinsDelveStage.FREIGHT_WIDTH`).
+- **Freight aisles**, four wide, run from each freight way that meets a plant
+  hall straight in to the hall's middle row or column and along it to the
+  middle, where a hall frame stands its post. Furniture and melt keep off them
+  and their floor is painted walkway. The mega forge keeps its process layout
+  and gets one transfer aisle straight across its middle, over the pour line,
+  to the open floor round its walls.
+- **Service corridors**, two wide, reach the side rooms, chambers and the power
+  hall. A hall frame cannot follow; infantry can.
+
+The law (`DelveCheck.frameProblems`, checked whenever a ruins ground is laid): a
+hall frame standing in the first plant hall reaches every other hall's post,
+over ground its body fits and through every hall door, a dead one forced and one
+narrower than the frame torn a jamb wider at each end. A hall door it cannot
+pass is one it tears; a service corridor is somewhere it does not go.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:

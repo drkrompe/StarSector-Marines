@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c697-121a-7872-9430-ec88fce71071",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c697-121a-7872-9430-ec88fce71071\\exec-81ebfb6a-f216-485e-b159-e8aa3f1488eb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\pirates-sheet.png",
+    "sha256": "a27b403b4703833171124a78bd0d6171c4cd36cfcf9c5dab4bf4e2fc10f2efc8",
+    "dimensions": [
+      2116,
+      743
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\pirates.prompt.txt",
+  "promptSha256": "bb442abee9b5a6226ea2a82a510a8f0aaac090dba0be7041a15442a73d02bb09",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Frame identity: the Hound, Warden and Bulwark these rigs are rebuilt from; keep each machine's proportions, hip bearings, canopy and mount places; also the pirate paint to use\n\nAsset type: concept sheet for a top-down game: three PIRATE FIELD RIGS, captured Hegemony walking machines that a pirate crew has rebuilt for its own work, light, medium and heavy.\n\nPirates fight for loot, ambush and escape, not to hold ground. Each rig is reworked for one pirate job, visible in its outline at a glance:\nLIGHT, the RUNNER (from the Hound): stripped for speed. Most of its side plate is torn off to show the frame and cables; a big scavenged freighter thruster pack is welded across its back, and a crude cow-catcher wedge of scrap bars juts from its nose. One empty mounting plate on the nose.\nMEDIUM, the BOARDER (from the Warden): a breaching rig. One arm ends in a huge welded hydraulic grapple claw, the other keeps an empty mounting plate; a thick ramming shield of stacked scrap plate is bolted across its front, with a slot cut for the canopy. Its two shoulder mount places stay as empty plates.\nHEAVY, the HAULER (from the Bulwark): a loot carrier. A cargo cage of welded bars sits on its back holding lashed crates and a canister; a folding salvage crane arm rides one shoulder, folded back along the body; the other shoulder keeps an empty socket ring. Extra scrap slabs hang off its flanks on chains.\n\nPaint them as the pirate scrap bodies in image 1: mismatched salvaged panels (faded tan, grey, olive, blue-grey civilian panels, red-oxide primer, bare steel) welded on with visible beads and oversized bolts, crude hand-brushed dark red over old hazard paint, worn and grimy but legible.\n\nStrict 90-degree zenith orthographic top-down view, every machine facing the TOP edge of the sheet, each symmetric about its own vertical centre line unless the brief says one side is different. One wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale (the heavy clearly the biggest).\n\nEvery weapon mount is drawn EMPTY: a flat bolted mounting plate or a dark socket ring, with no gun, barrel, launcher or turret on it. Guns are separate parts added later. Tools that ARE the variant's job (a ram, a claw, a crane arm, a cutting head, a cargo cage) are part of the body and are drawn.\n\nImage 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. Each variant must still read as that machine: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change what the brief says on top.\n\nTrue transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.\n\nAvoid: guns or barrels of any kind; perspective, side view or isometric view; cropped machines; more or fewer than three machines; a starship's outline; legs drawn as bird or chicken legs; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\ref-lowtech-row.png",
+      "sha256": "55dfbad9033029c1e53a5cd6cff92700a1aa2dfbefdd50eac6206f2ea61c2a9f",
+      "dimensions": [
+        3020,
+        1060
+      ],
+      "mode": "RGBA",
+      "role": "Frame identity: the Hound, Warden and Bulwark these rigs are rebuilt from; keep each machine's proportions, hip bearings, canopy and mount places; also the pirate paint to use"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one transparent sheet with the three pirate rigs."
+  ],
+  "usage": {
+    "input_tokens": 77424,
+    "cached_input_tokens": 61184,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 944,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 72.9
+}

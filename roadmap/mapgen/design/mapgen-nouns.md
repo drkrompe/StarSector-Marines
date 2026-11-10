@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -626,6 +626,14 @@ table with seating, and the server room has opaque cabinets around a service
 aisle. Whole furniture groups rotate with their protected working space.
 Public and office facades receive glazed bays before furnishing; secure server
 rooms remain opaque. Furnishing keeps the windows' inward approaches open.
+Homes, flats, tenements and shops repeat their bays along each room's facade
+with a one-cell pier between them (`BuildingShellCore.windowBays`), a shop's
+front in bays of three; other buildings lay one bay in the middle of each
+room's run. A domestic room keeps one cell of its run blind for its furniture
+(`DOMESTIC_WALL`): its runs are two to four cells, so a two-cell reserve left
+most rooms a single pane. A stood-up building shows only these real windows on
+its faces (owner, picks voids-wall-windows), so the bays are what give a
+street its rhythm of panes.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Dispatch uses an L-shaped depot and office
@@ -2101,7 +2109,10 @@ sized by the layer count: on scattered ground a bunker round the vault, at
 widespread the last layer, at extensive and vast the last two
 (`RuinsGroundPlan.interiorLayers`). Its band is filled with hull and carved: a
 spine corridor down each interior band, a corridor from every way into it, rooms
-and chambers off it, and the vault's forecourt as a roofed hall. The layer
+and chambers off it, and the vault's forecourt as a roofed hall. Its ways are
+sized for machines (`ruins-expedition.md`, Ways sized for machines): freight
+ways four wide to the plant halls, the ways through the lines and the
+entrances, service corridors two wide to rooms and chambers. The layer
 lines inside are its walls and bulkheads, so their ways are its entrances and
 doors. A court inside is a light well open to the sky, so every lift point is
 under open sky and everything else inside is under a roof, one roof over the
@@ -2194,8 +2205,47 @@ roof draws as before.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
-lava drop (`voids.md`). Every other theme keeps its line halls, the first laid
-at the old foundry's 34x22.
+lava drop (`voids.md`). A plant with no works hall keeps its line halls, the
+first laid at the old foundry's 34x22.
+
+**Every other theme has a works hall of its own** (`WorksHall`; the designs and
+their art list are in `ruins-theme-halls.md` in the shared notes). A dressing names
+its hall, and the outer band takes it in the mega forge's slot and size, in place of
+the line halls (`RuinsDelve.PlantStage.WORKS`). The hall is planned in its own cells
+before it meets the ground (`WorksHallPlan`, one planner a hall), so its rules are
+unit-proved there. Every hall has the same bones (`HallFrame`):
+
+- the feed rail up the west aisle to the head;
+- the work down a line in the middle, in bays a period apart;
+- the east lane for the hall's waste or return;
+- service drops on both long walls;
+- every aisle a hall frame's three cells wide, and the middle left open.
+
+On those bones each theme lays its own:
+
+- process stations;
+- environment, as skins, shallow water or a drop;
+- overhead;
+- collapse.
+
+The halls by theme:
+
+- cryo: the cold hall;
+- vats: the culture hall;
+- drones: the print hall;
+- AI cores: the core hall;
+- lamps, dynamos and hypershunt taps: the field hall;
+- synchrotron: the ring hall;
+- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- catalytic core: the reactor train;
+- fullerene spool: the draw line;
+- holosuite: the stage hall;
+- depot: the high bay;
+- armory: the filling hall.
+
+A piece whose art has not shipped stands as its stand-in from the game's own
+sets, tiled over its footprint. A works hall and the mega forge take no loose
+chamber dressing. A hall narrower than 32 lays line runs instead.
 
 **Plant hall floors are zoned.** Every plant hall's floor is laid by zone after
 its furniture (`RuinsDelveStage.zoneFloor`), not as one slab:
@@ -2477,7 +2527,12 @@ only the world outside: none along the map's edge, where the town runs on past
 it, and none against a walled place's own wall, so a compound standing in the town
 is no hole in it. Each lock is a chamber straight through it, floored in hazard
 stripes, with a leaf door (`WallGate`) on the town's outline and another at the
-envelope's inner face. It owns no emplacements. Outside is bare
+envelope's inner face. It is built of its own wall (`SealedTown.ENVELOPE_WALL`),
+never the installation perimeter's dark concrete, and stands as a raised habitat
+wall taller than any compound's: a lower plinth along its outer course with
+buttresses standing out of it every few cells (`SealedTown.outerCourse`), a
+capped top, and a service pipe along its inner face (`FreestandingWalls`, Part).
+It owns no emplacements. Outside is bare
 ground with no outlying places. The garrison stays its own walled compound. Radiation
 is answered the same way: the wall stands for the whole shielded envelope, roof
 included, as it does for air. A story map on such a world plays its mission's
@@ -2493,8 +2548,7 @@ which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
 Still to come, in this vocabulary: locks sited onto open country rather than
-the garrison's ground; an envelope with a raised look of its own (its top reads
-as a flat dark band from above); a sealed town for the maps that lay their town without precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
+the garrison's ground; a sealed town for the maps that lay their town without precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.

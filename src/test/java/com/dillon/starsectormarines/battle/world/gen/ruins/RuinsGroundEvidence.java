@@ -50,9 +50,10 @@ class RuinsGroundEvidence {
                     long start = System.nanoTime();
                     MapResult map;
                     try {
-                        // Odd seeds lay a forge works' foundry, so its melt and crossings are held to the laws too.
+                        // Odd seeds lay a works hall (the forge or a theme's), in turn by surface, so every hall's
+                        // pieces, water and drop are held to the laws too.
                         map = new BspCityGenerator().generateRuins(seed, profile(surface),
-                                (seed & 1) == 1 ? plan.withDressing(FOUNDRY) : plan);
+                                (seed & 1) == 1 ? plan.withDressing(works(seed, surface)) : plan);
                     } catch (RuntimeException e) {
                         failures.add(layers + "/" + surface + "/" + seed + ": " + e.getMessage());
                         out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)
@@ -140,6 +141,13 @@ class RuinsGroundEvidence {
     /** One to {@link #SEEDS}, then the regression seeds. */
     /** Bare dressing on a plant that cast its product: the foundry and nothing else. */
     static final RuinsDressing FOUNDRY = new RuinsDressing(List.of(), List.of(), List.of(), null, true);
+
+    /** Bare dressing with a works hall, in turn by seed and surface over every hall there is. */
+    static RuinsDressing works(long seed, SurfacePalette surface) {
+        WorksHall[] halls = WorksHall.values();
+        int k = 1 + (int) Math.floorMod(seed / 2 + surface.ordinal(), (long) halls.length - 1);
+        return new RuinsDressing(List.of(), List.of(), List.of(), null, halls[k]);
+    }
 
     static long[] seeds() {
         long[] out = new long[SEEDS + REGRESSION_SEEDS.length];

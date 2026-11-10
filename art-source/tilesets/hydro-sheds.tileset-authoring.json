@@ -1,0 +1,65 @@
+{
+ "alphaMin": 16,
+ "blocks": [],
+ "cellPx": 128,
+ "entries": [
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    6,
+    3
+   ],
+   "id": "doodad.hydro-shed",
+   "included": true,
+   "note": "Pressurised hydroponic shed: ribbed steel roof split by two lit grow-light skylights over crop racks, roof fans, airlock west, pipes on the south eave. Covered farm on a hostile world; walk-in, no cover.",
+   "rect": [
+    38,
+    38,
+    905,
+    452
+   ]
+  },
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    3,
+    3
+   ],
+   "id": "doodad.hydro-shed-short",
+   "included": true,
+   "note": "The hydroponic shed half as long, to end a row or fill a short plot.",
+   "rect": [
+    38,
+    528,
+    452,
+    452
+   ]
+  },
+  {
+   "ballisticHalfHeight": 0.3,
+   "cover": "none",
+   "footprintCells": [
+    2,
+    3
+   ],
+   "id": "doodad.hydro-pumphouse",
+   "included": true,
+   "note": "Pump house: water and nutrient tanks, pump and header pipe on a skid, ending a shed row.",
+   "rect": [
+    528,
+    528,
+    302,
+    452
+   ]
+  }
+ ],
+ "gridCols": 1,
+ "gridRows": 1,
+ "idPrefix": "doodad.hydro-sheds",
+ "note": "The covered farm on hostile worlds (story-map-pools.md, Planet skin; PlanetSkin.SHED), picked by the owner over domes and glass halls after the polytunnels did not read as hydroponics. Measured 1448x1086 RGBA, three alpha pieces. Geometry-first reskin of templates/hydro-sheds-guide.png (hydroponics-guide.py, 160 px a cell); ImageGen returned the sheet uniformly at 0.943 of the guide and every piece within a few pixels of its guide, so each rect is its guide frame at that scale. The sheet exported is hydro-sheds.amber.png, the raw regraded from magenta to warm amber grow-light by grow-light-amber.py (owner picked amber). Exact prompt in hydro-sheds.prompt.txt.",
+ "outputSheet": "graphics/doodads/hydro-sheds.png",
+ "sheet": "art-source/tilesets/hydro-sheds.amber.png",
+ "sheetName": "hydro-sheds"
+}

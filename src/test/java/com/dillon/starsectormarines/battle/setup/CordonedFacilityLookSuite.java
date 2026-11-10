@@ -56,7 +56,7 @@ public final class CordonedFacilityLookSuite implements SnapshotSuite {
         Set<CordonedFacility.Character> seen = EnumSet.noneOf(CordonedFacility.Character.class);
         for (long seed = 1; seed <= SEEDS_SCANNED; seed++) {
             MapResult map = new BspCityGenerator().generate(scale.width, scale.height, seed, null, null,
-                    BattleSetup.colonyPlanFor(scale, seed));
+                    RescueColony.plan(scale, seed));
             if (map.cordonedFacilities.isEmpty()) continue;
             CordonedFacility f = map.cordonedFacilities.get(0);
             read.put(seed, f);

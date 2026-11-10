@@ -72,7 +72,7 @@ public final class PrecinctWardStage implements GenStage {
         var claim = ctx.get(BspKeys.PRECINCT_CLAIM);
         var road = ctx.get(BspKeys.PRECINCT_ROAD);
         var masks = PrecinctFill.masks(claim, road, who, ctx.width, ctx.height);
-        emitTacticalNodes(ctx, rooms);
+        emitTacticalNodes(ctx, rooms, precinct.name());
         emitPointsOfInterest(ctx, rooms);
         stampWall(ctx, claim, road, who, precinct.fortification(), true);
         InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), rooms.placed());
@@ -118,7 +118,7 @@ public final class PrecinctWardStage implements GenStage {
             if (precinct.isProgrammed() && precinct.program().cantonment()) {
                 masks = PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 result = cantonment(ctx, precinct, masks, own, road, i, unbuilt, shortFields, kept, hearts);
-                emitTacticalNodes(ctx, result);
+                emitTacticalNodes(ctx, result, precinct.name());
                 emitPointsOfInterest(ctx, result);
             } else if (precinct.isProgrammed()) {
                 masks =
@@ -162,7 +162,7 @@ public final class PrecinctWardStage implements GenStage {
                 if (precinct.isLanding()) {
                     emitLandingNodes(ctx, result);
                 } else {
-                    emitTacticalNodes(ctx, result);
+                    emitTacticalNodes(ctx, result, precinct.name());
                     emitPointsOfInterest(ctx, result);
                 }
                 // Recorded rather than dropped. Ground is granted from the
@@ -373,7 +373,7 @@ public final class PrecinctWardStage implements GenStage {
      * {@link #emitPointsOfInterest}. A garrison's rooms are things a battle can
      * be about in both vocabularies, so they are said in both.
      */
-    private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result) {
+    private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result, String place) {
         for (RoomPacker.Placed room : result.placed()) {
             TacticalNode.Kind kind = switch (room.purpose()) {
                 case KEEP_THRONE -> TacticalNode.Kind.COMMAND_POST;
@@ -389,11 +389,14 @@ public final class PrecinctWardStage implements GenStage {
             if (kind == null) continue;
             int[] stand = standCell(ctx, room);
             if (stand == null) continue;
-            ctx.tactical.add(new TacticalNode(kind, stand[0], stand[1],
+            TacticalNode node = new TacticalNode(kind, stand[0], stand[1],
                     room.originX(), room.originY(),
                     room.originX() + room.shape().width() - 1,
                     room.originY() + room.shape().height() - 1,
-                    Faction.DEFENDER, weight(kind), 3, false));
+                    Faction.DEFENDER, weight(kind), 3, false);
+            // Which place the room belongs to, so a setup can post a place's own guard (RaidWorksGuard).
+            node.setPlace(place);
+            ctx.tactical.add(node);
         }
     }
 
@@ -776,7 +779,7 @@ public final class PrecinctWardStage implements GenStage {
                 ctx.topology.setWallDirMask(x, y, mask);
             }
         }
-        InstallationWalls.perimeter(ctx, cells);
+        dressEnvelope(ctx, cells, SealedTown.outerCourse(cells, merged, group, side));
         List<int[]> chambers = new ArrayList<>();
         for (SealedTown.Lock lock : envelope.locks()) {
             ctx.wallGates.add(WallGate.of(lock.outer(), lock.outX(), lock.outY()));
@@ -786,6 +789,26 @@ public final class PrecinctWardStage implements GenStage {
         markLocks(ctx, chambers);
         PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), new boolean[ctx.width][ctx.height]);
         for (int i = 0; i < places.size(); i++) if (sealed[i]) works.put(i, shared);
+    }
+
+    /**
+     * The envelope's surfaces: its own wall ({@link SealedTown#ENVELOPE_WALL}), the plinth along its outer course
+     * ({@link SealedTown#ENVELOPE_PLINTH}) and the buttresses standing out of it
+     * ({@link SealedTown#ENVELOPE_BUTTRESS}), on the perimeter's concrete footing. Only the material: walkability and
+     * wall HP are the wall's, set before.
+     */
+    private static void dressEnvelope(GenContext ctx, boolean[][] cells, boolean[][] course) {
+        int body = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_WALL);
+        int plinth = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_PLINTH);
+        int buttress = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_BUTTRESS);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!cells[x][y] || ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)
+                        || ctx.topology.isFixture(x, y) || ctx.topology.isWater(x, y)) continue;
+                ctx.topology.setSurface(x, y, !course[x][y] ? body : SealedTown.buttress(x, y) ? buttress : plinth);
+                ctx.topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+            }
+        }
     }
 
     /** Whether each cell is open ground now: walkable, and no wall, building or water. */

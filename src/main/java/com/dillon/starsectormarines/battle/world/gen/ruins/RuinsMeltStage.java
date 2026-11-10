@@ -9,7 +9,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 /**
  * Cuts a foundry's melt ({@code ruins-expedition.md}, A forge works has a foundry): the pour channels and casting beds
- * {@link RuinsDelveStage} planned ({@link RuinsKeys#MELT}) become a {@link NaturalVoidZoning#FOUNDRY} drop. A drop
+ * {@link RuinsDelveStage} planned ({@link RuinsKeys#MELT}) become a {@link NaturalVoidZoning#FOUNDRY} drop. A works
+ * hall's drop (a bore shaft) is cut the same way, as the drop it names ({@link RuinsKeys#MELT_DROP}). A drop
  * is unwalkable, see-through, gives no edge cover and is never a wall, so it is cut after {@code FinalizeStage},
  * which takes every unwalkable cell left standing for a wall, as the outdoor landscape cuts its drops after it.
  * The melt is a drop of its own beside any other the map carries, owning its own cells, so the landscape after this
@@ -35,6 +36,7 @@ public final class RuinsMeltStage implements GenStage {
             topology.setGroundKind(x, y, GroundKind.VOID);
             topology.setSurface(x, y, 0);
         }
-        topology.addNaturalVoid(NaturalVoidZoning.FOUNDRY.look((int) ctx.seed), melt);
+        NaturalVoidZoning.Drop drop = ctx.get(RuinsKeys.MELT_DROP);
+        topology.addNaturalVoid((drop == null ? NaturalVoidZoning.FOUNDRY : drop).look((int) ctx.seed), melt);
     }
 }

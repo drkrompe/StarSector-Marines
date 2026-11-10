@@ -623,19 +623,66 @@ Laws):
      map, so a shot-out one never reads as a door.
    - A door is drawn only at an outside doorway; works' and warehouses'
      doors are loading doors.
+   - A doorway the map left with no door draws as a doorway; only the
+     rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.
-     Sealed (ceramic) towns get round ports and airlock doors, shielded
+     Sealed (ceramic) towns get square ports and airlock doors, shielded
      (light-concrete) walls get slits, and frozen towns get deep-set
      insulated windows.
 
+   **Wall dress** (`WallDress`, painted by `FacePainter`). A face is one
+   to two cells tall at play zoom, so the language is bold:
+   - A material by what the building was built as and its habitat, toned
+     by its world, its own number picking among its kind's colours: an
+     open town's plaster homes (adobe on arid worlds, basalt on volcanic,
+     stone on rock), brick or sheet works, concrete forts, stone civic
+     halls, white clinics; an insulated town's timber-clad homes in deep
+     reds, ochres and blues under white trim; a sealed town's ceramic
+     panels; a shielded town's poured concrete. Each has a course (block
+     joints, panel seams or sheet ribs) and a tone shaded from a dark foot
+     to a lit eave.
+   - Trim: a dark plinth, a line at each storey, an eave band under the
+     roof's edge, and a post at each outside corner.
+   - The world's weather at the foot: snow (and snow on sills and eaves),
+     sand, ash, sludge, moss or dust; a toxic world's run-off streaks
+     down from the eave.
+   - Windows cut in the building's way: framed and silled, some shuttered
+     in an open town, a shop's front under a striped awning, a civic
+     hall's tall windows, a sealed town's ports. Works are blind but for a
+     glazed band under the eave, high over any fire; a sealed town's blind
+     walls carry vents and downpipes. Doors are framed leaves, airlocks,
+     or roller doors with hazard-striped jambs.
+   - **A face's foot stands on its wall's outer side**, its top on the
+     roof's edge (`BuildingFaces.segments`): the roof covers only the inner
+     part of a wall cell, and a foot on the roof's line left the rest of
+     the wall cell's flat art showing as a strip along the ground.
+   - **What hangs on a wall hangs on its face** (`WallMounts`): a shop
+     awning, a loading canopy or a wall lamp lies on the ground cell in
+     front of its wall, its rail along the face's foot. Its rail's corners
+     are stood up the face to the height it hangs from (an awning's rail
+     3 m, its valance 2.5 m), at the very point the face is painted there
+     (`BuildingFaces.onFace`); its outer edge takes the plain lift of its
+     own height. So it moves with its wall as the view pans, comes down
+     with the wall when the building is cut away, goes with it when the
+     building is razed, and is drawn between the faces and the roofs, so a
+     roof in front of it hides it. Look suite: `createSnapshots
+     -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
+
    Damage is read live from the battle's own state:
-   - A wall's lost HP scorches its upper part, blows its windows and tears
-     holes through it.
-   - A breached cell opens dark to the room behind.
+   - A wall is hurt against the most hit points it has held (maps seed 80
+     to 400), never a fixed scale. Its lost HP soots its top, blows its
+     windows (soot plumes over them) and tears ragged holes through it.
+   - A breached cell opens dark to the room behind, its rubble spilled on
+     the ground.
+   - Where a room's roof has fallen in or burnt, the wall over it loses its
+     upper storeys to a ragged, charred edge, with rubble at its foot.
    - Once half a building's roof has fallen in or burnt
-     (`BuildingFaces.DESTROYED_SHARE`), it drops flat to its rubble.
-     A broken first storey left standing was tried: under the 120 m eye it
-     stands only a few pixels deep at play zoom, so it was dropped.
+     (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
+     than a storey high, its corners tallest, drawn over its roof's
+     remnants, with rubble heaped round it.
+
+   Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
+   worlds, intact, cut away and damaged).
 
    **Cutaway** (owner: "a bit unclear how it will play when we cutaway
    reveal into structures"). A building opens while one of the player's

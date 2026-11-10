@@ -1,0 +1,9 @@
+Two top-down machine-part sprites for a strategy game, seen from directly above, north-up. They are rotating armoured housings (turret heads) bolted onto an ancient derelict industrial robot; a separate tube or box will be drawn underneath each one, so each housing must read as a cover that sits over something:
+(1) left: an armoured octagonal cowl with a square slot cut into its top edge where a tube will come out; heavy bolted plates, a small sensor block, hinged armour flaps beside the slot.
+(2) right: a low armoured cradle, a yoke whose two raised arms at the top hold something between them, with pivot trunnions on both sides.
+
+Fill each grey silhouette in the guide exactly: same outline, same size, same position, same orientation. Do not move, resize or rotate them, and keep the slot and the gap between the cradle arms empty and transparent.
+
+Material and style: match the style references exactly - weathered pale sage-green armour plate, heavy rust streaks and chipped paint, worn yellow hazard stripes, dark grey machinery, dense small mechanical detail, lit from the top left, gritty painted game sprite look. Industrial, old, grounded; not cartoonish, not sleek, not modern, no glowing parts.
+
+True transparent background, including negative spaces. No ground, no shadow, no border, no text.

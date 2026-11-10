@@ -7,7 +7,11 @@ import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -132,7 +136,7 @@ class PlanetSkinTest {
             RuralLayout.Plot plot = alongX ? new RuralLayout.Plot(10, 20, 40, 33, RuralLayout.Use.ROW_CROP, true, false)
                     : new RuralLayout.Plot(10, 20, 23, 50, RuralLayout.Use.GRAIN, false, false);
             List<PlanetSkin.Placed> farm = PlanetSkin.covered(plot);
-            assertTrue(farm.stream().anyMatch(p -> p.piece() == PlanetSkin.Cover.TUNNEL));
+            assertTrue(farm.stream().anyMatch(p -> p.piece() == PlanetSkin.SHED));
             for (PlanetSkin.Placed p : farm) {
                 assertEquals(alongX ? 0 : 1, p.turns());
                 assertTrue(p.x() > plot.x0() && p.y() > plot.y0()
@@ -148,10 +152,32 @@ class PlanetSkinTest {
     }
 
     @Test
-    void aPlotTooShortForATunnelTakesGrowDomes() {
+    void aPlotTooShortForALongShedTakesShortOnes() {
         List<PlanetSkin.Placed> farm = PlanetSkin.covered(
-                new RuralLayout.Plot(0, 0, 5, 9, RuralLayout.Use.ROW_CROP, true, false));
-        assertTrue(!farm.isEmpty() && farm.stream().allMatch(p -> p.piece() == PlanetSkin.Cover.DOME));
+                new RuralLayout.Plot(0, 0, 6, 9, RuralLayout.Use.ROW_CROP, true, false));
+        assertTrue(!farm.isEmpty() && farm.stream().allMatch(p -> p.piece() == PlanetSkin.SHED_SHORT));
+    }
+
+    @Test
+    void aShedsGrowLightRunsDownItsMiddleEndToEndAndAPumpHouseHasNone() {
+        DoodadDef shed = def(PlanetSkin.SHED), pump = def(PlanetSkin.PUMPHOUSE);
+        List<NightLighting.Lamp> along = PlanetSkin.growLights(List.of(new Doodad(10, 20, shed, 0),
+                new Doodad(30, 20, pump, 0)));
+        assertEquals(3, along.size());
+        for (NightLighting.Lamp lamp : along) {
+            assertEquals(21.5f, lamp.y(), 1e-4f);
+            assertTrue(lamp.x() > 10 && lamp.x() < 16);
+            assertSame(NightLighting.Fixture.GLOW, lamp.fixture());
+        }
+        List<NightLighting.Lamp> turned = PlanetSkin.growLights(List.of(new Doodad(10, 20, shed, 1)));
+        assertEquals(3, turned.size());
+        for (NightLighting.Lamp lamp : turned) assertEquals(11.5f, lamp.x(), 1e-4f);
+        NightLighting night = PlanetSkin.lit(new NightLighting(0.78f, List.of(), Set.of()), along);
+        assertTrue(night.lamps().stream().allMatch(night::powered));
+    }
+
+    private static DoodadDef def(PlanetSkin.Piece piece) {
+        return new DoodadDef(piece.id(), "graphics/doodads/hydro-sheds.png", 0, 0, DoodadCover.NONE, 0.3f,
+                piece.along(), piece.across());
     }
 }
-

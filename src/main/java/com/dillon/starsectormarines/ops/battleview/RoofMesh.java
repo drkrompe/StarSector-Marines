@@ -554,21 +554,21 @@ public final class RoofMesh {
 
     /**
      * The texture coordinate of one corner: the frame point the turned frame
-     * puts there ({@link RoofTiles#frameU}), held half a texel inside the frame
-     * so a bilinear tap never reaches the next one. Same convention QuadBatch
-     * uses: sheet pixels are top-down and GL's V is bottom-up, and
-     * getTextureWidth/Height is the image's normalised extent inside a possibly
-     * padded texture.
+     * puts there ({@link RoofTiles#frameU}), at the sheet pixel the streamed
+     * roof's source rectangle puts it ({@link RoofTiles#framePixel}), so the two
+     * paths draw the same texels. Same convention QuadBatch uses: sheet pixels
+     * are top-down and GL's V is bottom-up, and getTextureWidth/Height is the
+     * image's normalised extent inside a possibly padded texture.
      */
     private void cornerUv(int at, int column, int row, int turns, float px, float py) {
         float frameW = sheetPxW / (float) RoofTiles.COLUMNS;
         float frameH = sheetPxH / (float) RoofStyle.COUNT;
-        float u = RoofTiles.insideFrame(RoofTiles.frameU(turns, px, py), frameW);
-        float v = RoofTiles.insideFrame(RoofTiles.frameV(turns, px, py), frameH);
+        int x = RoofTiles.framePixel(column, RoofTiles.frameU(turns, px, py), frameW);
+        int y = RoofTiles.framePixel(row, 1f - RoofTiles.frameV(turns, px, py), frameH);
         float texU = sheet.getTextureWidth();
         float texV = sheet.getTextureHeight();
-        uv[at] = (column + u) * frameW / sheetPxW * texU;
-        uv[at + 1] = texV - (row + 1f - v) * frameH / sheetPxH * texV;
+        uv[at] = x / (float) sheetPxW * texU;
+        uv[at + 1] = texV - y / (float) sheetPxH * texV;
     }
 
     private void markGeometry(int slot) {

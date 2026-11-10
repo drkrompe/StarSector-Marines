@@ -67,6 +67,12 @@ public final class DerelictLegRig {
     /** The share of a cycle a leg spends in the air. */
     static final float WALK_SWING = 0.22f;
     static final float RUN_SWING = 0.56f;
+    /** The run's swing share with no spring: each pair down a little longer than it is up, so one always stands. */
+    static final float FLAT_RUN_SWING = 0.46f;
+    /** How high a running foot lifts with no spring, as a share of its step lift. */
+    static final float FLAT_RUN_LIFT = 0.5f;
+    /** The derelict walker's run: a heavy machine's flat trot, never leaving the ground (owner: too much jump). */
+    static final float WALKER_RUN_SPRING = 0.15f;
     /** Each leg's place in the cycle: the walk's four beats, and the trot's two pairs. */
     private static final float[] WALK_OFFSET = {0.25f, 0f, 0.5f, 0.75f};
     private static final float[] RUN_OFFSET = {0f, 0.5f, 0f, 0.5f};
@@ -98,6 +104,30 @@ public final class DerelictLegRig {
     /** How far a downed torso sinks below its rest height, cells. */
     public static final float DOWNED_CELLS = 0.55f;
     private static final float MARCH = 0.05f;
+    /**
+     * The walker's body rides the crawler's suspension, a little heavier (owner: the walker is stiff), and yaws a
+     * little toward a lifted leg's diagonal. UNTUNED.
+     */
+    static final float WALKER_SUSPENSION_SECONDS = 0.35f;
+    static final float WALKER_TWIST_DEGREES = 3f;
+    /** The walker's and the crawler's fastest turn, degrees a second: the machines' own turn rates. */
+    public static final float WALKER_TURN_DEGREES = 75f;
+    public static final float CRAWLER_TURN_DEGREES = 150f;
+    /**
+     * The furthest a planted foot may be carried round from its hip's own bearing by the body turning over it,
+     * degrees. The hips stand 90 degrees apart, so under 45 no foot ever passes its neighbour's: the body holds its
+     * turn until the foot has stepped round (owner: the legs must never get mixed up).
+     */
+    public static final float MAX_FOOT_DRIFT_DEGREES = 40f;
+    /** A standing foot carried round this far steps round, degrees, before the body has to wait for it. */
+    static final float RESTEP_DRIFT_DEGREES = 22f;
+    /**
+     * Turning where it stands, a stepping foot comes down this far round ahead of the body, degrees, toward the heading
+     * it is asked for, so the body may turn on over it; the diagonal pair steps together. UNTUNED.
+     */
+    static final float TURN_LEAD_DEGREES = 35f;
+    /** A turn under way keeps its direction while the heading it wants stands this far round or more, degrees. */
+    static final float HALF_TURN_KEEP_DEGREES = 135f;
     private static final int LEGS = 4;
 
     /**
@@ -125,16 +155,24 @@ public final class DerelictLegRig {
      * @param jointInsetCells how far a leg part's joint centre sits in from its drawing's end
      * @param suspensionSeconds how long the body's spring takes to settle onto its pose, seconds; zero for none (the
      *                        body then settles by {@link #SETTLE_SECONDS}' lag)
+     * @param turnDegreesPerSecond the fastest the body turns, degrees a second: the machine's own turn rate
+     *                        ({@code MechLocomotion.turnRateDegrees}), held here too so the drawn body never outruns
+     *                        its feet
+     * @param runSpring       how much spring the run has, 1 the full trot (each pair a little longer in the air than
+     *                        down, so the machine leaves the ground, a bounce twice a stride, feet lifted high) and 0 a
+     *                        flat one (a pair always down, no bounce, feet lifted low)
      */
     public record Build(float hipCells, float restCells, float gripCells, float hipHeightCells, float thighCells,
                         float shinCells, float wallFootCells, float stepLiftCells, float walkStride, float runStride,
                         float runSpeed, float walkSpeed, float stepSeconds, float scale, float motionScale,
-                        float twistDegrees, float jointInsetCells, float suspensionSeconds) {
+                        float twistDegrees, float jointInsetCells, float suspensionSeconds,
+                        float turnDegreesPerSecond, float runSpring) {
 
         /**
          * This build at {@code k} times its size (`derelict-watch.md`, Medium and large walkers): the derelict line's
          * rounds walker and hall frame are the walker's rig at their own sizes. Lengths scale with the body, the
-         * stride with them; a larger body steps more slowly, by the square root of its size.
+         * stride with them; a larger body steps more slowly, by the square root of its size, and turns more slowly,
+         * in proportion to its size.
          */
         public Build scaled(float k) {
             if (!(k > 0f)) throw new IllegalArgumentException("A build scales by a positive size");
@@ -142,15 +180,15 @@ public final class DerelictLegRig {
             return new Build(hipCells * k, restCells * k, gripCells * k, hipHeightCells * k, thighCells * k,
                     shinCells * k, wallFootCells * k, stepLiftCells * k, walkStride * k, runStride * k,
                     runSpeed * slow, walkSpeed * slow, stepSeconds * slow, scale * k, motionScale * k,
-                    twistDegrees, jointInsetCells * k, suspensionSeconds);
+                    twistDegrees, jointInsetCells * k, suspensionSeconds, turnDegreesPerSecond / k, runSpring);
         }
     }
 
     /** The derelict security walker: a heavy torso on long reaching legs. */
     public static final Build WALKER = new Build(HIP_CELLS, REST_CELLS, GRIP_CELLS, DerelictLegPose.HIP_HEIGHT_CELLS,
             DerelictLegPose.THIGH_CELLS, DerelictLegPose.SHIN_CELLS, DerelictLegPose.WALL_FOOT_HEIGHT_CELLS,
-            DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f, 1f, 0f,
-            0.16f, 0f);
+            DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f, 1f,
+            WALKER_TWIST_DEGREES, 0.16f, WALKER_SUSPENSION_SECONDS, WALKER_TURN_DEGREES, WALKER_RUN_SPRING);
 
     /**
      * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light): a small carapace low on four short legs, quick
@@ -160,7 +198,7 @@ public final class DerelictLegRig {
      * Its body rides a suspension (owner: the crew inside must not feel the steps), so it eases through its gait.
      */
     public static final Build CRAWLER = new Build(0.42f, 1.05f, 1.45f, 0.30f, 0.375f, 0.55f, 0.30f, 0.30f,
-            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f, 0.45f);
+            0.7f, 1.3f, 1.5f, 1.2f, 0.15f, 0.4f, 0.9f, 7f, 0.14f, 0.45f, CRAWLER_TURN_DEGREES, 1f);
     /** The spring's integration step at most, seconds, so a long frame stays stable. */
     private static final float SPRING_STEP = 1f / 120f;
 
@@ -175,12 +213,18 @@ public final class DerelictLegRig {
     private final float[] fromX = new float[LEGS];
     private final float[] fromY = new float[LEGS];
     private final boolean[] onWall = new boolean[LEGS];
+    /** The body's heading when each foot last came down: how far the body has turned over it since. */
+    private final float[] plantedFacing = new float[LEGS];
     /** Swing progress 0..1 while lifted, -1 while planted. */
     private final float[] swing = new float[LEGS];
     private boolean posed;
     private float pathX;
     private float pathY;
     private float facing;
+    /** The heading the body is asked to turn to. */
+    private float wantFacing;
+    /** Which way the body is turning, +1, -1 or 0: kept through a turn near half round, so it never turns back. */
+    private float turnSign;
     private float velX;
     private float velY;
     private float phase;
@@ -228,7 +272,9 @@ public final class DerelictLegRig {
     public boolean onWall(int leg) { return onWall[leg]; }
     /** How high the foot is in its step, 0 planted to 1 at the top of the arc. */
     public float lift(int leg) {
-        return swing[leg] < 0f ? 0f : (float) Math.sin(Math.PI * swing[leg]);
+        if (swing[leg] < 0f) return 0f;
+        float arc = (float) Math.sin(Math.PI * swing[leg]);
+        return gait == Gait.RUN ? arc * (FLAT_RUN_LIFT + (1f - FLAT_RUN_LIFT) * build.runSpring()) : arc;
     }
     public float hipX(int leg) { return bodyX() + dirX(bodyFacing() + hipAngle[leg]) * build.hipCells(); }
     public float hipY(int leg) { return bodyY() + dirY(bodyFacing() + hipAngle[leg]) * build.hipCells(); }
@@ -267,7 +313,12 @@ public final class DerelictLegRig {
             // A lift, a teleport: stand fresh rather than drag the feet across the map.
             posed = false;
         }
-        facing = facingDegrees;
+        wantFacing = facingDegrees;
+        if (!posed) {
+            facing = facingDegrees;
+        } else {
+            facing = turn(facing, facingDegrees, dt);
+        }
         if (!posed) {
             pathX = x;
             pathY = y;
@@ -282,6 +333,7 @@ public final class DerelictLegRig {
                 footX[i] = spot[0];
                 footY[i] = spot[1];
                 onWall[i] = spot[2] > 0f;
+                plantedFacing[i] = facing;
             }
             posed = true;
             return;
@@ -305,11 +357,66 @@ public final class DerelictLegRig {
         pose(dt, speed, movedX, movedY);
     }
 
+    /**
+     * The body's heading this frame, turning from {@code from} toward {@code want}: no faster than the build's turn rate,
+     * and never more than {@link #MAX_FOOT_DRIFT_DEGREES} past the heading any planted foot came down at; there the body
+     * waits for that foot to step round (standing, it steps at once; walking, in its turn of the stride). A lost leg's
+     * foot is dragged and never holds the turn.
+     */
+    float turn(float from, float want, float dt) {
+        float diff = toward(from, want);
+        float most = build.turnDegreesPerSecond() * Math.max(0f, dt);
+        float step = Math.max(-most, Math.min(most, diff));
+        if (step == 0f) return from;
+        for (int i = 0; i < LEGS; i++) {
+            if (lost[i] || swing[i] >= 0f) continue;
+            // How far the body has already turned over this foot since it came down, and how far it may yet.
+            float turned = wrap(from - plantedFacing[i]);
+            float room = step > 0f ? Math.max(0f, MAX_FOOT_DRIFT_DEGREES - turned)
+                    : Math.min(0f, -MAX_FOOT_DRIFT_DEGREES - turned);
+            step = step > 0f ? Math.min(step, room) : Math.max(step, room);
+        }
+        return wrap(from + step);
+    }
+
+    /**
+     * How far round from {@code from} to {@code want}, signed: the short way, except that a turn already under way
+     * keeps its direction while the far heading stands near half round, rather than flip at the half.
+     */
+    private float toward(float from, float want) {
+        float diff = wrap(want - from);
+        if (Math.abs(diff) < 0.01f) {
+            turnSign = 0f;
+            return diff;
+        }
+        if (turnSign != 0f && Math.signum(diff) != turnSign && Math.abs(diff) > HALF_TURN_KEEP_DEGREES) {
+            diff += 360f * turnSign;
+        }
+        turnSign = Math.signum(diff);
+        return diff;
+    }
+
+    /** How far leg {@code i}'s foot stands round from its hip's own bearing with the body facing {@code heading}. */
+    public float drift(int i, float heading) {
+        float dx = footX[i] - pathX;
+        float dy = footY[i] - pathY;
+        if (dx * dx + dy * dy < 1e-6f) return 0f;
+        float bearing = (float) Math.toDegrees(Math.atan2(-dx, dy));
+        return wrap(bearing - (heading + hipAngle[i]));
+    }
+
+    private static float wrap(float degrees) {
+        float d = degrees % 360f;
+        if (d > 180f) d -= 360f;
+        if (d < -180f) d += 360f;
+        return d;
+    }
+
     /** Moving: the clock runs on distance and each leg swings in its window of the cycle. */
     private void stride(float moved, float speed, Solid solid) {
         boolean run = gait == Gait.RUN;
         float strideCells = run ? build.runStride() : build.walkStride();
-        float swingShare = run ? RUN_SWING : WALK_SWING;
+        float swingShare = run ? FLAT_RUN_SWING + (RUN_SWING - FLAT_RUN_SWING) * build.runSpring() : WALK_SWING;
         float[] offset = run ? RUN_OFFSET : WALK_OFFSET;
         phase = (phase + moved / strideCells) % 1f;
         float hx = speed > 1e-4f ? velX / speed : 0f;
@@ -342,6 +449,8 @@ public final class DerelictLegRig {
     private void land(int i, Solid solid) {
         float[] spot = new float[3];
         swing[i] = -1f;
+        // The heading it came down at is read from where it stands, so a foot cut short in its step counts true.
+        plantedFacing[i] = wrap(facing + drift(i, facing));
         rest(i, pathX, pathY, solid, spot);
         // It keeps where it came down; only whether it holds a wall is read from the ground under it.
         onWall[i] = spot[2] > 0f && distance(spot[0], spot[1], footX[i], footY[i]) < small(RESTEP_CELLS);
@@ -355,32 +464,52 @@ public final class DerelictLegRig {
             if (swing[i] < 0f || lost[i]) continue;
             anySwinging = true;
             swing[i] = Math.min(1f, swing[i] + dt / build.stepSeconds());
-            rest(i, pathX, pathY, solid, spot);
+            // The foot steps to where it rests at the heading it lifted for (ahead of the body in a turn).
+            rest(i, pathX, pathY, plantedFacing[i], solid, spot);
             float t = swing[i];
-            footX[i] = fromX[i] + (spot[0] - fromX[i]) * t;
-            footY[i] = fromY[i] + (spot[1] - fromY[i]) * t;
+            float e = t * t * (3f - 2f * t);
+            footX[i] = fromX[i] + (spot[0] - fromX[i]) * e;
+            footY[i] = fromY[i] + (spot[1] - fromY[i]) * e;
             if (t >= 1f) {
                 swing[i] = -1f;
                 onWall[i] = spot[2] > 0f;
             }
         }
         if (anySwinging || downed) return;
+        float lead = facing + Math.max(-TURN_LEAD_DEGREES, Math.min(TURN_LEAD_DEGREES, toward(facing, wantFacing)));
         int worst = -1;
         float worstStrain = small(RESTEP_CELLS);
         for (int i = 0; i < LEGS; i++) {
             if (lost[i]) continue;
             rest(i, pathX, pathY, solid, spot);
             float strain = distance(footX[i], footY[i], spot[0], spot[1]);
+            // A foot the turn has left behind steps round before the body has to wait for it.
+            if (turning(i, lead)) strain = Math.max(strain, worstStrain + 1f);
             if (strain > worstStrain) {
                 worstStrain = strain;
                 worst = i;
             }
         }
         if (worst < 0) return;
-        fromX[worst] = footX[worst];
-        fromY[worst] = footY[worst];
-        onWall[worst] = false;
-        swing[worst] = 0f;
+        liftToward(worst, lead);
+        // In a turn the diagonal pair steps together, the other two holding the body.
+        for (int i = 0; i < LEGS; i++) {
+            if (i != worst && pair[i] == pair[worst] && !lost[i] && turning(i, lead)) liftToward(i, lead);
+        }
+    }
+
+    /** Whether leg {@code i}'s foot stands far enough round from {@code lead} to step round to it. */
+    private boolean turning(int i, float lead) {
+        return Math.abs(wrap(lead - plantedFacing[i])) > RESTEP_DRIFT_DEGREES;
+    }
+
+    /** Lifts leg {@code i}'s foot to step to its rest at {@code heading}. */
+    private void liftToward(int i, float heading) {
+        fromX[i] = footX[i];
+        fromY[i] = footY[i];
+        onWall[i] = false;
+        swing[i] = 0f;
+        plantedFacing[i] = wrap(heading);
     }
 
     /**
@@ -436,13 +565,17 @@ public final class DerelictLegRig {
         }
         tx += tiltX;
         ty += tiltY;
-        float th = downed ? -moved(DOWNED_CELLS) : -moved(DIP_CELLS) * lifted - sag;
+        // At a run a pair is always in the air, so its dip is the run's bounce: as springy as the run.
+        float dip = gait == Gait.RUN ? DIP_CELLS * build.runSpring() : DIP_CELLS;
+        float th = downed ? -moved(DOWNED_CELLS) : -moved(dip) * lifted - sag;
         if (gait != Gait.STAND && speed > 1e-4f) {
             float lean = Math.min(moved(LEAN_MAX_CELLS), moved(LEAN) * speed);
             tx += velX / speed * lean;
             ty += velY / speed * lean;
         }
-        if (gait == Gait.RUN) th += moved(RUN_BOUNCE_CELLS) * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        if (gait == Gait.RUN) {
+            th += moved(RUN_BOUNCE_CELLS) * build.runSpring() * (float) Math.sin(2.0 * Math.PI * 2.0 * phase);
+        }
         float tw = build.twistDegrees() * Math.max(-1f, Math.min(1f, yaw));
         if (build.suspensionSeconds() > 0f) {
             suspend(dt, movedX, movedY, tx, ty, th, tw);
@@ -489,11 +622,16 @@ public final class DerelictLegRig {
      * {@link #REST_CELLS}, short of any wall in between.
      */
     void rest(int i, float cx, float cy, Solid solid, float[] out) {
+        rest(i, cx, cy, facing, solid, out);
+    }
+
+    /** Where leg {@code i}'s foot would rest for a torso at {@code (cx, cy)} facing {@code heading}. */
+    private void rest(int i, float cx, float cy, float heading, Solid solid, float[] out) {
         if (lost[i]) {
             floorRest(i, cx, cy, solid, out);
             return;
         }
-        float own = facing + hipAngle[i];
+        float own = heading + hipAngle[i];
         float side = sideOf(hipAngle[i]);
         for (int k = 0; k <= 1; k++) {
             float angle = own + side * k * SPLAY_DEGREES;
