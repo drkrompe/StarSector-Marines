@@ -720,6 +720,41 @@ grade, from a pad and a yard at scattered to a full port at vast. It is laid by
 coordinate hash like the rest of the dead town, so the same site has the same
 port. Picture cards: `createSnapshots -Psnapshot=ruins-port-picks`.
 
+**The ruins' doors are leaf doors** (owner: "we have nice automated doors we
+use on ships in the engineering tab renderer... We should look at reusing the
+tech there to make better vault/facility doors than a 1x1"; pick `ruins-doors`
+open, building on a). Today the plant's halls meet at open three-cell gaps, and
+the vault's doors and the works' seals are one cell. The ship's sliding door
+(`RoomDoor`, drawn by `RoomDoorRenderSystem`) is two leaves parting from a seam
+into their jambs, any width, along either axis, and answers whoever stands in
+line with it. The ruins reuse it rather than drawing a door of their own. It
+needs three changes:
+
+- **A door kind.** `RoomDoor` gains a kind: a hall door (two leaves), a cargo
+  door (two telescoping leaves each way) and a blast door (two thick leaves,
+  the seam clamped when sealed). Each kind has its own leaf art.
+- **A derelict state.** A door answers while its works are powered. It stands
+  dead where its power died, part-open: the cells under its leaves are wall, so
+  a dead door narrows the way. It is sealed while its `SealDoor` is shut, and
+  forced for good once a breach forces it, one leaf torn out onto the floor. A
+  ruins door's state is the works' (`LockedDoor` open, forced and hardened), so
+  passage stays the grid's and the `LockedDoor`'s, as on a ship.
+- **Fed from the battle.** Ruins doors are built from the ground (the plant
+  halls' joins, the interior's entrances, the works' seals and the vault's
+  doors), not from a ship's compartments. The animation that moves the leaves
+  for the bodies near them, today in `ShipDeckBattleScene`, moves to the battle
+  view for every map.
+
+| Option | What becomes a leaf door |
+| --- | --- |
+| a (recommended) | Every hall join (hall door), every intake dock (cargo door, four leaves), the vault and secure stores (blast doors widened to three cells), all with the four states |
+| b | Only the works' seals (gates, stores, bunker, vault), sealed and forced; the joins stay open gaps |
+| c | The joins answer as a ship's do, with no derelict states; the seals stay as today |
+
+The leaf art is ruins-theme-art's (`ruins-doors.md` in the shared notes holds
+the piece list). The cards use today's ship leaves, forcible and hardened plates
+as stand-ins. Picture cards: `createSnapshots -Psnapshot=ruins-door-picks`.
+
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
 
