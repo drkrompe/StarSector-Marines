@@ -1690,15 +1690,17 @@ change compartment positions or award a boat. The physical working berths and th
 campaign lift count agree in both states, with the original bay first in berth
 order: abreast, the port bay comes first.
 
-**Every compartment doorway has a sliding door** (`RoomDoor`): two plated
-leaves across its one or two doorway cells that part into the jambs for anyone
+**Every compartment doorway has a sliding door** (`RoomDoor`): two painted
+gunmetal leaves in the bulkheads' own bolted-strap style, an amber safety band
+on each meeting edge (`art-source/ship-doors`), across its one or two doorway cells that part into the jambs for anyone
 standing in line with the doorway within a cell and a half of the bulkhead, and
 close once nobody is. In line rather than merely near, so a crewman behind the
 wall beside a door does not work it. The leaves are presentation only: passage
 and sight are the grid's, and nobody waits on a door.
 
 A sealed personnel entrance is the same door **locked**: shut, its leaves
-banded in hazard red with a lock bar across the seam. A doorway the grid refuses
+banded in hazard red with a seal clamp, its red locking bar and lamp, across
+the seam. A doorway the grid refuses
 passage through is what makes a door locked, so the workshop, the reserved
 second bay, the reserves and condition-sealed rooms all share it, keeping the
 original doorway location rather than disguising it as an uninterrupted wall.
