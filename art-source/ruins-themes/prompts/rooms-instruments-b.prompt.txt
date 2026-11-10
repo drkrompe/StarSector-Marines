@@ -1,0 +1,15 @@
+Asset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.
+Style: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.
+View: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).
+
+Each is a lab test instrument or bench on its own base, different in shape: see the list.
+Subjects, top row, left to right:
+1. core-sample-rack (2x2): Rock cores from the bore, racked. Seen from above: a low rack of long split cylindrical rock cores in trays, grey and rust-banded stone, labels as plain tags.
+2. assay-bench (2x2): A reagent assay bench. Seen from above: a reagent bench: rows of small stoppered bottles in a tray, a titration stand and a sealed glove box at one end.
+3. tally-bench (2x2): An inspection and tally bench. Seen from above: an inspection bench: a lit inspection plate with a scanning arm, a stack of totes at one side.
+Subjects, second row, left to right:
+4. charge-test-cell (2x2): A small armoured test cell. Seen from above: a small armoured test cell: a thick steel box with a heavy bolted lid and a blast vent, hazard banded.
+5. assay-furnace (2x2): A small assay furnace. Seen from above: a small assay furnace: a refractory brick block with a round crucible port glowing faintly, tongs on a hook, a vent hood.
+6. sorter-module (3x3): A sorter head, the high bay's spare on the rework stand. Seen from above: a robotic sorter head: a three-armed rotary picker on a square base, chutes and a reject flap, cables coiled.

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73c-3140-7f21-8765-bf761aa21b0a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73c-3140-7f21-8765-bf761aa21b0a\\exec-083eb2b5-fb91-4687-abf7-ec6e920fd73e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-stocks-a.raw.png",
+    "sha256": "c78c59ea8e965ba03299b4e3ce541c9f95389d970c3f74260961efdf9a2563a2",
+    "dimensions": [
+      2170,
+      725
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-stocks-a.prompt.txt",
+  "promptSha256": "51020f23b6ac44520a347057f48a4a082d8c9ff4958503b761fa960ed72cc56b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nEach is the load on a store shelf (seen from above, the stock itself on a low steel shelf), different: see the list.\nSubjects, top row, left to right:\n1. cryogen-dewars (2x1): A store shelf's load: cryogen dewars. Seen from above: a row of five small frost-rimmed dewar flasks.\n2. nutrient-drums (2x1): A store shelf's load: nutrient drums. Seen from above: three green-banded nutrient drums.\n3. feedstock-canisters (2x1): A store shelf's load: print feedstock canisters. Seen from above: five sealed grey powder feedstock canisters.\n4. rack-module-crates (2x1): A store shelf's load: AI rack module crates. Seen from above: three foam-packed module crates, lids off one.\nSubjects, second row, left to right:\n5. coolant-drums (2x1): A store shelf's load: coolant drums. Seen from above: three blue-banded coolant drums.\n6. cable-drums (2x1): A store shelf's load: superconducting cable drums. Seen from above: two big drums of thick superconducting cable.\n7. drill-rods (2x1): A store shelf's load: drill rods. Seen from above: a bundle of long steel drill rods on two cradles.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-stocks-a-guide.png",
+      "sha256": "a0cc8d0fbcd8d313037287035c96dd289607f0e71d3ae005c31c4dd82b60ca24",
+      "dimensions": [
+        1600,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet using Image 1 for the exact geometry and Image 2 for the material style.\n"
+  ],
+  "usage": {
+    "input_tokens": 44668,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 993,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.9
+}

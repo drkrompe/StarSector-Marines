@@ -54,7 +54,7 @@ final class CrackerHall {
             boolean split = b == 1;
             if (split) {
                 // The split column lies across the west aisle; its sludge pooled where it stood.
-                f.stand("doodad.ruins-reactor-column-fallen", "doodad.ruins-fallen-girder", 1, y0 + 2, 9, 3,
+                f.stand("doodad.ruins-reactor-column-fallen", "doodad.ruins-fallen-girder", HallFrame.TRUNK, y0 + 2, 9, 3,
                         WorksHallPlan.COLLAPSE);
                 p.water(cl - 1, y0, cl + col, y0 + 6);
                 for (int y = y0; y <= y0 + 6; y++) for (int x = cl - 1; x <= cl + col; x++) p.skin(x, y, SLUDGE);

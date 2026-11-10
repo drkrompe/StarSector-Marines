@@ -1,0 +1,12 @@
+Asset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.
+Style: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.
+View: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).
+
+Subjects, top row, left to right:
+1. rework-stand (3x3): A low frame a unit is bolted to for rework; open for the unit laid on it. It is floor level and open in the middle.
+2. workshop-hoist (3x3): A small gantry hoist over the stand, open in the middle. Drawn above units. It hangs overhead and is open in the middle: legs and beams only.
+Subjects, second row, left to right:
+3. hoist-fallen (2x1): The hoist's dropped load and chain.
+4. tool-wall (3x1): A tool board and bench against the wall.

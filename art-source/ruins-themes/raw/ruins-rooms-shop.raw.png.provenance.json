@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c73b-f5fe-79b3-af96-e60a808fa8d6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c73b-f5fe-79b3-af96-e60a808fa8d6\\exec-9aa39acd-0b8f-474f-90f9-b5223af3d3b0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-rooms-shop.raw.png",
+    "sha256": "f2e78230d608cacf33548e1e66658b0c339b86ec95eb67233699bd8f741804f5",
+    "dimensions": [
+      1476,
+      1066
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\rooms-shop.prompt.txt",
+  "promptSha256": "0ab26adcecd676358aa1ad9e1e08bdc07645b1ed46b995ba6383b803336f2cdc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the furniture and kit of the rooms off an abandoned Domain-era megastructure plant's service corridors (control room, workshop, lab, crew quarters, stores) in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent. Every piece stands against a wall along its TOP edge: its back is the top edge, its working face (screens, doors, drawers, the side a person uses) faces DOWN the image into the room.\nStyle: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, blue-gray and gunmetal plate, dark recessed seams, bolted edges, worn ochre trim, small dim amber or cyan status lights, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours. Each piece must read as its own thing: never repeat one design across pieces.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text (a mimic board's diagram has no readable letters).\n\nSubjects, top row, left to right:\n1. rework-stand (3x3): A low frame a unit is bolted to for rework; open for the unit laid on it. It is floor level and open in the middle.\n2. workshop-hoist (3x3): A small gantry hoist over the stand, open in the middle. Drawn above units. It hangs overhead and is open in the middle: legs and beams only.\nSubjects, second row, left to right:\n3. hoist-fallen (2x1): The hoist's dropped load and chain.\n4. tool-wall (3x1): A tool board and bench against the wall.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-rooms-shop-guide.png",
+      "sha256": "4335856aef5b71bbb8403881906487875bfb68a874d8645026bf780bfe9e1f34",
+      "dimensions": [
+        1152,
+        832
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1 for the exact geometry and Image 2 for materials and style."
+  ],
+  "usage": {
+    "input_tokens": 44589,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 653,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.8
+}

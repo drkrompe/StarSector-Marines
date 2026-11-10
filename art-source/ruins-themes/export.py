@@ -11,6 +11,7 @@ reads as a halo on the floor) and are capped below opaque so the floor shows thr
 Writes ``mod/graphics/doodads/ruins-themes.png`` and ``mod/data/tilesets/ruins-themes.tileset.json``.
 """
 
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -24,6 +25,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "art-source" / "doodads"))
 
 import make_guide  # noqa: E402
+import rooms_list  # noqa: E402
 from stitch_atlas import BuildOptions, build_atlas  # noqa: E402
 
 # Family -> accepted raw, and the pieces of it that ship (the concept sheets' own patches do not).
@@ -75,6 +77,10 @@ WEATHER_RAWS = {"delve-weather": ("ruins-delve-weather.raw.png", WEATHER)}
 BRIDGE = ("transfer-bridge-span", "transfer-bridge-end", "transfer-bridge-span-damaged")
 BRIDGE_RAWS = {"forge-bridge": ("ruins-forge-bridge.raw.png", BRIDGE)}
 SPANS = ("transfer-bridge-span", "transfer-bridge-span-damaged")
+# The ruins rooms' furniture (``ruins-theme-rooms``, the list in ``rooms_list.py``) on one sheet, ``ruins-rooms``,
+# 32 cells wide: every piece cut at its exact frame, its hazard trim muted as the works pieces' is.
+ROOMS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in rooms_list.FAMILIES[f] if e)) for f in rooms_list.FAMILIES}
+ROOMS = tuple(pid for f in ROOMS_RAWS for pid in ROOMS_RAWS[f][1])
 # The theme works halls' pieces (``ruins-theme-halls``) ship on a third sheet, ``ruins-works``: every piece is cut at
 # its exact guide frame, so a run and a wall block keep their edges flush.
 WORKS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in make_guide.FAMILIES[f] if e))
@@ -108,7 +114,7 @@ LEAF_INSET = 0.03
 # scale and the wrecked one's fallen fragments stay where they lie.
 TIGHT = {"rack-stripped", "rack-crates", "crucible", "crucible-tipped", "mould-grid", "grate-catwalk",
          "great-crucible", "furnace-core", *WORKS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
-         "recorder-console", *WEATHER, *BRIDGE}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
+         "recorder-console", *WEATHER, *BRIDGE, *ROOMS}.union(*(RAWS[f][1] for f in RAWS if f.startswith("products-")))
 
 # The plant line, cut by measured boxes in the raw's own pixels rather than by its guide: ImageGen drew the sheet a
 # sixth narrower than the guide and joined the module to the line end by its bed. The module and the line end share
@@ -156,7 +162,7 @@ def split_melt(piece, guide_frame):
 # - the upright crucible's melt was the brightest thing on screen: its light is taken down and warmed off white, so
 #   the engine's pulse rides from dull orange to orange rather than from yellow to white.
 # - the forge line came back with the same bright trim, and its melt as bright as the crucible's was.
-MUTE_HAZARD = ("spool-drum", "drone-frame", *WORKS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
+MUTE_HAZARD = ("spool-drum", "drone-frame", *WORKS, *ROOMS, *FORGE_LINE, *FORGE_FLOOR, *FORGE_ERA_A, *FORGE_ERA_B, "line-pulpit",
                "recorder-console")
 GRADE_MELT = ("crucible-melt", "great-crucible-melt", "tapping-furnace-melt", "ladle-lift-melt",
               "ladle-lift-tipped-pour", "slag-skid-melt", "slag-skid-crashed-spill")
@@ -242,19 +248,36 @@ STAIN_FEATHER = 30
 STAIN_TOP = {"thrust-wash": 140}
 
 
+def register(raw, frames):
+    """Scale and offset taking guide pixels to raw pixels: the frames' union onto the raw's drawn (alpha) extent."""
+    a = np.asarray(raw.getchannel("A")) > 64
+    ys, xs = np.nonzero(a)
+    gx0, gy0 = min(f[1] for f in frames), min(f[2] for f in frames)
+    gx1, gy1 = max(f[1] + f[3] for f in frames), max(f[2] + f[4] for f in frames)
+    sx = (xs.max() + 1 - xs.min()) / (gx1 - gx0)
+    sy = (ys.max() + 1 - ys.min()) / (gy1 - gy0)
+    return sx, sy, xs.min() - gx0 * sx, ys.min() - gy0 * sy
+
+
 def cut(family):
-    raw_name, keep = {**RAWS, **FORGE_RAWS, **WORKS_RAWS, **WEATHER_RAWS, **BRIDGE_RAWS}[family]
+    raw_name, keep = {**RAWS, **FORGE_RAWS, **WORKS_RAWS, **WEATHER_RAWS, **BRIDGE_RAWS, **ROOMS_RAWS}[family]
     raw = Image.open(HERE / "raw" / raw_name).convert("RGBA")
     guide = Image.open(ROOT / "art-source" / "templates" / f"ruins-{family}-guide.png")
     sx, sy = raw.width / guide.width, raw.height / guide.height
+    ox = oy = 0
+    if family in ROOMS_RAWS:
+        # ImageGen does not always keep the guide's aspect (the control sheet came back half as wide for its height,
+        # the drawing at the top): register the raw's drawn extent on the guide's frames instead of stretching.
+        sx, sy, ox, oy = register(raw, make_guide.frames(family))
     half = make_guide.GUTTER / 2
     for pid, x, y, w, h, kind in make_guide.frames(family):
         if pid not in keep:
             continue
         m = 0 if pid in TIGHT else half
-        box = (round((x - m) * sx), round((y - m) * sy), round((x + w + m) * sx), round((y + h + m) * sy))
+        box = (round(ox + (x - m) * sx), round(oy + (y - m) * sy), round(ox + (x + w + m) * sx),
+               round(oy + (y + h + m) * sy))
         piece = raw.crop(box)
-        if pid in WORKS:
+        if pid in WORKS or pid in ROOMS:
             # ImageGen leaves a faint coloured haze (alpha 1 to 3) in the gutters of the works sheets: cleared.
             piece.putalpha(piece.getchannel("A").point(lambda v: 0 if v < 8 else v))
         if pid in RUNS:
@@ -319,6 +342,23 @@ def build_forge():
     build_sheet("ruins-forge", "_atlas-forge.json", FORGE_RAWS)
 
 
+def build_rooms():
+    assets = {}
+    for k, (pid, w, h, kind, layer, name, what) in enumerate(rooms_list.pieces()):
+        a = {"id": f"doodad.ruins-{pid}", "name": name, "description": what, "footprintCells": [w, h],
+             "preserveCanvas": True, "padding": 0, "order": k + 1}
+        if layer == "stand":
+            a.update(cover="med", ballisticHalfHeight=0.5)
+        else:
+            a["cover"] = "none"
+        assets[f"{pid}.png"] = a
+    with open(HERE / "_atlas-rooms.json", "w") as f:
+        json.dump({"defaults": {"cover": "heavy", "padding": 4, "scale": 1.0, "offset": [0, 0]}, "assets": assets}, f,
+                  indent=2)
+        f.write("\n")
+    build_sheet("ruins-rooms", "_atlas-rooms.json", ROOMS_RAWS, columns=32)
+
+
 def build_bridge():
     build_sheet("ruins-forge-bridge", "_atlas-bridge.json", BRIDGE_RAWS, columns=6)
 
@@ -356,6 +396,7 @@ def main() -> None:
     build_forge()
     build_weather()
     build_bridge()
+    build_rooms()
     build_works()
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
