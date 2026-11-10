@@ -6488,7 +6488,7 @@ public final class BattleSetup {
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
-        // A port's lighter stands each hold the freighter standing on them (PortApronDressing), drawn from its own
+        // A port's lighter stands each hold the freighter standing on them (PortHubDressing), drawn from its own
         // stream, and only where there are any, so every other map's draws are unchanged.
         if (lighterStands.isEmpty()) return parked;
         Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
