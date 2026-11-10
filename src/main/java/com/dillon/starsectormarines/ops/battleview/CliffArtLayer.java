@@ -138,7 +138,8 @@ final class CliffArtLayer implements RenderSystem {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 GroundKind kind = topology.getGroundKind(x, y);
-                if (kind != GroundKind.SAND && kind != GroundKind.STONE && kind != GroundKind.SNOW) continue;
+                if (kind != GroundKind.SAND && kind != GroundKind.STONE && kind != GroundKind.SNOW
+                        && kind != GroundKind.HARDPAN) continue;
                 dry[y * w + x] = true;
                 any = true;
             }

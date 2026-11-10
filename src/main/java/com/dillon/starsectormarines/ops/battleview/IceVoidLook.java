@@ -98,6 +98,28 @@ final class IceVoidLook {
     }
 
     /**
+     * The top of a crevasse's ice wall seen from its floor: the snowfield, scoured by the gale into long drifts
+     * across the wind, blue ice blown bare along the rim. {@code attrs[3]} is cells in from the rim.
+     */
+    static void snowfield(NaturalVoidField.Band band, int q, int seed, float[] into) {
+        float[] a = band.attrs;
+        int o = q * 8;
+        float x = a[o], y = a[o + 1], light = a[o + 2], inside = a[o + 3];
+        // Sastrugi: ridges across the wind, so drawn along the wind's normal.
+        float across = x * GlacialVoidRenderSystem.WIND_Y - y * GlacialVoidRenderSystem.WIND_X;
+        float along = x * GlacialVoidRenderSystem.WIND_X + y * GlacialVoidRenderSystem.WIND_Y;
+        float drift = NaturalVoidField.Noise.fbm(along * .9f, across * .12f, seed * 7 + 41);
+        float n2 = NaturalVoidField.Noise.value(x * 2.1f, y * 2.1f, seed * 7 + 43);
+        float r = PLAIN_R + .03f * drift, g = PLAIN_G + .03f * drift, b = PLAIN_B + .025f * drift;
+        float bare = clamp01((1f - inside * 1.2f + n2 * .35f) * .9f);
+        r = lerp(r, .55f, bare * .6f); g = lerp(g, .72f, bare * .6f); b = lerp(b, .86f, bare * .6f);
+        float lit = clamp01(light);
+        into[q * 3] = lerp(SHADE_R + .2f, r, lit);
+        into[q * 3 + 1] = lerp(SHADE_G + .2f, g, lit);
+        into[q * 3 + 2] = lerp(SHADE_B + .2f, b, lit);
+    }
+
+    /**
      * The crevasse's floor: old dark ice, milky in places and pale where snow has drifted against the walls, with
      * pools of meltwater frozen glassy and dark, a glint moving on them.
      *

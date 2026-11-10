@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2dc-4163-7773-bff5-7c9af76bc1ed",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2dc-4163-7773-bff5-7c9af76bc1ed\\exec-b66fc64b-60c0-41f9-a73c-6996a3f03f93.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\toxic\\toxic-wall.png",
+    "sha256": "42fad1ab894d2504509430885c86355e7bf64e7f11a7ada2ebffe8419db2372e",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\toxic\\toxic-wall.prompt.txt",
+  "promptSha256": "43da8ae5e89738fc34dcb5872d5b8ebea0781d852130f11cb4c76b740e0a4cc0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of the sheer wall of a\ngorge on a toxic world, as it would be mapped onto a vertical cliff.\nCorroded, chemically stained bedrock: horizontal strata running across the\ntile in bands of uneven thickness, dark olive-grey and khaki rock eaten\ninto pitted, etched ledges by acid; bright sulphur-yellow mineral crusts\ncaked along the ledges and seams; sickly yellow-green and chartreuse stains\nweeping down across the strata from seeps, with rust-orange and ochre\nleaching streaks beside them; patches of white and pale green crystalline\nefflorescence; a few dark wet seeps where sludge has run down. Fine\nfractures, small blistered pits. Lit evenly by soft neutral light from\nstraight in front, no cast shadows from outside the tile, no glow, no\nbright glare. Even density across the whole tile with no focal point, so\nit repeats horizontally and vertically. Palette: olive grey, khaki,\nsulphur yellow, chartreuse, rust orange, dirty white. No sky, no plants, no\npeople, no text, no border, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square, seamless cliff texture with the strata, mineral crusts, and toxic staining you described.\n"
+  ],
+  "usage": {
+    "input_tokens": 36298,
+    "cached_input_tokens": 23552,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 365,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.1
+}

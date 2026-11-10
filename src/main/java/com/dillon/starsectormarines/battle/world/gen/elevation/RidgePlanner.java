@@ -32,7 +32,14 @@ public final class RidgePlanner {
      * narrows and wanders within the band's ground; a {@link #BERM} is an engineered bank graded along the path, the
      * band's own width the whole way, its faces straight and its ends cut square where the band breaks.
      */
-    public enum Relief { NATURAL, BERM }
+    public enum Relief {
+        NATURAL, BERM,
+        /**
+         * A crevasse town's wall ({@code CrevasseTown}): held open before the places grow, then raised by the
+         * landscape pass as a terraced ice rise, never as hills.
+         */
+        ICE_WALL
+    }
 
     /**
      * One authored ridge: a band {@code thickness} cells through, centred on a

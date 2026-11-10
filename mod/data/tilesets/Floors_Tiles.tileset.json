@@ -189,6 +189,43 @@
         ]
       ],
       "id": "floors.snow"
+    },
+    {
+      "cells": [
+        [
+          8,
+          2
+        ],
+        [
+          9,
+          2
+        ],
+        [
+          10,
+          2
+        ],
+        [
+          11,
+          2
+        ],
+        [
+          12,
+          2
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          14,
+          2
+        ],
+        [
+          15,
+          2
+        ]
+      ],
+      "id": "floors.hardpan"
     }
   ],
   "cellPx": 56,
@@ -431,6 +468,54 @@
       "col": 7,
       "description": "sandvar-8",
       "name": "floors.sand v8",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "hardpanvar-1",
+      "name": "floors.hardpan v1",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "hardpanvar-2",
+      "name": "floors.hardpan v2",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "hardpanvar-3",
+      "name": "floors.hardpan v3",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "hardpanvar-4",
+      "name": "floors.hardpan v4",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "hardpanvar-5",
+      "name": "floors.hardpan v5",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "hardpanvar-6",
+      "name": "floors.hardpan v6",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "hardpanvar-7",
+      "name": "floors.hardpan v7",
+      "row": 2
+    },
+    {
+      "col": 15,
+      "description": "hardpanvar-8",
+      "name": "floors.hardpan v8",
       "row": 2
     }
   ],

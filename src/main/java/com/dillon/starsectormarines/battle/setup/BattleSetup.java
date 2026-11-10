@@ -210,6 +210,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.precinct.CrevasseTown;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
@@ -987,10 +988,12 @@ public final class BattleSetup {
         // need to keep landing zones at the edge of the map"). FAR is the
         // beachhead on the map edge, which is the only approach the other
         // missions have had, and they keep what they were measured on.
-        return PrecinctPlan.derive(profile, resolved,
+        PrecinctPlan plan = PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT))
                 .withStandoff(type == MissionType.RAID ? Standoff.INSET : Standoff.FAR);
+        // A frozen world may shelter its town in a crevasse, its walls along the map's long edges.
+        return CrevasseTown.shelter(plan, profile, scale.width, scale.height, scale.width >= scale.height, seed);
     }
 
     /**
@@ -1160,12 +1163,15 @@ public final class BattleSetup {
         Standoff resolvedStandoff = standoff != null ? standoff : CONQUEST_STANDOFF;
         LandingKind resolvedLanding = landing != null
                 ? landing : LandingKind.derive(profile, resolved);
-        return PrecinctPlan.derive(profile, resolved,
+        PrecinctPlan plan = PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
                 lanes, resolvedStandoff, resolvedLanding, arrivalAreas,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
                 new Random(seed ^ PRECINCT_SEED_SALT));
+        // A frozen world may shelter its town in a crevasse, its walls along the axis so the attack runs its floor.
+        return CrevasseTown.shelter(plan, profile, MapScale.CONQUEST.width, MapScale.CONQUEST.height,
+                axis != TraversalAxis.SOUTH_TO_NORTH, seed);
     }
 
     /** Tier-aware catch-all with both sides' authored fighter commitments. */

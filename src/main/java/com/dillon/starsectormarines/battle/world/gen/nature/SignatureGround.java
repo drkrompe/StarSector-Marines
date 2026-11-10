@@ -19,11 +19,11 @@ import java.util.function.IntPredicate;
  * <ul>
  *   <li><b>Strokes</b> ({@link #strokes}): terrain the stock hills' plan may take beside its own hills, under the same
  *       fit and detour proof. A bombarded world's crater rims are open crescents of raised rock, as a barren world's
- *       stock hills already are, smaller and many; an unstable world's fissures are narrow excavations, the trench
- *       contract every map has (impassable, seen and shot across). Nothing here is a new battle rule.</li>
+ *       stock hills already are, smaller and many. Nothing here is a new battle rule.</li>
  *   <li><b>Dressing</b> ({@link #dress}): presentation on open ground. Craters, rimmed and rimless, are marks the
- *       renderer draws a bowl at ({@link CellTopology#signatureMarks}), with ejecta thrown round them; fissure banks
- *       carry quake rubble and the ground's cracked skin ({@link CellTopology.Tag#GROUND_DAMAGED}); cryovolcanic
+ *       renderer draws a bowl at ({@link CellTopology#signatureMarks}), with ejecta thrown round them; an unstable
+ *       world's fissures are cracks at a marine's scale ({@link #cracks}), drawn and walked over, their banks
+ *       carrying quake rubble and the ground's cracked skin ({@link CellTopology.Tag#GROUND_DAMAGED}); cryovolcanic
  *       vents are marks the renderer draws a mound at and breathes vapour from. Every stone is a passable field stone
  *       with no cover, so movement, sight and cover are the map's own.</li>
  * </ul>
@@ -39,26 +39,14 @@ public final class SignatureGround {
     static final int MAX_RIMS = 14, CELLS_PER_RIM = 2600;
     /** Rimless craters, scars with ejecta, at most, and map cells per crater. */
     static final int MAX_SCARS = 90, CELLS_PER_SCAR = 400;
-    /** Fissures an unstable world asks for, at most, and map cells per fissure. */
-    static final int MAX_FISSURES = 9, CELLS_PER_FISSURE = 3800;
-    /** A trench fissure's brush radius, cells: the narrowest the excavation brush draws. */
-    static final double FISSURE_RADIUS = 1.15;
-    /** Crack fissures at most, map cells per crack, and the widest a crack opens, cells. */
+    /** Cracks an unstable world carries at most, and map cells per crack. */
     static final int MAX_CRACKS = 18, CELLS_PER_CRACK = 1200;
-    static final float CRACK_WIDTH = 1.5f;
-
     /**
-     * Temporary A/B switch ({@code switches.md}): {@code true} cuts an unstable world's fissures as trench
-     * excavations (impassable, seen across), the first pass; the default draws them as cracks in the ground,
-     * presentation only. Remove with the losing path once the owner picks between them on the picks page
-     * (planet-signatures, fissure question).
+     * The widest a crack opens, cells, at a marine's scale: most are a boot wide at their widest, a hairline
+     * elsewhere, and one in {@link #SPLIT_ODDS} is a wider split. Owner: cracks a band wide read as impassable.
      */
-    public static final String FISSURE_TRENCH_PROPERTY = "battle.signature.fissureTrench";
-
-    /** Whether fissures are cut as trenches rather than drawn as cracks. */
-    static boolean trenches() {
-        return Boolean.getBoolean(FISSURE_TRENCH_PROPERTY);
-    }
+    static final float CRACK_WIDTH = .28f, SPLIT_WIDTH = .55f;
+    static final int SPLIT_ODDS = 5;
     /** Cryovolcanic vents at most, map cells per vent, and the least distance between two, cells. */
     static final int MAX_VENTS = 18, CELLS_PER_VENT = 1500;
     static final float VENT_SPACING = 11f;
@@ -73,10 +61,6 @@ public final class SignatureGround {
         List<TerrainPlan.Stroke> out = new ArrayList<>();
         if (signature == SurfaceSignature.CRATER_FIELD) {
             for (Crater crater : craters(width, height, seed)) if (crater.rimmed()) out.add(rim(crater, width, height, seed));
-        } else if (signature == SurfaceSignature.FISSURES && trenches()) {
-            Random random = new Random(seed ^ 0x4649535355524553L);
-            int wanted = Math.max(1, Math.min(MAX_FISSURES, width * height / CELLS_PER_FISSURE));
-            for (int i = 0; i < wanted * 8; i++) out.add(fissure(random, width, height));
         }
         return out;
     }
@@ -123,22 +107,6 @@ public final class SignatureGround {
         return Math.toRadians(sweep);
     }
 
-    /** A fissure: a narrow trench wandering on a slowly turning heading, as a crack runs. */
-    static TerrainPlan.Stroke fissure(Random random, int width, int height) {
-        double x = 10 + random.nextDouble() * (width - 20), y = 10 + random.nextDouble() * (height - 20);
-        double heading = random.nextDouble() * Math.PI * 2;
-        int segments = 6 + random.nextInt(7);
-        List<TerrainPlan.Point> points = new ArrayList<>();
-        points.add(clamp(x, y, width, height));
-        for (int i = 0; i < segments; i++) {
-            heading += (random.nextDouble() - .5) * 1.1;
-            x += Math.cos(heading) * 2.6;
-            y += Math.sin(heading) * 2.6;
-            points.add(clamp(x, y, width, height));
-        }
-        return new TerrainPlan.Stroke(TerrainPlan.Mode.EXCAVATE, FISSURE_RADIUS, points);
-    }
-
     private static TerrainPlan.Point clamp(double x, double y, int width, int height) {
         return new TerrainPlan.Point(Math.max(0, Math.min(width - 1, x)), Math.max(0, Math.min(height - 1, y)));
     }
@@ -168,19 +136,13 @@ public final class SignatureGround {
             }
             case FISSURES -> {
                 Random random = new Random(seed ^ 0x5155414b45L);
-                if (trenches()) {
-                    for (TerrainPlan.Stroke stroke : accepted)
-                        if (stroke.mode() == TerrainPlan.Mode.EXCAVATE)
-                            banks(topology, width, height, stroke.points(), 1.4, 2.2, open, stones, random);
-                } else {
-                    List<List<float[]>> cracks = cracks(width, height, seed, open);
-                    for (List<float[]> crack : cracks) {
-                        List<TerrainPlan.Point> line = new ArrayList<>();
-                        for (float[] p : crack) line.add(new TerrainPlan.Point(p[0], p[1]));
-                        banks(topology, width, height, line, 1.6, 1.4, open, stones, random);
-                    }
-                    topology.setSignatureMarks(encode(cracks));
+                List<List<float[]>> cracks = cracks(width, height, seed, open);
+                for (List<float[]> crack : cracks) {
+                    List<TerrainPlan.Point> line = new ArrayList<>();
+                    for (float[] p : crack) line.add(new TerrainPlan.Point(p[0], p[1]));
+                    banks(topology, width, height, line, 1.2, .9, open, stones, random);
                 }
+                topology.setSignatureMarks(encode(cracks));
             }
             case CRYO_VENTS -> {
                 float[] vents = vents(width, height, seed, open);
@@ -256,9 +218,9 @@ public final class SignatureGround {
                     double d = segmentDistance(x + .5, y + .5, a, b);
                     double roll = random.nextDouble();
                     int i = y * width + x;
-                    if (d > 4 || !open.test(i)) continue;
+                    if (d > 3 || !open.test(i)) continue;
                     if (d <= crackedTo && roll < .45) topology.setTag(x, y, CellTopology.Tag.GROUND_DAMAGED, true);
-                    if (d > rubbleFrom && roll > (trenches() ? .8 : .93)) stone(topology, x, y, stones, roll > .95 ? "medium-" : "small-", random);
+                    if (d > rubbleFrom && roll > .95) stone(topology, x, y, stones, roll > .95 ? "medium-" : "small-", random);
                 }
             }
         }
@@ -274,31 +236,64 @@ public final class SignatureGround {
         Random random = new Random(seed ^ 0x435241434b53L);
         int wanted = Math.max(2, Math.min(MAX_CRACKS, width * height / CELLS_PER_CRACK));
         List<List<float[]>> out = new ArrayList<>();
+        // Start on open ground: on a settled map most cells are built, and a crack begins only where the ground is.
+        List<Integer> starts = new ArrayList<>();
+        for (int i = 0; i < width * height; i++) if (open.test(i)) starts.add(i);
+        if (starts.isEmpty()) return out;
         int mains = 0;
         for (int attempt = 0; attempt < wanted * 12 && mains < wanted; attempt++) {
-            float widest = CRACK_WIDTH * (.55f + random.nextFloat() * .45f);
-            List<float[]> main = crackLine(random, 6 + random.nextFloat() * (width - 12),
-                    6 + random.nextFloat() * (height - 12), random.nextDouble() * Math.PI * 2,
-                    16 + random.nextInt(16), 1.5, widest);
-            if (!onOpen(main, width, height, open)) continue;
+            float widest = (random.nextInt(SPLIT_ODDS) == 0 ? SPLIT_WIDTH : CRACK_WIDTH) * (.6f + random.nextFloat() * .4f);
+            int start = starts.get(random.nextInt(starts.size()));
+            List<float[]> main = openPart(crackLine(random, start % width + .5f, start / width + .5f,
+                    random.nextDouble() * Math.PI * 2, 16 + random.nextInt(16), 1.5, widest), width, height, open);
+            if (main == null) continue;
             List<List<float[]>> set = new ArrayList<>();
             set.add(main);
-            int branches = 1 + random.nextInt(3);
+            // Branches off the crack, and twigs off some branches: a crack spreads by splitting, not by widening.
+            int branches = 2 + random.nextInt(3);
             for (int b = 0; b < branches; b++) {
-                int at = 2 + random.nextInt(Math.max(1, main.size() - 4));
-                float[] root = main.get(at), next = main.get(Math.min(main.size() - 1, at + 1));
-                double along = Math.atan2(next[1] - root[1], next[0] - root[0]);
-                double off = (random.nextBoolean() ? 1 : -1) * (.5 + random.nextDouble() * .5);
-                List<float[]> branch = crackLine(random, root[0], root[1], along + off, 5 + random.nextInt(6), 1.2,
-                        root[2] * .45f);
-                // A branch leaves the crack at the crack's width there and narrows away from it.
-                branch.get(0)[2] = root[2] * .6f;
-                if (onOpen(branch, width, height, open)) set.add(branch);
+                List<float[]> branch = branch(random, main, 5 + random.nextInt(7), .55f, width, height, open);
+                if (branch == null) continue;
+                set.add(branch);
+                if (random.nextBoolean()) {
+                    List<float[]> twig = branch(random, branch, 3 + random.nextInt(4), .5f, width, height, open);
+                    if (twig != null) set.add(twig);
+                }
             }
             out.addAll(set);
             mains++;
         }
         return out;
+    }
+
+    /** A branch leaving {@code from} at one of its inner points, narrower than it there and closing away from it. */
+    private static List<float[]> branch(Random random, List<float[]> from, int steps, float share, int width,
+                                        int height, IntPredicate open) {
+        if (from.size() < 4) return null;
+        int at = 1 + random.nextInt(from.size() - 2);
+        float[] root = from.get(at), next = from.get(at + 1);
+        double along = Math.atan2(next[1] - root[1], next[0] - root[0]);
+        double off = (random.nextBoolean() ? 1 : -1) * (.45 + random.nextDouble() * .6);
+        List<float[]> branch = openPart(crackLine(random, root[0], root[1], along + off, steps, .9, root[2] * share),
+                width, height, open);
+        if (branch != null) branch.get(0)[2] = root[2] * share;
+        return branch;
+    }
+
+    /** The shortest a crack or branch may be, in points, once cut short where it would leave open ground. */
+    static final int MIN_CRACK_POINTS = 4;
+
+    /**
+     * A line up to the first point off open ground, closing to nothing there; null if too little of it is open.
+     * A crack stops where the ground it runs in stops, so it never runs under a road or a wall.
+     */
+    private static List<float[]> openPart(List<float[]> line, int width, int height, IntPredicate open) {
+        int n = 0;
+        while (n < line.size() && onOpen(line.get(n), width, height, open)) n++;
+        if (n < MIN_CRACK_POINTS) return null;
+        List<float[]> part = new ArrayList<>(line.subList(0, n));
+        part.get(n - 1)[2] = 0f;
+        return part;
     }
 
     /** One jagged line: a slowly turning heading, a fine sideways jitter, and a width swelling then closing. */
@@ -319,12 +314,9 @@ public final class SignatureGround {
         return pts;
     }
 
-    private static boolean onOpen(List<float[]> line, int width, int height, IntPredicate open) {
-        for (float[] p : line) {
-            int x = (int) Math.floor(p[0]), y = (int) Math.floor(p[1]);
-            if (x < 1 || y < 1 || x >= width - 1 || y >= height - 1 || !open.test(y * width + x)) return false;
-        }
-        return true;
+    private static boolean onOpen(float[] p, int width, int height, IntPredicate open) {
+        int x = (int) Math.floor(p[0]), y = (int) Math.floor(p[1]);
+        return x >= 1 && y >= 1 && x < width - 1 && y < height - 1 && open.test(y * width + x);
     }
 
     /** Cracks as marks: each line a header {@code {-1, points, 0}} and then its points' {@code {x, y, width}}. */

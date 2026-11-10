@@ -59,7 +59,7 @@ class MachineFittingRulesTest {
 
     @Test
     void everyWeaponPointIsAuthoredToTheRule() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             for (SocketDef socket : MechFittingLayout.forVariant(variant).sockets()) {
                 if (socket.type().weaponPoint()) assertEquals(MechFittingLayout.WEAPON_POINT_COLUMNS, socket.gridColumns());
             }

@@ -9,10 +9,11 @@ import java.util.Set;
  * {@code battle.world.gen} never sees a game API: the climate counterpart to {@link SurfacePalette}, which says what
  * the ground is made of. {@link ClimateZoning} owns what each vanilla condition means.
  *
- * <p>A settlement adapts to what it lives under ({@code mapgen-nouns.md}, Climate). Today one hazard is built on:
- * {@link Hazard#STORMS} banks the world's ground against the windward face of every wall ({@link StormDrift}, wind from
- * {@link StormWind}). The others are carried so the next adaptations read the same fact rather than a second
- * distillation.
+ * <p>A settlement adapts to what it lives under ({@code mapgen-nouns.md}, Climate). {@link Hazard#STORMS} banks the
+ * world's ground against the windward face of every wall ({@link StormDrift}, wind from {@link StormWind});
+ * {@link Hazard#RADIATION}, {@link Hazard#TOXIC} and {@link Hazard#AIRLESS} decide how its town is built
+ * ({@link HabitatZoning}). {@link Hazard#QUAKES} is carried so the next adaptation reads the same fact rather than a
+ * second distillation.
  *
  * <p>{@code wind} is the side the prevailing wind blows from, one fact for every adaptation that faces it (a drift on
  * a wall's windward face, a storm bank on the town's windward edge). It is the planet's, drawn once from the place

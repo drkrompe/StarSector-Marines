@@ -27,19 +27,6 @@ class SignatureGroundTest {
         }
     }
 
-    /** Trench fissures (the switch's other arm) are the ordinary trench contract: excavations, never raised ground. */
-    @Test
-    void trenchFissuresAreExcavations() {
-        System.setProperty(SignatureGround.FISSURE_TRENCH_PROPERTY, "true");
-        try {
-            List<TerrainPlan.Stroke> strokes = SignatureGround.strokes(SurfaceSignature.FISSURES, 160, 120, 5L);
-            assertFalse(strokes.isEmpty());
-            for (TerrainPlan.Stroke stroke : strokes) assertEquals(TerrainPlan.Mode.EXCAVATE, stroke.mode());
-        } finally {
-            System.clearProperty(SignatureGround.FISSURE_TRENCH_PROPERTY);
-        }
-    }
-
     /** Only crater rims touch the terrain plan by default: crack fissures are drawn, never cut. */
     @Test
     void otherSignaturesAddNoTerrain() {
@@ -49,7 +36,7 @@ class SignatureGroundTest {
         }
     }
 
-    /** A crack lies wholly on open ground and closes to nothing at its far end. */
+    /** A crack lies wholly on open ground, closes to nothing at its far end, and is never wider than a split. */
     @Test
     void cracksStayOnOpenGroundAndClose() {
         int w = 120, h = 90;
@@ -59,6 +46,7 @@ class SignatureGroundTest {
         for (List<float[]> crack : cracks) {
             for (float[] p : crack) assertTrue(open.test((int) p[1] * w + (int) p[0]), "crack on closed ground");
             assertEquals(0f, crack.get(crack.size() - 1)[2]);
+            for (float[] p : crack) assertTrue(p[2] <= SignatureGround.SPLIT_WIDTH, "crack " + p[2] + " cells wide");
         }
     }
 

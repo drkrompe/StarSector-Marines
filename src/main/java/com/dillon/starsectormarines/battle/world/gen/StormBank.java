@@ -58,24 +58,6 @@ public final class StormBank {
     /** Open ground between everything the bank holds and the nearest place's region, cells. */
     public static final int STANDOFF = 6;
 
-    /**
-     * Temporary A/B switch, the storm-bank cards ({@code storm-bank-facing}): {@code LEE} (default, recommended) turns
-     * the town's back to the wind so the bank never lies across the landing; {@code ANY} leaves the drawn orientation,
-     * so on a wind from the landing's side the bank stands across the company's way in. Remove with the losing arm
-     * once the owner picks.
-     */
-    public static final String FACING_PROPERTY = "battle.stormBank.facing";
-    /**
-     * Temporary A/B switch, the storm-bank cards ({@code storm-bank-standoff}): cells of open ground between the
-     * bank's ground and the town's places, {@link #STANDOFF} by default. Fold the pick into {@link #STANDOFF} and
-     * remove once the owner picks.
-     */
-    public static final String STANDOFF_PROPERTY = "battle.stormBank.standoff";
-
-    static int standoff() {
-        return Integer.getInteger(STANDOFF_PROPERTY, STANDOFF);
-    }
-
     private StormBank() { }
 
     /** Whether a settlement on this world banks against its storms: a desert or a rock, with storms. */
@@ -172,7 +154,7 @@ public final class StormBank {
 
     /** How far in from the windward edge the bank holds ground, cells: {@link #reach} without its open standoff. */
     public static int depth(StormWind.Side wind, int width, int height) {
-        return reach(wind, width, height) - standoff();
+        return reach(wind, width, height) - STANDOFF;
     }
 
     /**
@@ -190,7 +172,7 @@ public final class StormBank {
                 deepest = Math.max(deepest, in + 1);
             }
         }
-        return deepest + standoff();
+        return deepest + STANDOFF;
     }
 
     /**
@@ -216,7 +198,6 @@ public final class StormBank {
      * across the company's way in. A wind along the landing's axis decides; one across it leaves the draw as it was.
      */
     public static boolean mirrorX(boolean drawn, StormWind.Side wind) {
-        if ("ANY".equalsIgnoreCase(System.getProperty(FACING_PROPERTY, "LEE"))) return drawn;
         return switch (wind) {
             case WEST -> true;
             case EAST -> false;

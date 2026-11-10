@@ -40,7 +40,7 @@ public final class Cantonment {
         /**
          * The motor pool at the gate: its sheds either side of the avenue just inside the gate, their doors on a
          * hardstand the avenue widens into, so a vehicle drives out of its shed and straight out of the gate. The
-         * quadrangle and the flight line stand behind.
+         * quadrangle stands behind, and the flight line across the back wall.
          */
         YARD,
         /**
@@ -370,7 +370,7 @@ public final class Cantonment {
     /**
      * The motor pool on the avenue. Gate posts either side of the avenue; then the sheds either side of it, each
      * standing with its door end on the avenue where it widens into the hardstand, the depot taking what that band
-     * leaves; then the quadrangle, with the depot down one side of it and the flight line down the other.
+     * leaves; then the quadrangle with the depot down both sides of it, and the flight line against the back wall.
      */
     private void yard(Order o) {
         int inLo = MARGIN, inHi = frame.across() - MARGIN;
@@ -395,7 +395,10 @@ public final class Cantonment {
         }
         int back = depth() - MARGIN;
         streets.add(new Rect(av0, 0, av1 - av0, v + 1));
-        quadrangle(o, depot, v, inLo, inHi, back, true);
+        quadrangle(o, depot, v, inLo, inHi, back);
+        // The flight line against the back wall, nearest the avenue's line: behind the headquarters where the square
+        // is deep enough, beside it where it is not, so the back of the square is used rather than left open.
+        if (o.field != null) flightLine(o.field, away(), inLo, inHi, v, back, true);
         towers(o.towers, inLo, inHi, front, back);
     }
 
@@ -431,7 +434,7 @@ public final class Cantonment {
         pool.add(new Rect(inLo, apronV, inHi - inLo, STAND));
         int quadV = bandEnd + STREET;
         streets.add(new Rect(av0, 0, av1 - av0, quadV + 1));
-        quadrangle(o, new ArrayList<>(o.depot), quadV, inLo, inHi, back, false);
+        quadrangle(o, new ArrayList<>(o.depot), quadV, inLo, inHi, back);
         towers(o.towers, inLo, inHi, front, back);
     }
 
@@ -452,10 +455,9 @@ public final class Cantonment {
     /**
      * The quadrangle from depth {@code v}: the parade ground on the avenue's line with a column of barracks down each
      * side facing it, and the headquarters across its head facing the gate with the messes either hand. Outside the
-     * barracks the depot stands in rows, down both sides, or down the left with the flight line down the right
-     * ({@code fieldRight}), its strip against the wall. Returns the depth it ends at.
+     * barracks the depot stands in rows down both sides. Returns the depth it ends at.
      */
-    private int quadrangle(Order o, List<Want> depot, int v, int inLo, int inHi, int limit, boolean fieldRight) {
+    private int quadrangle(Order o, List<Want> depot, int v, int inLo, int inHi, int limit) {
         List<Want> bl = new ArrayList<>(), br = new ArrayList<>();
         split(o.barracks, bl, br);
         int colAcross = 0;
@@ -484,19 +486,13 @@ public final class Cantonment {
         headDeep = Math.max(headDeep, row(ml, hqLo - ALLEY - 1, -1, hv, Face.FRONT, inLo, inHi));
         headDeep = Math.max(headDeep, row(mr, hqHi + ALLEY, +1, hv, Face.FRONT, inLo, inHi));
         int end = hv + headDeep;
-        // Outside the barracks: the depot, and the flight line.
+        // Outside the barracks: the depot.
         int outL = pLo - STREET - 1 - colAcross - ALLEY;
         int outR = pHi + STREET + colAcross + ALLEY;
-        if (fieldRight && o.field != null) {
-            flightLine(o.field, outward(+1), outR, inHi, v, limit, false);
-            if (airfield != null) end = Math.max(end, airfield.v + airfield.deep);
-            end = Math.max(end, block(depot, outL, -1, v, limit, inLo, inHi));
-        } else {
-            List<Want> dl = new ArrayList<>(), dr = new ArrayList<>();
-            split(depot, dl, dr);
-            end = Math.max(end, block(dl, outL, -1, v, limit, inLo, inHi));
-            end = Math.max(end, block(dr, outR, +1, v, limit, inLo, inHi));
-        }
+        List<Want> dl = new ArrayList<>(), dr = new ArrayList<>();
+        split(depot, dl, dr);
+        end = Math.max(end, block(dl, outL, -1, v, limit, inLo, inHi));
+        end = Math.max(end, block(dr, outR, +1, v, limit, inLo, inHi));
         depot.clear();
         return end;
     }
@@ -535,11 +531,6 @@ public final class Cantonment {
         return AirbaseLot.Facing.valueOf(frame.gate().opposite().name());
     }
 
-    /** The flight line's facing with its strip against the side wall in direction {@code dir} across the place. */
-    private AirbaseLot.Facing outward(int dir) {
-        int[] a = frame.cell(0, 0), b = frame.cell(dir, 0);
-        return AirbaseLot.Facing.valueOf(Side.facing(b[0] - a[0], b[1] - a[1]).name());
-    }
 
     // ---- Rows and columns --------------------------------------------------------------------------------------
 

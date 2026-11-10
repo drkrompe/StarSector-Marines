@@ -32,7 +32,7 @@ public final class StormDrift {
     /** The surface a world's storms drift, or null where they drift nothing. */
     public static String driftSurface(SurfacePalette world) {
         return switch (world) {
-            case ARID, ROCK -> "floors.sand";
+            case ARID, ROCK, IRRADIATED -> "floors.sand";
             case FROZEN -> "floors.snow";
             case VOLCANIC -> "volcanic.ash";
             case VERDANT -> null;
@@ -67,7 +67,7 @@ public final class StormDrift {
     static boolean drifts(CellTopology topology, int x, int y, int k) {
         if (topology.isWall(x, y) || topology.getSurface(x, y) != 0 || paved(topology.roadSurface(), x, y)) return false;
         return switch (topology.getGroundKind(x, y)) {
-            case DIRT, STONE, SAND, SNOW, GRASS, COURTYARD, BRICK -> true;
+            case DIRT, STONE, SAND, SNOW, HARDPAN, GRASS, COURTYARD, BRICK -> true;
             case STREET, SIDEWALK -> k <= STREET_APRON;
             default -> false;
         };

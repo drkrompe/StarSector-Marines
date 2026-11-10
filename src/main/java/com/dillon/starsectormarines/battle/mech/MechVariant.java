@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Stable chassis profiles built from swappable {@link MechWeaponComponent}s. */
 public enum MechVariant {
 
@@ -168,6 +171,13 @@ public enum MechVariant {
      */
     public boolean automated() {
         return this == SECURITY_WALKER;
+    }
+
+    /** Every line the company can field, build, buy or refit: all but the {@link #automated()} ones, in order. */
+    public static List<MechVariant> companyLines() {
+        List<MechVariant> lines = new ArrayList<>();
+        for (MechVariant variant : values()) if (!variant.automated()) lines.add(variant);
+        return lines;
     }
 
     public static MechVariant fromId(String id) {
