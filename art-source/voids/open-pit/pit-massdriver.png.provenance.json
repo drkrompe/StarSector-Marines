@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c596-5053-7501-b278-574216d2d09e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c596-5053-7501-b278-574216d2d09e\\exec-3033462a-adf4-487d-b20e-ef00e99e829d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\open-pit\\pit-massdriver.png",
+    "sha256": "4829e1c0e1d407e665d92e7138fdb83e53deb80c20aa290eeb46cc23a832f60e",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\voids\\open-pit\\pit-massdriver.prompt.txt",
+  "promptSha256": "d4dd4222e97f0d514c5a6e009f70753265bb8b76b65d51c65e1ee9e789327995",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the eight silhouettes, their positions, sizes and headings\nImage 2: Design identity of the machines and their finish; not layout\nImage 3: Rendering finish, detail density and palette at game scale only; not layout\n\nUse case: style-transfer. Asset type: production transparent sprite sheet of eight pieces of a spacefaring colony's open-pit mining megaproject built round an electromagnetic mass driver, for a gritty science-fiction overhead tactical game, seen from straight above.\n\nImage 1 is the authoritative geometry guide and edit target: paint onto these EIGHT exact overhead silhouettes, keeping the 4 columns x 2 rows layout, each piece's position, size, outline and heading (fronts and runs face east, to the right). Do not move, rotate, enlarge or shrink anything.\nImage 2 is the approved concept for this mine (the owner's pick, \"mass driver\"): design identity of the cutting crawler, the crusher and capsule loader, the hover ore haulers with their lift fans, the ribbed mass-driver rail with its coil rings and the glowing ore capsules, and their finish. Not layout or camera.\nImage 3 is this mine's earlier machine sheet already in the game: rendering finish, detail density and palette at game scale only.\n\nEight pieces in reading order:\n1. Cutting crawler: a building-sized excavator on four heavy track units, a plated main hull with power house and a slewing housing, a heavy boom reaching forward to a wide toothed cutting drum across its front, a discharge boom reaching back.\n2. Crusher and capsule loader on two long tracks: an open hopper at the front (east) with broken ore in its dark mouth, a round crusher drum housing in the middle, a capsule magazine behind with sealed capsules racked side by side, and at the back (west) a glowing breech where the mass-driver rail starts.\n3. Hover ore hauler, LOADED: a long plated spine with an open ore bed heaped with broken rust-brown and grey ore, a drive and sensor block at the front, and four ducted lift-fan rings at its corners seen from above, fan blades blurred, small orange hub lights. No wheels, no tracks.\n4. The same hover hauler EMPTY: its bed's scuffed steel floor showing.\n5. Drilling gantry: a beam on four tracked leg bogies, a row of five drill masts down the beam seen from above as round drill heads, a hazard-striped power cabinet.\n6. Catch station: a square plated rim building; the mass-driver rail enters on the west side through a bank of copper decelerator coils, a roofed unloading hall with a capsule tipper in the middle, a small conveyor outlet on the east side.\n7. Mass-driver rail bay: one module of a long straight launch track, a dark ribbed trough between two guide rails, with one heavy copper coil ring wrapped round it across the middle; cut flush and square at both ends so modules join end to end.\n8. Ore capsule: a sealed banded steel capsule, its nose glowing orange-hot.\n\nDomain-era spacefaring industry, as in image 2: heavy, worn, repaired and hard-used; plated and ribbed hulls, lattice members, thick cable runs, grime, rust streaks, faded hazard striping, small sodium-orange work lights, copper coils. Grey-brown steel with rust and ochre accents; no glossy paint, no modern Earth trucks, excavators or helicopters.\n\nTRUE ORTHOGRAPHIC ZENITH CAMERA looking straight DOWN: no visible vertical side walls, no perspective or isometric view. Tracks show only their tread tops. Grounded painted Starsector-style sprite aesthetic: no chunky pixel-art outlines, no cartoon style. Keep broad readable forms at small game scale. Soft neutral overhead light, shallow local contact shading only, no cast shadow.\n\nTrue alpha transparency around every piece, including the gaps between tracks, legs, fans and booms; no ground, no dirt patch, no shadow slab, no background, no border, no labels, no text, no watermark. Paint only the eight pieces; nothing outside their silhouettes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\open-pit\\massdriver-guide.png",
+      "sha256": "65cbf387a1037f04612963d8420963a2b4a84f9271b1040af15af3f42bb44b61",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the eight silhouettes, their positions, sizes and headings"
+    },
+    {
+      "path": "art-source\\voids\\open-pit\\concept-mass-driver.png",
+      "sha256": "38ab0d668d14c445a69706210923f2250e59bae1653d95ee03b80e0f739e46d7",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Design identity of the machines and their finish; not layout"
+    },
+    {
+      "path": "art-source\\voids\\open-pit\\pit-megaworks.png",
+      "sha256": "0b2dae7b827df8da91ee235f4312dbb2e06e8751d00cd9ca420210ed5290aefa",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGBA",
+      "role": "Rendering finish, detail density and palette at game scale only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet, using Image 1 as the exact geometry guide and Images 2–3 for the design and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 53210,
+    "cached_input_tokens": 39424,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 943,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 77.1
+}

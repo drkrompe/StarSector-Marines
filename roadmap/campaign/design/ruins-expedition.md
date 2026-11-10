@@ -659,6 +659,31 @@ The crucible art and the engineered lip are the art session's, to the piece
 list in the shared note `ruins-forge-area.md`. Picture cards:
 `createSnapshots -Psnapshot=ruins-forge-picks`.
 
+**Themed halls are environments** (owner: "for things like ice etc we have a
+lot of environmental tools that allow us to make much more compelling
+environments than a concrete block"; pick `ruins-themed-environments` open,
+building on a). A themed plant's halls are its ground, not a concrete room with
+themed props in it: a cryo plant is iced over, rime banked on its walls; a
+nanite plant is earth, growth and standing water; a lamp works is scorched,
+with coolant pooled at its junctions. The ground is the game's own climate
+tools on the hall's cells (surface skins, shallows, the lava drop, floor
+patches, wall banks in the way storm drifts bank), laid by coordinate noise so
+the layout never changes with the theme, densest at its source and thinning to
+bare slab at the hall's mouths. Its rules are those of the tools: a skin is
+look only, shallows are a wade, melt is a drop.
+
+| Option | Reach |
+| --- | --- |
+| a (recommended) | Every themed hall is its ground, the secure store most of all |
+| b | The theme deepens with the delve: bare at the entrances, full in the secure store |
+| c | As a, and it spills out of the plant's entrances into the dead town |
+
+What the tools lack indoors is the work: soft edges between skins (outdoor
+ground feathers; a hall floor ends in hard cell steps), ice, rime, biofilm and
+coolant skins, static glow lights and vent emitters. The plan by theme is the
+shared note `ruins-themed-environments.md`. Picture options:
+`createSnapshots -Psnapshot=ruins-environment-picks`.
+
 **Part of the dead town is a port** (owner, with pick `ruins-vault-facility`:
 "We might even devote part of the towns construction outside to be ruins for a
 large port"; pick `ruins-port` open, building on a). A plant shipped what it
