@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a2-e8ae-7461-8329-30d2f69a013b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a2-e8ae-7461-8329-30d2f69a013b\\exec-766023af-2b06-4f0b-9da8-91204e90cc3a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\toxic-ground\\sulphur-master.png",
+    "sha256": "ecea988bda60e23fa4b5fb212cb2060320ee4823914f1958234329a79049bdd9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\toxic-ground\\sulphur-master.prompt.txt",
+  "promptSha256": "f555b9ce99be4a5c63146971ee5491ec68796122286bc4a25bd28732e9f81e32",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: how flat, fine and low-contrast a ground tile is; not its colour\n\nUse case: tileable ground material for a top-down tactical game. Image 1 is a FORMAT reference only: a shipped ground tile showing how flat, fine and low-contrast the surface must be. Its grey colour is NOT the colour to use.\nA wide square canvas filled edge to edge with one continuous ground surface, seen STRAIGHT DOWN, orthographic, with flat even overcast light: no directional lighting, no highlights, no shadows, no vignette, no horizon.\nThe material: a crusted chemical deposit flat on a toxic world. Brittle sulphur and mineral salt crust over dark grit: dull mustard-yellow and pale chartreuse crust broken into small irregular plates, with darker olive-brown grit in the hairline gaps between them, a few rust-orange and grey-green mineral stains. Average colour a muted dirty mustard around RGB (150, 138, 72). Dull and dusty, not neon, not glowing, not bright lemon.\nFine detail only: the plates are small, nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No rocks, pools, puddles, plants, objects, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: how flat, fine and low-contrast a ground tile is; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, fine-grained sulphur-crust tile using the reference for texture scale and contrast.\n"
+  ],
+  "usage": {
+    "input_tokens": 37634,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 336,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 36.9
+}

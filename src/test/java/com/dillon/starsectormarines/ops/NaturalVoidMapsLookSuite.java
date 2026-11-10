@@ -43,6 +43,9 @@ public final class NaturalVoidMapsLookSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         String was = System.getProperty("battle.mapgen.naturalVoids");
         System.setProperty("battle.mapgen.naturalVoids", "1");
+        // A frozen map here shows its crevasse drop, not a crevasse town (crevasse-town-look shows those).
+        String wasTowns = System.getProperty("battle.mapgen.crevasseTowns");
+        System.setProperty("battle.mapgen.crevasseTowns", "0");
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
@@ -64,6 +67,8 @@ public final class NaturalVoidMapsLookSuite implements SnapshotSuite {
         } finally {
             if (was == null) System.clearProperty("battle.mapgen.naturalVoids");
             else System.setProperty("battle.mapgen.naturalVoids", was);
+            if (wasTowns == null) System.clearProperty("battle.mapgen.crevasseTowns");
+            else System.setProperty("battle.mapgen.crevasseTowns", wasTowns);
         }
     }
 

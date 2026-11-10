@@ -22,6 +22,7 @@
     { "tileset": "Floors_Tiles.tileset.json" },
     { "tileset": "nature-tiles.tileset.json" },
     { "tileset": "urban-tileset-3.tileset.json" },
-    { "tileset": "urban-tileset-2.tileset.json" }
+    { "tileset": "urban-tileset-2.tileset.json" },
+    { "tileset": "toxic-ground.tileset.json" }
   ]
 }
