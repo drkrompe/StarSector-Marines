@@ -17,7 +17,9 @@ import com.dillon.starsectormarines.battle.world.gen.layout.RoadCourse;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
@@ -76,6 +78,15 @@ public final class MilitaryWorks implements RaidIndustry {
     @Override public String key() { return "military"; }
 
     @Override public Set<String> industryIds() { return Set.of("militarybase", "patrolhq", "highcommand"); }
+
+    /**
+     * The motor pool stands against the garrison's flank, between it and the town, so the barracks, the parade
+     * ground, the sheds and the magazine read as one base inside its perimeter rather than a fort beside a works.
+     * UNTUNED.
+     */
+    static final MapPlacement WORKS_AT = new MapPlacement(0.66f, 0.38f, 0.86f, 0.58f);
+
+    @Override public MapPlacement worksAt() { return WORKS_AT; }
 
     @Override public float worksFit() { return RaidSiteTemplate.MINE_FIT; }
 
@@ -208,11 +219,13 @@ public final class MilitaryWorks implements RaidIndustry {
     }
 
     /**
-     * The base at work: the vehicle park's ranks on the open yard; trucks in rows by the motor sheds and oil drums at
-     * their corners; pallets and crates along the supply depot and a cargo truck at it; a tanker, a tank and drums at the fuel point; sandbags round the magazine;
-     * the radar mast by dispatch.
+     * The base at work: a belt of hedgehogs round its wall and a sandbagged checkpoint at every gate; the vehicle
+     * park's ranks on the open yard; trucks in rows by the motor sheds and oil drums at their corners; pallets and
+     * crates along the supply depot and a cargo truck at it; a tanker, a tank and drums at the fuel point; sandbags
+     * round the magazine; the radar mast by dispatch.
      */
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
+        perimeter(c, plan, works);
         vehiclePark(c, plan, works);
         int n = 0;
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
@@ -231,6 +244,76 @@ public final class MilitaryWorks implements RaidIndustry {
                 default -> { }
             }
         }
+    }
+
+    /** Cells out from the works' ground the hedgehog belt runs, and cells between two hedgehogs along it. UNTUNED. */
+    static final int BELT_OUT = 2, BELT_STEP = 3;
+    /** Cells out from a gate's mouth its checkpoint's sandbag positions stand, and to either side of the gate. UNTUNED. */
+    static final int CHECKPOINT_OUT = 2, CHECKPOINT_ASIDE = 2, CHECKPOINT_RUN = 3;
+
+    /**
+     * The base's perimeter: a hedgehog belt {@link #BELT_OUT} cells outside its ground, every {@link #BELT_STEP}th
+     * cell so a man can pass between two (never across a road, which stays open), and at each gate a checkpoint, a
+     * run of sandbags either side of the mouth facing out.
+     */
+    private static void perimeter(GenContext c, PrecinctPlan plan, Precinct works) {
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM), owner = c.get(BspKeys.PRECINCT_ROAD);
+        int index = plan.precincts().indexOf(works);
+        if (claim == null || index < 0) return;
+        int step = 0;
+        for (int x = 0; x < c.width; x++) {
+            for (int y = 0; y < c.height; y++) {
+                if (claim[x][y] != GrownTrunkPlan.UNOWNED || distanceTo(claim, index, x, y, BELT_OUT) != BELT_OUT) continue;
+                if ((x + y) % BELT_STEP == 0) WorksProps.place(c, x, y, "doodad.fort-hedgehog", 0);
+            }
+        }
+        if (owner == null) return;
+        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, owner, index, c.width, c.height,
+                Integer.MAX_VALUE)) {
+            checkpoint(c, claim, index, gate);
+        }
+    }
+
+    /** A sandbag run either side of a gate's mouth, {@link #CHECKPOINT_OUT} cells out, facing away from the works. */
+    private static void checkpoint(GenContext c, int[][] claim, int index, PrecinctBoundary.Gate gate) {
+        if (gate.cells().isEmpty()) return;
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = -1, maxY = -1;
+        for (int[] cell : gate.cells()) {
+            minX = Math.min(minX, cell[0]); minY = Math.min(minY, cell[1]);
+            maxX = Math.max(maxX, cell[0]); maxY = Math.max(maxY, cell[1]);
+        }
+        int cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        for (Side out : Side.values()) {
+            int ox = cx + out.dx * (CHECKPOINT_OUT + 1), oy = cy + out.dy * (CHECKPOINT_OUT + 1);
+            if (!c.grid.inBounds(ox, oy) || claim[ox][oy] == index) continue;
+            // The mouth runs across the outward side; its sandbags stand beyond each end of it.
+            boolean across = out.dx == 0;
+            int lo = across ? minX : minY, hi = across ? maxX : maxY;
+            String facing = "doodad.sandbag-straight-" + out.name().substring(0, 1).toLowerCase(Locale.ROOT);
+            for (int k = 0; k < CHECKPOINT_RUN; k++) {
+                int a = lo - CHECKPOINT_ASIDE - 1 - k, b = hi + CHECKPOINT_ASIDE + 1 + k;
+                int line = (across ? cy : cx) + (across ? out.dy : out.dx) * CHECKPOINT_OUT;
+                WorksProps.place(c, across ? a : line, across ? line : a, facing, 0);
+                WorksProps.place(c, across ? b : line, across ? line : b, facing, 0);
+            }
+            return;
+        }
+    }
+
+    /** Chebyshev distance from {@code (x, y)} to the nearest cell of place {@code index}, up to {@code most + 1}. */
+    private static int distanceTo(int[][] claim, int index, int x, int y, int most) {
+        for (int r = 1; r <= most; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && ny >= 0 && nx < claim.length && ny < claim[0].length && claim[nx][ny] == index) {
+                        return r;
+                    }
+                }
+            }
+        }
+        return most + 1;
     }
 
     /** Cells between ranks of the vehicle park, and between vehicles along a rank. UNTUNED. */
@@ -259,7 +342,7 @@ public final class MilitaryWorks implements RaidIndustry {
         for (int y = y0 + PARK_CLEAR; y <= y1 - PARK_CLEAR && placed < PARK_MOST; y += PARK_RANKS) {
             for (int x = x0 + PARK_CLEAR; x <= x1 - PARK_CLEAR && placed < PARK_MOST; x += PARK_FILE) {
                 if (claim[x][y] != index || nearBuilding(c, x, y, PARK_CLEAR)) continue;
-                if (WorksProps.place(c, x, y, TRUCKS.get(placed % TRUCKS.size()), 1)) placed++;
+                if (WorksProps.place(c, x, y, ARMOUR.get(placed % ARMOUR.size()), 1)) placed++;
             }
         }
     }
@@ -275,13 +358,13 @@ public final class MilitaryWorks implements RaidIndustry {
         return false;
     }
 
-    private static final List<String> TRUCKS = List.of("doodad.parked-cargo-truck", "doodad.parked-flatbed-truck",
-            "doodad.parked-utility-truck");
+    /** The patrols' own vehicles: armoured personnel carriers, the base's whole fleet but its logistics trucks. */
+    private static final List<String> ARMOUR = List.of("doodad.parked-armored-apc");
 
     /** A row of patrol trucks along a motor shed's long side, and drums at its corner. */
     private static void motorPark(GenContext c, PointOfInterest shed, int n) {
         List<String> row = new ArrayList<>();
-        for (int i = 0; i < 3; i++) row.add(TRUCKS.get((n + i) % TRUCKS.size()));
+        for (int i = 0; i < 3; i++) row.add(ARMOUR.get((n + i) % ARMOUR.size()));
         aside(c, shed, 2, row, 3);
         corner(c, shed, "doodad.industrial-drum-cluster");
     }
