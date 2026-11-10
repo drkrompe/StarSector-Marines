@@ -71,8 +71,10 @@ class VehicleFootprintSpriteTest {
     /** The opaque extent of the hull's live frame, {long, wide}, in cells at the scale the hull is drawn. */
     static float[] paintedCells(BufferedImage sheet, VehicleType type) {
         int frameWidth = sheet.getWidth() / type.frameCount, x0 = type.spriteFrame * frameWidth;
+        // An articulated hull's sheet holds its whole hull in the top row, its segments in the rows below.
+        int rows = type.articulation() != null ? type.articulation().sheetRows() : 1;
         int left = Integer.MAX_VALUE, right = -1, top = Integer.MAX_VALUE, bottom = -1;
-        for (int y = 0; y < sheet.getHeight(); y++) {
+        for (int y = 0; y < sheet.getHeight() / rows; y++) {
             for (int x = x0; x < x0 + frameWidth; x++) {
                 if ((sheet.getRGB(x, y) >>> 24) <= 32) continue;
                 left = Math.min(left, x);

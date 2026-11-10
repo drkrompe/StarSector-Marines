@@ -189,7 +189,8 @@ public final class DamageDollCanvas implements CanvasProducer {
     /** The doll a vehicle line draws as; variants of a family share one. */
     public static String dollPath(VehicleType type) {
         String name = switch (type) {
-            case HEAVY_APC, FIRE_SUPPORT_APC -> "apc";
+            // The midline carriers are wheeled hulls with one turret ring: the APC's doll stands in until they have one.
+            case HEAVY_APC, FIRE_SUPPORT_APC, LIGHT_CARRIER, MEDIUM_CARRIER, HEAVY_CARRIER -> "apc";
             case BREAKTHROUGH_TANK, LASER_TANK -> "tank";
             case MEDIUM_TANK -> "tank-medium";
             case MILITIA_TECHNICAL -> "technical";
