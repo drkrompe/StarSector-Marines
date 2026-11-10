@@ -280,10 +280,10 @@ of each pick, slice 3's comms lines.
   hunting, then opened (`MapEditor.openPassage`). A hall-bound frame is given
   the dead door on its hall's face (`deadDoorOf`); once its zone is awake it
   walks there (`Kind.FORCE`) and its `Ram` opens the door's end cells, freeing
-  it. Drawing a forced door as forced and a bulkhead as a hall door waits on a
-  runtime door-state hook from the doors' owner.
+  it. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
+  sealed and opened at hunting, a rammed door forced.
 
-Not built yet: the drawing of forced doors and bulkheads (above);
+Not built yet:
 the vent and wreck markers and the drone's sparks over a wreck; the housings'
 own looks.
 

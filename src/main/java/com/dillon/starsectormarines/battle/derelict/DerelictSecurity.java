@@ -245,7 +245,7 @@ public final class DerelictSecurity {
             for (RuinsDelve.PlantHall hall : delve.interior().halls()) halls.add(hall.footprint());
             NavigationGrid grid = sim.getGrid();
             CellTopology topology = sim.getTopology();
-            director.layBulkheads(Bulkheads.lay(new Bulkheads.Ground() {
+            director.layBulkheads(sim, Bulkheads.lay(new Bulkheads.Ground() {
                 public int width() { return grid.getWidth(); }
 
                 public int height() { return grid.getHeight(); }

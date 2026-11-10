@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Picture cards for the derelict watch's four picks (`derelict-watch.md`), on the vast derelict ruin through the look
@@ -50,6 +52,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
             waking(context, fixture, out);
             sizes(context, fixture, out);
             repair(context, fixture, out);
+            doors(context, fixture, out);
             return out;
         }
     }
@@ -180,6 +183,76 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         add(out, "waking/b-depth.png", pair(outerRoused, innerQuiet));
         add(out, "waking/c-breach-only.png", outerQuiet);
         add(out, "waking/today-quiet.png", outerQuiet);
+    }
+
+    // ---- doors: a bulkhead sealed and opened, a dead door forced by a hall frame ----
+
+    private static void doors(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
+            throws Exception {
+        BattleSimulation sim = settled(fixture, SETTLE_TICKS);
+        DerelictSecurityDirector director = sim.derelictSecurity();
+        if (!director.bulkheads().isEmpty()) {
+            RuinsDelve.Area span = director.bulkheads().get(0).door().span();
+            float x = span.centreX() + 1f, y = span.centreY() + 0.5f;
+            log("bulkhead at (%d, %d) %s", span.left(), span.bottom(),
+                    sim.getRuinsWorks().doorStates().stanceOf(director.bulkheads().get(0).door()));
+            BufferedImage sealed = look(context, sim, x, y, CLOSE, true, "doors-bulkhead-sealed");
+            director.wake().advance(FacilityWake.Stage.HUNTING);
+            play(sim, 60);
+            log("bulkhead opened %s, now %s", director.bulkheadsOpened(),
+                    sim.getRuinsWorks().doorStates().stanceOf(director.bulkheads().get(0).door()));
+            BufferedImage open = look(context, sim, x, y, CLOSE, true, "doors-bulkhead-open");
+            add(out, "doors/bulkhead-sealed.png", sealed);
+            add(out, "doors/bulkhead-open.png", open);
+        }
+        BattleSimulation rammed = settled(fixture, SETTLE_TICKS);
+        DerelictSecurityDirector network = rammed.derelictSecurity();
+        RuinsDelve.LeafDoor door = null;
+        for (DerelictSecurityDirector.Walker w : network.walkers()) {
+            if (w.frame() != DerelictWalkerFrame.HALL) continue;
+            RuinsDelve.LeafDoor dead = DerelictSecurity.deadDoorOf(rammed.getRuinsWorks().delve(), w.postX(), w.postY());
+            if (dead == null) continue;
+            door = dead;
+            network.network().stir(w.zoneId(), rammed.getSimTickIndex());
+            break;
+        }
+        boolean standIn = door == null;
+        if (standIn) {
+            // No hall frame is shut in on this site: the first dead hall door is forced by the director's own calls.
+            for (RuinsDelve.LeafDoor d : rammed.getRuinsWorks().doorStates().doors()) {
+                if (d.stance() == RuinsDelve.DoorStance.DEAD
+                        || (door == null && !d.cargo() && d.length() >= 3 && d.stance() == RuinsDelve.DoorStance.ANSWERS)) {
+                    door = d;
+                    if (d.stance() == RuinsDelve.DoorStance.DEAD) break;
+                }
+            }
+            if (door == null) {
+                Map<Object, Integer> n = new TreeMap<>();
+                for (RuinsDelve.LeafDoor d : rammed.getRuinsWorks().doorStates().doors()) {
+                    n.merge(d.stance() + (d.cargo() ? "/cargo" : "") + "/" + d.length(), 1, Integer::sum);
+                }
+                log("no dead door on this site: %s", n);
+                return;
+            }
+            log("no hall frame with a dead door on this site; forcing the %s door at (%d, %d) by the director's calls",
+                    door.stance(), door.span().left(), door.span().bottom());
+        }
+        float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
+        BufferedImage before = look(context, rammed, x, y, CLOSE, true, "doors-dead");
+        if (standIn) {
+            RuinsDelve.Area span = door.span();
+            if (door.stance() == RuinsDelve.DoorStance.DEAD) {
+                rammed.mapEditor().openPassage(span.left(), span.bottom(), span.centreX(), span.centreY());
+                rammed.mapEditor().openPassage(span.right(), span.top(), span.centreX(), span.centreY());
+            }
+            rammed.getRuinsWorks().doorStates().force(door);
+        }
+        for (int t = 0; t < 3000 && !standIn && network.forcedDoors().isEmpty(); t += 60) play(rammed, 60);
+        log("forced %d doors by t=%d, stance %s", network.forcedDoors().size(), rammed.getSimTickIndex(),
+                rammed.getRuinsWorks().doorStates().stanceOf(door));
+        play(rammed, 60);
+        add(out, "doors/dead-before.png", before);
+        add(out, "doors/forced.png", look(context, rammed, x, y, CLOSE, true, "doors-forced"));
     }
 
     // ---- walker sizes ----

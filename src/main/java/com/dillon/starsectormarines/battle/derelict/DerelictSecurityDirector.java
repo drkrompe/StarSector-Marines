@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
+import com.dillon.starsectormarines.battle.ruins.RuinsDoorStates;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService.ChargeView;
 import com.dillon.starsectormarines.battle.modifier.UnitModifier;
@@ -472,9 +473,20 @@ public final class DerelictSecurityDirector {
         return Collections.unmodifiableList(forced);
     }
 
-    /** Lays the site's security bulkheads, shut until the hunting stage. */
-    public void layBulkheads(List<Bulkheads.Bulkhead> laid) {
+    /** Lays the site's security bulkheads, shut until the hunting stage, each drawn sealed meanwhile. */
+    public void layBulkheads(BattleSimulation sim, List<Bulkheads.Bulkhead> laid) {
         bulkheads = List.copyOf(laid);
+        RuinsDoorStates doors = doorStates(sim);
+        if (doors == null) return;
+        for (Bulkheads.Bulkhead bulkhead : bulkheads) {
+            if (doors.stanceOf(bulkhead.door()) == null) doors.add(bulkhead.door(), RuinsDelve.DoorStance.SEALED);
+        }
+    }
+
+    /** The site's leaf doors as drawn, or null on ground with none. */
+    private static RuinsDoorStates doorStates(BattleSimulation sim) {
+        RuinsWorks works = sim.getRuinsWorks();
+        return works == null ? null : works.doorStates();
     }
 
     public List<Bulkheads.Bulkhead> bulkheads() {
@@ -812,8 +824,12 @@ public final class DerelictSecurityDirector {
         wake.sound(network);
         if (wake.stage().bulkheadsOpen() && !bulkheadsOpened) {
             bulkheadsOpened = true;
+            RuinsDoorStates doors = doorStates(sim);
             for (Bulkheads.Bulkhead bulkhead : bulkheads) {
                 for (int[] c : bulkhead.cells()) sim.mapEditor().openPassage(c[0], c[1], bulkhead.likeX(), bulkhead.likeY());
+                if (doors != null && doors.stanceOf(bulkhead.door()) == RuinsDelve.DoorStance.SEALED) {
+                    doors.open(bulkhead.door());
+                }
             }
         }
     }
@@ -836,6 +852,8 @@ public final class DerelictSecurityDirector {
             sim.mapEditor().openPassage(span.left(), span.bottom(), likeX, likeY);
             sim.mapEditor().openPassage(span.right(), span.top(), likeX, likeY);
             forced.add(door);
+            RuinsDoorStates doors = doorStates(sim);
+            if (doors != null && doors.stanceOf(door) == RuinsDelve.DoorStance.DEAD) doors.force(door);
             hallBound.remove(walker.squadId());
             return order;
         }
