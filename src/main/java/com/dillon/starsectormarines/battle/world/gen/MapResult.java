@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.door.WallGate;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -217,6 +218,12 @@ public final class MapResult {
     public final RuinsDelve ruinsDelve;
     /** The gates in walled places' walls, hung with sliding leaves ({@link WallGate}); empty where none. */
     public final List<WallGate> wallGates;
+    /**
+     * The fields the map's colony works ({@code story-map-pools.md}, Planet skin): every crop, grain, pasture and
+     * fallow plot laid as worked ground, so a skin can say what each becomes on a world where open fields make no
+     * sense. Empty on a map with none, and never null.
+     */
+    public final List<RuralLayout.Plot> fields;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -491,6 +498,7 @@ public final class MapResult {
         this.industrialZones = List.of();
         this.ruinsDelve = null;
         this.wallGates = List.of();
+        this.fields = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
@@ -563,7 +571,8 @@ public final class MapResult {
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
                       List<MainStreet> streets, List<CordonedFacility> facilities,
-                      List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates) {
+                      List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates,
+                      List<RuralLayout.Plot> worked) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -599,5 +608,25 @@ public final class MapResult {
         industrialZones = zones;
         ruinsDelve = delve;
         wallGates = gates;
+        fields = worked;
+    }
+
+    /** The same map, carrying the fields its colony works. */
+    public MapResult withFields(List<RuralLayout.Plot> worked) {
+        return new MapResult(this, worked == null ? List.of() : List.copyOf(worked));
+    }
+
+    private MapResult(MapResult base, List<RuralLayout.Plot> worked) {
+        this(base, base.initialDamage, base.fieldOfFire, base.layout, base.loadingBays, base.openSquares,
+                base.serviceLanes, base.mainStreets, base.cordonedFacilities, base.industrialZones, base.ruinsDelve,
+                base.wallGates, worked);
+    }
+
+    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
+                      List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
+                      List<MainStreet> streets, List<CordonedFacility> facilities,
+                      List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates) {
+        this(base, damage, field, laid, bays, squares, laidLanes, streets, facilities, zones, delve, gates,
+                base.fields);
     }
 }

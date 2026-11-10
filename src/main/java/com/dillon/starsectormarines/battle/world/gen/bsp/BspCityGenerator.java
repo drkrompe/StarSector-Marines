@@ -949,7 +949,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withCordonedFacilities(ctx.cordonedFacilities)
                 .withIndustrialZones(ctx.industrialZones)
                 .withRuinsDelve(ctx.get(RuinsKeys.DELVE))
-                .withWallGates(ctx.wallGates);
+                .withWallGates(ctx.wallGates)
+                .withFields(ctx.get(BspKeys.WORKED_FIELDS));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

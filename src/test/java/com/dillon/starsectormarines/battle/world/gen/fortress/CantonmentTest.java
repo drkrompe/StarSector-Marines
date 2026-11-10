@@ -18,8 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The garrison laid as an installation ({@code raid-mission.md}, Garrison district): what it owes by market and
  * security, that the layout seats it on its own square from any gate side, never on a road, that every door opens on
- * open ground, that every vehicle shed has a paved way out of the gate no building stands on, and that the gate is
- * where the town's road comes in.
+ * paving, that every vehicle shed has a paved way out of the gate no building stands on, that every gate's road
+ * reaches the avenue, that a supply truck's round serves the depot, the fuel point and the yard, and that the gate
+ * is where the town's road comes in.
  */
 class CantonmentTest {
 
@@ -90,19 +91,79 @@ class CantonmentTest {
     }
 
     @Test
-    void theHeadquartersFacesTheGateAcrossTheParadeGround() {
+    void commandStandsBehindTheParadeGroundFacingTheGate() {
         int side = Cantonment.side(GUARDED_FIVE);
         Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, Side.SOUTH, side / 2,
                 GUARDED_FIVE);
         RoomPacker.Placed hq = laid.rooms().stream()
                 .filter(r -> r.purpose() == RoomPurpose.KEEP_THRONE).findFirst().orElseThrow();
-        int hqX = hq.originX() + hq.shape().width() / 2;
-        assertTrue(Math.abs(hqX - side / 2) <= 1, "the headquarters stands on the avenue's line");
         double paradeY = laid.parade().stream().mapToInt(c -> c[1]).average().orElseThrow();
         assertTrue(laid.gate()[1] < paradeY && paradeY < hq.originY(),
                 "gate, parade ground, headquarters, in that order");
         for (Doorway door : hq.doors()) {
-            assertTrue(door.y() < hq.originY(), "its door faces the parade ground");
+            assertTrue(door.y() < hq.originY(), "its door faces the gate");
+        }
+    }
+
+    @Test
+    void everyGateRoadReachesTheAvenue() {
+        for (FortressProgram program : PROGRAMS) {
+            int side = Cantonment.side(program) + Cantonment.ROAD_SLACK;
+            int lo = 5, hi = 4 + side, mid = 5 + side / 2;
+            // Further gates in the middle of the three other sides, the town's roads stopping at the wall.
+            List<int[]> further = List.of(new int[]{lo, mid}, new int[]{hi, mid}, new int[]{mid, hi});
+            Cantonment.Laid laid = Cantonment.lay(open(side + 10, side + 10), lo, lo, hi, hi, Side.SOUTH, mid,
+                    program, further);
+            boolean[][] paved = paved(laid, side + 10, side + 10);
+            for (int[] gate : further) {
+                assertTrue(reaches(paved, gate, laid.gate()),
+                        "the road in at " + gate[0] + "," + gate[1] + " reaches the avenue on paving");
+            }
+            assertApart(laid, open(side + 10, side + 10));
+        }
+    }
+
+    @Test
+    void aSupplyTruckUnloadsAtTheDepotFuelsAndParksBeforeDrivingOut() {
+        for (FortressProgram program : PROGRAMS) {
+            int side = Cantonment.side(program) + Cantonment.ROAD_SLACK;
+            Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, Side.EAST, side / 2,
+                    program);
+            List<int[]> route = laid.truckRoute();
+            assertFalse(route.isEmpty(), "the truck has a way round");
+            assertTrue(Arrays.equals(laid.gate(), route.get(0))
+                    && Arrays.equals(laid.gate(), route.get(route.size() - 1)), "it comes in at the gate and leaves by it");
+            boolean[][] paved = paved(laid, side, side);
+            for (int[] c : route) assertTrue(paved[c[0]][c[1]], "it keeps to the paving at " + c[0] + "," + c[1]);
+            assertTrue(touches(route, laid.apron()), "it stands on the depot's unloading apron");
+            assertTrue(touches(route, laid.pool()), "it parks on the motor yard's hardstand");
+            assertTrue(byDoor(route, laid, RoomPurpose.STOCKROOM, 6), "it stops at the fuel point's door");
+            if (laid.airfield() != null) {
+                assertFalse(laid.flightRoute().isEmpty(), "the flight line has its own round");
+                assertTrue(byDoor(laid.flightRoute(), laid, RoomPurpose.ARMORY, -1), "from the armoury's door");
+            }
+        }
+    }
+
+    @Test
+    void everyBuildingOpensOnPaving() {
+        for (FortressProgram program : PROGRAMS) {
+            int side = Cantonment.side(program) + Cantonment.ROAD_SLACK;
+            Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, Side.NORTH, side / 2,
+                    program);
+            boolean[][] paved = paved(laid, side, side);
+            for (RoomPacker.Placed room : laid.rooms()) {
+                if (room.purpose() == RoomPurpose.CONTROL_ROOM) continue;   // a post watches; it is not served
+                boolean onPaving = false;
+                for (Doorway door : room.doors()) {
+                    for (int[] s : STEPS) {
+                        int x = door.x() + s[0], y = door.y() + s[1];
+                        onPaving |= x >= 0 && y >= 0 && x < side && y < side && paved[x][y];
+                    }
+                }
+                assertTrue(onPaving, room.purpose() + " at " + room.originX() + "," + room.originY()
+                        + " opens on a street, the hardstand, the apron or the parade ground");
+            }
         }
     }
 
@@ -233,6 +294,57 @@ class CantonmentTest {
         assertTrue(ground[x][y], room.purpose() + " stands on ground it may build on at " + x + "," + y);
         assertTrue(owner[x][y] < 0 || owner[x][y] == i, room.purpose() + " overlaps another building at " + x + "," + y);
         owner[x][y] = i;
+    }
+
+    private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    /** The streets, hardstand, apron and parade ground. */
+    private static boolean[][] paved(Cantonment.Laid laid, int w, int h) {
+        boolean[][] paved = new boolean[w][h];
+        for (List<int[]> cells : List.of(laid.streets(), laid.pool(), laid.apron(), laid.parade())) {
+            for (int[] c : cells) paved[c[0]][c[1]] = true;
+        }
+        return paved;
+    }
+
+    /** Whether {@code to} is reached from {@code from} over {@code paved} cells. */
+    private static boolean reaches(boolean[][] paved, int[] from, int[] to) {
+        int w = paved.length, h = paved[0].length;
+        boolean[][] seen = new boolean[w][h];
+        Deque<int[]> open = new ArrayDeque<>();
+        open.add(from);
+        seen[from[0]][from[1]] = true;
+        while (!open.isEmpty()) {
+            int[] c = open.poll();
+            if (c[0] == to[0] && c[1] == to[1]) return true;
+            for (int[] s : STEPS) {
+                int x = c[0] + s[0], y = c[1] + s[1];
+                if (x < 0 || y < 0 || x >= w || y >= h || seen[x][y] || !paved[x][y]) continue;
+                seen[x][y] = true;
+                open.add(new int[]{x, y});
+            }
+        }
+        return false;
+    }
+
+    private static boolean touches(List<int[]> route, List<int[]> ground) {
+        for (int[] c : route) for (int[] g : ground) if (c[0] == g[0] && c[1] == g[1]) return true;
+        return false;
+    }
+
+    /** Whether the route passes next to a door of a room of {@code purpose} ({@code depth} deep, or any when -1). */
+    private static boolean byDoor(List<int[]> route, Cantonment.Laid laid, RoomPurpose purpose, int depth) {
+        for (RoomPacker.Placed room : laid.rooms()) {
+            if (room.purpose() != purpose) continue;
+            int deep = Math.min(room.shape().width(), room.shape().height());
+            if (depth >= 0 && deep != depth) continue;
+            for (Doorway door : room.doors()) {
+                for (int[] c : route) {
+                    if (Math.abs(c[0] - door.x()) + Math.abs(c[1] - door.y()) == 1) return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean[][] open(int w, int h) {
