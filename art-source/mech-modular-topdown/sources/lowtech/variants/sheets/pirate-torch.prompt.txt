@@ -1,0 +1,13 @@
+Asset type: concept sheet for a top-down game: a PIRATE FLAMER RIG, the TORCH, a captured Hegemony light walking machine (the Hound, left in image 1) a pirate crew has rebuilt as a fuel-tanker work rig carrying an industrial burner.
+
+The machine: the Hound's body, its side plate partly cut away for lightness. Its back carries the fuel: three or four mismatched scavenged fuel drums and a pressure bottle lashed in a welded cradle with chains and straps, joined by patched hoses and hand valves that run forward under the body to its nose. The nose mount is EMPTY, a flat bolted plate with a hose coupling. A dented heat shield of scrap plate is bolted over the canopy's front edge. Paint it as the pirate scrap bodies in image 1: mismatched salvaged panels (faded tan, grey, olive, blue-grey civilian panels, red-oxide primer, bare steel) welded on with visible beads and oversized bolts, crude hand-brushed dark red, worn and grimy but legible; the fuel drums each a different faded colour with crude hand-painted hazard marks.
+
+The loose part beside it: the pirate burner, a cut-down industrial burner nozzle on a short welded boom, a pilot light shroud at its tip, a hose coupling at its base, wrapped in heat tape.
+
+Layout: one wide landscape sheet. On the left, the machine whole, large, facing the TOP edge of the sheet, symmetric about its own vertical centre line except where the brief says otherwise. On the right, with clear space between, its burner nozzle drawn on its own as a loose part, seen from above, pointing to the top, at the same scale. Nothing else on the sheet.
+
+Image 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. The machine must still read as the one named: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change only what the brief says. No thrusters or engines on its back, no claw, no saw blade.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, flame, smoke, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.
+
+Avoid: fire, flame or smoke effects; any gun other than the one burner nozzle; perspective, side view or isometric view; a starship's outline; bird or chicken legs; text.

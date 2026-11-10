@@ -1,0 +1,18 @@
+Asset type: concept sheet for a top-down game: three LUDDIC PATH CONVERSIONS, industrial and mining walking machines that a Pather cell has converted to war, light, medium and heavy.
+
+The Path converts civilian and industrial tools because they are available and deniable; it attacks technology and demolishes. Each conversion shows the industrial machine it was and the job it now does:
+LIGHT, the FOUNDRY BREAKER (from the Hound): a demolition walker. Its nose carries a heavy blunt breaching collar of foundry casting round an empty socket ring (its demolition cannon is added later); a rack of five fat shell canisters is strapped along its back; hazard-banded mining plate over its hips.
+MEDIUM, the CUTTER (from the Warden): a mining-cutter conversion. One arm is a broad industrial cutting head, a wide flat disc-saw guard or plasma-cutter shroud with heat-blackened vents; the other arm keeps an empty mounting plate; fuel or gas tanks for the cutter ride its back in a welded frame.
+HEAVY, the PILGRIM (from the Bulwark): a slow armoured mining hauler turned assault walker. A huge dozer-blade prow of scarred mining plate spans its front below the canopy; ore-hopper ribs run along its back; both shoulder places keep empty socket rings. Prayer cloth strips and hand-painted devotional marks (simple shapes, no text) hang from its plate.
+
+Image 2 is material and colour reference only, a sheet of surface swatches cut from inside the Luddic Path's warships; it holds no shapes to copy. Paint the conversions in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, grime and sooty scorching round vents, scuffed bare metal on worn edges, hand-welded repairs. Plainer and more uniform than pirate patchwork: one cell's workshop, not a scrapyard.
+
+Strict 90-degree zenith orthographic top-down view, every machine facing the TOP edge of the sheet, each symmetric about its own vertical centre line unless the brief says one side is different. One wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale (the heavy clearly the biggest).
+
+Every weapon mount is drawn EMPTY: a flat bolted mounting plate or a dark socket ring, with no gun, barrel, launcher or turret on it. Guns are separate parts added later. Tools that ARE the variant's job (a ram, a claw, a crane arm, a cutting head, a cargo cage) are part of the body and are drawn.
+
+Image 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. Each variant must still read as that machine: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change what the brief says on top.
+
+True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.
+
+Avoid: guns or barrels of any kind; perspective, side view or isometric view; cropped machines; more or fewer than three machines; a starship's outline; legs drawn as bird or chicken legs; text.

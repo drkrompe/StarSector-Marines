@@ -127,6 +127,16 @@ class ArmorSideTest {
         assertEquals(vehicles * (vehicles - 1), ArmorMatchupEvidence.ladder(Set.of("vehicle")).size());
     }
 
+    @Test
+    void aSquadIsTwelveMarinesKittedByTheirCardsAndPrintsBackTheSame() {
+        ArmorSide.Squad squad = assertInstanceOf(ArmorSide.Squad.class,
+                ArmorSide.parseUnit("2xsquad:line-infantry/fleet-combat"));
+        assertEquals(2, squad.count());
+        assertEquals("weapons:line-infantry", squad.kit().weaponsId());
+        assertEquals("armor:fleet-combat", squad.kit().sheetId());
+        assertEquals("squad:line-infantry/fleet-combat", squad.label());
+    }
+
     private static ArmorSide.Mech mech(String text) {
         return assertInstanceOf(ArmorSide.Mech.class, ArmorSide.parseUnit(text));
     }
