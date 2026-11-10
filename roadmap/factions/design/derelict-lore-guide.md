@@ -90,7 +90,9 @@ Everything in this section is mod direction.
 - **Site security, not an army.** Each ruins site that has it has its own
   network, built for that place and running alone. Networks do not talk to
   each other, do not spread and do not rebuild beyond the repair stock they
-  have.
+  have. The one exception is a **fallen hull**: an Explorarium survey
+  mothership down on a world, whose autoforge prints stakes and walkers from
+  the metal it hauls home (`fallen-hull-nouns.md`, pick `hull-spread-law`).
 - **Two lineages.** Most networks are **Domain security**: Mbaye-Gogol ground
   units, the frontier garrison's kit, in grey and hazard yellow with Explorarium
   and colonial-authority markings. In a system the game generated as Remnant
