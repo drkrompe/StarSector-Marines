@@ -2554,8 +2554,8 @@ public class BriefingScreen implements Screen {
     }
 
     private void onBack() {
-        ctx.goTo(ctx.getSelectedMission() != null && ctx.getSelectedMission().source.isDebug()
-                ? ScreenId.DEBUG_MISSIONS : ScreenId.MISSION_SELECT);
+        ctx.goTo(BoundOperation.briefingBack(ctx.boundOperation() != null,
+                ctx.getSelectedMission() != null && ctx.getSelectedMission().source.isDebug()));
     }
 
     /**
