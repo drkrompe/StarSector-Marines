@@ -455,6 +455,7 @@ com.dillon.starsectormarines.ops.battleview.RavineRiseLookSuite
 com.dillon.starsectormarines.ops.RuinsPushCueLookSuite
 com.dillon.starsectormarines.ops.battleview.VolcanicGroundLookSuite
 com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite
+com.dillon.starsectormarines.ops.LavaFlowLookSuite
 com.dillon.starsectormarines.ops.CrevasseTownLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite

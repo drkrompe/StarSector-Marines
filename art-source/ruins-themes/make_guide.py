@@ -39,6 +39,13 @@ FAMILIES = {
     "products-b": [(f"drone-frame-{s}", 2, 2, f"drone:{s}") for s in ("whole", "half", "wrecked")] + [None]
                   + [(f"forge-core-{s}", 2, 2, f"forge:{s}") for s in ("whole", "half", "wrecked")],
 }
+# The foundry hall's pieces (``ruins-forge-area``): crucibles whose melt (drawn in MELT) ``export.py`` splits off
+# as an overlay the engine can pulse, the loose foundry props, and the overlays that sit on the hall's lava drop: a
+# mould grid over a casting bed and a grate catwalk deck over a crossing (span east-west, both ends flush).
+FAMILIES["foundry-a"] = [("crucible", 3, 3, "crucible"), ("crucible-tipped", 3, 3, "crucibletip"), None,
+                         ("fallen-ladle", 3, 2, "ladle"), ("slag-heap", 2, 2, "slag"), ("pour-pulpit", 2, 2, "pulpit")]
+FAMILIES["foundry-b"] = [("mould-grid", 8, 5, "mould"), None, ("grate-catwalk", 2, 2, "catwalk")]
+
 # The other themes' products, the same way: one row per product.
 for _fam, _prods in (("products-c", (("core-cabinet", "core"), ("field-housing", "lamp"), ("magnet-segment", "magnet"))),
                      ("products-d", (("catalyst-bed", "catalyst"), ("spool-drum", "spool"))),
@@ -68,6 +75,19 @@ def frames(family):
 
 
 BODY, EDGE, DARK, LIGHT = (128, 132, 138, 255), (70, 74, 80, 255), (40, 42, 46, 255), (176, 180, 186, 255)
+# The melt in a foundry guide: a colour no other block uses, so ``export.py`` finds it in the guide.
+MELT = (214, 120, 48, 255)
+
+
+def crucible_melt(x, y, w, h, kind):
+    """The melt's outline in guide pixels: the crucible's open mouth, or the tipped one's spill tongue."""
+    if kind == "crucible":
+        cx, cy, r = x + w / 2, y + h / 2 - 20, w * 0.27
+        return [(cx + r * math.cos(a), cy + r * math.sin(a)) for a in (k * math.pi / 60 for k in range(120))]
+    # The tipped crucible's mouth faces south-east; its spill runs out of it across the floor to the frame's corner.
+    return [(x + w * 0.55, y + h * 0.58), (x + w * 0.66, y + h * 0.66), (x + w * 0.80, y + h * 0.70),
+            (x + w * 0.93, y + h * 0.82), (x + w * 0.90, y + h * 0.94), (x + w * 0.74, y + h * 0.93),
+            (x + w * 0.62, y + h * 0.84), (x + w * 0.52, y + h * 0.72)]
 
 
 def product_shape(name, size, solid):
@@ -277,6 +297,57 @@ def draw(family):
             d.rectangle((x, y, x + w, y + 120), fill=edge)
             d.rectangle((x + 60, y + 20, x + w - 60, y + 110), fill=body)
             d.rectangle((x + 80, y + 130, x + w - 80, y + h - inset), fill=light, outline=edge, width=10)
+        elif kind == "crucible":
+            cx, cy = x + w / 2, y + h / 2 - 20
+            d.rectangle((x + inset, cy - 80, x + w - inset, cy + 80), fill=EDGE)
+            for sx in (x + inset, x + w - inset - 110):
+                d.rectangle((sx, cy - 120, sx + 110, cy + 120), fill=BODY, outline=EDGE, width=8)
+            d.polygon([(cx - 90, y + h - 200), (cx + 90, y + h - 200), (cx + 50, y + h - inset),
+                       (cx - 50, y + h - inset)], fill=BODY, outline=EDGE, width=8)
+            r = w * 0.38
+            d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=BODY, outline=EDGE, width=16)
+            d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind == "crucibletip":
+            body = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            bd = ImageDraw.Draw(body)
+            bd.rectangle((w * 0.12, h * 0.22, w * 0.62, h * 0.58), fill=BODY, outline=EDGE, width=14)
+            bd.ellipse((w * 0.50, h * 0.18, w * 0.70, h * 0.62), fill=DARK, outline=EDGE, width=14)
+            bd.rectangle((w * 0.28, h * 0.12, w * 0.40, h * 0.22), fill=EDGE)
+            bd.rectangle((w * 0.28, h * 0.58, w * 0.40, h * 0.68), fill=EDGE)
+            im.alpha_composite(body.rotate(-28, center=(w * 0.4, h * 0.4), resample=Image.BICUBIC), (x, y))
+            d.polygon(crucible_melt(x, y, w, h, kind), fill=MELT)
+        elif kind == "ladle":
+            d.ellipse((x + inset, y + 60, x + w * 0.55, y + h - 60), fill=BODY, outline=EDGE, width=12)
+            d.ellipse((x + 90, y + 130, x + w * 0.55 - 70, y + h - 130), fill=DARK)
+            d.rectangle((x + w * 0.5, y + h / 2 - 40, x + w - inset, y + h / 2 + 40), fill=EDGE)
+            d.rectangle((x + w - 200, y + h / 2 - 110, x + w - inset, y + h / 2 + 110), fill=BODY, outline=EDGE,
+                        width=8)
+        elif kind == "slag":
+            pts = [(x + w / 2 + (w / 2 - 60) * (0.75 + 0.25 * rng.random()) * math.cos(a),
+                    y + h / 2 + (h / 2 - 60) * (0.75 + 0.25 * rng.random()) * math.sin(a))
+                   for a in (k * math.pi / 9 for k in range(18))]
+            d.polygon(pts, fill=DARK, outline=EDGE)
+            d.ellipse((x + w / 2 - 90, y + h / 2 - 70, x + w / 2 + 80, y + h / 2 + 90), fill=BODY)
+        elif kind == "pulpit":
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), fill=BODY, outline=EDGE, width=14)
+            d.rectangle((x + 70, y + 70, x + w - 70, y + 250), fill=LIGHT, outline=EDGE, width=8)
+            d.rectangle((x + 120, y + 330, x + w - 120, y + 420), fill=DARK)
+            d.rectangle((x + w / 2 - 70, y + h - 200, x + w / 2 + 70, y + h - inset), fill=EDGE)
+        elif kind == "mould":
+            d.rectangle((x + inset, y + inset, x + w - inset, y + h - inset), outline=EDGE, width=70)
+            for k in range(1, 4):
+                bx = x + k * w // 4
+                d.rectangle((bx - 22, y + inset, bx + 22, y + h - inset), fill=EDGE)
+            d.rectangle((x + inset, y + h / 2 - 22, x + w - inset, y + h / 2 + 22), fill=EDGE)
+        elif kind == "catwalk":
+            d.rectangle((x, y + 60, x + w, y + h - 60), fill=BODY)
+            for gx in range(x + 20, x + w, 40):
+                d.line((gx, y + 70, gx, y + h - 70), fill=EDGE, width=6)
+            for ry in (y + 30, y + h - 54):
+                d.rectangle((x, ry, x + w, ry + 24), fill=LIGHT)
+            for px in range(x + 40, x + w, 160):
+                for ry in (y + 22, y + h - 62):
+                    d.rectangle((px, ry, px + 40, ry + 40), fill=EDGE)
         elif ":" in kind:
             name, state = kind.split(":")
             im.alpha_composite(product(name, state, w, pid), (x, y))

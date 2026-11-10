@@ -646,6 +646,122 @@
       "preserveCanvas": true,
       "padding": 0,
       "order": 47
+    },
+    "crucible.png": {
+      "id": "doodad.ruins-crucible",
+      "name": "Foundry crucible",
+      "description": "A huge refractory-lined crucible on its pad, its melt still lit.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 48,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "crucible-melt.png": {
+      "id": "doodad.ruins-crucible-melt",
+      "name": "Crucible melt",
+      "description": "Overlay: the crucible's melt, drawn over its body so the engine can pulse it.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 49,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "crucible-tipped.png": {
+      "id": "doodad.ruins-crucible-tipped",
+      "name": "Toppled crucible",
+      "description": "A crucible fallen on its side, its mouth spilling across the floor.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 50,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "crucible-tipped-spill.png": {
+      "id": "doodad.ruins-crucible-tipped-spill",
+      "name": "Crucible spill",
+      "description": "Overlay: the molten tongue spilling from a toppled crucible.",
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "order": 51,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "fallen-ladle.png": {
+      "id": "doodad.ruins-fallen-ladle",
+      "name": "Fallen ladle",
+      "description": "A pouring ladle down on the floor, its bowl crusted with slag.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        2
+      ],
+      "order": 52
+    },
+    "slag-heap.png": {
+      "id": "doodad.ruins-slag-heap",
+      "name": "Slag heap",
+      "description": "A heap of cooled glassy slag under a crust of ash.",
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "order": 53
+    },
+    "pour-pulpit.png": {
+      "id": "doodad.ruins-pour-pulpit",
+      "name": "Pour pulpit",
+      "description": "An armoured pour-control booth with a heat-shielded window.",
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "order": 54
+    },
+    "mould-grid.png": {
+      "id": "doodad.ruins-mould-grid",
+      "name": "Casting mould grid",
+      "description": "Overlay: a casting bed's mould frame, the melt showing through its cells.",
+      "cover": "none",
+      "footprintCells": [
+        8,
+        5
+      ],
+      "order": 55,
+      "preserveCanvas": true,
+      "padding": 0
+    },
+    "grate-catwalk.png": {
+      "id": "doodad.ruins-grate-catwalk",
+      "name": "Grate catwalk",
+      "description": "A steel grate deck across a pour channel; decks join end to end.",
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "order": 56,
+      "preserveCanvas": true,
+      "padding": 0
     }
   }
 }

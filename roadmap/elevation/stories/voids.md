@@ -641,6 +641,21 @@ Laws):
      standing depth.
    - **A rift that shallows** (`-Dsnapshot.lava.setup=vary`): 40 m in the
      west, 12 m by the bridge, 4 m in the east, by depth marks.
+   - **Lava flows** (owner, 2026-11-10: "We also need to consider "lava"
+     planets. We might re-use our conveyor code, but need to rework this for
+     lava flows"). The ore conveyor (`OreLine`) routes on the grid at right
+     angles and lays a piece a cell; a natural flow wanders, has width and must
+     strand nothing, which the drop already does, so a volcanic world's flow is
+     built on the drop, not the conveyor. Older flows
+     (`LavaFlows`, `CellTopology.lavaFlows`): tongues of cooled crust that broke
+     from the melt, widening to rounded toes and now and then splitting, hot
+     where they leave the melt and cold at the toe. They are walkable ground
+     whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
+     laid dark, its cracks glowing by the heat, the margin rounded), and they
+     keep the landscape's later features off what they buried. Undecided
+     between the rift, the river, the river with its older flows and the flows
+     alone (`battle.mapgen.lavaFlow`, look suite `lava-flow-look`); the rift
+     stays until the owner picks.
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
