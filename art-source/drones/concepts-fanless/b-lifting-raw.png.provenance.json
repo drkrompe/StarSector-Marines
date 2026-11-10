@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5ff-fe4b-75a1-b2b5-922a048a3d88",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5ff-fe4b-75a1-b2b5-922a048a3d88\\exec-154f1c4c-b9d6-42e4-85f2-dcbf6c27c966.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\concepts-fanless\\b-lifting-raw.png",
+    "sha256": "d48014a852d034bb0a699a538673594992ace5e339c739cd9b817eb4d4a69657",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\drones\\concepts-fanless\\b-lifting-brief.txt",
+  "promptSha256": "082394fc516023e93fa6007c1078fa8fa0cf80961dc9de854ac7d26c63b041a4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Rendering style and detail level only; not layout, palette, shape or subject\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale\n\nConcept sheet: four small Tri-Tachyon corporate battlefield COMBAT DRONES, each about a metre long, built as LIFTING BODIES. Each is a single flat blended hull whose whole planform is its lift surface, held up by a gravitic lift plate on its belly (invisible from above except for a thin cyan underglow at the hull edge) and steered by tiny thruster ports at its tips. Clean, flat, manta- or arrowhead-like planforms, smooth composite plating with panel lines, no protruding propulsion.\n- ESCORT: a broad arrowhead with a pulse-laser emitter set into the leading edge on the centreline and a small sensor eye behind it.\n- SENSOR: a wide thin crescent flying-wing whose leading edge is a long strip of dark sensor glass with a cyan scan line.\n- POINT-DEFENCE: a compact delta with one small low laser turret dome on its back and two emitter lenses at the wing tips.\n- STRIKE: a narrow swept dart lifting body with a brass warhead nose and a cyan hazard band, the smallest and sharpest of the four.\nTri-Tachyon high-tech livery and material: pearl white and pale grey composite with fine graphite seams, restrained cyan lights; image 2 is livery and material reference only, not layout or shape.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left, every drone nose UP (toward the top edge), the four drones evenly spaced in one row across a wide landscape canvas, each drawn large and with a small plain caption beneath it naming its role (ESCORT, SENSOR, POINT-DEFENCE, STRIKE). Plain flat dark-grey background, no ground, scene, shadow slab, border or grid. Rendered as finished top-down game sprites in the manner of the attached approved game sprite: grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art.\nBANNED SHAPES, do not draw any of these anywhere: exposed fans, fan blades, rotor rings, rotor discs, propellers, ducted props, shrouded lift fans, round fan ducts, grilles over circular ducts, quadcopter arms. No drone may be built around a circle. The outline must come from what the drone does (its weapon, sensor or warhead and how it is steered), never from a lift fan.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\tempest.png",
+      "sha256": "b1811fa2e74ac737e94479f097025bab8e3a5d0c8b6c04128561001babecfc36",
+      "dimensions": [
+        64,
+        92
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet using the references for rendering style and materials, with the four lifting-body silhouettes you specified."
+  ],
+  "usage": {
+    "input_tokens": 40605,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 758,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.9
+}
