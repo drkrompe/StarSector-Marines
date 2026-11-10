@@ -811,7 +811,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
-        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c));
+        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c), heldBands(c));
         return reserved;
     }
 
@@ -843,6 +843,21 @@ public final class OutdoorLandscapeStage implements GenStage {
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         if (plan == null || plan.landscape().sealed().isEmpty()) return null;
         boolean[][] band = RidgePlanner.sideGround(plan.landscape().sealed(), c.width, c.height, ROUTE_CLEARANCE);
+        boolean[] out = new boolean[c.width * c.height];
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) out[y * c.width + x] = band[x][y];
+        return out;
+    }
+
+    /**
+     * The ground across the plan's held bands, ridges and the storm bank alike, without their ends, and the two cells
+     * either side a route's width reserves: what the access routes cross rather than follow, so a bank or ridge raised
+     * round them keeps its passes where they were planned ({@code elevation-nouns.md}, Held ground); null when the
+     * landscape holds none.
+     */
+    private static boolean[] heldBands(GenContext c) {
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        if (plan == null || plan.landscape().held().isEmpty()) return null;
+        boolean[][] band = RidgePlanner.sideGround(plan.landscape().held(), c.width, c.height, 2);
         boolean[] out = new boolean[c.width * c.height];
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) out[y * c.width + x] = band[x][y];
         return out;

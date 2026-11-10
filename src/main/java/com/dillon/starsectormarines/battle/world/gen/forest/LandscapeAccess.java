@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import java.util.Arrays;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.function.BiPredicate;
 
 /** Generation-only access proofs. Cardinal floods honor both sides of shared edges. */
@@ -21,24 +22,43 @@ public final class LandscapeAccess {
      * prove their own access.
      */
     public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved, boolean[] avoid) {
+        reserveRoutes(grid, anchors, reserved, avoid, null);
+    }
+
+    /** What a route pays for each step onto ground it crosses only where it must ({@code dear}); a plain step is 1. */
+    static final int DEAR_STEP = 8;
+
+    /**
+     * As above, with ground a route crosses rather than follows ({@code dear}, or null for none): held ridge ground,
+     * whose bank or ridge is raised wherever no route was reserved. A step onto it costs {@link #DEAR_STEP}, so a
+     * route goes through a pass left in it, or failing one straight across, and never along it; it still reaches
+     * every anchor it reached before. Without it the routes are the plain breadth-first tree.
+     */
+    public static void reserveRoutes(NavigationGrid grid, List<int[]> anchors, boolean[] reserved, boolean[] avoid,
+                                     boolean[] dear) {
         int w = grid.getWidth(), h = grid.getHeight();
         int[] parent = new int[w * h], queue = new int[w * h];
         Arrays.fill(parent, -1);
+        int[] cost = dear == null ? null : new int[w * h];
+        if (cost != null) Arrays.fill(cost, Integer.MAX_VALUE);
         boolean[] traced = new boolean[parent.length];
         for (int[] anchor : anchors) {
             int x = anchor[0], y = anchor[1];
             if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
             int start = y * w + x;
             if (parent[start] < 0) {
-                int head = 0, tail = 0; queue[tail++] = start; parent[start] = start;
-                while (head < tail) {
-                    int at = queue[head++], ax = at % w, ay = at / w;
-                    for (Direction d : Direction.CARDINALS) {
-                        int nx = ax + d.dx, ny = ay + d.dy;
-                        if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny) || !open(grid, ax, ay, d)) continue;
-                        int next = ny * w + nx;
-                        if (parent[next] >= 0 || (avoid != null && avoid[next])) continue;
-                        parent[next] = at; queue[tail++] = next;
+                if (cost != null) cheapest(grid, start, parent, cost, avoid, dear);
+                else {
+                    int head = 0, tail = 0; queue[tail++] = start; parent[start] = start;
+                    while (head < tail) {
+                        int at = queue[head++], ax = at % w, ay = at / w;
+                        for (Direction d : Direction.CARDINALS) {
+                            int nx = ax + d.dx, ny = ay + d.dy;
+                            if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny) || !open(grid, ax, ay, d)) continue;
+                            int next = ny * w + nx;
+                            if (parent[next] >= 0 || (avoid != null && avoid[next])) continue;
+                            parent[next] = at; queue[tail++] = next;
+                        }
                     }
                 }
             }
@@ -47,6 +67,33 @@ public final class LandscapeAccess {
                 for (int yy = Math.max(0, at / w - 2); yy <= Math.min(h - 1, at / w + 2); yy++)
                     for (int xx = Math.max(0, at % w - 2); xx <= Math.min(w - 1, at % w + 2); xx++)
                         reserved[yy * w + xx] = true;
+            }
+        }
+    }
+
+    /** The cheapest-route tree from {@code start} over the walkable ground, written into {@code parent}. */
+    private static void cheapest(NavigationGrid grid, int start, int[] parent, int[] cost, boolean[] avoid,
+                                 boolean[] dear) {
+        int w = grid.getWidth();
+        PriorityQueue<long[]> frontier = new PriorityQueue<>((p, q) -> Long.compare(p[0], q[0]));
+        parent[start] = start;
+        cost[start] = 0;
+        frontier.add(new long[]{0, start});
+        while (!frontier.isEmpty()) {
+            long[] top = frontier.poll();
+            int at = (int) top[1];
+            if (top[0] > cost[at]) continue;
+            int ax = at % w, ay = at / w;
+            for (Direction d : Direction.CARDINALS) {
+                int nx = ax + d.dx, ny = ay + d.dy;
+                if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny) || !open(grid, ax, ay, d)) continue;
+                int next = ny * w + nx;
+                if (avoid != null && avoid[next]) continue;
+                int c = cost[at] + (dear[next] ? DEAR_STEP : 1);
+                if (c >= cost[next]) continue;
+                cost[next] = c;
+                parent[next] = at;
+                frontier.add(new long[]{c, next});
             }
         }
     }
