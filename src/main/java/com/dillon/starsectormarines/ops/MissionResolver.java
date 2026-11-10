@@ -351,7 +351,8 @@ public final class MissionResolver {
                 ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
                         sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 : CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
-                        || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
+                        || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission)
+                        || LongSurveyCampaign.isBattle(mission) ? (victory ? mission.payout : 0)
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -636,6 +637,10 @@ public final class MissionResolver {
         }
         if (WellhollowBloomCampaign.owns(outcome.missionId) && (cargo == null || WellhollowBloomCampaign.settle(outcome) < 0)) {
             LOG.info("MarineOps: refused stale or invalid Khettara outcome " + outcome.missionId);
+            return;
+        }
+        if (LongSurveyCampaign.owns(outcome.missionId) && (cargo == null || LongSurveyCampaign.settle(outcome) < 0)) {
+            LOG.info("MarineOps: refused stale or invalid Long Survey outcome " + outcome.missionId);
             return;
         }
         if (cargo != null) {

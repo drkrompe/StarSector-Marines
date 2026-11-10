@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The refining Raid site ({@code RefinerySite}): a break Raid on a refining market across two seeds and both market
+ * The refining Raid site ({@code RefiningWorks}): a break Raid on a refining market across two seeds and both market
  * sizes, as {@link RaidSiteLookSuite} lays heavy industry's. Each case is framed whole ({@code <case>-whole.png}), at
  * play zoom on the works' units ({@code <case>-works.png}), and on the plant from the units to the tank farm
  * ({@code <case>-plant.png}): the receiving manifold, the units' columns, the product rack over the haul road, the

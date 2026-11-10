@@ -8,9 +8,10 @@ import java.util.Random;
 
 /**
  * Pure BSP partition over a rect grid. Recursively splits the root rect with
- * jittered axis-aligned cuts; each cut carves a road strip of width
- * {@link #ROAD_WIDTH_MIN}..{@link #ROAD_WIDTH_MAX} along the split line that
- * the two children share. The leaf list returned by {@link #partition} is
+ * jittered axis-aligned cuts; each cut carves a lane along the split line that
+ * the two children share, every lane of one pass the same width (one class of
+ * street holds one width; a lane drawn at a random width stepped wider and
+ * narrower from block to block). The leaf list returned by {@link #partition} is
  * the set of un-split rects, each of which a {@code BlockFiller} will paint.
  *
  * <p>Connectivity falls out by construction: every leaf's road frame is
@@ -32,10 +33,15 @@ public final class Bsp {
 
     /** Minimum road strip width. ≥3 because narrower roads read as alleys, which look wrong against city-scale buildings. */
     public static final int ROAD_WIDTH_MIN = 3;
-    /** Default maximum road strip width — wider strips read as main thoroughfares. */
+    /** Broadest street a block frame takes — wider strips read as main thoroughfares. */
     public static final int ROAD_WIDTH_MAX = 5;
-    /** Maximum BSP-frame width when a trunk pre-pass owns the visual hierarchy of "main streets". Capped at 4 so trunks (width 5/7) stay visibly wider than any back-street. */
-    public static final int ROAD_WIDTH_MAX_WITH_TRUNKS = 4;
+    /** The lane every cut carves where no trunk pre-pass lays the main streets. */
+    public static final int LANE_WIDTH = ROAD_WIDTH_MAX;
+    /**
+     * The lane every cut carves under a trunk pre-pass, which owns the main streets: a back street, the trunk's own
+     * tertiary width, so the trunks (5 and 7) stay the broader classes.
+     */
+    public static final int LANE_WIDTH_WITH_TRUNKS = ROAD_WIDTH_MIN;
 
     /** Minimum leaf dim (both axes). Below this we can't fit a hollow building or a readable plaza. */
     public static final int LEAF_MIN = 5;
@@ -85,19 +91,18 @@ public final class Bsp {
 
         // Initial rect excludes the perimeter (the children own [1..w-2, 1..h-2]).
         List<BlockLeaf> leaves = new ArrayList<>();
-        partitionRect(1, 1, width - 2, height - 2, width, height, ROAD_WIDTH_MAX, road, leaves, rng);
+        partitionRect(1, 1, width - 2, height - 2, width, height, LANE_WIDTH, road, leaves, rng);
         return new Partition(leaves, road, width, height);
     }
 
     /**
-     * Backward-compatible {@link #partitionRect} that uses the default
-     * {@link #ROAD_WIDTH_MAX}. Trunk-aware callers should pass
-     * {@link #ROAD_WIDTH_MAX_WITH_TRUNKS} via the explicit overload below.
+     * Backward-compatible {@link #partitionRect} that carves {@link #LANE_WIDTH} lanes. Trunk-aware callers should
+     * pass {@link #LANE_WIDTH_WITH_TRUNKS} via the explicit overload below.
      */
     public static void partitionRect(int x0, int y0, int x1, int y1,
                                      int mapW, int mapH,
                                      boolean[][] road, List<BlockLeaf> leaves, Random rng) {
-        partitionRect(x0, y0, x1, y1, mapW, mapH, ROAD_WIDTH_MAX, road, leaves, rng);
+        partitionRect(x0, y0, x1, y1, mapW, mapH, LANE_WIDTH, road, leaves, rng);
     }
 
     /**
@@ -111,21 +116,21 @@ public final class Bsp {
      * does not reserve them. {@code mapW}/{@code mapH} are passed only so
      * {@link #emitLeaf} can record whether a leaf touches the outer map edge.
      *
-     * <p>{@code maxRoadWidth} caps the random road strip width carved on each
-     * split. Pass {@link #ROAD_WIDTH_MAX_WITH_TRUNKS} when a trunk pre-pass
-     * owns the main-street visual hierarchy so BSP frames stay subordinate.
+     * <p>{@code laneWidth} is the width of every lane a split carves. Pass
+     * {@link #LANE_WIDTH_WITH_TRUNKS} when a trunk pre-pass owns the
+     * main-street visual hierarchy so BSP frames stay subordinate.
      */
     public static void partitionRect(int x0, int y0, int x1, int y1,
-                                     int mapW, int mapH, int maxRoadWidth,
+                                     int mapW, int mapH, int laneWidth,
                                      boolean[][] road, List<BlockLeaf> leaves, Random rng) {
         int w = x1 - x0 + 1;
         int h = y1 - y0 + 1;
 
-        // Can we even split? Each child must satisfy LEAF_MIN, and the road
-        // strip in between takes ROAD_WIDTH_MIN. So the splittable dim must be
-        // ≥ 2*LEAF_MIN + ROAD_WIDTH_MIN.
-        boolean canSplitH = w >= 2 * LEAF_MIN + ROAD_WIDTH_MIN; // vertical split → carves road column
-        boolean canSplitV = h >= 2 * LEAF_MIN + ROAD_WIDTH_MIN; // horizontal split → carves road row
+        // Can we even split? Each child must satisfy LEAF_MIN, and the lane
+        // in between takes laneWidth. So the splittable dim must be
+        // ≥ 2*LEAF_MIN + laneWidth.
+        boolean canSplitH = w >= 2 * LEAF_MIN + laneWidth; // vertical split → carves road column
+        boolean canSplitV = h >= 2 * LEAF_MIN + laneWidth; // horizontal split → carves road row
 
         // Stop conditions: too small to split OR both dims small enough that
         // a leaf reads acceptably AND a random coin chooses to stop.
@@ -147,8 +152,7 @@ public final class Bsp {
             splitVertically = canSplitH;
         }
 
-        int effMax = Math.max(ROAD_WIDTH_MIN, maxRoadWidth);
-        int roadWidth = ROAD_WIDTH_MIN + rng.nextInt(effMax - ROAD_WIDTH_MIN + 1);
+        int roadWidth = laneWidth;
 
         if (splitVertically) {
             // Pick split column: leaves [x0..splitX-1] | road [splitX..splitX+rw-1] | leaves [splitX+rw..x1].
@@ -158,8 +162,8 @@ public final class Bsp {
             for (int xx = splitX; xx < splitX + roadWidth; xx++) {
                 for (int yy = y0; yy <= y1; yy++) road[xx][yy] = true;
             }
-            partitionRect(x0, y0, splitX - 1, y1, mapW, mapH, maxRoadWidth, road, leaves, rng);
-            partitionRect(splitX + roadWidth, y0, x1, y1, mapW, mapH, maxRoadWidth, road, leaves, rng);
+            partitionRect(x0, y0, splitX - 1, y1, mapW, mapH, laneWidth, road, leaves, rng);
+            partitionRect(splitX + roadWidth, y0, x1, y1, mapW, mapH, laneWidth, road, leaves, rng);
         } else {
             int minSplitY = y0 + LEAF_MIN;
             int maxSplitY = y1 - LEAF_MIN - roadWidth + 1;
@@ -167,8 +171,8 @@ public final class Bsp {
             for (int yy = splitY; yy < splitY + roadWidth; yy++) {
                 for (int xx = x0; xx <= x1; xx++) road[xx][yy] = true;
             }
-            partitionRect(x0, y0, x1, splitY - 1, mapW, mapH, maxRoadWidth, road, leaves, rng);
-            partitionRect(x0, splitY + roadWidth, x1, y1, mapW, mapH, maxRoadWidth, road, leaves, rng);
+            partitionRect(x0, y0, x1, splitY - 1, mapW, mapH, laneWidth, road, leaves, rng);
+            partitionRect(x0, splitY + roadWidth, x1, y1, mapW, mapH, laneWidth, road, leaves, rng);
         }
     }
 

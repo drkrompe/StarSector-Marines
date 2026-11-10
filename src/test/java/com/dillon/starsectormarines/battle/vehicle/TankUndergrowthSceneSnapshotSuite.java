@@ -25,7 +25,7 @@ import java.util.Random;
 
 /**
  * Heavy tracks, drawn. The verdict loops of {@link TankUndergrowthScene} at 1920x1080 with the belt's crushable cells
- * marked; and the look shots the owner is shown: a breakthrough tank ordered straight across a wood on real verdant
+ * marked; and the look shots the owner is shown: an Onager ordered straight across a wood on real verdant
  * ground, one of young trees (with a few mature ones it steers round) and one of mature trees the creep has killed,
  * and across a field of lone large boulders.
  */
@@ -78,7 +78,7 @@ public final class TankUndergrowthSceneSnapshotSuite extends BehaviorSceneSnapsh
         return List.of(shot("young-wood", false), shot("dead-wood", true), boulders());
     }
 
-    /** A breakthrough tank driven straight across a field strewn with lone large boulders, as nature zones lay them. */
+    /** An Onager driven straight across a field strewn with lone large boulders, as nature zones lay them. */
     private static LookReview.Shot boulders() {
         return LookReview.Shot.of("boulders", SHOT_W, SHOT_H, placement -> {
             MapResult map = placement.map();

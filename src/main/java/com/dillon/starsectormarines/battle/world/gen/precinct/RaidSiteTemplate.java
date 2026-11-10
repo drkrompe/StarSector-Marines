@@ -8,8 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
-import com.dillon.starsectormarines.battle.world.gen.fortress.RaidWorksPrograms;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
@@ -17,14 +15,15 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
+import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustries;
+import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustry;
+import com.dillon.starsectormarines.battle.world.gen.raid.SiteFrame;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
-import java.util.Set;
 import java.util.SplittableRandom;
-import java.util.function.IntFunction;
 import java.util.function.UnaryOperator;
 
 /**
@@ -46,11 +45,11 @@ import java.util.function.UnaryOperator;
  * varies it by size: a bigger market has a town's streets rather than a hamlet's and, from {@link #OUTSKIRTS_FROM},
  * an outskirts suburb on the landing side, behind the homes and away from everything worth raiding.
  *
- * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
- * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
- * with a mill line per machine, in sparse ore yards; a refinery's is its units, fed by pipe racks and emptied into a
- * tank farm held before it ({@link RefinerySite}); light industry's its shop floors; a farm's its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
- * among depots, with the garrison beside it as on every site.
+ * <p>The industry ({@link RaidIndustry}, one class each, {@link RaidIndustries#ALL}) changes what the works holds,
+ * where it and its district stand, how thick the industry round it stands, the ground it lays beside the works and
+ * how the works is dressed: heavy industry's works is machine halls in a dense industrial quarter; a mine's is its
+ * head works, an ore-processing chain beside its pit; and so on. This class is the seam they share: the landing, the
+ * homes, the garrison, the roads, the walls and the orientation, the same for every industry.
  *
  * <p>Raid only. Every other mission's map is derived as it was.
  */
@@ -82,7 +81,7 @@ public final class RaidSiteTemplate {
     public static final String FEEDER = "feeder-";
 
     /** Width of the haul road and the feeders, in cells. UNTUNED. */
-    static final int LINE_WIDTH = 3;
+    public static final int LINE_WIDTH = 3;
     /** An endpoint offset beyond any map: the road's far end is clamped to the edge, so it runs off the map. */
     private static final int OFF_MAP = 10_000;
 
@@ -131,16 +130,13 @@ public final class RaidSiteTemplate {
 
     // Regions as fractions of the map, with the company landing in the west and the works to the north
     // (MapPlacement's y is up). UNTUNED.
-    static final MapPlacement LANDING_FROM = new MapPlacement(0f, 0.25f, 0.30f, 0.75f);
-    static final MapPlacement HOMES_AT = new MapPlacement(0.14f, 0.32f, 0.32f, 0.68f);
-    static final MapPlacement INDUSTRY_AT = new MapPlacement(0.48f, 0.50f, 0.62f, 0.80f);
-    static final MapPlacement YARDS_AT = new MapPlacement(0.86f, 0.62f, 0.97f, 0.94f);
-    static final MapPlacement WORKS_AT = new MapPlacement(0.68f, 0.58f, 0.86f, 0.80f);
-    static final MapPlacement GARRISON_AT = new MapPlacement(0.70f, 0.14f, 0.90f, 0.36f);
-    static final MapPlacement OUTSKIRTS_AT = new MapPlacement(0.04f, 0.04f, 0.22f, 0.24f);
-    // A mine stands its head works further in and its ore yards with it, so the deep end is the pit's.
-    static final MapPlacement MINE_WORKS_AT = new MapPlacement(0.56f, 0.55f, 0.68f, 0.75f);
-    static final MapPlacement MINE_INDUSTRY_AT = new MapPlacement(0.38f, 0.50f, 0.48f, 0.80f);
+    public static final MapPlacement LANDING_FROM = new MapPlacement(0f, 0.25f, 0.30f, 0.75f);
+    public static final MapPlacement HOMES_AT = new MapPlacement(0.14f, 0.32f, 0.32f, 0.68f);
+    public static final MapPlacement INDUSTRY_AT = new MapPlacement(0.48f, 0.50f, 0.62f, 0.80f);
+    public static final MapPlacement YARDS_AT = new MapPlacement(0.86f, 0.62f, 0.97f, 0.94f);
+    public static final MapPlacement WORKS_AT = new MapPlacement(0.68f, 0.58f, 0.86f, 0.80f);
+    public static final MapPlacement GARRISON_AT = new MapPlacement(0.70f, 0.14f, 0.90f, 0.36f);
+    public static final MapPlacement OUTSKIRTS_AT = new MapPlacement(0.04f, 0.04f, 0.22f, 0.24f);
 
     /** Cells of open ground between the head works' claim and the pit's lip: room for the road out of its far gate. UNTUNED. */
     static final int PIT_GAP = 16;
@@ -162,90 +158,28 @@ public final class RaidSiteTemplate {
             new GrownTrunkPlan.Profile(0, 0f, 0.04f, 0.06f, 0f, 4, SettlementLink.NONE);
 
     /** Share of the map a works may claim before its program is trimmed. UNTUNED. */
-    static final float WORKS_FIT = 0.06f;
+    public static final float WORKS_FIT = 0.06f;
 
-    /** Share of the map a mine's head works may claim: its processing halls stand apart on wide ore yards. UNTUNED. */
-    static final float MINE_FIT = 0.08f;
+    /** Share of the map a wide works may claim: halls standing apart on wide yards, as a mine's do. UNTUNED. */
+    public static final float MINE_FIT = 0.08f;
 
-    private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
-    private static final Set<String> MINING = Set.of("mining", "techmining");
-    private static final Set<String> REFINING = Set.of("refining", "fuelprod");
-    private static final Set<String> LIGHT_INDUSTRY = Set.of("lightindustry");
-    private static final Set<String> FARMING = Set.of("farming", "aquaculture");
-    private static final Set<String> PORT = Set.of("spaceport", "megaport");
-    private static final Set<String> MILITARY = Set.of("militarybase", "patrolhq", "highcommand");
+    private final RaidIndustry industry;
 
-    private final String key;
-    private final IntFunction<FortressProgram> works;
-    private final float worksFit;
-    private final GrownTrunkPlan.Profile industryGrowth;
-    private final PrecinctCharacter industryCharacter;
-    private final boolean pit;
-    /** A refinery: its works deeper, its industrial quarter nearer the homes, its tank farm held between them. */
-    private final boolean refinery;
-
-    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
-                             GrownTrunkPlan.Profile industryGrowth) {
-        this(key, works, worksFit, industryGrowth, PrecinctCharacter.INDUSTRY, false);
-    }
-
-    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
-                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter) {
-        this(key, works, worksFit, industryGrowth, industryCharacter, false);
-    }
-
-    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
-                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
-                             boolean pit) {
-        this(key, works, worksFit, industryGrowth, industryCharacter, pit, false);
-    }
-
-    private RaidSiteTemplate(String key, IntFunction<FortressProgram> works, float worksFit,
-                             GrownTrunkPlan.Profile industryGrowth, PrecinctCharacter industryCharacter,
-                             boolean pit, boolean refinery) {
-        this.key = key;
-        this.works = works;
-        this.worksFit = worksFit;
-        this.industryGrowth = industryGrowth;
-        this.industryCharacter = industryCharacter;
-        this.pit = pit;
-        this.refinery = refinery;
+    private RaidSiteTemplate(RaidIndustry industry) {
+        this.industry = industry;
     }
 
     /** The template for an industry, by its id, or {@code null} for one that has none yet. */
     public static RaidSiteTemplate forIndustry(String industryId) {
-        if (industryId == null) return null;
-        String id = industryId.toLowerCase(Locale.ROOT);
-        if (HEAVY_INDUSTRY.contains(id)) {
-            return new RaidSiteTemplate("heavy-industry", FortressProgram::works, WORKS_FIT, INDUSTRY_GROWTH);
-        }
-        if (MINING.contains(id)) {
-            return new RaidSiteTemplate("mining", RaidWorksPrograms::mine, MINE_FIT, ORE_YARDS,
-                    PrecinctCharacter.INDUSTRY, true);
-        }
-        if (REFINING.contains(id)) {
-            return new RaidSiteTemplate("refining", RefinerySite::program, RefinerySite.WORKS_FIT, INDUSTRY_GROWTH,
-                    PrecinctCharacter.INDUSTRY, false, true);
-        }
-        if (LIGHT_INDUSTRY.contains(id)) {
-            return new RaidSiteTemplate("light-industry", RaidWorksPrograms::shops, WORKS_FIT, INDUSTRY_GROWTH);
-        }
-        if (FARMING.contains(id)) {
-            return new RaidSiteTemplate("farming", RaidWorksPrograms::farmPlant, WORKS_FIT, ORE_YARDS,
-                    PrecinctCharacter.FARMSTEAD);
-        }
-        if (PORT.contains(id)) {
-            return new RaidSiteTemplate("spaceport", RaidWorksPrograms::cargoTerminal, MINE_FIT, INDUSTRY_GROWTH);
-        }
-        if (MILITARY.contains(id)) {
-            return new RaidSiteTemplate("military", RaidWorksPrograms::motorPool, MINE_FIT, ORE_YARDS,
-                    PrecinctCharacter.DEPOT);
-        }
-        return null;
+        RaidIndustry industry = RaidIndustries.forId(industryId);
+        return industry == null ? null : new RaidSiteTemplate(industry);
     }
 
+    /** The industry this site is laid for. */
+    public RaidIndustry industry() { return industry; }
+
     /** The template's name, for evidence. */
-    public String key() { return key; }
+    public String key() { return industry.key(); }
 
     /** Sites the hub is fed by on the smallest market a Raid names. UNTUNED. */
     static final int FEEDERS_BASE = 3;
@@ -265,7 +199,7 @@ public final class RaidSiteTemplate {
      * The briefing's string for this site: what the hub is to the planet. Formatted with the planet's name, the
      * feeders ({@link #feedersFor}) and the days its loss costs at full effect.
      */
-    public String briefingKey() { return "raidSiteChokepoint_" + key.replace('-', '_'); }
+    public String briefingKey() { return "raidSiteChokepoint_" + key().replace('-', '_'); }
 
     /**
      * The site laid on a map of this size for this market. The draws are this template's own: one for the
@@ -291,10 +225,9 @@ public final class RaidSiteTemplate {
                 ? StormBank.leeward(oriented(p, mirrorX, mirrorY), wind, width, height) : oriented(p, mirrorX, mirrorY);
         Security security = Security.of(profile);
         List<PrecinctBrief> briefs = new ArrayList<>();
-        briefs.add(PrecinctBrief.garrison(WORKS,
-                at.apply(pit ? MINE_WORKS_AT : refinery ? RefinerySite.WORKS_AT : WORKS_AT),
+        briefs.add(PrecinctBrief.garrison(WORKS, at.apply(industry.worksAt()),
                 WORKS_GROWTH,
-                works.apply(machines).fittedTo(Math.round(worksFit * width * height)),
+                industry.works(machines).fittedTo(Math.round(industry.worksFit() * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
             briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(GARRISON_AT),
@@ -306,11 +239,10 @@ public final class RaidSiteTemplate {
         briefs.add(PrecinctBrief.settlement(HOMES, at.apply(HOMES_AT), homesGrowth(profile),
                 PrecinctCharacter.TOWN.leaning(MapDistrictTheme.RESIDENTIAL)));
         briefs.add(PrecinctBrief.settlement(INDUSTRY,
-                at.apply(pit ? MINE_INDUSTRY_AT : refinery ? RefinerySite.INDUSTRY_AT : INDUSTRY_AT),
-                industryGrowth, industryCharacter));
-        if (!pit && !refinery) {
+                at.apply(industry.industryAt()), industry.industryGrowth(), industry.industryCharacter()));
+        if (industry.yards()) {
             briefs.add(PrecinctBrief.settlement(YARDS, at.apply(YARDS_AT),
-                    industryGrowth, industryCharacter));
+                    industry.industryGrowth(), industry.industryCharacter()));
         }
         if (profile.marketSize() >= OUTSKIRTS_FROM) {
             briefs.add(PrecinctBrief.settlement(OUTSKIRTS, at.apply(OUTSKIRTS_AT),
@@ -319,34 +251,21 @@ public final class RaidSiteTemplate {
         PrecinctPlan plan = PrecinctPlan.laidOut(briefs, at.apply(LANDING_FROM), width, height, rng)
                 .withStandoff(Standoff.INSET);
         List<Piece> pieces = new ArrayList<>();
-        if (pit) {
-            Precinct head = null;
-            for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) head = p;
-            Site pitSite = pitSite(head.seedX(), head.seedY(), worksReach(worksFit, security, width, height),
-                    mirrorX, mirrorY, width, height);
-            pieces.add(banked ? clearOfBank(pitSite, wind, width, height) : pitSite);
-        }
-        if (refinery) {
-            Precinct works = null, industry = null;
-            for (Precinct p : plan.precincts()) {
-                if (WORKS.equals(p.name())) works = p;
-                if (INDUSTRY.equals(p.name())) industry = p;
-            }
-            Site farm = RefinerySite.tankFarm(works.seedX(), works.seedY(), industry.seedX(), industry.seedY(),
-                    worksReach(worksFit, security, width, height), mirrorX, mirrorY, width, height);
-            pieces.add(banked ? clearOfBank(farm, wind, width, height) : farm);
-        }
-        pieces.addAll(lines(mirrorX, mirrorY, pit));
-        if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, pit, width, height));
-        return plan.withLayout(new MissionLayout(pieces));
+        industry.sitePieces(new SiteFrame(plan, mirrorX, mirrorY, width, height, security, banked ? wind : null),
+                pieces);
+        boolean deepFeeder = industry.deepFeeder();
+        pieces.addAll(lines(mirrorX, mirrorY, !deepFeeder));
+        if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, !deepFeeder, width, height));
+        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key());
     }
 
     /**
      * The works' roads ({@code raid-site-templates.md}, The planet's chokepoint): the haul road from its near gate
      * to the industrial district, and a feeder off the map's edge from each far gate, the deep end's and the outer
-     * flank's. A mine's deep end is its pit, so its only feeder is the flank's.
+     * flank's. Where the deep end is the industry's own ground ({@code noDeepFeeder}: a mine's pit) the only feeder is
+     * the flank's.
      */
-    static List<Road> lines(boolean mirrorX, boolean mirrorY, boolean pit) {
+    static List<Road> lines(boolean mirrorX, boolean mirrorY, boolean noDeepFeeder) {
         Side deep = mirrorX ? Side.WEST : Side.EAST;
         Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
         List<Road> out = new ArrayList<>();
@@ -357,7 +276,7 @@ public final class RaidSiteTemplate {
         out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT),
                 Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false)
                 .laidThrough());
-        if (!pit) {
+        if (!noDeepFeeder) {
             out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT),
                     Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false)
                     .laidThrough());
@@ -366,7 +285,7 @@ public final class RaidSiteTemplate {
     }
 
     /** The pit's ground stopped short of the storm bank's, so the pit and the bank never contend for the same cells. */
-    static Site clearOfBank(Site pit, StormWind.Side wind, int width, int height) {
+    public static Site clearOfBank(Site pit, StormWind.Side wind, int width, int height) {
         int depth = StormBank.depth(wind, width, height);
         int x0 = pit.x0(), y0 = pit.y0(), x1 = pit.x1(), y1 = pit.y1();
         switch (wind) {
@@ -386,15 +305,15 @@ public final class RaidSiteTemplate {
      * leaves the map on that side. A feeder runs off the map from beside the works' claim, so across the edge it
      * stands level with the works' seed.
      */
-    static Landscape stormBank(PrecinctPlan plan, StormWind.Side wind, boolean mirrorX, boolean mirrorY, boolean pit,
-                               int width, int height) {
+    static Landscape stormBank(PrecinctPlan plan, StormWind.Side wind, boolean mirrorX, boolean mirrorY,
+                               boolean noDeepFeeder, int width, int height) {
         Side deep = mirrorX ? Side.WEST : Side.EAST;
         Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
         Precinct works = null;
         for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) works = p;
         List<Integer> passes = new ArrayList<>();
         if (works != null) {
-            for (Side feeder : pit ? List.of(outer) : List.of(outer, deep)) {
+            for (Side feeder : noDeepFeeder ? List.of(outer) : List.of(outer, deep)) {
                 if (feeder.name().equals(wind.name())) passes.add(wind.alongX() ? works.seedX() : works.seedY());
             }
         }
@@ -410,7 +329,7 @@ public final class RaidSiteTemplate {
      * The most a works' claim reaches from its seed: half the side of the square a works of this fit and security
      * can claim, at its largest. Its program is fitted to {@code fit} of the map, so its claim is never wider.
      */
-    static int worksReach(float fit, Security security, int width, int height) {
+    public static int worksReach(float fit, Security security, int width, int height) {
         int side = (int) Math.ceil(Math.sqrt(fit * width * height)) + 2 * security.buffer();
         return (side + 1) / 2;
     }
@@ -420,7 +339,8 @@ public final class RaidSiteTemplate {
      * the deep edge, and across the map {@link #PIT_HALF_SPAN} either side of the works, kept to the works' half
      * (never nearer the middle than {@link #PIT_INNER}) so it stays off the garrison's flank.
      */
-    static Site pitSite(int seedX, int seedY, int reach, boolean mirrorX, boolean mirrorY, int width, int height) {
+    public static Site pitSite(int seedX, int seedY, int reach, boolean mirrorX, boolean mirrorY, int width,
+                               int height) {
         int x0, x1;
         if (mirrorX) {
             x0 = PIT_MARGIN;
@@ -467,19 +387,19 @@ public final class RaidSiteTemplate {
     static final float HOMES_ARM_HI = 0.15f;
 
     /** The industrial quarter and the yards: a town's density of yards and sheds on the homes' short arms. */
-    private static final GrownTrunkPlan.Profile INDUSTRY_GROWTH = shortArms(GrownTrunkPlan.Profile.town());
+    public static final GrownTrunkPlan.Profile INDUSTRY_GROWTH = shortArms(GrownTrunkPlan.Profile.town());
 
-    /** A mine's ore yards and railhead: a hamlet's few roads, sheds and stockpiles with open ground between. */
-    private static final GrownTrunkPlan.Profile ORE_YARDS = shortArms(GrownTrunkPlan.Profile.hamlet());
-
-    /** Whether this is the refinery's site, which holds a tank farm ({@link RefinerySite}). */
-    boolean refinery() { return refinery; }
+    /**
+     * A sparse district round the works: a hamlet's few roads, sheds and yards with open ground between, as a mine's
+     * ore yards and a base's depots are.
+     */
+    public static final GrownTrunkPlan.Profile SPARSE_GROWTH = shortArms(GrownTrunkPlan.Profile.hamlet());
 
     /** The kind of district round the works, for evidence. */
-    PrecinctCharacter industryCharacter() { return industryCharacter; }
+    PrecinctCharacter industryCharacter() { return industry.industryCharacter(); }
 
     /** How many junctions the industry round the works grows, for evidence. */
-    int industryJunctions() { return industryGrowth.junctionBudget; }
+    int industryJunctions() { return industry.industryGrowth().junctionBudget; }
 
     private static GrownTrunkPlan.Profile shortArms(GrownTrunkPlan.Profile p) {
         return new GrownTrunkPlan.Profile(p.junctionBudget, p.branchChance, HOMES_ARM_LO, HOMES_ARM_HI,

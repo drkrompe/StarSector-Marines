@@ -42,7 +42,7 @@ import java.util.Map;
  * empty, since a machine that sees a man at a window believes in him itself. The machine starts fifty cells
  * west and is given the player's click on the building's interior at tick 30.
  *
- * <p>Loops: {@code mech} (a Warden, whose cannon brings walls down), {@code tank} (a breakthrough tank), {@code
+ * <p>Loops: {@code mech} (a Warden, whose cannon brings walls down), {@code tank} (an Onager), {@code
  * control} (the same Warden and click with nobody reported inside: the click is an ordinary move), and {@code
  * with-infantry} (the Warden and a rifle squad given the same click: the squad clears and holds, the machine
  * assaults).

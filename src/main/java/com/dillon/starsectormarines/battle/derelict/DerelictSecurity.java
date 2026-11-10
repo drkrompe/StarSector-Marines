@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneLook;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockField;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
@@ -168,7 +167,17 @@ public final class DerelictSecurity {
             if (objective instanceof RuinsVaultObjective ruins) vault = ruins;
         }
         if (vault == null || vault.liftPoints().isEmpty()) return null;
-        int[] route = vault.liftPoints().get(0).route();
+        return install(sim, grade, delve, livery, vault.liftPoints().get(0).route(), vault.sourceCellX(),
+                vault.sourceCellY());
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, RuinsGrade, RuinsDelve, FlockLivery)}, on ground with no ruins vault: the
+     * zones are laid along {@code route} (cell pairs, the guarded place first) and the haul's escort is read round
+     * {@code sourceX, sourceY}. A battle with no {@code RuinsVaultObjective} never calls the contingency.
+     */
+    public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
+                                                   FlockLivery livery, int[] route, int sourceX, int sourceY) {
         List<ZonePlan> plans = zonesAlong(route, zones(grade));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
@@ -250,7 +259,7 @@ public final class DerelictSecurity {
                     heavy.postX(), heavy.postY()));
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
-                vault.sourceCellX(), vault.sourceCellY());
+                sourceX, sourceY);
         for (Map.Entry<Integer, PatrolRound> round : rounds.entrySet()) {
             director.walkRound(round.getKey(), round.getValue());
         }
@@ -305,7 +314,7 @@ public final class DerelictSecurity {
         }
         standPosts(sim, route, plans, network, delve, director);
         standWatchHousings(sim, route, plans, delve, port, livery, director);
-        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director);
+        for (ZonePlan plan : plans) standRepairDrone(sim, plan.id(), director, livery);
         if (delve != null && !delve.layers().isEmpty()) {
             for (ZonePlan plan : plans) {
                 director.feedThrough(plan.id(), DerelictPower.junctionOf(plan.nodeX(), plan.nodeY(), delve.layers()));
@@ -661,13 +670,14 @@ public final class DerelictSecurity {
     }
 
     /** Puts a zone's repair drone up over its node, homed there. */
-    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director) {
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director,
+                                 FlockLivery livery) {
         Long node = director.nodes().get(zoneId);
         if (node == null) return 0L;
         float hx = sim.world().x(node);
         float hy = sim.world().y(node);
         EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
-                (int) Math.floor(hy), 0L, DroneLook.TENDER).role(UnitRole.STRUCTURE);
+                (int) Math.floor(hy), 0L, livery.repairDrone()).role(UnitRole.STRUCTURE);
         long id = sim.spawn(drone);
         if (id == 0L) return 0L;
         AirBody body = sim.world().kinematics(id);
