@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -25,9 +25,10 @@ import make_guide as G  # noqa: E402
 
 SHEET = "military-base"
 CELL_PX = 128
-PAINT = (226, 218, 192)
-PAINT_ALPHA = 200
-LINE = 0.07  # a painted line's width, in cells
+PAINT = (238, 234, 218)
+PAINT_ALPHA = 240
+# A painted line's width, in cells: bold, since the base close-up shows a cell at about 13 px.
+LINE = 0.25
 
 # id: (name, what, cells w, cells h, cover, extra)
 PIECES = {
@@ -67,15 +68,15 @@ def painted():
 
 
 def worn(mask, seed):
-    """Paint from a coverage mask: off-white, worn through in specks and scuffs."""
+    """Paint from a coverage mask: bright off-white with a crisp edge, lightly worn in specks and scuffs."""
     w, h = mask.size
     rnd = np.random.default_rng(seed)
     noise = Image.fromarray((rnd.random((h // 4 + 1, w // 4 + 1)) * 255).astype(np.uint8)).resize((w, h),
                                                                                                     Image.BILINEAR)
     fine = Image.fromarray((rnd.random((h, w)) * 255).astype(np.uint8))
-    wear = np.minimum(np.asarray(noise, np.float32) / 255 * 1.6, 1) * (0.6 + 0.4 * np.asarray(fine, np.float32) / 255)
-    alpha = np.asarray(mask.filter(ImageFilter.GaussianBlur(0.8)), np.float32) / 255 * wear * PAINT_ALPHA
-    alpha[alpha < 30] = 0
+    wear = np.clip(0.55 + np.asarray(noise, np.float32) / 255, 0, 1) * (0.85 + 0.15 * np.asarray(fine, np.float32) / 255)
+    alpha = np.asarray(mask, np.float32) / 255 * wear * PAINT_ALPHA
+    alpha[alpha < 60] = 0
     out = Image.new("RGBA", (w, h), PAINT)
     out.putalpha(Image.fromarray(alpha.astype(np.uint8)))
     return out
@@ -97,16 +98,16 @@ def markings():
 
     m = Image.new("L", (4 * c, c))
     d = ImageDraw.Draw(m)
-    for k in range(8):
-        x0 = k * c // 2 + c // 8
-        d.rectangle((x0, c // 2 - lw // 2, x0 + c // 4, c // 2 + lw // 2), fill=255)
+    for k in range(4):
+        x0 = k * c + c // 4
+        d.rectangle((x0, c // 2 - lw // 2, x0 + c // 2, c // 2 + lw // 2), fill=255)
     yield "parade-ranks", worn(m, 3)
 
     m = Image.new("L", (2 * c, 2 * c))
     d = ImageDraw.Draw(m)
-    d.ellipse((c * 0.35, c * 0.35, c * 1.65, c * 1.65), outline=255, width=lw)
-    d.rectangle((c - lw // 2, c * 0.55, c + lw // 2, c * 1.45), fill=255)
-    d.rectangle((c * 0.55, c - lw // 2, c * 1.45, c + lw // 2), fill=255)
+    d.ellipse((c * 0.15, c * 0.15, c * 1.85, c * 1.85), outline=255, width=lw)
+    d.rectangle((c - lw // 2, c * 0.45, c + lw // 2, c * 1.55), fill=255)
+    d.rectangle((c * 0.45, c - lw // 2, c * 1.55, c + lw // 2), fill=255)
     yield "parade-centre", worn(m, 4)
 
 
