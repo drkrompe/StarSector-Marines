@@ -361,10 +361,11 @@ of each pick, slice 3's comms lines.
   `DerelictWalkerFrame.TENDER`: no mounts). `FieldTender` is the tender's rule
   (charge in hand, shadowing, weld, reload); `DerelictWalkerClass.tenders`
   counts them, and `DerelictSecurity.install` stands one beside each zone's first
-  heavy. The director's `tend` lays the pulse's plate through `mend` and walks
+  heavy (`beside`: the nearest clear cell a ring at a time). The director's `tend` lays the pulse's plate through `mend` and walks
   the tender by a hold order. Every derelict walker spawns with
   `MissileReplenisherComponent.NONE`; `BayRearm` is the re-arming rule, and the
-  director's `rearm` sends a walker to its bay and puts packs in with
+  director's `rearm` sends a walker to stand just off its bay (`bayStand`, the
+  bay's own cell being the housing's) and puts packs in with
   `MechWeaponMount.resupplyOne`.
 
 Not built yet:
@@ -374,7 +375,8 @@ own looks.
 Evidence: `PatrolRoundTest`, `ServiceDuctsTest`, `FacilityWakeTest`,
 `DerelictWalkerClassTest`, `WreckTest`, `RepairDroneTest`, `WalkerPostureTest`,
 `HallFrameReachTest`, `FlockDuctTest`, `FieldTenderTest`, `BayRearmTest`. Picture cards: `createSnapshots
--Psnapshot=derelict-watch-picks` (the four picks on the vast derelict ruin).
+-Psnapshot=derelict-watch-picks` (the four picks on the vast derelict ruin);
+`-Psnapshot=derelict-repair-picks` (the tender and re-arming).
 
 ## Constraints
 

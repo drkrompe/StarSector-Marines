@@ -11,8 +11,8 @@ import java.util.List;
  * most worn walker below {@link #TENDER_BELOW} as its charge and keeps it until the charge is back to
  * {@link #TENDER_WHOLE} or gone; with no charge it shadows the most worn walker, ready. Within {@link #TENDER_REACH} of
  * its charge it welds at {@link #TENDER_RATE} from the stock it carries. Unlike the repair drone it keeps working under
- * fire, and it never raises a wreck. Dry, it walks to its zone's service bay for another load; with the bay gone it
- * goes back to its post and stays.
+ * fire, and it never raises a wreck. Dry, it walks to its zone's service bay for another load, taken within
+ * {@link BayRearm#REARM_REACH} of it; with the bay gone it goes back to its post and stays.
  */
 public final class FieldTender {
 
@@ -65,7 +65,7 @@ public final class FieldTender {
         if (stock <= 0f) {
             charge = 0L;
             if (bay == null || bay.stock() <= 0f) return new Goal(Kind.STAND_BY, postX, postY, 0L);
-            Kind kind = within(x, y, bay.x(), bay.y()) ? Kind.RELOAD : Kind.FOLLOW;
+            Kind kind = BayRearm.atBay(x, y, bay.x(), bay.y()) ? Kind.RELOAD : Kind.FOLLOW;
             return new Goal(kind, bay.x(), bay.y(), 0L);
         }
         if (!awake) {

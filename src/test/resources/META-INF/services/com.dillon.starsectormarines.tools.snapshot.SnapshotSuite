@@ -220,6 +220,7 @@ com.dillon.starsectormarines.battle.setup.GreyhookDuelSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechDuelRangeSceneSnapshotSuite
+com.dillon.starsectormarines.battle.mech.PilgrimWallCrushSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.PdBeamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.BurstLaserLookSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite
@@ -447,6 +448,7 @@ com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite
+com.dillon.starsectormarines.battle.derelict.DerelictRepairPicksSuite
 com.dillon.starsectormarines.battle.mech.CrawlerLookSuite
 com.dillon.starsectormarines.battle.mech.LowtechVariantsLookSuite
 com.dillon.starsectormarines.battle.fire.MachineFlamerLookSuite

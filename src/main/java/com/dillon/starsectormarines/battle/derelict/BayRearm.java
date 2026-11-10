@@ -14,8 +14,11 @@ public final class BayRearm {
 
     /** Seconds a pack takes to go into each rack at the bay. UNTUNED. */
     public static final float PACK_SECONDS = 3f;
-    /** How near the bay (cells, either axis, centre to centre) a walker stands to re-arm: past its own flank. */
-    public static final float REARM_REACH = 4f;
+    /**
+     * How near the bay (cells, either axis, centre to centre) a walker stands to re-arm or reload: a walk sent to stand
+     * just off the bay ends within a hold's radius of that stand, so the reach covers both.
+     */
+    public static final float REARM_REACH = 6f;
 
     public enum Step {
         /** Not re-arming: the walker does as its posture says. */
