@@ -22,6 +22,7 @@ OUTPUTS = {
     "tt": (192, {"escort": "tt-escort", "sensor": "tt-sensor", "halo": "tt-halo", "strike": "tt-strike"}),
     "family": (192, {"low": "hub-drone-low-tech", "mid": "hub-drone-midline", "high": "hub-drone-high-tech"}),
     "swarm": (128, {"domain": "swarm-domain", "contingency": "swarm-contingency"}),
+    "repair": (192, {"repair-domain": "repair-domain", "repair-contingency": "repair-contingency"}),
 }
 
 
