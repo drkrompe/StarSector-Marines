@@ -235,21 +235,12 @@ public final class FortressInterior {
      */
     public static Result pack(GenContext ctx, boolean[][] ground, boolean[][] muster,
                               TraversalAxis axis, FortressProgram program) {
-        // A sealed complex is glued as a hull: its rooms share their walls, because the ground between them is
-        // roofed hall rather than a yard anybody crosses in the open (SealedComplex).
-        RoomPacker.Massing massing = program.sealed() ? RoomPacker.Massing.WEDGED
-                : program.detached() ? DETACHED : MASSING;
-        return pack(ctx, ground, muster, axis, program, massing);
-    }
-
-    private static Result pack(GenContext ctx, boolean[][] ground, boolean[][] muster,
-                               TraversalAxis axis, FortressProgram program, RoomPacker.Massing massing) {
         Bounds bounds = Bounds.of(ground, ctx.width, ctx.height);
         if (bounds == null) return new Result(List.of(), program.expanded());
 
         // A shed is placed for the bay it is furnished with: its machine door is the installation's.
         RoomPacker packer = new RoomPacker(
-                ctx, footings(ctx, ground, muster), muster, PALETTE, massing)
+                ctx, footings(ctx, ground, muster), muster, PALETTE, program.detached() ? DETACHED : MASSING)
                 .withFittings((purpose, shape) -> purpose == RoomPurpose.VEHICLE_BAY
                         ? RoomFittings.forInstallation(purpose)
                         : RoomFittings.forRoom(ctx, purpose, shape));

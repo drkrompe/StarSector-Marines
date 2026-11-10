@@ -26,7 +26,7 @@ import java.util.function.UnaryOperator;
  * partition happened to leave.
  */
 public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached,
-                              boolean cantonment, boolean sealed) {
+                              boolean cantonment) {
 
     public FortressProgram {
         buildings = List.copyOf(buildings);
@@ -36,21 +36,6 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         if (apron < 0) {
             throw new IllegalArgumentException("a place cannot owe " + apron + " cells of apron");
         }
-    }
-
-    /** A program that is not a sealed complex. */
-    public FortressProgram(List<FortressBuilding> buildings, int airfields, int apron, boolean detached,
-                           boolean cantonment) {
-        this(buildings, airfields, apron, detached, cantonment, false);
-    }
-
-    /**
-     * The same program built as one sealed complex ({@code SealedComplex}): its rooms packed as a hull and every cell
-     * of its ground between them roofed hall, for a world nobody lives outside on. Sized tighter than a garrison
-     * ({@link #SEALED_SLACK}), since a hull has no yard.
-     */
-    public FortressProgram sealedComplex() {
-        return new FortressProgram(buildings, airfields, apron, detached, cantonment, true);
     }
 
     /** A program packed as it fits, detached or not. */
@@ -101,12 +86,12 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
             throw new IllegalArgumentException(
                     "this program has no " + purpose + " to set a count for");
         }
-        return new FortressProgram(out, airfields, apron, detached, cantonment, sealed);
+        return new FortressProgram(out, airfields, apron, detached, cantonment);
     }
 
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
-        return new FortressProgram(buildings, count, apron, detached, cantonment, sealed);
+        return new FortressProgram(buildings, count, apron, detached, cantonment);
     }
 
     /**
@@ -119,7 +104,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * the one that knows what the map can spare.
      */
     public FortressProgram withApron(int cells) {
-        return new FortressProgram(buildings, airfields, cells, detached, cantonment, sealed);
+        return new FortressProgram(buildings, airfields, cells, detached, cantonment);
     }
 
     /**
@@ -309,36 +294,6 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE, posts)));
         if (grade > 0) buildings.add(new FortressBuilding(RoomPurpose.KEEP_ENTRY, GUARDROOM, Ward.FRONTAGE, 1));
         return new FortressProgram(buildings, Math.min(1, airfields), 0, false, true);
-    }
-
-    /** A sealed complex's control room: where its locks, air and power are run from. */
-    private static final RoomShape HABITAT_CONTROL = RoomShape.rectangle(7, 5);
-
-    /**
-     * What a sealed habitat complex owes ({@code mapgen-nouns.md}, Habitat): a settlement whose people live inside one
-     * shielded complex because the world outside will not have them. Hab blocks counted from the market, a mess, a
-     * workshop, stores, a power hall and the control room the locks are run from, with the vehicle bay and two lock posts
-     * on the face it is approached from. No keep: the map's one command post is the garrison's.
-     *
-     * <p>Packed as a hull rather than a garrison ({@code SealedComplex}): its rooms are glued into one slab, and what the
-     * packing leaves between them is hall under the same roof rather than yard.
-     *
-     * @param marketSize the market's size, 1 to 10
-     */
-    public static FortressProgram habitat(int marketSize) {
-        int size = Math.max(1, Math.min(10, marketSize));
-        return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, Math.max(2, Math.min(7, size - 1))),
-                new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, size >= 6 ? 2 : 1),
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, WORKSHOP, Ward.YARD, 1),
-                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.REAR, 2),
-                new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, HABITAT_CONTROL, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.VEHICLE_BAY, MOTOR_SHED, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
-                        RoomPacker.EdgeContact.ANY, 2)),
-                0);
     }
 
     /**
@@ -626,17 +581,11 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * going unplaced.
      */
     public int buildingGround() {
-        return Math.round(floorArea() * (sealed ? SEALED_SLACK : SLACK));
+        return Math.round(floorArea() * SLACK);
     }
 
     /** Ground per cell of building floor. Measured, not guessed — see {@link #envelopeArea}. */
     private static final float SLACK = 2.4f;
-
-    /**
-     * Ground per cell of building floor for a sealed complex: its walls shared and its halls two cells wide, with no
-     * yard. A first guess to be measured, as {@link #SLACK} was.
-     */
-    private static final float SEALED_SLACK = 1.6f;
 
     /**
      * The program flattened to one entry per building, largest first.
