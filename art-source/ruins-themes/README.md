@@ -79,7 +79,8 @@ below is 160 px a cell in its guide and shares the `ruins-forge` sheet.
 - `forge-era-b`: the 3x3 ladle in an overhead manipulator's yoke, upright (`ladle-lift-melt`) and tipped mid-pour
   (`ladle-lift-tipped-pour`), with no cover since it hangs overhead; the 2x2 robot finishing cell and metrology bed;
   the 2x4 cooling stack, empty and with castings; the overhead 1x4 gantry runway; the 7x1 fallen runway beam.
-- `forge-floor`: the 3x3 pallet bay markings; the 2x2 trench cover, 1x2 drain gutter and 1x1 floor drain; the
+- `forge-floor`: the 3x3 pallet bay markings, painted flat from the guide's marks in `export.py` (`flat_paint`), since
+  ImageGen drew them as raised angle; the 2x2 trench cover, 1x2 drain gutter and 1x1 floor drain; the
   overhead 1x2 cable tray and the 1x4 fallen tray. Its rail bed and slag cars are drawn but no longer cut.
 - `forge-wear`: oil stain, oil trail, coolant stain, scorch mark and arc burn, faded as the patches are but with a
   lower halo cut (`STAIN_FEATHER`), since they were drawn translucent to their edges; the 3x3 line pulpit's roof and
