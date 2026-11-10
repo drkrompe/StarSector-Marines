@@ -329,6 +329,16 @@ every door on the way on stays open, so the haul is never shut in. A store is a
 field cache just inside its door, recovered by holding its room
 (`SalvageCache.heldFromRoom`).
 
+**The facility holds against every heavy** (owner: "You can't just drive through the ruin fortress walls with a
+heavy tank right?"). The delve's own walls, layer lines, every shell it stamps, the interior's hull and every
+closed cell inside it, jambs included, stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`, 240), over
+every wall crush's ceiling (100; `mechs-nouns.md`, Wall crush), so no heavy hull or walker pushes through the plant
+and no heavy's route plans through it, while a satchel (450) still cuts it. A seal door or bulkhead shut as its jamb
+holds the same; a dead door's leaves are fixtures, which nothing crushes. A door opens only by its own rules:
+answering, power, a charge through a forcible one, or a hall frame's ram and tear. Props on the plant's floor keep
+their own structure and stay the heavies' to push, and the dead settlement's ruined lots outside the plant stay
+ordinary walls.
+
 **The vault's door** is its inner door, hardened, as are its suite's walls
 (`HardenedWalls`, from the published `ruins.vault` footprint): no charge and no
 heavy hull gets in. Owner pick `ruins-vault-seal`: a door with a puzzle, so a

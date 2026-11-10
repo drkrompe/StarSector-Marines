@@ -73,6 +73,14 @@ public final class RuinsDelveStage implements GenStage {
     static final String PULLED = "doodad.industrial-pallet-stack";
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
+    /**
+     * Structure of the facility's built walls: the layer lines, every shell the delve stamps, the interior's hull and
+     * every wall inside its footprint, jambs included. A fortress wall's (owner: you can't drive a heavy through the
+     * ruin's walls), over every wall crush's ceiling ({@code WallCrush.HEAVY_CEILING}), so no heavy hull or walker
+     * pushes through the plant, while a satchel charge (450) still cuts it. A seal door or bulkhead shut as the jamb
+     * beside it holds the same.
+     */
+    public static final int FACILITY_WALL_HP = 240;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
     /**
      * Corridor widths ({@code ruins-expedition.md}, Ways sized for machines): a service corridor two cells wide, which
@@ -192,6 +200,26 @@ public final class RuinsDelveStage implements GenStage {
         ctx.put(RuinsKeys.DELVE, new Layout(ctx, plan, new Random(ctx.seed ^ SALT)).lay());
     }
 
+    /**
+     * Gives every closed built cell among {@code facility}'s cells (row-major) {@code structure}: what
+     * {@code FinalizeStage} would seed as wall, run before it, which seeds only the walls still without any. Open floor,
+     * water, natural solids and fixtures (a dead door's leaf, a turret's mount) are left, and so is a cell a prop
+     * stands on ({@code props}), so a cover piece keeps its own structure and stays a prop a heavy can push.
+     */
+    static int fortify(NavigationGrid grid, CellTopology topology, boolean[] facility, boolean[] props,
+                       int structure) {
+        int w = grid.getWidth(), n = 0;
+        for (int i = 0; i < facility.length; i++) {
+            if (!facility[i] || props[i]) continue;
+            int x = i % w, y = i / w;
+            if (grid.isWalkable(x, y) || topology.isFixture(x, y) || topology.isWater(x, y)
+                    || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) continue;
+            grid.setWallHp(x, y, structure);
+            n++;
+        }
+        return n;
+    }
+
     /** One delve being laid. */
     private static final class Layout {
         final GenContext ctx;
@@ -251,6 +279,27 @@ public final class RuinsDelveStage implements GenStage {
             hull = new boolean[w * h];
             network = new int[w * h];
             freightNet = new boolean[w * h];
+        }
+
+        /** The facility's cells: what the delve keeps and stamps, the interior's hull, and everything inside it. */
+        boolean[] facility() {
+            boolean[] cells = new boolean[w * h];
+            for (int i = 0; i < cells.length; i++) cells[i] = kept[i] || drafted[i] || hull[i];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (insideCell(x, y)) cells[i(x, y)] = true;
+            return cells;
+        }
+
+        /** Every cell a prop stands on now, so a cover piece keeps its own structure. */
+        boolean[] propCells() {
+            boolean[] cells = new boolean[w * h];
+            for (Doodad d : ctx.doodads) {
+                for (int y = d.cellY; y < d.cellY + Math.max(1, d.footprintCellsY); y++) {
+                    for (int x = d.cellX; x < d.cellX + Math.max(1, d.footprintCellsX); x++) {
+                        if (grid.inBounds(x, y)) cells[i(x, y)] = true;
+                    }
+                }
+            }
+            return cells;
         }
 
         RuinsDelve lay() {
@@ -366,6 +415,7 @@ public final class RuinsDelveStage implements GenStage {
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
                     entrances, aprons, chambers, plantHalls, leafDoors);
+            fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }

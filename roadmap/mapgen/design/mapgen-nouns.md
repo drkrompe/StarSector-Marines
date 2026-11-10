@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — ruins ground: the delve's walls stand at fortress structure, so no heavy crushes through the plant. Also 2026-11-10 — habitat: the sealed envelope stands as a raised habitat wall of its own. Earlier, 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -2020,7 +2020,10 @@ settlement that died: the same growth at a density the mission states,
 `SettlementLink.NONE`, and every lot a ruin. It is laid as a **delve**: a
 cleared landing ground toward the west end, a vault at the east end, and between
 them the ruins grade's **layers**, each a line across the whole map with its
-ways through: a wall inside the megastructure, a boundary outside it.
+ways through: a wall inside the megastructure, a boundary outside it. The
+delve's own walls stand at fortress structure (`RuinsDelveStage.FACILITY_WALL_HP`),
+so no heavy crushes through the plant (`ruins-expedition.md`, Works); the ruined
+lots keep ordinary walls.
 
 A mission asks for it with a `RuinsGroundPlan` through
 `MapGenerator.generateRuins` and reads `MapResult.ruinsDelve` (null on every
