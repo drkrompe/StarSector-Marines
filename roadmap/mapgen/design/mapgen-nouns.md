@@ -863,7 +863,12 @@ Every move is kept only where the network stays in as few pieces as before,
 and no street is moved onto ground growth was kept off (the layout's held
 ground, sealed ground). It draws no random number. What is laid later
 (cantonment avenues and gate roads, gates, layout roads, welds, pad
-approaches) is laid onto the planned streets. `-Dbattle.mapgen.streetPlan=false`
+approaches) is laid onto the planned streets. A road leaving a walled place
+meets them square (`StreetPlan.meet`): straight out of its gate onto the
+centre line of the nearest street across its way, as a tee, or a cross where
+a street leaves the far side on its line, never an offset tee within ten
+cells of another; where none qualifies the place keeps its own road. Inside a
+walled place's claim the streets are the place's own. `-Dbattle.mapgen.streetPlan=false`
 is the control.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
