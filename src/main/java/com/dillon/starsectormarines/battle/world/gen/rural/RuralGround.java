@@ -98,7 +98,15 @@ public final class RuralGround {
                 if (worked) ctx.markMadeGround(x, y);
             }
         }
+        for (Plot plot : layout.plots()) if (plot.use() != Use.WILD) worked(ctx, plot);
         raiseFarmsteads(ctx, layout);
+    }
+
+    /** Records {@code plot} as a field the colony works ({@link BspKeys#WORKED_FIELDS}). */
+    public static void worked(GenContext ctx, Plot plot) {
+        List<Plot> fields = ctx.get(BspKeys.WORKED_FIELDS);
+        if (fields == null) ctx.put(BspKeys.WORKED_FIELDS, fields = new ArrayList<>());
+        fields.add(plot);
     }
 
     /**
@@ -144,6 +152,7 @@ public final class RuralGround {
         int sand = surface(ctx, mapping, GroundKind.SAND);
         int[] hedge = hedgePlants();
         for (Plot plot : fields) {
+            worked(ctx, plot);
             for (int x = plot.x0(); x <= plot.x1(); x++) {
                 for (int y = plot.y0(); y <= plot.y1(); y++) {
                     GroundKind kind = plotGround(plot, x, y);

@@ -27,21 +27,10 @@ import java.util.List;
  *
  * <p>Moves run until none applies. The plan changes streets and their ground only: the road-owner grid, the road
  * mask and the segments growth hands on, and the hinterland where a street was taken up. It draws no random number.
- * {@code -Dbattle.mapgen.streetPlan=false} is the control.
  */
 public final class StreetPlan {
 
     private StreetPlan() {}
-
-    /**
-     * TEMPORARY switch while the grown and the planned street networks are compared ({@code switches.md}). Remove it,
-     * with the unplanned path, once the plan is proven on the story map pools and the owner's review.
-     */
-    public static final String PROPERTY = "battle.mapgen.streetPlan";
-
-    public static boolean enabled() {
-        return Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-    }
 
     /** Breadths under which a dead end is a stub. */
     static final int STUB_BREADTHS = 4;

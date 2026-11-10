@@ -408,6 +408,8 @@ public class BattleRenderer {
                 new LockedDoorRenderSystem(sprites),
                 // The ruins' hall and cargo doors, sliding leaf doors as a ship's are.
                 new RuinsLeafDoorRenderSystem(sprites),
+                // A walled place's gates, a pair of leaves that part for whoever comes through.
+                new WallGateRenderSystem(sprites),
                 // Burnt ground under the creep, inside the ground's colour target.
                 scorch,
                 creep,
