@@ -154,6 +154,14 @@ public final class GroundTurret {
     /** Who has been hitting the hull, and from where: whether its crew is caught in crossfire. */
     public final Crossfire crossfire = new Crossfire();
 
+    /** The Mech Lab's turret calibration on a company hull ({@code MechRefit#traverseMult}); one for any other. */
+    public float traverseMult = 1f;
+
+    /** How fast this turret slews on {@code mount}, in degrees a second: the carriage's rate with the calibration over it. */
+    public float traverse(TurretMountDef mount) {
+        return mount.turnRateDegPerSec * traverseMult;
+    }
+
     /** The structure this turret stands in: the fitted gun's, or {@code type}'s own. */
     public StructureDef structureFor(VehicleType type) {
         return structure != null ? structure : type.turretStructure();

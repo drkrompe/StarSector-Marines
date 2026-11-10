@@ -226,9 +226,14 @@ head-loss penalty, and the traverse factor scales the torso's turn rate. A mech
 the company does not own is neutral, and so is every mech off the founding
 hull. A recorded fixture carries the refit with the frame.
 
-Player-side vehicles are not deployable yet (`c12-the-debug-company.md` waits on
-them). A vehicle bay track returns when they are: engine tuning (speed), turret
-calibration (accuracy), field repair (integrity between battles).
+**The company's vehicles take the same three bonuses** (owner, 2026-11-09: apply
+the upgrades to mechs and vehicles equally where possible). The launch freezes the
+same `MechRefit` over each owned vehicle's deployment, and the convoy spawn lays it
+on the hull: the plate over every armor pool, the coolant over the reservoir's
+dissipation, the calibration over the turret's traverse (`GroundTurret`) and
+over every gun's hit roll on the hull (the shooter accuracy the turret fire reads).
+A recorded fixture carries it on the vehicle. Field repair stays with mechs:
+vehicles carry no damage between battles, so it has nothing to shorten.
 
 ### Campaign layer (outside battle)
 

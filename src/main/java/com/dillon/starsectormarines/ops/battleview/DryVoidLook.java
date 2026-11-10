@@ -35,13 +35,14 @@ final class DryVoidLook {
      * @param bar      the coarser stuff between its channels (gravel bars, rubble)
      * @param stones   the first of the five medium and large field stones in the nature sheet's frames that lie on
      *                 the floor, fallen from the walls (the same set the plain's ground scatters), or -1 for none;
-     *                 {@code stoneTint} multiplies their colour into the drop's light
+     *                 {@code stoneTint} multiplies their colour into the drop's light, and {@code stoneShare} is the
+     *                 share of the floor's scatter points that hold one
      * @param bridge   a bridge's edge over the drop
      * @param haze     the air low in the drop, and {@code hazeAlpha} how thick (0 for none)
      */
     record Palette(Rgb cap, Rgb plain, Rgb upper, Rgb lower, Rgb drift, Rgb scree, Rgb shade, float shadeMix,
                    Rgb deep, float deepMix, Rgb bed, Rgb bar, int stones, Rgb stoneTint,
-                   Rgb bridge, Rgb haze, float hazeAlpha) { }
+                   float stoneShare, Rgb bridge, Rgb haze, float hazeAlpha) { }
 
     /**
      * A desert canyon (ARID worlds): banded red and ochre sandstone, wind-blown sand lying on the ledges, a dry wash
@@ -54,8 +55,21 @@ final class DryVoidLook {
             new Rgb(.74f, .60f, .38f), new Rgb(.80f, .67f, .48f),
             new Rgb(.22f, .12f, .10f), .75f,
             new Rgb(.36f, .22f, .18f), .2f,
-            new Rgb(.80f, .66f, .45f), new Rgb(.66f, .50f, .35f), 34, new Rgb(1.2f, .98f, .8f),
+            new Rgb(.80f, .66f, .45f), new Rgb(.66f, .50f, .35f), 34, new Rgb(1.2f, .98f, .8f), .3f,
             new Rgb(.62f, .40f, .25f), new Rgb(.88f, .72f, .52f), .07f);
+
+    /**
+     * A dry rock gorge (ROCK barren worlds): grey regolith and bedrock in strata, grit lying on the ledges, a floor of
+     * dust and rubble thick with fallen basalt blocks; no water and, on an airless world, no haze.
+     */
+    static final Palette REGOLITH = new Palette(
+            new Rgb(.60f, .56f, .52f), new Rgb(.619f, .543f, .489f),
+            new Rgb(.50f, .48f, .46f), new Rgb(.38f, .37f, .37f),
+            new Rgb(.58f, .53f, .48f), new Rgb(.66f, .62f, .58f),
+            new Rgb(.08f, .08f, .09f), .85f,
+            new Rgb(.16f, .17f, .19f), .25f,
+            new Rgb(.56f, .51f, .46f), new Rgb(.42f, .40f, .38f), 41, new Rgb(1.1f, 1.04f, 1f), .55f,
+            new Rgb(.40f, .38f, .36f), new Rgb(.6f, .58f, .56f), 0f);
 
     /** Cells back from the drop over which the lip gives way to the plain. */
     static final float PLAIN_CELLS = .3f;
@@ -69,6 +83,7 @@ final class DryVoidLook {
         if (look == null) return null;
         return switch (look.style()) {
             case CANYON -> CANYON;
+            case DRY_GORGE -> REGOLITH;
             default -> null;
         };
     }

@@ -18,11 +18,14 @@ import java.util.List;
 /**
  * The three mech chassis in a faction's livery, in their stock fits: a shot each for the Hegemony, Independents and
  * pirates, who wear the low-tech bodies (art-source/mech-modular-topdown/sources/lowtech), and one for Tri-Tachyon, a
- * repaint of the shared outlines, to compare them against. Owner-facing look frames only; there is no verdict.
+ * repaint of the shared outlines, to compare them against. A last shot stands Tri-Tachyon's own light crawler between
+ * its stand-in Warden and Bulwark, for scale (`mech-lines.md`, high-tech light). Owner-facing look frames only; there
+ * is no verdict.
  */
 public final class MechLiveriesSnapshotSuite implements SnapshotSuite {
 
     private static final MechVariant[] LINE = {MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN};
+    private static final MechVariant[] CRAWLER_LINE = {MechVariant.WARDEN, MechVariant.CRAWLER, MechVariant.BULWARK};
     private static final float SPACING = 4.5f;
 
     @Override public String id() { return "mech-liveries"; }
@@ -35,35 +38,38 @@ public final class MechLiveriesSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String faction : new String[] {"hegemony", "independent", "pirates", "tritachyon"}) {
             try (ReviewFactions ignored = ReviewFactions.bind(faction, "pirates")) {
-                out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-" + faction)));
+                out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-" + faction, LINE)));
             }
+        }
+        try (ReviewFactions ignored = ReviewFactions.bind("tritachyon", "pirates")) {
+            out.addAll(LookReview.record(context.modRoot(), shot("mech-liveries-tritachyon-crawler", CRAWLER_LINE)));
         }
         return out;
     }
 
-    static LookReview.Shot shot(String name) {
+    static LookReview.Shot shot(String name, MechVariant[] line) {
         return new LookReview.Shot(name, LookGround.verdant(), 32, 16, placement -> {
             SceneBuilder builder = placement.holdouts(placement.builder());
-            for (int i = 0; i < LINE.length; i++) {
+            for (int i = 0; i < line.length; i++) {
                 float[] at = placement.openNear(16f + (i - 1) * SPACING, 8f);
                 int holdX = (int) at[0];
                 int holdY = (int) at[1];
-                builder.squad(key(i)).faction(Faction.MARINE).size(1)
+                builder.squad(key(line, i)).faction(Faction.MARINE).size(1)
                         .at(holdX - placement.site().x0(), holdY - placement.site().y0())
-                        .mech(LINE[i], MechRole.ASSAULT)
+                        .mech(line[i], MechRole.ASSAULT)
                         .assigned(id -> ObjectiveAssignment.defendArea(id, holdX, holdY))
                         .done();
             }
             SceneWorld world = builder.build();
-            for (int i = 0; i < LINE.length; i++) placement.subject(key(i), world.members(key(i))[0]);
+            for (int i = 0; i < line.length; i++) placement.subject(key(line, i), world.members(key(line, i))[0]);
             return world.sim();
         }, placement -> List.of(
-                LookReview.View.followAtPlay(placement, key(0), key(2)),
-                LookReview.View.follow("close", placement, 16f, key(0), key(2))),
+                LookReview.View.followAtPlay(placement, key(line, 0), key(line, 2)),
+                LookReview.View.follow("close", placement, 16f, key(line, 0), key(line, 2))),
                 12, 6, 1);
     }
 
-    private static String key(int i) {
-        return LINE[i].name().toLowerCase();
+    private static String key(MechVariant[] line, int i) {
+        return line[i].name().toLowerCase();
     }
 }
