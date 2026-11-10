@@ -1,0 +1,18 @@
+Asset type: concept sheet for a top-down game: three PIRATE FIELD RIGS, captured Hegemony walking machines that a pirate crew has rebuilt for its own work, light, medium and heavy.
+
+Pirates fight for loot, ambush and escape, not to hold ground. Each rig is reworked for one pirate job, visible in its outline at a glance:
+LIGHT, the RUNNER (from the Hound): stripped for speed. Most of its side plate is torn off to show the frame and cables; a big scavenged freighter thruster pack is welded across its back, and a crude cow-catcher wedge of scrap bars juts from its nose. One empty mounting plate on the nose.
+MEDIUM, the BOARDER (from the Warden): a breaching rig. One arm ends in a huge welded hydraulic grapple claw, the other keeps an empty mounting plate; a thick ramming shield of stacked scrap plate is bolted across its front, with a slot cut for the canopy. Its two shoulder mount places stay as empty plates.
+HEAVY, the HAULER (from the Bulwark): a loot carrier. A cargo cage of welded bars sits on its back holding lashed crates and a canister; a folding salvage crane arm rides one shoulder, folded back along the body; the other shoulder keeps an empty socket ring. Extra scrap slabs hang off its flanks on chains.
+
+Paint them as the pirate scrap bodies in image 1: mismatched salvaged panels (faded tan, grey, olive, blue-grey civilian panels, red-oxide primer, bare steel) welded on with visible beads and oversized bolts, crude hand-brushed dark red over old hazard paint, worn and grimy but legible.
+
+Strict 90-degree zenith orthographic top-down view, every machine facing the TOP edge of the sheet, each symmetric about its own vertical centre line unless the brief says one side is different. One wide landscape sheet, the three machines in one row left to right, LIGHT, MEDIUM, HEAVY, evenly spaced with clear empty space round each, drawn to one scale (the heavy clearly the biggest).
+
+Every weapon mount is drawn EMPTY: a flat bolted mounting plate or a dark socket ring, with no gun, barrel, launcher or turret on it. Guns are separate parts added later. Tools that ARE the variant's job (a ram, a claw, a crane arm, a cutting head, a cargo cage) are part of the body and are drawn.
+
+Image 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. Each variant must still read as that machine: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change what the brief says on top.
+
+True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.
+
+Avoid: guns or barrels of any kind; perspective, side view or isometric view; cropped machines; more or fewer than three machines; a starship's outline; legs drawn as bird or chicken legs; text.

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c69e-0a4e-7f03-a13f-40517b22a04b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c69e-0a4e-7f03-a13f-40517b22a04b\\exec-65142dc1-68d9-4ec7-acc8-5cba5bb02caf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\pirate-torch-sheet.png",
+    "sha256": "b216679dfb77575e0c03c0b27a5b5110ce9dd1dae0733fd33ca8998690c30b90",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\sheets\\pirate-torch.prompt.txt",
+  "promptSha256": "c5ca5d2f2bd9bbdfeaafc084b4c52700f1daa2b528cd46b2c4c6d13a21508d45",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Frame identity: the Hound (left) this rig is rebuilt from; keep its proportions, hip bearings, canopy and mount places; also the pirate paint to use\n\nAsset type: concept sheet for a top-down game: a PIRATE FLAMER RIG, the TORCH, a captured Hegemony light walking machine (the Hound, left in image 1) a pirate crew has rebuilt as a fuel-tanker work rig carrying an industrial burner.\n\nThe machine: the Hound's body, its side plate partly cut away for lightness. Its back carries the fuel: three or four mismatched scavenged fuel drums and a pressure bottle lashed in a welded cradle with chains and straps, joined by patched hoses and hand valves that run forward under the body to its nose. The nose mount is EMPTY, a flat bolted plate with a hose coupling. A dented heat shield of scrap plate is bolted over the canopy's front edge. Paint it as the pirate scrap bodies in image 1: mismatched salvaged panels (faded tan, grey, olive, blue-grey civilian panels, red-oxide primer, bare steel) welded on with visible beads and oversized bolts, crude hand-brushed dark red, worn and grimy but legible; the fuel drums each a different faded colour with crude hand-painted hazard marks.\n\nThe loose part beside it: the pirate burner, a cut-down industrial burner nozzle on a short welded boom, a pilot light shroud at its tip, a hose coupling at its base, wrapped in heat tape.\n\nLayout: one wide landscape sheet. On the left, the machine whole, large, facing the TOP edge of the sheet, symmetric about its own vertical centre line except where the brief says otherwise. On the right, with clear space between, its burner nozzle drawn on its own as a loose part, seen from above, pointing to the top, at the same scale. Nothing else on the sheet.\n\nImage 1 is the frame identity reference: the three machines these variants are built from (left to right the light Hound, the medium Warden, the heavy Bulwark), seen from above. The machine must still read as the one named: keep its proportions, its round hip bearings, its pilot canopy and its mount places, and change only what the brief says. No thrusters or engines on its back, no claw, no saw blade.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background, including all negative space; no ground, shadow slab, cast shadow, halo, glow, flame, smoke, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite concept art with rivets and weld seams, light from the upper left, not pixel art.\n\nAvoid: fire, flame or smoke effects; any gun other than the one burner nozzle; perspective, side view or isometric view; a starship's outline; bird or chicken legs; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\ref-lowtech-row.png",
+      "sha256": "55dfbad9033029c1e53a5cd6cff92700a1aa2dfbefdd50eac6206f2ea61c2a9f",
+      "dimensions": [
+        3020,
+        1060
+      ],
+      "mode": "RGBA",
+      "role": "Frame identity: the Hound (left) this rig is rebuilt from; keep its proportions, hip bearings, canopy and mount places; also the pirate paint to use"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent concept sheet with the Hound-based Torch rig and its detached burner nozzle."
+  ],
+  "usage": {
+    "input_tokens": 42090,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 622,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.9
+}

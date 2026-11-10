@@ -438,7 +438,7 @@ def derelict(name):
 
 def derelict_rounds(name):
     """The MG-25 rounds walker: the derelict chassis carrying its two guns one each side of its upper band
-    (MechBodyHardpoints RoundsLayout.FLANK_PAIR): its chaingun in the left port (LEFT_ARM) and its rack in the right
+    (MechBodyHardpoints.rounds, owner pick flank pair): its chaingun in the left port (LEFT_ARM) and its rack in the right
     (LEFT_SHOULDER, the rack mount standing on the right flank). No back racks; its back is bare plate."""
     d = Doll(name)
     port = [(-16, 64), (-31, 64), (-31, 82), (-16, 82)]

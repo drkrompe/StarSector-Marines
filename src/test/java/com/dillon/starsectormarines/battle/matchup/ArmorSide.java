@@ -25,7 +25,8 @@ import java.util.regex.Pattern;
  *
  * <pre>
  *   side    := unit ('+' unit)*
- *   unit    := [count 'x'] (mech | vehicle)          2xhound:refit, heavy-apc
+ *   unit    := [count 'x'] (mech | vehicle | squad)  2xhound:refit, heavy-apc
+ *   squad   := 'squad:' weapons '/' armor            squad:line-infantry/fleet-combat (twelve marines, card kit)
  *   mech    := ['mech:'] chassis [':' item (',' item)*]
  *   item    := stock | refit | role=&lt;role&gt;
  *            | arms|la|ra|ls|rs = &lt;weapon&gt;|none   arms=chaingun (arms: every arm mount; la/ra: one arm)
@@ -47,7 +48,7 @@ public record ArmorSide(List<Unit> units) {
     }
 
     /** One line of a side: {@code count} identical machines. */
-    public sealed interface Unit permits Mech, Vehicle {
+    public sealed interface Unit permits Mech, Vehicle, Squad {
         int count();
 
         /** Canonical text, without the count; parsing it back gives the same unit. */
@@ -141,6 +142,24 @@ public record ArmorSide(List<Unit> units) {
         }
     }
 
+    /**
+     * {@code count} squads of twelve regular marines, kitted by a weapons card and an armor card as the cards issue
+     * them ({@link MatchupSide#seats}): the company's infantry, to set machines against.
+     */
+    public record Squad(int count, MatchupSide kit) implements Unit {
+
+        public Squad {
+            Objects.requireNonNull(kit, "kit");
+            if (count < 1) throw new IllegalArgumentException("count must be at least 1");
+        }
+
+        @Override
+        public String label() {
+            return "squad:" + kit.weaponsId().replaceFirst("^weapons:", "") + "/"
+                    + kit.sheetId().replaceFirst("^armor:", "");
+        }
+    }
+
     /** Total machines on this side. */
     public int size() {
         int n = 0;
@@ -172,6 +191,11 @@ public record ArmorSide(List<Unit> units) {
             text = counted.group(2);
         }
         String lower = text.toLowerCase(Locale.ROOT);
+        if (lower.startsWith("squad:")) {
+            String[] kit = lower.substring("squad:".length()).split("/");
+            if (kit.length != 2) throw new IllegalArgumentException("Expected squad:<weapons>/<armor>, got " + text);
+            return new Squad(count, new MatchupSide("weapons:" + kit[0].trim(), "armor:" + kit[1].trim()));
+        }
         if (lower.startsWith("vehicle:")) lower = lower.substring("vehicle:".length());
         for (VehicleStockFit fit : VehicleStockFit.values()) {
             if (kebab(fit.name()).equals(lower)) return new Vehicle(count, fit.type, fit);

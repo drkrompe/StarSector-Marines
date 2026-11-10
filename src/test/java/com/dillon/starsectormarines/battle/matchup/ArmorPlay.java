@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.matchup;
 
+import com.dillon.starsectormarines.battle.unit.UnitType;
+
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -254,6 +256,25 @@ public final class ArmorPlay {
                 }
                 squad.done();
                 keys.add(key);
+            } else if (unit instanceof ArmorSide.Squad infantry) {
+                // Each squad a key of its own, standing on its slot; attackers attack-move onto the defenders.
+                for (int i = 0; i < infantry.count(); i++) {
+                    String key = prefix + "-" + keys.size();
+                    int[] at = cell(scenario, side, attacking, slot + i);
+                    SceneBuilder.SquadSpec squad = builder.squad(key)
+                            .faction(attacking ? Faction.MARINE : Faction.DEFENDER)
+                            .type(attacking ? UnitType.MARINE : UnitType.MARINE_RED)
+                            .loadouts(infantry.kit().seats())
+                            .at(at[0], at[1]);
+                    if (attacking) {
+                        squad.assigned(id -> ObjectiveAssignment.attackMove(id, ArmorScenarios.DEFENDER_X,
+                                ArmorScenarios.MID_Y));
+                    } else {
+                        squad.assigned(id -> ObjectiveAssignment.defendArea(id, at[0], at[1]));
+                    }
+                    squad.done();
+                    keys.add(key);
+                }
             }
             slot += unit.count();
         }
@@ -351,8 +372,13 @@ public final class ArmorPlay {
         void collect(SceneWorld world, List<String> squads) {
             int squad = 0;
             for (ArmorSide.Unit unit : side.units()) {
-                if (!(unit instanceof ArmorSide.Mech mech)) continue;
-                for (long id : world.members(squads.get(squad++))) add(new Body(id, mech.label(), false));
+                if (unit instanceof ArmorSide.Mech mech) {
+                    for (long id : world.members(squads.get(squad++))) add(new Body(id, mech.label(), false));
+                } else if (unit instanceof ArmorSide.Squad infantry) {
+                    for (int i = 0; i < infantry.count(); i++) {
+                        for (long id : world.members(squads.get(squad++))) add(new Body(id, infantry.label(), false));
+                    }
+                }
             }
         }
 
@@ -479,6 +505,8 @@ public final class ArmorPlay {
             if (!attacking) return;
             for (Body b : ids) {
                 if (b.dead || !isAlive(sim, b)) continue;
+                // Infantry is driven by its own attack-move order, as the infantry matchups drive it.
+                if (!b.vehicle && !sim.world().hasMechLoadout(b.id)) continue;
                 // A hull whose gun was shot away has nothing left to bring into range; a player would not drive it in.
                 if (b.vehicle && b.mountsLost > 0) continue;
                 float[] at = position(sim, b);
