@@ -59,7 +59,8 @@ public final class NaturalVoidZoning {
         return switch (palette) {
             case VERDANT -> GORGE;
             case FROZEN -> CREVASSE;
-            case ROCK, ARID -> CANYON;
+            // A toxic world is cut as rock is until it has a rift of its own (acid floor, vapour).
+            case ROCK, ARID, TOXIC -> CANYON;
         };
     }
 }
