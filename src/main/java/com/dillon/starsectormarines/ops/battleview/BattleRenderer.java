@@ -283,7 +283,7 @@ public class BattleRenderer {
     private final IdentityHashMap<Building, Dress> buildingDress = new IdentityHashMap<>();
     /** The most hit points each wall cell has been seen to hold, so its hurt reads against its own ({@link WallDress#hurt}). */
     private int[] fullWallHp;
-    /** Marks over the roofs where a unit outside stands hidden behind a stood-up building ({@link #occludedUnits}). */
+    /** Marks over the roofs where a unit stands hidden behind or inside a closed building ({@link #occludedUnits}). */
     private final PolyMesh occludedMarks = new PolyMesh(16);
     /** Walls that are no building's, stood up at their own heights ({@link FreestandingWalls}). */
     private final FreestandingWallFaces freestandingWalls = new FreestandingWallFaces();
@@ -1348,9 +1348,9 @@ public class BattleRenderer {
     private static final Faction[] FACTIONS = Faction.values();
 
     /**
-     * A stood-up building hides the ground behind it: its roof, or a cut-away building's far wall, is drawn over the
-     * street past its far side. A unit standing out there, not inside any building, gets a small mark in its side's
-     * colour over the roofs, so it stays readable; a hidden enemy stays hidden, as the fog of war has it.
+     * A closed building hides the ground behind it and the rooms under it. A unit standing out past its far side, or
+     * one the player sees inside it through a door or window, gets a small mark in its side's colour over the roofs,
+     * so it stays readable; a hidden enemy stays hidden, as the fog of war has it.
      */
     private void occludedUnits(BattleSimulation sim, DrawList out, float alphaMult, CellTopology topology) {
         occludedMarks.reset();
@@ -1377,10 +1377,20 @@ public class BattleRenderer {
                 float x = world.x(id), y = world.y(id);
                 int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
                 if (!topology.inBounds(cx, cy) || !view.intersects(cx, cx, cy, cy)) continue;
-                if (topology.getBuildingId(cx, cy) != 0) continue;
                 if (fogHides && vis.getUnitVisibility(roster.indexOf(id)) == FogOfWarService.VIS_HIDDEN) continue;
-                if (!hiddenBehindBuilding(topology, buildings, x, y, viewX, viewY)) continue;
-                float px = rc.camera.cellToScreenX(x), py = rc.camera.cellToScreenY(y);
+                int inside = topology.getBuildingId(cx, cy);
+                float mx = x, my = y;
+                if (inside != 0) {
+                    // Seen inside a closed building (through a door or window): marked on its roof over where it
+                    // stands, since the roof covers it. An open building shows its units as they are.
+                    Building home = buildings.get(inside);
+                    if (home == null || home.currentAlpha < .5f) continue;
+                    int c = buildingClass(topology, buildings, home);
+                    if (c == BuildingFaces.RAZED) continue;
+                    mx = viewX + (x - viewX) * ROOF_LIFTS[c];
+                    my = viewY + (y - viewY) * ROOF_LIFTS[c];
+                } else if (!hiddenBehindBuilding(topology, buildings, x, y, viewX, viewY)) continue;
+                float px = rc.camera.cellToScreenX(mx), py = rc.camera.cellToScreenY(my);
                 float o = r + edge;
                 occludedMarks.appendQuad(px, py - o, px + o, py, px, py + o, px - o, py, .05f, .05f, .06f,
                         .85f * alphaMult);
@@ -1388,6 +1398,27 @@ public class BattleRenderer {
             }
         }
         if (!occludedMarks.isEmpty()) out.addPoly(RenderLayer.DRONES, occludedMarks);
+    }
+
+    /**
+     * The building whose roof is drawn at {@code (x, y)} (cells, as the pointer reads the ground) under the camera's
+     * view now, the tallest first, or 0: what the pointer is over once the roofs are lifted.
+     */
+    public int buildingUnderPointer(BattleSimulation sim, float x, float y, float viewX, float viewY) {
+        CellTopology topology = sim.getTopology();
+        Buildings buildings = sim.getBuildings();
+        if (topology == null || buildings == null || buildings.isEmpty()) return 0;
+        for (int c = BuildingFaces.RAZED - 1; c >= 0; c--) {
+            float lift = ROOF_LIFTS[c];
+            int bx = (int) Math.floor(BuildingFaces.unlifted(x, viewX, lift));
+            int by = (int) Math.floor(BuildingFaces.unlifted(y, viewY, lift));
+            if (!topology.inBounds(bx, by)) continue;
+            int owner = RoofCover.owner(topology, bx, by);
+            if (owner == 0) continue;
+            Building b = buildings.get(owner);
+            if (b != null && buildingClass(topology, buildings, b) == c) return owner;
+        }
+        return 0;
     }
 
     /** Whether some stood-up building's roof or wall is drawn over the ground at {@code (x, y)}. */
@@ -1401,7 +1432,8 @@ public class BattleRenderer {
             int owner = RoofCover.owner(topology, bx, by);
             if (owner == 0) continue;
             Building b = buildings.get(owner);
-            if (b != null && buildingClass(topology, buildings, b) == c) return true;
+            // An open building's roof is gone and its near walls are at the knee: it hides nothing behind it.
+            if (b != null && b.currentAlpha >= .5f && buildingClass(topology, buildings, b) == c) return true;
         }
         return false;
     }

@@ -53,9 +53,15 @@ position, and shots remain visible through fog.
   footprint, a head or a swung scythe, does not reveal.
   `-Dbattle.fog.bodyReveal=centre` restores the centre-cell rule as a control;
   `length` (half the drawn length) is the rejected alternative.
-- A **roof reveal** is a building presentation state derived from its interior
-  cells in the reveal bitmap. It is neither a separate line-of-sight algorithm
-  nor a building gameplay state.
+- A **roof reveal** is a building presentation state. A building **opens**
+  (roof away, near walls to the knee) only while one of the player's own units
+  stands on its floor, or while the pointer **peeks** into it; seeing in
+  through a door or window does not open it (owner, 2026-11-10: opening on
+  sight lost the 3D look wherever the player was fighting). Units the player
+  sees inside a closed building are marked on its roof. The reveal bitmap
+  still decides a roof's fog and who is seen inside; a peek shows nothing the
+  bitmap does not. It is neither a separate line-of-sight algorithm nor a
+  building gameplay state.
 - The **changed extent** is where the reveal bitmap moved, recorded as one
   bounding rectangle per update on a monotonic log a reader remembers its own
   place in. It exists for a presentation consumer that keeps a picture derived
