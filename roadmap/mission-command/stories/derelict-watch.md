@@ -153,14 +153,17 @@ three builds).
 - **The hall frame and the contingency.** In the contingency it walks to the
   egress only where its way fits; a hall frame whose way out is all corridor
   stays on its hall, and its hall is then the egress fight.
-- **How they turn.** Every walker size and the Tri-Tachyon crawler share one
-  four-legged rig (`DerelictLegRig`) with the crawler's suspension and yaw. A
-  machine turns no faster than its size allows
-  (`MechLocomotion.turnRateDegrees`: rounds 125, heavy 75, hall frame about
-  44 degrees a second; UNTUNED). It turns by stepping: the feet step round in
+- **How they turn and run.** Every walker size and the Tri-Tachyon crawler share
+  one four-legged rig (`DerelictLegRig`), with the crawler's suspension and yaw.
+  A derelict walker turns by stepping its feet round, and its feet go round no
+  faster than it walks: its top speed over the radius its feet stand at
+  (`MechLocomotion.turnRateDegrees`: rounds about 73, heavy 23, hall frame 11
+  degrees a second). The crawler keeps its own rate. The feet step round in
   diagonal pairs ahead of the turn, and the body never carries a planted foot
-  more than `MAX_FOOT_DRIFT_DEGREES` past its hip. So no leg crosses another,
-  even under manual control (owner).
+  more than `MAX_FOOT_DRIFT_DEGREES` past its hip, so no leg crosses another
+  (owner). A derelict walker's run is a flat trot that always keeps a pair down
+  (`Build.runSpring`; owner: too much jump). The heavy and the hall frame are
+  slower than their trot, so they only ever walk.
 - **Strength by grade** (UNTUNED): a rounds walker per zone from widespread (one
   at scattered); a hall frame at extensive, two at vast, posted in the largest
   plant halls. Neither is part of the stir's reserve; pushes stay line frames.

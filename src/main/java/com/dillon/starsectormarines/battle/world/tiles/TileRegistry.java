@@ -55,8 +55,6 @@ public final class TileRegistry {
             "data/tilesets/industrial-street-kit.tileset.json",
             "data/tilesets/lobster-trade.tileset.json",
             "data/tilesets/hydro-sheds.tileset.json",
-            "data/tilesets/hydro-domes.tileset.json",
-            "data/tilesets/glasshouses.tileset.json",
             "data/tilesets/street-lamps.tileset.json",
             "data/tilesets/street-dressing-motions.tileset.json",
             "data/tilesets/shepherd-recovery.tileset.json",
