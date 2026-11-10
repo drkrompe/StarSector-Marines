@@ -1296,7 +1296,7 @@ pad, a field with its runway from size 6). Only a Raid site's garrison is a cant
 (`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
 the motor pool and flight line stand is the owner's pick `raid-garrison`
 (`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
-the gate with the flight line beside the quadrangle (`YARD`), or one apron
+the gate with the flight line against the back wall (`YARD`), or one apron
 inside the gate shared by the sheds and the flight line (`APRON`).
 
 An authored **compound layout** may fix relationships between groups of buildings
