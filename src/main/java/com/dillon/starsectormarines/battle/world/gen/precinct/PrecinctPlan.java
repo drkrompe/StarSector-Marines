@@ -112,6 +112,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
     }
 
+    /** The same plan with its places restated: a place moved, say, off ground a landform holds. */
+    public PrecinctPlan withPrecincts(List<Precinct> precincts) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout);
+    }
+
     /**
      * The same plan with a stated country between its places: how wooded the
      * wild ground is and which straight tracks are cleared through it. A
