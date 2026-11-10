@@ -271,6 +271,12 @@ public final class GenMappingRegistry {
         return id != null ? id : groundRender.get(kind);
     }
 
+    /** Whether {@code blockId} is a world's own material for some ground kind ({@code paletteGroundRender}). */
+    public boolean isPaletteGroundBlock(String blockId) {
+        for (Map<GroundKind, String> own : paletteGroundRender.values()) if (own.containsValue(blockId)) return true;
+        return false;
+    }
+
     /** Default blast overlay when the actual surface has no authored material pair. */
     public String groundDamageBlockId(GroundKind kind) {
         return groundDamage.get(kind);

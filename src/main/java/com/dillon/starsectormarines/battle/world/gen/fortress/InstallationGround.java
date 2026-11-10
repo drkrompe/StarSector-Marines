@@ -105,9 +105,9 @@ public final class InstallationGround {
             GenMappingRegistry mapping = GenMappingRegistry.installed();
             rim = field.world().inlandGround();
             floor = field.floor().inlandGround();
-            rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(rim));
+            rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(rim, field.world()));
             floorSurface = mapping == null || floor == rim ? rimSurface
-                    : ctx.topology.surfaceIndex(mapping.groundBlockId(floor));
+                    : ctx.topology.surfaceIndex(mapping.groundBlockId(floor, field.floor()));
         }
 
         GroundKind kind(int x, int y) {

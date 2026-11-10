@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a2-e8ca-7f93-b673-4a972a9b7461",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a2-e8ca-7f93-b673-4a972a9b7461\\exec-46142ae1-24b3-42e2-994a-33e85553dbfa.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\toxic-ground\\crust-master.png",
+    "sha256": "24347b7051632837dbcdd1819ce25290e23ad92b9daa13e799f139ff1940fae9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\toxic-ground\\crust-master.prompt.txt",
+  "promptSha256": "657f27097b125ee9fe6500051718d1c1836325c02b3e798b0f9da5ca4eb6616d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: how flat, fine and low-contrast a ground tile is; not its colour\n\nUse case: tileable ground material for a top-down tactical game. Image 1 is a FORMAT reference only: a shipped ground tile showing how flat, fine and low-contrast the surface must be. Its grey colour is NOT the colour to use.\nA wide square canvas filled edge to edge with one continuous ground surface, seen STRAIGHT DOWN, orthographic, with flat even overcast light: no directional lighting, no highlights, no shadows, no vignette, no horizon.\nThe material: corroded stony regolith on a toxic world under a thick sulphurous atmosphere. Dull olive-grey crushed stone and grit, stained by chemical weathering: soft blotches of yellow-green and ochre stain, faint rust-brown leaching streaks, small pale greenish-white efflorescence crusts in the cracks, a few hairline fractures. Average colour a muted yellowish olive-grey around RGB (112, 112, 82). Desaturated and dull, not neon, not bright.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No rocks, boulders, pools, puddles, plants, footprints, objects, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: how flat, fine and low-contrast a ground tile is; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one ground texture using the reference’s fine, flat, low-contrast format and your muted olive-grey palette."
+  ],
+  "usage": {
+    "input_tokens": 37681,
+    "cached_input_tokens": 34048,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 357,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.4
+}

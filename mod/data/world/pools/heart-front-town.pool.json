@@ -71,6 +71,11 @@
         "seed": 5,
         "note": "two mothers; landing 279,30"
       }
+    ],
+    "TOXIC": [
+      { "seed": 2, "note": "park origin; 11 bores (2 mothers)" },
+      { "seed": 3, "note": "workings origin; 11 bores (2 mothers)" },
+      { "seed": 5, "note": "research origin; 11 bores (2 mothers)" }
     ]
   }
 }

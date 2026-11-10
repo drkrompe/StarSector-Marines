@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.SubRect;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
@@ -71,14 +72,36 @@ public final class HinterlandFillStage implements GenStage {
         return Boolean.parseBoolean(System.getProperty("battle.mapgen.townFields", "true"));
     }
 
+    /**
+     * A road across a settled place's ground that the place's fill did not pave: a weld or a mission's road laid
+     * through a quarter, which is no street the quarter grew. Left as the fill's yard ground it read as a strip of
+     * dirt cutting the road in two; it is paved as the roads beyond the claims are.
+     */
+    static boolean unpavedRoad(GenContext ctx, PrecinctPlan plan, int[][] claim, int[][] road, int x, int y) {
+        if (road[x][y] == GrownTrunkPlan.UNOWNED || plan == null) return false;
+        int who = claim[x][y];
+        if (who < 0 || who >= plan.precincts().size() || plan.precincts().get(who).isProgrammed()) return false;
+        GroundKind kind = ctx.topology.getGroundKind(x, y);
+        if (kind == GroundKind.STREET || kind == GroundKind.SIDEWALK || kind == GroundKind.INDOOR) return false;
+        return !ctx.isMadeGround(x, y) && !ctx.topology.isWall(x, y) && !ctx.topology.hasBuildingKindHint(x, y)
+                && !ctx.topology.isFixture(x, y);
+    }
+
     /** Seed thin scraps too; rectangular nature fills cannot cover every claim-edge cell. */
     static void paintUnclaimedGround(GenContext ctx, int[][] claim, int[][] road) {
         SurfaceField surface = SurfaceField.of(ctx);
         int[] asphalt = new int[3];
         for (int age = 0; age < 3; age++) asphalt[age] = ctx.topology.surfaceIndex(Material.ASPHALT.block(age));
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
-            if (claim[x][y] != GrownTrunkPlan.UNOWNED
-                    || ctx.isMadeGround(x, y) || ctx.topology.isWall(x, y)
+            if (claim[x][y] != GrownTrunkPlan.UNOWNED) {
+                if (unpavedRoad(ctx, plan, claim, road, x, y)) {
+                    ctx.topology.setGroundKind(x, y, GroundKind.STREET);
+                    ctx.topology.setSurface(x, y, asphalt[RoadRasterizer.age(.4, ctx.seed, x, y)]);
+                }
+                continue;
+            }
+            if (ctx.isMadeGround(x, y) || ctx.topology.isWall(x, y)
                     || ctx.topology.hasBuildingKindHint(x, y) || ctx.topology.isFixture(x, y)) continue;
             if (road[x][y] == GrownTrunkPlan.UNOWNED) {
                 ctx.topology.setGroundKind(x, y, surface.at(x, y).inlandGround());

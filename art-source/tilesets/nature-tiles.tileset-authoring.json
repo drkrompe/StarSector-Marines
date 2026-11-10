@@ -1539,6 +1539,173 @@
         "!nature.water-1",
         "!nature.water-2"
       ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-toxic-small-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-toxic",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "rect": [
+        8809,
+        14,
+        74,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-toxic-small-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rocks-small-2-toxic",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-1",
+      "rect": [
+        8960,
+        14,
+        81,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-toxic-medium-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-toxic",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
+      "rect": [
+        9090,
+        15,
+        93,
+        92
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.rock-toxic-medium-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-medium-2-toxic",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
+      "rect": [
+        9229,
+        17,
+        90,
+        88
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-toxic-large-1",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-toxic",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
+      "passable": false,
+      "rect": [
+        9359,
+        11,
+        101,
+        93
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-toxic-large-2",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-2-toxic",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        9499,
+        15,
+        96,
+        83
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "crushable": true,
+      "id": "nature.rock-toxic-large-3",
+      "included": true,
+      "layer": "rock",
+      "name": "rock-large-3-toxic",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
+      "passable": false,
+      "rect": [
+        9638,
+        18,
+        97,
+        84
+      ],
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
     }
   ],
   "gridCols": 1,

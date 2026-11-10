@@ -72,7 +72,8 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
                     .render(sim, "")));
             // The company restarts the hall: the vault's power, and the guns' with it.
             sim.getRuinsWorks().graph().restart();
-            advance(sim, 3f);
+            // A breath after waking: the guns are on the hazard side, so the crew soon fights them.
+            advance(sim, 0.25f);
             report(sim, batteries);
             out.add(new SnapshotArtifact("02-awake.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     W, H, frame[0], frame[1], frame[2]).render(sim, "")));

@@ -23,7 +23,9 @@ package com.dillon.starsectormarines.battle.unit;
  * <p>The relation in words: MARINE and ALLY are friendly to each other and
  * hostile to DEFENDER; DEFENDER is hostile to both; CIVILIAN is hostile to
  * nobody and nobody is hostile to it; and nothing is ever hostile to its own
- * faction. Marine and allied direct fire excludes civilian bodies from both
+ * faction. HAZARD is a site's own machinery that answers to nobody (a ruins
+ * site's batteries): hostile to every fighting side and they to it, never to
+ * CIVILIAN, and commanded by nobody. Marine and allied direct fire excludes civilian bodies from both
  * intended and incidental contacts; defender fire can still target or
  * incidentally hit them.
  *
@@ -38,7 +40,8 @@ public enum Faction {
     MARINE,
     DEFENDER,
     CIVILIAN,
-    ALLY;
+    ALLY,
+    HAZARD;
 
     /** Row width of {@link #HOSTILE} / {@link #FRIENDLY}. */
     private static final int STRIDE;
@@ -104,6 +107,7 @@ public enum Faction {
     private static boolean computeHostile(Faction a, Faction b) {
         if (a == b) return false;
         if (a == CIVILIAN || b == CIVILIAN) return false;
+        if (a == HAZARD || b == HAZARD) return true;
         return a == DEFENDER || b == DEFENDER;
     }
 
