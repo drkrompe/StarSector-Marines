@@ -47,6 +47,9 @@ public final class RoadSurface {
     private RoadSurface(int width,Patch[][] patches,Underlay[] underlays) {
         this.width=width;this.patches=patches;this.underlays=underlays;
     }
+    /** Cells across and up the map this surface covers. */
+    public int width() { return width; }
+    public int height() { return underlays.length/width; }
     public Patch patch(int x,int y,int material) { return patches[material][y*width+x]; }
     public Underlay underlay(int x,int y) { return underlays[y*width+x]; }
 

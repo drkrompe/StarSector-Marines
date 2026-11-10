@@ -68,7 +68,7 @@ public final class ElevationBrush {
                 if (!layout.touched(x, y)) continue;
                 if (built != null && built[y * w + x] && !layout.isFace(x, y)) continue;
                 boolean natural = switch (topology.getGroundKind(x, y)) {
-                    case GRASS, DIRT, STONE, SAND, SNOW -> true;
+                    case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
                     default -> false;
                 };
                 if (!natural || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isWall(x, y)
@@ -208,13 +208,14 @@ public final class ElevationBrush {
      * meadow does not turn a plateau to bare rock), rock otherwise.
      */
     private static TerrainPlan.Finish finishFor(ElevationLayout layout, CellTopology topology) {
-        int tops = 0, grass = 0, snow = 0;
+        int tops = 0, grass = 0, snow = 0, hardpan = 0;
         for (int y = 0; y < layout.height(); y++) {
             for (int x = 0; x < layout.width(); x++) {
                 if (layout.tier(x, y) == 0 || layout.isFace(x, y)) continue;
                 tops++;
                 switch (topology.getGroundKind(x, y)) {
                     case SNOW -> snow++;
+                    case HARDPAN -> hardpan++;
                     case GRASS -> grass++;
                     default -> { }
                 }
@@ -222,6 +223,7 @@ public final class ElevationBrush {
         }
         if (tops == 0) return TerrainPlan.Finish.GRASS_TOP;
         if (snow * 2 > tops) return TerrainPlan.Finish.ICE;
+        if (hardpan * 2 > tops) return TerrainPlan.Finish.GLASSED;
         return grass * 4 >= tops ? TerrainPlan.Finish.GRASS_TOP : TerrainPlan.Finish.ROCK;
     }
 }

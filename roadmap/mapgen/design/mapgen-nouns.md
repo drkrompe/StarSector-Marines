@@ -979,7 +979,8 @@ masses and facilities for maneuvering and later nature dressing. The entire
 western berth approach stays clear, as do the paved footprints, finished
 objective interiors and reserve-road mouths. Finished outdoor ground must
 remain connected, including small pockets beside map boundaries. Verdant
-worlds retain grass-topped masses; frozen worlds use ice, and other palettes use bare rock without changing
+worlds retain grass-topped masses; frozen worlds use ice, irradiated worlds a glassed escarpment, and other
+palettes use bare rock without changing
 the authored obstruction or repainting the surrounding ground.
 
 
@@ -1091,7 +1092,8 @@ Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy
 summits, frozen worlds use narrow glacial pressure ridges, and barren worlds
-use open crescent crater rims. Other palettes keep bare rock. Forest crowns may sit entirely
+use open crescent crater rims. Irradiated worlds use the same crater rims in a
+glassed finish (`TerrainPlan.Finish.GLASSED`). Other palettes keep bare rock. Forest crowns may sit entirely
 on full grassy summit cells; they do not straddle cliff faces or talus. Summit
 trees add appearance to already inaccessible ground, never a playable upper
 level. Exposed cliff rims and low-ground routes remain legible around the woods.
@@ -1106,7 +1108,9 @@ placement and collision rules, and the preview uses the battle renderer.
 
 A **mineral formation** is a multi-cell solid obstacle with a code-owned overhead
 silhouette. Barren worlds use clustered boulders and rock spires; frozen worlds
-use ice blocks and pinnacles. Fields of these formations provide forest-like
+use ice blocks and pinnacles; irradiated worlds use dead husks, squat pairs and
+tall split spires, each only on its own world's wild ground
+(`FormationBrush.pool`, `MineralFormation.Material`). Fields of these formations provide forest-like
 movement and sight barriers where trees would not belong. Placement supports
 four quarter-turn orientations, preserves the supporting ground, and occupies
 only cells touched by the silhouette. Exposed surfaces receive fog visibility
@@ -1296,7 +1300,7 @@ pad, a field with its runway from size 6). Only a Raid site's garrison is a cant
 (`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
 the motor pool and flight line stand is the owner's pick `raid-garrison`
 (`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
-the gate with the flight line beside the quadrangle (`YARD`), or one apron
+the gate with the flight line against the back wall (`YARD`), or one apron
 inside the gate shared by the sheds and the flight line (`APRON`).
 
 An authored **compound layout** may fix relationships between groups of buildings
@@ -2239,10 +2243,25 @@ that reads pavement are unchanged, and it crosses a street only on the apron
 against the wall. It is the last skin laid (`StormDriftStage`, after
 `RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
 laid only on street with no surface of its own, so a drift laid earlier stripped
-the asphalt off the street beside a wall. A living world's storms pile up nothing. The other hazards are
-carried for adaptations still to come (storm banks, sealed habitats, hardened
-buildings); a bank round the town rarely has room on maps whose town fills the
-frame, and the rest need art the game does not have yet.
+the asphalt off the street beside a wall. A living world's storms pile up nothing.
+
+A desert-like storm world's town banks earth against its weather (`StormBank`,
+owner): on a desert or a rock under storms, a graded berm ten cells through runs
+along the map's windward edge, ramped from the town's side. The wind is the
+planet's (`Climate.wind`, drawn once from the market), so the bank and the
+drifts face the same way. It is planned before anything grows: its bands are
+held from growth (`Landscape.withHeld`) and the strip from the edge to the bank
+is kept (`Landscape.withKept`), so no place grows onto it or round it onto its
+windward side, and a Raid site sets every place leeward of it
+(`StormBank.leeward`) and turns its back to the wind, so the company never lands
+on the windward side. A pass is planned where a road the plan already knows
+leaves the map that way (a works' feeder), and the landscape pass raises the
+rest through `RidgePlanner`, which breaks it again wherever a road, a building or
+an access route crosses and proves the ground on both sides stays one: cover
+and a height to hold, never a seal. It stands past the edge reservation the
+landscape pass keeps, or no segment fits. A mine's pit stops short of it. The
+other hazards are carried for adaptations still to come (sealed habitats,
+hardened buildings, snow fences); those need art the game does not have yet.
 
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's
@@ -2341,9 +2360,22 @@ nothing anywhere reported a problem. A dead enum value is not a neutral
 placeholder; it is a silent verdict that some quarter of the map space does not
 exist.
 
-That is the shape of the remaining gap rather than a closed question. Toxic,
-irradiated and volcanic worlds still collapse into rock for exactly the same
-reason, and will until each has a material family of its own.
+That is the shape of the remaining gap rather than a closed question. Toxic
+and volcanic worlds still collapse into rock for exactly the same reason, and
+will until each has a material family of its own.
+
+**An irradiated world is scorched, glassed and bleached.** `irradiated` resolves
+to `IRRADIATED`, whose wild ground is its own kind, `GroundKind.HARDPAN`: pale,
+cracked hardpan fused to glass in patches. It is a ground kind rather than a
+redraw of STONE because made stone (plaza paths, turret pads, parade ground) is
+stone on every world, and a basin of another palette keeps its own floor; every
+rule that treats wild stone as open, unburnable, stampable ground treats hardpan
+the same way. Its field stones are the glassed set, its hills the glassed
+escarpment, its mineral fields dead husks. The light is part of the picture: the
+ground composite grades an irradiated world's sunlit ground pale and washed out,
+with hard neutral shadows (`WorldLight`); every other palette's light is neutral
+and its ground draws exactly as its tiles paint it. No hazard reaches the
+simulation: radiation is carried on `Climate` and is not yet built on.
 
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open

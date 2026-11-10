@@ -36,7 +36,7 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren-bombarded"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren_castiron"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("toxic"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("irradiated"));
+        assertEquals(SurfacePalette.VOLCANIC, SurfaceZoning.forPlanetType("lava_minor"));
     }
 
     /** Lava worlds stand on cooled basalt, and are laid out exactly as rock is. */
@@ -60,6 +60,14 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("rocky_ice"));
         assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("cryovolcanic"));
         assertEquals(SurfacePalette.FROZEN, SurfaceZoning.forPlanetType("toxic_cold"));
+    }
+
+    /** Hard radiation at the surface is its own ground, not barren rock. */
+    @Test
+    void irradiatedWorldsAreIrradiated() {
+        assertEquals(SurfacePalette.IRRADIATED, SurfaceZoning.forPlanetType("irradiated"));
+        assertEquals(SurfacePalette.IRRADIATED, SurfaceZoning.forPlanetType("IRRADIATED"));
+        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren"));
     }
 
     /**

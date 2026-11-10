@@ -23,7 +23,7 @@ families a barren or arid world is made of have no variation at all, and these
 are the first variants they will have rather than extra ones.
 
 (Since then `floors.dirt` has been widened to eight materials as well, and
-`floors.snow` created with eight. `floors.grass` is the last three-cell plate
+`floors.snow` and `floors.hardpan` created with eight each. `floors.grass` is the last three-cell plate
 pool. Note that "carries real variants" was always a claim about the plate, not
 about what reaches the screen — see the closing section.)
 
@@ -121,6 +121,63 @@ powder. Eight variants:
 | 6 | very slightly coarser overall, no distinct features |
 | 7 | two or three faint pale wind-scour streaks |
 | 8 | sparse dusting of darker grit frozen into the surface |
+
+## Family: irradiated hardpan -- fills `floors.hardpan`
+
+`GroundKind.HARDPAN`, the wild ground of `SurfacePalette.IRRADIATED`. Like snow
+it had nothing to match, so `regolith-1.png` went in as a **format-only**
+reference and the palette was stated in words. The briefs, masters and their
+provenance are in `hardpan-variants/` (one `hardpan-N.prompt.txt` per master,
+generated through `tools/codex_imagegen.py`); the tiles are
+`atlas-material-source/hardpan-variants/hardpanvar-N.png`, on eight cells of
+row 23 of the Floors plate.
+
+Scorched, bleached, glassed ground. Pale bone and ash-white to grey-beige baked
+crust broken into polygonal desiccation plates, asked for around (182, 178, 164):
+lighter than the regolith, greyer than the sand, warmer and duller than the snow.
+The cracks are what tell it from those three at a glance, and the olive glass
+(trinitite) is what tells it from any merely dry ground. Eight variants:
+
+| # | ask |
+|---|---|
+| 1 | plain cracked hardpan, nothing but the crack network |
+| 2 | faint pale ash dusting in soft streaks, settled in the cracks |
+| 3 | several long diffuse scorch-darkened streaks running one way |
+| 4 | small fused olive glass puddles, two or three plates across, between bare plates |
+| 5 | sparse scatter of tiny glossy olive glass beads |
+| 6 | slightly coarser network with curled, flaking plate edges |
+| 7 | black soot in the cracks and two or three faint scorch streaks |
+| 8 | about a third of the surface fused into bubbled olive glaze |
+
+Three things differ from the families above, and each is worth knowing before
+making another structured ground:
+
+- **Ask for cracks a quarter-size image can still show.** The first hardpan-1
+  came back with hairline cracks and, shrunk to a tile, read as plain dust next
+  to its siblings. Every brief now asks for cracks 2 to 4 pixels wide and plates
+  a twelfth to a sixteenth of the frame across; hardpan-1 was regenerated on that
+  brief.
+- **`--scale 6 --band 13`.** At the default 4 a plate was half a tile across, so
+  the crack network read as a lattice of cells, and the blend wrap would have
+  averaged the cracks away. A wider crop puts about three plates in a tile, and
+  the overlap wrap keeps them.
+- **`--align neutral`.** The mean of a tile that is a third olive glaze is pulled
+  yellow, so shifting it onto the family's mean turned the bare plates between
+  the glass lilac. `neutral` anchors each tile on its least saturated half, which
+  is the bare crust. The verifier's sibling colour spread therefore reads 14.8,
+  not under 6: the six bare tiles sit within 6.7 of each other, and the rest is
+  the glass on 4 and 8 doing what it was asked to. A plain mean shift would score
+  low and look wrong.
+
+```bash
+python art-source/tilesets/normalize_ground_variants.py <masters-in-order> \
+    art-source/tilesets/atlas-material-source/hardpan-variants hardpanvar \
+    --band 13 --scale 6 --align neutral
+```
+
+The script orders its inputs by modification time, so stage the masters with
+increasing mtimes in 1..8 order (or regenerate them in that order) before
+running it.
 
 ## Families: nature grass and nature dirt -- fill the `nature-tiles` strip
 

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2af-aa4c-7021-a32c-ea6a242031c8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2af-aa4c-7021-a32c-ea6a242031c8\\exec-1ce446bd-3c6d-4292-bc27-be60b567cc54.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\glassed-terrain.raw.png",
+    "sha256": "78a43feee99d354358ab394d5629032a6777e77e4e3ba996111ad012273da3b9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\glassed-terrain.correction.prompt.txt",
+  "promptSha256": "b539e2be754746b08267ba8606a792e1f7192fcfb63830d40b6c86d2ea8d54fc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, registration and per-square luminance authority: keep the nine flat squares, gutters and each square's brightness exactly\nImage 2: The first pass to correct: keep its registration, summit glass patches and talus; change its material as the brief says\n\nUse case: precise material edit. Image 1 is the geometry and luminance guide; image 2 is the first pass to correct. Retain the exact 3 by 3 swatch layout, equal charcoal gutters and flat opaque squares, and match each square's average brightness to image 1, which is darker in the top-right square than image 2. These nine samples tile at only 8 to 64 pixels per square in a top-down game, under a scorched irradiated sky. Remove the uniform embossed squiggle / hammered-metal / bubble pattern of image 2; it reads as plastic. Replace it with natural stone: very fine irregular mineral grain, faint ash dust, and a sparse network of thin hairline heat-crazing cracks of varied size, so the surface reads as rock baked and partly fused to glass. Warm the greys slightly toward bleached bone and ash; keep saturation very low. Top left: pale bleached cracked crust like dry hardpan, keeping the few small glossy pale olive-green fused glass patches of image 2, smaller and softer. Top middle: pale ash grit with tiny scattered dull greenish glass flakes, slightly grainier but low contrast. Seven remaining samples: exactly the SAME heat-crazed scorched rock material, differing only in mean brightness, darkest top right (sooty scorched grey) then progressively lighter to pale bone; on each, a few faint thin vertical glossy glass drip streaks, subtle and irregular, never a regular stripe. Each sample has uniform brightness from edge to edge; no vignette, rim, directional shadow, bevel, large facets, craters or repeated motif. Contrast within each square must stay low so hundreds of adjacent repeats blend into one natural surface. Keep the gutters empty charcoal. No text or objects. Opaque output.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\glassed-terrain.png",
+      "sha256": "d16c2f5d50e8539b9ecb43988efae89bd22bc6fa98e377b4c162cad0f24d718c",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, registration and per-square luminance authority: keep the nine flat squares, gutters and each square's brightness exactly"
+    },
+    {
+      "path": "art-source\\tilesets\\planet-landscape-sources\\glassed-terrain-first.png",
+      "sha256": "e9e3a7db565cff756d7b4450ab6f6a09e592aff0bbd8239ca1691f21a7ef1d2e",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "The first pass to correct: keep its registration, summit glass patches and talus; change its material as the brief says"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one corrected image using your layout, brightness, and material references."
+  ],
+  "usage": {
+    "input_tokens": 47586,
+    "cached_input_tokens": 29824,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 526,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 44.8
+}

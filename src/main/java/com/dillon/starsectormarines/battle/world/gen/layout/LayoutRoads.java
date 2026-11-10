@@ -92,6 +92,11 @@ public final class LayoutRoads {
             // A stretch the places' ground cut off from the network is not left as a stranded road, nor welded
             // across somebody's ground to reach it: it is not laid.
             carved = connected(owner, carved, anchors, width, height);
+            // Its wall opens onto the road, so the road is carried on through the gate to the place's own roads: a
+            // gate onto ground with no road behind it leaves the road a stub from the map's edge to a wall.
+            if (toGate >= 0 && !carved.isEmpty()) {
+                enter(claim, owner, barred, toGate, besideOf(claim, toGate, carved, width, height), width, height);
+            }
             if (carved.isEmpty()) {
                 out.add(Laid.refused(r.name(), Laid.Kind.ROAD, r.required(), "no open country on its course"));
                 continue;
@@ -148,6 +153,66 @@ public final class LayoutRoads {
     }
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    /** The cells of {@code carved} beside {@code who}'s ground. */
+    static List<int[]> besideOf(int[][] claim, int who, List<int[]> carved, int width, int height) {
+        List<int[]> out = new ArrayList<>();
+        for (int[] c : carved) if (beside(claim, who, c[0], c[1], width, height)) out.add(c);
+        return out;
+    }
+
+    /**
+     * Carries a road that ends against {@code who}'s ground at {@code mouth} on through it to {@code who}'s own
+     * roads: the shortest way across its ground from the mouth to the nearest of them, cut
+     * {@link PrecinctBoundary#DRIVABLE_GATE_WIDTH} wide as that place's road, so the gate its wall opens there leads
+     * somewhere. Nothing is cut where a road of the place already meets the mouth, or where the place has no roads
+     * of its own to reach. Returns the cells cut.
+     */
+    static List<int[]> enter(int[][] claim, int[][] owner, boolean[][] barred, int who, List<int[]> mouth,
+                             int width, int height) {
+        List<int[]> cut = new ArrayList<>();
+        if (mouth.isEmpty()) return cut;
+        int[][] parent = new int[width * height][];
+        boolean[][] seen = new boolean[width][height];
+        ArrayDeque<int[]> open = new ArrayDeque<>();
+        for (int[] c : mouth) {
+            for (int[] d : STEPS) {
+                int x = c[0] + d[0], y = c[1] + d[1];
+                if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who || seen[x][y]) continue;
+                if (owner[x][y] != GrownTrunkPlan.UNOWNED) return cut;
+                seen[x][y] = true;
+                open.add(new int[]{x, y});
+            }
+        }
+        int[] found = null;
+        while (!open.isEmpty() && found == null) {
+            int[] c = open.poll();
+            for (int[] d : STEPS) {
+                int x = c[0] + d[0], y = c[1] + d[1];
+                if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who || seen[x][y]) continue;
+                if (barred != null && barred[x][y] && owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
+                seen[x][y] = true;
+                parent[y * width + x] = c;
+                if (owner[x][y] != GrownTrunkPlan.UNOWNED) { found = new int[]{x, y}; break; }
+                open.add(new int[]{x, y});
+            }
+        }
+        if (found == null) return cut;
+        int half = PrecinctBoundary.DRIVABLE_GATE_WIDTH / 2;
+        for (int[] c = parent[found[1] * width + found[0]]; c != null; c = parent[c[1] * width + c[0]]) {
+            for (int dx = -half; dx <= half; dx++) {
+                for (int dy = -half; dy <= half; dy++) {
+                    int x = c[0] + dx, y = c[1] + dy;
+                    if (x < 0 || y < 0 || x >= width || y >= height || claim[x][y] != who
+                            || owner[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                    if (barred != null && barred[x][y]) continue;
+                    owner[x][y] = who;
+                    cut.add(new int[]{x, y});
+                }
+            }
+        }
+        return cut;
+    }
 
     /**
      * The index of the walled square place ({@link Fortification#square}) an endpoint leads to through its gate: a

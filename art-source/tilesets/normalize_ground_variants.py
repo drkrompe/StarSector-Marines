@@ -19,6 +19,7 @@ Usage:
     python normalize_ground_variants.py <src-dir-or-glob> <out-dir> <prefix>
                                         [--cell N] [--mean R,G,B]
                                         [--band N] [--scale N]
+                                        [--align mean|neutral]
 
 `--cell` is the tile's side in pixels; it defaults to 56, which is
 `Floors_Tiles`' cellPx. The nature strip's materials are 52, and a material-backed
@@ -57,6 +58,11 @@ SCALE = 4
 # four-corner blend. 0 selects the blend. A quarter of the tile leaves the middle
 # half of each axis exactly as drawn, which is what keeps structure.
 BAND = 0
+
+# What a tile's colour is anchored on when the family is aligned: "mean", or
+# "neutral" for a family whose variants carry a differently coloured minority
+# feature (see align_to_family).
+ALIGN = "mean"
 
 
 def wrap_blend(src):
@@ -149,9 +155,27 @@ def align_to_family(tiles, target=None):
     existing material to extend that material instead: the family then sits
     where the shipped tile already sits, so adding variants does not also
     change the colour of every cell that ground covers.
+
+    With ``ALIGN == "neutral"`` each tile's anchor is the mean of its least
+    saturated half (chroma = max - min channel) instead of its whole mean. Use it
+    when some variants carry a coloured minority feature on a near-grey ground --
+    olive glass on hardpan: the mean of a tile that is a third yellow-green glaze
+    is pulled yellow, so shifting that mean onto the family's pulls the bare
+    ground between the patches lilac. The least saturated half is the bare
+    ground as long as the feature covers less than half the tile, and on a tile
+    without one it is just the greyer half, the same bias for every sibling.
+    A per-channel median does not do this: glaze and ground overlap in every
+    single channel, so a third of glaze still drags each median.
     """
-    means = [[sum(p[c] for p in t.getdata()) / (t.width * t.height)
-              for c in range(3)] for t in tiles]
+    if ALIGN == "neutral":
+        means = []
+        for t in tiles:
+            px = sorted(t.getdata(), key=lambda p: max(p) - min(p))
+            half = px[:max(1, len(px) // 2)]
+            means.append([sum(p[c] for p in half) / len(half) for c in range(3)])
+    else:
+        means = [[sum(p[c] for p in t.getdata()) / (t.width * t.height)
+                  for c in range(3)] for t in tiles]
     family = list(target) if target is not None else [
         sum(m[c] for m in means) / len(means) for c in range(3)]
     out = []
@@ -169,13 +193,17 @@ def align_to_family(tiles, target=None):
 
 
 def main():
-    global CELL, BAND, SCALE
+    global CELL, BAND, SCALE, ALIGN
     args = sys.argv[1:]
     target = None
     while len(args) > 3:
         flag = args[-2]
         value = args[-1]
-        if flag == "--cell":
+        if flag == "--align":
+            if value not in ("mean", "neutral"):
+                sys.exit("--align is mean or neutral")
+            ALIGN = value
+        elif flag == "--cell":
             CELL = int(value)
         elif flag == "--band":
             BAND = int(value)
