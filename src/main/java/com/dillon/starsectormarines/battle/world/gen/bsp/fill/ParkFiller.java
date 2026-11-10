@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.HabitatZoning;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;
@@ -34,8 +36,17 @@ import java.util.Random;
  *
  * Deterministic — all randomness sourced from the orchestrator-seeded
  * {@link Random} passed in.
+ *
+ * <p>Where nobody lives in the open ({@code Habitat#enclosed}) the park is laid as a paved service court instead, its
+ * edge holding oxygen spheres rather than benches, on the same draws.
  */
 public final class ParkFiller implements BlockFiller {
+
+    /** What an enclosed habitat's court is paved with. */
+    static final String COURT_PAVING = "colony.concrete";
+
+    /** What stands on an enclosed habitat's court: the oxygen kept outside, where a leak vents to nothing. */
+    static final String COURT_PLANT = "doodad.oxygen-sphere";
 
     /** Minimum width/height to bother cutting a stone path through the park. */
     private static final int MIN_PATH_SIDE = 5;
@@ -50,13 +61,19 @@ public final class ParkFiller implements BlockFiller {
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
 
-        DoodadDef bench = TileRegistry.installed().doodad("mess-galley.stool");
+        // Where nobody lives in the open the park is a paved service court, and what stands on its edge is the life
+        // support kept outside in case of a leak rather than benches. The draws are the park's either way, so the
+        // town around it is the same town.
+        boolean court = HabitatZoning.forProfile(ctx.get(BspKeys.MARKET_PROFILE)).enclosed();
+        DoodadDef bench = TileRegistry.installed().doodad(court ? COURT_PLANT : "mess-galley.stool");
+        int paving = court ? topology.surfaceIndex(COURT_PAVING) : 0;
 
-        // Carve the leaf as walkable grass.
+        // Carve the leaf as walkable grass, or pave it.
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.GRASS);
+                topology.setGroundKind(x, y, court ? GroundKind.STONE : GroundKind.GRASS);
+                if (court) topology.setSurface(x, y, paving);
             }
         }
 
@@ -109,7 +126,34 @@ public final class ParkFiller implements BlockFiller {
                     y = leaf.top + rng.nextInt(leaf.height());
                     break;
             }
-            doodads.add(new Doodad(x, y, bench));
+            if (!court) {
+                doodads.add(new Doodad(x, y, bench));
+            } else if (bench != null) {
+                standPlant(grid, topology, doodads, leaf, x, y, bench);
+            }
         }
+    }
+
+    /**
+     * A court's plant on the edge cell the bench would have taken, pulled inside the leaf to fit its footprint, and
+     * only where nothing else already stands: a real body with cover, so it occupies its cells.
+     */
+    private static void standPlant(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
+                                   BlockLeaf leaf, int x, int y, DoodadDef plant) {
+        Doodad prop = new Doodad(x, y, plant);
+        int px = Math.min(x, leaf.right - prop.footprintCellsX + 1);
+        int py = Math.min(y, leaf.bottom - prop.footprintCellsY + 1);
+        if (px < leaf.left || py < leaf.top) return;
+        for (int yy = py; yy < py + prop.footprintCellsY; yy++)
+            for (int xx = px; xx < px + prop.footprintCellsX; xx++)
+                if (!grid.isWalkable(xx, yy) || grid.isDoorway(xx, yy) || topology.isFixture(xx, yy)) return;
+        Doodad placed = new Doodad(px, py, plant);
+        for (int yy = py; yy < py + placed.footprintCellsY; yy++)
+            for (int xx = px; xx < px + placed.footprintCellsX; xx++) {
+                grid.setWalkable(xx, yy, false);
+                grid.setSeeThrough(xx, yy, true);
+                topology.setFixture(xx, yy, true);
+            }
+        doodads.add(placed);
     }
 }
