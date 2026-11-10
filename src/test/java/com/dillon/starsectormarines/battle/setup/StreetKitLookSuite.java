@@ -7,9 +7,13 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.gen.MainStreet;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -58,8 +62,11 @@ public final class StreetKitLookSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> out = new ArrayList<>();
         MapScale scale = MapScale.COLONY;
-        MapResult map = new BspCityGenerator().generate(scale.width, scale.height, SEED, null, null,
-                BattleSetup.colonyPlanFor(scale, SEED));
+        // The plan the battle lays: a colony on a world whose habitat is enclosed is sealed (SealedTown.seal), and
+        // the rescue below is fought on the neutral world, bare rock and airless.
+        PrecinctPlan plan = BattleSetup.colonyPlanFor(scale, SEED);
+        if (PlanetSkin.sealsTowns(TargetProfile.NEUTRAL)) plan = SealedTown.seal(plan);
+        MapResult map = new BspCityGenerator().generate(scale.width, scale.height, SEED, null, null, plan);
         if (map.mainStreets.isEmpty()) throw new IllegalStateException("seed " + SEED + " has no main street");
         MainStreet street = map.mainStreets.get(0);
         try (BattleSimulation sim = BattleSetup.createCivilianRescue(SEED, Collections.emptyList(), false,
