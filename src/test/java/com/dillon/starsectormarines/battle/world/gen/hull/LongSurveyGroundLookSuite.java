@@ -45,12 +45,17 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
         String asked = System.getProperty("snapshot.longSurvey.chapters", "").trim();
+        String worlds = System.getProperty("snapshot.longSurvey.worlds", "").trim();
         List<SnapshotArtifact> out = new ArrayList<>();
         for (StoryMap chapter : StoryMap.values()) {
             if (!chapter.longSurvey()) continue;
             String tag = chapter.id.substring("long-survey-".length());
             if (!asked.isEmpty() && !List.of(asked.split(",")).contains(tag)) continue;
             SurfacePalette home = StoryMapPools.pool(chapter).home();
+            if (!worlds.isEmpty()) {
+                out.addAll(worldShots(context, chapter, worlds));
+                continue;
+            }
             LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, home);
             HullSite site = ground.hull();
             try (BattleSimulation sim = LongSurveyGround.stand(ground, home)) {
@@ -76,6 +81,30 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
             System.out.printf(Locale.ROOT, "[%s] %s: hull %s, %d lattice points, %d roads, %d stakes, problems %s%n",
                     id(), chapter.id, site.footprint(), site.lattice().size(), site.roads().size(),
                     site.stakes().size(), site.problems());
+        }
+        return out;
+    }
+
+    /**
+     * One hull shot per world the ground is skinned for, framed alike ({@code <chapter>/world-<label>.png}):
+     * {@code -Dsnapshot.longSurvey.worlds=chicomoztoc:ARID,kazeron:ROCK} names each world by a label and its palette.
+     */
+    private static List<SnapshotArtifact> worldShots(SnapshotContext context, StoryMap chapter, String worlds)
+            throws Exception {
+        List<SnapshotArtifact> out = new ArrayList<>();
+        for (String named : worlds.split(",")) {
+            String[] parts = named.trim().split(":");
+            SurfacePalette world = SurfacePalette.valueOf(parts[parts.length - 1].trim().toUpperCase(Locale.ROOT));
+            String label = parts[0].trim().toLowerCase(Locale.ROOT);
+            LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, world);
+            Area hull = ground.hull().footprint(), trench = ground.hull().trench();
+            int x0 = Math.min(hull.left(), trench.left()), x1 = Math.max(hull.right(), trench.right());
+            int y0 = Math.min(hull.bottom(), trench.bottom()), y1 = Math.max(hull.top(), trench.top());
+            try (BattleSimulation sim = LongSurveyGround.stand(ground, world)) {
+                BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
+                        (x0 + x1) / 2f, (y0 + y1) / 2f, Math.max(x1 - x0, (y1 - y0) * 16f / 9f) + 30f);
+                out.add(new SnapshotArtifact(chapter.id + "/world-" + label + ".png", look.render(sim, "")));
+            }
         }
         return out;
     }

@@ -104,8 +104,9 @@ sight lines before the works' wall.
   as its process after the owner rejected the generic shops (`LightIndustryWorks`,
   `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`).
   Refining rebuilt as its process after the owner rejected the generic stills
-  (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; stand-in art for
-  the tanks, columns and flare until the refinery's own lands;
+  (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; its own sheet,
+  `refinery-plant`, for the columns, flare, floating-roof tanks, volatiles
+  spheres and spills; bund walls, loading rack and tankers still stand-ins;
   `createSnapshots -Psnapshot=raid-refinery-site-look`).
 
 ## Constraints
