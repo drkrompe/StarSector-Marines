@@ -60,7 +60,7 @@ note is for people: what the map is and why it is the one.
 | `heart-burn` (and its town and city) | 2 | the Wellhollow story map The Burn was tuned on |
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
-| `cordon-line`, `cordon-road`; town; urban | 3, 15; 14, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
+| `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
@@ -257,8 +257,10 @@ instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
 - **`bores`** `[{x, y, mother?}]`: the first wave in eruption order and exactly
   one mother, each on the doorstep of the place nearest it (within 10 cells) or
   else on the open ground nearest it (within 16).
-- **`holdouts`** `[[x, y]]`: in redoubt order, the held building each cell falls
-  inside.
+- **`holdouts`** `[[x, y]]`: in redoubt order, the held building with room that
+  each cell falls inside, or else the nearest one (within 16 cells), none named
+  twice. The sealed layout lays its own street plan from the same seed, so a cell
+  inside a building on the open layout may fall in a street on the sealed one.
 
 They replace the setup's choices and its clearances; a placement that cannot
 seat fails the map like any other acceptance.

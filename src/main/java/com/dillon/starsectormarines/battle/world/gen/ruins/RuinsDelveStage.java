@@ -73,6 +73,14 @@ public final class RuinsDelveStage implements GenStage {
     static final String PULLED = "doodad.industrial-pallet-stack";
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
+    /**
+     * Structure of the facility's built walls: the layer lines, every shell the delve stamps, the interior's hull and
+     * every wall inside its footprint, jambs included. A fortress wall's (owner: you can't drive a heavy through the
+     * ruin's walls), over every wall crush's ceiling ({@code WallCrush.HEAVY_CEILING}), so no heavy hull or walker
+     * pushes through the plant, while a satchel charge (450) still cuts it. A seal door or bulkhead shut as the jamb
+     * beside it holds the same.
+     */
+    public static final int FACILITY_WALL_HP = 240;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
     /**
      * Corridor widths ({@code ruins-expedition.md}, Ways sized for machines): a service corridor two cells wide, which
@@ -82,6 +90,12 @@ public final class RuinsDelveStage implements GenStage {
     static final int SERVICE_WIDTH = 2, FREIGHT_WIDTH = 4;
     /** A mega forge hall's breadth and length, cells; vast's larger. Its pour line runs along its length. */
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
+    /** The mega forge's breakout pool round its middle: half its width and half its length, cells. */
+    static final int BREAKOUT_WIDE = 7, BREAKOUT_LONG = 8;
+    /** The transfer bridge's pieces ({@code ruins-forge-bridge}), each two cells along the span by four across. */
+    static final String BRIDGE_SPAN = "doodad.ruins-transfer-bridge-span",
+            BRIDGE_END = "doodad.ruins-transfer-bridge-end",
+            BRIDGE_SPAN_DAMAGED = "doodad.ruins-transfer-bridge-span-damaged";
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
     static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
     /**
@@ -192,6 +206,26 @@ public final class RuinsDelveStage implements GenStage {
         ctx.put(RuinsKeys.DELVE, new Layout(ctx, plan, new Random(ctx.seed ^ SALT)).lay());
     }
 
+    /**
+     * Gives every closed built cell among {@code facility}'s cells (row-major) {@code structure}: what
+     * {@code FinalizeStage} would seed as wall, run before it, which seeds only the walls still without any. Open floor,
+     * water, natural solids and fixtures (a dead door's leaf, a turret's mount) are left, and so is a cell a prop
+     * stands on ({@code props}), so a cover piece keeps its own structure and stays a prop a heavy can push.
+     */
+    static int fortify(NavigationGrid grid, CellTopology topology, boolean[] facility, boolean[] props,
+                       int structure) {
+        int w = grid.getWidth(), n = 0;
+        for (int i = 0; i < facility.length; i++) {
+            if (!facility[i] || props[i]) continue;
+            int x = i % w, y = i / w;
+            if (grid.isWalkable(x, y) || topology.isFixture(x, y) || topology.isWater(x, y)
+                    || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) continue;
+            grid.setWallHp(x, y, structure);
+            n++;
+        }
+        return n;
+    }
+
     /** One delve being laid. */
     private static final class Layout {
         final GenContext ctx;
@@ -232,6 +266,20 @@ public final class RuinsDelveStage implements GenStage {
         PowerHall innerHall;
         /** Each interior layer's court, laid with its band so the spine runs through it. */
         final Map<Integer, Court> wells = new HashMap<>();
+        /**
+         * A works site's works hall, laid first in the outer interior band with the band's spine down its west side
+         * ({@code ruins-expedition.md}, The works hall is the trunk); null on a site without one.
+         */
+        Area trunkHall;
+        /**
+         * A stretch of the trunk's spine a band's ways may not meet while they are joined, so that every way from the
+         * west meets the spine on one side of the works hall and every way to the east on the other; null when none.
+         */
+        Area keepOff;
+        /** {@link #keepOff} for the vault apron's ways, when the trunk's band is the last. */
+        Area apronKeepOff;
+        /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
+        Cell worksStand;
 
         Layout(GenContext ctx, RuinsGroundPlan plan, Random rng) {
             this.ctx = ctx;
@@ -251,6 +299,27 @@ public final class RuinsDelveStage implements GenStage {
             hull = new boolean[w * h];
             network = new int[w * h];
             freightNet = new boolean[w * h];
+        }
+
+        /** The facility's cells: what the delve keeps and stamps, the interior's hull, and everything inside it. */
+        boolean[] facility() {
+            boolean[] cells = new boolean[w * h];
+            for (int i = 0; i < cells.length; i++) cells[i] = kept[i] || drafted[i] || hull[i];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (insideCell(x, y)) cells[i(x, y)] = true;
+            return cells;
+        }
+
+        /** Every cell a prop stands on now, so a cover piece keeps its own structure. */
+        boolean[] propCells() {
+            boolean[] cells = new boolean[w * h];
+            for (Doodad d : ctx.doodads) {
+                for (int y = d.cellY; y < d.cellY + Math.max(1, d.footprintCellsY); y++) {
+                    for (int x = d.cellX; x < d.cellX + Math.max(1, d.footprintCellsX); x++) {
+                        if (grid.inBounds(x, y)) cells[i(x, y)] = true;
+                    }
+                }
+            }
+            return cells;
         }
 
         RuinsDelve lay() {
@@ -370,7 +439,8 @@ public final class RuinsDelveStage implements GenStage {
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors);
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand());
+            fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }
@@ -972,6 +1042,19 @@ public final class RuinsDelveStage implements GenStage {
             return new Court(RuinsDelve.layerName(index) + ".court", ground, area);
         }
 
+        /**
+         * {@link #court}, standing across column {@code spine} so the spine runs through it: its left edge anywhere
+         * that keeps the spine's three columns inside the court's walls.
+         */
+        Court courtOn(int index, Area region, int spine) {
+            int lo = Math.max(region.left() + 1, spine - COURT_WIDTH + 3), hi = Math.min(spine - 2,
+                    region.right() - COURT_WIDTH);
+            if (hi < lo) throw new IllegalStateException(RuinsDelve.layerName(index) + " seats no court on its spine");
+            // spot() keeps a cell of margin inside the area it searches, so the court's left edge lands in lo..hi.
+            Area column = new Area(lo - 1, region.bottom(), hi + COURT_WIDTH, region.top());
+            return court(index, column);
+        }
+
         PowerHall hall(int index, Area region) {
             Shell s = shellIn(region, HALL_WIDTH, HALL_HEIGHT, HALL_WALL, HALL_FLOOR, BuildingKind.INDUSTRIAL);
             if (s == null) throw new IllegalStateException(RuinsDelve.layerName(index) + " seats no power hall");
@@ -1330,26 +1413,53 @@ public final class RuinsDelveStage implements GenStage {
                 int regionLeft = drafts.get(k).lineRight + 3;
                 int regionRight = k + 1 < drafts.size() ? drafts.get(k + 1).lineLeft - 4 : zoneEnd;
                 Area region = new Area(regionLeft, 2, Math.max(regionLeft, regionRight), h - 3);
-                if (k == hallLayer) innerHall = hall(k, region);
-                Court well = court(k, region);
+                int spine;
+                Court well;
+                Area works = k == first && plan.dressing().works().any() ? plantHall(region, worksStage()) : null;
+                if (works != null) {
+                    // The works hall first, the band's biggest piece: the spine runs down its west side, through it
+                    // from its dispatch end to its head, and the court and power hall stand clear of that column.
+                    trunkHall = works;
+                    spine = works.left() + 1;
+                    well = courtOn(k, region, spine);
+                    reserve(new Area(spine - 1, region.bottom(), spine + 1, region.top()), 2);
+                    if (k == hallLayer) innerHall = hall(k, region);
+                    for (int y = works.bottom(); y <= works.top(); y++) {
+                        for (int x = spine - 1; x <= spine + 1; x++) aisle[i(x, y)] = true;
+                    }
+                } else {
+                    if (k == hallLayer) innerHall = hall(k, region);
+                    well = court(k, region);
+                    spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
+                }
                 wells.put(k, well);
-                int spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 for (int y = 2; y <= h - 3; y++) {
                     for (int x = spine - 1; x <= spine + 1; x++) {
                         carve(x, y, k);
                         freightNet[i(x, y)] = true;
                     }
                 }
+                // On the trunk's band, the ways in from the west meet the spine south of the works hall and the ways
+                // on to the east north of it, so the route through the band runs through the hall.
+                keepOff = works == null ? null : new Area(spine - 3, works.top() + 1, spine + 3, h - 1);
                 for (Way way : drafts.get(k).ways) connect(way.far(), k, null, FREIGHT_WIDTH);
+                keepOff = works == null ? null : new Area(spine - 3, 0, spine + 3, works.bottom() - 1);
                 if (k + 1 < drafts.size()) {
                     for (Way way : drafts.get(k + 1).ways) connect(way.near(), k, null, FREIGHT_WIDTH);
+                } else {
+                    apronKeepOff = keepOff;
                 }
+                keepOff = null;
                 if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
                 connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
             }
             int last = drafts.size() - 1;
+            // A trunk's band that is also the last: the vault's apron is its way on, so it too meets the spine north
+            // of the works hall.
+            keepOff = apronKeepOff;
             connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron, FREIGHT_WIDTH);
             connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron, FREIGHT_WIDTH);
+            keepOff = null;
             List<Area> entrances = new ArrayList<>();
             for (Way way : face.ways) if (way.open()) entrances.add(way.span());
             return entrances;
@@ -1620,9 +1730,12 @@ public final class RuinsDelveStage implements GenStage {
             for (RuinsDelve.PlantStage stage : stages(i - firstInside, plan.interiorLayers())) {
                 boolean first = i == firstInside && stage == RuinsDelve.PlantStage.PRODUCTION
                         && plantHalls.stream().noneMatch(p -> p.stage() != RuinsDelve.PlantStage.INTAKE);
-                Area floor = plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
+                boolean trunk = trunkHall != null && i == firstInside && stage == worksStage()
+                        && plantHalls.stream().noneMatch(p -> p.footprint().equals(trunkHall));
+                Area floor = trunk ? trunkHall : plantHall(region, first ? RuinsDelve.PlantStage.FOUNDRY : stage);
                 if (floor == null) continue;
-                connect(new Cell(floor.centreX(), floor.centreY()), i, null, FREIGHT_WIDTH);
+                // The trunk hall needs no way of its own: the spine runs through it.
+                if (!trunk) connect(new Cell(floor.centreX(), floor.centreY()), i, null, FREIGHT_WIDTH);
                 chambers.add(floor);
                 plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.INTERIOR + ".hall." + (plantHalls.size() + 1),
                         stage, floor));
@@ -1639,7 +1752,7 @@ public final class RuinsDelveStage implements GenStage {
             boolean vast = plan.layers() >= 4;
             if (band == 0) {
                 // The works hall is placed first, while the band still has room for it; the intake after.
-                out.add(plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS);
+                out.add(worksStage());
                 out.add(RuinsDelve.PlantStage.INTAKE);
                 if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
             }
@@ -1648,6 +1761,31 @@ public final class RuinsDelveStage implements GenStage {
                 for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
             }
             return out;
+        }
+
+        /**
+         * The works hall's stand settled on floor: the nearest open cell to the planned one inside the hall, clear of
+         * pieces, melt and floor kit; null without a works hall or with no such cell within six.
+         */
+        Cell settledStand() {
+            if (worksStand == null || trunkHall == null) return null;
+            for (int r = 0; r <= 6; r++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    for (int dx = -r; dx <= r; dx++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                        int x = worksStand.x() + dx, y = worksStand.y() + dy;
+                        if (!trunkHall.contains(x, y) || !grid.isWalkable(x, y) || kitFloor[i(x, y)]
+                                || topology.isFixture(x, y)) continue;
+                        return new Cell(x, y);
+                    }
+                }
+            }
+            return null;
+        }
+
+        /** The stage a works site's works hall is laid as: the mega forge's foundry, or the theme's works hall. */
+        RuinsDelve.PlantStage worksStage() {
+            return plan.dressing().foundry() ? RuinsDelve.PlantStage.FOUNDRY : RuinsDelve.PlantStage.WORKS;
         }
 
         /** A plant hall of {@code stage}'s size laid in {@code region}, its floor carved; null where none fits. */
@@ -1720,6 +1858,8 @@ public final class RuinsDelveStage implements GenStage {
                             : null;
                     if (laid != null) worksHall(registry, hall, centre, laid);
                     else lines(registry, hall, centre);
+                    // The zone is held from the east end of the transfer aisle, which the hall keeps clear.
+                    if (hall.equals(trunkHall)) worksStand = new Cell(hall.right() - 2, centre.y());
                 }
                 case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
@@ -2038,8 +2178,10 @@ public final class RuinsDelveStage implements GenStage {
                 if (Math.floorMod(top - 16 - y, 12) <= 1) continue;
                 meltBox(melt, hall, centre, cx - 1, y, cx, y);
             }
+            int[] crossings = new int[0];
             for (int y = top - 17; y >= bottom + 6; y -= 12) {
-                lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx - 1, y);
+                crossings = Arrays.copyOf(crossings, crossings.length + 1);
+                crossings[crossings.length - 1] = y;
             }
             // Production lines: a channel each way to a mould grid over its bed, a cooling rack beyond.
             int line = 0;
@@ -2072,8 +2214,8 @@ public final class RuinsDelveStage implements GenStage {
                 lay(registry, "doodad.ruins-floor-drain", cx - 4, y0 - 5, under);
                 lay(registry, "doodad.ruins-floor-drain", cx + 3, y0 - 5, under);
                 if (hash(cx, y0, 0x011) % 3 == 0) lay(registry, "doodad.ruins-oil-stain", cx + 14, y0 - 11, under);
-                // A crane girder fallen across the west aisle under its runway, the hall's best cover.
-                if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 1, y0 - 4, 7, 1, hall, centre);
+                // A crane girder fallen beside the trunk down the west wall, the hall's best cover.
+                if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 5, y0 - 4, 7, 1, hall, centre);
             }
             // The head, east of the line: ladles waiting by the spout, the charge racks feeding the crucible, the
             // pour pulpit watching the spout; the slag pit beyond the line. With no great crucible, a ladle each side
@@ -2086,6 +2228,7 @@ public final class RuinsDelveStage implements GenStage {
                     over(registry, "doodad.ruins-crucible-melt", cx + 3, gy + 1);
                 }
                 piece(registry, "doodad.ruins-pour-pulpit", cx + 3, lineHead - 1, 2, 2, hall, centre);
+                worksStand = new Cell(cx + 5, lineHead - 1);
             } else {
                 for (int side = -1; side <= 1; side += 2) {
                     int lx = side < 0 ? cx - 8 : cx + 5;
@@ -2094,6 +2237,7 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
                 piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
+                worksStand = new Cell(cx + 12, top - 8);
             }
             piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
             // The slag pit, a crashed hover skid with its east edge on the pit's lip, the slag heaped below.
@@ -2103,6 +2247,11 @@ public final class RuinsDelveStage implements GenStage {
             }
             piece(registry, "doodad.ruins-slag-heap", cx + 15, top - 9, 2, 2, hall, centre);
             piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
+            breakout(melt, hall, centre);
+            // The line's crossings, each a grate catwalk, but where the breakout has taken the line.
+            for (int y : crossings) {
+                if (!melt[i(cx - 1, y)]) lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx - 1, y);
+            }
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
             if (great) {
@@ -2114,7 +2263,83 @@ public final class RuinsDelveStage implements GenStage {
                 feedRail(registry, hall, centre, gy);
             }
             dispatch(registry, hall, centre, under);
+            transferBridge(registry, hall, centre, melt);
             overheads(registry, hall, centre);
+        }
+
+        /**
+         * The breakout ({@code ruins-expedition.md}, The forge's transfer bridge): when the plant died the pour line
+         * burst its banks at the hall's middle and pooled there, a ragged pool of melt across the line. The transfer
+         * aisle stays clear of it, so it crosses the pool as the transfer bridge. Laid after the lines, round any
+         * piece already standing there (the tipped ladle that spilled it), and kept from later pieces.
+         */
+        private void breakout(boolean[] melt, Area hall, Cell centre) {
+            // As large as it can lie with the hall still one floor round it, never smaller than a pool.
+            for (int scale = 0; scale < 4; scale++) {
+                int wide = BREAKOUT_WIDE - scale, lng = BREAKOUT_LONG - 2 * scale;
+                List<Integer> pool = new ArrayList<>();
+                float mx = centre.x() - 0.5f, my = centre.y() + 0.5f;
+                for (int y = centre.y() - lng; y <= centre.y() + lng + 1; y++) {
+                    for (int x = centre.x() - wide; x <= centre.x() + wide - 1; x++) {
+                        float dx = (x + 0.5f - mx) / (wide + 0.5f), dy = (y + 0.5f - my) / (lng + 0.5f);
+                        // A ragged edge by coordinate hash: the melt ran further in some places than others.
+                        float edge = 0.8f + (hash(x, y, 0xB0E) % 100) / 400f;
+                        if (dx * dx + dy * dy > edge || !hall.contains(x, y) || melt[i(x, y)]) continue;
+                        boolean[] one = new boolean[w * h];
+                        meltBox(one, hall, centre, x, y, x, y);
+                        if (one[i(x, y)]) pool.add(i(x, y));
+                    }
+                }
+                if (pool.isEmpty() || splits(melt, pool, hall)) continue;
+                for (int k : pool) {
+                    melt[k] = true;
+                    kitFloor[k] = true;
+                }
+                return;
+            }
+        }
+
+        /** Whether melt over {@code pool}, with the melt already planned, would leave the hall more than one floor. */
+        private boolean splits(boolean[] melt, List<Integer> pool, Area hall) {
+            List<Integer> cut = new ArrayList<>(pool);
+            for (int y = hall.bottom(); y <= hall.top(); y++) {
+                for (int x = hall.left(); x <= hall.right(); x++) {
+                    if (melt[i(x, y)] && grid.isWalkable(x, y)) cut.add(i(x, y));
+                }
+            }
+            for (int k : cut) grid.setWalkable(k % w, k / w, false);
+            boolean whole = oneFloor(hall);
+            for (int k : cut) grid.setWalkable(k % w, k / w, true);
+            return !whole;
+        }
+
+        /**
+         * The transfer bridge over the breakout: a deck four cells wide on the transfer aisle, from bank to bank of
+         * the pool, where a hall frame stands its post and the haul crosses the hall. A run of deck spans on box
+         * girders, railed both sides, with a cast abutment on each bank; floor, blocking nothing.
+         */
+        private void transferBridge(TileRegistry registry, Area hall, Cell centre, boolean[] melt) {
+            int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+            // The pool's own columns: a production line's beds beside the aisle are melt too, but no bridge's.
+            for (int x = centre.x() - BREAKOUT_WIDE; x <= centre.x() + BREAKOUT_WIDE - 1; x++) {
+                if (melt[i(x, centre.y() - 2)] || melt[i(x, centre.y() + 3)]) {
+                    lo = Math.min(lo, x);
+                    hi = Math.max(hi, x);
+                }
+            }
+            if (lo > hi) return;
+            DoodadDef span = registry.doodad(BRIDGE_SPAN), end = registry.doodad(BRIDGE_END);
+            DoodadDef damaged = registry.doodad(BRIDGE_SPAN_DAMAGED);
+            if (span == null || end == null) return;
+            // Spans every two columns over the pool, an abutment on each bank (the east one mirrored), one span
+            // split by coordinate hash.
+            int y = centre.y() - 1, spans = (hi - lo + 2) / 2;
+            int split = damaged == null ? -1 : 1 + hash(lo, y, 0xB21) % Math.max(1, spans - 2);
+            ctx.doodads.add(new Doodad(lo - 2, y, end));
+            for (int k = 0; k < spans; k++) {
+                ctx.doodads.add(new Doodad(lo + 2 * k, y, k == split ? damaged : span));
+            }
+            ctx.doodads.add(new Doodad(lo + 2 * spans, y, end, 0, true));
         }
 
         /**
@@ -2175,9 +2400,10 @@ public final class RuinsDelveStage implements GenStage {
          * another lies derailed in the aisle.
          */
         private void feedRail(TileRegistry registry, Area hall, Cell centre, int gy) {
-            int fx = hall.left() + 2;
+            // East of the trunk's three columns down the west wall, so a pod on the rail never closes the trunk.
+            int fx = hall.left() + 3;
             piece(registry, "doodad.ruins-feed-pod", fx, gy + 9, 2, 3, hall, centre);
-            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 2, 2, 3, hall, centre);
+            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 3, 2, 3, hall, centre);
             magRail(registry, fx, hall.bottom() + 8, hall.top() - 1, true);
         }
 
@@ -2399,7 +2625,8 @@ public final class RuinsDelveStage implements GenStage {
                 int cx = at % w, cy = at / w;
                 for (int dy = lo; dy < lo + width; dy++) {
                     for (int dx = lo; dx < lo + width; dx++) {
-                        if (!corridorCell(cx + dx, cy + dy, avoid)) continue;
+                        if (!corridorCell(cx + dx, cy + dy, avoid) || inTrunk(cx + dx, cy + dy)
+                                || keptOff(cx + dx, cy + dy)) continue;
                         carve(cx + dx, cy + dy, band);
                         if (freight) freightNet[i(cx + dx, cy + dy)] = true;
                     }
@@ -2416,10 +2643,26 @@ public final class RuinsDelveStage implements GenStage {
             int lo = stampLow(width);
             for (int dy = lo; dy < lo + width; dy++) {
                 for (int dx = lo; dx < lo + width; dx++) {
-                    if (!corridorCell(x + dx, y + dy, avoid)) return false;
+                    if (!corridorCell(x + dx, y + dy, avoid) || inTrunk(x + dx, y + dy) || keptOff(x + dx, y + dy)) {
+                        return false;
+                    }
                 }
             }
             return true;
+        }
+
+        /**
+         * Whether a cell is the trunk hall's or its wall: no way but the spine enters the works hall, so every other
+         * meets the spine beyond the hall's ends and the hall keeps its process layout whole.
+         */
+        boolean inTrunk(int x, int y) {
+            return trunkHall != null && x >= trunkHall.left() - 1 && x <= trunkHall.right() + 1
+                    && y >= trunkHall.bottom() - 1 && y <= trunkHall.top() + 1;
+        }
+
+        /** Whether a cell is in the stretch of spine the ways being joined may not meet ({@link #keepOff}). */
+        boolean keptOff(int x, int y) {
+            return keepOff != null && keepOff.contains(x, y);
         }
 
         /**

@@ -413,7 +413,10 @@ public final class BattleSetup {
         sim.addNatureOverlayCover(TileRegistry.installed());
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
-        sim.setMarineLandingPads(map.landingPads);
+        // A port's lighter stands are the planet's traffic's: no company lands there, so no mech drop or cache counts them.
+        List<LandingPad> marinePads = new ArrayList<>(map.landingPads);
+        marinePads.removeIf(pad -> pad.purpose == LandingPad.Purpose.PORT_LIGHTER);
+        sim.setMarineLandingPads(marinePads);
         sim.setDefensePosts(defensePosts);
         sim.setWallGates(map.wallGates);
         // The map's own statement of where the front is, so the trace can say
@@ -1999,8 +2002,7 @@ public final class BattleSetup {
     /**
      * The Dust Ledger on Saltwell Cross ({@code dust-ledger-crossing.md}): the company lands openly as Wayline's
      * freight drop, Sable's finite crew holds the pump house, and the Raid on the ledger room runs under the
-     * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
-     * for the alarm.
+     * quiet phase.
      */
     /**
      * Sable's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
@@ -2087,8 +2089,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, air);
         }
         // A Low-quality crew of plain militia: elite clerks in the pump house's rooms cost a two-squad company all 24
-        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm; the
-        // cantina's drinkers spawn then, if at all.
+        // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm. The
+        // cantina's posts stand empty: the town keeps out of the fight.
         // The pillboxes are manned from the posts that stand at their slits: each is its own garrison squad, holding
         // its node and firing from the slits, while the rest of that role's posts stay one squad as before.
         Set<Integer> mobile = new TreeSet<>();
@@ -2133,21 +2135,13 @@ public final class BattleSetup {
             squad.originalSize = cells.size();
         }
         claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable crawler crew");
-        List<EntitySpec> drinkers = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.posts().get(DustLedgerCrossing.PostRole.CANTINA))
-            drinkers.add(makeDefender("sable-wake-drinker-" + drinkers.size(), UnitType.MILITIA, cell.x(), cell.y(),
-                    risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(UnitRole.PATROL));
-        List<EntitySpec> salvageTeam = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : layout.salvageTeam())
-            salvageTeam.add(makeOpeningMilitia("harrow-salvager-" + salvageTeam.size(), Faction.ALLY, cell.x(), cell.y(), rng)
-                    .role(UnitRole.PATROL));
         // Townsfolk live in the market, never in the compound's bunkhouse or the south ruins.
         spawnAmbientCivilians(sim, map.grid, layout.homes(), rng);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.WAREHOUSE), layout.warehouses().size(),
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid);
         ledger.defences(sim, nests, pillboxSquads);
         // The road reserve: two plain-militia squads who come with a Hound when the company steps into the ring.
         List<List<EntitySpec>> reserve = new ArrayList<>();
@@ -6426,7 +6420,12 @@ public final class BattleSetup {
                                                     Random rng) {
         Set<LandingPad> reservedSet = new HashSet<>(reserved);
         List<LandingPad> candidates = new ArrayList<>();
+        List<LandingPad> lighterStands = new ArrayList<>();
         for (LandingPad pad : map.landingPads) {
+            if (pad.purpose == LandingPad.Purpose.PORT_LIGHTER) {
+                lighterStands.add(pad);
+                continue;
+            }
             if (pad.purpose != LandingPad.Purpose.CIVILIAN_SPACEPORT) continue;
             if (reservedSet.contains(pad) || !pad.isClear(map.grid, map.topology)) continue;
             candidates.add(pad);
@@ -6447,6 +6446,17 @@ public final class BattleSetup {
         for (int i = 0; i < target; i++) {
             LandingPad pad = candidates.get(i);
             ShuttleType type = civilianTypes[rng.nextInt(civilianTypes.length)];
+            float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
+            stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
+            parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
+        }
+        // A port's lighter stands each hold the freighter standing on them (PortApronDressing), drawn from its own
+        // stream, and only where there are any, so every other map's draws are unchanged.
+        if (lighterStands.isEmpty()) return parked;
+        Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
+        ShuttleType[] lighterTypes = {ShuttleType.BUFFALO, ShuttleType.MULE, ShuttleType.TARSUS};
+        for (LandingPad pad : lighterStands) {
+            ShuttleType type = lighterTypes[lighters.nextInt(lighterTypes.length)];
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));

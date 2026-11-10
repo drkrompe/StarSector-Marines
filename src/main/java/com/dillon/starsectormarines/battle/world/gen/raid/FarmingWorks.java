@@ -1,44 +1,44 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
-import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
-import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
-import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
-import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
-import java.util.List;
 import java.util.Set;
 
 /**
- * Farming's site: a silo per machine, the packing shed the harvest goes through, a stores and one post, among
- * farmsteads. Awaiting its rebuild to the mine's standard (owner, 2026-11-10).
+ * Farming's site: the planet's central grain elevator and processing hub ({@link GrainHub}), among farmsteads, with
+ * its fields on the open country and its farm roads in off the map's edges. A fish-farming world plays the same hub;
+ * its ponds stand among the fields.
  */
 public final class FarmingWorks implements RaidIndustry {
-
-    /** A farm plant's silo: a bin on its pad, square for the same reason as a still. */
-    private static final RoomShape SILO = RoomShape.rectangle(7, 7);
-    private static final RoomShape PACKING_SHED = RoomShape.rectangle(16, 7);
-    /** Yard a farm plant keeps per silo: the threshing floor and the trucks' turning ground. UNTUNED. */
-    static final int YARD_PER_SILO = 240;
 
     @Override public String key() { return "farming"; }
 
     @Override public Set<String> industryIds() { return Set.of("farming", "aquaculture"); }
 
+    /** The hub stands apart on a planet's hauler yards, as a mine's head works does. */
+    @Override public float worksFit() { return RaidSiteTemplate.MINE_FIT; }
+
     @Override public GrownTrunkPlan.Profile industryGrowth() { return RaidSiteTemplate.SPARSE_GROWTH; }
 
     @Override public PrecinctCharacter industryCharacter() { return PrecinctCharacter.FARMSTEAD; }
 
-    @Override public FortressProgram works(int silos) {
-        if (silos < 1) throw new IllegalArgumentException("a farm plant has at least one silo");
-        return new FortressProgram(List.of(
-                new FortressBuilding(RoomPurpose.PARTS_CAGE, SILO, Ward.YARD, silos),
-                new FortressBuilding(RoomPurpose.PRODUCTION_FLOOR, PACKING_SHED, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.STOCKROOM, RaidWorksParts.STORES, Ward.REAR, 1),
-                RaidWorksParts.guardPosts(1)),
-                0, silos * YARD_PER_SILO, true);
+    @Override public FortressProgram works(int silos) { return GrainHub.program(silos); }
+
+    /**
+     * The hub dressed as its process: the farm roads come in on the works' outer flank (the map edge the works
+     * stands nearer) and its deep end (the edge away from the landing).
+     */
+    @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
+        boolean fromWest = plan.attackerFrom() == null || plan.attackerFrom().x0() + plan.attackerFrom().x1() < 1f;
+        Side deep = fromWest ? Side.EAST : Side.WEST;
+        Side outer = works.seedY() >= c.height / 2 ? Side.NORTH : Side.SOUTH;
+        GrainHub.dress(c, plan, works, outer, deep);
     }
 }

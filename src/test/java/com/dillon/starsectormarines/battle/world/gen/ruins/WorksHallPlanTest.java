@@ -64,6 +64,15 @@ class WorksHallPlanTest {
     }
 
     @Test
+    void nothingStandsOnTheSpineDownTheWestWall() {
+        for (WorksHallPlan plan : plans()) {
+            for (WorksHallPlan.Piece p : plan.pieces()) {
+                if (p.layer() == WorksHallPlan.Layer.STAND) assertTrue(p.x() >= HallFrame.TRUNK, plan.kind() + " " + p);
+            }
+        }
+    }
+
+    @Test
     void everyPieceOfEquipmentServesAStepOfTheProcess() {
         for (WorksHallPlan plan : plans()) {
             Set<String> steps = new HashSet<>();

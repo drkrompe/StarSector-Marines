@@ -190,7 +190,7 @@ public final class DamageDollCanvas implements CanvasProducer {
     public static String dollPath(MechVariant variant) {
         String name = switch (variant) {
             case SECURITY_WALKER, SECURITY_HALL -> "derelict";
-            case SECURITY_ROUNDS, SECURITY_TENDER -> "derelict-rounds";
+            case SECURITY_ROUNDS, SECURITY_TENDER, SECURITY_STRIPPER, SECURITY_HAULER -> "derelict-rounds";
             default -> variant.frame().id;
         };
         return DOLL_DIR + "mech-" + name + ".svg";
