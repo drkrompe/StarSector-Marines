@@ -460,6 +460,28 @@ def build():
     b += stroke('M 30 64 C 30 40 60 36 90 46', '#000000', .58, 8)
     f['dc-4-qs'] = banded(150, 200, upright2(b, DC_ART), 'DCQ')
 
+    # The machine flamers (mechs-nouns.md, Machine flamers), one family in two sizes: a fuel drum, a hose and a burner
+    # nozzle with its pilot shroud, pointing right. The FL-1 is the Torch's cut-down burner, a 2x1 piece; the FL-2 the
+    # Censer's long lance with its finned barrel and flared cowl, a 2x2 piece standing up.
+    b = rect(8, 22, 34, 56, D, rx=8) + rect(13, 30, 24, 4, L, rx=2) + rect(13, 66, 24, 4, L, rx=2)
+    b += stroke('M 42 50 C 52 50 52 58 62 58', '#000000', .58, 7)
+    b += block(62, 40, 92, 66, 3)
+    b += hbar(94, 122, 53, 12)
+    b += poly([(124, 42), (144, 34), (144, 72), (124, 64)], D)
+    b += rect(128, 45, 3, 16, L)
+    f['fl-1'] = banded(150, 100, b, 'FL1')
+    b = block(8, 52, 46, 148, 8) + rect(14, 60, 26, 4, L, rx=2) + rect(14, 136, 26, 4, L, rx=2)
+    b += hbar(48, 70, 100, 18)
+    for k in range(5):
+        b += rect(72 + k * 9, 82, 6, 36, D, rx=1)
+    b += hbar(118, 166, 100, 20)
+    b += rect(132, 94, 18, 12, L, rx=0)
+    b += rect(140, 70, 10, 14, MID, rx=2)
+    b += poly([(168, 86), (192, 70), (192, 130), (168, 114)], D)
+    for k in range(3):
+        b += rect(176, 88 + k * 9, 10, 4, L)
+    f['fl-2'] = banded(150, 200, upright2(b), 'FL2')
+
     internals(f)
     boats(f)
     vehicles(f)

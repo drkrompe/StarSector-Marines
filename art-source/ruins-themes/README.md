@@ -90,6 +90,44 @@ The slag pit's edge is the `FOUNDRY` drop's own `foundry-lip`. The runs (mag-rai
 runway, cable tray) run north-south and are healed in `export.py` (`heal_run`) into a seamless repeat along their
 length. Hazard trim is muted as the spool drum's is, and melt graded as the crucible's.
 
+The theme works halls (`ruins-theme-halls`: one works hall per theme but the forge) ship on four sheets
+sharing `_atlas-works.json`, each 32 cells wide and padding to 4096x2048 (`texture-fit.md`), so a hall loads only the
+sheets its pieces are on: `ruins-works-kit` (kit, runs, blocks, stations), `ruins-works-plant` (vessels, plant),
+`ruins-works-bays` (cells, rows) and `ruins-works-giants`. Their block-outs are drawn by `hall_kinds.py` (a kind `run/fallen` is that run
+fallen from overhead) at 160 px a cell, the giants at 112. The sheets are grouped by shape across the halls, so each
+generation serves several of them:
+
+- `works-kit`: the 6x6 cold head, 3x3 heat exchanger and coil winder (shared by the cold, ring, field halls and the
+  reactor train), the one 2x2 `works-conveyor` bed every hall's line lays, a 1x2 wall service drop per service
+  (coolant, nutrient, powder, power, steam) and the 3x1 `line-console` run.
+- `works-runs`: the 2x2 floor runs (coolant return, coolant loop, transfer pipe, tensile bed, spoil conveyor) and the
+  1x2 overhead runs (coolant header, feed manifold, pipe run, powder line), each with its 1x4 fallen state.
+- `works-blocks`: the hover skids (waste, reject, crashed bed changer) and mag-rail unit carrier; walls laid a cell at
+  a time (shield block, blast wall, blast baffle, cage fence, the fence turned north-south as `cage-fence-v`) and their
+  rubble; the 3x2 dispatch crates.
+- `works-vessels-a`/`-b`: silos (whole and split), the reactor column, the product, nutrient, feed and precursor
+  tanks, the lattice tank, coating chamber and draw tower, all seen as roofs.
+- `works-stations`: the small benches and stations and the 3x3 presses, sealers and tether anchor.
+- `works-plant-a`/`-b`: chillers (whole and burst), the preheat furnace, cold manifold, cryostat, feed pumps, ice
+  ridge, hoist and spool winders, beam dump, ring segment (turned east-west as `ring-segment-ew`), RF cavity, linac
+  section and the cutter and drum racks.
+- `works-cells-a`/`-b`: the charge cell, drawn open to the east for a west bay and mirrored as `-west` for an east bay
+  (whole and torn open), the bore stand, the great vat (whole and burst) and the print bed.
+- `works-rows-a`/`-b`: rack rows, the sorter, stacker rail and what fell across a bay (toppled racks and stacker,
+  the fallen reactor column and print gantry), the pipe rack, director's booth and spoil heaps.
+- `works-mega-a`/`-b`: the 12x12 headframe and 6x6 print gantry, overhead and open in the middle; the 10x8 proving
+  torus, the 6x5 precursor furnace and the 12x4 proof butt.
+
+Every works piece is cut at its exact frame; ImageGen's faint gutter haze (alpha under 8) is cleared.
+
+The halls' floor coverings are the `ruins-ground` tileset (`art-source/tilesets/README.md`). The shaft hall's bore
+has an engineered collar, `mod/graphics/battle/voids/shaft-collar-lip.png`, a 128x64 strip laid along the drop's edge
+as the foundry's kerb is (`art-source/voids/shaft/`: `make_guide.py`, `derive.py`). The raised floor and the stage
+step down to the hall floor behind a trim, `mod/graphics/battle/floors/raised-floor-trim.png` and
+`stage-floor-trim.png`: 128x64 strips in the kerb's format, drawn for the south edge and turned by the renderer, their
+top rows transparent so the panel shows through and their joints on the floors' panel grid (`art-source/floors/trims/`:
+`make_guide.py`, `derive.py`).
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

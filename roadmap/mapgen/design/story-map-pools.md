@@ -7,7 +7,7 @@ generic Raid's map, one per Raid site, laid against a reference market
 (`raid-mission.md`, The owned map). Conquest and the other generic contracts
 stay fully random until they own a map too.
 
-Updated: 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
+Updated: 2026-11-10 — every owned map plays the sealed layout, the Raid's included. Earlier, 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
@@ -103,8 +103,15 @@ through or built on (`PlanetSkinTest`). It swaps:
   Each roof carries two skylights lit by warm amber grow-light (owner, over
   ImageGen's pink: "Warm amber"). On a dark map the sheds are lamps too
   (`PlanetSkin.growLights`): amber pools down each shed's middle, drawn with no
-  fixture, so the roofs glow and spill onto the lanes. The sheds are walk-in
-  and coverless, so pathing, sight and cover are the home map's. Paved
+  fixture, so the roofs glow and spill onto the lanes. Each shed is sunk into
+  the ground, only its lit roof ridge above grade and earth banked up all four
+  sides (owner: "embed them into the earth"); the bank is painted as shading
+  only, so it is snow on a frozen world, crust on a toxic one and scorched soil
+  on an irradiated one. In the sim a shed is an earth mound
+  (`PlanetSkin.BANK`): every cell stays walkable and see-through and vehicles
+  pass, and the bank is light cover (half height 0.18, below a sandbag
+  parapet's 0.4) to whoever lies on or beside it. The pump house stands above
+  grade and is coverless. Pathing and sight are the home map's. Paved
   hydroponic bays were dropped (owner, 2026-11-10: "Do a bunch of paved beds
   make sense? Why would a planet have those?"), and so were polytunnels
   (owner: "They don't read like hydroponics"); sheds were picked over
@@ -125,7 +132,10 @@ world's palette alone.
 
 A world nobody lives on in the open plays the mission's **sealed layout**: the
 same owned seed and patch on the same home palette, generated with every town
-sealed (`SealedTown.seal`), then skinned as any world is. Which worlds is the
+sealed (`SealedTown.seal`), then skinned as any world is. Every owned map plays
+it, the Raid's as well as the story missions', through one rule
+(`PlanetSkin.sealedFor`), decided by the raided or fought-on world and never the
+home or the Raid's reference market. Which worlds is the
 world's alone (`PlanetSkin.sealsTowns`): wherever its habitat is enclosed, so
 irradiated, toxic and airless worlds, and bare rock, which is airless unless its
 profile says otherwise. Every zoned place the mission names (its colony, towns,
@@ -147,7 +157,8 @@ different street plan from the open layout's, from the same seed.
 `createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
 `.worlds=`) frames each mission's map whole under every palette through the
 look preset, with close frames on its fields and woods, and on a world that
-plays the sealed layout a close frame on a lock.
+plays the sealed layout a close frame on a lock (a lock floor beside the
+envelope's own wall, not a compound's striped floor).
 
 **Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
 never on the market behind it, with no re-roll, then skinned for the world the

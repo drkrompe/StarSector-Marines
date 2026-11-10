@@ -49,14 +49,22 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.BL_2, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.PL_3_SWEEP, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.PL_2, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.PL_1, "@gearFabricationTriTachyonPattern"));
+            weapon(MechWeaponComponent.PL_1, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.FL_1, "@gearFabricationPirateFieldRig"),
+            weapon(MechWeaponComponent.FL_2, "@gearFabricationPatherConversion"));
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 10760),
             chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 15020),
             chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 22770),
             // UNTUNED: a light frame, a little under the Hound; its shield emitter comes with it.
-            chassis(MechVariant.CRAWLER, "@gearFabricationTriTachyonPattern", 9800));
+            chassis(MechVariant.CRAWLER, "@gearFabricationTriTachyonPattern", 9800),
+            // UNTUNED: the low-tech variants cost their frame's bill plus what they hang on it.
+            chassis(MechVariant.HAULER, "@gearFabricationPirateFieldRig", 23400),
+            chassis(MechVariant.FOUNDRY_BREAKER, "@gearFabricationPatherConversion", 11900),
+            chassis(MechVariant.PILGRIM, "@gearFabricationPatherConversion", 24600),
+            chassis(MechVariant.TORCH, "@gearFabricationPirateFieldRig", 11200),
+            chassis(MechVariant.CENSER, "@gearFabricationPatherConversion", 16100));
 
     /** Stock parts are built too: a replacement plate or engine is still an assembly. Bills are derived. */
     private static final List<Recipe> INTERNALS = List.of(

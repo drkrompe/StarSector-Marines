@@ -52,18 +52,31 @@ public final class HeldPlaces {
     public static List<TacticalNode> fromBuildingsNotIn(List<PointOfInterest> pois, List<TacticalNode> existing,
                                                         Function<PointOfInterest, Faction> guard) {
         List<PointOfInterest> unpublished = new ArrayList<>();
-        for (PointOfInterest poi : pois) {
-            boolean covered = false;
-            for (TacticalNode node : existing) {
-                if (node.anchorX >= poi.left && node.anchorX <= poi.right
-                        && node.anchorY >= poi.top && node.anchorY <= poi.bottom) {
-                    covered = true;
-                    break;
-                }
-            }
-            if (!covered) unpublished.add(poi);
-        }
+        for (PointOfInterest poi : pois) if (!covered(poi, existing)) unpublished.add(poi);
         return fromBuildings(unpublished, guard);
+    }
+
+    /**
+     * Whether a building is a held place entered at its interior anchor once {@link #fromBuildingsNotIn} has published
+     * the map's buildings over {@code existing}: a node already stands at that anchor, or none stands anywhere on its
+     * footprint and publishing makes one there. A map requirement asked before the battle publishes (a colony's
+     * holdouts, {@code MapFeature.REDOUBT_SITES}) reads it, so it counts the places the battle will have.
+     */
+    public static boolean heldOncePublished(PointOfInterest poi, List<TacticalNode> existing) {
+        if (poi.kind == PointOfInterest.Kind.LANDING_SITE) return false;
+        for (TacticalNode node : existing) {
+            if (node.anchorX == poi.interiorAnchorX && node.anchorY == poi.interiorAnchorY) return true;
+        }
+        return !covered(poi, existing);
+    }
+
+    /** Whether a node in {@code existing} is anchored on {@code poi}'s footprint, leaving the building to it. */
+    private static boolean covered(PointOfInterest poi, List<TacticalNode> existing) {
+        for (TacticalNode node : existing) {
+            if (node.anchorX >= poi.left && node.anchorX <= poi.right
+                    && node.anchorY >= poi.top && node.anchorY <= poi.bottom) return true;
+        }
+        return false;
     }
 
     /** Whether a node is a held place nobody is posted to: present on the map, but not a tactical centre. */

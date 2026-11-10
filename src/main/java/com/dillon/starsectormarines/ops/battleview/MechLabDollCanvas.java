@@ -1143,7 +1143,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                   token("pl-1.png", 26, 84),
                   LayeredSpriteCache.headless(
                         "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png",
-                        48, 48));
+                        48, 48))
+                .withFlamers(token("fl-1.png", 44, 118), token("fl-2.png", 52, 156));
     }
 
     private static LayeredSpriteCache token(String name, int width, int height) {

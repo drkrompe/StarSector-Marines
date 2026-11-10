@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
@@ -160,6 +161,11 @@ public class BattleSprites {
     private boolean layeredMechSpritesLoadAttempted;
     private DerelictWalkerAssets derelictWalker;
     private DerelictWalkerAssets crawler;
+    /** The hardware variants' own bodies, drawn over their frames' legs and mounts ({@link MechVariantBodies}). */
+    private Map<MechVariant, LayeredSpriteCache> mechVariantBodies = Map.of();
+    /** The machine flamers' drawings, the same in every livery ({@link LayeredMechAssets#withFlamers}). */
+    private LayeredSpriteCache mechFlamerBurner;
+    private LayeredSpriteCache mechFlamerLance;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
@@ -311,6 +317,14 @@ public class BattleSprites {
     /** The Bombard's rig sprites, or null when incomplete (the Bombard then keeps its stand-in art). */
     public RavBombardAssets ravBombardSprites() { return ravBombard; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+
+    /** Every hardware variant's own body that loaded, by variant. */
+    public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() { return mechVariantBodies; }
+
+    /** A hardware variant's own body, or null for a line's own chassis or a body that did not load. */
+    public LayeredSpriteCache mechVariantBody(MechVariant variant) {
+        return variant == null ? null : mechVariantBodies().get(variant);
+    }
     /** The derelict security walker's own parts, or null when incomplete (it then draws as a layered mech). */
     public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     /** Tri-Tachyon's light crawler's own parts, or null when incomplete (it then draws as a layered mech). */
@@ -1441,6 +1455,9 @@ public class BattleSprites {
         layeredMechSpritesLoadAttempted = true;
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
+        mechVariantBodies = MechVariantBodies.load(this::loadLayeredSprite);
+        mechFlamerBurner = loadLayeredSprite(MECH_ROOT + "fl-1.png");
+        mechFlamerLance = loadLayeredSprite(MECH_ROOT + "fl-2.png");
         String root = MECH_ROOT;
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
@@ -1500,7 +1517,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection);
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
@@ -1584,7 +1602,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection));
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,

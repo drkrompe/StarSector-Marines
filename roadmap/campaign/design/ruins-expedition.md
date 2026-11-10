@@ -721,6 +721,10 @@ from its process, as the forge's is, in the forge's slot. The halls:
 The prize is unchanged. The model is in `mapgen-nouns.md` (Every other theme has a works hall of its own). The
 designs and the art list are in `ruins-theme-halls.md` in the shared notes. The owner picked a works hall over a chain of halls
 for every theme (`ruins-<theme>-halls` a). Look shots: `createSnapshots -Psnapshot=ruins-works-hall-look`.
+The halls wear the `ruins-ground` floors: ice sheet and rime in the cold and ring halls, biofilm in the culture
+hall, a wet floor under every shallow, a raised floor in the core hall's pods and a stage floor on the holosuite's
+stage. The mantle bore's shaft is a bore-shaft drop (`voids.md`): a cast collar laid round it, a cell inside the
+headframe's legs, and bedrock 30 m down.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
@@ -741,9 +745,11 @@ look only, shallows are a wade, melt is a drop.
 | b | The theme deepens with the delve: bare at the entrances, full in the secure store |
 | c | As a, and it spills out of the plant's entrances into the dead town |
 
-What the tools lack indoors is the work: soft edges between skins (outdoor
-ground feathers; a hall floor ends in hard cell steps), ice, rime, biofilm and
-coolant skins, static glow lights and vent emitters. The plan by theme is the
+What the tools lack indoors is the work: soft edges for the skins that are not
+coverings (dust, sand, earth and scorch still end in hard cell steps; the
+coverings feather onto the hall floor, `battle-render-nouns.md`), coolant skins,
+static glow lights and vent emitters. Raised and stage floors keep clean edges
+over a floor trim. The plan by theme is the
 shared note `ruins-themed-environments.md`. Picture options:
 `createSnapshots -Psnapshot=ruins-environment-picks`.
 

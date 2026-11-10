@@ -1,0 +1,19 @@
+Asset type: production-source master for a top-down game sprite: the Luddic Path CENSER, an industrial medium walking machine a Pather cell converted into a fuel-tank rig.
+
+Image 1 is the edit target and the exact geometry authority: a medium walking machine seen from above, facing the top. Keep its outline, its two forward nose prongs, faceted pilot canopy, round hip bearings, spine deck and registration exactly where they are, in place and scale. The grey blocks are the Censer's new parts, each rendered in the same place and at the same size:
+- the long pale capsule across the rear, past the body: a large ribbed horizontal PRESSURE TANK of fuel in a welded frame, like an industrial gas cylinder, with a bold red band round its middle;
+- the two small grey circles on the tank's front: round pressure GAUGES on a pipe manifold with a red hand wheel valve;
+- the dark bar from the tank up the right flank: an ARMOURED BRAIDED HOSE running to the right mount's base;
+- the two dark circles on the rear flanks: EMPTY bolted mounting plates, flat, with a hose coupling on the right one;
+- the two thin pale strips on the left flank: PRAYER CLOTH strips, cream and red, hanging from rings.
+Scorch soot darkens the front of the body. Add simple painted devotional shapes (no text).
+
+Image 2 is the owner's chosen concept for this machine: identity and detail reference only. Follow image 1 for where everything goes.
+
+Image 3 is material and colour reference only, surface swatches from the Luddic Path's warships: repaint the whole machine in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, sooty scorching, scuffed bare metal on worn edges, hand-welded repairs.
+
+Strict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.
+
+Every weapon mount stays EMPTY: a flat bolted plate or a dark socket ring, with no gun, nozzle, barrel, launcher or turret anywhere. Weapons are separate layers added later.
+
+Avoid: guns, nozzles or barrels of any kind; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text; a dark or black background.

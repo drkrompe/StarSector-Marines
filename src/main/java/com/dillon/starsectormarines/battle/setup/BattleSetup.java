@@ -225,6 +225,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -252,7 +253,6 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -1447,6 +1447,10 @@ public final class BattleSetup {
                 : precinctPlanFor(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl);
         // A landform the map's design places: a drop across it, or walls sheltering its town (voids.md).
         precincts = Landform.apply(landform, precincts, scale.width, scale.height);
+        // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
+        // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
+        if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
@@ -3578,8 +3582,7 @@ public final class BattleSetup {
      * rescue's map lays the same one.
      */
     public static PrecinctPlan colonyPlanOn(MapScale scale, long seed, TargetProfile world) {
-        PrecinctPlan plan = colonyPlanFor(scale, seed);
-        return PlanetSkin.sealsTowns(world) ? SealedTown.seal(plan) : plan;
+        return PlanetSkin.sealedFor(colonyPlanFor(scale, seed), world);
     }
 
     /**

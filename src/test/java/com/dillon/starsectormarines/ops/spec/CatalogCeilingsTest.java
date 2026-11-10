@@ -84,12 +84,15 @@ class CatalogCeilingsTest {
     @Test
     void mechCeilingsAreTheMaximaOfTheChassisTheCompanyFields() {
         float structure = 1f;
+        float speed = 0f;
         for (MechVariant variant : MechVariant.values()) {
             // An automated line (mech-lines.md, Outside the grid) is never on a company card, so it sets no ceiling.
-            if (!variant.automated()) structure = Math.max(structure, variant.maxStructure);
+            if (variant.automated()) continue;
+            structure = Math.max(structure, variant.maxStructure);
+            speed = Math.max(speed, variant.moveSpeed);
         }
         assertEquals(structure, CatalogCeilings.mechStructure(), 0.0001f);
-        assertEquals(MechVariant.HOUND.moveSpeed, CatalogCeilings.mechMoveSpeed(), 0.0001f);
+        assertEquals(speed, CatalogCeilings.mechMoveSpeed(), 0.0001f);
     }
 
     /** A ceiling is held, so a second call is the same answer rather than a fresh scan. */

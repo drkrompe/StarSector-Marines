@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6e6-f417-77a1-9386-22f2c6ac6dac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6e6-f417-77a1-9386-22f2c6ac6dac\\exec-9e6fdca2-b829-4570-a1fe-73d0e6e28190.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\torch\\torch-master.png",
+    "sha256": "a8f21dd22abbd774fe7a8d75c80a9dd4a56e55d84b9008e653b79dd45b2fb6d2",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\torch\\torch.prompt.txt",
+  "promptSha256": "c7107773fc0136a50a09ae435b199815734dd03978da7fe679fffd9606d21398",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is\n\nAsset type: production-source master for a top-down game sprite: a light walking work machine a salvage crew rebuilt as a fuel-carrying field rig.\n\nImage 1 is the edit target and the exact geometry authority: a light narrow walking machine of welded salvage seen from above, facing the top. Keep its outline, its two forward nose prongs, faceted pilot canopy, round hip bearings and registration exactly where they are, in place and scale, and keep its mismatched salvaged paint. The grey blocks are the rig's new parts, each rendered in the same place and at the same size:\n- the dark plate across the back with the four pale circles and the bar between them: a welded cradle of steel angle holding FOUR MISMATCHED SCAVENGED FUEL DRUMS seen from above (round lids, each drum a different faded colour with a crude hand-painted hazard mark) round a tall PRESSURE BOTTLE lying lengthwise, lashed down with chains and straps, joined by patched hoses and hand valves;\n- the two narrow dark bars ahead of the cradle: patched HOSES running forward along both sides of the nose channel.\nThe nose channel between the prongs stays OPEN and EMPTY (fully transparent), because a tool runs up it as a separate layer. Cut a few lightening holes into the side plate, and bolt a dented scrap heat shield along the canopy's front edge without covering the canopy.\n\nThe drums are faded tan with a red triangle, faded blue-grey with diagonal cream stripes, faded olive with a cream diamond, and faded red-oxide with a cream ring; the bottle is bare steel with a red band. Copper pipework, red hand wheels, rusty chain.\n\nStrict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.\n\nThe nose mount stays EMPTY: a flat bolted plate with a hose coupling and nothing fitted to it. Tools are separate layers added later.\n\nAvoid: anything fitted to the nose mount; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\lowtech\\variants\\torch\\guide.png",
+      "sha256": "f68e84a8cbc668cfa4110c9a99e9e73e0954168cb8758a685c5bc7f1c54e45a4",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the edit target; keep the machine's outline and place every grey block's part where it is"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s exact layout, with the fuel rig parts replacing the grey guides and all negative space transparent."
+  ],
+  "usage": {
+    "input_tokens": 40434,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 577,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.1
+}

@@ -1,0 +1,16 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide; the pieces are long rows laid east-west.
+Era: spacefaring industry, automated and robot- or field-handled, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. Colour keys in the block-out: pale blue-white is frost or glass; dull green is grown culture; brown is earth and rock spoil; copper-brown squares are copper windings; pale gold is a faint dying glow.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim, copper) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. core-rack-row (6x2): a row of eight tall server racks for AI cores, seen from above: vented rack tops, containment door frames at both ends.
+2. launch-rack (6x2): a drone launch rack: a heavy rack frame of four bays, a drone airframe (a dark diamond-shaped frame) racked in each.
+Middle row left to right:
+3. core-racks-toppled (6x3): six of the server racks fallen over like dominoes, lying tilted against each other.
+4. sorter (6x3): an automated parcel sorter: a dark belt along its middle, three diverter arms over it to the north, three outfeed chutes to the south.
+Bottom row left to right:
+5. stacker-rail (6x2): an overhead stacker crane rail seen from above: two rail beams east-west on cross ties, the stacker carriage parked on them.
+6. stacker-toppled (7x2): a stacker crane's mast fallen across a rack row, its carriage at its east end.

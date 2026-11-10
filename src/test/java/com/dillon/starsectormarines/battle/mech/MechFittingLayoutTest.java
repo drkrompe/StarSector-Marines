@@ -49,7 +49,7 @@ class MechFittingLayoutTest {
                 assertTrue(anchorToDock > 0.5,
                         "equipment dock should use the gantry around " + socket.id());
             }
-            if (variant == MechVariant.HOUND) {
+            if (variant.frame() == MechVariant.HOUND) {
                 assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
                         SocketId.LEFT_SHOULDER, SocketId.AUXILIARY, SocketId.PLATING), ids);
             } else if (!variant.hasShoulders()) {

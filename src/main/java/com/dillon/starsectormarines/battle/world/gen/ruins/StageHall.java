@@ -15,13 +15,14 @@ package com.dillon.starsectormarines.battle.world.gen.ruins;
  */
 final class StageHall {
 
-    static final String DUST = "floors.sand";
+    static final String DUST = "floors.sand", STAGE_FLOOR = "ruins-ground.stage-floor";
 
     private StageHall() {}
 
     static WorksHallPlan plan(int width, int length, long seed) {
         HallFrame f = new HallFrame(WorksHall.STAGE, width, length, seed);
         WorksHallPlan p = f.plan;
+        p.specialFloor(STAGE_FLOOR);
         p.station("feed").station("emitters").station("assembly").station("calibration").station("dispatch");
         int top = length - 2, sw = f.stationWidth();
         f.feedRail("feed", top - 1);
@@ -83,7 +84,7 @@ final class StageHall {
                 f.stand("doodad.ruins-emitter-bench", "doodad.civic-workstation-bank", bx, y0 + 5, 2, 2, "assembly");
             }
             for (int y = y0; y + 1 <= y0 + 6; y += 2) {
-                p.floor("doodad.ruins-stack-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
+                p.floor("doodad.ruins-works-conveyor", "doodad.ruins-mag-rail", f.cx, y, 2, 2, "assembly");
             }
         }
 

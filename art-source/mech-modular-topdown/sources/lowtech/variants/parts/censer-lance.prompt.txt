@@ -1,0 +1,9 @@
+Asset type: production-source master for a top-down game sprite: the Luddic Path CENSER LANCE, a long heavy industrial fuel lance for a walking machine's shoulder mount, drawn on its own as a loose part.
+
+Image 1 is the owner's chosen concept for this part: copy its design, proportions and detail faithfully: a long straight heavy lance seen from directly above, pointing to the TOP of the canvas, with a flared slotted cowl at its tip, a clamp collar below the cowl, a band of cooling fins, a long scorched steel barrel with a bold red band, a small pilot-light housing on its right side, twin feed pipes running down its right side, and a hose coupling at its base.
+
+Draw ONE lance only, centred, vertical, filling the canvas's height with a little margin, on a TRUE TRANSPARENT BACKGROUND. Dark scorched steel, bronze fittings, a bold red band, soot near the cowl. Crisp painted game-sprite finish with rivets, light from the upper left, not pixel art.
+
+Strict 90-degree zenith orthographic top-down view. No ground, no backdrop, no black or dark background, no shadow, no halo, no glow, no light at the tip, no smoke, no border, no text, no logos.
+
+Avoid: a dark background; any glow or flame; perspective, side view or isometric view; a second lance; a machine; cropping; text.

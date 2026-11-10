@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -227,6 +229,21 @@ public final class DerelictSecurity {
             walkers.add(new DerelictSecurityDirector.Walker(squad, DerelictWalkerFrame.HALL, plan.id(), post[0],
                     post[1]));
             if (!reaches(sim.getGrid(), DerelictWalkerFrame.HALL.chassis.radius, post, egress)) hallBound.add(squad);
+        }
+        // The line's small (`derelict-watch.md`, Field repair): a tender beside each zone's first heavy, from widespread.
+        Map<Integer, DerelictSecurityDirector.Walker> heavyOf = new TreeMap<>();
+        for (DerelictSecurityDirector.Walker w : walkers) {
+            if (DerelictWalkerClass.of(w.frame().chassis) == DerelictWalkerClass.HEAVY) heavyOf.putIfAbsent(w.zoneId(), w);
+        }
+        int tenders = DerelictWalkerClass.tenders(grade, heavyOf.size());
+        for (DerelictSecurityDirector.Walker heavy : heavyOf.values()) {
+            if (tenders-- <= 0) break;
+            int squad = spawn(sim, DerelictWalkerFrame.TENDER, heavy.postX(), heavy.postY());
+            if (squad < 0) continue;
+            sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, DerelictSecurityDirector.ISSUER,
+                    "derelict tender beside its zone's heavy");
+            walkers.add(new DerelictSecurityDirector.Walker(squad, DerelictWalkerFrame.TENDER, heavy.zoneId(),
+                    heavy.postX(), heavy.postY()));
         }
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, walkers, egress,
                 vault.sourceCellX(), vault.sourceCellY());
@@ -782,7 +799,10 @@ public final class DerelictSecurity {
         long id = sim.spawn(frame.applyTo(new EntitySpec(frame.designation(), Faction.DEFENDER, UnitType.HEAVY_MECH,
                 at.cellX(), at.cellY())).atPosition(at.x(), at.y()).squad(squad));
         if (id == 0L) return 0L;
-        sim.world().attachMechLoadout(id, frame.createLoadout());
+        MechLoadoutComponent loadout = frame.createLoadout();
+        // No loader in the field (`derelict-watch.md`, Re-arming): racks fill only at the zone's service bay.
+        loadout.installMissileReplenisher(MissileReplenisherComponent.NONE);
+        sim.world().attachMechLoadout(id, loadout);
         Squad lance = sim.getSquad(squad);
         lance.leaderId = id;
         return id;

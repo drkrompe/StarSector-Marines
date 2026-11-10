@@ -1,0 +1,15 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: big process vessels seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and inside blocks stays fully transparent. The pale blue-white area is frost; the pale beige area is spilled feedstock powder lying on the floor.
+Style: match reference 2 (the same complex's machinery: blue-gray and gunmetal plate, rivets, worn ochre trim) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only the roofs and top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. A round vessel reads as a circle with its domed or conical roof. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. feedstock-silo (5x5): a big round powder feedstock silo seen from above: its conical roof plated in twelve ribbed segments, a fill hatch at the apex, a walkway rail round the rim.
+2. feedstock-silo-split (5x5): the same silo split open down its east side: a torn black gash in the roof, a fan of pale feedstock powder spilled out to the east edge.
+3. reactor-column (5x5): a catalytic reactor column seen from above standing in a square grated platform: a heavy round top head with a ring of big flange bolts, a central nozzle and manway.
+Bottom row left to right:
+4. product-tank (3x3): a round product tank on a square grated platform: domed roof, a manway, two nozzles.
+5. lattice-tank (2x2): a square cryogenic lattice tank, frost on its inspection window, a central port.
+6. coating-chamber (4x4): a square vacuum coating chamber on its plinth: a big round sealed door ring on its top, a heavy hinge block on its east side, four corner pumps.

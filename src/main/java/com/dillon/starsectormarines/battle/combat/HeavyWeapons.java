@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireReach;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -23,6 +25,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Modular mech hardpoints
@@ -87,6 +90,18 @@ public class HeavyWeapons {
      */
     public void setLaneDiscipline(boolean laneDiscipline) {
         this.laneDiscipline = laneDiscipline;
+    }
+
+    /** The battle's fire, read when a machine flamer's charge is weighed; null (the default) holds none. */
+    private Supplier<FireField> fireField;
+
+    /**
+     * Installs the battle's fire, which a chassis's fire control reads to hold a machine flamer's charge where the fire it
+     * lights could come back to its own side (`mechs-nouns.md`, Machine flamers; {@link FireReach}), as a pack flamer's throw
+     * is held. A pilot's own point fire is never held.
+     */
+    public void setFireField(Supplier<FireField> fireField) {
+        this.fireField = fireField;
     }
 
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
@@ -388,7 +403,28 @@ public class HeavyWeapons {
         // And on where the round will burst: one that would reach a friend, or the chassis itself, is not fired.
         if (laneDiscipline && weapon.aoeRadius > 0f && res.impacts()
                 && resolver.friendInBlast(shooter, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius)) return;
+        // A machine flamer's charge is not sent where its fire could come back to its own side.
+        if (mount != null && mount.component.machineFlamer() && res.impacts()
+                && fireReachesSide(shooterFaction, res.endX(), res.endY(), weapon.aoeRadius, effectiveSpread)) return;
         deliverDirectRound(shooter, weapon, res, fromX, fromY, mount);
+    }
+
+    /**
+     * Whether a fire lit by a burst of {@code aoeRadius} landing within {@code scatter} of ({@code x}, {@code y}) could
+     * come to anyone on {@code side} ({@link FireReach}): what a chassis's fire control never sends a burning round onto.
+     */
+    boolean fireReachesSide(Faction side, float x, float y, float aoeRadius, float scatter) {
+        FireField field = fireField != null && FireReach.enabled() ? fireField.get() : null;
+        if (field == null) return false;
+        FireReach reach = FireReach.of(field, (int) Math.floor(x), (int) Math.floor(y),
+                FireReach.litCells(aoeRadius, scatter));
+        World world = roster.world();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long id = roster.get(i);
+            if (!roster.isAliveById(id) || !side.friendlyTo(roster.identity().faction(id))) continue;
+            if (reach.threatens(world.cellX(id), world.cellY(id))) return true;
+        }
+        return false;
     }
 
     /**

@@ -48,6 +48,8 @@ public final class LayeredMechAppearance {
     public static final int ARMS_PL_3_SWEEP = 15;
     public static final int ARMS_PL_2 = 16;
     public static final int ARMS_PL_1 = 17;
+    /** The FL-1, the pirate Torch's burner (`mechs-nouns.md`, Machine flamers). */
+    public static final int ARMS_FL_1 = 18;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;
@@ -64,6 +66,8 @@ public final class LayeredMechAppearance {
     public static final int POD_LL_3 = 5;
     public static final int POD_THERMAL_LANCE = 6;
     public static final int POD_SRM_3_QS = 7;
+    /** The FL-2, the Path Censer's lance (`mechs-nouns.md`, Machine flamers). */
+    public static final int POD_FL_2 = 8;
     /** Compatibility names retained for authored tests and older call sites. */
     public static final int POD_SRM = POD_SMALL_SRM;
     public static final int POD_LRM = POD_LARGE_LRM;

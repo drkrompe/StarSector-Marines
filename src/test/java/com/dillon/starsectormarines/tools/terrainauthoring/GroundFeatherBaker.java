@@ -46,7 +46,7 @@ public final class GroundFeatherBaker {
         Path root = Path.of(args.length == 0 ? "." : args[0]);
         Path mod = root.resolve("mod");
         TileRegistry registry = new TileRegistry();
-        for (String sheet : new String[]{"nature-tiles", "Floors_Tiles", "pavement", "toxic-ground"}) {
+        for (String sheet : new String[]{"nature-tiles", "Floors_Tiles", "pavement", "toxic-ground", "ruins-ground"}) {
             registry.ingestSheet(new JSONObject(Files.readString(
                     mod.resolve("data/tilesets/" + sheet + ".tileset.json"))));
         }

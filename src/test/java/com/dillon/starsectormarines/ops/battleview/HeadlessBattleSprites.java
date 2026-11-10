@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.vehicle.TurretHead;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -137,6 +138,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final DerelictWalkerAssets crawler;
+    private Map<MechVariant, LayeredSpriteCache> variantBodies;
     private final LayeredSpriteCache derelictPortHead;
     private final LayeredSpriteCache derelictRackHead;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
@@ -407,6 +409,19 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
+
+    @Override public Map<MechVariant, LayeredSpriteCache> mechVariantBodies() {
+        if (variantBodies == null) {
+            variantBodies = MechVariantBodies.load(path -> {
+                try {
+                    return optionalLayer(path);
+                } catch (IOException missing) {
+                    return null;
+                }
+            });
+        }
+        return variantBodies;
+    }
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache derelictTurretHead(boolean rack) {
         return rack ? derelictRackHead : derelictPortHead;
@@ -824,7 +839,9 @@ final class HeadlessBattleSprites extends BattleSprites {
                   new LayeredMechAssets.ActiveProtection(
                           optionalLayer(MECH_ROOT + "active-protection-bulwark.png"),
                           optionalLayer(MECH_ROOT + "active-protection-hound.png"),
-                          optionalLayer(MECH_ROOT + "active-protection-warden.png")));
+                          optionalLayer(MECH_ROOT + "active-protection-warden.png")))
+                .withVariantBodies(mechVariantBodies())
+                .withFlamers(optionalLayer(MECH_ROOT + "fl-1.png"), optionalLayer(MECH_ROOT + "fl-2.png"));
     }
 
     private LayeredSpriteCache optionalLayer(String path) throws IOException {

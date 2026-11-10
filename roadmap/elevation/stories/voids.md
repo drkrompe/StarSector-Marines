@@ -90,6 +90,7 @@ generation, never a battle rule, as an emplacement style is
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
 | **Foundry melt** | A forge works' foundry in a ruins site's plant (`ruins-expedition.md`): pour channels and casting beds cut in a hall floor, 2 m down | Firebrick walls under a laid cast-steel kerb strip | Molten metal kept hot, no crust | A grate catwalk, the drop's own crossing |
+| **Bore shaft** | A mantle bore's shaft hall in a ruins site's plant (`ruins-expedition.md`): a shaft sunk in the hall floor under its headframe, 30 m down | Bedrock strata under a laid cast collar strip, drawn as the dry gorge's | Rubble | None: the headframe spans it |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
@@ -656,13 +657,29 @@ Laws):
      roof's edge (`BuildingFaces.segments`): the roof covers only the inner
      part of a wall cell, and a foot on the roof's line left the rest of
      the wall cell's flat art showing as a strip along the ground.
+   - **What hangs on a wall hangs on its face** (`WallMounts`): a shop
+     awning, a loading canopy or a wall lamp lies on the ground cell in
+     front of its wall, its rail along the face's foot. Its rail's corners
+     are stood up the face to the height it hangs from (an awning's rail
+     3 m, its valance 2.5 m), at the very point the face is painted there
+     (`BuildingFaces.onFace`); its outer edge takes the plain lift of its
+     own height. So it moves with its wall as the view pans, comes down
+     with the wall when the building is cut away, goes with it when the
+     building is razed, and is drawn between the faces and the roofs, so a
+     roof in front of it hides it. Look suite: `createSnapshots
+     -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80
      to 400), never a fixed scale. Its lost HP soots its top, blows its
      windows (soot plumes over them) and tears ragged holes through it.
    - A breached cell opens dark to the room behind, its rubble spilled on
-     the ground.
+     the ground. Faces stand on the building's outline as built, settled
+     once per map (`BattleRenderer.builtOutline`); only what stands on each
+     piece is read again as the battle changes (`BattleRenderer.stamp`).
+     Read live, destroyed wall cells moved the roof's edge in behind them
+     and stood fresh walls up inside the building. A rubble cell is a
+     breach, never a doorway.
    - Where a room's roof has fallen in or burnt, the wall over it loses its
      upper storeys to a ragged, charred edge, with rubble at its foot.
    - Once half a building's roof has fallen in or burnt
@@ -674,16 +691,19 @@ Laws):
    worlds, intact, cut away and damaged).
 
    **Cutaway** (owner: "a bit unclear how it will play when we cutaway
-   reveal into structures"). A building's roof fades when the player sees
-   inside it (`BuildingVisibilityPass`). With the fade:
+   reveal into structures"). A building opens while one of the player's
+   units stands in it or the pointer is over it (`BuildingVisibilityPass`,
+   the roof reveal in `fog-of-war-nouns.md`); seeing in no longer opens it,
+   so the street keeps its height where the fighting is, and units seen
+   inside a closed building are marked on its roof. With the fade:
    - the walls turned to the camera drop to knee height
      (`BuildingFaces.standing`, 0.6 m);
    - the far walls' inner sides come up to frame the rooms;
    - nothing pops, and the walls stay opaque.
 
-   A stood-up roof, or a far wall, is drawn over the street just past its
-   building. A unit standing there, outside any building, gets a small mark
-   in its side's colour over the roofs, and fog of war still hides enemies.
+   A closed building's roof is drawn over the street just past it. A unit
+   standing there gets a small mark in its side's colour over the roofs (an
+   open building hides nothing), and fog of war still hides enemies.
    The owner chose the knee stub over a ghosted full-height wall. Look suite:
    `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
