@@ -151,10 +151,13 @@ public interface PrecinctClaim {
                 int side = (int) Math.ceil(Math.sqrt(budget[i])) + 2 * precinct.fortification().glacis();
                 int x0 = Math.max(0, precinct.seedX() - side / 2);
                 int y0 = Math.max(0, precinct.seedY() - side / 2);
-                // A cantonment's rows need their whole square: kept on the map rather than cut by its edge.
+                // A cantonment is laid on its whole square: kept on the map rather than cut by its edge, and moved
+                // the least it takes off ground a place before it already holds (a Raid site's works).
                 if (precinct.program().cantonment()) {
-                    x0 = Math.max(0, Math.min(x0, width - side));
-                    y0 = Math.max(0, Math.min(y0, height - side));
+                    int[] at = clearSquare(claim, side, Math.max(0, Math.min(x0, width - side)),
+                            Math.max(0, Math.min(y0, height - side)), width, height);
+                    x0 = at[0];
+                    y0 = at[1];
                 }
                 for (int x = x0; x < Math.min(width, x0 + side); x++) {
                     for (int y = y0; y < Math.min(height, y0 + side); y++) {
@@ -193,6 +196,35 @@ public interface PrecinctClaim {
             expand(fronting, claim, taken, budget, width, height, shape);
             return claim;
         };
+    }
+
+    /**
+     * Where a {@code side}-cell square on the map overlaps the least ground already claimed, nearest {@code (x0, y0)}
+     * among those: {@code (x0, y0)} itself when that is clear. Its near corner, {@code {x, y}}.
+     */
+    static int[] clearSquare(int[][] claim, int side, int x0, int y0, int width, int height) {
+        if (side > width || side > height) return new int[]{x0, y0};
+        int[][] sum = new int[width + 1][height + 1];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                sum[x + 1][y + 1] = sum[x][y + 1] + sum[x + 1][y] - sum[x][y]
+                        + (claim[x][y] != GrownTrunkPlan.UNOWNED ? 1 : 0);
+            }
+        }
+        int[] best = {x0, y0};
+        long bestOverlap = Long.MAX_VALUE, bestFar = Long.MAX_VALUE;
+        for (int x = 0; x + side <= width; x++) {
+            for (int y = 0; y + side <= height; y++) {
+                long overlap = sum[x + side][y + side] - sum[x][y + side] - sum[x + side][y] + sum[x][y];
+                long far = (long) (x - x0) * (x - x0) + (long) (y - y0) * (y - y0);
+                if (overlap < bestOverlap || overlap == bestOverlap && far < bestFar) {
+                    bestOverlap = overlap;
+                    bestFar = far;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
     }
 
     /**
