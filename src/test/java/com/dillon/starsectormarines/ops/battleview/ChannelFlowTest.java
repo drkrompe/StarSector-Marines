@@ -86,4 +86,31 @@ class ChannelFlowTest {
         assertEquals(0f, still[4]);
         assertEquals(10f, still[0], "a still floor lies on the map's own axes");
     }
+
+    @Test
+    void aSourceHintTurnsTheFlowWhateverTheDepth() {
+        float[] depth = even(10f);
+        for (int y = 0; y < H; y++) for (int x = 0; x < W / 2; x++) depth[y * W + x] = 30f;
+        ChannelFlow flow = new ChannelFlow(W, H, straight(3, 8), depth, new float[]{W - 1f, 6f});
+        assertTrue(flowAt(flow, 20f, 6f)[2] < -.99f, "from the east end it was told of");
+        ChannelFlow told = new ChannelFlow(W, H, straight(3, 8), depth, new float[]{0f, 6f});
+        assertTrue(flowAt(told, 20f, 6f)[2] > .99f, "from the west, though the west is deep");
+    }
+
+    @Test
+    void whatTheFlowCarriesRoundsABendAndStillWaterCarriesNothing() {
+        boolean[] open = new boolean[W * H];
+        for (int y = 2; y <= 6; y++) for (int x = 0; x <= 34; x++) open[y * W + x] = true;
+        for (int y = 2; y < H; y++) for (int x = 30; x <= 34; x++) open[y * W + x] = true;
+        ChannelFlow flow = new ChannelFlow(W, H, open, even(10f));
+        float[] out = new float[2];
+        flow.carry(20f, 4.5f, 18f, out);
+        assertTrue(out[0] > 29f && out[0] < 35.5f && out[1] > 6f, "round the corner, inside the channel: " + out[0] + "," + out[1]);
+
+        boolean[] pool = new boolean[W * H];
+        for (int y = 3; y <= 8; y++) for (int x = 5; x <= 30; x++) pool[y * W + x] = true;
+        new ChannelFlow(W, H, pool, even(10f)).carry(10f, 5f, 8f, out);
+        assertEquals(10f, out[0]);
+        assertEquals(5f, out[1]);
+    }
 }

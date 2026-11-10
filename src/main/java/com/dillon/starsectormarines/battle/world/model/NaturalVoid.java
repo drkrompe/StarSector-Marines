@@ -19,9 +19,11 @@ import java.util.List;
  *                       works it feeds; empty for every other drop
  * @param marks          where the drop deepens and shallows along its length; empty for a drop as deep as its
  *                       {@code steps} everywhere. An open pit's benches are cut level, and it ignores them
+ * @param source         where the floor's flow comes from, for a generator that knows which way its river runs;
+ *                       null to let the drop run toward its deeper end
  */
 public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture,
-                          float wallTileMeters, int seed, List<Belt> belts, List<DepthMark> marks) {
+                          float wallTileMeters, int seed, List<Belt> belts, List<DepthMark> marks, Source source) {
 
     /** A natural void style: what the walls and the floor are, and where a generator lays it. */
     public enum Style {
@@ -68,6 +70,18 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
         }
     }
 
+    /**
+     * Where a drop's floor flows from, in map cells: of the places the drop runs off the map, the one nearest
+     * {@code (x, y)} is its source and the rest its outlets, whichever is deeper.
+     */
+    public record Source(float x, float y) { }
+
+    /** A drop with conveyors and depth marks, running toward its deeper end. */
+    public NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture, float wallTileMeters,
+                       int seed, List<Belt> belts, List<DepthMark> marks) {
+        this(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, marks, null);
+    }
+
     /** A drop with conveyors, as deep as its steps everywhere. */
     public NaturalVoid(Style style, List<Step> steps, float eyeMeters, String wallTexture, float wallTileMeters,
                        int seed, List<Belt> belts) {
@@ -82,7 +96,12 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
 
     /** This drop deepening and shallowing along its length as {@code marks} say. */
     public NaturalVoid withMarks(List<DepthMark> marks) {
-        return new NaturalVoid(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, marks);
+        return new NaturalVoid(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, marks, source);
+    }
+
+    /** This drop's floor flowing from the end nearest {@code source}. */
+    public NaturalVoid withSource(Source source) {
+        return new NaturalVoid(style, steps, eyeMeters, wallTexture, wallTileMeters, seed, belts, marks, source);
     }
 
     public NaturalVoid {
