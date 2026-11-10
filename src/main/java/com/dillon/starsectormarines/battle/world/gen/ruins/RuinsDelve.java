@@ -184,7 +184,12 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
         /** Stuck part-open where its power died: its leaves stand in the way's end cells, which are shut. */
         DEAD,
         /** Torn open long ago: one leaf lies on the floor beside the way, the other jammed in its track. */
-        FORCED
+        FORCED,
+        /**
+         * Shut and holding: its leaves meet across the way, which is wall, its lamp dark. A security bulkhead stands
+         * so until the hunt opens it ({@code RuinsDoorStates}).
+         */
+        SEALED
     }
 
     /**

@@ -788,6 +788,14 @@ the door answers or stands open, amber while a seal is powered but held, red
 while locked, and dark when dead or forced. Look shots:
 `createSnapshots -Psnapshot=ruins-door-look`.
 
+A door's stance can change in the battle. The doors as they stand now are
+held on the works (`RuinsDoorStates`), and the drawing reads only that. A
+dead door a derelict hall frame tears open stands forced from then on. A
+security bulkhead is added there **sealed**, its leaves shut across a way
+that is wall and its lamps dark, and answers once the hunt opens it.
+Whoever opens or shuts a door's cells (`MapEditor`) also tells the
+registry.
+
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's
 tier is set by where it lies, never rolled:
 
