@@ -75,7 +75,7 @@ public final class StormDrift {
     }
 
     /** Whether the finished road draws pavement or its underlay on this cell. */
-    static boolean paved(RoadSurface road, int x, int y) {
+    public static boolean paved(RoadSurface road, int x, int y) {
         if (road == null) return false;
         if (road.underlay(x, y) != null) return true;
         for (int m = 0; m < RoadSurface.LAYERS; m++) {
