@@ -153,27 +153,34 @@ def paint_field(draw, x0, y0, w, h, style, cell):
                            outline=shade(base, 0.45), width=6)
             draw.ellipse([hx + cell * 0.18, hy + cell * 0.18, hx + cell * 0.32, hy + cell * 0.32], fill=shade(base, 1.3))
     elif style == 'hull':
-        # A fallen starship's dorsal plating: one broad plate a cell, its seams on the cell lines, a narrow machinery
-        # channel across each plate's south quarter (greebles go there), a hatch and a vent block in the swatch.
-        for r in range(int(math.ceil(h / cell))):
-            for c in range(int(math.ceil(w / cell))):
-                left, top = x0 + c * cell, y0 + r * cell
-                draw.rectangle([left, top, left + cell - 1, top + cell - 1], fill=base, outline=shade(base, 0.5),
-                               width=5)
-                draw.line([left + 6, top + 6, left + cell - 7, top + 6], fill=shade(base, 1.25), width=4)
-                draw.rectangle([left + 5, top + cell * 0.72, left + cell - 6, top + cell * 0.86],
-                               fill=shade(base, 0.55))
-                for t in range(1, 6):
-                    bx = left + cell * t / 6
-                    draw.rectangle([bx - 8, top + cell * 0.74, bx + 8, top + cell * 0.84], fill=shade(base, 0.8))
+        # A fallen starship's dorsal plating: broad stepped slabs of different sizes across the whole two-by-two
+        # swatch, their seams off the cell lines and low in contrast, so a roof of many cells reads as one hull and
+        # not as a grid (the first painting, raw/hull-v1, drew a plate and a machinery channel in every cell). One
+        # narrow machinery channel, a vent block and a hatch.
+        slabs = ((0, 0, 1.3, 0.7), (1.3, 0, 2, 0.45), (1.3, 0.45, 2, 1.25), (0, 0.7, 0.55, 1.6),
+                 (0.55, 0.7, 1.3, 1.25), (0.55, 1.25, 2, 2), (0, 1.6, 0.55, 2))
+        for (a, b, c, d) in slabs:
+            for (gx, gy) in ((0, 0),):
+                l, t, r, bt = x0 + (a + gx) * cell, y0 + (b + gy) * cell, x0 + (c + gx) * cell, y0 + (d + gy) * cell
+                if l >= x0 + w or t >= y0 + h:
+                    continue
+                tone = 0.94 + 0.12 * ((int(a * 10) + int(b * 10)) % 3) / 2
+                draw.rectangle([l, t, r - 1, bt - 1], fill=shade(base, tone), outline=shade(base, 0.72), width=4)
+                draw.line([l + 5, t + 5, r - 6, t + 5], fill=shade(base, 1.15), width=3)
         if w >= cell * 2:
-            hx, hy = x0 + cell * 0.25, y0 + cell * 1.2
-            draw.rectangle([hx, hy, hx + cell * 0.4, hy + cell * 0.36], fill=shade(base, 0.85),
-                           outline=shade(base, 0.45), width=6)
-            vx, vy = x0 + cell * 1.3, y0 + cell * 0.2
-            draw.rectangle([vx, vy, vx + cell * 0.45, vy + cell * 0.3], fill=shade(base, 0.45))
+            cy = y0 + cell * 1.25
+            draw.rectangle([x0 + cell * 0.6, cy - cell * 0.05, x0 + cell * 1.95, cy + cell * 0.05],
+                           fill=shade(base, 0.55))
+            for t in range(9):
+                bx = x0 + cell * (0.68 + t * 0.15)
+                draw.rectangle([bx - 8, cy - cell * 0.035, bx + 8, cy + cell * 0.035], fill=shade(base, 0.8))
+            hx, hy = x0 + cell * 0.12, y0 + cell * 0.95
+            draw.rectangle([hx, hy, hx + cell * 0.32, hy + cell * 0.32], fill=shade(base, 0.85),
+                           outline=shade(base, 0.5), width=6)
+            vx, vy = x0 + cell * 1.45, y0 + cell * 0.65
+            draw.rectangle([vx, vy, vx + cell * 0.4, vy + cell * 0.26], fill=shade(base, 0.5))
             for t in range(5):
-                draw.line([vx + 10 + t * cell * 0.085, vy + 6, vx + 10 + t * cell * 0.085, vy + cell * 0.3 - 6],
+                draw.line([vx + 10 + t * cell * 0.075, vy + 6, vx + 10 + t * cell * 0.075, vy + cell * 0.26 - 6],
                           fill=shade(base, 0.85), width=5)
 
 

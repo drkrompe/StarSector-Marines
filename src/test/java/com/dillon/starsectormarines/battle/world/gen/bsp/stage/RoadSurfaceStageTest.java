@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -99,6 +100,23 @@ class RoadSurfaceStageTest {
         assertArrayEquals(kinds, ctx.topology.copyGroundKinds());
         assertEquals(0, ctx.topology.getSurface(20, 6), "a finish, not a repaving");
         assertEquals(new Random(7).nextLong(), ctx.rng.nextLong());
+    }
+
+    @Test void aRoadLineDownTheTownsOwnStreetIsPavedAsThatStreet() {
+        var ctx = city();
+        int[][] road = new int[40][30], claim = new int[40][30];
+        for (int y = 0; y < 30; y++) for (int x = 0; x < 40; x++) {
+            road[x][y] = y == 6 ? 0 : GrownTrunkPlan.UNOWNED;   // a road one cell wide down the street's middle
+            claim[x][y] = GrownTrunkPlan.UNOWNED;
+        }
+        ctx.put(BspKeys.PRECINCT_ROAD, road);
+        ctx.put(BspKeys.PRECINCT_CLAIM, claim);
+
+        new RoadSurfaceStage().run(ctx);
+
+        var surface = ctx.topology.roadSurface();
+        for (int x = 8; x <= 32; x += 4)
+            assertEquals(1, area(surface.patch(x, 6, 0)), 1e-6, "a strip of paving down the street's middle at " + x);
     }
 
     @Test void streetFurnitureKeepsTheStreetUnderIt() {

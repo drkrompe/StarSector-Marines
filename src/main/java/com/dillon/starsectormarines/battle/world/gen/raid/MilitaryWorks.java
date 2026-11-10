@@ -226,7 +226,18 @@ public final class MilitaryWorks implements RaidIndustry {
      */
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
         perimeter(c, plan, works);
+        int[] bounds = claimBounds(c, plan.precincts().indexOf(works));
+        if (bounds != null) MilitaryGround.watchtowers(c, bounds);
+        for (int i = 0; i < plan.precincts().size(); i++) {
+            if (RaidSiteTemplate.GARRISON.equals(plan.precincts().get(i).name())) MilitaryGround.paradeSquare(c, i);
+        }
         vehiclePark(c, plan, works);
+        // The base's buildings and its garrison's are built alike, so the two read as one cantonment.
+        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) oliveWalls(c, b);
+        for (Precinct p : plan.precincts()) {
+            if (!RaidSiteTemplate.GARRISON.equals(p.name())) continue;
+            for (PointOfInterest b : WorksProps.buildings(c, plan, p)) oliveWalls(c, b);
+        }
         int n = 0;
         for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
             RoomPurpose purpose = WorksProps.purposeOf(c, b);
@@ -314,6 +325,33 @@ public final class MilitaryWorks implements RaidIndustry {
             }
         }
         return most + 1;
+    }
+
+    /** The surface a base building's walls are built of: olive sheet, so its roof is the sheet roof a base wears. */
+    static final String BASE_WALL = "colony.olive-wall";
+
+    /** The inclusive bounds {x0, y0, x1, y1} of place {@code index}'s ground, or null where it has none. */
+    private static int[] claimBounds(GenContext c, int index) {
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+        if (claim == null || index < 0) return null;
+        int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = -1, y1 = -1;
+        for (int x = 0; x < c.width; x++) {
+            for (int y = 0; y < c.height; y++) {
+                if (claim[x][y] != index) continue;
+                x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+            }
+        }
+        return x1 < 0 ? null : new int[]{x0, y0, x1, y1};
+    }
+
+    /** Rebuilds a building's walls in {@link #BASE_WALL}. */
+    private static void oliveWalls(GenContext c, PointOfInterest b) {
+        int surface = c.topology.surfaceIndex(BASE_WALL);
+        for (int x = b.left - 1; x <= b.right + 1; x++) {
+            for (int y = b.top - 1; y <= b.bottom + 1; y++) {
+                if (c.grid.inBounds(x, y) && c.topology.isWall(x, y)) c.topology.setSurface(x, y, surface);
+            }
+        }
     }
 
     /** Cells between ranks of the vehicle park, and between vehicles along a rank. UNTUNED. */

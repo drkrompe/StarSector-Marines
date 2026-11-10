@@ -336,6 +336,17 @@ class GeneratedRoadsTest {
         for (int x = 38; x <= 44; x++) assertTrue(raster.road(x, 14), "the shorter steps across and runs on at " + x);
     }
 
+    @Test void aStreetRunningOnPastAnotherAKerbCellAwayStopsABreadthIntoIt() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 2, 10, 40, 12);    // a street three wide ...
+        fill(road, 20, 14, 45, 16);   // ... and a second beside it past a kerb cell, from x 20, running on past it
+        var routes = GeneratedRoads.streets(road, road, null, 3, 9, new GeneratedRoads.StreetStyle(true, false, false)).routes();
+        var raster = RoadRasterizer.rasterize(new RoadPlan(48, 40, routes));
+        for (int x = 4; x <= 38; x++) assertTrue(raster.road(x, 11), "the longer street runs on at " + x);
+        for (int x = 22; x <= 36; x++) assertFalse(raster.road(x, 15), "a double road at " + x);
+        for (int x = 38; x <= 44; x++) assertTrue(raster.road(x, 15), "the shorter runs on from a breadth into it at " + x);
+    }
+
     @Test void aStreetThatWidensBesideAnotherTapersIntoItUnderTheTaperControl() {
         boolean[][] road = new boolean[48][40];
         fill(road, 2, 10, 40, 12);    // a street three wide ...

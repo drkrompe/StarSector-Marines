@@ -139,6 +139,7 @@
     "data/tilesets/colony-buildings.tileset.json",
     "data/tilesets/colony-walls.tileset.json",
     "data/tilesets/concrete-walls.tileset.json",
+    "data/tilesets/fallen-hull.tileset.json",
     "data/tilesets/concrete-openings.tileset.json",
     "data/tilesets/concrete-rubble.tileset.json",
     "data/tilesets/installation-floors.tileset.json",
