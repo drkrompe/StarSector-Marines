@@ -473,8 +473,9 @@ public enum MechVariant {
             case HOUND, FOUNDRY_BREAKER, TORCH, CRAWLER -> LiftClass.LIGHT;
             case WARDEN, CENSER -> LiftClass.MEDIUM;
             case BULWARK, HAULER, PILGRIM -> LiftClass.HEAVY;
-            case SECURITY_WALKER, SECURITY_HALL, SECURITY_HAULER -> LiftClass.HEAVY;
-            case SECURITY_ROUNDS, SECURITY_STRIPPER -> LiftClass.MEDIUM;
+            case SECURITY_WALKER, SECURITY_HALL -> LiftClass.HEAVY;
+            // The hauler is broad, not heavy: it leaves the cutting of walls to the strippers.
+            case SECURITY_ROUNDS, SECURITY_STRIPPER, SECURITY_HAULER -> LiftClass.MEDIUM;
             case SECURITY_TENDER -> LiftClass.LIGHT;
         };
     }
