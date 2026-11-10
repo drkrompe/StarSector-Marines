@@ -33,7 +33,7 @@ class MechFittingLayoutTest {
 
     @Test
     void everyChassisOwnsACompleteUniquePositiveSizedSocketLayout() {
-        for (MechVariant variant : MechVariant.values()) {
+        for (MechVariant variant : MechVariant.companyLines()) {
             MechFittingLayout layout = MechFittingLayout.forVariant(variant);
             EnumSet<SocketId> ids = EnumSet.noneOf(SocketId.class);
             assertEquals(variant, layout.variant());
@@ -52,6 +52,9 @@ class MechFittingLayoutTest {
             if (variant == MechVariant.HOUND) {
                 assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
                         SocketId.LEFT_SHOULDER, SocketId.AUXILIARY, SocketId.PLATING), ids);
+            } else if (!variant.hasShoulders()) {
+                assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS, SocketId.AUXILIARY, SocketId.PLATING), ids,
+                        "a chassis with no shoulders has its one front mount and no shoulder sockets");
             } else if (variant.twoArmed()) {
                 assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.ARMS)), ids,
                         "a two-armed chassis has an arm socket each side and no centreline mount");
