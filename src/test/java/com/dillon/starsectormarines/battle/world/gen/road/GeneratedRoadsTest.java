@@ -276,4 +276,16 @@ class GeneratedRoadsTest {
         double x0 = Math.min(taper.get(0).points().get(0).x(), taper.get(0).points().get(1).x());
         assertEquals(20 - GeneratedRoads.TAPER, x0, 1e-9, "running back along the through street");
     }
+
+    @Test void aStreetHoldsOneWidthWhereItJogsAndWidensAtOnce() {
+        boolean[][] road = new boolean[48][32];
+        fill(road, 2, 10, 33, 12);   // a street three wide ...
+        fill(road, 30, 11, 45, 15);  // ... running on a cell over and five wide past a yard to its end
+        var streets = GeneratedRoads.streets(road, road, null, 3, 9, GeneratedRoads.StreetStyle.ROUND_BARE).routes();
+        var straight = streets.stream().filter(r -> r.points().size() == 2).toList();
+        assertTrue(!straight.isEmpty(), "nothing swept: " + streets);
+        for (var r : straight) assertEquals(3, r.width(), "the street swelled past the yard: " + streets);
+        assertTrue(straight.stream().anyMatch(r -> Math.max(r.points().get(0).x(), r.points().get(1).x()) >= 44),
+                "the street stopped short of its end: " + streets);
+    }
 }

@@ -470,8 +470,9 @@ public final class GeneratedRoads {
 
     /** The city's rules over {@code candidates}: no broad street, no band held by another, no bulge or pill. */
     private static Kept keep(Set<Band> found, boolean[][] road, boolean[][] city, int maxBreadth) {
-        Set<Band> candidates = new LinkedHashSet<>(found);
-        if (city != null) candidates.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
+        Set<Band> broad = new LinkedHashSet<>(found);
+        if (city != null) broad.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
+        Set<Band> candidates = city == null ? broad : oneWidth(broad, city);
         List<Band> bands = candidates.stream().filter(b -> candidates.stream()
                 .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
         Set<Band> spurs = new HashSet<>();
@@ -493,6 +494,35 @@ public final class GeneratedRoads {
             bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
         }
         return new Kept(bands, spurs);
+    }
+
+    /**
+     * A street holds one width along its length. Where a street band overlaps a narrower one running the same way
+     * (the street steps back past a yard, or jogs and widens at once), the broader is swept at the narrower one's
+     * breadth, on the line within it nearest the narrower's, so the asphalt runs on at the street's width instead of
+     * swelling into a blob of carriageway; a narrowed band lying wholly in another is then dropped as any held band
+     * is. Only street bands are narrowed, and only by street bands.
+     */
+    private static Set<Band> oneWidth(Set<Band> candidates, boolean[][] city) {
+        Set<Band> out = new LinkedHashSet<>();
+        for (Band b : candidates) {
+            Band narrowest = null;
+            if (b.holds(city)) for (Band a : candidates) {
+                if (a == b || a.horizontal() != b.horizontal() || a.breadth() >= b.breadth() || !a.holds(city)
+                        || a.left > b.right || a.right < b.left || a.bottom > b.top || a.top < b.bottom) continue;
+                if (narrowest == null || a.breadth() < narrowest.breadth()) narrowest = a;
+            }
+            if (narrowest == null) { out.add(b); continue; }
+            int breadth = (int) narrowest.breadth();
+            if (b.horizontal()) {
+                int lo = Math.max(b.bottom, Math.min(narrowest.bottom, b.top - breadth + 1));
+                out.add(new Band(b.left, lo, b.right, lo + breadth - 1));
+            } else {
+                int lo = Math.max(b.left, Math.min(narrowest.left, b.right - breadth + 1));
+                out.add(new Band(lo, b.bottom, lo + breadth - 1, b.top));
+            }
+        }
+        return out;
     }
 
     /** The asphalt across a band: its centre line across the band's axis, and its width. */

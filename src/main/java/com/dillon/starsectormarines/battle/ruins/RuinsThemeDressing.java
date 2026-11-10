@@ -43,6 +43,13 @@ public final class RuinsThemeDressing {
     private static final String VAT_UNIT = "doodad.ruins-vat-unit";
     private static final String FORGE_CORE = "doodad.ruins-forge-core";
     private static final String DRONE_FRAME = "doodad.ruins-drone-frame";
+    private static final String CORE_CABINET = "doodad.ruins-core-cabinet";
+    private static final String FIELD_HOUSING = "doodad.ruins-field-housing";
+    private static final String MAGNET_SEGMENT = "doodad.ruins-magnet-segment";
+    private static final String CATALYST_BED = "doodad.ruins-catalyst-bed";
+    private static final String SPOOL_DRUM = "doodad.ruins-spool-drum";
+    private static final String BORE_HEAD = "doodad.ruins-bore-head";
+    private static final String PROJECTOR_STACK = "doodad.ruins-projector-stack";
     private static final List<String> FROST = List.of("doodad.ruins-frost-patch-a", "doodad.ruins-frost-patch-b");
     private static final List<String> GROWTH = List.of("doodad.ruins-growth-patch-a", "doodad.ruins-growth-patch-b");
 
@@ -61,23 +68,28 @@ public final class RuinsThemeDressing {
             case ARMORY -> set(List.of(AMMO_LOCKER, READY_LOCKER, RIFLE_RACK),
                     List.of(RIFLE_RACK, ISSUE_COUNTER, CLEANING_BENCH, AMMO_LOCKER));
             case SERVER_HALL -> set(List.of(SERVER_RACK, SERVER_RACK, SWITCHBOARD),
-                    List.of(SERVER_RACK, WORKSTATIONS, CONSOLE));
+                    List.of(SERVER_RACK, WORKSTATIONS, CONSOLE)).withProduct(CORE_CABINET);
             case PRISTINE_NANOFORGE, CORRUPTED_NANOFORGE ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
-                            .withProduct(FORGE_CORE);
+                            .withProduct(FORGE_CORE).withFoundry();
             case DRONE_REPLICATOR ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
                             .withProduct(DRONE_FRAME);
-            case SYNCHROTRON -> set(List.of(SWITCHBOARD, GENERATOR), List.of(SWITCHBOARD, CABLE_REEL, CONSOLE));
-            case FUSION_LAMP, PLASMA_DYNAMO, HYPERSHUNT_TAP ->
-                    set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR));
-            case MANTLE_BORE -> set(List.of(ENGINE_BOARD, CABLE_REEL), List.of(CABLE_REEL, DRUMS, ENGINE_BOARD));
-            case CATALYTIC_CORE, FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS));
+            case SYNCHROTRON -> set(List.of(SWITCHBOARD, GENERATOR), List.of(SWITCHBOARD, CABLE_REEL, CONSOLE))
+                    .withProduct(MAGNET_SEGMENT);
+            case FUSION_LAMP, PLASMA_DYNAMO ->
+                    set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR)).withProduct(FIELD_HOUSING);
+            case HYPERSHUNT_TAP -> set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR));
+            case MANTLE_BORE -> set(List.of(ENGINE_BOARD, CABLE_REEL), List.of(CABLE_REEL, DRUMS, ENGINE_BOARD))
+                    .withProduct(BORE_HEAD);
+            case CATALYTIC_CORE -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(CATALYST_BED);
+            case FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(SPOOL_DRUM);
             case SOIL_NANITES, BIOFACTORY_EMBRYO -> new RuinsDressing(List.of(CULTURE_VAT, GROW_BED),
                     List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH).withProduct(VAT_UNIT);
             case CRYOARITHMETIC_ENGINE -> new RuinsDressing(List.of(CRYO_RACK, CRYO_RACK, FROST_HEATSINK),
                     List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST).withProduct(CRYO_UNIT);
-            case DEALMAKER_HOLOSUITE -> set(List.of(CONFERENCE, WORKSTATIONS), List.of(CONFERENCE, WORKSTATIONS, CONSOLE));
+            case DEALMAKER_HOLOSUITE -> set(List.of(CONFERENCE, WORKSTATIONS), List.of(CONFERENCE, WORKSTATIONS, CONSOLE))
+                    .withProduct(PROJECTOR_STACK);
         };
     }
 

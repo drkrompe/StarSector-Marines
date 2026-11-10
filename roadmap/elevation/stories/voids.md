@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge, and a toxic world its toxic gorge; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
+Updated: 2026-11-10 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge, and a toxic world its toxic gorge; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse. 2026-11-10: drops and sheltering walls are placed by a map's design, never rolled, and skinned by the palette; the bank is sixteen cells and eight terraces; the crevasse town's houses are cut into its walls.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -89,6 +89,7 @@ generation, never a battle rule, as an emplacement style is
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
+| **Foundry melt** | A forge works' foundry in a ruins site's plant (`ruins-expedition.md`): pour channels and casting beds cut in a hall floor, 2 m down | Firebrick walls under a laid cast-steel kerb strip | Molten metal kept hot, no crust | A grate catwalk, the drop's own crossing |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
 
@@ -506,15 +507,15 @@ Laws):
    - **A bank, not a cliff** (owner, 2026-11-09: "widen out the hills ...
      to make sure the player has good views of the action at the bottom ...
      it doesn't need to be a sheer drop"). A rise climbs in a terraced bank
-     (`NaturalRise.bank`): six even terraces to its top, the top standing ten
-     cells back from the foot. Each face is short, so it leans out little,
+     (`NaturalRise.bank`): eight even terraces to its top, the top standing
+     sixteen cells back from the foot (the owner's pick of three, 2026-11-10;
+     ten and six, and six and four, were the others). Each face is short, so it leans out little,
      and the high ground stands well back from the floor, so the camera sees
      the fighting at the foot rather than the lip of a wall leaning over it.
      The first pass's cliffs (two ledges and the top 1.6 cells back) leaned
      over much of a narrow floor; `-Dsnapshot.ravine.sheer=true` still draws
      them for comparison. Drops keep their sheer walls: the player looks
-     down into them, not out of them. Left: the owner's pick of how wide and
-     how many terraces (`BANK_CELLS`, `BANK_TERRACES`, UNTUNED).
+     down into them, not out of them.
 
    **The crevasse town** (owner, 2026-11-09: "a plausible 'habitable' region
    for cold planets ... a settlement might have built itself into a massive
@@ -522,7 +523,7 @@ Laws):
    town on the floor of a great crevasse, the battle fought among its
    streets, the crevasse's walls rising along both sides. Look suite:
    `createSnapshots -Psnapshot=crevasse-town-look` (an Assault on a remote
-   garrison and on a town, `-Dbattle.mapgen.crevasseTowns=1`).
+   garrison and on a town, frozen, and the same town verdant).
    - **The ice wall.** A rise of style `ICE_WALL`: the terraced bank in the
      crevasse's ice (the glacial crevasse's wall image), snow drifted on every
      terrace, the top a wind-scoured snowfield with blue ice blown bare along
@@ -532,13 +533,12 @@ Laws):
      (`GlacialVoidRenderSystem`, rising); on the floor no snow drives: the
      town lies out of the wind. `-Dsnapshot.ravine.ice=true` draws the
      ravine suite in ice.
-   - **Decided with the plan.** On a frozen world half of the derived maps
-     (`CrevasseTown.CHANCE`, UNTUNED; `-Dbattle.mapgen.crevasseTowns`) hold
-     two bands of relief `ICE_WALL` along a pair of opposite edges before
-     anything is laid (`CrevasseTown.shelter`, from
-     `BattleSetup.precinctPlanFor` and `conquestPlanFor`): along the long
-     edges, or for a conquest along its axis, so the attack runs down the
-     floor rather than over a wall. Held ground, as a rim round a settlement
+   - **Placed by the map's design** (see placed by design, below). A map
+     whose design shelters its town (`Landform.Shelter`) holds two bands of
+     relief `SHELTER_WALL` along a pair of opposite edges before anything is
+     laid (`CrevasseTown.shelter`): along the battle's axis, so the attack
+     runs down the floor rather than over a wall. The palette skins the
+     walls: ice on a frozen world, the ravine's rock elsewhere. Held ground, as a rim round a settlement
      is (`Landscape.held`): the town, its roads and its fields grow on the
      floor between them. The ordinary settlement and precinct programs lay
      the town; nothing new builds it, and a frozen world's own building
@@ -553,14 +553,24 @@ Laws):
      connected before stays connected, dead ground behind a wall (600 cells
      or fewer) is taken into it, and anything else refuses the walls; a map
      whose walls would stand along less than half of their edges keeps none.
-     A crevasse town lays no other drop.
-   Next (slice 2): buildings stepped into the banks, each terrace a walkable
-   tier (elevation's terraces, `elevation-nouns.md`) with stairs, ramps and
-   lifts between them, enclosed walkways crossing the floor, heat and glow
-   from below (lit windows, vents steaming in the cold), and the walls
-   taller and wider for "huge": the owner's pick of the bank. Left: a
-   compound that runs to an edge still breaks its wall; the garrison could
-   be held off the bands as the town is.
+     A crevasse town lays no other drop. The walls run about 20 cells in, so
+     the sixteen-cell bank has its terraces.
+   - **Houses cut into the walls** (slice 2). Along each wall's foot the
+     town builds terrace rows and blocks (`BuildingStamp.TERRACE_ROW`,
+     `TERRACE_BLOCK`), each one's blind back to the bank and its doors and
+     windows facing the floor (`CrevasseTerraces`). Its back is set at the
+     bank's shallowest foot under it, and where the foot wanders deeper it is
+     dug into the bank, so it stands half in the wall. Never in a pass, never
+     on a road, yard or anything reserved, an alley between neighbours, and
+     proved as the walls are. The houses come after the town was finalized,
+     so the landscape pass finishes them itself: their walls' hit points and
+     tags, and their entries in the town's buildings, numbered on so no
+     earlier building's id moves (`BuildingFloodFill.populate`).
+   Next: each terrace a walkable tier (elevation's terraces,
+   `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
+   walkways crossing the floor, heat and glow from below (lit windows, vents
+   steaming in the cold). Left: a compound that runs to an edge still breaks
+   its wall; the garrison could be held off the bands as the town is.
    First pass (ravine wall): the gorge's strata wall, two ledges and the top
    36 m up, camera 120 m. Left: the owner's pick of height; a top with real
    art (a canopy image rather than flat colour, which blurs as the top scales
@@ -641,6 +651,22 @@ Laws):
      standing depth.
    - **A rift that shallows** (`-Dsnapshot.lava.setup=vary`): 40 m in the
      west, 12 m by the bridge, 4 m in the east, by depth marks.
+   - **Lava flows** (owner, 2026-11-10: "We also need to consider "lava"
+     planets. We might re-use our conveyor code, but need to rework this for
+     lava flows"). The ore conveyor (`OreLine`) routes on the grid at right
+     angles and lays a piece a cell; a natural flow wanders, has width and must
+     strand nothing, which the drop already does, so a volcanic world's flow is
+     built on the drop, not the conveyor. Older flows
+     (`LavaFlows`, `CellTopology.lavaFlows`): tongues of cooled crust that broke
+     from the melt, widening to rounded toes and now and then splitting, hot
+     where they leave the melt and cold at the toe. They are walkable ground
+     whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
+     laid dark, its cracks glowing by the heat, the margin rounded), and they
+     keep the landscape's later features off what they buried. The owner picked
+     the river with its older flows (2026-11-10, of the rift, the river, the
+     river with its flows and the flows alone): a volcanic world's drop is the
+     4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
+     it. Look suite `lava-flow-look`.
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -784,12 +810,15 @@ Laws):
      marks nothing.
    - **The floor** is wet ore rubble with a still sump where it lies farthest
      from the walls.
-   - **The spine.** `NaturalVoid.belts`: the covered conveyor gallery that
-     carries the ore from the crushing station on the floor up the benches on
-     its trestles to a transfer tower on the rim. It leaves the floor where the
+   - **The mass driver.** `NaturalVoid.belts`: the electromagnetic rail that
+     fires sealed ore capsules from the loader on the floor up the benches on
+     its trestles to the catch station on the rim, where they are stopped and
+     opened and the ore line takes the ore on. It leaves the floor where the
      floor lies nearest the works. Drawn after the ground tiles and before every
-     unit: the gallery's bays end to end at each one's depth, the trestles'
-     cross-beams and their shadow. Drawn only.
+     unit: the rail's bays end to end at each one's depth, each with its coil
+     ring, the trestles' cross-beams and their shadow, and capsules running up
+     it (`PitMachines.CAPSULE_EVERY`, `CAPSULE_SPEED`) with the glow of their
+     hot noses. Drawn only.
    - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
      and also built onto the grid system", its legs giving cover). From the
      first ground cell past the tower, `OreLine` finds a course on the grid to
@@ -827,20 +856,22 @@ Laws):
      open ground is taken into the pit, and any other stranding refuses the
      pit and the map keeps none. No bridge is ever needed.
    - **Machines** (owner, 2026-11-09: a spacefaring megaproject, not a
-     modern quarry; the conveyor must make plausible sense, `raid-mine-megaworks`
-     option a, crawler and spine). `PitMachines` lays the ore's path: a cutting
-     crawler the size of a building works a dry face on the floor, its back to
-     the crushing station at the spine's foot so its boom swings the ore back
-     into the station's hopper. A hopper beside the spine on a bench takes a
-     loaded ore crawler's tip, where the upper benches' ore joins the spine. Ore
-     crawlers climb the haul road loaded and come down it empty, and a drilling
-     gantry readies the next blast on the first bench with room. Each machine is
-     drawn at its depth's scale, after its bench and before the face above it.
-     At the battle's vehicle scale, an ore crawler is three to four cells long
-     and the haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen
-     sheet, `pit-megaworks.png`, filled in over a geometry guide
-     (`art-source/voids/open-pit/megaworks-guide.py`) after the approved
-     concept. Scenery only.
+     modern quarry; the conveyor must make plausible sense. Owner pick
+     `raid-mine-megaworks` option c, the mass driver, 2026-11-10).
+     `PitMachines` lays the ore's path: a cutting crawler the size of a
+     building works a dry face on the floor, its back to the crusher and
+     capsule loader at the driver's foot so its boom swings the ore back into
+     the loader's hopper. Hover haulers on four lift fans bring the upper
+     benches' ore: one comes in over the floor to tip into the loader, one
+     lifts off a bench loaded, turned into the pit, and one flies back empty
+     over another bench. They fly over the faces, so they are drawn after
+     every band, their shadows on the ground beneath (thrown at most
+     `HOVER_SHADOW_REACH`). A drilling gantry readies the next blast on the
+     first bench with room. The haul road is left to the ground's own traffic.
+     The rest is drawn at its depth's scale, after its bench and before the
+     face above it. One ImageGen sheet, `pit-massdriver.png`, filled in over a
+     geometry guide (`art-source/voids/open-pit/massdriver-guide.py`) after the
+     approved concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
    (to the stores, or from the shafts); dust over the working bench; the
@@ -921,26 +952,32 @@ Laws):
    depth); a gorge river deepest where its brook's valley is, shallowing to
    its fords; a falls where a floor steps rather than slopes.
 
-   **Natural drops on generated maps** (owner, 2026-11-09: "Build everything";
-   generated maps lay natural voids by planet type, not only debug maps). Look
-   suite: `createSnapshots -Psnapshot=natural-void-maps-look` (a remote Assault
-   on each palette, `-Dbattle.mapgen.naturalVoids=1`).
+   **Placed by design** (owner, 2026-11-10: "We need to place these as part of
+   map design ... I don't really want randomized maps, I would prefer we make
+   fun maps, then skin them to match the biomes"). A natural drop, or walls
+   sheltering a town, is a **landform** a map's design states (`Landform`:
+   `Drop` and `Shelter`), never a share of generated maps: nothing rolls for
+   one. Stated with the plan, before anything is laid, as held ground
+   (`Landscape.held`, relief `DROP` or `SHELTER_WALL`), so the places, roads
+   and fields grow round it; the landscape pass cuts the drop or raises the
+   walls on what was held. The world's palette only picks its skin. A battle
+   asks for one through `BattleSetup.createPlaceholder(..., landform)`; no
+   story map or contract states one yet. Look suite:
+   `createSnapshots -Psnapshot=natural-void-maps-look` (one design, a remote
+   Assault cut south to north across its approach, skinned by each palette).
    - **Which style.** One table beside `SurfaceZoning`,
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
      glacial crevasse, arid the canyon, rock and irradiated the dry gorge (irradiated
      until a glassed wall of its own exists), and a molten palette the lava
-     rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
+     river (`NaturalVoidZoning.LAVA_RIVER`, the owner's pick over the rift).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it
      has a row.
    - **The canyon and the dry gorge** are the dry styles above
      (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
      the basalt wall was tried on rock and read as holes at a wide zoom.
-   - **Where.** A drop runs edge to edge across a generated outdoor map's
-     open country (`NaturalChasm`), wandering, 7 to 12 cells wide. Lines both
-     ways across the map are tried, through its middle and through the
-     country to either side of a settlement, and the one that cuts most is
-     kept. It takes only ground the landscape pass's reservations leave
+   - **Where.** A drop runs edge to edge along its design's line
+     (`NaturalChasm`), wandering, 7 to 12 cells wide. It takes only ground the landscape pass's reservations leave
      (`OutdoorLandscapeStage`), after the open pit and before anything grows:
      so it never covers a road, building, doorway, fixture, prop, landing or
      its approach, a spawn, or a route between required places, and each of
@@ -953,13 +990,10 @@ Laws):
    - **Proof.** Every stretch of walkable ground connected before stays
      connected after, through the bridges and crossings. A pocket of open
      ground of 40 cells or fewer that it would strand is taken into the drop;
-     any other stranding refuses that line, and a map no line fits keeps no
-     drop. So no spawn or required place is ever cut off.
-   - **How often.** About a third of generated outdoor maps whose sides are 64 cells
-     or more, on the map's own random substream
-     (`OutdoorLandscapeStage.CHASM_CHANCE`, UNTUNED), unless they already draw
-     a drop or a backdrop; `-Dbattle.mapgen.naturalVoids=<share>` sets it.
-   Left: the owner's pick of how often and how wide; road bridges (a road crossing is left as ground, not yet
+     any other stranding refuses the drop, and a design whose line does not
+     fit keeps none. So no spawn or required place is ever cut off.
+   Left: maps whose designs place them (a story map's pool, a contract
+   site); how wide; road bridges (a road crossing is left as ground, not yet
    drawn as a span); the brook's own gorge, the line below; a drop as a
    mission's dividing line.
 
@@ -981,8 +1015,9 @@ Laws):
    - A **sea cliff** where a beach map lays its shoreline (`BeachShorelineStage`)
      on a map whose landing is not from the sea: the shore band cut as void
      at the map's edge.
-   - A **lava rift** on molten and volcanic worlds, where a temperate map
-     would lay a gorge river, and as a mission's dividing line.
+   - A **lava river** with its older flows on molten and volcanic worlds,
+     where a temperate map would lay a gorge river (Lava flows, above), and
+     as a mission's dividing line.
    - All of them refuse what a plateau refuses (roads, buildings, doorways,
      fixtures, reserved cells), and `-Dbattle.mapgen.voids=N` asks for them
      on every map for evidence.

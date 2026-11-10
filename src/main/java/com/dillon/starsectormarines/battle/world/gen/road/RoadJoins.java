@@ -8,8 +8,8 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.PriorityQueue;
 
 /**
  * Makes the drawn roads one network ({@code precincts.md}, Connectedness is solved for). The ground a road may be drawn on is
@@ -20,7 +20,9 @@ import java.util.PriorityQueue;
  * <p>So the drawn roads are joined along the network they lie on: the pieces are labelled, the network is flooded
  * from all of them at once, keeping to the middle of its bands, and the cheapest meeting between each pair is taken
  * in increasing order until no two pieces the network joins are apart, a minimum spanning tree over the pieces.
- * Each join is walked back along the flood to both pieces and drawn as a road down it. A piece the network does not
+ * Each join is walked back along the flood to both pieces and drawn as a road down it, {@link #WIDTH} wide. The
+ * flood pays for its bends ({@link BendFlood}), so a join runs straight along a grid axis and turns cleanly, as
+ * the streets it joins do. A piece the network does not
  * reach stays as it is: joining it would draw a road across ground nobody laid one on.
  */
 public final class RoadJoins {
@@ -31,8 +33,11 @@ public final class RoadJoins {
     static final int MIDDLE = 3;
     /** Extra cost per cell of clearance short of {@link #MIDDLE}. */
     static final int EDGE_COST = 4;
-    /** Narrowest and widest join drawn, in cells. */
-    static final int MIN_WIDTH = 3, MAX_WIDTH = 5;
+    /**
+     * Cells wide every join is drawn: a join is the drawn face of a weld, one class of road, and holds the weld's
+     * width along its whole length rather than swelling and narrowing with the ground it crosses.
+     */
+    static final int WIDTH = 3;
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
@@ -86,15 +91,11 @@ public final class RoadJoins {
         for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) passable[x][y] = network[x][y] || drawn[x][y];
         List<List<int[]>> paths = paths(passable, drawn);
         if (paths.isEmpty()) return out;
-        int[][] clearance = clearance(passable);
         for (List<int[]> path : paths) {
-            int clear = medianClearance(clearance, path);
-            int width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, 2 * clear - 3));
-            if (width % 2 == 0) width--;
             for (List<int[]> run : runs(path)) {
                 int[] a = run.get(0), b = run.get(run.size() - 1);
                 out.add(new Route("join-" + out.size(), List.of(new Point(a[0], a[1]), new Point(b[0], b[1])),
-                        width, 0, .4, seed, Material.ASPHALT, EndCap.ROUND));
+                        WIDTH, 0, .4, seed, Material.ASPHALT, EndCap.ROUND));
             }
         }
         return out;
@@ -128,63 +129,35 @@ public final class RoadJoins {
         if (pieces <= 1) return List.of();
 
         int[][] clearance = clearance(passable);
-        long[] dist = new long[w * h];
-        int[] from = new int[w * h], parent = new int[w * h];
-        Arrays.fill(dist, Long.MAX_VALUE);
-        Arrays.fill(from, -1);
-        Arrays.fill(parent, -1);
-        PriorityQueue<long[]> queue = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
-        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) {
-            if (piece[x][y] < 0) continue;
-            int i = y * w + x;
-            dist[i] = 0;
-            from[i] = piece[x][y];
-            queue.add(new long[]{0, i});
-        }
-        while (!queue.isEmpty()) {
-            long[] top = queue.poll();
-            int i = (int) top[1];
-            if (top[0] > dist[i]) continue;
-            int x = i % w, y = i / w;
-            for (int[] d : STEPS) {
-                int nx = x + d[0], ny = y + d[1];
-                if (nx < 0 || ny < 0 || nx >= w || ny >= h || !passable[nx][ny] || piece[nx][ny] >= 0) continue;
-                int j = ny * w + nx;
-                long cost = dist[i] + 1 + (long) EDGE_COST * Math.max(0, MIDDLE - clearance[nx][ny]);
-                if (cost >= dist[j]) continue;
-                dist[j] = cost;
-                from[j] = from[i];
-                parent[j] = i;
-                queue.add(new long[]{cost, j});
-            }
-        }
-
+        // The flood pays for its bends, so a join walked back down it is straight runs and clean bends.
+        BendFlood flood = BendFlood.from(piece, (x, y) -> passable[x][y]
+                ? 1 + EDGE_COST * Math.max(0, MIDDLE - clearance[x][y]) : -1, BendFlood.BEND);
         // Every edge between two floods is a candidate meeting; the cheapest per pair is enough, but sorting all
         // of them is simpler and the union-find skips the rest.
         List<long[]> meetings = new ArrayList<>();
         for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) {
-            int i = y * w + x;
-            if (from[i] < 0) continue;
+            int a = flood.label(x, y);
+            if (a < 0) continue;
             for (int[] d : new int[][]{{1, 0}, {0, 1}}) {
                 int nx = x + d[0], ny = y + d[1];
                 if (nx >= w || ny >= h) continue;
-                int j = ny * w + nx;
-                if (from[j] < 0 || from[j] == from[i]) continue;
-                meetings.add(new long[]{dist[i] + dist[j] + 1, i, j});
+                int b = flood.label(nx, ny);
+                if (b < 0 || b == a) continue;
+                meetings.add(new long[]{(long) flood.cost(x, y) + flood.cost(nx, ny) + 1, y * w + x, ny * w + nx});
             }
         }
-        meetings.sort((a, b) -> Long.compare(a[0], b[0]));
+        meetings.sort((p, q) -> Long.compare(p[0], q[0]));
         int[] root = new int[pieces];
         for (int k = 0; k < pieces; k++) root[k] = k;
         List<List<int[]>> out = new ArrayList<>();
         for (long[] m : meetings) {
             int i = (int) m[1], j = (int) m[2];
-            int ra = find(root, from[i]), rb = find(root, from[j]);
+            int ra = find(root, flood.label(i % w, i / w)), rb = find(root, flood.label(j % w, j / w));
             if (ra == rb) continue;
             root[ra] = rb;
-            List<int[]> path = new ArrayList<>();
-            for (int c = i; c >= 0; c = parent[c]) path.add(0, new int[]{c % w, c / w});
-            for (int c = j; c >= 0; c = parent[c]) path.add(new int[]{c % w, c / w});
+            List<int[]> path = new ArrayList<>(flood.back(i % w, i / w));
+            Collections.reverse(path);
+            path.addAll(flood.back(j % w, j / w));
             out.add(path);
         }
         return out;
@@ -217,44 +190,23 @@ public final class RoadJoins {
         return out;
     }
 
-    private static int medianClearance(int[][] clear, List<int[]> path) {
-        int[] values = new int[path.size()];
-        for (int k = 0; k < path.size(); k++) values[k] = clear[path.get(k)[0]][path.get(k)[1]];
-        Arrays.sort(values);
-        return values[values.length / 2];
-    }
-
     /**
-     * A cell path as the fewest straight runs that keep within a cell of it (Douglas-Peucker): a path stepping
-     * diagonally across the grid is one diagonal run, not a staircase of one-cell ones. Each run shares its end
-     * cell with the next.
+     * A cell path as its straight runs, each along a grid axis: a new run starts wherever the path turns, so a join
+     * is drawn as the planner's road it follows and never as a diagonal stroke across the cells between its bends.
+     * Each run shares its end cell with the next.
      */
     static List<List<int[]>> runs(List<int[]> path) {
-        List<int[]> corners = new ArrayList<>();
-        simplify(path, 0, path.size() - 1, corners);
-        corners.add(path.get(path.size() - 1));
         List<List<int[]>> out = new ArrayList<>();
-        for (int k = 0; k + 1 < corners.size(); k++) out.add(List.of(corners.get(k), corners.get(k + 1)));
-        if (out.isEmpty()) out.add(List.of(path.get(0), path.get(0)));
+        int start = 0;
+        for (int k = 1; k + 1 < path.size(); k++) {
+            int[] p = path.get(k - 1), c = path.get(k), n = path.get(k + 1);
+            if (c[0] - p[0] != n[0] - c[0] || c[1] - p[1] != n[1] - c[1]) {
+                out.add(List.of(path.get(start), c));
+                start = k;
+            }
+        }
+        out.add(List.of(path.get(start), path.get(path.size() - 1)));
         return out;
-    }
-
-    /** Adds the corners of {@code path[lo..hi)} that a run from lo to hi must keep, lo first. */
-    private static void simplify(List<int[]> path, int lo, int hi, List<int[]> out) {
-        int[] a = path.get(lo), b = path.get(hi);
-        Point pa = new Point(a[0], a[1]), pb = new Point(b[0], b[1]);
-        double worst = 0;
-        int at = -1;
-        for (int k = lo + 1; k < hi; k++) {
-            double d = distance(path.get(k)[0], path.get(k)[1], pa, pb);
-            if (d > worst) { worst = d; at = k; }
-        }
-        if (worst > 1.0) {
-            simplify(path, lo, at, out);
-            simplify(path, at, hi, out);
-        } else {
-            out.add(a);
-        }
     }
 
     private static int find(int[] root, int a) {

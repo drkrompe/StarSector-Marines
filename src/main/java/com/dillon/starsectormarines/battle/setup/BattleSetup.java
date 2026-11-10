@@ -210,7 +210,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
-import com.dillon.starsectormarines.battle.world.gen.precinct.CrevasseTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
@@ -826,7 +826,7 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RUINS, profile, marineFighterSupport, enemyFighterSupport, null,
                 null, 1f, false, null, null, RuinsDelve.of(grade), grade, occupant,
-                ruinsCrew(occupant, grade), 0, null, prize);
+                ruinsCrew(occupant, grade), 0, null, prize, null);
     }
 
     /** A ruins site's scavenger crew: its grade's, for a scavenger site only; null for every other occupant. */
@@ -992,8 +992,7 @@ public final class BattleSetup {
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT))
                 .withStandoff(type == MissionType.RAID ? Standoff.INSET : Standoff.FAR);
-        // A frozen world may shelter its town in a crevasse, its walls along the map's long edges.
-        return CrevasseTown.shelter(plan, profile, scale.width, scale.height, scale.width >= scale.height, seed);
+        return plan;
     }
 
     /**
@@ -1169,9 +1168,7 @@ public final class BattleSetup {
                 lanes, resolvedStandoff, resolvedLanding, arrivalAreas,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
                 new Random(seed ^ PRECINCT_SEED_SALT));
-        // A frozen world may shelter its town in a crevasse, its walls along the axis so the attack runs its floor.
-        return CrevasseTown.shelter(plan, profile, MapScale.CONQUEST.width, MapScale.CONQUEST.height,
-                axis != TraversalAxis.SOUTH_TO_NORTH, seed);
+        return plan;
     }
 
     /** Tier-aware catch-all with both sides' authored fighter commitments. */
@@ -1200,7 +1197,7 @@ public final class BattleSetup {
                                                      FlybyRoster enemyFighterSupport,
                                                      PrecinctPlan.Sprawl sprawl) {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type,
-                profile, marineFighterSupport, enemyFighterSupport, sprawl, null);
+                profile, marineFighterSupport, enemyFighterSupport, sprawl, (String) null);
     }
 
     /**
@@ -1248,6 +1245,22 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
                 marineFighterSupport, enemyFighterSupport, sprawl, alliedGarrisonFactionId,
                 alliedGarrisonStrengthMult, false, null, null, null, null, null, null, 0);
+    }
+
+    /**
+     * As above, on a map whose design places {@code landform} ({@code voids.md}, placed by design): a natural drop
+     * across it, or walls sheltering its town. A map on which no plan is derived takes none.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport,
+                                                     PrecinctPlan.Sprawl sprawl, Landform landform) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile,
+                marineFighterSupport, enemyFighterSupport, sprawl, null, 1f, false, null, null, null, null, null,
+                null, 0, null, null, landform);
     }
 
     public static BattleSimulation createColdAccount(long seed, List<ShuttleAssignment> manifest,
@@ -1311,7 +1324,7 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile, marineFighterSupport,
                 enemyFighterSupport, sprawl, alliedGarrisonFactionId, alliedGarrisonStrengthMult, coldAccount,
                 raidTargetName, raidTargetKind, ruinsDelve, ruinsGrade, ruinsOccupant, ruinsCrew, raidWorks, raidSite,
-                null);
+                null, null);
     }
 
     /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes}), null for none or another mission */
@@ -1322,7 +1335,7 @@ public final class BattleSetup {
             float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite,
-            RuinsVaultPrize ruinsPrize) {
+            RuinsVaultPrize ruinsPrize, Landform landform) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1334,6 +1347,8 @@ public final class BattleSetup {
         PrecinctPlan precincts = raidSite != null && profile != null && profile.marketSize() > 0
                 ? raidSitePlanFor(raidSite, tier, risk, profile, scale, seed, raidWorks)
                 : precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
+        // A landform the map's design places: a drop across it, or walls sheltering its town (voids.md).
+        precincts = Landform.apply(landform, precincts, scale.width, scale.height);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,

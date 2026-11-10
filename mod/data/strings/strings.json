@@ -818,7 +818,6 @@
     "fabricationNoPortShort": "NO PORT",
     "fabricationPortSheet": "Parts, machines and yard time are bought at a civilized port: a market with a spaceport that will trade with us. Fitting, stripping and selling what is in stores work anywhere.",
     "boatRepairNoPort": "Expediting repairs needs a civilized port. Repairs continue on their own.",
-    "companyResourceCost": "Cost {0}",
     "firstOrderFree": "Free",
     "companyResourceShortBy": "Short by {0}",
     "companyResourceNamedCost": "{0} · Cost {1}",

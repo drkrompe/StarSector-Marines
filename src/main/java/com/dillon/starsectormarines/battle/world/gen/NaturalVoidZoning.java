@@ -131,16 +131,25 @@ public final class NaturalVoidZoning {
             "graphics/battle/voids/basalt-wall.png", 12f);
     /**
      * A shallow lava river: a low bank of cooled crust and the melt 4 m down, running so its crust is seen to travel
-     * (owner pick, 2026-11-09, of 2.5, 4 and 8 m). A volcanic world's rift is {@link #LAVA_RIFT}; this is its river.
+     * (owner pick, 2026-11-09, of 2.5, 4 and 8 m). A volcanic world's drop (owner pick, 2026-11-10,
+     * over the rift), with its older flows on the plain ({@code LavaFlows}).
      */
     public static final Drop LAVA_RIVER = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
             "graphics/battle/voids/basalt-wall.png", 12f);
 
+    /**
+     * A foundry's melt: a kerb a metre deep and the melt 2 m down, between firebrick walls
+     * (`ruins-expedition.md`, A forge works has a foundry). Laid by the ruins ground, never by a palette.
+     */
+    public static final Drop FOUNDRY = new Drop(NaturalVoid.Style.FOUNDRY, List.of(
+            new NaturalVoid.Step(1f, .06f), new NaturalVoid.Step(2f, .12f)),
+            "graphics/battle/voids/firebrick-wall.png", 2f);
+
     private NaturalVoidZoning() { }
 
     /**
-     * The drop a world of this palette is cut by. A volcanic world takes {@link #LAVA_RIFT}.
+     * The drop a world of this palette is cut by. A volcanic world takes {@link #LAVA_RIVER}.
      */
     public static Drop forPalette(SurfacePalette palette) {
         return switch (palette) {
@@ -150,8 +159,8 @@ public final class NaturalVoidZoning {
             // An irradiated world's drop is rock's dry gorge until a glassed wall of its own exists.
             case ROCK, IRRADIATED -> DRY_GORGE;
             case TOXIC -> TOXIC_GORGE;
-            // The cut is the palette's layout's, the style only its look, so a lava world's rift is rock's canyon line.
-            case VOLCANIC -> LAVA_RIFT;
+            // The cut is the palette's layout's, the style only its look, so a lava world's river is rock's canyon line.
+            case VOLCANIC -> LAVA_RIVER;
         };
     }
 }

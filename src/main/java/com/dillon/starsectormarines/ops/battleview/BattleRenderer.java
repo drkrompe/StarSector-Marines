@@ -375,7 +375,7 @@ public class BattleRenderer {
                 // A hot world's haze and the vents' vapour, over the props and under the fog and the units.
                 signature.air(),
                 // Compartment doors stand in their doorways, over the floor and under the crew.
-                new RoomDoorRenderSystem(),
+                new RoomDoorRenderSystem(sprites),
                 // A battle map's one-cell doorways hang hinged doors that swing for whoever walks through.
                 new SwingDoorRenderSystem(),
                 // A locked door stands shut over the wall it is shut as, its sprite saying whether a charge can open it.

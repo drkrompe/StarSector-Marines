@@ -35,10 +35,15 @@ public final class RidgePlanner {
     public enum Relief {
         NATURAL, BERM,
         /**
-         * A crevasse town's wall ({@code CrevasseTown}): held open before the places grow, then raised by the
-         * landscape pass as a terraced ice rise, never as hills.
+         * A sheltered town's wall ({@code CrevasseTown}): held open before the places grow, then raised by the
+         * landscape pass as a terraced rise in the world's skin (ice on a frozen world), never as hills.
          */
-        ICE_WALL
+        SHELTER_WALL,
+        /**
+         * A designed natural drop's line ({@code Landform.Drop}): held open before the places grow, then cut by the
+         * landscape pass, never raised.
+         */
+        DROP
     }
 
     /**

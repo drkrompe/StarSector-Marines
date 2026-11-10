@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The garrison laid as an installation ({@code raid-mission.md}, Garrison district): what it owes by market and
- * security, that every plan seats it on its own square from any gate side, never on a road, that every door opens on
+ * security, that the layout seats it on its own square from any gate side, never on a road, that every door opens on
  * open ground, that every vehicle shed has a paved way out of the gate no building stands on, and that the gate is
  * where the town's road comes in.
  */
@@ -46,21 +46,19 @@ class CantonmentTest {
     }
 
     @Test
-    void everyPlanSeatsItsWholeProgramOnItsOwnSquareFromEveryGate() {
+    void theWholeProgramSeatsOnItsOwnSquareFromEveryGate() {
         for (FortressProgram program : PROGRAMS) {
-            for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-                int side = Cantonment.side(program, plan) + Cantonment.ROAD_SLACK;
-                for (Side gate : Side.values()) {
-                    boolean[][] open = open(side + 10, side + 10);
-                    Cantonment.Laid laid = Cantonment.lay(open, 5, 5, 4 + side, 4 + side, gate,
-                            5 + side / 2, program, plan);
-                    String what = plan + " from " + gate;
-                    assertTrue(laid.unplaced().isEmpty(), what + " left " + laid.unplaced());
-                    assertTrue(laid.strays().isEmpty(), what + " strayed " + laid.strays());
-                    assertEquals(Cantonment.fieldFor(program), laid.airfieldSize(),
-                            what + " has the flight line the garrison is owed");
-                    assertApart(laid, open);
-                }
+            int side = Cantonment.side(program) + Cantonment.ROAD_SLACK;
+            for (Side gate : Side.values()) {
+                boolean[][] open = open(side + 10, side + 10);
+                Cantonment.Laid laid = Cantonment.lay(open, 5, 5, 4 + side, 4 + side, gate,
+                        5 + side / 2, program);
+                String what = "from " + gate;
+                assertTrue(laid.unplaced().isEmpty(), what + " left " + laid.unplaced());
+                assertTrue(laid.strays().isEmpty(), what + " strayed " + laid.strays());
+                assertEquals(Cantonment.fieldFor(program), laid.airfieldSize(),
+                        what + " has the flight line the garrison is owed");
+                assertApart(laid, open);
             }
         }
     }
@@ -68,49 +66,43 @@ class CantonmentTest {
     @Test
     void everyVehicleShedDrivesOutOfTheGateOnPavingNoBuildingStandsOn() {
         for (FortressProgram program : PROGRAMS) {
-            for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-                int side = Cantonment.side(program, plan) + Cantonment.ROAD_SLACK;
-                for (Side gate : Side.values()) {
-                    // The road comes in off the middle of the gate side, as a town's road often does.
-                    Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, gate,
-                            side / 3, program, plan);
-                    assertVehiclesReachTheGate(laid, side, side, plan + " from " + gate);
-                }
+            int side = Cantonment.side(program) + Cantonment.ROAD_SLACK;
+            for (Side gate : Side.values()) {
+                // The road comes in off the middle of the gate side, as a town's road often does.
+                Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, gate,
+                        side / 3, program);
+                assertVehiclesReachTheGate(laid, side, side, "from " + gate);
             }
         }
     }
 
     @Test
     void noBuildingStandsOnARoadThroughThePlace() {
-        for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-            int side = Cantonment.side(GUARDED_FIVE, plan) + 20;
-            boolean[][] ground = open(side, side);
-            for (int x = 0; x < side; x++) {
-                for (int y = side / 3; y < side / 3 + 7; y++) ground[x][y] = false;   // a road across the place
-            }
-            Cantonment.Laid laid = Cantonment.lay(ground, 0, 0, side - 1, side - 1, Side.WEST, side / 2,
-                    GUARDED_FIVE, plan);
-            assertFalse(laid.rooms().isEmpty());
-            assertApart(laid, ground);
+        int side = Cantonment.side(GUARDED_FIVE) + 20;
+        boolean[][] ground = open(side, side);
+        for (int x = 0; x < side; x++) {
+            for (int y = side / 3; y < side / 3 + 7; y++) ground[x][y] = false;   // a road across the place
         }
+        Cantonment.Laid laid = Cantonment.lay(ground, 0, 0, side - 1, side - 1, Side.WEST, side / 2,
+                GUARDED_FIVE);
+        assertFalse(laid.rooms().isEmpty());
+        assertApart(laid, ground);
     }
 
     @Test
     void theHeadquartersFacesTheGateAcrossTheParadeGround() {
-        for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-            int side = Cantonment.side(GUARDED_FIVE, plan);
-            Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, Side.SOUTH, side / 2,
-                    GUARDED_FIVE, plan);
-            RoomPacker.Placed hq = laid.rooms().stream()
-                    .filter(r -> r.purpose() == RoomPurpose.KEEP_THRONE).findFirst().orElseThrow();
-            int hqX = hq.originX() + hq.shape().width() / 2;
-            assertTrue(Math.abs(hqX - side / 2) <= 1, plan + ": the headquarters stands on the avenue's line");
-            double paradeY = laid.parade().stream().mapToInt(c -> c[1]).average().orElseThrow();
-            assertTrue(laid.gate()[1] < paradeY && paradeY < hq.originY(),
-                    plan + ": gate, parade ground, headquarters, in that order");
-            for (Doorway door : hq.doors()) {
-                assertTrue(door.y() < hq.originY(), plan + ": its door faces the parade ground");
-            }
+        int side = Cantonment.side(GUARDED_FIVE);
+        Cantonment.Laid laid = Cantonment.lay(open(side, side), 0, 0, side - 1, side - 1, Side.SOUTH, side / 2,
+                GUARDED_FIVE);
+        RoomPacker.Placed hq = laid.rooms().stream()
+                .filter(r -> r.purpose() == RoomPurpose.KEEP_THRONE).findFirst().orElseThrow();
+        int hqX = hq.originX() + hq.shape().width() / 2;
+        assertTrue(Math.abs(hqX - side / 2) <= 1, "the headquarters stands on the avenue's line");
+        double paradeY = laid.parade().stream().mapToInt(c -> c[1]).average().orElseThrow();
+        assertTrue(laid.gate()[1] < paradeY && paradeY < hq.originY(),
+                "gate, parade ground, headquarters, in that order");
+        for (Doorway door : hq.doors()) {
+            assertTrue(door.y() < hq.originY(), "its door faces the parade ground");
         }
     }
 
