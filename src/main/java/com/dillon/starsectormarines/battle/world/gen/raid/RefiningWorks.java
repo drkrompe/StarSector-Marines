@@ -65,20 +65,29 @@ public final class RefiningWorks implements RaidIndustry {
     /** Cells the farm stops short of the map's edges. */
     static final int FARM_MARGIN = 3;
 
-    // The works' buildings. A unit's house is the heater and charge pumps of one crude or cracking unit; its columns
-    // stand on the plot beside it, dressed after growth.
+    // The works' buildings. A unit's house is the fired heater of one crude or cracking unit, its furnace stack beside
+    // it; its columns stand on the plot beside it, dressed after growth. The rest serve the units, each told by what
+    // stands beside it ({@link RefineryGround}).
     private static final RoomShape RECEIVING = RoomShape.rectangle(12, 6);
     private static final RoomShape UNIT_HOUSE = RoomShape.rectangle(8, 6);
     private static final RoomShape PUMP_HOUSE = RoomShape.rectangle(9, 6);
     private static final RoomShape CONTROL_HOUSE = RoomShape.rectangle(7, 6);
+    private static final RoomShape BOILER_HOUSE = RoomShape.rectangle(9, 6);
+    private static final RoomShape LAB_HOUSE = RoomShape.rectangle(6, 5);
 
     /** Open ground a works keeps per unit: the plot its columns stand on and the pipe alleys round it. UNTUNED. */
     static final int YARD_PER_UNIT = 420;
+    /** Open ground for the utilities: the boiler's cooling tower and the stacks, masts and skids beside the houses. */
+    static final int UTILITY_YARD = 300;
 
     /** The room each step of the plant is, in the order the stock passes through them. */
     public static final RoomPurpose RECEIVING_ROOM = RoomPurpose.LOADING_BAY;
     public static final RoomPurpose UNIT_ROOM = RoomPurpose.PARTS_CAGE;
     public static final RoomPurpose PUMP_ROOM = RoomPurpose.ENGINE_ROOM;
+    /** The control room, its comms mast beside it; the boiler house and its cooling tower; the lab and its gases. */
+    public static final RoomPurpose CONTROL = RoomPurpose.CONTROL_ROOM;
+    public static final RoomPurpose BOILER_ROOM = RoomPurpose.PRODUCTION_FLOOR;
+    public static final RoomPurpose LAB_ROOM = RoomPurpose.SERVER_ROOM;
 
     @Override public String key() { return "refining"; }
 
@@ -113,9 +122,10 @@ public final class RefiningWorks implements RaidIndustry {
 
     /**
      * The refinery's works: the receiving manifold in the rear, where the pipelines from the deep edge land; one unit
-     * house per machine in the yard; the product pump house and the control house toward the front, whence the
-     * product rack leaves for the tank farm; and the posts on its gates. No loadout inside: the tankers fill at the
-     * tank farm's rack.
+     * (its fired heater's house, its columns beside it) per machine in the yard, with the boiler house that raises
+     * their steam, the control room that runs them and the lab that tests their cuts; the product pump house toward
+     * the front, whence the product rack leaves for the tank farm; and the posts on its gates. No loadout inside: the
+     * tankers fill at the tank farm's rack.
      *
      * @param units units in the plant, one per machine the raid wrecks
      */
@@ -125,9 +135,11 @@ public final class RefiningWorks implements RaidIndustry {
                 new FortressBuilding(RECEIVING_ROOM, RECEIVING, Ward.REAR, 1),
                 new FortressBuilding(UNIT_ROOM, UNIT_HOUSE, Ward.YARD, units),
                 new FortressBuilding(PUMP_ROOM, PUMP_HOUSE, Ward.FRONTAGE, 1),
-                new FortressBuilding(RoomPurpose.CONTROL_ROOM, CONTROL_HOUSE, Ward.YARD, 1),
+                new FortressBuilding(CONTROL, CONTROL_HOUSE, Ward.YARD, 1),
+                new FortressBuilding(BOILER_ROOM, BOILER_HOUSE, Ward.REAR, 1),
+                new FortressBuilding(LAB_ROOM, LAB_HOUSE, Ward.YARD, 1),
                 RaidWorksParts.guardPosts(2)),
-                0, units * YARD_PER_UNIT, true);
+                0, units * YARD_PER_UNIT + UTILITY_YARD, true);
     }
 
     /**

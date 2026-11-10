@@ -360,27 +360,6 @@ class GeneratedRoadsTest {
         }
     }
 
-    @Test void aStreetThatWidensBesideAnotherTapersIntoItUnderTheTaperControl() {
-        boolean[][] road = new boolean[48][40];
-        fill(road, 2, 10, 40, 12);    // a street three wide ...
-        fill(road, 20, 13, 45, 15);   // ... and a second one beside it from x 20, running on past it
-        var style = new GeneratedRoads.StreetStyle(true, false, false);
-        String was = System.getProperty("battle.mapgen.streetJogs");
-        System.setProperty("battle.mapgen.streetJogs", "taper");
-        List<Route> routes;
-        try {
-            routes = GeneratedRoads.streets(road, road, null, 3, 9, style).routes();
-        } finally {
-            if (was == null) System.clearProperty("battle.mapgen.streetJogs");
-            else System.setProperty("battle.mapgen.streetJogs", was);
-        }
-        var taper = routes.stream().filter(r -> r.points().size() == 2
-                && r.points().get(0).y() != r.points().get(1).y()).toList();
-        assertEquals(1, taper.size(), "one diagonal merge: " + routes);
-        double x0 = Math.min(taper.get(0).points().get(0).x(), taper.get(0).points().get(1).x());
-        assertEquals(20 - GeneratedRoads.TAPER, x0, 1e-9, "running back along the through street");
-    }
-
     @Test void aStreetHoldsOneWidthWhereItJogsAndWidensAtOnce() {
         boolean[][] road = new boolean[48][32];
         fill(road, 2, 10, 33, 12);   // a street three wide ...

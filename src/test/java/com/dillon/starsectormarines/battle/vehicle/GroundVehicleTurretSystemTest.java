@@ -477,13 +477,35 @@ class GroundVehicleTurretSystemTest {
         Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
         if (f.turret.section == null) return;
         f.turret.secondaries.add(MountedGun.of(
-                VehicleType.BREAKTHROUGH_TANK.coaxMount().withPart(MechWeaponComponent.LIGHT_MACHINE_GUN)));
+                VehicleType.BREAKTHROUGH_TANK.coaxMount().withPart(VehicleType.BREAKTHROUGH_TANK,
+                        MechWeaponComponent.LIGHT_MACHINE_GUN)));
         f.turret.section.strike(10000f, 100f, f.type.armorRating, 1f, new DurabilityModel.Resolution(),
                 new HullTurretSection.Hit());
         assertTrue(f.turret.destroyed());
         f.enemy(20, 26);
         for (int i = 0; i < 120; i++) f.auto();
         assertTrue(f.shots.getActiveShots().isEmpty(), "the coax went with the turret");
+    }
+
+    @Test
+    void aCoaxRidesTheTurretBesideItsBarrelAndPointsWhereItPoints() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
+        VehicleMount mount = VehicleType.BREAKTHROUGH_TANK.coaxMount().withPart(VehicleType.BREAKTHROUGH_TANK,
+                MechWeaponComponent.LIGHT_MACHINE_GUN);
+        MountedGun coax = MountedGun.of(mount);
+        f.turret.secondaries.add(coax);
+        PointFireAim east = new PointFireAim(60f, f.mountY());
+        for (int i = 0; i < 30; i++) f.tick(east, false);
+
+        assertNotEquals(0f, f.turret.facingDeg, "the turret came round");
+        assertEquals(f.turret.facingDeg, coax.turret().facingDeg, "the coax points where the turret points");
+        TurretMountGeometry.Point ring = GroundVehicleTurretSystem.mountPoint(f.type, f.body);
+        TurretMountGeometry.Point ahead = GroundVehicleTurretSystem.coaxPoint(f.type, f.body, 0f, mount);
+        TurretMountGeometry.Point turned = GroundVehicleTurretSystem.coaxPoint(f.type, f.body, 90f, mount);
+        assertEquals(ring.x() + mount.mountX(), ahead.x(), 1e-5f);
+        assertEquals(ring.y() + mount.mountY(), ahead.y(), 1e-5f);
+        assertEquals(ring.x() - mount.mountY(), turned.x(), 1e-5f, "turned about the ring with the turret");
+        assertEquals(ring.y() + mount.mountX(), turned.y(), 1e-5f);
     }
 
     private static final class Fixture {

@@ -14,6 +14,7 @@ EXTRA = {
     "rooms-boards-b": "Each mimic board is a wall-mounted control-room board seen from above: a shallow steel cabinet along the wall, its long face a dark mimic panel showing a schematic of its own line in coloured lines, nodes and small lamps, all different: ",
     "rooms-instruments-a": "Each is a lab test instrument on its own base, different in shape: ",
     "rooms-instruments-b": "Each is a lab test instrument or bench on its own base, different in shape: ",
+    "rooms-desks": "These are control-room operator desks, read from above as DESKS a person sits at, not as cabinets or boxes: one continuous worktop (a broad flat desk surface, its front lip toward the room) with a low raised instrument bank along the wall at the back carrying the screens, keyboards and small switch panels lying on the worktop, and wheeled operator chairs (round seat, curved backrest on the room side) pulled up to it in front. Never a separate plank or bench floating in front of the desk; the chairs are the only loose things: ",
     "rooms-stocks-a": "Each is the load on a store shelf (seen from above, the stock itself on a low steel shelf), different: ",
     "rooms-stocks-b": "Each is the load on a store shelf (seen from above, the stock itself on a low steel shelf), different: ",
 }
@@ -21,6 +22,9 @@ EXTRA = {
 
 # What each piece looks like from above, where the list's one line is too thin for ImageGen.
 DETAIL = {
+    "control-desk": "one long desk, not three cabinets; three dim cyan screens set in the back bank, one per place, a keyboard and a small lamp-lit switch strip in front of each on the worktop, a coffee mug and a scatter of dust, three chairs",
+    "control-desk-burnt": "the same kind of long desk burned out: screens cracked and black, the worktop's paint blistered and charred with two burn holes showing cable underneath, soot fanning toward the room, the middle chair knocked over on its side, the other two chairs scorched",
+    "shift-desk": "a single plain desk, different from the operator run: one terminal screen at the back left, a keyboard, a clipboard and loose papers on the right, a small desk lamp at the back right corner, one chair",
     "qubit-dewar": "a squat insulated cryogen dewar (round white-frosted lid with a vent stack) in a test frame with cable trunks and a small readout panel",
     "incubator": "a boxy incubator cabinet, its top a glass inspection panel over racked culture flasks with a faint green glow, control strip at the front",
     "core-probe": "a probe station: a flat chuck holding a square lattice wafer under a gantry arm with fine probe needles, a monitor at the back",

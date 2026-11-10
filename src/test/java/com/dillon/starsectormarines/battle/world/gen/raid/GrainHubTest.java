@@ -220,22 +220,28 @@ class GrainHubTest {
         assertEquals(EnumSet.of(GroundKind.SAND, GroundKind.DIRT), along, "no crop rings and wheel tracks");
     }
 
-    /** Pivot squares lie wholly on free ground, keep their headland from each other, and leave the mask as it was. */
+    /**
+     * Country fields lie wholly on free ground, keep their headland from each other, run their rows along their long
+     * side, and leave the mask as it was.
+     */
     @Test
-    void pivotsTileTheOpenCountry() {
-        boolean[][] free = new boolean[60][40];
-        for (int x = 0; x < 60; x++) for (int y = 0; y < 40; y++) free[x][y] = !(x >= 25 && x <= 30);
-        List<Plot> plots = GrainHub.pivotPlots(free, new int[]{20, 12}, 2);
+    void longFieldsTileTheOpenCountry() {
+        boolean[][] free = new boolean[70][40];
+        for (int x = 0; x < 70; x++) for (int y = 0; y < 40; y++) free[x][y] = !(x >= 25 && x <= 30);
+        List<Plot> plots = GrainHub.countryPlots(free, new int[][]{{20, 12}, {8, 20}}, 2);
         assertFalse(plots.isEmpty());
         for (Plot p : plots) {
+            int fw = p.x1() - p.x0() + 1, fh = p.y1() - p.y0() + 1;
+            assertEquals(fw >= fh, p.rowsAlongX(), "rows across the field");
             for (int x = p.x0(); x <= p.x1(); x++) for (int y = p.y0(); y <= p.y1(); y++) assertTrue(free[x][y]);
             for (Plot q : plots) {
                 if (p == q) continue;
                 boolean apart = p.x1() + 2 < q.x0() || q.x1() + 2 < p.x0() || p.y1() + 2 < q.y0() || q.y1() + 2 < p.y0();
-                assertTrue(apart, "two pivots with no headland between");
+                assertTrue(apart, "two fields with no headland between");
             }
         }
-        assertTrue(plots.stream().anyMatch(p -> p.x1() - p.x0() + 1 == 20), "the larger side first");
+        assertTrue(plots.stream().anyMatch(p -> p.x1() - p.x0() + 1 == 20), "the larger field first");
+        assertTrue(plots.stream().anyMatch(p -> p.x1() - p.x0() + 1 == 8), "the smaller fields fill in");
         assertFalse(free[25][0] || !free[0][0], "the mask changed");
     }
 }

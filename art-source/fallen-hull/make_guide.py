@@ -19,6 +19,14 @@ every piece keeps its guide box, so the exporter cuts it at the guide's frame sc
            the walker master layout of `art-source/derelict-walker/guide.py` (assembled walker on the left, torso, thigh
            and shin apart on the right, 256 px a cell, flat #b4b4b4 ground) with the stripper's, the hauler's and the
            one-unit stripper-hauler's (`rig`, pick `stripper-hauler` b) own torsos and legs at their size.
+  armour   the hull entered: its outer armour wall as a 'wall-faces-4x4' block (sixteen exposed-face masks, a lit lip
+           on each open face and a spine along each joined one), the same sixteen blown open as torn roots (its rubble
+           block, the breach edges), and its hatch and viewport as 'cardinal-2x2' openings; 140 px a cell on a 156 px
+           pitch, each cell apart on a transparent gutter.
+  fittings the hull's own interior dressing over the generic ship-* rooms, 128 px a cell (FITTINGS below): a frame rib
+           and a conduit run drawn three cells long (the middle cell ships, joined end to end), a conduit junction,
+           survey console, instrument rack and sensor drum, the bay's launch cradle, the forge's hopper, coolant
+           tanks and cable runs, breach plating and scatter, and crushed charcoal bulkheads.
 
 Usage: python art-source/fallen-hull/make_guide.py   (writes guides/<sheet>-guide.png and guides/layout.json)
 """
@@ -448,6 +456,302 @@ def trench(d):
             d.polygon(lopsided(cx, cy, rx * 0.6, ry * 0.55, seed + 2), fill=(70, 74, 72, 255))
 
 
+# ---------------------------------------------------------------- the hull entered: armour and fittings
+
+BULKHEAD = (92, 95, 100, 255)   # the ship's own charcoal interior bulkhead (`ship.neutral-bulkhead`), not armour
+GLASS = (58, 104, 116, 255)
+
+ARMOUR_CELL = 140
+ARMOUR_PITCH = 156               # cells sit apart on a transparent gutter, so each is cut inside its own outline
+ARMOUR_WALLS = (24, 24)          # 'wall-faces-4x4': slot = mask % 4, mask / 4; N=1 E=2 S=4 W=8
+ARMOUR_BREACH = (680, 24)        # the same sixteen masks as torn roots (the wall's rubble block)
+ARMOUR_HATCH = (24, 672)         # 'cardinal-2x2': N E / S W
+ARMOUR_PORT = (372, 672)
+ARMOUR_RIM = 22                  # the armour lip on an exposed face, px at 140 a cell
+SPINE = 12                       # the cap's spine ridge, along the wall's run
+
+
+def _exposed(mask):
+    return {s: bool(mask & b) for s, b in (("n", 1), ("e", 2), ("s", 4), ("w", 8))}
+
+
+def armour_wall(d, x0, y0, mask):
+    """One wall cell: an armour cap edge to edge, a lip on every exposed face, a spine along every joined side."""
+    c = ARMOUR_CELL
+    x1, y1 = x0 + c, y0 + c
+    cx, cy = x0 + c / 2, y0 + c / 2
+    ex = _exposed(mask)
+    d.rectangle((x0, y0, x1 - 1, y1 - 1), fill=PLATE)
+    # The spine joins the cell's middle to each side it shares with more wall, so runs read as one length of armour.
+    joined = [s for s in "nesw" if not ex[s]]
+    for s in joined:
+        tx, ty = {"n": (cx, y0), "s": (cx, y1), "e": (x1, cy), "w": (x0, cy)}[s]
+        d.line([(cx, cy), (tx, ty)], fill=RAISED, width=SPINE * 2)
+    if joined:
+        d.rectangle((cx - SPINE, cy - SPINE, cx + SPINE, cy + SPINE), fill=RAISED)
+    else:
+        disc(d, cx, cy, 26, RAISED, 3)
+        disc(d, cx, cy, 8, DARK, 2)
+    r = ARMOUR_RIM
+    # Lit lip on the north and west faces, shadowed on the south and east (sun from the north-west).
+    if ex["n"]:
+        d.rectangle((x0, y0, x1 - 1, y0 + r), fill=RAISED)
+        d.line([(x0, y0 + 1), (x1 - 1, y0 + 1)], fill=OUTLINE, width=4)
+        d.line([(x0, y0 + r), (x1 - 1, y0 + r)], fill=SEAM, width=3)
+    if ex["s"]:
+        d.rectangle((x0, y1 - 1 - r, x1 - 1, y1 - 1), fill=SEAM)
+        d.line([(x0, y1 - 2), (x1 - 1, y1 - 2)], fill=OUTLINE, width=4)
+        d.line([(x0, y1 - 1 - r), (x1 - 1, y1 - 1 - r)], fill=SEAM, width=3)
+    if ex["w"]:
+        d.rectangle((x0, y0, x0 + r, y1 - 1), fill=RAISED)
+        d.line([(x0 + 1, y0), (x0 + 1, y1 - 1)], fill=OUTLINE, width=4)
+        d.line([(x0 + r, y0), (x0 + r, y1 - 1)], fill=SEAM, width=3)
+    if ex["e"]:
+        d.rectangle((x1 - 1 - r, y0, x1 - 1, y1 - 1), fill=SEAM)
+        d.line([(x1 - 2, y0), (x1 - 2, y1 - 1)], fill=OUTLINE, width=4)
+        d.line([(x1 - 1 - r, y0), (x1 - 1 - r, y1 - 1)], fill=SEAM, width=3)
+    # A hazard bar on the lip of a run's end, where three faces are open.
+    if bin(mask).count("1") == 3:
+        end = joined[0] if joined else "n"
+        opp = {"n": "s", "s": "n", "e": "w", "w": "e"}[end]
+        if opp == "n":
+            d.rectangle((cx - 30, y0 + 4, cx + 30, y0 + r - 4), fill=ACCENT)
+        elif opp == "s":
+            d.rectangle((cx - 30, y1 - r + 4, cx + 30, y1 - 5), fill=ACCENT)
+        elif opp == "w":
+            d.rectangle((x0 + 4, cy - 30, x0 + r - 4, cy + 30), fill=ACCENT)
+        else:
+            d.rectangle((x1 - r + 4, cy - 30, x1 - 5, cy + 30), fill=ACCENT)
+
+
+def armour_breach(d, x0, y0, mask):
+    """The same cell blown open: torn stubs of armour from each side it joined, ground showing between, a few shards."""
+    c = ARMOUR_CELL
+    x1, y1 = x0 + c, y0 + c
+    cx, cy = x0 + c / 2, y0 + c / 2
+    ex = _exposed(mask)
+    seed = 400 + mask
+    half = 46                     # a stub's half-width across the run
+    reach = 0.42 * c              # how far it reaches in from its side
+    for i, s in enumerate("nesw"):
+        if ex[s]:
+            continue
+        sd = seed * 7 + i
+        if s == "n":
+            pts = [(cx - half, y0), (cx + half, y0)] + torn(cx + half, y0 + reach * 0.8, cx - half, y0 + reach, 5, 12, sd)
+        elif s == "s":
+            pts = [(cx + half, y1 - 1), (cx - half, y1 - 1)] + torn(cx - half, y1 - reach, cx + half, y1 - reach * 0.75,
+                                                                    5, 12, sd)
+        elif s == "e":
+            pts = [(x1 - 1, cy - half), (x1 - 1, cy + half)] + torn(x1 - reach * 0.85, cy + half, x1 - reach,
+                                                                    cy - half, 5, 12, sd)
+        else:
+            pts = [(x0, cy + half), (x0, cy - half)] + torn(x0 + reach, cy - half, x0 + reach * 0.8, cy + half, 5,
+                                                            12, sd)
+        d.polygon(pts, fill=PLATE, outline=OUTLINE, width=3)
+        # the stub's own spine, ending ragged
+        if s in "ns":
+            yy = y0 + reach * 0.7 if s == "n" else y1 - reach * 0.7
+            d.line([(cx, y0 if s == "n" else y1), (cx, yy)], fill=RAISED, width=SPINE * 2)
+        else:
+            xx = x1 - reach * 0.7 if s == "e" else x0 + reach * 0.7
+            d.line([(x1 if s == "e" else x0, cy), (xx, cy)], fill=RAISED, width=SPINE * 2)
+    rnd = random.Random(seed)
+    for _ in range(4 if mask != 15 else 7):
+        px, py = rnd.uniform(cx - 34, cx + 34), rnd.uniform(cy - 34, cy + 34)
+        poly(d, lopsided(px, py, rnd.uniform(9, 17), rnd.uniform(5, 10), rnd.randint(0, 999), 6, 0.4,
+                         rnd.random() * 3), rnd.choice((PLATE, RAISED, SEAM)), 2)
+
+
+def armour_hatch(d, x0, y0, facing):
+    """An armoured hatch in the wall's line: its leaf across the cell's middle, hazard bars at the jambs."""
+    c = ARMOUR_CELL
+    x1, y1 = x0 + c, y0 + c
+    cx, cy = x0 + c / 2, y0 + c / 2
+    t = 20                         # the leaf's half-depth
+    if facing in "ns":
+        rect(d, x0, cy - t, x1 - 1, cy + t, RAISED, 4)
+        d.line([(cx, cy - t), (cx, cy + t)], fill=OUTLINE, width=4)
+        d.rectangle((x0 + 4, cy - t + 5, x0 + 24, cy + t - 5), fill=ACCENT)
+        d.rectangle((x1 - 25, cy - t + 5, x1 - 5, cy + t - 5), fill=ACCENT)
+    else:
+        rect(d, cx - t, y0, cx + t, y1 - 1, RAISED, 4)
+        d.line([(cx - t, cy), (cx + t, cy)], fill=OUTLINE, width=4)
+        d.rectangle((cx - t + 5, y0 + 4, cx + t - 5, y0 + 26), fill=ACCENT)
+        d.rectangle((cx - t + 5, y1 - 27, cx + t - 5, y1 - 5), fill=ACCENT)
+
+
+def armour_port(d, x0, y0, facing):
+    """A viewport in the armour: a framed slit of dark glass along the cell's side the wall runs on."""
+    c = ARMOUR_CELL
+    x1, y1 = x0 + c, y0 + c
+    depth = 44
+    box = {"n": (x0, y0, x1 - 1, y0 + depth), "s": (x0, y1 - 1 - depth, x1 - 1, y1 - 1),
+           "w": (x0, y0, x0 + depth, y1 - 1), "e": (x1 - 1 - depth, y0, x1 - 1, y1 - 1)}[facing]
+    rect(d, *box, PLATE, 4)
+    bx0, by0, bx1, by1 = box
+    rect(d, bx0 + 12, by0 + 12, bx1 - 12, by1 - 12, GLASS, 3)
+    if facing in "ns":
+        d.line([((bx0 + bx1) / 2, by0 + 12), ((bx0 + bx1) / 2, by1 - 12)], fill=OUTLINE, width=5)
+    else:
+        d.line([(bx0 + 12, (by0 + by1) / 2), (bx1 - 12, (by0 + by1) / 2)], fill=OUTLINE, width=5)
+
+
+def armour_sheet(d):
+    c = ARMOUR_PITCH
+    for mask in range(16):
+        col, row = mask % 4, mask // 4
+        armour_wall(d, ARMOUR_WALLS[0] + col * c, ARMOUR_WALLS[1] + row * c, mask)
+        armour_breach(d, ARMOUR_BREACH[0] + col * c, ARMOUR_BREACH[1] + row * c, mask)
+    for i, facing in enumerate("nesw"):
+        col, row = i % 2, i // 2
+        armour_hatch(d, ARMOUR_HATCH[0] + col * c, ARMOUR_HATCH[1] + row * c, facing)
+        armour_port(d, ARMOUR_PORT[0] + col * c, ARMOUR_PORT[1] + row * c, facing)
+
+
+FIT_CELL = 128
+# name: (col, row, cells wide, cells high) on a 12 x 8 grid of 128 px cells; a run is drawn three cells long and its
+# middle cell is what ships, so it joins end to end.
+FITTINGS = {
+    "rib-run": (0, 0, 3, 1),
+    "conduit-run": (4, 0, 3, 1),
+    "conduit-junction": (8, 0, 1, 1),
+    "survey-console": (10, 0, 1, 1),
+    "hangar-cradle": (0, 2, 4, 3),
+    "sensor-drum": (5, 2, 2, 2),
+    "forge-coolant": (8, 2, 2, 2),
+    "breach-scatter": (11, 2, 1, 1),
+    "survey-rack": (5, 5, 2, 1),
+    "forge-hopper": (8, 5, 2, 1),
+    "breach-plating": (0, 6, 2, 2),
+    "crushed-bulkhead-a": (3, 7, 2, 1),
+    "crushed-bulkhead-b": (6, 7, 3, 1),
+    "forge-cables": (10, 7, 2, 1),
+}
+
+
+def fitting(d, name, col, row, cw, ch):
+    c = FIT_CELL
+    x0, y0 = col * c, row * c
+    x1, y1 = x0 + cw * c, y0 + ch * c
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    seed = sum(map(ord, name))
+    rnd = random.Random(seed)
+    if name == "rib-run":
+        # a frame rib across the deck, flush: a band with lightening holes every half cell
+        rect(d, x0 - 4, cy - 26, x1 + 4, cy + 26, SEAM, 4)
+        for k in range(cw * 2):
+            hx = x0 + c / 4 + k * c / 2
+            d.ellipse((hx - 18, cy - 11, hx + 18, cy + 11), fill=VOID, outline=OUTLINE, width=3)
+        for k in range(cw * 4):
+            bx = x0 + c / 8 + k * c / 4
+            disc(d, bx, cy - 20, 3, RAISED, 1)
+            disc(d, bx, cy + 20, 3, RAISED, 1)
+    elif name == "conduit-run":
+        # three pipes and a cable along the deck, a clamp in each cell's middle
+        for off, w, fill in ((-28, 16, PLATE), (-6, 12, RAISED), (14, 14, PLATE), (34, 8, DARK)):
+            rect(d, x0 - 4, cy + off - w / 2, x1 + 4, cy + off + w / 2, fill, 3)
+        for k in range(cw):
+            kx = x0 + c / 2 + k * c
+            rect(d, kx - 9, cy - 44, kx + 9, cy + 44, SEAM, 3)
+    elif name == "conduit-junction":
+        for off, w, fill in ((-28, 16, PLATE), (-6, 12, RAISED), (14, 14, PLATE)):
+            rect(d, x0 - 4, cy + off - w / 2, x1 + 4, cy + off + w / 2, fill, 3)
+            rect(d, cx + off - w / 2, y0 - 4, cx + off + w / 2, y1 + 4, fill, 3)
+        rect(d, cx - 44, cy - 44, cx + 44, cy + 44, RAISED, 5, radius=8)
+        disc(d, cx, cy, 18, DARK)
+        disc(d, cx + 28, cy - 28, 6, LENS, 2)
+    elif name == "survey-console":
+        poly(d, [(x0 + 18, y0 + 30), (x1 - 18, y0 + 30), (x1 - 30, y1 - 22), (x0 + 30, y1 - 22)], RAISED, 4)
+        rect(d, x0 + 32, y0 + 40, x1 - 32, cy + 6, GLASS, 3)
+        for k in range(4):
+            disc(d, x0 + 42 + k * 15, y1 - 38, 4, LENS if k == 0 else SEAM, 2)
+    elif name == "hangar-cradle":
+        # a launch cradle: two long rails with clamp arms, the deck open between them
+        for ry in (y0 + 40, y1 - 40):
+            rect(d, x0 + 16, ry - 22, x1 - 16, ry + 22, PLATE, 5)
+            for k in range(5):
+                kx = x0 + 70 + k * (cw * c - 140) / 4
+                ty = ry + (26 if ry < cy else -26)
+                poly(d, [(kx - 16, ry), (kx + 16, ry), (kx + 10, ty + (30 if ry < cy else -30)),
+                         (kx - 10, ty + (30 if ry < cy else -30))], RAISED, 3)
+            d.rectangle((x0 + 20, ry - 6, x0 + 60, ry + 6), fill=ACCENT)
+            d.rectangle((x1 - 60, ry - 6, x1 - 20, ry + 6), fill=ACCENT)
+        for ex in (x0 + 16, x1 - 64):
+            rect(d, ex, y0 + 40, ex + 48, y1 - 40, SEAM, 4)
+    elif name == "sensor-drum":
+        disc(d, cx, cy, 112, PLATE, 5)
+        disc(d, cx, cy, 82, RAISED, 4)
+        disc(d, cx, cy, 40, GLASS, 4)
+        for k in range(8):
+            a = k * math.pi / 4
+            rect(d, cx + math.cos(a) * 97 - 8, cy + math.sin(a) * 97 - 8, cx + math.cos(a) * 97 + 8,
+                 cy + math.sin(a) * 97 + 8, SEAM, 2)
+        disc(d, cx + 58, cy - 58, 7, LENS, 2)
+    elif name == "forge-coolant":
+        for tx, ty in ((x0 + 72, y0 + 72), (x1 - 72, y1 - 72)):
+            disc(d, tx, ty, 56, PLATE, 5)
+            disc(d, tx, ty, 22, RAISED, 3)
+        rect(d, x0 + 72, y1 - 84, x1 - 72, y1 - 60, SEAM, 3)
+        rect(d, x0 + 60, y0 + 72, x0 + 84, y1 - 72, SEAM, 3)
+        d.rectangle((x0 + 60, cy - 6, x0 + 84, cy + 18), fill=ACCENT)
+    elif name == "breach-scatter":
+        for _ in range(6):
+            px, py = rnd.uniform(x0 + 24, x1 - 24), rnd.uniform(y0 + 24, y1 - 24)
+            poly(d, lopsided(px, py, rnd.uniform(10, 20), rnd.uniform(6, 12), rnd.randint(0, 999), 6, 0.4,
+                             rnd.random() * 3), rnd.choice((PLATE, RAISED, SEAM)), 2)
+    elif name == "survey-rack":
+        rect(d, x0 + 10, y0 + 24, x1 - 10, y1 - 24, RAISED, 5)
+        for k in range(5):
+            mx = x0 + 22 + k * (cw * c - 44) / 5
+            rect(d, mx + 4, y0 + 34, mx + (cw * c - 44) / 5 - 4, y1 - 34, PLATE if k % 2 else SEAM, 3)
+            disc(d, mx + (cw * c - 44) / 10, cy, 9, GLASS if k % 2 else LENS, 2)
+    elif name == "forge-hopper":
+        rect(d, x0 + 10, y0 + 14, x1 - 10, y1 - 14, PLATE, 5)
+        rect(d, x0 + 28, y0 + 30, x1 - 28, y1 - 30, DARK, 3)
+        for _ in range(7):
+            px, py = rnd.uniform(x0 + 44, x1 - 44), rnd.uniform(y0 + 40, y1 - 40)
+            poly(d, lopsided(px, py, rnd.uniform(8, 16), rnd.uniform(5, 9), rnd.randint(0, 999), 6, 0.4,
+                             rnd.random() * 3), rnd.choice((SEAM, RAISED)), 2)
+        d.rectangle((x0 + 14, y0 + 18, x0 + 40, y0 + 26), fill=ACCENT)
+    elif name == "breach-plating":
+        pts = torn(x0 + 20, y0 + 30, x1 - 26, y0 + 18, 7, 14, seed) + \
+            torn(x1 - 26, y0 + 18, x1 - 18, y1 - 30, 7, 14, seed + 1)[1:] + \
+            torn(x1 - 18, y1 - 30, x0 + 30, y1 - 20, 7, 14, seed + 2)[1:] + \
+            torn(x0 + 30, y1 - 20, x0 + 20, y0 + 30, 7, 14, seed + 3)[1:-1]
+        poly(d, pts, PLATE, 5)
+        d.line([(x0 + 40, y1 - 50), (x1 - 50, y0 + 50)], fill=OUTLINE, width=6)   # the fold
+        poly(d, [(cx + 6, cy - 6), (x1 - 40, y0 + 40), (x1 - 30, cy)], SEAM, 3)
+        d.line([(x0 + 40, cy), (cx, y1 - 40)], fill=RAISED, width=SPINE * 2)
+    elif name.startswith("crushed-bulkhead"):
+        # a charcoal bulkhead run folded and crumpled where the hull came down on it, torn at both ends
+        n = cw * 3
+        top, bot = [], []
+        for k in range(n + 1):
+            t = k / n
+            zig = (18 if k % 2 else -18) * (0.4 + 0.6 * rnd.random())
+            xx = x0 + 18 + t * (cw * c - 36)
+            top.append((xx, cy - 20 + zig))
+            bot.append((xx, cy + 20 + zig))
+        left = torn(top[0][0], top[0][1], bot[0][0], bot[0][1], 3, 8, seed)
+        right = torn(bot[-1][0], bot[-1][1], top[-1][0], top[-1][1], 3, 8, seed + 1)
+        poly(d, top + right[1:] + bot[::-1][1:] + left[1:-1], BULKHEAD, 4)
+        for k in range(1, n):
+            d.line([top[k], bot[k]], fill=OUTLINE, width=3)
+    elif name == "forge-cables":
+        for k, (w, fill) in enumerate(((14, DARK), (10, SEAM), (12, DARK), (8, ACCENT))):
+            pts = [(x0 + 6 + t * (cw * c - 12) / 12,
+                    cy - 30 + k * 18 + 12 * math.sin(t / 12 * 2 * math.pi + k)) for t in range(13)]
+            d.line(pts, fill=OUTLINE, width=w + 6, joint="curve")
+            d.line(pts, fill=fill, width=w, joint="curve")
+        rect(d, cx - 16, cy - 46, cx + 16, cy + 46, RAISED, 4)
+
+
+def fittings_sheet(d):
+    for name, (col, row, cw, ch) in FITTINGS.items():
+        fitting(d, name, col, row, cw, ch)
+
+
 # ---------------------------------------------------------------- walkers
 
 def walker_torso(d, cx, cy, design, s):
@@ -582,6 +886,14 @@ def main():
     for design in ("stripper", "hauler", "rig"):
         walker_guide(design).save(GUIDES / f"{design}-guide.png")
 
+    img = sheet()
+    armour_sheet(ImageDraw.Draw(img))
+    img.save(GUIDES / "armour-guide.png")
+
+    img = sheet()
+    fittings_sheet(ImageDraw.Draw(img))
+    img.save(GUIDES / "fittings-guide.png")
+
     layout = {
         "canvas": [W, H],
         "hull": {"cellPx": HULL_CELL, "body": HULL_BOX, "stern": STERN_BOX},
@@ -599,6 +911,11 @@ def main():
                    "patches": {n: [round(cx - rx * 1.4), round(cy - ry * 1.4), round(cx + rx * 1.4), round(cy + ry * 1.4)]
                                for n, (cx, cy, rx, ry) in TRENCH_PATCHES.items()}},
     }
+    layout["armour"] = {"cellPx": ARMOUR_CELL, "pitch": ARMOUR_PITCH, "walls": ARMOUR_WALLS, "breach": ARMOUR_BREACH,
+                        "hatch": ARMOUR_HATCH, "port": ARMOUR_PORT}
+    layout["fittings"] = {"cellPx": FIT_CELL,
+                          "frames": {n: [col * FIT_CELL, row * FIT_CELL, (col + cw) * FIT_CELL, (row + ch) * FIT_CELL]
+                                     for n, (col, row, cw, ch) in FITTINGS.items()}}
     layout["walkers"] = {dz: {"torsoCellPx": ts, "legCellPx": walker.CELL, "parts": walker.PARTS,
                               "thighCells": walker.THIGH_LEN, "shinCells": walker.SHIN_LEN}
                          for dz, (ts, _) in TORSO_FIT.items()}

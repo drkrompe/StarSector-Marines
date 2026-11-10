@@ -273,7 +273,7 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null) {
             VehicleMount coaxMount = type.coaxMount();
             if (coaxMount != null && coax != null && VehicleGunCard.COAX.accepts(coax)) {
-                turret.secondaries.add(MountedGun.of(coaxMount.withPart(coax), loader));
+                turret.secondaries.add(MountedGun.of(coaxMount.withPart(type, coax), loader));
             }
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, loader));
             HullReservoir.install(turret, HullReservoir.create(flux));

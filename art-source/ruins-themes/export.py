@@ -79,7 +79,9 @@ BRIDGE_RAWS = {"forge-bridge": ("ruins-forge-bridge.raw.png", BRIDGE)}
 SPANS = ("transfer-bridge-span", "transfer-bridge-span-damaged")
 # The ruins rooms' furniture (``ruins-theme-rooms``, the list in ``rooms_list.py``) on one sheet, ``ruins-rooms``,
 # 32 cells wide: every piece cut at its exact frame, its hazard trim muted as the works pieces' is.
-ROOMS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in rooms_list.FAMILIES[f] if e)) for f in rooms_list.FAMILIES}
+ROOMS_RAWS = {f: (f"ruins-{f}.raw.png", tuple(e[0] for e in rooms_list.FAMILIES[f]
+                                             if e and rooms_list.REDRAWN.get(e[0], f) == f))
+              for f in rooms_list.FAMILIES}
 ROOMS = tuple(pid for f in ROOMS_RAWS for pid in ROOMS_RAWS[f][1])
 # The theme works halls' pieces (``ruins-theme-halls``) ship on a third sheet, ``ruins-works``: every piece is cut at
 # its exact guide frame, so a run and a wall block keep their edges flush.

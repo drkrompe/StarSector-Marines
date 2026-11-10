@@ -1,9 +1,9 @@
 # Raid: demolish the works, and a works worth assaulting
 
-Status: IN PROGRESS. Built on the recommended options while the owner's picks
-are open: `raid-demolition-targets` (a), `raid-demolition-fall` (a),
-`raid-demolition-marker` (a), `raid-demolition-effort` (a). The first slice is
-built (below).
+Status: IN PROGRESS. The owner picked (a) on all four:
+`raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
+`raid-demolition-effort`. Slices 1 to 4 are built; slice 5 (more works
+defences) waits on its pick, `raid-works-defences`.
 
 Written: 2026-11-10
 
@@ -46,7 +46,7 @@ Fits `raid-mission.md`'s nouns; nothing replaces the machine.
 - A **structure target** is a building the company may fire on for the
   objective (pick `raid-demolition-targets`). Firing on one is **working** it.
 
-## Decisions (owner's picks page)
+## Decisions (owner's picks page, all picked (a))
 
 Pictures under `review/owned-maps/2026-11-10_raid-demolition_win/`, drawn on
 the owned heavy-industry works; the fall pictures knock real wall cells down,
@@ -79,33 +79,35 @@ brought down is wrecked with no charge, raises the alarm like a charge, and
 opens the way out. `RaidObjective.hallProgress` is the marker's 0-to-1 reading.
 Tests: `BuildingStandingTest`, `RaidWorksObjectiveTest`.
 
-### 2. The fall reads from above
+### 2. The fall reads from above: BUILT
 
 A hall's roof hides its walls from the camera, so a hall half down still looks
-whole (the fall pictures). When a hall is brought down its roof caves in over
-the floor (`MapEditor.destroyRoof`, `RoofDamage.COLLAPSED`), showing the wrecked
-machine inside. Decided by the objective, applied once through the map editor;
-tested on the rule, not in a battle.
+whole. When a hall is brought down the objective tells the battle once
+(`RaidObjective.withHalls`, its fall listener) and the Raid setup caves the
+hall's roof in over its floor (`MapEditor.destroyRoof`, `RoofDamage.COLLAPSED`),
+showing the wrecked machine inside. Test: `RaidWorksObjectiveTest`.
 
-### 3. The marker
+### 3. The marker: BUILT
 
-On the recommended look: the raid works family
-(`MissionObjectiveFamilies.raidWorks`) draws each hall's footprint in place of
-its machine's pocket circle, with the progress ring filled by the larger of the
-charge and `hallProgress`. A hall brought down draws as wrecked. The objective
-snapshot (`MissionObjectiveSnapshot.Item`) carries the hall's footprint.
+The raid works family (`MissionObjectiveFamilies.raidWorks`) marks a machine in
+a hall by the hall's floor as its footprint, in place of the pocket circle,
+with a ring of its own (`MissionObjectiveSnapshot.Marker.progress`) filled by
+`RaidObjective.siteProgress`: the charge or the hall's fall, whichever is
+further along. Every standing hall shows its outline and ring, not only the
+focused one (`MissionMarkerRenderSystem`). A machine in the open keeps its
+pocket. Test: `MissionObjectiveFamiliesTest`.
 
-### 4. Squads work a structure
+### 4. Squads work a structure: BUILT
 
-On the recommended effort: a structure target joins target choice
-(`TacticalScoring.findBestTarget`) as a candidate scored behind every enemy in
-sight, so a squad with no enemy in sight and a hall in reach fires on its
-nearest standing outline cell. Only weapons with wall damage
-(`WeaponDef.wallDamage`) take it up; a rifle's few points are not worth a
-magazine. The squad's own aim point is the cell, so the existing wall damage
-path does the rest. Mission command gives the assault an order to work the
-halls once the works is held (`mission-command-nouns.md`). The rule is proven
-where the score is decided, by unit test.
+A squad of the raiding side with no wall of its own to open works the halls in
+the ordered-breach pass (`WallBreachSystem`), which already spends only
+wall-damage kit (launchers, satchels, mech mounts with wall damage) under every
+gate the weapon has. It does so only while none of its members has a body to
+fire at, so a structure ranks behind every enemy in sight; each member takes
+the nearest standing outline cell of an unwrecked machine's hall within reach
+(`WorksDemolition`). Rifles do not work walls. It is the squad's own reflex,
+not an order: the player still commands the company. Test:
+`WorksDemolitionTest`.
 
 ### 5. A works worth assaulting
 
@@ -113,12 +115,16 @@ The owner: "We likely need to add a good amount of defenses still." Today a
 works has its wall, gates, two to four emplacements and its own guard. Proposed,
 scaled by security like everything else in `raid-mission.md`:
 
-- **Open**: the works' fence, its guard rooms held.
-- **Guarded**: adds wire and sandbagged firing points along the approach the
-  landing faces, and a bunker at each gate.
-- **Fortified**: adds a second gun per emplacement, a watch tower over each
-  hall, and hard cover inside the works so a hall is fought for once the wall
-  is passed.
+- **Open**: the wall and the works' own guard, as today.
+- **Guarded**: adds a hedgehog belt outside the wall and a sandbagged
+  checkpoint at each gate.
+- **Fortified**: adds a watchtower in each corner of the wall and sandbag
+  parapets round every hall, so a hall is fought for once the wall is passed.
+
+The pick `raid-works-defences` (pictures under
+`review/owned-maps/2026-11-10_raid-works-defences_win/`, mock-ups with the
+game's own props): (a) layered by security as above (recommended); (b) the
+wall line only; (c) round the halls only.
 
 Placed by the works' precinct like its emplacements (`PrecinctDefence`), named
 with the works' place so the works' guard seats them first

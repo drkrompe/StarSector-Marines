@@ -138,15 +138,34 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
 `MapResult.hullSite` (`HullSite`), the seam the rules read:
 
 - **The hull** is one survey mothership plan (`HullPlan`, 88 by 32 cells, its
-  bow tapering), laid on a cardinal heading in the ruins megastructure's
-  materials under one roof (`RuinsRoofStage.roofSolid`), its interior published
-  as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls, leaf doors). A
-  four-cell freight spine runs from the stern's cargo door to the **forge
-  hall** (the interior's vault, the autoforge on its keel line near the bow),
-  with four-cell cargo docks into three holds and the **launch bay** and a
+  bow tapering), laid on a cardinal heading and built as a ship from the
+  ship-interior kits, so going in reads as boarding a wreck. Its interior is
+  published as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls, leaf
+  doors). A four-cell freight spine runs from the stern's cargo door to the
+  **forge hall** (the interior's vault, the autoforge on its keel line near the
+  bow), with four-cell cargo docks into three holds and the **launch bay** and a
   two-cell service door to the crew deck (`derelict-watch.md`, section 3). Ways
-  in: the stern door onto the trench, the bay's door on the port flank, and a
-  breach torn through the starboard flank, each with an apron and two berths.
+  in: the stern door onto the trench, the bay's door on the port flank, and
+  three **breaches** the crash tore through the shell (amidships starboard into
+  the spine, port into the third hold, starboard into the first), each with an
+  apron and two berths. A breach is open sky over rubble, its edge the armour's
+  broken stubs, and has no door.
+- **Shell and bulkheads.** The solid hull within two cells of the outside or a
+  breach is the **armour** (`fallen-hull.armour-wall` once the art ships it,
+  the hull-plate installation wall until then); the rest is the ship deck's own
+  bulkhead. Each **compartment** (the spine with the stern door, and each hall
+  with its dock) has its kit's deck: passage plate, worn hold plate, bay deck,
+  crew deck, bolted plate in the forge hall. `HullDressing` racks what is left
+  of the cargo against the holds' walls, stands the forge hall's plant in its aft
+  corners and switchgear on its flanks (all clear of the docks, the ways in and
+  the autoforge's ground), and strews wear, grime and debris flat on every deck.
+- **The roof.** Every hull cell but a breach is marked `RoofKind.HULL`, so the
+  whole ship roofs as hull plating (drawn from the ship's painting) whatever
+  its walls are. The solid mass is one building (`RuinsRoofStage.roofSolid`)
+  that never opens; the deck is split into **one building per compartment**
+  (`CrashSiteFinishStage.splitCompartments`), so a unit that boards opens the
+  compartment it stands in (`BuildingVisibilityPass`) and the rest of the ship
+  stays roofed.
 - **The trench** runs behind the stern for the patch's length, 24 cells wide
   at the stern narrowing to 8 where the hull first touched down, ploughed earth
   and rubble with spoil on its lips and scrap on its floor. **Debris** is up to

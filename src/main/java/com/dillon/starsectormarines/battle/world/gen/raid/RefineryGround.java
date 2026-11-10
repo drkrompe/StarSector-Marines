@@ -59,6 +59,33 @@ public final class RefineryGround {
     static final float COLUMN_SPAN = 2.5f, COLUMN_AT = .4f;
     static final float SPHERE_SPAN = 2f, SPHERE_AT = .375f;
     static final float FLARE_SPAN = 4f, FLARE_AT = .5f;
+    /**
+     * The props that say what each house does ({@code refinery-utilities}): a fired heater's or the boiler's furnace
+     * stack, the boiler's cooling tower, the pump skids at the receiving and pump houses, the control room's comms mast,
+     * the lab's gas rack, and the loading islands between the tankers.
+     */
+    static final String STACK_ART = "refinery.stack";
+    static final String TOWER_ART = "refinery.cooling-tower";
+    static final String SKID_ART = "refinery.pump-skid";
+    static final String MAST_ART = "refinery.mast";
+    static final String ISLAND_ART = "refinery.loading-island";
+    static final String GAS_ART = "refinery.gas-rack";
+    /** A stack's chimney, and its frame: four chimneys across, the chimney 0.375 along (it leans its smoke away). */
+    static final int STACK = 4;
+    static final float STACK_SPAN = 4f, STACK_AT = .375f;
+    /** The cooling tower's round footprint, the biggest that fits; its frame is its rim. */
+    static final int[] TOWERS = {8, 6};
+    /** A pump skid stands on 6 by 2 cells, drawn in a 6-cell frame from {@link #SKID_ROW} rows above them. */
+    static final int SKID_X = 6, SKID_Y = 2, SKID_FRAME = 6, SKID_ROW = 2;
+    /** The comms mast's base, and its frame: five bases across, centred. */
+    static final int MAST = 2;
+    static final float MAST_SPAN = 5f, MAST_AT = .5f;
+    /** The lab's gas rack on 4 by 2 cells, drawn in a 4-cell frame from a row above them. */
+    static final int GAS_X = 4, GAS_Y = 2, GAS_FRAME = 4, GAS_ROW = 1;
+    /** A loading island between two tankers: the gap it stands in, and its 8-cell frame, from a cell before it. */
+    static final int ISLAND_GAP = 4, ISLAND_FRAME = 8;
+    /** Cells between a house's wall and a prop beside it. */
+    static final int PROP_GAP = 1;
     /** A big spill where a tank weeps. */
     static final int SPILL = 6;
     /** Small stains: the loading arms' drips and the flare's soot. */
@@ -161,6 +188,8 @@ public final class RefineryGround {
         final boolean[] racked;
         final Precinct works;
         final int[] claimBox;
+        /** Each unit's column foot, in the order the plots were laid: where the raid sets its charges. */
+        final List<int[]> machines = new ArrayList<>();
 
         Dresser(GenContext c, PrecinctPlan plan, boolean[] reserved, IntPredicate free, TileRegistry registry) {
             this.c = c;
@@ -180,8 +209,23 @@ public final class RefineryGround {
             List<House> units = rooms(RefiningWorks.UNIT_ROOM);
             List<House> receiving = rooms(RefiningWorks.RECEIVING_ROOM);
             List<House> pump = rooms(RefiningWorks.PUMP_ROOM);
+            List<House> boiler = rooms(RefiningWorks.BOILER_ROOM);
             TankFarm.Plan farm = tankFarm(site);
             for (House unit : units) plot(unit);
+            // What each house does, stood beside it: a unit's furnace stack, the boiler's cooling tower and stack,
+            // the pumps where crude comes in and product goes out, the control room's mast, the lab's gases.
+            for (House unit : units) stack(unit);
+            for (House b : boiler) {
+                tower(b);
+                stack(b);
+            }
+            for (House r : receiving) skid(r);
+            for (House r : pump) skid(r);
+            // The control room is the biggest house of its purpose: the gate posts are guard rooms of the same.
+            House control = null;
+            for (House r : rooms(RefiningWorks.CONTROL)) if (control == null || area(r) > area(control)) control = r;
+            if (control != null) mast(control);
+            for (House r : rooms(RefiningWorks.LAB_ROOM)) gases(r);
             if (!receiving.isEmpty()) {
                 House manifold = receiving.get(0);
                 for (Piece piece : plan.layout().pieces()) {
@@ -200,6 +244,13 @@ public final class RefineryGround {
                 }
                 if (!pump.isEmpty()) chain.add(pump.get(0));
                 for (int k = 0; k + 1 < chain.size(); k++) link(chain.get(k), chain.get(k + 1));
+            }
+            // The steam main: from the boiler house to the unit nearest it.
+            if (!boiler.isEmpty() && !units.isEmpty()) {
+                House b = boiler.get(0);
+                House near = units.get(0);
+                for (House u : units) if (gap(b, u) < gap(b, near)) near = u;
+                link(b, near);
             }
             House out = !pump.isEmpty() ? pump.get(0) : units.isEmpty() ? null : units.get(units.size() - 1);
             if (farm != null && out != null) product(out, farm);
@@ -283,10 +334,11 @@ public final class RefineryGround {
             StreetDressing.pipeRun(c.grid, c.topology, c.doodads, bay[0], rackY, bay[2], rackY, 4);
             for (int x = bay[0]; x <= bay[2]; x++) racked[rackY * w + x] = true;
             if (tanker == null) return;
-            for (int x = bay[0] + 1; x + TRUCK_X <= bay[2] + 1; x += TRUCK_X + 2) {
+            DoodadDef island = registry.doodad(ISLAND_ART);
+            for (int x = bay[0] + ISLAND_GAP; x + TRUCK_X <= bay[2] + 1; x += TRUCK_X + ISLAND_GAP) {
                 if (truckY < 0 || truckY + TRUCK_Y > h) break;
                 boolean clear = true;
-                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = 0; dx < TRUCK_X; dx++) {
+                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = -ISLAND_GAP; dx < TRUCK_X; dx++) {
                     if (!c.grid.isWalkable(x + dx, y) || c.topology.isFixture(x + dx, y)) clear = false;
                 }
                 if (!clear) continue;
@@ -294,6 +346,14 @@ public final class RefineryGround {
                 if (truck == null) continue;
                 for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = 0; dx < TRUCK_X; dx++) fixture(x + dx, y, true);
                 c.doodads.add(truck);
+                // The island the truck fills from, in the gap before it, its arms reaching over to it.
+                Doodad arms = island == null ? null
+                        : scaled(island, ISLAND_FRAME, x - ISLAND_GAP - 1, truckY + TRUCK_Y / 2 - ISLAND_FRAME / 2);
+                if (arms == null) continue;
+                for (int y = truckY; y < truckY + TRUCK_Y; y++) {
+                    for (int dx = 2; dx < ISLAND_GAP; dx++) fixture(x - ISLAND_GAP + dx, y, true);
+                }
+                c.doodads.add(arms);
             }
         }
 
@@ -327,6 +387,14 @@ public final class RefineryGround {
                     stampDisc(sx, sy, stripper);
                     drawOver(COLUMN_ART, column, COLUMN_SPAN, COLUMN_AT, x, y);
                     drawOver(STRIPPER_ART, stripper, COLUMN_SPAN, COLUMN_AT, sx, sy);
+                    // The column's foot on the house's side: where a charge on the unit is set.
+                    int mid = column / 2;
+                    machines.add(switch (side) {
+                        case 0 -> new int[]{x + mid, y - 1};
+                        case 1 -> new int[]{x + mid, y + column};
+                        case 2 -> new int[]{x - 1, y + mid};
+                        default -> new int[]{x + column, y + mid};
+                    });
                     return true;
                 }
             }
@@ -347,6 +415,101 @@ public final class RefineryGround {
         boolean strands(int x0, int y0, int size) {
             List<int[]> cells = disc(x0, y0, size);
             return PlacementGuards.wouldStrandGround(c.grid, cells.toArray(new int[0][]));
+        }
+
+        // ---- what each house does ----
+
+        /**
+         * Open yard of {@code pw} by {@code ph} cells {@link #PROP_GAP} off {@code house}'s wall, its ground not yet
+         * dressed, where a prop of that footprint ({@code round} a disc) strands no ground: the first side and slide
+         * where it fits, or null.
+         */
+        int[] standBeside(House house, int pw, int ph, boolean round) {
+            for (int side = 0; side < 4; side++) {
+                for (int slide : PLOT_SLIDES) {
+                    int x, y;
+                    switch (side) {
+                        case 0 -> { x = house.left() + slide; y = house.bottom() + 1 + PROP_GAP; }
+                        case 1 -> { x = house.left() + slide; y = house.top() - PROP_GAP - ph; }
+                        case 2 -> { x = house.right() + 1 + PROP_GAP; y = house.top() + slide; }
+                        default -> { x = house.left() - PROP_GAP - pw; y = house.top() + slide; }
+                    }
+                    if (!plotFits(x, y, pw, ph) || dressed(x, y, pw, ph)) continue;
+                    List<int[]> cells = round ? disc(x, y, pw) : rect(x, y, pw, ph);
+                    if (PlacementGuards.wouldStrandGround(c.grid, cells.toArray(new int[0][]))) continue;
+                    return new int[]{x, y};
+                }
+            }
+            return null;
+        }
+
+        /** Whether any cell of the box or the ring round it is already dressed. */
+        boolean dressed(int x0, int y0, int pw, int ph) {
+            for (int y = y0 - 1; y <= y0 + ph; y++) for (int x = x0 - 1; x <= x0 + pw; x++) {
+                if (x >= 0 && y >= 0 && x < w && y < h && reserved[y * w + x]) return true;
+            }
+            return false;
+        }
+
+        List<int[]> rect(int x0, int y0, int pw, int ph) {
+            List<int[]> out = new ArrayList<>();
+            for (int y = y0; y < y0 + ph; y++) for (int x = x0; x < x0 + pw; x++) out.add(new int[]{x, y});
+            return out;
+        }
+
+        static int area(House house) {
+            return (house.right() - house.left() + 1) * (house.bottom() - house.top() + 1);
+        }
+
+        /** A furnace stack beside a fired heater or the boiler house: solid, its smoke and shadow drawn away. */
+        void stack(House house) {
+            if (registry.doodad(STACK_ART) == null) return;
+            int[] at = standBeside(house, STACK, STACK, true);
+            if (at == null) return;
+            stampDisc(at[0], at[1], STACK);
+            drawOver(STACK_ART, STACK, STACK_SPAN, STACK_AT, at[0], at[1]);
+        }
+
+        /** The boiler house's cooling tower: a big round solid beside it, a smaller one where the big does not fit. */
+        void tower(House house) {
+            if (registry.doodad(TOWER_ART) == null) return;
+            for (int size : TOWERS) {
+                int[] at = standBeside(house, size, size, true);
+                if (at == null) continue;
+                stampDisc(at[0], at[1], size);
+                drawOver(TOWER_ART, size, 1f, .5f, at[0], at[1]);
+                return;
+            }
+        }
+
+        /** A pump skid against a house: low, so cover that is seen over. */
+        void skid(House house) {
+            lowProp(house, SKID_ART, SKID_X, SKID_Y, SKID_FRAME, SKID_ROW);
+        }
+
+        /** The lab's gas rack against its wall: low cover. */
+        void gases(House house) {
+            lowProp(house, GAS_ART, GAS_X, GAS_Y, GAS_FRAME, GAS_ROW);
+        }
+
+        void lowProp(House house, String id, int pw, int ph, int frame, int row) {
+            DoodadDef art = registry.doodad(id);
+            if (art == null) return;
+            int[] at = standBeside(house, pw, ph, false);
+            if (at == null) return;
+            Doodad d = scaled(art, frame, at[0], at[1] - row);
+            if (d == null) return;
+            for (int[] cell : rect(at[0], at[1], pw, ph)) fixture(cell[0], cell[1], true);
+            c.doodads.add(d);
+        }
+
+        /** The control room's comms mast: a lattice base, seen through. */
+        void mast(House house) {
+            if (registry.doodad(MAST_ART) == null) return;
+            int[] at = standBeside(house, MAST, MAST, false);
+            if (at == null) return;
+            for (int[] cell : rect(at[0], at[1], MAST, MAST)) fixture(cell[0], cell[1], true);
+            drawOver(MAST_ART, MAST, MAST_SPAN, MAST_AT, at[0], at[1]);
         }
 
         // ---- the racks ----

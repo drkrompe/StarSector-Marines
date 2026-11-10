@@ -46,9 +46,9 @@ import java.util.function.IntPredicate;
  *
  * <p><b>In.</b> The farm roads are the site's feeders: they come in off the map's edges, from the planet's other
  * fields, and the fields nearest the hub line the roads and the places on the map's open ground ({@link #crops}), a few
- * of them dug as fish ponds ({@link #pond}), the wider ones and the open country beyond watered by centre pivots
- * ({@link #pivotPlots}, {@link #pivotGround}). Harvest haulers queue at the intake shed ({@link #haulerQueue}), the farm
- * roads' side first, and grain spilt in the tipping lies round it and round the loadout ({@link #spill}).
+ * of them dug as fish ponds ({@link #pond}), and the open country beyond is laid in long fields ({@link #countryPlots});
+ * now and then a wide field runs under a centre pivot ({@link #pivotGround}). Harvest haulers queue at the intake shed
+ * ({@link #haulerQueue}), the farm roads' side first, and grain spilt in the tipping lies round it and round the loadout ({@link #spill}).
  *
  * <p><b>Through.</b> The intake shed with its weighbridge office stands in the rear, where the farm roads enter;
  * the dryer, the silo battery (an elevator leg house per machine the raid wrecks, its round bins round it,
@@ -112,16 +112,21 @@ public final class GrainHub {
 
     /** A field this wide both ways is watered by a centre pivot and grows in rings. UNTUNED. */
     static final int PIVOT_FROM = 18;
-    /** Share of such fields under a pivot, in per cent. UNTUNED. */
-    static final int PIVOT_SHARE = 70;
+    /** Share of such fields under a pivot, in per cent: a variant some farms run, not the planet's way. UNTUNED. */
+    static final int PIVOT_SHARE = 10;
+    /** Pivot fields at most on one map, so the ordinary field stays the rule. UNTUNED. */
+    static final int PIVOT_MAX = 2;
     /** The pivot's boom: a pipe run from the centre to the rim, passable, no cover. */
     static final String BOOM = "doodad.pipe-rack-straight";
     /** Cells between the crop rings a pivot's wheels leave. */
     static final int RING_PITCH = 3;
-    /** Sides of the pivot circles laid on the open country beyond the roads' fields, largest first. UNTUNED. */
-    static final int[] PIVOT_SIDES = {26, 20};
-    /** Headland kept between one pivot square and the next field. */
-    static final int PIVOT_GAP = 2;
+    /**
+     * Fields laid on the open country beyond the roads' fields, as {width, height}, largest first: long rectangles
+     * either way, then smaller ones to fill. UNTUNED.
+     */
+    static final int[][] COUNTRY_FIELDS = {{34, 20}, {20, 34}, {24, 14}, {14, 24}};
+    /** Headland kept between one country field and the next. */
+    static final int FIELD_GAP = 2;
 
     /** Cells round the intake and loadout over which spilt grain lies. UNTUNED. */
     static final int SPILL_REACH = 3;
@@ -196,9 +201,12 @@ public final class GrainHub {
                 && c.topology.getGroundKind(x, y) != GroundKind.INDOOR
                 && c.topology.getGroundKind(x, y) != GroundKind.WATER;
         BiPredicate<Integer, Integer> walk = (x, y) -> x >= 0 && y >= 0 && x < w && y < h && c.grid.isWalkable(x, y);
-        // The bins first, then the gallery over them: its legs keep off the bins.
+        // The bins first, then the gallery over them: its legs keep off the bins. They stand within the hub's wall.
+        int[] walled = wallBounds(c, claim, index);
+        BiPredicate<Integer, Integer> inner = (x, y) -> yard.test(x, y) && walled != null
+                && x > walled[0] && y > walled[1] && x < walled[2] && y < walled[3];
         for (int[] house : halls.get(CHAIN.indexOf(SILO))) {
-            for (Props.Placement p : bins(house, yard, walk, BINS_PER_HOUSE)) {
+            for (Props.Placement p : bins(house, inner, walk, BINS_PER_HOUSE)) {
                 WorksProps.place(c, p.x(), p.y(), p.doodad(), p.quarterTurns());
             }
         }
@@ -223,6 +231,22 @@ public final class GrainHub {
             }
             for (Props.Placement p : queue) WorksProps.place(c, p.x(), p.y(), p.doodad(), p.quarterTurns());
         }
+    }
+
+    /** The box {x0, y0, x1, y1} round the hub's wall cells, or null when it has none. */
+    private static int[] wallBounds(GenContext c, int[][] claim, int index) {
+        int[] b = null;
+        for (int x = 0; x < c.width; x++) {
+            for (int y = 0; y < c.height; y++) {
+                if (claim[x][y] != index || !c.topology.isWall(x, y) || c.topology.getBuildingId(x, y) != 0) continue;
+                if (b == null) b = new int[]{x, y, x, y};
+                b[0] = Math.min(b[0], x);
+                b[1] = Math.min(b[1], y);
+                b[2] = Math.max(b[2], x);
+                b[3] = Math.max(b[3], y);
+            }
+        }
+        return b;
     }
 
     /** Ground a field may be laid on: the planet's own surface, not anything made or paved. */
@@ -253,34 +277,46 @@ public final class GrainHub {
             }
         }
         List<Plot> laid = new ArrayList<>();
+        int[] pivots = {0};
         for (Plot plot : crops(TownFields.plan(w, h, open, town, road, c.seed ^ SEED.hashCode()), rng.nextLong())) {
             if (plot.use() == Use.WILD) continue;
             List<int[]> water = rng.nextInt(100) < POND_SHARE ? pond(plot) : List.of();
             Plot painted = water.isEmpty() ? plot
                     : new Plot(plot.x0(), plot.y0(), plot.x1(), plot.y1(), Use.PASTURE, plot.rowsAlongX(), false);
-            boolean pivot = water.isEmpty()
-                    && Math.min(plot.x1() - plot.x0(), plot.y1() - plot.y0()) + 1 >= PIVOT_FROM
-                    && rng.nextInt(100) < PIVOT_SHARE;
-            if ((pivot ? pivot(c, painted, open) : RuralGround.paint(c, painted, (x, y) -> open[x][y])) == 0) continue;
+            if (lay(c, painted, open, water.isEmpty(), pivots, rng) == 0) continue;
             laid.add(painted);
             for (int[] cell : water) water(c, cell[0], cell[1]);
         }
-        // The open country beyond the roads' fields is worked too, under pivots.
+        // The open country beyond the roads' fields is worked too, in long fields.
         boolean[][] free = new boolean[w][h];
         for (int x = 0; x < w; x++) System.arraycopy(open[x], 0, free[x], 0, h);
         for (Plot p : laid) {
-            for (int x = Math.max(0, p.x0() - PIVOT_GAP); x <= Math.min(w - 1, p.x1() + PIVOT_GAP); x++) {
-                for (int y = Math.max(0, p.y0() - PIVOT_GAP); y <= Math.min(h - 1, p.y1() + PIVOT_GAP); y++) {
+            for (int x = Math.max(0, p.x0() - FIELD_GAP); x <= Math.min(w - 1, p.x1() + FIELD_GAP); x++) {
+                for (int y = Math.max(0, p.y0() - FIELD_GAP); y <= Math.min(h - 1, p.y1() + FIELD_GAP); y++) {
                     free[x][y] = false;
                 }
             }
         }
-        for (Plot plot : pivotPlots(free, PIVOT_SIDES, PIVOT_GAP)) {
-            if (pivot(c, plot, open) > 0) laid.add(plot);
+        for (Plot plot : crops(countryPlots(free, COUNTRY_FIELDS, FIELD_GAP), rng.nextLong())) {
+            if (lay(c, plot, open, true, pivots, rng) > 0) laid.add(plot);
         }
         // A passable prop the scatter left wholly inside a field is cleared off it, as the colony's fields are.
         c.doodads.removeIf(d -> d.cover == 0 && laid.stream().anyMatch(p -> p.contains(d.cellX, d.cellY)
                 && p.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1)));
+    }
+
+    /**
+     * Lays one field: now and then, where it is wide enough and the map has not had its {@link #PIVOT_MAX}, under a
+     * centre pivot; otherwise in straight rows as the colony's fields are. Returns the cells painted.
+     */
+    private static int lay(GenContext c, Plot plot, boolean[][] open, boolean mayPivot, int[] pivots, Random rng) {
+        boolean pivot = mayPivot && pivots[0] < PIVOT_MAX
+                && Math.min(plot.x1() - plot.x0(), plot.y1() - plot.y0()) + 1 >= PIVOT_FROM
+                && rng.nextInt(100) < PIVOT_SHARE;
+        if (!pivot) return RuralGround.paint(c, plot, (x, y) -> open[x][y]);
+        int painted = pivot(c, plot, open);
+        if (painted > 0) pivots[0]++;
+        return painted;
     }
 
     /**
@@ -314,29 +350,31 @@ public final class GrainHub {
     }
 
     /**
-     * Square pivot fields laid over {@code free} ground, largest side first, each wholly on free ground and
-     * {@code gap} cells clear of the next, scanned row by row. {@code free} is left as it was.
+     * Rectangular fields laid over {@code free} ground, {@code sizes} ({width, height}) largest first, each wholly on
+     * free ground and {@code gap} cells clear of the next, scanned row by row, its rows along its long side.
+     * {@code free} is left as it was.
      */
-    static List<Plot> pivotPlots(boolean[][] free, int[] sides, int gap) {
+    static List<Plot> countryPlots(boolean[][] free, int[][] sizes, int gap) {
         int w = free.length, h = w == 0 ? 0 : free[0].length;
         boolean[][] left = new boolean[w][h];
         for (int x = 0; x < w; x++) System.arraycopy(free[x], 0, left[x], 0, h);
         List<Plot> out = new ArrayList<>();
-        for (int side : sides) {
+        for (int[] size : sizes) {
+            int fw = size[0], fh = size[1];
             int[][] sum = new int[w + 1][h + 1];
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < h; y++) {
                     sum[x + 1][y + 1] = (left[x][y] ? 1 : 0) + sum[x][y + 1] + sum[x + 1][y] - sum[x][y];
                 }
             }
-            for (int y = 0; y + side <= h; y++) {
-                for (int x = 0; x + side <= w; x++) {
-                    if (!left[x][y] || !left[x + side - 1][y + side - 1]) continue;
-                    int n = sum[x + side][y + side] - sum[x][y + side] - sum[x + side][y] + sum[x][y];
-                    if (n != side * side || !clear(left, x, y, side)) continue;
-                    out.add(new Plot(x, y, x + side - 1, y + side - 1, Use.GRAIN, true, false));
-                    for (int xx = Math.max(0, x - gap); xx < Math.min(w, x + side + gap); xx++) {
-                        for (int yy = Math.max(0, y - gap); yy < Math.min(h, y + side + gap); yy++) {
+            for (int y = 0; y + fh <= h; y++) {
+                for (int x = 0; x + fw <= w; x++) {
+                    if (!left[x][y] || !left[x + fw - 1][y + fh - 1]) continue;
+                    int n = sum[x + fw][y + fh] - sum[x][y + fh] - sum[x + fw][y] + sum[x][y];
+                    if (n != fw * fh || !clear(left, x, y, fw, fh)) continue;
+                    out.add(new Plot(x, y, x + fw - 1, y + fh - 1, Use.GRAIN, fw >= fh, false));
+                    for (int xx = Math.max(0, x - gap); xx < Math.min(w, x + fw + gap); xx++) {
+                        for (int yy = Math.max(0, y - gap); yy < Math.min(h, y + fh + gap); yy++) {
                             left[xx][yy] = false;
                         }
                     }
@@ -346,9 +384,9 @@ public final class GrainHub {
         return out;
     }
 
-    /** Whether a square still lies wholly on ground no pivot laid this pass has taken. */
-    private static boolean clear(boolean[][] left, int x0, int y0, int side) {
-        for (int x = x0; x < x0 + side; x++) for (int y = y0; y < y0 + side; y++) if (!left[x][y]) return false;
+    /** Whether a rectangle still lies wholly on ground no field laid this pass has taken. */
+    private static boolean clear(boolean[][] left, int x0, int y0, int fw, int fh) {
+        for (int x = x0; x < x0 + fw; x++) for (int y = y0; y < y0 + fh; y++) if (!left[x][y]) return false;
         return true;
     }
 
