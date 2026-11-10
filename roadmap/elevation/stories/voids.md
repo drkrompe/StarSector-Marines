@@ -798,10 +798,19 @@ Laws):
      flow's velocity at each corner of each piece, so the image bends with
      the channel and never tears between cells.
    - **Ice**: the glint on the frozen pools drifts along the streamlines.
-   A rise has no flow: its floor is the battle's ground. Left: a flow hint on
-   the look for a generator that knows which way its brook runs; embers,
-   smoke and mist carried by the channel rather than the wind alone; a falls
-   where a floor steps.
+   - **The air low over a floor** rides the flow too: each puff of the lava's
+     low smoke rises off one place and is dragged down the channel a little
+     faster than the crust, and each puff of a crevasse's mist drains down
+     it toward the deeper end, as cold air runs downhill
+     (`ChannelFlow.carry`, stepped a cell at a time so it rounds a bend; the
+     mist through `VoidHaze`, whose canyon dust stays on the wind).
+     Each fades over its life. Smoke above the surface and embers stay on
+     the wind.
+   - **A source**: a generator that knows which way its river runs says so
+     (`NaturalVoid.Source`, `withSource`); the end nearest that point is the
+     source, whatever the depths.
+   A rise has no flow: its floor is the battle's ground. Left: a falls where a
+   floor steps.
 
    **Depth along a void** (owner, 2026-11-09, Model). Every natural drop and
    rise takes depth marks: the field blends a **gain** from them, the share of
