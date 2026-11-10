@@ -8,27 +8,34 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.Fonts;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
- * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district) across market
- * sizes and security grades, one set per {@link Cantonment.Layout} (or only the one {@link Cantonment#LAYOUT_PROPERTY}
- * names): the garrison framed whole ({@code <layout>-<case>-garrison.png}) and the whole map
- * ({@code <layout>-<case>-whole.png}), look preset, 1920x1080. Nothing is played.
+ * The Raid site's garrison laid as a cantonment ({@code raid-mission.md}, Garrison district) across market sizes and
+ * security grades. For each: the garrison framed whole with a supply truck's round drawn on in orange and the flight
+ * line's supply round in blue ({@code garrison-<case>-route.png}), the same frame clean
+ * ({@code garrison-<case>-garrison.png}) and the whole map ({@code garrison-<case>-whole.png}); look preset,
+ * 1920x1080. Nothing is played.
  */
 public final class RaidGarrisonLookSuite implements SnapshotSuite {
 
@@ -39,101 +46,82 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
             new Case("size5-guarded", 7L, 5, 3, OperationTier.ESTABLISHED),
             new Case("size7-fortified", 141_418L, 7, 5, OperationTier.REINFORCED));
 
+    private static final Color TRUCK = new Color(255, 150, 30);
+    private static final Color FLIGHT = new Color(60, 170, 255);
+
     @Override public String id() { return "raid-garrison-look"; }
 
-    @Override public String label() { return "The Raid site's garrison district, look preset"; }
+    @Override public String label() { return "The Raid site's garrison, its supply rounds drawn on, look preset"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String only = System.getProperty(Cantonment.LAYOUT_PROPERTY, "");
-        String before = System.getProperty(Cantonment.LAYOUT_PROPERTY);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            for (Cantonment.Layout layout : Cantonment.Layout.values()) {
-                if (!only.isBlank() && !layout.name().equalsIgnoreCase(only.trim())) continue;
-                System.setProperty(Cantonment.LAYOUT_PROPERTY, layout.name());
-                for (Case c : CASES) out.addAll(shots(context, layout.name().toLowerCase(Locale.ROOT), c));
-            }
+            for (Case c : CASES) out.addAll(shots(context, c));
             return out;
-        } finally {
-            if (before == null) System.clearProperty(Cantonment.LAYOUT_PROPERTY);
-            else System.setProperty(Cantonment.LAYOUT_PROPERTY, before);
         }
     }
 
-    private List<SnapshotArtifact> shots(SnapshotContext context, String key, Case c) throws Exception {
+    private List<SnapshotArtifact> shots(SnapshotContext context, Case c) throws Exception {
         TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
                 EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT, EconomicFunction.HABITATION),
                 SurfacePalette.ROCK, SettlementLink.ROAD);
+        List<Cantonment.Laid> laid = new ArrayList<>();
+        PrecinctWardStage.CANTONMENT_OBSERVER.set(laid::add);
         try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(), false,
                 c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
                 RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
             int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
-            float[] hq = headquarters(sim.getTopology(), w, h);
-            System.out.printf(Locale.ROOT, "[%s] %s %s headquarters at %.0f,%.0f%n", id(), key, c.id(), hq[0], hq[1]);
+            if (laid.isEmpty()) throw new IllegalStateException(c.id() + ": no cantonment was laid");
+            Cantonment.Laid garrison = laid.get(laid.size() - 1);
+            float[] frame = frame(garrison);
+            System.out.printf(Locale.ROOT, "[%s] %s garrison at %.0f,%.0f, %d cells across; truck round %d cells, "
+                            + "flight round %d, unplaced %s, strays %s%n", id(), c.id(), frame[0], frame[1],
+                    (int) frame[2], garrison.truckRoute().size(), garrison.flightRoute().size(), garrison.unplaced(),
+                    garrison.strays());
+            BufferedImage clean = BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, frame[0], frame[1],
+                    frame[2]).withMissionMarkers().render(sim, "");
+            BufferedImage route = copy(clean);
+            Graphics2D g = route.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            // The renderer's own camera, which keeps its view on the map, so the rounds land where the streets are.
+            BattleCamera camera = new BattleCamera(w, h);
+            camera.setViewport(0, 0, 1920, 1080, (float) Math.floor(1920 / frame[2]));
+            camera.centerOn(frame[0], frame[1]);
+            draw(g, garrison.truckRoute(), camera, TRUCK, 0);
+            draw(g, garrison.flightRoute(), camera, FLIGHT, 1);
+            legend(g);
+            g.dispose();
             return List.of(
-                    new SnapshotArtifact(key + "-" + c.id() + "-garrison.png",
-                            BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, hq[2], hq[3], hq[4])
-                                    .withMissionMarkers().render(sim, "")),
-                    new SnapshotArtifact(key + "-" + c.id() + "-whole.png",
+                    new SnapshotArtifact("garrison-" + c.id() + "-route.png", route),
+                    new SnapshotArtifact("garrison-" + c.id() + "-garrison.png", clean),
+                    new SnapshotArtifact("garrison-" + c.id() + "-whole.png",
                             BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, w / 2f, h / 2f,
                                     Math.max(w, h * 16f / 9f) + 4f).withMissionMarkers().render(sim, "")));
+        } finally {
+            PrecinctWardStage.CANTONMENT_OBSERVER.remove();
         }
     }
 
-    /** Cells from the HQ a garrison building may stand: more than any cantonment's square is across. */
-    private static final int REACH = 90;
-
-    /** Cells past the military floor a depot building may stand and still be the garrison's. */
-    private static final int DEPOT_REACH = 30;
-
-    private static final Set<RoomPurpose> MILITARY = EnumSet.of(RoomPurpose.BARRACKS, RoomPurpose.KEEP_THRONE,
-            RoomPurpose.MESS_HALL, RoomPurpose.VEHICLE_BAY, RoomPurpose.KEEP_ENTRY, RoomPurpose.ARMORY,
-            RoomPurpose.CONTROL_ROOM, RoomPurpose.HANGAR);
-    private static final Set<RoomPurpose> DEPOT = EnumSet.of(RoomPurpose.STOCKROOM, RoomPurpose.PARTS_CAGE,
-            RoomPurpose.ENGINE_ROOM);
-
-    /**
-     * The headquarters' middle and the garrison's frame: {hqX, hqY, frameX, frameY, cellsAcross}. The garrison is
-     * the military floor (barracks, HQ, posts, motor pool, magazines, the flight line's hangars) within {@link #REACH}
-     * of the HQ, and the depot's stores, workshops and generator within {@link #DEPOT_REACH} of that: near enough to
-     * be the garrison's, not the works' beside it.
-     */
-    private static float[] headquarters(CellTopology topology, int w, int h) {
-        long sx = 0, sy = 0, n = 0;
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (topology.getRoomPurpose(x, y) != RoomPurpose.KEEP_THRONE) continue;
-                sx += x;
-                sy += y;
-                n++;
-            }
+    /** The garrison's middle and the cells across a frame that holds all it laid: {x, y, cellsAcross}. */
+    private static float[] frame(Cantonment.Laid laid) {
+        int[] box = {Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
+        for (List<int[]> cells : List.of(laid.streets(), laid.pool(), laid.apron(), laid.parade())) {
+            for (int[] c : cells) grow(box, c[0], c[1]);
         }
-        if (n == 0) return new float[]{w / 2f, h / 2f, w / 2f, h / 2f, w};
-        float hx = sx / (float) n, hy = sy / (float) n;
-        int[] box = {w, h, -1, -1};
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (!MILITARY.contains(topology.getRoomPurpose(x, y))) continue;
-                if (Math.abs(x - hx) > REACH || Math.abs(y - hy) > REACH) continue;
-                grow(box, x, y);
-            }
+        laid.rooms().forEach(r -> {
+            grow(box, r.originX(), r.originY());
+            grow(box, r.originX() + r.shape().width(), r.originY() + r.shape().height());
+        });
+        if (laid.airfield() != null) {
+            grow(box, laid.airfield()[0], laid.airfield()[1]);
+            grow(box, laid.airfield()[2], laid.airfield()[3]);
         }
-        int[] military = box.clone();
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                if (!DEPOT.contains(topology.getRoomPurpose(x, y))) continue;
-                if (x < military[0] - DEPOT_REACH || x > military[2] + DEPOT_REACH
-                        || y < military[1] - DEPOT_REACH || y > military[3] + DEPOT_REACH) continue;
-                grow(box, x, y);
-            }
-        }
-        float fx = (box[0] + box[2]) / 2f + .5f, fy = (box[1] + box[3]) / 2f + .5f;
-        float across = Math.max(box[2] - box[0] + 1, (box[3] - box[1] + 1) * 16f / 9f) + 24f;
-        return new float[]{hx, hy, fx, fy, across};
+        float across = Math.max(box[2] - box[0] + 1, (box[3] - box[1] + 1) * 16f / 9f) + 12f;
+        return new float[]{(box[0] + box[2]) / 2f + .5f, (box[1] + box[3]) / 2f + .5f, across};
     }
 
     private static void grow(int[] box, int x, int y) {
@@ -141,5 +129,47 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
         box[1] = Math.min(box[1], y);
         box[2] = Math.max(box[2], x);
         box[3] = Math.max(box[3], y);
+    }
+
+    /** A route's cells as a line through their middles, offset a little so two rounds on one street both show. */
+    private static void draw(Graphics2D g, List<int[]> route, BattleCamera camera, Color color, int lane) {
+        if (route.isEmpty()) return;
+        Path2D.Float path = new Path2D.Float();
+        float px = camera.cellPxSize();
+        float off = (lane == 0 ? -0.25f : 0.25f) * px;
+        for (int i = 0; i < route.size(); i++) {
+            float x = camera.cellToScreenX(route.get(i)[0] + .5f) + off;
+            float y = 1080 - camera.cellToScreenY(route.get(i)[1] + .5f) + off;
+            if (i == 0) path.moveTo(x, y);
+            else path.lineTo(x, y);
+        }
+        g.setStroke(new BasicStroke(Math.max(3f, px * 0.35f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g.setColor(new Color(0, 0, 0, 140));
+        g.translate(2, 2);
+        g.draw(path);
+        g.translate(-2, -2);
+        g.setColor(color);
+        g.draw(path);
+    }
+
+    private static void legend(Graphics2D g) {
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
+        g.setColor(new Color(0, 0, 0, 170));
+        g.fillRoundRect(24, 24, 620, 84, 12, 12);
+        g.setColor(TRUCK);
+        g.fillRect(40, 44, 34, 8);
+        g.setColor(FLIGHT);
+        g.fillRect(40, 80, 34, 8);
+        g.setColor(Color.WHITE);
+        g.drawString("Supply truck: gate, depot apron, fuel point, yard, gate", 88, 56);
+        g.drawString("Flight line: armoury and its fuel point to the apron", 88, 92);
+    }
+
+    private static BufferedImage copy(BufferedImage src) {
+        BufferedImage out = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = out.createGraphics();
+        g.drawImage(src, 0, 0, null);
+        g.dispose();
+        return out;
     }
 }

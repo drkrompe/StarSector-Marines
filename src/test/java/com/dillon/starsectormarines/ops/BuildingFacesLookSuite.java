@@ -85,7 +85,7 @@ public final class BuildingFacesLookSuite implements SnapshotSuite {
     }
 
     /** The centre of the most roofed cells within a play-zoom frame's reach of a building. */
-    private static float[] busiest(BattleSimulation sim) {
+    static float[] busiest(BattleSimulation sim) {
         float bestX = sim.getGrid().getWidth() / 2f, bestY = sim.getGrid().getHeight() / 2f;
         int best = -1;
         List<Building> all = new ArrayList<>(sim.getBuildings().all());

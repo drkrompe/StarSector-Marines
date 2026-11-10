@@ -674,8 +674,9 @@ still just so boring and doesn't make sense... it just feels like a random
 assortment of doodads"; "where does it's metal come from? Where do the parts
 go?"; "a much larger mega facility room... a huge furnace crucible with
 production lines set down it's pour line. The "part" where here to steal is a
-large thing or even the entire room itself is the "tech""; pick
-`ruins-forge-process` open). Every piece in a hall answers where its input comes
+large thing or even the entire room itself is the "tech""; owner pick
+`ruins-forge-process` b1, built: `mapgen-nouns.md`, A forge works has a mega
+forge hall). Every piece in a hall answers where its input comes
 from and where its output goes. A hall lays its chain as one line from its feed
 door to its dispatch door, and the next hall's feed is this hall's dispatch. The
 floor is zoned from that line: deck plate under the work, grating over the
@@ -691,7 +692,11 @@ case:
 | b2 | The same hall | The line is the tech: hold its pulpit while each line's recorder runs, then carry the record cores out |
 | b3 | The same hall | The line is stripped: each key module is a haul and a Hermes load of its own |
 
-The Hermes is the player's only lift, so no variant lifts the room itself. The
+The Hermes is the player's only lift, so no variant lifts the room itself.
+As built, the furnace core is the forge works' prize where it always was, in
+the vault's cradle: the great crucible's control core, cut free on its skid
+when the plant died (`doodad.ruins-furnace-core`). The breach and the haul are unchanged. Plant hall floors are zoned by the
+work: deck plate under it, painted walkways, and concrete only in the aisles. The
 plan, the other halls' chains and the art list are in
 `ruins-themed-environments.md` in the shared notes. Picture cards:
 `createSnapshots -Psnapshot=ruins-mega-forge-picks`.
@@ -775,9 +780,12 @@ hash when the ground is laid, and recorded on the interior (`LeafDoor`):
 A seal's leaves follow its lock (`LockedDoor`): they slide apart when it
 unlocks and shut when it locks, a blast door slower than a forcible one. A
 breach that forces it leaves one leaf on the floor. Passage stays the grid's
-and the lock's; the leaves only show it. The cards use today's ship leaves and
-forcible and hardened plates until the ruins set lands (`ruins-doors.md` in
-the shared notes holds the piece list). Look shots:
+and the lock's; the leaves only show it. The ruins wear their own set
+(`graphics/doors/ruins-*`, single leaves at 160 px a cell): hall, sealed,
+cargo and blast leaves, a torn leaf lying on rubble, the blast clamp across a
+shut blast door's seam, and a jamb at each end whose lamp is lit green when
+the door answers or stands open, amber while a seal is powered but held, red
+while locked, and dark when dead or forced. Look shots:
 `createSnapshots -Psnapshot=ruins-door-look`.
 
 **Two tiers of find** (`RuinsFindTier`, pick `ruins-find-tiers` a). A find's

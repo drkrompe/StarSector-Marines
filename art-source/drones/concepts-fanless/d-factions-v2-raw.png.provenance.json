@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c601-65c7-7833-9f6d-ef6cb15abf2f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c601-65c7-7833-9f6d-ef6cb15abf2f\\exec-b64aba3d-c5c4-492f-a521-93623b0c2408.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\concepts-fanless\\d-factions-v2-raw.png",
+    "sha256": "27f8ba3d27f2e7037dac113b2207af5527e002643b6e1d947542152940cc1165",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\drones\\concepts-fanless\\d-factions-v2-brief.txt",
+  "promptSha256": "7919ce680b7434d940261e882f9d3386c675a5bf8f4bb1367f6b1e293306ae90",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Rendering style and detail level only; not layout, palette, shape or subject\nImage 2: Low-tech livery and material reference only; not layout, pose, shape or scale\nImage 3: Midline livery and material reference only; not layout, pose, shape or scale\nImage 4: High-tech livery and material reference only; not layout, pose, shape or scale\n\nConcept sheet for a science-fiction strategy video game: the same small hovering robotic DRONE unit, about a metre long, as three different spacefaring factions would build it, plus one small swarm drone. Four drones in a row. Each carries one forward-facing emitter or barrel housing and hovers low over a battlefield map; none uses a fan.\n- LOW-TECH: a blunt, heavy, slab-sided armoured box of riveted pressed steel with a stubby barrel housing, held up by two bolted-on downward jet lift pods on outriggers with scorched nozzles and hazard-yellow striping; crude, overbuilt frontier kit; image 2 is its material reference.\n- MIDLINE: a practical angular armoured pod in grey and muted blue with a small turret on a short mast, lift from four flush belly thrust grilles shown as slotted panels at the corners, toolbox utility; image 3 is its material reference.\n- HIGH-TECH: a smooth flat pearl-white lifting body with a cyan emitter lens on the centreline, gravitic lift with only a thin cyan edge glow, Tri-Tachyon corporate precision; image 4 is its material reference.\n- SWARM: a cheap mass-produced half-metre dart from an old abandoned automated security network: gunmetal stamped steel, one small rear thrust nozzle and two tiny side vents, a short barrel at the nose, a red sensor lens, worn hazard-yellow chevrons.\nImages 2 to 4 are livery and material references only, never shape or layout.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left, every drone nose UP (toward the top edge), the four drones evenly spaced in one row across a wide landscape canvas, each drawn large and with a small plain caption beneath it naming its role (LOW-TECH, MIDLINE, HIGH-TECH, SWARM). Plain flat dark-grey background, no ground, scene, shadow slab, border or grid. Rendered as finished top-down game sprites in the manner of the attached approved game sprite: grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art.\nBANNED SHAPES, do not draw any of these anywhere: exposed fans, fan blades, rotor rings, rotor discs, propellers, ducted props, shrouded lift fans, round fan ducts, grilles over circular ducts, quadcopter arms. No drone may be built around a circle. The outline must come from what the drone does (its weapon, sensor or warhead and how it is steered), never from a lift fan.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\hound_ff.png",
+      "sha256": "284e7b4977145a702563274e70fa67f087ad0fc93f806638cc23179fff396f5a",
+      "dimensions": [
+        62,
+        72
+      ],
+      "mode": "RGBA",
+      "role": "Low-tech livery and material reference only; not layout, pose, shape or scale"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\wolf_ff.png",
+      "sha256": "8922a51c5f9356f65487f1ffc1cb544ac98117b9f09fd3bfd2fbec45bd52cca7",
+      "dimensions": [
+        52,
+        96
+      ],
+      "mode": "RGBA",
+      "role": "Midline livery and material reference only; not layout, pose, shape or scale"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\tempest.png",
+      "sha256": "b1811fa2e74ac737e94479f097025bab8e3a5d0c8b6c04128561001babecfc36",
+      "dimensions": [
+        64,
+        92
+      ],
+      "mode": "RGBA",
+      "role": "High-tech livery and material reference only; not layout, pose, shape or scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet using the references for rendering and materials, with the four distinct drone designs facing upward."
+  ],
+  "usage": {
+    "input_tokens": 41199,
+    "cached_input_tokens": 36352,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 993,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.0
+}

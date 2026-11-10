@@ -54,9 +54,24 @@ public final class HullReservoir {
         return type == VehicleType.LASER_TANK || type == VehicleType.HEAVY_SKIMMER;
     }
 
-    /** What {@code type}'s hull sheds a second of its own, beside its rack's parts: the laser plant's, none elsewhere. */
+    /**
+     * What the midline carriers' plants shed a second beside the factory bank, so each stock fit draws about twice what
+     * it sheds (`machine-budgets.md`, midline about 2x; first-pass, UNTUNED). The light's PL-1 draws 10 a second on the
+     * bank's 6 (1.7x) with no plant; the medium's AC-6 and secondary machine gun about 19 on 9.5; the heavy's HC-20 and
+     * two secondary machine guns about 27 on 13.5.
+     */
+    static final float MEDIUM_CARRIER_PLANT_DISSIPATION = 3.5f;
+    static final float HEAVY_CARRIER_PLANT_DISSIPATION = 7.5f;
+
+    /**
+     * What {@code type}'s hull sheds a second of its own, beside its rack's parts: the laser plant's, the midline
+     * carriers' plants, none elsewhere.
+     */
     public static float plantDissipation(VehicleType type) {
-        return laserPlant(type) ? LASER_TANK_PLANT_DISSIPATION : 0f;
+        if (laserPlant(type)) return LASER_TANK_PLANT_DISSIPATION;
+        if (type == VehicleType.MEDIUM_CARRIER) return MEDIUM_CARRIER_PLANT_DISSIPATION;
+        if (type == VehicleType.HEAVY_CARRIER) return HEAVY_CARRIER_PLANT_DISSIPATION;
+        return 0f;
     }
 
     /** The bank {@code type} is built with: the laser plant's own, the factory bank on every other armed hull. */

@@ -190,6 +190,12 @@ public final class BspKeys {
     public static final GenKey<RuralLayout> RURAL_LAYOUT = GenKey.of("ruralLayout");
 
     /**
+     * Every field the colony works, as laid: the surveyed country's plots, the town's own fields and the kitchen
+     * plots in its lots. Carried out on {@code MapResult.fields} for the planet skin. Absent until the first is laid.
+     */
+    public static final GenKey<List<RuralLayout.Plot>> WORKED_FIELDS = GenKey.of("workedFields");
+
+    /**
      * What each programmed precinct owed and could not fit, by precinct name.
      *
      * <p>Bound even when empty, so "nothing was short" and "nobody asked" are
