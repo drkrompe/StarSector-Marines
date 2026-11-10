@@ -51,6 +51,22 @@ class MissionObjectiveFamiliesTest {
         assertEquals("Wreck Refinery and extract", works.displayName());
     }
 
+    @Test void aMachineInAHallIsMarkedByTheHallsFootprintWithItsOwnRing() {
+        var works = RaidObjective.works("works", "Refinery", List.of(new RaidObjective.Site(5, 5, 1),
+                new RaidObjective.Site(15, 5, 1)), 20, 20)
+                .withHalls(List.of(new RaidObjective.Hall(List.of(new int[]{4, 4}), List.of(new int[]{5, 5}, new int[]{6, 5})),
+                        RaidObjective.Hall.NONE), site -> { });
+        var item = MissionObjectiveFamilies.raid(works);
+        var hall = item.markers().get(0);
+        assertEquals(List.of(new MissionObjectiveSnapshot.Cell(5, 5), new MissionObjectiveSnapshot.Cell(6, 5)),
+                hall.footprint());
+        assertEquals(0f, hall.radius(), "the footprint stands in for the pocket");
+        assertEquals(0f, hall.progress());
+        var open = item.markers().get(1);
+        assertEquals(RaidObjective.TARGET_RADIUS, open.radius());
+        assertTrue(open.progress() < 0, "a machine in the open shows its item's ring only when focused");
+    }
+
     @Test void plantingAndRaidReadTheirActualStepClocks() {
         var charge = new ChargeSiteObjective(8, 9, 5, "Power relay");
         var planted = MissionObjectiveFamilies.charge(charge);

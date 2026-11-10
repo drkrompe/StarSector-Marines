@@ -207,6 +207,115 @@
       ]
     }
   },
+  "armour": {
+    "cellPx": 140,
+    "pitch": 156,
+    "walls": [
+      24,
+      24
+    ],
+    "breach": [
+      680,
+      24
+    ],
+    "hatch": [
+      24,
+      672
+    ],
+    "port": [
+      372,
+      672
+    ]
+  },
+  "fittings": {
+    "cellPx": 128,
+    "frames": {
+      "rib-run": [
+        0,
+        0,
+        384,
+        128
+      ],
+      "conduit-run": [
+        512,
+        0,
+        896,
+        128
+      ],
+      "conduit-junction": [
+        1024,
+        0,
+        1152,
+        128
+      ],
+      "survey-console": [
+        1280,
+        0,
+        1408,
+        128
+      ],
+      "hangar-cradle": [
+        0,
+        256,
+        512,
+        640
+      ],
+      "sensor-drum": [
+        640,
+        256,
+        896,
+        512
+      ],
+      "forge-coolant": [
+        1024,
+        256,
+        1280,
+        512
+      ],
+      "breach-scatter": [
+        1408,
+        256,
+        1536,
+        384
+      ],
+      "survey-rack": [
+        640,
+        640,
+        896,
+        768
+      ],
+      "forge-hopper": [
+        1024,
+        640,
+        1280,
+        768
+      ],
+      "breach-plating": [
+        0,
+        768,
+        256,
+        1024
+      ],
+      "crushed-bulkhead-a": [
+        384,
+        896,
+        640,
+        1024
+      ],
+      "crushed-bulkhead-b": [
+        768,
+        896,
+        1152,
+        1024
+      ],
+      "forge-cables": [
+        1280,
+        896,
+        1536,
+        1024
+      ]
+    }
+  },
   "walkers": {
     "stripper": {
       "torsoCellPx": 200,
