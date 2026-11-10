@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2b9-2f5e-7b40-8781-8a57871789a6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2b9-2f5e-7b40-8781-8a57871789a6\\exec-b2ff2431-9ffa-4758-b95e-122f0cf21645.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\dry-gorge\\regolith-wall.png",
+    "sha256": "b4c52cf4cb3f989806a19ed5682bfce398b03cce33b16096b584f65cfc1ae0ed",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\voids\\dry-gorge\\regolith-wall.prompt.txt",
+  "promptSha256": "6590381aa85965f8ba3332c82ec9d664e9364a0513de338aad476d51e793bb60",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nA seamless, tileable texture for a game: a flat, straight-on elevation\n(orthographic, no perspective, no sky, no horizon) of the sheer wall of a\ndry rock gorge on a barren airless world, as it would be mapped onto a\nvertical cliff. Grey regolith and bedrock: horizontal strata running across\nthe tile in bands of uneven thickness, compacted grey dust and gravel\nlayers, darker basalt-grey lava-flow bands, pale ash-grey tuff, a few thin\nrust-brown iron-stained seams; harder bands jutting as blocky fractured\nledges, softer bands crumbling back into loose scree. Angular blocky\nfracturing, impact-shattered rock with sharp edges, fine vertical cracks,\na little loose grit caught on the ledges. Bone dry: no water stains, no\nmoss, no plants, no ice. Lit evenly by soft neutral light from straight in\nfront, no cast shadows from outside the tile, no bright glare. Even density\nacross the whole tile with no focal point, so it repeats horizontally and\nvertically. Palette: neutral grey, warm grey, charcoal, ash, a little rust\nbrown. No sky, no people, no text, no border, no vignette. Square canvas.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one square, seamless cliff-wall texture using the image generation tool.\n"
+  ],
+  "usage": {
+    "input_tokens": 37450,
+    "cached_input_tokens": 33920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 356,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.8
+}
