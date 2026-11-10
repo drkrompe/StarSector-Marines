@@ -95,8 +95,9 @@ purchases, so the low-tech row comes first:
    (art-source/mech-modular-topdown/sources/hightech/crawler), drawn by the derelict
    walker's leg rig at its own size, one PL-1 on a front socket as its own layer, and a
    shield emitter its compartment carries as built, so every crawler fields the shield.
-   Tri-Tachyon's roster leads with it in place of the Hound stand-in. Still to come:
-   whether the crawler is crewed or a drone (owner); the skimmer line (a separate
+   Tri-Tachyon's roster leads with it in place of the Hound stand-in. It is crewed and
+   a company can buy it as a Tri-Tachyon pattern (owner, 2026-11-09), though the owner
+   saw it as a drone concept. Still to come: the skimmer line (a separate
    session); a combat drone wing on the medium, relaunched for flux; the lance and shield
    sharing one pool on the heavy.
 
