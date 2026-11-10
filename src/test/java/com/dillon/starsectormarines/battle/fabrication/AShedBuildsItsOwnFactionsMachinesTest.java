@@ -55,14 +55,15 @@ class AShedBuildsItsOwnFactionsMachinesTest {
      * The shed builds its faction's own cycle, in its faction's own order.
      *
      * <p>Two factions rather than one, because a single list proves only that
-     * <em>a</em> list was read. The Path fields Hounds and nothing else;
+     * <em>a</em> list was read. The Path's sheds build its Foundry Breaker and nothing else (its Pilgrim is a heavy,
+     * a yard job);
      * Tri-Tachyon fields its crawler and nothing else. Hegemony's list carries
      * the Bulwark, which is a yard job wherever it appears and never on a
      * shed's stocks, so the weight rule shows as a filter of its own.
      */
     @Test
     void aShedIsTooledForTheFactionWhoseShedItIs() {
-        assertEquals(List.of(MechVariant.HOUND), tooling("luddic_path"),
+        assertEquals(List.of(MechVariant.FOUNDRY_BREAKER), tooling("luddic_path"),
                 "a Luddic Path motor pool is building something the Path does not field");
         assertEquals(List.of(MechVariant.CRAWLER), tooling("tritachyon"),
                 "a Tri-Tachyon motor pool is building something Tri-Tachyon does not field");
@@ -108,7 +109,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
         Shed shed = shed(GroundRosterRegistry.resolve("luddic_path"), Faction.DEFENDER);
         MechLoadoutComponent built = finishOne(shed);
 
-        assertEquals(MechVariant.HOUND, built.variant);
+        assertEquals(MechVariant.FOUNDRY_BREAKER, built.variant);
         assertEquals(MechWeaponComponent.DC_5,
                 built.mount(MechMountSlot.ARMS).component,
                 "the Path's shed hung the catalogue's arms on its own machine");

@@ -1,0 +1,922 @@
+{
+  "sheet": "graphics/doodads/ruins-works-kit.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-cold-head",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        6,
+        6
+      ]
+    },
+    {
+      "id": "doodad.ruins-heat-exchanger",
+      "col": 6,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-coil-winder",
+      "col": 9,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-works-conveyor",
+      "col": 12,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-drop",
+      "col": 14,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-nutrient-drop",
+      "col": 15,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-powder-drop",
+      "col": 16,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-power-drop",
+      "col": 17,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-steam-drop",
+      "col": 18,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-line-console",
+      "col": 19,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-return",
+      "col": 22,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-loop",
+      "col": 24,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-transfer-pipe",
+      "col": 26,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-tensile-bed",
+      "col": 28,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-spoil-conveyor",
+      "col": 30,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-header",
+      "col": 19,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-coolant-header-fallen",
+      "col": 20,
+      "row": 1,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-manifold",
+      "col": 21,
+      "row": 1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-feed-manifold-fallen",
+      "col": 12,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-pipe-run",
+      "col": 13,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-pipe-run-fallen",
+      "col": 14,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-powder-line",
+      "col": 15,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-powder-line-fallen",
+      "col": 16,
+      "row": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-waste-skid",
+      "col": 22,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-reject-skid",
+      "col": 25,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-bed-changer-derailed",
+      "col": 28,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-unit-carrier",
+      "col": 17,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-unit-carrier-derailed",
+      "col": 6,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-shield-block",
+      "col": 31,
+      "row": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0
+    },
+    {
+      "id": "doodad.ruins-shield-rubble",
+      "col": 8,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5
+    },
+    {
+      "id": "doodad.ruins-blast-wall",
+      "col": 9,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0
+    },
+    {
+      "id": "doodad.ruins-blast-baffle",
+      "col": 10,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0
+    },
+    {
+      "id": "doodad.ruins-blast-rubble",
+      "col": 11,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.5
+    },
+    {
+      "id": "doodad.ruins-cage-fence",
+      "col": 19,
+      "row": 3,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.ruins-cage-fence-v",
+      "col": 21,
+      "row": 3,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.ruins-housing-crate",
+      "col": 8,
+      "row": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-stack-crate",
+      "col": 17,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-hardware-crate",
+      "col": 20,
+      "row": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-lattice-bench",
+      "col": 23,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-decanter",
+      "col": 26,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-powder-hopper",
+      "col": 28,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-arming-bench",
+      "col": 30,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-test-pylon",
+      "col": 0,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-emitter-bench",
+      "col": 2,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-holo-pedestal",
+      "col": 4,
+      "row": 6,
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-charge-hopper",
+      "col": 6,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-beam-diagnostics",
+      "col": 8,
+      "row": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-firing-point",
+      "col": 10,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-dancer-tower",
+      "col": 31,
+      "row": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-guide-roller",
+      "col": 13,
+      "row": 6,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-guide-roller-fallen",
+      "col": 15,
+      "row": 6,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "doodad.ruins-seal-press",
+      "col": 10,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-vat-filler",
+      "col": 13,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-cabinet-sealer",
+      "col": 16,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-filling-press",
+      "col": 19,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.9,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-tether-anchor",
+      "col": 22,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Cold head",
+      "description": "A cryo compressor stack on its plinth: four compressor heads round a cold box, frost banded across it, its headers leaving the north edge."
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "Heat exchanger",
+      "description": "A shell-and-tube heat exchanger lying north-south on two saddles, its nozzles east and west."
+    },
+    {
+      "col": 9,
+      "row": 0,
+      "name": "Coil winder",
+      "description": "A coil winder: a mandrel wound thick with copper between two headstocks, its winding head on the north traverse."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Works conveyor",
+      "description": "The line's roller conveyor bed sunk in the floor plate, every works hall's line. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 14,
+      "row": 0,
+      "name": "Coolant drop",
+      "description": "A wall service cabinet, its frosted coolant couplings on top."
+    },
+    {
+      "col": 15,
+      "row": 0,
+      "name": "Nutrient drop",
+      "description": "A wall service cabinet, its sealed nutrient couplings on top."
+    },
+    {
+      "col": 16,
+      "row": 0,
+      "name": "Powder drop",
+      "description": "A wall service cabinet with its powder feed chute."
+    },
+    {
+      "col": 17,
+      "row": 0,
+      "name": "Power drop",
+      "description": "A wall service cabinet, its copper busbars under a dead lamp strip."
+    },
+    {
+      "col": 18,
+      "row": 0,
+      "name": "Steam drop",
+      "description": "A wall service cabinet, its lagged steam stub through a valve ring."
+    },
+    {
+      "col": 19,
+      "row": 0,
+      "name": "Line console",
+      "description": "A run of three control desks along the line, their screens dead."
+    },
+    {
+      "col": 22,
+      "row": 0,
+      "name": "Coolant return",
+      "description": "The coolant return trench under frosted grated covers. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 24,
+      "row": 0,
+      "name": "Coolant loop",
+      "description": "Two insulated coolant pipes clamped in a shallow floor channel. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 26,
+      "row": 0,
+      "name": "Transfer pipe",
+      "description": "A big pressure pipe in a floor cradle, flanged at intervals. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 28,
+      "row": 0,
+      "name": "Tensile bed",
+      "description": "A tensile test bed: guide ways either side of a dark slot. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 30,
+      "row": 0,
+      "name": "Spoil conveyor",
+      "description": "A troughed belt conveyor carrying rock spoil. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 19,
+      "row": 1,
+      "name": "Coolant header",
+      "description": "One lagged coolant header on hangers. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 20,
+      "row": 1,
+      "name": "Fallen coolant header",
+      "description": "The coolant header fallen to the floor, broken in two."
+    },
+    {
+      "col": 21,
+      "row": 1,
+      "name": "Feed manifold",
+      "description": "Two feed pipes on hanger brackets. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 12,
+      "row": 2,
+      "name": "Fallen feed manifold",
+      "description": "The feed manifold fallen to the floor, broken in two."
+    },
+    {
+      "col": 13,
+      "row": 2,
+      "name": "Pipe run",
+      "description": "Three pipes on a pipe rack. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 14,
+      "row": 2,
+      "name": "Fallen pipe run",
+      "description": "The pipe run fallen to the floor, broken in two."
+    },
+    {
+      "col": 15,
+      "row": 2,
+      "name": "Powder line",
+      "description": "A square powder duct with stiffener bands. Overhead: drawn above units. A run: lay copies end to end north-south; it repeats seamlessly."
+    },
+    {
+      "col": 16,
+      "row": 2,
+      "name": "Fallen powder line",
+      "description": "The powder duct fallen to the floor, broken in two."
+    },
+    {
+      "col": 22,
+      "row": 2,
+      "name": "Waste skid",
+      "description": "A hover skid on four lift-fan rings carrying a sealed waste tank."
+    },
+    {
+      "col": 25,
+      "row": 2,
+      "name": "Reject skid",
+      "description": "A hover skid carrying a mesh bin of scrap."
+    },
+    {
+      "col": 28,
+      "row": 2,
+      "name": "Crashed bed changer",
+      "description": "The bed changer's hover carriage crashed and slewed, a fan ring torn off."
+    },
+    {
+      "col": 17,
+      "row": 2,
+      "name": "Unit carrier",
+      "description": "A mag-rail carrier, a sealed cryo unit in its frosted cradle."
+    },
+    {
+      "col": 6,
+      "row": 3,
+      "name": "Derailed unit carrier",
+      "description": "The unit carrier thrown askew off its rail."
+    },
+    {
+      "col": 31,
+      "row": 2,
+      "name": "Shield block",
+      "description": "A radiation shield block, flush to its edges: lay a run of them as a wall."
+    },
+    {
+      "col": 8,
+      "row": 3,
+      "name": "Shield rubble",
+      "description": "Shield block chunks blown out of a wall."
+    },
+    {
+      "col": 9,
+      "row": 3,
+      "name": "Blast wall",
+      "description": "A blast wall section, flush to its edges: lay a run of them as a wall."
+    },
+    {
+      "col": 10,
+      "row": 3,
+      "name": "Blast baffle",
+      "description": "A blast baffle plate standing east-west, flush to its east and west edges: lay a run of them."
+    },
+    {
+      "col": 11,
+      "row": 3,
+      "name": "Blast rubble",
+      "description": "Blast wall chunks."
+    },
+    {
+      "col": 19,
+      "row": 3,
+      "name": "Cage fence",
+      "description": "A flight-test cage's mesh fence running east-west across the cell."
+    },
+    {
+      "col": 21,
+      "row": 3,
+      "name": "Cage fence (north-south)",
+      "description": "The cage fence running north-south."
+    },
+    {
+      "col": 8,
+      "row": 4,
+      "name": "Housing crate",
+      "description": "A reinforced transit crate for a field housing."
+    },
+    {
+      "col": 17,
+      "row": 5,
+      "name": "Stack crates",
+      "description": "Two tall transit crates side by side."
+    },
+    {
+      "col": 20,
+      "row": 5,
+      "name": "Hardware crate",
+      "description": "An armoured hardware crate, its lid latched."
+    },
+    {
+      "col": 23,
+      "row": 5,
+      "name": "Lattice bench",
+      "description": "A lattice assembly station: a frosted bed of lattice plates in its clamp frame, a manipulator turret beside it."
+    },
+    {
+      "col": 26,
+      "row": 5,
+      "name": "Decanter",
+      "description": "A culture decanter: a sealed separator bowl on its base."
+    },
+    {
+      "col": 28,
+      "row": 5,
+      "name": "Powder hopper",
+      "description": "A powder feed hopper, its funnel dark."
+    },
+    {
+      "col": 30,
+      "row": 5,
+      "name": "Arming station",
+      "description": "An automated arming station: a fixture bed and its robot arm."
+    },
+    {
+      "col": 0,
+      "row": 6,
+      "name": "Test pylon",
+      "description": "A round flight-test field pylon, its emitter dead."
+    },
+    {
+      "col": 2,
+      "row": 6,
+      "name": "Emitter bench",
+      "description": "An emitter assembly station, three dim lenses in a row."
+    },
+    {
+      "col": 4,
+      "row": 6,
+      "name": "Holo pedestal",
+      "description": "A round holographic pedestal, its projector well dark."
+    },
+    {
+      "col": 6,
+      "row": 6,
+      "name": "Charge hopper",
+      "description": "An armoured propellant charge hopper, its grated lid cross-braced."
+    },
+    {
+      "col": 8,
+      "row": 6,
+      "name": "Beam diagnostics",
+      "description": "A beam diagnostics station straddling the beam pipe, which runs east-west through it."
+    },
+    {
+      "col": 10,
+      "row": 6,
+      "name": "Firing point",
+      "description": "A range firing point: a low armoured three-bay rest."
+    },
+    {
+      "col": 31,
+      "row": 3,
+      "name": "Dancer tower",
+      "description": "A fibre tension dancer tower: a narrow frame, its pulley at the north end."
+    },
+    {
+      "col": 13,
+      "row": 6,
+      "name": "Guide roller",
+      "description": "A fibre guide roller between two bearing blocks, running east-west."
+    },
+    {
+      "col": 15,
+      "row": 6,
+      "name": "Fallen guide roller",
+      "description": "The guide roller knocked flat and askew."
+    },
+    {
+      "col": 10,
+      "row": 7,
+      "name": "Seal press",
+      "description": "A seal press closing over a frosted cryo unit between its side frames."
+    },
+    {
+      "col": 13,
+      "row": 7,
+      "name": "Vat filler",
+      "description": "A vat filler, its sealed culture fill head over the nest."
+    },
+    {
+      "col": 16,
+      "row": 7,
+      "name": "Cabinet sealer",
+      "description": "A cabinet sealer, a vented core cabinet in its nest."
+    },
+    {
+      "col": 19,
+      "row": 7,
+      "name": "Filling press",
+      "description": "A shell filling press, its fill nozzle over a shell mouth, its ram head across the north."
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "name": "Tether anchor",
+      "description": "A tether test anchor: a massive round bollard bolted down, its tether slot from the north edge."
+    }
+  ]
+}

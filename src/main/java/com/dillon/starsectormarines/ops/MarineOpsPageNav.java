@@ -5,12 +5,14 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 
 import java.util.Map;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /** Shared property contract for the persistent shipboard-room navigation shell. */
 final class MarineOpsPageNav {
@@ -129,6 +131,14 @@ final class MarineOpsPageNav {
     /** Whether a contact at this planet has work the company may take; its host says so when it opens. */
     static BooleanSupplier workHere = () -> false;
 
+    /**
+     * The string key the board's route wears while it leads to one bound operation instead ({@link BoundOperation}),
+     * or null for the board's own name; its host says so when it opens.
+     */
+    static Supplier<String> missionsLegendKey = () -> null;
+
+    private static final String MISSIONS_LEGEND_KEY = "openingUiMarineOpsPageNavMissions";
+
     private MarineOpsPageNav() {
     }
 
@@ -235,6 +245,8 @@ final class MarineOpsPageNav {
                     .classed("selected", selected)
                     .classed("page-nav-current", selected);
         }
+        String key = missionsLegendKey.get();
+        markup.requireElement("page-nav-missions-legend").text(Strings.get(key != null ? key : MISSIONS_LEGEND_KEY));
     }
 
     /** The mark on a route, shown on every page alike. The board's says there is work here. */

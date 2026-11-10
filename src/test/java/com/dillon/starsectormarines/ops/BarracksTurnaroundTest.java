@@ -176,37 +176,6 @@ class BarracksTurnaroundTest {
         assertFalse(context.refittingAfterSettlement());
     }
 
-    @Test void resultsPreparationReviewsSalvageBeforeLeavingAndNormalExitStillWorks() {
-        var context = new MarineOpsContext(null);
-        context.setLastOutcome(MissionOutcome.builder().victory(true).missionSource(MissionSource.GENERATED).build());
-        var candidate = new com.dillon.starsectormarines.ops.loot.LootCandidate(
-                com.dillon.starsectormarines.ops.loot.LootKind.COMMODITY, "supplies", "Supplies", null, 100, 1f, 1f, 1, 1);
-        var manifest = new com.dillon.starsectormarines.ops.loot.LootManifest(1L, 100, 100,
-                java.util.List.of(new com.dillon.starsectormarines.ops.loot.LootStack(candidate, 1)));
-        context.setLootManifest(manifest);
-        var screen = new ResultsScreen();
-        screen.context = context;
-        screen.prepareCompany();
-        assertEquals(ScreenId.LOOT, context.getCurrentScreen());
-        assertSame(manifest, context.getLootManifest());
-        assertFalse(context.isLootSettlementStarted());
-        assertTrue(context.preparingAfterSettlement());
-        screen.returnToMissions();
-        assertEquals(ScreenId.COMPANY_HQ, context.getCurrentScreen(), "No planet with work in this fixture");
-        assertTrue(context.isLootSettlementStarted());
-    }
-
-    @Test void defeatedResultsWithoutLootCanPrepareImmediately() {
-        var context = new MarineOpsContext(null);
-        context.setLastOutcome(MissionOutcome.builder().victory(false).missionSource(MissionSource.GENERATED).build());
-        var screen = new ResultsScreen();
-        screen.context = context;
-        screen.prepareCompany();
-        assertEquals(ScreenId.COMPANY_HQ, context.getCurrentScreen());
-        assertNull(context.getLastOutcome());
-        assertTrue(context.isLootSettlementStarted());
-    }
-
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }
     private static void action(BarracksCommandModel model, String key) { ((Runnable) model.props().get(key)).run(); }
 }

@@ -1,0 +1,13 @@
+Asset: a sheet of separate top-down tactical-game pieces for the works halls of a vast abandoned Domain-era factory complex in a spacefaring civilization: process tanks and a tower seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One cell is about one soldier wide.
+Era: spacefaring industry, automated, heavy engineered plant, as the same complex's machinery (references 2 and 3). Nothing of a 20th-century factory.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between blocks stays fully transparent. The dull green dot is a sealed culture sample port; the copper-brown strip is copper busbar; the pale gold dot is a faint dying glow deep in a bore.
+Style: match reference 2 (the same complex's vessels: blue-gray and gunmetal plate, rivets, worn ochre trim) and reference 3: crisp painterly-pixel game sprite, dark recessed seams, bolted edges, soft upper-left object-local light. Heavy, grounded, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines, no bright saturated flat colours, no bright yellow, no text or labels.
+View: strictly top-down. Only roofs and top surfaces are visible: never a front face, a side wall or a cylinder's side in perspective. A round tank reads as a circle with its domed roof. Light from the upper left, object-local.
+Background: true transparent background with clean alpha; no floor beyond the blocks, no shadow slab, border, labels or text.
+
+Subjects, top row left to right:
+1. nutrient-tank (4x4): a round nutrient tank: domed roof inside a stiffened rim ring, a manway, a culture sample port, two nozzle stubs on its west side.
+2. feed-tank (4x4): a round feed tank of the same build, plainer, a manway and two nozzle stubs.
+Bottom row left to right:
+3. precursor-tank (4x4): a round chemical precursor tank of the same build, three heater bands curving round its roof, chemical crust staining.
+4. draw-tower (4x4): the head of a fibre draw tower seen from above: a square frame on four corner legs, a round furnace bore in its middle going down into darkness with a faint dull glow at its bottom, a copper busbar along its north side.

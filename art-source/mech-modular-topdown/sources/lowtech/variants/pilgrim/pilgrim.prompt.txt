@@ -1,0 +1,17 @@
+Asset type: production-source master for a top-down game sprite: the Luddic Path PILGRIM, a slow armoured heavy mining hauler a Pather cell has converted into an assault walker.
+
+Image 1 is the edit target and the exact geometry authority: a heavy walking machine seen from above, facing the top. Keep its outline, faceted pilot canopy, round shoulder pads, engine block and registration exactly where they are, in place and scale. The flat grey blocks drawn on it are the Pilgrim's new parts, each rendered in the same place and at the same size:
+- the wide pale curved plate ACROSS THE FRONT, ahead of the canopy, with two dark push arms joining it to the body: a huge scarred mining DOZER BLADE, its cutting edge along the top, bolted ribs on its back face, on two hydraulic push arms;
+- the ribbed grey block down the back: ORE-HOPPER RIBS, a heavy ribbed hopper frame with rubble and ore in it;
+- the dark discs on the shoulder pads: EMPTY SOCKET RINGS, nothing in them.
+Add strips of prayer cloth (cream and red) hanging from the blade and shoulders, and simple hand-painted devotional marks (a plain triangle or stripe, no text).
+
+Image 2 is the owner's chosen concept for this machine: identity and detail reference only. In the concept the blade was drawn at the back by mistake; here it goes at the FRONT exactly where image 1 puts it.
+
+Image 3 is material and colour reference only, surface swatches from the Luddic Path's warships: repaint the whole machine in that Pather scheme: drab olive and yellow-green plate, pale cream panels, bold red stripe bands, dark grey machinery, soot round vents, scuffed bare metal on worn edges, hand-welded repairs.
+
+Strict 90-degree zenith orthographic top-down view, facing the TOP of the canvas. True transparent background, including all negative space between parts; no ground, shadow slab, cast shadow, halo, glow, border, text, letters, numbers, logos or skulls. Crisp painted game-sprite finish with rivets and weld seams, light from the upper left, not pixel art.
+
+Every weapon mount stays EMPTY: a flat bolted plate or a dark socket ring, with no gun, barrel, launcher or turret anywhere. Guns are separate layers added later.
+
+Avoid: guns or barrels of any kind; moving, resizing or reshaping the original machine's outline, canopy or hip bearings; moving any part away from where image 1 places it; perspective, side view or isometric view; a second machine; cropping; text.

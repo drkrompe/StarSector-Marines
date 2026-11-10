@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.HabitatZoning;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 
@@ -134,6 +135,54 @@ public final class SealedTown {
         return plan.withPrecincts(out);
     }
 
+    /**
+     * The plan for a map that would lay its town with no plan (a market's town grown alone, as an extraction or a
+     * rescue lays it), on a world whose town is sealed ({@link #on}): that one town, grown as the plan-less map grows
+     * it and at the map's middle, sealed, and nothing else, so the map gains its wall and locks and no other place.
+     * {@code null} where there is no town to seal: no market, or a world people live on in the open.
+     */
+    public static PrecinctPlan alone(TargetProfile profile, int width, int height) {
+        if (profile == null || profile.marketSize() <= 0 || !on(profile)) return null;
+        GrownTrunkPlan.Profile growth = GrownTrunkPlan.Profile.of(
+                SettlementZoning.densityFor(profile.marketSize()), profile.link());
+        return seal(new PrecinctPlan(List.of(Precinct.settlement("settlement", width / 2, height / 2, growth))));
+    }
+
+    /**
+     * Unclaimed ground the town closes round: every cell no place holds that the map's edge cannot be reached from
+     * without crossing the town's own ground ({@code who}). It is the town's, so the envelope runs round the town
+     * and never round a pocket inside it.
+     */
+    public static boolean[][] enclosedGround(int[][] claim, int who) {
+        int width = claim.length, height = claim[0].length;
+        boolean[][] outside = new boolean[width][height];
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                boolean edge = x == 0 || y == 0 || x == width - 1 || y == height - 1;
+                if (edge && claim[x][y] != who) {
+                    outside[x][y] = true;
+                    queue.add(new int[]{x, y});
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            for (int[] s : SIDES) {
+                int nx = c[0] + s[0], ny = c[1] + s[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || outside[nx][ny] || claim[nx][ny] == who)
+                    continue;
+                outside[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) out[x][y] = !outside[x][y] && claim[x][y] < 0;
+        }
+        return out;
+    }
+
     /** The world's town, sealed. Its character is decided with every other place's, after placement. */
     static Precinct settlement(int x, int y, GrownTrunkPlan.Profile growth) {
         return new Precinct("settlement", x, y, growth, null, Precinct.Boundary.WALLED, LOCKS);
@@ -154,6 +203,18 @@ public final class SealedTown {
      */
     public static List<PrecinctBoundary.Gate> groundLocks(int[][] claim, int who, boolean[][] open,
                                                           List<PrecinctBoundary.Gate> gates) {
+        return groundLocks(claim, who, open, gates, null);
+    }
+
+    /**
+     * As above, each lock sited where its way in reaches the town's streets ({@link #streetward}) where any spot does,
+     * so it never opens into a yard shut in by buildings and the wall.
+     *
+     * @param streetward the town's ground that joins its streets, or {@code null} to ask only for open ground
+     */
+    public static List<PrecinctBoundary.Gate> groundLocks(int[][] claim, int who, boolean[][] open,
+                                                          List<PrecinctBoundary.Gate> gates,
+                                                          boolean[][] streetward) {
         int width = claim.length, height = claim[0].length;
         boolean[][] outline = PrecinctBoundary.outline(claim, who, width, height);
         // The open ground outside, labelled by region.
@@ -220,13 +281,20 @@ public final class SealedTown {
                     int r = region[ox][oy];
                     long k = key(part[x][y], r);
                     if (r == 0 || served.contains(k) || sizes.get(r - 1) < GROUND_WORTH_A_LOCK) continue;
+                    // The town's own open ground straight in: the chamber's cells, then the ground it opens onto. The
+                    // outline is no stop, since a chamber is carved through it, but a building or a wall is: a lock
+                    // whose way in is shallower than the wall ends against a building's side, a dead end.
                     int depth = 0;
-                    for (int d = 1; d <= WALL_THICKNESS + 1; d++) {
+                    boolean reaches = false;
+                    for (int d = 1; d <= WALL_THICKNESS * 2; d++) {
                         int ix = x - d * s[0], iy = y - d * s[1];
                         if (ix < 0 || iy < 0 || ix >= width || iy >= height || claim[ix][iy] != who
-                                || !open[ix][iy] || outline[ix][iy]) break;
-                        depth = d;
+                                || !open[ix][iy]) break;
+                        if (d <= WALL_THICKNESS + 1) depth = d;
+                        reaches |= streetward != null && d >= WALL_THICKNESS && streetward[ix][iy];
                     }
+                    // A way in that reaches the streets beats any that does not, however deep.
+                    if (reaches) depth += WALL_THICKNESS * 2;
                     if (depth > bestDepth.getOrDefault(k, 0)) {
                         bestDepth.put(k, depth);
                         best.put(k, new int[]{x, y, s[0], s[1], r});
@@ -249,6 +317,37 @@ public final class SealedTown {
             }
             out.add(new PrecinctBoundary.Gate(List.copyOf(cells),
                     cells.size() >= PrecinctBoundary.DRIVABLE_GATE_WIDTH));
+        }
+        return out;
+    }
+
+    /**
+     * The town's ground that joins its streets: its open cells off the envelope's ground ({@link #band}) reached from
+     * a road of its own without crossing a building or a wall, so a lock opening onto any of them opens onto the town.
+     *
+     * @param road which place's road each cell is, {@link GrownTrunkPlan#UNOWNED} where none
+     */
+    public static boolean[][] streetward(int[][] claim, int who, boolean[][] open, boolean[][] band, int[][] road) {
+        int width = claim.length, height = claim[0].length;
+        boolean[][] out = new boolean[width][height];
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (claim[x][y] == who && road[x][y] != GrownTrunkPlan.UNOWNED && !band[x][y]) {
+                    out[x][y] = true;
+                    queue.add(new int[]{x, y});
+                }
+            }
+        }
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            for (int[] s : SIDES) {
+                int nx = c[0] + s[0], ny = c[1] + s[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height || out[nx][ny] || claim[nx][ny] != who
+                        || band[nx][ny] || !open[nx][ny] && road[nx][ny] == GrownTrunkPlan.UNOWNED) continue;
+                out[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
         }
         return out;
     }
@@ -285,6 +384,27 @@ public final class SealedTown {
      * (none where no wall stands beside it there to hang from), the chamber between, and the way out.
      */
     public record Lock(List<int[]> outer, List<int[]> inner, List<int[]> chamber, int outX, int outY) { }
+
+    /** Cells kept clear straight out before a lock and straight in behind it, past its chamber. UNTUNED. */
+    public static final int LOCK_APRON = WALL_THICKNESS * 2;
+
+    /**
+     * The ground a sealed town keeps for moving through its locks: each chamber and {@link #LOCK_APRON} cells straight
+     * out and straight in from it, so nothing the defences build later (a post, a bunker) stands across a lock's way in
+     * and leaves it a dead end.
+     */
+    public static boolean[][] lockWays(Envelope envelope, int width, int height) {
+        boolean[][] kept = new boolean[width][height];
+        for (Lock lock : envelope.locks()) {
+            for (int[] c : lock.chamber()) {
+                for (int k = -LOCK_APRON - WALL_THICKNESS; k <= LOCK_APRON; k++) {
+                    int x = c[0] + k * lock.outX(), y = c[1] + k * lock.outY();
+                    if (x >= 0 && y >= 0 && x < width && y < height) kept[x][y] = true;
+                }
+            }
+        }
+        return kept;
+    }
 
     /** The sealed wall as built: which cells stand, and its locks. */
     public record Envelope(boolean[][] wall, List<Lock> locks) { }
@@ -370,6 +490,18 @@ public final class SealedTown {
      */
     public static Envelope envelope(int[][] claim, int who, boolean[][] outline, boolean[][] band, int[][] road,
                                     List<PrecinctBoundary.Gate> gates) {
+        return envelope(claim, who, outline, band, road, gates, null, null);
+    }
+
+    /**
+     * As above, a lock open to the world on two sides (a one-cell lock on a corner of a stepped wall) cut through
+     * toward the deeper open ground straight in, as {@link #groundLocks} sited it, never into a building's side.
+     *
+     * @param open       whether each cell is open ground now, or {@code null} to take the first way out
+     * @param streetward the town's ground that joins its streets ({@link #streetward}), or {@code null}
+     */
+    public static Envelope envelope(int[][] claim, int who, boolean[][] outline, boolean[][] band, int[][] road,
+                                    List<PrecinctBoundary.Gate> gates, boolean[][] open, boolean[][] streetward) {
         int width = claim.length, height = claim[0].length;
         boolean[][] wall = new boolean[width][height];
         boolean[][] mine = new boolean[width][height];
@@ -386,13 +518,17 @@ public final class SealedTown {
         for (PrecinctBoundary.Gate g : gates) {
             DefenceDoctrine.Gate way = DefenceDoctrine.gateOf(g.cells(), mine);
             if (way == null) continue;
-            int ox = way.outX(), oy = way.outY();
+            int[] out = wayOut(g.cells(), mine, open, streetward, way);
+            int ox = out[0], oy = out[1];
             List<int[]> chamber = new ArrayList<>(), inner = new ArrayList<>();
             for (int[] c : g.cells()) {
                 chamber.add(c);
-                for (int k = 1; k < WALL_THICKNESS; k++) {
+                // Through the wall, and on through any of the envelope still across the way (a stepped wall runs
+                // deeper than its thickness straight in), so the chamber opens onto the town, not into its wall.
+                for (int k = 1; k < WALL_THICKNESS * 2; k++) {
                     int x = c[0] - k * ox, y = c[1] - k * oy;
                     if (x < 0 || y < 0 || x >= width || y >= height || !mine[x][y]) break;
+                    if (k >= WALL_THICKNESS && !wall[x][y]) break;
                     wall[x][y] = false;
                     chamber.add(new int[]{x, y});
                     if (k == WALL_THICKNESS - 1) inner.add(new int[]{x, y});
@@ -434,6 +570,51 @@ public final class SealedTown {
             }
         }
         return out;
+    }
+
+    /**
+     * A gate's way out: {@code way}'s, unless another side faces out from as many of its cells, when the side whose way
+     * in reaches the town's streets, then the deeper open ground straight in, wins.
+     */
+    private static int[] wayOut(List<int[]> cells, boolean[][] mine, boolean[][] open, boolean[][] streetward,
+                                DefenceDoctrine.Gate way) {
+        int[] chosen = {way.outX(), way.outY()};
+        if (open == null) return chosen;
+        int width = mine.length, height = mine[0].length;
+        int[] votes = new int[SIDES.length];
+        for (int[] c : cells) {
+            for (int s = 0; s < SIDES.length; s++) {
+                int nx = c[0] + SIDES[s][0], ny = c[1] + SIDES[s][1];
+                boolean outside = nx < 0 || ny < 0 || nx >= width || ny >= height || !mine[nx][ny];
+                boolean along = false;
+                for (int[] o : cells) along |= o[0] == nx && o[1] == ny;
+                if (outside && !along) votes[s]++;
+            }
+        }
+        int most = 0;
+        for (int v : votes) most = Math.max(most, v);
+        int bestDepth = -1;
+        for (int s = 0; s < SIDES.length; s++) {
+            if (votes[s] != most) continue;
+            int depth = 0;
+            for (int[] c : cells) {
+                boolean reaches = false;
+                for (int d = 1; d <= WALL_THICKNESS * 2; d++) {
+                    int ix = c[0] - d * SIDES[s][0], iy = c[1] - d * SIDES[s][1];
+                    if (ix < 0 || iy < 0 || ix >= width || iy >= height || !mine[ix][iy] || !open[ix][iy]) break;
+                    if (d <= WALL_THICKNESS + 1) depth++;
+                    reaches |= streetward != null && d >= WALL_THICKNESS && streetward[ix][iy];
+                }
+                // As the lock was sited (groundLocks): a way in that reaches the streets beats any that does not.
+                if (reaches) depth += WALL_THICKNESS * 2;
+            }
+            boolean same = SIDES[s][0] == way.outX() && SIDES[s][1] == way.outY();
+            if (depth > bestDepth || depth == bestDepth && same) {
+                bestDepth = depth;
+                chosen = SIDES[s];
+            }
+        }
+        return chosen;
     }
 
     /** Whether wall stands across the way out beside {@code (x, y)}: the jamb a door hangs from. */

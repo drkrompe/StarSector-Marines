@@ -89,7 +89,7 @@ public final class MechChassisPreviewCanvas implements CanvasProducer {
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 variant.chassisAppearance,
                 arms, leftArm, rightArm, leftShoulder, rightShoulder,
-                alpha);
+                alpha, null, null, sprites.variantBody(variant));
     }
 
     private record CanvasSink(CanvasContext context, float surfaceHeight)

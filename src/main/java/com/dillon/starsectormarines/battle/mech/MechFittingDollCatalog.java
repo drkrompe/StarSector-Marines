@@ -197,12 +197,14 @@ public final class MechFittingDollCatalog {
         return new MechFittingDollCatalog(dolls);
     }
 
+    /** The chassis's doll; a hardware variant with none of its own is fitted on its frame's, whose mounts it keeps. */
     public DollDef doll(MechVariant variant) {
-        return dolls.get(variant);
+        DollDef own = dolls.get(variant);
+        return own != null || variant == null ? own : dolls.get(variant.frame());
     }
 
     public boolean hasDoll(MechVariant variant) {
-        return dolls.containsKey(variant);
+        return doll(variant) != null;
     }
 
     public Map<MechVariant, DollDef> dolls() {

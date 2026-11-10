@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan.Sprawl;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -55,13 +56,17 @@ public final class SealedTownLookSuite implements SnapshotSuite {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             for (String s : System.getProperty("snapshot.sealed.seeds", "7,19").split(",")) {
                 long seed = Long.parseLong(s.trim());
-                for (String take : List.of("open", "toxic", "irradiated")) {
+                for (String take : List.of("open", "toxic", "irradiated", "unplanned")) {
+                    // "unplanned": a toxic world's town laid with no plan, as an extraction or a rescue lays it.
+                    boolean unplanned = take.equals("unplanned");
                     TargetProfile profile = new TargetProfile(5, 5, 2, 1, "independent",
                             EnumSet.of(EconomicFunction.HABITATION), SurfacePalette.ROCK, SettlementLink.ROAD)
-                            .withClimate(takes.get(take));
-                    PrecinctPlan plan = PrecinctPlan.derive(profile, Sprawl.BALANCED, MAP_W, MAP_H,
-                            new Random(seed * 31 + 5));
-                    MapResult map = new BspCityGenerator().generate(MAP_W, MAP_H, seed, null, profile, plan);
+                            .withClimate(takes.get(unplanned ? "toxic" : take));
+                    MapResult map = unplanned ? new BspCityGenerator().generate(MAP_W, MAP_H, seed, null, profile)
+                            : null;
+                    PrecinctPlan plan = unplanned ? SealedTown.alone(profile, MAP_W, MAP_H)
+                            : PrecinctPlan.derive(profile, Sprawl.BALANCED, MAP_W, MAP_H, new Random(seed * 31 + 5));
+                    if (!unplanned) map = new BspCityGenerator().generate(MAP_W, MAP_H, seed, null, profile, plan);
                     Precinct town = plan.precincts().stream()
                             .filter(p -> p.name().equals("settlement")).findFirst().orElse(plan.precincts().get(0));
                     int[] lock = nearestLock(map.topology, map.doodads, town.seedX(), town.seedY());
@@ -88,7 +93,7 @@ public final class SealedTownLookSuite implements SnapshotSuite {
         return out;
     }
 
-    /** The lock nearest the town's seed: a striped floor marking beside the perimeter wall. */
+    /** The lock nearest the town's seed: a striped floor marking beside the envelope's own wall. */
     private static int[] nearestLock(CellTopology topology, List<Doodad> doodads, int sx, int sy) {
         int[] best = null;
         long bestD = Long.MAX_VALUE;
@@ -99,7 +104,8 @@ public final class SealedTownLookSuite implements SnapshotSuite {
                 for (int dy = -1; dy <= 1 && !byWall; dy++) {
                     int x = d.cellX + dx, y = d.cellY + dy;
                     byWall = x >= 0 && y >= 0 && x < topology.getWidth() && y < topology.getHeight()
-                            && "installation.dark-concrete-wall".equals(topology.getSurfaceId(x, y));
+                            && topology.getSurfaceId(x, y) != null
+                            && topology.getSurfaceId(x, y).startsWith(SealedTown.ENVELOPE_WALL);
                 }
             }
             if (!byWall) continue;

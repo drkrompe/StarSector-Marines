@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -90,6 +91,40 @@ class SealedTownTest {
     }
 
     @Test
+    void anOwnedMapSealsItsTownsByTheWorldItIsFoughtOnNeverItsHome() {
+        Precinct town = Precinct.settlement("colony", 40, 30, GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.TOWN);
+        PrecinctPlan plan = new PrecinctPlan(List.of(town));
+        TargetProfile toxic = world(new Climate(EnumSet.of(Climate.Hazard.TOXIC)));
+        TargetProfile verdant = new TargetProfile(5, 5, 2, 1, "independent", EnumSet.of(EconomicFunction.HABITATION),
+                SurfacePalette.VERDANT, SettlementLink.ROAD);
+        assertTrue(SealedTown.is(PlanetSkin.sealedFor(plan, toxic).precincts().get(0)));
+        assertTrue(SealedTown.is(PlanetSkin.sealedFor(plan, world(Climate.NONE)).precincts().get(0)),
+                "bare rock is airless");
+        assertSame(plan, PlanetSkin.sealedFor(plan, verdant), "a world people live on in the open keeps it open");
+        assertEquals(null, PlanetSkin.sealedFor(null, toxic));
+    }
+
+    @Test
+    void aTownLaidWithNoPlanIsSealedAloneWhereTheWorldSealsIt() {
+        PrecinctPlan alone = SealedTown.alone(world(new Climate(EnumSet.of(Climate.Hazard.TOXIC))), 240, 144);
+        assertEquals(1, alone.precincts().size(), "the town and nothing else");
+        assertTrue(SealedTown.is(alone.precincts().get(0)));
+        assertEquals(null, SealedTown.alone(world(Climate.NONE), 240, 144), "a world people live on in the open");
+        TargetProfile noMarket = new TargetProfile(0, 5, 2, 1, "independent", EnumSet.of(EconomicFunction.HABITATION),
+                SurfacePalette.ROCK, SettlementLink.ROAD).withClimate(new Climate(EnumSet.of(Climate.Hazard.TOXIC)));
+        assertEquals(null, SealedTown.alone(noMarket, 240, 144), "no market, no town");
+    }
+
+    @Test
+    void aPocketTheTownClosesRoundIsTheTownsNotTheWorldOutside() {
+        int[][] claim = eastTown();
+        for (int x = 16; x < 19; x++) for (int y = 4; y < 7; y++) claim[x][y] = GrownTrunkPlan.UNOWNED; // a pocket
+        boolean[][] enclosed = SealedTown.enclosedGround(claim, 1);
+        assertTrue(enclosed[17][5], "the pocket inside the town");
+        assertFalse(enclosed[5][5], "not the country outside it");
+    }
+
+    @Test
     void groundNoRoadReachesGetsALockOfItsOwnWhereTheTownsGroundRunsDeepest() {
         int[][] claim = eastTown();
         boolean[][] open = allOpen();
@@ -169,6 +204,35 @@ class SealedTownTest {
             assertTrue(course[12][y], "the cells against the country");
             assertFalse(course[13][y] || course[14][y], "not the body behind them, nor its face to the town");
         }
+    }
+
+    @Test
+    void aLockOpensOntoGroundThatReachesTheStreetsNotAYardShutInByBuildings() {
+        int[][] claim = eastTown(), road = noRoad();
+        boolean[][] open = allOpen();
+        for (int y = 0; y < 12; y++) road[19][y] = 1; // a street behind the wall
+        // A yard at the south end, as deep as any ground but shut in by a building's walls.
+        for (int y = 0; y <= 6; y++) open[17][y] = false;
+        for (int x = 13; x <= 17; x++) open[x][6] = false;
+        boolean[] sealed = {false, true}, side = {false, true};
+        boolean[][] band = SealedTown.band(claim, sealed, side);
+        boolean[][] streetward = SealedTown.streetward(claim, 1, open, band, road);
+        assertTrue(streetward[15][9], "the ground beside the street");
+        assertFalse(streetward[15][3], "not the shut-in yard");
+        List<PrecinctBoundary.Gate> locks = SealedTown.groundLocks(claim, 1, open, List.of(), streetward);
+        assertEquals(1, locks.size());
+        double middle = locks.get(0).cells().stream().mapToInt(c -> c[1]).average().orElseThrow();
+        assertTrue(middle > 6, "the lock opens toward the street, not the yard: " + middle);
+    }
+
+    @Test
+    void nothingIsBuiltAcrossALocksWayIn() {
+        SealedTown.Lock lock = new SealedTown.Lock(List.of(new int[]{12, 5}), List.of(),
+                List.of(new int[]{12, 5}, new int[]{13, 5}, new int[]{14, 5}), -1, 0);
+        boolean[][] kept = SealedTown.lockWays(new SealedTown.Envelope(new boolean[24][12], List.of(lock)), 24, 12);
+        assertTrue(kept[12 - SealedTown.LOCK_APRON][5], "the apron before it");
+        assertTrue(kept[14 + SealedTown.LOCK_APRON][5], "the way in behind it");
+        assertFalse(kept[13][7], "and nothing beside it");
     }
 
     private static boolean has(List<int[]> cells, int x, int y) {

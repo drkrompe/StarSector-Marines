@@ -97,7 +97,7 @@ final class DryVoidLook {
         if (look == null) return null;
         return switch (look.style()) {
             case CANYON -> CANYON;
-            case DRY_GORGE -> REGOLITH;
+            case DRY_GORGE, SHAFT -> REGOLITH;
             case TOXIC -> TOXIC;
             default -> null;
         };

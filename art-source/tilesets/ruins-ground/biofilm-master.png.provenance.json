@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6de-9df6-7643-96a0-cef88da66439",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6de-9df6-7643-96a0-cef88da66439\\exec-2c195ddd-1988-47e5-afd1-9a1201b1de93.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\biofilm-master.png",
+    "sha256": "25b7f330aad27961b1222b5a89d835f1449d2ba020b7135a7586b6ddf01bcd1b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\biofilm-master.prompt.txt",
+  "promptSha256": "d4264cf67555c2dcdff31f6e5d17cd58d294904fd387fa8bc445bdd26831b852",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: a slick bacterial culture mat grown over the deck: a thin wet olive-grey biofilm with darker green-brown mottling, fine stringy filaments, small glistening wet patches and a few tiny pale nodules. Average colour a dull olive-grey around RGB (98, 104, 78). Desaturated, not neon, not grass, not moss.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, fine-grained biofilm floor texture using the reference only for scale and surface uniformity."
+  ],
+  "usage": {
+    "input_tokens": 38191,
+    "cached_input_tokens": 26496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 446,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 40.8
+}

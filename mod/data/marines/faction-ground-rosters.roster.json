@@ -230,7 +230,7 @@
     {
       "id": "roster.luddic-path",
       "factionIds": ["luddic_path"],
-      "heavySupport": ["hound"],
+      "heavySupport": ["foundry_breaker", "pilgrim", "foundry_breaker"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.field-rifle", "weight": 45}, {"id": "weapon.smg", "weight": 35}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.pulse-rifle", "weight": 5}],
@@ -316,7 +316,7 @@
     {
       "id": "roster.pirates",
       "factionIds": ["pirates"],
-      "heavySupport": ["hound", "warden"],
+      "heavySupport": ["hound", "hauler", "warden"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.smg", "weight": 40}, {"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 15}, {"id": "weapon.dmr", "weight": 10}],
