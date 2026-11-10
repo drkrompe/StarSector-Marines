@@ -23,7 +23,7 @@ import java.util.List;
  */
 final class ColdHall {
 
-    static final String ICE = "floors.snow";
+    static final String ICE = "ruins-ground.ice-sheet", RIME = "ruins-ground.rime";
 
     private ColdHall() {}
 
@@ -117,7 +117,7 @@ final class ColdHall {
 
         // The environment: ice from every source of cold, rime banked on the walls.
         f.spread(ICE, cold, 7, 0x1CE);
-        f.bank(ICE, 0, 3, 0x1C1);
+        f.bank(RIME, 0, 3, 0x1C1);
         return p;
     }
 }

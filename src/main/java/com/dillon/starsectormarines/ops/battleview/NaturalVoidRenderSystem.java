@@ -72,10 +72,14 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final GlacialVoidRenderSystem glacial;
     /** The drop this instance draws is a lava rift. */
     private boolean lava;
-    /** Whether the drop is a foundry's melt, whose kerb is laid as a strip. */
+    /** Whether the drop is a foundry's melt. */
     private boolean foundry;
+    /** The strip laid as the drop's kerb, for a drop whose lip is engineered rather than rock; null for none. */
+    private String kerb;
     /** A foundry's kerb: one cell along the edge by half a cell across, its bottom row at the drop. */
     static final String FOUNDRY_LIP = "graphics/battle/voids/foundry-lip.png";
+    /** A bore shaft's collar, in the same format as {@link #FOUNDRY_LIP}. */
+    static final String SHAFT_LIP = "graphics/battle/voids/shaft-collar-lip.png";
     /** The drop this instance draws is an open pit: benches, a haul road down them, conveyors out. */
     private boolean pit;
     /** An open pit's haul road, and the conveyors it draws over the ground. */
@@ -249,6 +253,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         }
         lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
         foundry = !rising && ((NaturalVoid) look).style() == NaturalVoid.Style.FOUNDRY;
+        kerb = rising ? null : kerb((NaturalVoid) look);
         pit = !rising && PitVoidLook.pit((NaturalVoid) look);
         belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
@@ -349,8 +354,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 // line, well past the cells' stair steps the drop's own edge would otherwise show.
                 float cover = lava ? 1f : at[o + 7];
                 if ((ice || frozenRise || dry != null) && cover < 1f) continue;
-                // A foundry's kerb is a laid strip (below), not rock fraying onto the floor.
-                if (foundry) continue;
+                // An engineered kerb is a laid strip (below), not rock fraying onto the floor.
+                if (kerb != null) continue;
                 if (frayCorners != null) {
                     mesh.appendShadedQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                             sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
@@ -378,17 +383,26 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                         shadeR, shadeG, shadeB, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
-            if (foundry) drawKerb(ctx.sim.getTopology());
+            if (kerb != null) drawKerb(ctx.sim.getTopology());
             if (pit && !belts.isEmpty()) drawBelts(FireLight.clock(ctx.animationTimeSeconds));
         });
     }
 
+    /** The lip strip a drop's style lays as its kerb: a foundry's and a bore shaft's; null for a rock lip. */
+    static String kerb(NaturalVoid look) {
+        return switch (look.style()) {
+            case FOUNDRY -> FOUNDRY_LIP;
+            case SHAFT -> SHAFT_LIP;
+            default -> null;
+        };
+    }
+
     /**
-     * A foundry's kerb: the style's lip strip ({@link #FOUNDRY_LIP}) laid along every edge where the floor meets the
-     * melt, half a cell deep on the floor's side, its bottom row at the drop. Engineered, so its corners are square.
+     * An engineered kerb: the style's lip strip ({@link #kerb}) laid along every edge where the floor meets the
+     * drop, half a cell deep on the floor's side, its bottom row at the drop. Engineered, so its corners are square.
      */
     private void drawKerb(CellTopology topology) {
-        ShuttleSpriteCache lip = sprites.spriteByPath(FOUNDRY_LIP);
+        ShuttleSpriteCache lip = sprites.spriteByPath(kerb);
         if (lip == null || lip.pxW <= 4) return;
         float cell = cam.cellPxSize(), margin = cell * 2f;
         int w = topology.getWidth(), h = topology.getHeight();
