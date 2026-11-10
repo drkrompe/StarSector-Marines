@@ -762,7 +762,11 @@ they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
 the same way along its whole length), which would swell the road into the
-yard, and a *pill* (a short band, under four breadths long, met by no
+yard, and narrows a broader band that a narrower street band running the same
+way overlaps to that street's breadth, on the line within it nearest the
+narrower's, so a street holds one width along its length rather than swelling
+where its frontage steps back at an end or where it jogs and widens at once;
+it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
 own, is a *spur*: a dead end off that street into a yard or a lot. It is

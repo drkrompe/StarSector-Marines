@@ -80,13 +80,35 @@ class RoadJoinsTest {
     }
 
     @Test
-    void aDiagonalJoinIsOneRunNotAStaircase() {
-        List<int[]> stairs = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            stairs.add(new int[]{i, i});
-            stairs.add(new int[]{i + 1, i});
+    void aJoinRunsAlongTheAxesAndTurnsCleanly() {
+        List<int[]> ell = new ArrayList<>();
+        for (int x = 0; x <= 10; x++) ell.add(new int[]{x, 0});
+        for (int y = 1; y <= 6; y++) ell.add(new int[]{10, y});
+        List<List<int[]>> runs = RoadJoins.runs(ell);
+        assertEquals(2, runs.size(), "an L is two runs");
+        for (List<int[]> run : runs) {
+            int[] a = run.get(0), b = run.get(run.size() - 1);
+            assertTrue(a[0] == b[0] || a[1] == b[1], "a run left the grid's axes");
         }
-        assertEquals(1, RoadJoins.runs(stairs).size());
+    }
+
+    @Test
+    void aJoinAcrossOpenGroundHasAPlannersBendsAndOneWidth() {
+        // A broad paved square: the two pieces lie off both axes of each other.
+        boolean[][] road = new boolean[W][H];
+        paint(road, 1, 1, W - 2, H - 2);
+        boolean[][] drawn = new boolean[W][H];
+        paint(drawn, 3, 3, 6, 6);
+        paint(drawn, 30, 20, 34, 24);
+        List<List<int[]>> paths = RoadJoins.paths(passable(road, drawn), drawn);
+        assertEquals(1, paths.size());
+        assertTrue(BendFloodTest.bends(paths.get(0)) <= 2,
+                "the join stepped across the square: " + BendFloodTest.bends(paths.get(0)) + " bends");
+        for (RoadPlan.Route r : RoadJoins.joins(road, drawn, 1L)) {
+            assertEquals(RoadJoins.WIDTH, r.width(), "a join swelled or narrowed with its ground");
+            RoadPlan.Point a = r.points().get(0), b = r.points().get(r.points().size() - 1);
+            assertTrue(a.x() == b.x() || a.y() == b.y(), "a join was drawn as a diagonal stroke");
+        }
     }
 
     private static boolean[][] passable(boolean[][] road, boolean[][] drawn) {
