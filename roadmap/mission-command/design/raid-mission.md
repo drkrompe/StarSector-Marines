@@ -173,7 +173,8 @@ between them.
 Each industry is a class of its own (`RaidIndustry`, listed in `RaidIndustries`):
 its works program, where its works and district stand, the ground it lays
 beside the works (a mine's pit), and how it dresses the built works
-(`RaidWorksDressingStage`, before the landscape pass). `RaidSiteTemplate` is
+(`RaidWorksDressingStage`, once the mission layout's roads are down and before
+the landscape pass). `RaidSiteTemplate` is
 the seam they share: the landing, homes, garrison, roads, walls and the seed's
 turn of the map, the same for every industry. The plan names its industry
 (`PrecinctPlan.raidIndustry`).
@@ -188,7 +189,7 @@ The sites so far, each the same districts with the industry's own works:
 | Light industry (`lightindustry`) | shop floors, a loading shed, stores (`LightIndustryWorks`) | a dense industrial quarter |
 | Farming (`farming`, `aquaculture`) | the farm plant: a silo per machine, the packing shed, stores (`FarmingWorks`) | farmsteads (`PrecinctCharacter.FARMSTEAD`) |
 | Spaceport (`spaceport`, `megaport`) | the cargo terminal: bonded sheds round a lighter apron, the tower, the fuel yard (`PortWorks`) | a dense industrial quarter |
-| Military (`militarybase`, `patrolhq`, `highcommand`) | the motor pool: a motor shed per machine, the magazine (`MilitaryWorks`); the barracks are the garrison beside it | depots |
+| Military (`militarybase`, `patrolhq`, `highcommand`) | the patrol base as a process: convoys in by the rear to the supply depot the patrols draw from, the magazine apart behind sandbags, a motor shed per machine and the fuel point round the vehicle park, dispatch by the front gate with its radar; patrol roads out of two gates to observation posts with radio huts (`MilitaryWorks`). The barracks are the garrison beside it, the prize | sparse depots |
 
 The owner accepted heavy industry's site and asked for the rest in order
 (2026-11-09); every industry a raid can name now has a site, each awaiting the

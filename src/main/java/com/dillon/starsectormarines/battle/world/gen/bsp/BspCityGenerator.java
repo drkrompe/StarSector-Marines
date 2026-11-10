@@ -349,7 +349,6 @@ public final class BspCityGenerator implements MapGenerator {
                 landingAreaStage,                           // precinct-only; null omits it
                 frontStage,                                 // precinct-only; null omits it
                 laneRouteStage,                             // precinct-only; the road each lane runs on
-                new RaidWorksDressingStage(),               // a Raid site's works dressed by its industry
                 new OutdoorLandscapeStage(),                // retain those finished lane routes
                 new HabitatStage(),                         // the town built for the world it stands on
                 new RoadSurfaceStage(),                     // finish kept roads and street carriageways over the placed city
@@ -776,6 +775,9 @@ public final class BspCityGenerator implements MapGenerator {
             }
             if (stage instanceof OutdoorLandscapeStage && !inserted) {
                 stages.add(new MissionLayoutStage());
+                // A Raid site's works dressed by its industry once the layout's roads are down, so its props keep
+                // off them; inert on every other map.
+                stages.add(new RaidWorksDressingStage());
                 inserted = true;
             }
             stages.add(stage);
