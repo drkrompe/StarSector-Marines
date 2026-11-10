@@ -219,6 +219,8 @@ public final class TileRegistry {
             "data/tilesets/origin-freight-split.tileset.json",
             "data/tilesets/origin-freight-boxes.tileset.json",
             "data/tilesets/origin-freight-crane.tileset.json",
+            "data/tilesets/ore-conveyor.tileset.json",
+            "data/tilesets/ore-conveyor-motions.tileset.json",
             "data/tilesets/origin-lab-annex.tileset.json",
             "data/tilesets/origin-lab-kit.tileset.json",
             "data/tilesets/origin-park-bandstand.tileset.json",
