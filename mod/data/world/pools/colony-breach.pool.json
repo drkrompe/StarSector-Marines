@@ -12,6 +12,7 @@
       }}],
     "VERDANT": [{"seed": 4, "note": "2 holdouts; nearest holdout to bore 60 cells"}],
     "FROZEN": [{"seed": 27, "note": "2 holdouts; nearest holdout to bore 73 cells"}],
-    "IRRADIATED": [{"seed": 16, "note": "3 holdouts; nearest holdout to bore 134 cells (ROCK's seed, re-checked on hardpan)"}]
+    "IRRADIATED": [{"seed": 16, "note": "3 holdouts; nearest holdout to bore 134 cells (ROCK's seed, re-checked on hardpan)"}],
+    "TOXIC": [{ "seed": 16, "note": "3 holdouts; 5 bore sites; nearest holdout to bore 75 cells" }]
   }
 }

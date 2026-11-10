@@ -156,7 +156,7 @@ public final class PlayerViewFrameRenderer {
     private static Color markerColor(Faction faction) {
         return switch (faction) {
             case MARINE -> MARINE_MARKER;
-            case DEFENDER -> DEFENDER_MARKER;
+            case DEFENDER, HAZARD -> DEFENDER_MARKER;
             case CIVILIAN -> CIVILIAN_MARKER;
             case ALLY -> ALLY_MARKER;
         };

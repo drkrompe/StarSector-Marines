@@ -15,7 +15,8 @@ import java.util.Random;
  */
 final class RavBloomDebugChoice {
     static final List<SurfacePalette> BIOMES =
-            List.of(SurfacePalette.VERDANT, SurfacePalette.ARID, SurfacePalette.ROCK, SurfacePalette.FROZEN);
+            List.of(SurfacePalette.VERDANT, SurfacePalette.ARID, SurfacePalette.ROCK, SurfacePalette.FROZEN,
+                    SurfacePalette.TOXIC);
     private static final String[] DENSITIES = {"Rural", "Town", "Urban"};
 
     private static int density, biome;

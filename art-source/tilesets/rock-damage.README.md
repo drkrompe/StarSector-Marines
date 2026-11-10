@@ -37,6 +37,7 @@ script lists one set per biome, and `RockDamage.Biome` names the same sets:
 | Frost | `nature.rock-frost-<group>` | FROZEN | `field-stones/frost/`, `none` |
 | Scoria | `nature.rock-scoria-<group>` | VOLCANIC | `field-stones/basalt/`, `scoria` |
 | Glassed | `nature.rock-glassed-<group>` | IRRADIATED | `field-stones/glassed/`, `none` |
+| Toxic | `nature.rock-toxic-<group>` | TOXIC | `field-stones/toxic/`, `none` |
 
 Each set's three states have their own prompts and provenance in its folder.
 The intact sheets reskin `field-stones-guide.png`, with the pale stones in

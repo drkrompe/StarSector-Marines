@@ -47,8 +47,8 @@ import java.util.function.UnaryOperator;
  * an outskirts suburb on the landing side, behind the homes and away from everything worth raiding.
  *
  * <p>The industry changes what the works holds and how thick the industry round it stands: heavy industry's works is
- * machine halls in a dense industrial quarter; a mine's is its head works, a winding house over each shaft and the
- * ore mill they feed, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
+ * machine halls in a dense industrial quarter; a mine's is its head works, an ore-processing chain beside its pit
+ * with a mill line per machine, in sparse ore yards; a refinery's is its stills; light industry's its shop floors; a farm's
  * its silos and packing shed among farmsteads; a port's its cargo terminal; a base's its motor pool and magazine
  * among depots, with the garrison beside it as on every site.
  *
@@ -164,7 +164,7 @@ public final class RaidSiteTemplate {
     /** Share of the map a works may claim before its program is trimmed. UNTUNED. */
     static final float WORKS_FIT = 0.06f;
 
-    /** Share of the map a mine's head works may claim: its shafts stand apart on wide ore yards. UNTUNED. */
+    /** Share of the map a mine's head works may claim: its processing halls stand apart on wide ore yards. UNTUNED. */
     static final float MINE_FIT = 0.08f;
 
     private static final Set<String> HEAVY_INDUSTRY = Set.of("heavyindustry", "orbitalworks");
@@ -261,7 +261,7 @@ public final class RaidSiteTemplate {
      * The site laid on a map of this size for this market. The draws are this template's own: one for the
      * orientation, then the places in order.
      *
-     * @param machines machines in the works (halls, or a mine's winding houses), one per machine the raid wrecks
+     * @param machines machines in the works (halls, or a mine's mill lines), one per machine the raid wrecks
      * @param demand   the hardest wall this operation may be asked to face; it caps the works' wall and sets the
      *                 garrison's as a derived plan does
      */
@@ -328,15 +328,17 @@ public final class RaidSiteTemplate {
         Side deep = mirrorX ? Side.WEST : Side.EAST;
         Side outer = mirrorY ? Side.SOUTH : Side.NORTH;
         List<Road> out = new ArrayList<>();
-        // Each runs to the works' gate: a carved road is kept only where it joins the network, and beside a walled
-        // place's gate is where it does. Through a district's ground it is that district's streets.
+        // Each runs to the works' gate, where its wall opens onto it and the road carries on to the works' streets.
+        // Each is laid through the districts on its course, as their street, so the line shows across them.
         out.add(new Road(HAUL_ROAD, Endpoint.beside(INDUSTRY, deep, 0, 0), Endpoint.gate(WORKS, deep.opposite()),
-                LINE_WIDTH, false));
+                LINE_WIDTH, false).laidThrough());
         out.add(new Road(FEEDER + outer.name().toLowerCase(Locale.ROOT),
-                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false));
+                Endpoint.beside(WORKS, outer, 0, outer.dy * OFF_MAP), Endpoint.gate(WORKS, outer), LINE_WIDTH, false)
+                .laidThrough());
         if (!pit) {
             out.add(new Road(FEEDER + deep.name().toLowerCase(Locale.ROOT),
-                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false));
+                    Endpoint.beside(WORKS, deep, deep.dx * OFF_MAP, 0), Endpoint.gate(WORKS, deep), LINE_WIDTH, false)
+                    .laidThrough());
         }
         return out;
     }

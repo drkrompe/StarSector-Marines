@@ -16,6 +16,9 @@ Status: IN PROGRESS. Every owner pick is decided (`ruins-vault-prize` a,
   store's deepest layer) settled as rolls of vanilla equipment, and the prize's
   row on the results screen.
 - One works twist per theme (`RuinsWorksTwist`, owner pick `ruins-works-twists` a).
+- The batteries on a side hostile to everyone, dormant while dark, with a
+  powered-down look.
+- The tell spoken through the occupant's instruments.
 
 The slices below are what is left.
 
@@ -33,15 +36,12 @@ the ruins and guesses what is inside before committing the company.
 
 ## Slices
 
-1. **The batteries, finished.**
-   - A side hostile to everyone, so the guns fire on the occupant too.
-   - A powered-down look, so dark and awake read apart.
-2. **The tell in the occupant's voice.** Each tell is one line today; word it
-   through the occupant's own instruments (`RuinsSurvey`).
-3. **Themed works and art.** Furniture and the close reading are built. Still
-   owed, through picks with look shots:
-   - Art made for a theme where the shipped props fall short: frost, vats,
-     a forge floor.
+1. **Themed art** (the `ruins-theme-art` session). Furniture and the close
+   reading are built. Still owed, through picks with look shots:
+   - Art made for a theme where the shipped props fall short: frost and vats
+     are built (props and floor patches); a forge floor (nanoforge, drone
+     replicator) and hoist gear with a shaft head (mantle bore) are still
+     owed. Concepts: `art-source/ruins-themes/raw/ruins-forge-concept.png`.
    - Theme on the approach outside.
 
 ## Constraints

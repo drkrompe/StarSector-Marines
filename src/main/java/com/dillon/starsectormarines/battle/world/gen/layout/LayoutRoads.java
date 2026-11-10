@@ -77,7 +77,8 @@ public final class LayoutRoads {
                 int x = c[0], y = c[1];
                 if (x <= 0 || y <= 0 || x >= width - 1 || y >= height - 1) continue;
                 planned++;
-                if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                int ground = claim[x][y];
+                if (ground != GrownTrunkPlan.UNOWNED && !(r.through() && settled(plan, ground))) continue;
                 if (rural != null && rural.inCountry(x, y)) continue;
                 if (held != null && held[x][y]) continue;
                 if (barred != null && barred[x][y] && owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
@@ -85,9 +86,12 @@ public final class LayoutRoads {
                     onRoad++;
                     continue;
                 }
-                owner[x][y] = who;
+                // Across a settled place's ground it is that place's street.
+                owner[x][y] = ground == GrownTrunkPlan.UNOWNED ? who : ground;
                 carved.add(c);
                 if (toGate >= 0 && beside(claim, toGate, x, y, width, height)) anchors.add(c);
+                // A road laid through that reaches the map's edge is a road off the map, joined by the weld.
+                if (r.through() && (x == 1 || y == 1 || x == width - 2 || y == height - 2)) anchors.add(c);
             }
             // A stretch the places' ground cut off from the network is not left as a stranded road, nor welded
             // across somebody's ground to reach it: it is not laid.
@@ -226,6 +230,13 @@ public final class LayoutRoads {
         Precinct place = plan.precincts().get(who);
         return place.boundary() == Precinct.Boundary.WALLED && place.fortification() != null
                 && place.fortification().square() ? who : -1;
+    }
+
+    /** Whether place {@code who} is settled ground a road laid through may cross: a place with no wall round it. */
+    static boolean settled(PrecinctPlan plan, int who) {
+        if (who < 0 || who >= plan.precincts().size()) return false;
+        Precinct place = plan.precincts().get(who);
+        return !place.isProgrammed() && place.boundary() != Precinct.Boundary.WALLED;
     }
 
     /** Whether {@code (x, y)} touches {@code who}'s ground along an edge. */

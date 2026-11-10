@@ -54,6 +54,13 @@ public final class SurfaceZoning {
                 || id.contains("cold")) {
             return SurfacePalette.FROZEN;
         }
+        // Toxic worlds: stained rock, sulphur flats and sludge pools. After the
+        // cold worlds on purpose: toxic_cold stays FROZEN. Its atmosphere is
+        // toxic but its ground is ice at cryogenic cold, where nothing pools
+        // as liquid, so snow over ice is the truer picture than sludge.
+        if (id.contains("toxic")) {
+            return SurfacePalette.TOXIC;
+        }
         // Lava worlds: "lava" catches lava_minor.
         if (id.contains("lava")) {
             return SurfacePalette.VOLCANIC;
@@ -63,7 +70,7 @@ public final class SurfaceZoning {
             return SurfacePalette.IRRADIATED;
         }
         // Everything else the Sector actually fights over: barren, rocky,
-        // toxic.
+        // irradiated.
         return SurfacePalette.ROCK;
     }
 

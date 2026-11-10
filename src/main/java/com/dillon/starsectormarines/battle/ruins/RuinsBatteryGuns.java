@@ -20,8 +20,8 @@ import java.util.List;
  * the first junction to its store cuts them, at the price of that gate's power. So the power that opens the vault
  * also arms the guns on the way out.
  *
- * <p>They stand on the defenders' side, so they fire on the company and its allies. Firing on the occupant too needs
- * a side hostile to everyone, which the battle does not have yet.
+ * <p>They stand on the hazard side ({@link Faction#HAZARD}): the old colony's guns answer to nobody, so they fire on
+ * the company, its allies and the occupant alike, and any of them may fire back.
  */
 public final class RuinsBatteryGuns {
 
@@ -124,7 +124,7 @@ public final class RuinsBatteryGuns {
         for (int i = 0; i < sites.size(); i++) {
             int x = sites.get(i)[0];
             int y = sites.get(i)[1];
-            long gun = sim.spawn(MapTurret.create("ruins-battery-" + (i + 1), Faction.DEFENDER, STRUCTURE, x, y));
+            long gun = sim.spawn(MapTurret.create("ruins-battery-" + (i + 1), Faction.HAZARD, STRUCTURE, x, y));
             if (gun == 0L) continue;
             grid.setWalkable(x, y, false);
             grid.setSeeThrough(x, y, true);
@@ -133,6 +133,8 @@ public final class RuinsBatteryGuns {
             grid.recomputeCoverAt(x, y + 1);
             grid.recomputeCoverAt(x, y - 1);
             sim.turretState().cutPower(gun);
+            // A dark gun is dead machinery: nobody fires on it until it wakes.
+            sim.getUnitIndex().setDormant(gun, true);
             guns.add(gun);
         }
         return guns.isEmpty() ? null : new RuinsBatteryGuns(guns);
@@ -150,6 +152,7 @@ public final class RuinsBatteryGuns {
         for (long gun : guns) {
             if (state == RuinsBatteries.State.AWAKE) sim.turretState().restorePower(gun);
             else sim.turretState().cutPower(gun);
+            sim.getUnitIndex().setDormant(gun, state != RuinsBatteries.State.AWAKE);
         }
     }
 }

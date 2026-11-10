@@ -81,6 +81,17 @@ public final class RuinsVaultPrizes {
         return List.of(prize.theme().tellKey(), coreTellKey(core));
     }
 
+    /**
+     * The frame the tell is spoken in: the occupant's own instruments ({@code RuinsSurvey}'s pools), for example the
+     * scavengers' intercepted comms or derelict security's traffic. Its {@code {0}} is the theme's tell.
+     */
+    public static String voiceKey(RuinsOccupant occupant) {
+        if (occupant == null) return null;
+        StringBuilder key = new StringBuilder("ruinsTellVoice");
+        for (String part : occupant.name().split("_")) key.append(part.charAt(0)).append(part.substring(1).toLowerCase());
+        return key.toString();
+    }
+
     /** The line reading a core's hinted tier, for example {@code ruinsTellLikelyBetaCore}. */
     static String coreTellKey(String core) {
         return switch (core) {

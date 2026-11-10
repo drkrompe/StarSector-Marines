@@ -306,6 +306,18 @@ against a walled square place is now carried through the gate its wall opens
 there to the place's own roads (`LayoutRoads.enter`), and the network is welded
 once more after the layout's roads are carved.
 
+**A line the mission draws across the map is laid through the quarters on its
+course.** A layout road is carved on open country only, and across a settled
+place's ground it gave way to whatever streets that place grew. A works' feeder
+through a dense quarter vanished there, and a stretch that ended against a
+district's ground was dropped as joined to nothing. That is how a storm bank's
+windward feeder disappeared. A road laid `through` (`Road.laidThrough`, the raid
+feeders and haul road) is carved across settled, unwalled ground as that place's
+street, and kept where it reaches the map's edge, which is where a road off the
+map belongs; the weld joins it. A road across a settled place's ground that its
+fill did not pave (a weld or a road laid through) is paved in asphalt and swept
+as the roads beyond the claims are, rather than left as a strip of yard dirt.
+
 ## The partition must be handed one place's parcels, not the map's
 
 `GrownTrunkPlan.grow` returns sub-rects decomposed from frontage across the

@@ -504,6 +504,9 @@ public final class UnitRenderService implements RenderSystem {
 
             DerelictLook derelict = derelictPostLook(ctx, id);
             boolean folded = derelict != null && turretState.unpowered(id);
+            // A hazard's gun with its power cut (a ruins battery while its hall is cold) stands dark.
+            float[] tone = turretState.unpowered(id) && ctx.sim.identity().faction(id) == Faction.HAZARD
+                    ? POWERED_DOWN : LIT;
             StructureLook look = derelict != null ? derelict.postLook(folded) : structure.look(ctx.sim.structureStyle(id));
             ShuttleSpriteCache base = look != null && look.spritePath() != null
                     ? sprites.spriteByPath(look.spritePath()) : sprites.turretSprites().get(structure.id);
@@ -528,16 +531,22 @@ public final class UnitRenderService implements RenderSystem {
                     : derelict != null ? null : sprites.turretRecoilSprites().get(structure.id);
             if (barrel != null) {
                 emitWholeSprite(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
-                        pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
+                        pose.recoilCenterX(), pose.recoilCenterY(), tone[0], tone[1], tone[2], alphaMult);
             }
             // A folded derelict post lies shut in its well, square to the map rather than turned with the mount.
             emitWholeSprite(out, base, folded ? 0f : pose.facingDegrees(), pose.spriteHeightPx(),
-                    folded ? cx : pose.baseCenterX(), folded ? cy : pose.baseCenterY(), alphaMult);
+                    folded ? cx : pose.baseCenterX(), folded ? cy : pose.baseCenterY(), tone[0], tone[1], tone[2],
+                    alphaMult);
             if (structure.art != null) {
                 emitArtLayers(ctx, out, structure, id, cx, cy, cellPx, alphaMult, clock, dt);
             }
         }
     }
+
+    /** A body drawn in its own colours. */
+    private static final float[] LIT = {1f, 1f, 1f};
+    /** A powered-down hazard gun: its paint multiplied cold and dark, so it reads apart from a live one. UNTUNED. */
+    static final float[] POWERED_DOWN = {0.42f, 0.46f, 0.52f};
 
     /** Longest extent, in cells, that a structure body can be drawn across: its mount sprite, its art layers and its footprint. */
     private static float bodyExtentCells(StructureDef structure) {
