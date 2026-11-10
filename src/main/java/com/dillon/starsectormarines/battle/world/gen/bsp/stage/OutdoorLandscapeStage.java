@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.StormBank;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
@@ -743,7 +744,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             if (point != null) anchors.add(point);
         }
         for (int i = 0; i < hostAnchors.length; i += 2) anchors.add(new int[]{hostAnchors[i], hostAnchors[i + 1]});
-        boolean[][] stops = trackStops(c);
+        boolean[][] stops = approachStops(c);
         for (var pad : c.landingPads) {
             anchors.add(new int[]{pad.centerX, pad.centerY});
             int l = pad.left() - 4, r = pad.right() + 4, b = pad.bottom() - 4, t = pad.top() + 4;
@@ -828,6 +829,22 @@ public final class OutdoorLandscapeStage implements GenStage {
             out[x][y] = sealed != null && sealed[x][y];
             for (KnollGround.Resolved k : knolls) out[x][y] |= k.stands() && k.onGround(x, y);
         }
+        return out;
+    }
+
+    /**
+     * Where a landing pad's approach stops short of the edge: the {@link #trackStops}, and a storm bank's ground
+     * ({@link StormBank#ground}), so an approach toward the windward edge never reserves a stretch of the bank away.
+     */
+    private static boolean[][] approachStops(GenContext c) {
+        boolean[][] stops = trackStops(c);
+        PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
+        TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
+        if (plan == null || plan.landscape().kept().isEmpty() || !StormBank.raises(profile)) return stops;
+        boolean[][] bank = StormBank.ground(profile.climate().wind(), c.width, c.height);
+        if (stops == null) return bank;
+        boolean[][] out = new boolean[c.width][c.height];
+        for (int x = 0; x < c.width; x++) for (int y = 0; y < c.height; y++) out[x][y] = stops[x][y] || bank[x][y];
         return out;
     }
 
