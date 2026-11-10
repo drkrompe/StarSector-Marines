@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.door.WallGate;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -103,6 +104,8 @@ public final class GenContext {
     public final List<MainStreet> mainStreets = new ArrayList<>();
     /** Cordoned facilities districts laid, in the order they were laid ({@code set-piece-districts.md}). */
     public final List<CordonedFacility> cordonedFacilities = new ArrayList<>();
+    /** The gates in walled places' walls, hung with leaves ({@link WallGate}). */
+    public final List<WallGate> wallGates = new ArrayList<>();
     /** Industrial zones districts laid, in the order they were laid ({@code set-piece-districts.md}). */
     public final List<IndustrialZone> industrialZones = new ArrayList<>();
 

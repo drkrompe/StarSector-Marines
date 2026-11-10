@@ -413,6 +413,7 @@ public final class BattleSetup {
         sim.setBuildings(map.buildings);
         sim.setMarineLandingPads(map.landingPads);
         sim.setDefensePosts(defensePosts);
+        sim.setWallGates(map.wallGates);
         // The map's own statement of where the front is, so the trace can say
         // which band a compound stands in without re-deriving it.
         sim.setFrontDepth(map.frontDepth);
