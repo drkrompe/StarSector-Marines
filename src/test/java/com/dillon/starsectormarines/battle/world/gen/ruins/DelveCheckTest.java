@@ -18,7 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The delve's laws on a 40x20 ground with one wall line at x=20: the vault is reached through the layer's ways, and
- * at the larger grades a layer whose ways all funnel through one gap closes the route when that gap is blocked.
+ * at the larger grades a layer whose ways all funnel through one gap closes the route when that gap is blocked. The
+ * hall frame law on two 6x6 halls joined by one way: a freight way lets the frame through, a service neck stops it,
+ * and a hall door on the way is forced or torn wide enough for it.
  */
 class DelveCheckTest {
 
@@ -49,6 +51,56 @@ class DelveCheckTest {
         grid.setWalkable(LINE + 1, 9, false);
         List<String> problems = DelveCheck.problems(grid, delve(way(1, 4), way(2, 15)), RuinsGroundPlan.forLayers(1));
         assertTrue(problems.contains("blocking ruins.layer.1.way.1 closes the route"), problems.toString());
+    }
+
+    @Test
+    void aHallFrameTravelsAFreightWayBetweenHalls() {
+        assertEquals(List.of(), frameProblems(halls(4, 7), List.of()));
+    }
+
+    @Test
+    void aServiceNeckShutsTheHallFrameIn() {
+        List<String> problems = frameProblems(halls(5, 6), List.of());
+        assertEquals(1, problems.size(), problems.toString());
+        assertTrue(problems.get(0).startsWith("a hall frame cannot travel"), problems.toString());
+    }
+
+    @Test
+    void aDeadHallDoorIsForcedOpen() {
+        NavigationGrid grid = halls(4, 7);
+        for (int y = 4; y <= 7; y++) grid.setWalkable(13, y, false);
+        assertEquals(List.of(), frameProblems(grid, List.of(door(4, 7))));
+    }
+
+    @Test
+    void aHallDoorNarrowerThanTheFrameIsTornWider() {
+        NavigationGrid grid = halls(4, 7);
+        for (int y = 4; y <= 7; y++) grid.setWalkable(13, y, false);
+        assertEquals(1, frameProblems(grid, List.of()).size(), "the shut way stops the frame without its door");
+        assertEquals(List.of(), frameProblems(grid, List.of(door(5, 6))));
+    }
+
+    static List<String> frameProblems(NavigationGrid grid, List<RuinsDelve.LeafDoor> doors) {
+        List<RuinsDelve.PlantHall> halls = List.of(
+                new RuinsDelve.PlantHall("west", RuinsDelve.PlantStage.STORAGE, new Area(2, 3, 7, 8)),
+                new RuinsDelve.PlantHall("east", RuinsDelve.PlantStage.STORAGE, new Area(20, 3, 25, 8)));
+        return DelveCheck.frameProblems(grid, halls, doors, DelveCheck.HALL_FRAME_RADIUS);
+    }
+
+    /** Two 6x6 halls on solid ground, joined by a way open on rows {@code bottom..top}. */
+    static NavigationGrid halls(int bottom, int top) {
+        NavigationGrid grid = new NavigationGrid(28, 12);
+        for (int y = 3; y <= 8; y++) {
+            for (int x = 2; x <= 25; x++) {
+                if (x <= 7 || x >= 20 || (y >= bottom && y <= top)) grid.setWalkableFloor(x, y);
+            }
+        }
+        return grid;
+    }
+
+    /** A dead hall door across the way at x=13, on rows {@code bottom..top}. */
+    static RuinsDelve.LeafDoor door(int bottom, int top) {
+        return new RuinsDelve.LeafDoor(new Area(13, bottom, 13, top), false, false, RuinsDelve.DoorStance.DEAD);
     }
 
     static NavigationGrid ground() {
