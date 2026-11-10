@@ -626,6 +626,12 @@ table with seating, and the server room has opaque cabinets around a service
 aisle. Whole furniture groups rotate with their protected working space.
 Public and office facades receive glazed bays before furnishing; secure server
 rooms remain opaque. Furnishing keeps the windows' inward approaches open.
+Homes, flats, tenements and shops repeat their bays along each room's facade
+with two-cell piers between them (`BuildingShellCore.windowBays`); other
+buildings lay one bay in the middle of each room's run. A domestic room keeps
+two cells of its run blind for its furniture. A stood-up building shows only
+these real windows on its faces (owner, picks voids-wall-windows), so the
+repeated bays are what give a street its rhythm of panes.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Dispatch uses an L-shaped depot and office

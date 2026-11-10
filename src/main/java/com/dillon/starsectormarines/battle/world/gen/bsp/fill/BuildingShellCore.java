@@ -289,14 +289,12 @@ final class BuildingShellCore {
             if (eligible && inRun && purpose == runPurpose) continue;
             if (inRun) {
                 int available = along - runStart;
-                int panes = Math.min(windowBayWidth(recipe, runPurpose), available);
                 // Small domestic rooms still need two-cell wall support for beds and sofas.
-                if (runPurpose == RoomPurpose.BEDROOM || runPurpose == RoomPurpose.APARTMENT_LIVING
-                        || runPurpose == RoomPurpose.HOME_KITCHEN)
-                    panes = Math.min(panes, Math.max(1, available - 2));
-                int start = runStart + (available - panes) / 2;
-                for (int pane = start; pane < start + panes; pane++)
-                    stampWindow(grid, topology, bl, bt, br, bb, side, pane, buildingKind);
+                boolean domestic = runPurpose == RoomPurpose.BEDROOM || runPurpose == RoomPurpose.APARTMENT_LIVING
+                        || runPurpose == RoomPurpose.HOME_KITCHEN;
+                for (int pane : windowBays(available, windowBayWidth(recipe, runPurpose), repeatsBays(recipe),
+                        domestic))
+                    stampWindow(grid, topology, bl, bt, br, bb, side, runStart + pane, buildingKind);
             }
             runStart = eligible ? along : -1;
             inRun = eligible;
@@ -328,6 +326,44 @@ final class BuildingShellCore {
                     || purpose == RoomPurpose.APARTMENT_LIVING;
             case SHED, ARMORY, MEDICAL_SUPPORT -> false;
         };
+    }
+
+    /** Cells of wall left standing between two window bays along one room's facade. */
+    static final int WINDOW_PIER = 2;
+
+    /**
+     * Whether a building lays a window bay again and again along each room's facade, its piers between them, rather
+     * than one bay in the middle: homes, flats, tenements and shops (owner, picks voids-wall-windows: real windows
+     * only, and the map lays more of them, so a stood-up face shows a street's rhythm of panes a marine can see and
+     * shoot through).
+     */
+    static boolean repeatsBays(BuildingLayouts.LayoutRecipe recipe) {
+        return switch (recipe) {
+            case HOME, APARTMENT_BLOCK, DENSE_TENEMENT, SHOP, DENSE_MARKET -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Where a room's window panes go along a run of {@code available} cells that can take one, as offsets from the
+     * run's start: bays {@code bay} panes wide, one bay or as many as fit with {@link #WINDOW_PIER} cells of wall
+     * between them, the whole centred on the run. A domestic room keeps at least two cells of the run blind for its
+     * beds and sofas.
+     */
+    static int[] windowBays(int available, int bay, boolean repeat, boolean domestic) {
+        if (available <= 0 || bay <= 0) return new int[0];
+        int glazed = domestic ? Math.max(1, available - 2) : available;
+        int width = Math.min(bay, glazed);
+        int count = repeat ? Math.max(1, (available + WINDOW_PIER) / (width + WINDOW_PIER)) : 1;
+        while (count > 1 && count * width > glazed) count--;
+        int used = count * width + (count - 1) * WINDOW_PIER;
+        int start = (available - used) / 2;
+        int[] panes = new int[count * width];
+        int n = 0;
+        for (int b = 0; b < count; b++) {
+            for (int k = 0; k < width; k++) panes[n++] = start + b * (width + WINDOW_PIER) + k;
+        }
+        return panes;
     }
 
     private static int windowBayWidth(BuildingLayouts.LayoutRecipe recipe, RoomPurpose purpose) {

@@ -80,6 +80,23 @@ class WindowBayTest {
         assertTrue(owner>0);assertTrue(navigation.isNavigationTopologyDirty());
     }
 
+    @Test void homesAndShopsRepeatTheirBaysWithPiersBetweenWhileOthersLayOne() {
+        // A twelve-cell shop front takes two four-pane bays two cells apart, centred.
+        assertArrayEquals(new int[]{1, 2, 3, 4, 7, 8, 9, 10}, BuildingShellCore.windowBays(12, 4, true, false));
+        // The same run on a building that lays one bay keeps it in the middle, as before.
+        assertArrayEquals(new int[]{4, 5, 6, 7}, BuildingShellCore.windowBays(12, 4, false, false));
+        // A bedroom keeps two cells of its run blind for its furniture: eight cells take two two-pane bays.
+        int[] bedroom = BuildingShellCore.windowBays(8, 2, true, true);
+        assertArrayEquals(new int[]{1, 2, 5, 6}, bedroom);
+        assertTrue(8 - bedroom.length >= 2, "wall left for the beds");
+        // A run too short for a second bay keeps one, and a tiny room still gets a pane.
+        assertEquals(2, BuildingShellCore.windowBays(5, 2, true, false).length);
+        assertEquals(1, BuildingShellCore.windowBays(2, 2, true, true).length);
+        assertEquals(0, BuildingShellCore.windowBays(0, 2, true, true).length);
+        assertTrue(BuildingShellCore.repeatsBays(BuildingLayouts.LayoutRecipe.HOME));
+        assertFalse(BuildingShellCore.repeatsBays(BuildingLayouts.LayoutRecipe.WAREHOUSE));
+    }
+
     private static SharedEdgeBarrier[] adjacentPair(List<SharedEdgeBarrier> windows) {
         for(var a:windows) for(var b:windows)
             if(BuildingWindowTestSupport.outwardFromOwner(a)==BuildingWindowTestSupport.outwardFromOwner(b)
