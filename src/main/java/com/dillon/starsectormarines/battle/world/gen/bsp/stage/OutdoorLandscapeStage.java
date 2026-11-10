@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -1302,8 +1303,11 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /** Natural open ground under painted floor (a lawn), nothing built: what a layout's ridge may rise over. */
     private static boolean lawn(GenContext c, int x, int y) {
-        return naturalGround(c, x, y) && !c.isMadeGround(x, y) && c.topology.getSurface(x, y) != 0
-                && c.topology.getSurfaceId(x, y).startsWith("floors.");
+        if (!naturalGround(c, x, y) || c.isMadeGround(x, y) || c.topology.getSurface(x, y) == 0) return false;
+        // A world's own ground block (a toxic world's crust) is that world's earth, as floors.* is everyone else's.
+        String id = c.topology.getSurfaceId(x, y);
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        return id.startsWith("floors.") || mapping != null && mapping.isPaletteGroundBlock(id);
     }
 
     private static boolean openGround(GenContext c, int x, int y) {
