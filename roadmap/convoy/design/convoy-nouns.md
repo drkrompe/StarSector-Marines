@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-11-05 — a crushing hull crushes where its whole footprint goes, reversing and turning on the spot as well as ahead (owner; weight crushes walls). Also 2026-11-05 — the Hegemony line (the Onager, the medium tank, the APC and its carriers) shows flux haze off its engine grilles as the laser tank does off its fins. Earlier 2026-11-05 — a crushing hull pushes what is built and the destruction path brings down: a building's window bays with its walls, and registered equipment and furniture with barricades; each piece it brings down plays the Brute's wall break (owner; weight crushes walls). Also 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Pulse); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-11-09 — the hover line is Tri-Tachyon's skimmer line, light, medium and heavy, in the high-tech heavy shell with every gun on its own mount (`mech-lines.md`, law 4); the heavy skimmer carries the laser tank's carriage and a frontal flux shield on its hull's one flux pool (the hover line). Earlier 2026-11-05 — a crushing hull crushes where its whole footprint goes, reversing and turning on the spot as well as ahead (owner; weight crushes walls). Also 2026-11-05 — the Hegemony line (the Onager, the medium tank, the APC and its carriers) shows flux haze off its engine grilles as the laser tank does off its fins. Earlier 2026-11-05 — a crushing hull pushes what is built and the destruction path brings down: a building's window bays with its walls, and registered equipment and furniture with barricades; each piece it brings down plays the Brute's wall break (owner; weight crushes walls). Also 2026-11-05 — the Onager is the Hegemony's heavy repulsor tank: an ultra-heavy hover hull that crushes ordinary walls by its weight, its weapon under the shared Hegemony head; the dozer breacher is retired and its saves carried to the Onager (the tank, weight crushes walls). Also 2026-11-05 — heavy hulls break ordinary walls too, not fortified ones (owner), more slowly than ultra-heavy; a crushing hull's breach view is kept and caught up like the crush view (weight crushes walls). Also 2026-11-05 — weight, not hover, decides the shove, the crush, the ram and the mass, and an ultra-heavy class above heavy crushes ordinary walls and barricades with its own nose (mass decides the shove; weight crushes walls). Also 2026-11-05 — a drone bay rebuilds every drone it loses, one at a time, not only the strike drone (the hover line). Earlier, 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Pulse); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1669,10 +1669,15 @@ the `tank-versus-air` scene (each laser
 fires into the air at a hostile gunship, the cannon tank never does, and with men in
 reach as well the PL-3 still fires at the ground).
 
-### The hover line: hover scout and drone skimmer
+### The hover line: Tri-Tachyon's skimmers
 
-Tri-Tachyon's company hulls are purpose-built corporate issue, not field rigs: a
-lift-fan skirt under a composite shell (`art-source/vehicles/tt-hover/`). The lore
+Tri-Tachyon's company hulls are purpose-built corporate issue, not field rigs: the
+**skimmer line**, light, medium and heavy, on grav-lift drives under the high-tech heavy
+shell, pale steel-blue armour lobes over dark machinery after the company's own warships
+(`art-source/vehicles/tt-hover/`, `tech-families.md`). Tri-Tachyon invests in skimmers in
+place of a heavy walker of its own (`mech-lines.md`). Every skimmer is modular
+(`mech-lines.md`, law 4): its hull is drawn bare with an empty turret ring, and its gun is
+a layer of its own on a mount. The lore
 anchor is the Sector's own "mechs, tanks, and hovercraft" and the company's security
 drones; its ground drones are remote-controlled from a crewed hull, never free hunters,
 which is the line the Sector's AI law draws.
@@ -1686,7 +1691,7 @@ from a wall-crushing hull's breach view, which only route proof reads while the 
 hull against a standing wall. Nothing else opens: walls, natural obstructions, low cover
 and a closed shore edge still stop it, and nobody else gains the cells. Its route cost
 prices water and rubble as open ground. What the skirt gives up is **purchase**: a hover
-hull of light weight, which both of the line are, repels nobody (`VehicleType.repelsBodies`),
+hull of light weight, which the light and medium skimmers are, repels nobody (`VehicleType.repelsBodies`),
 so it cannot clear a road by driving into people, and it pays in plate, thinner than the
 technical's. A heavier skirt is pressed down by its weight and shoves, crushes and holds
 the ground as a hull of that weight does; its view is the hover view laid over the crush
@@ -1753,10 +1758,25 @@ terms (`HullSightings`). It also carries a Twin PE-1, two pulse emitters of the 
 so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
 bay.
 
-The **drone skimmer** (`DRONE_SKIMMER`, Medium lift) is the scout's hull stretched over a
-drone bay, with no gun. Its bay holds two escorts, two halo drones and a strike drone.
+The **drone skimmer** (`DRONE_SKIMMER`, Medium lift) is the medium skimmer: short and
+broad, wider than it is long, with two drone wells either side of its spine and no gun.
+Its bay holds two escorts, two halo drones and a strike drone.
 
-Acceptance is the `hover-line` scene:
+The **heavy skimmer** (`HEAVY_SKIMMER`, Heavy lift) is the top of the line: a long
+armoured hull of heavy weight, so it shoves, crushes undergrowth and opens ordinary walls
+as any heavy hull does. Its gun card is the laser tank's (`TANK_PL_3_STRUCTURE_ID`, the
+locked three-row energy card) on a white ring at the hull's centre, the PL-3 its stock
+part, drawn standing in its base over the empty ring the sheet paints. It carries a
+**hull shield** (`HullShield`, `VehicleType.shieldSpec`): the mech emitter's rule on a
+hull, a frontal flux shield with no capacitors of its own run on the hull's one flux
+reservoir (hull flux), which it shares with the laser. Every round it stops and every
+second it is held charges that pool, it folds while the pool vents, and a full pool
+overloads shield and guns together. It faces what the hull's gun is on, or whoever shot
+it last, and goes when the hull is wrecked. Its reservoir is the laser tank's stock bank,
+vent arrays and plant. Every figure is first-pass and untuned, for the owner's playtest.
+
+The `hover-line` snapshot suite's look shot, `skimmer-line`, shows the three skimmers in
+file on real ground under fire. Acceptance is the `hover-line` scene:
 - The scout crosses a river at which a wheeled APC is refused.
 - It drives over standing marines and shoves none, against the spotter pickup's control.
 - Its sensor pair searches round the hull and puts a defender the hull cannot see into the

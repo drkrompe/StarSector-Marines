@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ab-c2a5-7150-a890-cad4e29d3225",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ab-c2a5-7150-a890-cad4e29d3225\\exec-1ba4f0a4-fe35-4f10-bfd9-3cdf7e00e5ea.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\signatures\\cryo-vent\\cryo-vent-mound-master.png",
+    "sha256": "60989bc7c1ed77f9349bad0301c3b4f211bf4f56667c1f42d4df91581f92ff86",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\signatures\\cryo-vent\\cryo-vent-mound.prompt.txt",
+  "promptSha256": "d04968799551762c6919deaccd5053e78deec87e69b8dd5b0e1b92447e89dd6f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/colour only: the game's snow ground the mound's outer frost must blend into; not layout\n\nA single cryovolcanic vent mound for a top-down tactical battle game, seen from directly overhead (orthographic, straight down, no perspective tilt).\n\nSubject: a low, roughly round mound of frozen ejecta about as wide as a small truck, centred in the frame. At its middle a dark, narrow vent throat (a ragged slot or small pit, dark blue-grey, not black) where cold vapour escapes. Around the throat, concentric crusts of pale blue-white frost and rime, thick hoarfrost feathers and refrozen slush splashed outward in uneven lobes, a few small cracked ice plates and dark frozen grit flecks. The rim fades outward into thin powdery frost so it can sit on a snowfield. Muted, grounded realism, soft overcast light from the upper left, subtle shading only; no glow, no vapour cloud (vapour is a separate animated layer).\n\nColour: cold whites, pale ice blue, blue-grey grit; match the snow ground in reference 1 at the outer edge so the mound blends into it.\n\nOutput: square canvas, the mound filling about 80% of it. True transparent background, including all space around the mound; the outer frost should fade to transparent with a soft irregular edge. No ground tile, no shadow slab, no border, no text, no other objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\signatures\\cryo-vent\\snow-ground-reference.png",
+      "sha256": "959ca57ce0214d426ea418d722683c139e3bc8a01fdc11611b45f3a2fdf567c1",
+      "dimensions": [
+        896,
+        224
+      ],
+      "mode": "RGB",
+      "role": "Material/colour only: the game's snow ground the mound's outer frost must blend into; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent vent mound using the reference’s snow colours and texture.\n"
+  ],
+  "usage": {
+    "input_tokens": 38177,
+    "cached_input_tokens": 31744,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 344,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.4
+}

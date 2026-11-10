@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2b3-b88d-7473-b760-55b1df137559",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2b3-b88d-7473-b760-55b1df137559\\exec-75aa301c-cbd8-4b6e-973a-db786632231b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\signatures\\crater\\impact-crater-master.png",
+    "sha256": "e028886141c8dde4e623b695775865d392cf13a1fccc571c1f30d4e16ab465fd",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\signatures\\crater\\impact-crater.prompt.txt",
+  "promptSha256": "631dfac1aa0d7368f097a7ae65d7ada5a6391ddbdbb97b9607c6b34758f503c4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/colour only: the game's barren regolith ground the crater must sit in; not layout\n\nA single small impact crater on an airless barren world, for a top-down tactical battle game, seen from directly overhead (orthographic, straight down, no perspective tilt).\n\nSubject: a round bowl crater, centred. Inside: a shallow bowl of darker, shattered grey-brown regolith with fine rubble, slightly darker toward the centre, a few fractured rocks on the floor. Around it: a low raised lip of broken, overturned rock and paler crushed dust, then an ejecta blanket of scattered grit, small stones and short irregular radial rays splashing outward and thinning to nothing. Muted, grounded realism; soft light from the upper left so the lip's upper-left inner slope is in light shade and the lower-right inner slope catches light; subtle shading only.\n\nColour: dust grey-browns matching the regolith ground in reference 1, darker in the bowl, paler on the lip; the outer ejecta must blend into that ground.\n\nOutput: square canvas, the crater and its ejecta filling about 90% of it. True transparent background, including all space around the crater; the outer ejecta should fade to transparent with a soft irregular edge. No ground tile, no shadow slab, no border, no text, no other objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\signatures\\crater\\regolith-ground-reference.png",
+      "sha256": "4833f698d057db826209c9e02b9df723fefb84f9d9d4b2da7b5acdaccf12d3af",
+      "dimensions": [
+        896,
+        224
+      ],
+      "mode": "RGB",
+      "role": "Material/colour only: the game's barren regolith ground the crater must sit in; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one crater image with a transparent background, using the reference for material and colour."
+  ],
+  "usage": {
+    "input_tokens": 38133,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 361,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.0
+}

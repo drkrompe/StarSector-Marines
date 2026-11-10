@@ -5,7 +5,8 @@ line is pinned; lava worlds have their own ground; toxic and irradiated worlds
 are open.
 
 Written: 2026-08-31
-Updated: 2026-10-11 — remaining work is distinct toxic, irradiated, volcanic and ash material families.
+Updated: 2026-11-09 — lava worlds have their own ground and the living worlds looks of their own (`LivingWorld`);
+remaining work is distinct toxic and irradiated material families.
 
 ## What this is
 
@@ -107,19 +108,30 @@ What differs, all presentation:
   breathing. Where they go is `VolcanicGroundLook`'s: only open wild stone or sand
   with open ground about it, never under a wall, road, raised ground, fixture or
   authored surface. Coordinate-hashed; nothing gameplay reads.
-- **Storm drift** banks ash, and the field stones are the basalt set.
+- **Storm drift** banks ash. The field stones are the scoria set
+  (`RockDamage.Biome.SCORIA`): the basalt stones graded dark and faintly warm by
+  `nature-tiles-refit.py`, in the same pool sizes and chances as rock, so they
+  fall where rock's would.
 
-Known left: the basalt field stones are the barren world's light grey set and
-read as pale pebbles on dark ground (a darker scoria set would need its damage
-states too); raised ground from `ElevationBrush` picks its finish from the
+Known left: raised ground from `ElevationBrush` picks its finish from the
 ground kinds and so stays rock on a lava world; no glow feathering at the ground
-target's edge, since the basalt joins no feathered material, as snow does not.
+target's edge, since the basalt joins no feathered material.
 
 ## What is open
+
+**Living worlds are one palette with four looks.** Jungle, tundra and ocean
+worlds are `VERDANT` with a `LivingWorld` look rather than palettes of their own
+(`mapgen-nouns.md`, a living world has a look): every rule the palette owns is
+the same for them, and only what grows and how wet the ground is differs.
 
 **Toxic and irradiated worlds still use `ROCK`.** Splitting each is a palette
 plus a material family; where its layout is rock's, `layoutOf` and
 `paletteGroundRender` make it an art change only, as volcanic is.
+
+Types that share a palette are told apart by a surface signature rather than by
+more palettes (`mapgen-nouns.md`, surface signatures): cryovolcanic, bombarded,
+venus-like, unstable, cast-iron and metallic worlds each wear one. `toxic_cold`
+has none yet; it waits on the toxic palette.
 
 `mapgen-nouns.md` owns planet terrain and mineral-field behavior. Additional
 palettes must select appropriate permanent masses and destructible obstacles

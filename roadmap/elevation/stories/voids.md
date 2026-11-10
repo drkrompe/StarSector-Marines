@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -83,9 +83,10 @@ generation, never a battle rule, as an emplacement style is
 | Style | Where | Edge | Floor | Bridge |
 | --- | --- | --- | --- | --- |
 | **Glacial crevasse** | Frozen worlds: a split in the ice sheet under a snowfield | Blue-white ice in strata with meltwater streaks, snow on the ledges, a snow cornice | Old dark ice with frozen meltwater pools, in a deep blue and a cold mist | A snow bridge or a laid plank span |
+| **Arid canyon** | Desert worlds, where a living world lays a gorge river: a canyon cut through a sand plain | Banded red and ochre sandstone in terraces, sand lying on the ledges | A dry wash: pale sand braided between gravel bars, boulders fallen from the walls, a dust haze | A stone bridge or a laid plank span |
+| **Dry gorge** | Barren rock worlds, where a living world lays a gorge river: a gorge cut through a stone plain | Grey regolith and bedrock strata, grit on the ledges | Dust and rubble thick with fallen basalt blocks; no water, no haze | A rock bridge or a laid plank span |
 | **Sea cliff** | A map's edge or a bluff: the land ends | Sheer rock or a cut quay wall | Surf and spray far below | None, or a causeway |
 | **Gorge river** | A river cut deep, in place of a brook | Steep banks, rock and roots | Running water far below | A footbridge or road bridge |
-| **Canyon** | Barren and desert worlds, where a living world lays a gorge river | Bare rock strata, a dusty lip | A dry wash: pale sand down the middle, gravel and fallen blocks by the walls | A footbridge or road bridge |
 | **Lava rift** | Molten and volcanic worlds: a rift split open in a basalt plain | Columnar basalt lit orange from below, a scorched lip | Molten rock crusting as it flows, glowing through its cracks | A stone road bridge |
 | **Open pit** | A mine's head works: an open-cut working beside the shafts | Blasted bench faces with drill traces, benches stepping down evenly, a haul road spiralling down them | Wet ore rubble and a still sump | None; ore conveyors on gantries climb out to the works |
 | **City drop** | City blocks: a skyscraper's edge, a light well, the gap between arcology blocks | Poured concrete, ribbed steel, pipe runs, lit windows, a railing | A futuristic city far below: lights, haze, traffic | A deck span or skybridge |
@@ -638,6 +639,57 @@ Laws):
    sagging arch rather than a straight deck edge; icicles along the lip and
    seracs or fallen blocks on the floor; a dusk or polar-night sky.
 
+   **Arid canyon** (owner, 2026-11-09: "Build everything", a drop for every
+   ground palette): a natural drop through a desert's sand plain. Look suite:
+   `createSnapshots -Psnapshot=canyon-void-look`, a sand plain cut by a canyon
+   with a stone bridge and a plank span (`-Dsnapshot.canyon.depth`, `.eyes`,
+   `.stillsOnly`; the suites of the dry styles share `StyleVoidLookSuite`).
+   - **What it reuses.** All of the drop, with style `CANYON`. Wall image
+     `canyon-wall.png`: cross-bedded sandstone in red, ochre and cream bands,
+     desert varnish streaks, honeycomb pits (`art-source/voids/canyon/`).
+   - **Dry styles share one set of rules** (`DryVoidLook`); each is a
+     `Palette`. Shade in the drop falls toward the rock's own light thrown
+     back across it, not black. The ledges alternate between two strata, with
+     sediment lying back on each and scree where it breaks. The lip gives way
+     to the plain's own tone and the battle's own light within 0.3 cells of
+     the edge, exactly, so the tiles' stepped edge does not show and the fray
+     ends where its cover is whole, as ice's and lava's do.
+   - **The floor** (`DryVoidFloor`, in the drop's order in place of the
+     water): talus along the walls' feet, a bed of pale sand with two
+     meandering channels braided across coarser bars, lit by the open sky. On
+     it lie the plain's own field stones (the nature sheet's sandstone set,
+     the same the plain scatters), fallen from the walls, warmed into the
+     canyon's light, each with a soft shadow away from the sun; none lies in a
+     channel or in the talus. A thin warm dust haze lies low over it
+     (`VoidHaze`, shared with the crevasse's mist).
+   - **Two findings.** Floor pieces are a quarter cell, so anything noisier
+     than that steps: boulders drawn into the floor's colour came out as
+     pixel blocks, and channels that followed each piece's own flow bearing
+     stair-stepped between pieces; the stones are sprites and the channels
+     follow position alone. And a bridge over a wide drop reads as a strip of
+     the plain: its deck edge is 1.2 m (`NaturalVoidField.DECK_METERS`), the
+     same for an arch as for a plank.
+   - **Battle.** Unchanged.
+   First pass: four terraces to a floor 44 m down, a canyon 15 to 27 cells
+   across, camera 120 m, daylight. Left: the owner's pick of depth; a natural
+   arch's thickness, which needs the bridge's kind; mesas or hoodoos standing
+   in the floor (a rise inside the drop); a dry falls where the floor steps.
+
+   **Dry gorge** (owner, 2026-11-09: a drop for every ground palette): a
+   barren rock world's gorge, the canyon's grey sister and its second dry
+   palette (`DryVoidLook.REGOLITH`, style `DRY_GORGE`). Look suite:
+   `createSnapshots -Psnapshot=dry-gorge-void-look`, a stone plain cut by a
+   gorge (`-Dsnapshot.drygorge.depth`, `.eyes`, `.stillsOnly`).
+   - Wall image `regolith-wall.png`: grey regolith and bedrock bands, blocky
+     fractured ledges, scree, a few rust seams (`art-source/voids/dry-gorge/`).
+   - The canyon's rules with its own colours: grey strata, grit on the
+     ledges, shade toward near-black. The floor is dust and rubble with the
+     plain's basalt field stones lying thick on it (a palette's
+     `stoneShare`); no haze, an airless world's gorge.
+   First pass: three ledges to a floor 40 m down, a gorge 9 to 21 cells
+   across. Left: the owner's pick of depth; dust sifting off the lip;
+   impact-shattered blocks bigger than the field stones.
+
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more
    than one dig). A made drop, not an eroded one: an open-cut mine beside a
@@ -661,12 +713,22 @@ Laws):
      from the walls.
    - **The spine.** `NaturalVoid.belts`: the covered conveyor gallery that
      carries the ore from the crushing station on the floor up the benches on
-     its trestles, through a transfer tower on the rim, and over the ground to
-     the wall of the largest building in the works (the ore mill). It leaves the
-     floor where the floor lies nearest the works. Drawn after the ground tiles
-     and before every unit: the gallery's bays end to end at each one's depth,
-     the trestles' cross-beams and the shadow on the ground. Drawn only: it
-     neither blocks nor covers anyone.
+     its trestles to a transfer tower on the rim. It leaves the floor where the
+     floor lies nearest the works. Drawn after the ground tiles and before every
+     unit: the gallery's bays end to end at each one's depth, the trestles'
+     cross-beams and their shadow. Drawn only.
+   - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
+     and also built onto the grid system", its legs giving cover). From the
+     first ground cell past the tower, `OreLine` finds a course on the grid to
+     the ore mill's wall: straight runs turning only at right angles, over open
+     ground, roads and walls but never a building or the pit, a turn costing
+     eight cells of run. Its pieces (`ore-conveyor` sheet: straight, corner,
+     drive) are overhead props drawn in the roof pass above the people walking
+     under them; the straight run's belt scrolls toward the works with its ore
+     (`ore-conveyor-motions`). A trestle leg stands every five cells on a
+     straight run, where a solid prop blocks no road, doorway, route or ground
+     (the landscape pass's reservations and `PlacementGuards`): a fixture
+     giving medium cover.
    - **Placement** (the first generated void, ahead of the rest of slice 2). A
      plan's layout holds a ground site named `pit` (`OpenPit.SITE`) clear of
      growth; the Raid mining template lays it beside the head works
@@ -700,9 +762,6 @@ Laws):
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:
-   - **Canyon**: the gorge river's dry sister for desert and barren worlds.
-     Wider and deeper, more and wider ledges, a red or ochre sandstone wall;
-     the floor a dry wash of sand and scree with scattered boulders.
    - **Narrow crevasse**: the glacial crevasse closed to a split of two to
      five cells, few or no ledges. Its floor is not drawn: the depth tint
      runs to a near-black blue, "narrowing to nothing". Its bridges are snow
@@ -765,15 +824,14 @@ Laws):
    on each palette, `-Dbattle.mapgen.naturalVoids=1`).
    - **Which style.** One table beside `SurfaceZoning`,
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
-     glacial crevasse, rock and arid the canyon, and a molten palette the lava
+     glacial crevasse, arid the canyon, rock the dry gorge, and a molten palette the lava
      rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it
      has a row.
-   - **The canyon** is a style of its own (`NaturalVoid.Style.CANYON`,
-     `CanyonVoidLook`): a dusty lip, bare ledges with scree, a dry wash on the
-     floor and a warm depth tint. It borrows the gorge's strata wall for now;
-     the basalt wall read as holes at a wide zoom.
+   - **The canyon and the dry gorge** are the dry styles above
+     (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
+     the basalt wall was tried on rock and read as holes at a wide zoom.
    - **Where.** A drop runs edge to edge across a generated outdoor map's
      open country (`NaturalChasm`), wandering, 7 to 12 cells wide. Lines both
      ways across the map are tried, through its middle and through the
@@ -797,8 +855,7 @@ Laws):
      or more, on the map's own random substream
      (`OutdoorLandscapeStage.CHASM_CHANCE`, UNTUNED), unless they already draw
      a drop or a backdrop; `-Dbattle.mapgen.naturalVoids=<share>` sets it.
-   Left: the owner's pick of how often and how wide; a dry wall image of the
-   canyon's own; road bridges (a road crossing is left as ground, not yet
+   Left: the owner's pick of how often and how wide; road bridges (a road crossing is left as ground, not yet
    drawn as a span); the brook's own gorge, the line below; a drop as a
    mission's dividing line.
 
@@ -810,8 +867,9 @@ Laws):
      sides (`elevation-nouns.md`, Ridges) are not raised beside a gorge: the
      gorge is the valley. The same proofs as a brook's: every required place
      stays connected through the bridges.
-   - A **canyon** where a barren or desert map would lay a gorge river, and
-     as a mission's dividing line between two halves of a map.
+   - An **arid canyon** on desert worlds (`SurfacePalette.ARID`), where a
+     temperate map would lay a gorge river, and as a mission's dividing line
+     between two halves of a map.
    - A **glacial crevasse** on frozen worlds (`SurfacePalette.FROZEN`), where
      a temperate map would lay a gorge river, and a short seeded split laid
      across open ground off the mission's lines, never across a road, with a

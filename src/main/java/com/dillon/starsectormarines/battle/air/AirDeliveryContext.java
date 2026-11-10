@@ -155,7 +155,7 @@ public final class AirDeliveryContext {
     public long deployVehicle(VehicleDeploymentSpec spec, float x, float y, float facingDeg) {
         VehicleMission mission = VehicleMission.deployed(x, y);
         long id = roster.convoy().spawn(spec.type(), spec.plating(), spec.engine(), spec.gun(), spec.compartment(),
-                spec.noOwnGun(), faction, mission);
+                spec.noOwnGun(), spec.refit(), faction, mission);
         roster.convoy().body(id).teleport(x, y, facingDeg);
         roster.convoy().tagCompanyVehicle(id, spec.campaignId());
         roster.convoy().recordFielded(id, spec);

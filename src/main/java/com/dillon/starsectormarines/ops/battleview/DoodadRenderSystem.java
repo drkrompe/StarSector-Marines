@@ -87,6 +87,8 @@ public final class DoodadRenderSystem implements RenderSystem {
         Twins twins = wornTwins(ctx);
         if (twins == null) twins = CreepTreeTwins.of(ctx.sim, creepTreeStages);
         fire = FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null;
+        formationGrade = ctx.sim.getTopology() != null && SignatureLook.graded(ctx.sim.getTopology().signature())
+                ? SignatureLook.grade(ctx.sim.getTopology().signature()) : null;
         serving = settleAtlas(ctx.sim.getDoodads(), out);
         try {
             collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
@@ -95,6 +97,7 @@ public final class DoodadRenderSystem implements RenderSystem {
             }
         } finally {
             fire = null;
+            formationGrade = null;
             serving = null;
         }
     }
@@ -319,11 +322,18 @@ public final class DoodadRenderSystem implements RenderSystem {
         SpriteAPI sheet = sheetFor(d);
         if (sheet == null) return;
         float shade = fire == null ? 1f : FireRenderSystem.treeShade(fire, d);
-        emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, shade, shade, shade);
+        // A mineral formation is the world's own rock, so it wears the planet type's grade as the ground does.
+        float[] grade = formationGrade != null && d.definitionId() != null && d.definitionId().startsWith("formation.")
+                ? formationGrade : null;
+        if (grade == null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, shade, shade, shade);
+        else emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS,
+                shade * grade[0], shade * grade[1], shade * grade[2]);
     }
 
     /** The fire this frame's placements are charred by; set only while {@link #collect} runs. */
     private FireField fire;
+    /** The planet type's grade on its formations, or null for none; set only while {@link #collect} runs. */
+    private float[] formationGrade;
 
     /**
      * Draw placements again over themselves in one flat tint: how an unpowered

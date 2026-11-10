@@ -1,0 +1,108 @@
+{
+  "sheetName": "taiga-destroyed",
+  "sheet": "art-source/living-worlds/fitted/taiga-destroyed.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Taiga and tundra heath reskin of forest-destroyed (a tundra world's woods (LivingWorld.TUNDRA)): same cells, cuts, footprints, cover, fog surfaces and ballistic heights as the green tileset; ids are the green ids with -taiga after the species. Sheet is art-source/living-worlds/raw/taiga-destroyed.raw.png clipped to its guide and fitted onto it by art-source/living-worlds/fit_sheets.py, then flattened as forest-destroyed-flatten.py does. Preserve alpha; never trim or recenter. Prompt: art-source/living-worlds/prompts/taiga-destroyed.prompt.txt.",
+  "entries": [
+    {
+      "id": "forest.oak-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.oak-small-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        496,
+        0,
+        544,
+        528
+      ]
+    },
+    {
+      "id": "forest.birch-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-large-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.cedar-taiga-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1088,
+        512,
+        384,
+        512
+      ]
+    }
+  ]
+}

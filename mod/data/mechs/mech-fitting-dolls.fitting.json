@@ -2,6 +2,56 @@
   "schemaVersion": 1,
   "dolls": [
     {
+      "variant": "crawler",
+      "facingDegrees": 180.0,
+      "sockets": [
+        {
+          "id": "CORE",
+          "label": "@gearSocketEngineCore",
+          "type": "ENGINE",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.0],
+          "dockDirection": [0.0, -1.45],
+          "footprintHull": [1.36, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "ARMS",
+          "label": "@gearSocketNoseMount",
+          "type": "OMNI",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.24],
+          "dockDirection": [0.0, 1.45],
+          "footprintHull": [1.36, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "AUXILIARY",
+          "label": "@gearSocketAuxiliary",
+          "type": "AUXILIARY",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, -0.26],
+          "dockDirection": [0.0, 0.68],
+          "footprintHull": [1.36, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "PLATING",
+          "label": "@gearSocketPlating",
+          "type": "PLATING",
+          "gridColumns": 2,
+          "gridRows": 1,
+          "anchor": [0.0, 0.30],
+          "dockDirection": [0.0, -0.90],
+          "footprintHull": [1.00, 0.68],
+          "factoryLocked": false
+        }
+      ]
+    },
+    {
       "variant": "hound",
       "facingDegrees": 180.0,
       "sockets": [
