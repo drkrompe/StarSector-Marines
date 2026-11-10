@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.gen.fortress.Cantonment;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -25,10 +24,9 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district), one look per
- * {@link Cantonment.Plan} across market sizes and security grades: the garrison framed whole
- * ({@code <plan>-<case>-garrison.png}) and the whole map ({@code <plan>-<case>-whole.png}), look preset, 1920x1080.
- * The plan is chosen through {@link Cantonment#PLAN_PROPERTY} for each set; nothing is played.
+ * The Raid site's garrison district laid as a cantonment ({@code raid-mission.md}, Garrison district) across market
+ * sizes and security grades: the garrison framed whole ({@code yard-<case>-garrison.png}) and the whole map
+ * ({@code yard-<case>-whole.png}), look preset, 1920x1080. Nothing is played.
  */
 public final class RaidGarrisonLookSuite implements SnapshotSuite {
 
@@ -41,46 +39,38 @@ public final class RaidGarrisonLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "raid-garrison-look"; }
 
-    @Override public String label() { return "The Raid site's garrison district in rows, each plan, look preset"; }
+    /** File prefix: the owner's pick, the motor yard at the gate. */
+    private static final String KEY = "yard";
+
+    @Override public String label() { return "The Raid site's garrison district, look preset"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String only = System.getProperty(Cantonment.PLAN_PROPERTY, "");
-        String before = System.getProperty(Cantonment.PLAN_PROPERTY);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            for (Cantonment.Plan plan : Cantonment.Plan.values()) {
-                if (!only.isBlank() && !plan.name().equalsIgnoreCase(only.trim())) continue;
-                System.setProperty(Cantonment.PLAN_PROPERTY, plan.name());
-                String key = plan.name().toLowerCase(Locale.ROOT);
-                for (Case c : CASES) {
-                    TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
-                            EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
-                                    EconomicFunction.HABITATION),
-                            SurfacePalette.ROCK, SettlementLink.ROAD);
-                    try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
-                            false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null,
-                            null, RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
-                        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
-                        float[] hq = headquarters(sim.getTopology(), w, h);
-                        System.out.printf(Locale.ROOT, "[%s] %s %s headquarters at %.0f,%.0f%n", id(), key, c.id(),
-                                hq[0], hq[1]);
-                        out.add(new SnapshotArtifact(key + "-" + c.id() + "-garrison.png",
-                                BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, hq[2], hq[3],
-                                        hq[4]).withMissionMarkers().render(sim, "")));
-                        out.add(new SnapshotArtifact(key + "-" + c.id() + "-whole.png",
-                                BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, w / 2f, h / 2f,
-                                        Math.max(w, h * 16f / 9f) + 4f).withMissionMarkers().render(sim, "")));
-                    }
+            for (Case c : CASES) {
+                TargetProfile market = new TargetProfile(c.marketSize(), 5, c.defence(), 2, "independent",
+                        EnumSet.of(EconomicFunction.HEAVY_INDUSTRY, EconomicFunction.SPACEPORT,
+                                EconomicFunction.HABITATION),
+                        SurfacePalette.ROCK, SettlementLink.ROAD);
+                try (BattleSimulation sim = BattleSetup.createRaidWorks(c.seed(), BattleSetup.defaultManifest(),
+                        false, c.tier(), RiskLevel.MEDIUM, market, FlybyRoster.EMPTY, FlybyRoster.EMPTY, null,
+                        null, RaidWorksLayout.machinesFor(c.tier()), "heavyindustry")) {
+                    int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+                    float[] hq = headquarters(sim.getTopology(), w, h);
+                    System.out.printf(Locale.ROOT, "[%s] %s headquarters at %.0f,%.0f%n", id(), c.id(), hq[0], hq[1]);
+                    out.add(new SnapshotArtifact(KEY + "-" + c.id() + "-garrison.png",
+                            BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, hq[2], hq[3], hq[4])
+                                    .withMissionMarkers().render(sim, "")));
+                    out.add(new SnapshotArtifact(KEY + "-" + c.id() + "-whole.png",
+                            BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, w / 2f, h / 2f,
+                                    Math.max(w, h * 16f / 9f) + 4f).withMissionMarkers().render(sim, "")));
                 }
             }
             return out;
-        } finally {
-            if (before == null) System.clearProperty(Cantonment.PLAN_PROPERTY);
-            else System.setProperty(Cantonment.PLAN_PROPERTY, before);
         }
     }
 

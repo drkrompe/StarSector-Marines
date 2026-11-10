@@ -1328,11 +1328,11 @@ spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
 market's size, and the guardroom, corner towers and magazines from its
 security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
 pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
-(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. Where
-the motor pool and flight line stand is the owner's pick `raid-garrison`
-(`battle.garrison.plan` until it is decided): sheds flanking the avenue inside
-the gate with the flight line against the back wall (`YARD`), or one apron
-inside the gate shared by the sheds and the flight line (`APRON`).
+(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. The
+motor yard stands at the gate (the owner's pick `raid-garrison`): sheds flank
+the avenue just inside it, their doors on the hardstand it widens into, so a
+vehicle drives out of its shed and straight out of the gate; the flight line
+stands against the back wall.
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
