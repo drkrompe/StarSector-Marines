@@ -58,8 +58,8 @@
  "gridCols": 1,
  "gridRows": 1,
  "idPrefix": "doodad.glasshouses",
- "note": "A covered farm look for hostile worlds (story-map-pools.md, Planet skin; PlanetSkin.FarmLook), one of three put to the owner after the polytunnels did not read as hydroponics. Measured 1448x1086 RGBA, three alpha pieces. Geometry-first reskin of templates/glasshouses-guide.png (hydroponics-guide.py, 125 px a cell); ImageGen returned the sheet uniformly at 0.943 of the guide and every piece within a few pixels of its guide, so each rect is its guide frame at that scale. Exact prompt in glasshouses.prompt.txt.",
+ "note": "A covered farm look for hostile worlds (story-map-pools.md, Planet skin; PlanetSkin.FarmLook), one of three put to the owner after the polytunnels did not read as hydroponics. Measured 1448x1086 RGBA, three alpha pieces. Geometry-first reskin of templates/glasshouses-guide.png (hydroponics-guide.py, 125 px a cell); ImageGen returned the sheet uniformly at 0.943 of the guide and every piece within a few pixels of its guide, so each rect is its guide frame at that scale. The sheet exported is glasshouses.amber.png, the raw regraded from magenta to warm amber grow-light by grow-light-amber.py (owner picked amber). Exact prompt in glasshouses.prompt.txt.",
  "outputSheet": "graphics/doodads/glasshouses.png",
- "sheet": "art-source/tilesets/glasshouses.raw.png",
+ "sheet": "art-source/tilesets/glasshouses.amber.png",
  "sheetName": "glasshouses"
 }

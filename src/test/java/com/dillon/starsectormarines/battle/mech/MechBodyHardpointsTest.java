@@ -16,6 +16,8 @@ class MechBodyHardpointsTest {
     private static final MechVariant[] WALKERS = {MechVariant.SECURITY_ROUNDS, MechVariant.SECURITY_WALKER,
             MechVariant.SECURITY_HALL};
     private static final float EPS = 1e-4f;
+    /** Half the torso drawing's width, hull widths: 0.85 cells per render scale against a hull width of 1.148. */
+    private static final float TORSO_HALF = 0.85f / (0.82f * 1.40f) / 2f;
 
     /** A test hardpoint: a port right of centre, its arc centred 30 degrees to the right, 60 either side. */
     private static final MechBodyHardpoints.Hardpoint PORT = new MechBodyHardpoints.Hardpoint(MechMountSlot.RIGHT_ARM,
@@ -31,9 +33,10 @@ class MechBodyHardpointsTest {
                     assertNull(point, variant.id + " " + slot);
                     continue;
                 }
-                assertNotNull(point, variant.id + " " + slot);
                 MechWeaponComponent stock = variant.stockWeapon(slot);
-                if (stock != null) assertTrue(point.takes(stock), variant.id + " " + slot + " takes " + stock);
+                if (stock == null) continue;
+                assertNotNull(point, variant.id + " " + slot);
+                assertTrue(point.takes(stock), variant.id + " " + slot + " takes " + stock);
             }
         }
     }
@@ -57,10 +60,8 @@ class MechBodyHardpointsTest {
     }
 
     @Test
-    void walkerMountsStandMirroredOnTheTorso() {
-        // The torso is drawn 0.85 cells per render scale across, against a hull width of 1.148 per render scale.
-        float torsoHalf = 0.85f / (0.82f * 1.40f) / 2f;
-        for (MechVariant variant : WALKERS) {
+    void fourGunWalkerMountsStandMirroredOnTheTorso() {
+        for (MechVariant variant : new MechVariant[] {MechVariant.SECURITY_WALKER, MechVariant.SECURITY_HALL}) {
             for (MechMountSlot[] pair : new MechMountSlot[][] {{MechMountSlot.LEFT_ARM, MechMountSlot.RIGHT_ARM},
                     {MechMountSlot.LEFT_SHOULDER, MechMountSlot.RIGHT_SHOULDER}}) {
                 MechBodyHardpoints.Hardpoint left = MechBodyHardpoints.of(variant, pair[0]);
@@ -69,8 +70,32 @@ class MechBodyHardpointsTest {
                 assertEquals(-left.right(), right.right(), EPS);
                 assertEquals(left.forward(), right.forward(), EPS);
                 assertEquals(-left.arcCentre(), right.arcCentre(), EPS);
-                assertTrue(Math.abs(left.right()) < torsoHalf && Math.abs(left.forward()) < torsoHalf,
+                assertTrue(Math.abs(left.right()) < TORSO_HALF && Math.abs(left.forward()) < TORSO_HALF,
                         variant.id + " " + pair[0] + " on the torso");
+            }
+        }
+    }
+
+    @Test
+    void everyRoundsLayoutIsSymmetricOnTheTorsoAndBearsBothGunsAhead() {
+        for (MechBodyHardpoints.RoundsLayout layout : MechBodyHardpoints.RoundsLayout.values()) {
+            MechBodyHardpoints.Hardpoint[] points = layout.points();
+            MechBodyHardpoints.Hardpoint gun = points[MechMountSlot.LEFT_ARM.ordinal()];
+            MechBodyHardpoints.Hardpoint rack = points[MechMountSlot.LEFT_SHOULDER.ordinal()];
+            assertNull(points[MechMountSlot.RIGHT_ARM.ordinal()], layout.key());
+            assertNull(points[MechMountSlot.RIGHT_SHOULDER.ordinal()], layout.key());
+            assertTrue(gun.takes(MechWeaponComponent.CHAINGUN), layout.key());
+            assertTrue(rack.takes(MechWeaponComponent.SRM_5), layout.key());
+            // Symmetric about the centreline: a centreline pair, or a mirrored pair.
+            assertEquals(-gun.right(), rack.right(), EPS, layout.key());
+            if (gun.right() != 0f) assertEquals(gun.forward(), rack.forward(), EPS, layout.key());
+            for (MechBodyHardpoints.Hardpoint point : new MechBodyHardpoints.Hardpoint[] {gun, rack}) {
+                assertTrue(Math.abs(point.right()) < TORSO_HALF && Math.abs(point.forward()) < TORSO_HALF,
+                        layout.key() + " on the torso");
+            }
+            // Both guns bear on one target dead ahead and a little to either side.
+            for (float bearing : new float[] {-45f, 0f, 45f}) {
+                assertTrue(gun.covers(0f, bearing) && rack.covers(0f, bearing), layout.key() + " at " + bearing);
             }
         }
     }
