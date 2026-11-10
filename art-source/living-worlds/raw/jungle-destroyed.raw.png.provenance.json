@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a6-2be0-7151-b9aa-4831d780be75",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a6-2be0-7151-b9aa-4831d780be75\\exec-41300d7d-43a2-4d2f-999f-dc61f7985f0a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\living-worlds\\raw\\jungle-destroyed.raw.png",
+    "sha256": "f31f4dd7f6c5e0d8cc61826e0378f27a4560b004dde5d881b8daa78402c7fbf5",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\living-worlds\\prompts\\jungle-destroyed.prompt.txt",
+  "promptSha256": "c868cc47761cc1015d74b345effc0a9cdff882984788276e2c24e94b34f142d2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: stump centers, fallen limbs, gaps and envelope; reskin, never move or enlarge\nImage 2: Species/material identity only, slot for slot; not layout\nImage 3: Bark and broken-wood material only; not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production transparent tree destruction sprite sheet for a top-down tactical game. Image 2 is ONLY the intact species/material reference: the six jungle trees (emergent kapok, banana clump, strangler fig, tree fern, feather palm, liana-draped mahogany) slot for slot. Image 3 is the same trees damaged; use it for bark and broken-wood material only.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, six centers and footprint sizes. Do not enlarge silhouettes or recenter content; nothing may extend beyond the guide's limbs and leaf blobs. Strictly orthographic DIRECTLY OVERHEAD game art, no perspective, no side-view upright trees.\nThese trees are DESTROYED: each has one LOW jagged broken stump at its exact center, and the guide's separate low fallen limbs scattered around it: bark matching image 2's species, cracked and chipped, with pale splintered breaks, and a few small clusters of leaves or needles in image 2's palette (deep humid greens, emerald, dark teal shadows, lime new leaves, ropy dark vines, dark wet bark) at broken branch tips, matching image 2's species per slot. Most canopy has gone and most of the footprint is transparent ground-visible space. Preserve clear gaps separating fallen branches from the central stump; no reconnecting as an intact wheel of branches. Small detached twigs and sparse leaf litter allowed within the supplied envelope only.\nPainterly realistic rendering matching image 2. Actual transparent background, no ground disk, no soil, no snow, no carpet of leaves, no terrain, no glow, no external shadows, no labels, no border. Keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\tree-destroyed.png",
+      "sha256": "422d88e75e322cc35b7a131d9fc71690879e7c921396d310a43281ef655bc7a6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: stump centers, fallen limbs, gaps and envelope; reskin, never move or enlarge"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\jungle-canopies.raw.png",
+      "sha256": "a0a883e996cc32bd976e5b42e7abeba2f1a3653d5fbc28ed183cbb779b57a0ce",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species/material identity only, slot for slot; not layout"
+    },
+    {
+      "path": "art-source\\living-worlds\\raw\\jungle-damaged.raw.png",
+      "sha256": "08347b6a2bc5cc7733085dfc49f41deaa0f0a1e52cd0a1d6d37550c0599dbc2f",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Bark and broken-wood material only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one transparent sprite sheet, preserving Image 1’s layout and footprints exactly.\n"
+  ],
+  "usage": {
+    "input_tokens": 74943,
+    "cached_input_tokens": 64768,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 861,
+    "reasoning_output_tokens": 36
+  },
+  "elapsedSeconds": 69.7
+}

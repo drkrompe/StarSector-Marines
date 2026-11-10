@@ -4,7 +4,8 @@ Status: IN PROGRESS — the palette reaches wild ground and the wild/cultivated
 line is pinned; worlds beyond rock, dust and ice are open.
 
 Written: 2026-08-31
-Updated: 2026-10-11 — remaining work is distinct toxic, irradiated, volcanic and ash material families.
+Updated: 2026-11-09 — the living worlds have looks of their own (`LivingWorld`); remaining work is distinct toxic,
+irradiated, volcanic and ash material families.
 
 ## What this is
 
@@ -74,6 +75,11 @@ require grass specifically, so a stony surface correctly keeps its rocks and
 correctly grows nothing.
 
 ## What is open
+
+**Living worlds are one palette with four looks.** Jungle, tundra and ocean
+worlds are `VERDANT` with a `LivingWorld` look rather than palettes of their own
+(`mapgen-nouns.md`, a living world has a look): every rule the palette owns is
+the same for them, and only what grows and how wet the ground is differs.
 
 **Non-living worlds currently use ROCK, ARID and FROZEN.** Toxic, irradiated, volcanic and
 ash worlds all collapse into `ROCK`. Splitting them is a JSON block each plus a

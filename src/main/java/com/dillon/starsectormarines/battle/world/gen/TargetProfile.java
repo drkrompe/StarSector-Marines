@@ -91,6 +91,9 @@ import java.util.Set;
  * @param basin         a second palette in the map's middle ({@link Basin}); {@link Basin#NONE} for most worlds.
  * @param climate       what the world's weather and air do to a settlement ({@link ClimateZoning}). {@link Climate#NONE}
  *                      when no market backs the battle, so fixtures and story maps never grow weather they did not ask for.
+ * @param living        which living world a {@link SurfacePalette#VERDANT} surface is ({@link LivingWorld}, from
+ *                      {@link SurfaceZoning#livingWorld}); {@link LivingWorld#TEMPERATE} for a map that names none, and read
+ *                      only where the surface is living.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
@@ -109,7 +112,8 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             AssaultStyle declaredAssault,
                             MarketGarrison garrison,
                             Basin basin,
-                            Climate climate) {
+                            Climate climate,
+                            LivingWorld living) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -140,6 +144,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         if (garrison == null) garrison = MarketGarrison.NONE;
         if (basin == null) basin = Basin.NONE;
         if (climate == null) climate = Climate.NONE;
+        if (living == null) living = LivingWorld.TEMPERATE;
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
@@ -167,7 +172,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         this(marketSize, stability, defenseLevel, spaceportTier, factionId,
                 functions, surface, link, groundDefence, stationedStrength,
                 groundDefences, heavyBatteries, planetaryShield, declaredDefences,
-                declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, Basin.NONE, Climate.NONE);
+                declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, Basin.NONE, Climate.NONE, LivingWorld.TEMPERATE);
     }
 
     /** The profile with every declaration and no garrison estimate: every caller that predates the estimate. */
@@ -348,7 +353,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 overrideFactionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -362,7 +367,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -373,7 +378,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declared, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -384,7 +389,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declared, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -395,7 +400,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declared, declaredSupportKit, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -406,7 +411,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared, declaredAssault, garrison, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declared, declaredAssault, garrison, basin, climate, living);
     }
 
     /**
@@ -417,7 +422,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declared, garrison, Basin.NONE, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declared, garrison, Basin.NONE, climate, living);
     }
 
     /**
@@ -428,7 +433,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, estimate, basin, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, estimate, basin, climate, living);
     }
 
     /** This profile under a climate ({@link ClimateZoning}), every other read left as it was. */
@@ -436,7 +441,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, declared);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, declared, living);
     }
 
     /** This profile with a basin of other ground in the map's middle, every other read left as it was. */
@@ -444,6 +449,14 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
                 factionId, functions, surface, link,
                 groundDefence, stationedStrength,
-                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, declared, climate);
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, declared, climate, living);
+    }
+
+    /** This profile on a living world of this look ({@link LivingWorld}), every other read left as it was. */
+    public TargetProfile withLivingWorld(LivingWorld declared) {
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                factionId, functions, surface, link,
+                groundDefence, stationedStrength,
+                groundDefences, heavyBatteries, planetaryShield, declaredDefences, declaredMechDrops, declaredAirPool, declaredSupportKit, declaredAssault, garrison, basin, climate, declared);
     }
 }

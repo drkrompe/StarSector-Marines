@@ -26,4 +26,17 @@ class NaturalPropShapeTest {
             assertEquals(TreeCanopy.PINE, CreepVegetation.canopy("forest.pine-dry" + state));
         }
     }
+
+    /** Every flora's twin is the green shape, for placement and for the creep, in every state. */
+    @Test
+    void everyFlorasTwinIsTheGreenShape() {
+        for (Flora flora : Flora.values()) {
+            String id = flora.placedId(TreeCanopy.OAK);
+            assertEquals("forest.oak" + flora.suffix, id);
+            assertEquals("forest.oak", Flora.baseId(id));
+            assertEquals(TreeCanopy.OAK, NaturalPropShape.find(id));
+            assertEquals(TreeCanopy.OAK, CreepVegetation.canopy(id + "-destroyed"));
+            assertEquals(Undergrowth.BRACKEN, NaturalPropShape.find(flora.placedId(Undergrowth.BRACKEN)));
+        }
+    }
 }

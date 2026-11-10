@@ -56,4 +56,21 @@ public final class SurfaceZoning {
         // toxic, irradiated, lava.
         return SurfacePalette.ROCK;
     }
+
+    /**
+     * Which living world a planet type is, read alongside {@link #forPlanetType}: {@code jungle} a rainforest,
+     * {@code tundra} the boreal edge, {@code water} and {@code ocean} a sea of islands, and every other type, the
+     * {@code terran} family among them, {@link LivingWorld#TEMPERATE}. Only a {@link SurfacePalette#VERDANT}
+     * surface reads it; a type that is not living answers {@code TEMPERATE}.
+     *
+     * @param planetTypeId vanilla planet type id, or {@code null} when nothing is known about the target.
+     */
+    public static LivingWorld livingWorld(String planetTypeId) {
+        if (forPlanetType(planetTypeId) != SurfacePalette.VERDANT) return LivingWorld.TEMPERATE;
+        String id = planetTypeId.toLowerCase(Locale.ROOT);
+        if (id.contains("jungle")) return LivingWorld.JUNGLE;
+        if (id.contains("tundra")) return LivingWorld.TUNDRA;
+        if (id.contains("water") || id.contains("ocean")) return LivingWorld.OCEAN;
+        return LivingWorld.TEMPERATE;
+    }
 }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.Flora;
 import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.LivingWorld;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
@@ -58,7 +60,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.IntPredicate;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /** Closing outdoor pass: optional landscape yields to finished places, circulation and access. */
 public final class OutdoorLandscapeStage implements GenStage {
@@ -111,6 +113,9 @@ public final class OutdoorLandscapeStage implements GenStage {
             ridges(c, reserved, reserved, ridges, false, List.of(), new boolean[c.width * c.height],
                     landscape.sealed().isEmpty() ? null : mainBody(c));
         }
+        // A living world's look dresses its wild grass before the woods grow on it: snow, swamp, a sea (LivingGround).
+        if (field.living() != LivingWorld.TEMPERATE)
+            LivingGround.dress(c, field, reserved, reservations(c, hostAnchors, false, null, 0, 0));
         // A basin's woods grow on its floor and thin out toward its rim; the rim's own palette dresses the rest.
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
@@ -384,7 +389,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes) {
-        return reservations(c, hostAnchors, routes, null, 2);
+        return reservations(c, hostAnchors, routes, null, 2, 4);
     }
 
     /**
@@ -393,6 +398,12 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
                                           int roadMargin) {
+        return reservations(c, hostAnchors, routes, own, roadMargin, 4);
+    }
+
+    /** @param edgeBand how many cells in from the map's edge are reserved outright: none for a sea, which lies there */
+    private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
+                                          int roadMargin, int edgeBand) {
         boolean[] reserved = new boolean[c.width * c.height];
         boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION), roadCells = c.get(BspKeys.ROAD_CELLS);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -400,7 +411,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 reserved[y * c.width + x] = true;
                 continue;
             }
-            if (x < 4 || y < 4 || x >= c.width - 4 || y >= c.height - 4
+            if (x < edgeBand || y < edgeBand || x >= c.width - edgeBand || y >= c.height - edgeBand
                     || c.isMadeGround(x, y) || c.grid.isDoorway(x, y))
                 reserve(c, reserved, x - 2, y - 2, x + 2, y + 2);
             else if ((roads != null && roads[x][y]) || (roadCells != null && roadCells[x][y]))
@@ -1077,6 +1088,10 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static void trees(GenContext c, boolean[] reserved, float woodland, SurfaceField palettes) {
         boolean scrub = palettes.world() == SurfacePalette.ARID && dryScrubInstalled();
+        // A living world's look grows its own species, as thick as it grows them (LivingWorld); green where its art is not installed.
+        LivingWorld living = palettes.living();
+        Flora woods = installed(living.flora()) ? living.flora() : Flora.TEMPERATE;
+        woodland = Math.min(1f, woodland * living.woodland());
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         // Cells a tank cannot flatten: every crown that is not undergrowth.
         boolean[] hard = new boolean[reserved.length];
@@ -1120,9 +1135,9 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
         }
         ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true,
-                tree -> scrub && palettes.rim(tree.x() + tree.width() / 2, tree.y() + tree.height() / 2));
+                tree -> scrub && palettes.rim(tree.x() + tree.width() / 2, tree.y() + tree.height() / 2) ? Flora.DRY : woods);
         undergrowth(c, paint, reserved,
-                patch -> scrub && palettes.rim(patch.x() + patch.width() / 2, patch.y() + patch.height() / 2));
+                patch -> scrub && palettes.rim(patch.x() + patch.width() / 2, patch.y() + patch.height() / 2) ? Flora.DRY : woods);
     }
 
     /**
@@ -1138,8 +1153,13 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /** Whether the dry twins' art is installed: without it a rim grows no scrub rather than green trees. */
     private static boolean dryScrubInstalled() {
+        return installed(Flora.DRY);
+    }
+
+    /** Whether a flora's twins' art is installed, read off its first tree. */
+    private static boolean installed(Flora flora) {
         TileRegistry tiles = TileRegistry.installed();
-        return tiles != null && tiles.doodad(NaturalPropShape.placedId(TreeCanopy.OAK, true)) != null;
+        return tiles != null && tiles.doodad(flora.placedId(TreeCanopy.OAK)) != null;
     }
 
     /** Share of the lattice points left open in a wood that grow undergrowth. */
@@ -1154,7 +1174,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      * as a crown leaves them.
      */
     private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved,
-                                    Predicate<UndergrowthBrush.Placement> dry) {
+                                    Function<UndergrowthBrush.Placement, Flora> dry) {
         boolean[] floor = fringe(paint, c.width, c.height, UNDERGROWTH_FRINGE);
         Random random = new Random(c.seed ^ 0x554E444552L);
         Undergrowth[] kinds = Undergrowth.values();
