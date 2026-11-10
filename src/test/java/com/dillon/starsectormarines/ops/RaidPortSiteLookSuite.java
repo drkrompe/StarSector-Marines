@@ -22,17 +22,20 @@ public final class RaidPortSiteLookSuite extends RaidSiteLookSuite {
 
     @Override
     protected float[] closeUp(BattleSimulation sim, float machinesX, float machinesY) {
-        ParkedAircraft lighter = null;
+        float lx = 0, ly = 0;
+        int n = 0;
         for (ParkedAircraft parked : sim.getParkedAircraft()) {
             // The port's lighters are freighters; a town's berths hold its small craft.
             if (!LIGHTERS.contains(parked.type)) continue;
-            if (lighter == null || Math.abs(parked.centerX - machinesX) > Math.abs(lighter.centerX - machinesX)) {
-                lighter = parked;
-            }
+            lx += parked.centerX;
+            ly += parked.centerY;
+            n++;
         }
-        if (lighter == null) return super.closeUp(sim, machinesX, machinesY);
-        float cx = (machinesX + lighter.centerX) / 2f, cy = (machinesY + lighter.centerY) / 2f;
-        float across = Math.max(Math.abs(lighter.centerX - machinesX), Math.abs(lighter.centerY - machinesY) * 16f / 9f);
-        return new float[]{cx, cy, across + 56f};
+        if (n == 0) return super.closeUp(sim, machinesX, machinesY);
+        lx /= n;
+        ly /= n;
+        // The pad line leads the frame, centred on its lighters; the terminal stands at the frame's edge.
+        float cx = machinesX * .3f + lx * .7f;
+        return new float[]{cx, ly, Math.abs(lx - machinesX) * .8f + 64f};
     }
 }

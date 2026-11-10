@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
@@ -59,6 +61,25 @@ public class ConvoyServiceTest {
         assertSame(MechWeaponComponent.SRM_5.weaponDef(), convoy.turretStructure(fitted).mount.weapon);
         assertSame(VehicleType.LRM_CARRIER.turretStructure(), convoy.turretStructure(stock), "the type is unchanged");
         assertEquals(convoy.turretStructure(fitted).mount.weapon.range, convoy.weaponRange(fitted), 1e-4f);
+    }
+
+    @Test
+    public void aCoaxCardsPartFightsAsTheHullsFirstSecondaryMountAndAnEmptyCardIsNoGun() {
+        ConvoyService convoy = roster().convoy();
+        VehicleDeploymentSpec spec = new VehicleDeploymentSpec(null, null, VehicleType.BREAKTHROUGH_TANK,
+                VehiclePlating.FACTORY, VehicleEngine.STOCK, MechWeaponComponent.HC_20);
+        long empty = convoy.spawn(spec, Faction.MARINE, mission());
+        long fitted = convoy.spawn(spec.withCoax(MechWeaponComponent.LIGHT_MACHINE_GUN), Faction.MARINE, mission());
+        long stock = convoy.spawn(VehicleType.BREAKTHROUGH_TANK, Faction.MARINE, mission());
+
+        assertTrue(convoy.turret(empty).secondaries.isEmpty(), "an empty coax card fields no gun");
+        assertEquals(1, convoy.turret(fitted).secondaries.size());
+        MountedGun coax = convoy.turret(fitted).secondaries.get(0);
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN, coax.mount().part());
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN.weaponDef(), coax.mount().structure().mount.weapon,
+                "the mount fires the fitted part");
+        assertSame(MechWeaponComponent.LIGHT_MACHINE_GUN, convoy.turret(stock).secondaries.get(0).mount().part(),
+                "a stock Onager carries the light machine gun");
     }
 
     @Test

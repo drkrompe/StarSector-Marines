@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,12 +46,13 @@ import java.util.function.IntPredicate;
  *
  * <p><b>In.</b> The farm roads are the site's feeders: they come in off the map's edges, from the planet's other
  * fields, and the fields nearest the hub line the roads and the places on the map's open ground ({@link #crops}), a few
- * of them dug as fish ponds ({@link #pond}). Harvest haulers queue at the intake shed ({@link #haulerQueue}), the farm
+ * of them dug as fish ponds ({@link #pond}), the wider ones and the open country beyond watered by centre pivots
+ * ({@link #pivotPlots}, {@link #pivotGround}). Harvest haulers queue at the intake shed ({@link #haulerQueue}), the farm
  * roads' side first, and grain spilt in the tipping lies round it and round the loadout ({@link #spill}).
  *
  * <p><b>Through.</b> The intake shed with its weighbridge office stands in the rear, where the farm roads enter;
- * the dryer, the silo battery the elevator legs fill (one bin per machine the raid wrecks) and the mill stand in the
- * yard; the cold store and the loadout stand on the frontage, by the gate the haul road leaves from. The grain
+ * the dryer, the silo battery (an elevator leg house per machine the raid wrecks, its round bins round it,
+ * {@link #bins}) and the mill stand in the yard; the cold store and the loadout stand on the frontage, by the gate the haul road leaves from. The grain
  * gallery links them overhead in the order the grain passes ({@link #CHAIN}), along the bins rather than out to each,
  * so the hub reads as one process.
  */
@@ -62,7 +64,7 @@ public final class GrainHub {
     public static final RoomPurpose WEIGHBRIDGE = RoomPurpose.CIVIC_OFFICE;
     /** The dryer tower that takes the field moisture out before the grain can be stored. */
     public static final RoomPurpose DRYER = RoomPurpose.PRODUCTION_FLOOR;
-    /** A silo bin on the elevator's legs: the machine a raid wrecks. */
+    /** An elevator leg house, its bins round it: the machine a raid wrecks. */
     public static final RoomPurpose SILO = RoomPurpose.PARTS_CAGE;
     /** The mill and packing hall. */
     public static final RoomPurpose MILL = RoomPurpose.SHOP_FLOOR;
@@ -77,8 +79,11 @@ public final class GrainHub {
     private static final RoomShape INTAKE_SHED = RoomShape.rectangle(16, 8);
     private static final RoomShape WEIGHBRIDGE_OFFICE = RoomShape.rectangle(5, 4);
     private static final RoomShape DRYER_TOWER = RoomShape.rectangle(8, 10);
-    /** A silo bin: square, so neighbouring bins never touch at a cut corner. */
-    private static final RoomShape SILO_BIN = RoomShape.rectangle(8, 8);
+    /**
+     * The elevator leg house each silo battery is filled from: square, so neighbouring houses never touch at a cut
+     * corner. Its round bins stand outside it as props ({@link #bins}).
+     */
+    private static final RoomShape LEG_HOUSE = RoomShape.rectangle(6, 6);
     private static final RoomShape MILL_HALL = RoomShape.rectangle(14, 9);
     private static final RoomShape COLD_STORE_HALL = RoomShape.rectangle(14, 8);
     private static final RoomShape LOADOUT_BAY = RoomShape.rectangle(10, 6);
@@ -97,6 +102,26 @@ public final class GrainHub {
     static final int HAULER_LONG = 3, HAULER_SHORT = 2;
     static final String HAULER = "doodad.parked-flatbed-truck";
     static final String HAULER_LOADED = "doodad.parked-cargo-truck";
+
+    /** A round silo bin, cone roof, seen from above; the ruins' feedstock silo stands in until a grain bin is drawn. */
+    static final String BIN = "doodad.ruins-feedstock-silo";
+    /** The bin's footprint, square. */
+    static final int BIN_SIDE = 5;
+    /** Bins stood round each leg house. UNTUNED. */
+    static final int BINS_PER_HOUSE = 3;
+
+    /** A field this wide both ways is watered by a centre pivot and grows in rings. UNTUNED. */
+    static final int PIVOT_FROM = 18;
+    /** Share of such fields under a pivot, in per cent. UNTUNED. */
+    static final int PIVOT_SHARE = 70;
+    /** The pivot's boom: a pipe run from the centre to the rim, passable, no cover. */
+    static final String BOOM = "doodad.pipe-rack-straight";
+    /** Cells between the crop rings a pivot's wheels leave. */
+    static final int RING_PITCH = 3;
+    /** Sides of the pivot circles laid on the open country beyond the roads' fields, largest first. UNTUNED. */
+    static final int[] PIVOT_SIDES = {26, 20};
+    /** Headland kept between one pivot square and the next field. */
+    static final int PIVOT_GAP = 2;
 
     /** Cells round the intake and loadout over which spilt grain lies. UNTUNED. */
     static final int SPILL_REACH = 3;
@@ -121,9 +146,9 @@ public final class GrainHub {
 
     /**
      * The hub's program: the intake shed and weighbridge office in the rear where the farm roads come in, the dryer,
-     * a silo bin per machine and the mill in the yard, the cold store, the loadout and the posts on the frontage.
+     * an elevator leg house per machine and the mill in the yard, the cold store, the loadout and the posts on the frontage.
      *
-     * @param machines silo bins, one per machine the raid wrecks
+     * @param machines leg houses, one per machine the raid wrecks
      */
     public static FortressProgram program(int machines) {
         if (machines < 1) throw new IllegalArgumentException("a grain hub has at least one silo bin");
@@ -131,7 +156,7 @@ public final class GrainHub {
                 new FortressBuilding(INTAKE, INTAKE_SHED, Ward.REAR, 1),
                 new FortressBuilding(WEIGHBRIDGE, WEIGHBRIDGE_OFFICE, Ward.REAR, 1),
                 new FortressBuilding(DRYER, DRYER_TOWER, Ward.YARD, 1),
-                new FortressBuilding(SILO, SILO_BIN, Ward.YARD, machines),
+                new FortressBuilding(SILO, LEG_HOUSE, Ward.YARD, machines),
                 new FortressBuilding(MILL, MILL_HALL, Ward.YARD, 1),
                 new FortressBuilding(COLD_STORE, COLD_STORE_HALL, Ward.FRONTAGE, 1),
                 new FortressBuilding(LOADOUT, LOADOUT_BAY, Ward.FRONTAGE, 1),
@@ -154,13 +179,30 @@ public final class GrainHub {
         fields(c, plan, claim, rng);
         List<List<int[]>> halls = steps(standing.all(), c.topology,
                 (x, y) -> x >= 0 && y >= 0 && x < w && y < h && claim[x][y] == index);
-        gallery(c, halls);
+        // The yard is beaten earth under the haulers' wheels, not lawn.
+        int dirt = RuralGround.surface(c, GroundKind.DIRT);
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (claim[x][y] != index || c.topology.getGroundKind(x, y) != GroundKind.GRASS
+                        || c.topology.getBuildingId(x, y) != 0 || c.topology.isWall(x, y)) continue;
+                c.topology.setGroundKind(x, y, GroundKind.DIRT);
+                c.topology.setSurface(x, y, dirt);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
         // The hub's own yard: haulers and spill stay inside its wall.
         BiPredicate<Integer, Integer> yard = (x, y) -> x >= 0 && y >= 0 && x < w && y < h && claim[x][y] == index
                 && WorksProps.open(c, x, y, 1, 1) && c.topology.getBuildingId(x, y) == 0
                 && c.topology.getGroundKind(x, y) != GroundKind.INDOOR
                 && c.topology.getGroundKind(x, y) != GroundKind.WATER;
         BiPredicate<Integer, Integer> walk = (x, y) -> x >= 0 && y >= 0 && x < w && y < h && c.grid.isWalkable(x, y);
+        // The bins first, then the gallery over them: its legs keep off the bins.
+        for (int[] house : halls.get(CHAIN.indexOf(SILO))) {
+            for (Props.Placement p : bins(house, yard, walk, BINS_PER_HOUSE)) {
+                WorksProps.place(c, p.x(), p.y(), p.doodad(), p.quarterTurns());
+            }
+        }
+        gallery(c, halls);
         int[] intake = largest(halls.get(CHAIN.indexOf(INTAKE)));
         int[] loadout = largest(halls.get(CHAIN.indexOf(LOADOUT)));
         int sand = RuralGround.surface(c, GroundKind.SAND);
@@ -216,14 +258,152 @@ public final class GrainHub {
             List<int[]> water = rng.nextInt(100) < POND_SHARE ? pond(plot) : List.of();
             Plot painted = water.isEmpty() ? plot
                     : new Plot(plot.x0(), plot.y0(), plot.x1(), plot.y1(), Use.PASTURE, plot.rowsAlongX(), false);
-            if (RuralGround.paint(c, painted, (x, y) -> open[x][y]) == 0) continue;
+            boolean pivot = water.isEmpty()
+                    && Math.min(plot.x1() - plot.x0(), plot.y1() - plot.y0()) + 1 >= PIVOT_FROM
+                    && rng.nextInt(100) < PIVOT_SHARE;
+            if ((pivot ? pivot(c, painted, open) : RuralGround.paint(c, painted, (x, y) -> open[x][y])) == 0) continue;
             laid.add(painted);
             for (int[] cell : water) water(c, cell[0], cell[1]);
+        }
+        // The open country beyond the roads' fields is worked too, under pivots.
+        boolean[][] free = new boolean[w][h];
+        for (int x = 0; x < w; x++) System.arraycopy(open[x], 0, free[x], 0, h);
+        for (Plot p : laid) {
+            for (int x = Math.max(0, p.x0() - PIVOT_GAP); x <= Math.min(w - 1, p.x1() + PIVOT_GAP); x++) {
+                for (int y = Math.max(0, p.y0() - PIVOT_GAP); y <= Math.min(h - 1, p.y1() + PIVOT_GAP); y++) {
+                    free[x][y] = false;
+                }
+            }
+        }
+        for (Plot plot : pivotPlots(free, PIVOT_SIDES, PIVOT_GAP)) {
+            if (pivot(c, plot, open) > 0) laid.add(plot);
         }
         // A passable prop the scatter left wholly inside a field is cleared off it, as the colony's fields are.
         c.doodads.removeIf(d -> d.cover == 0 && laid.stream().anyMatch(p -> p.contains(d.cellX, d.cellY)
                 && p.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1)));
     }
+
+    /**
+     * A field under a centre pivot: a disc of crop grown in rings round the pivot, the corners left to grass, and the
+     * boom run from the pivot to the rim. Returns the cells painted.
+     */
+    private static int pivot(GenContext c, Plot plot, boolean[][] open) {
+        int grass = RuralGround.surface(c, GroundKind.GRASS), sand = RuralGround.surface(c, GroundKind.SAND);
+        int dirt = RuralGround.surface(c, GroundKind.DIRT);
+        int painted = 0;
+        for (int x = plot.x0(); x <= plot.x1(); x++) {
+            for (int y = plot.y0(); y <= plot.y1(); y++) {
+                if (!open[x][y]) continue;
+                GroundKind kind = pivotGround(plot, x, y);
+                c.topology.setGroundKind(x, y, kind);
+                c.topology.setSurface(x, y, kind == GroundKind.SAND ? sand : kind == GroundKind.DIRT ? dirt : grass);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+                c.markMadeGround(x, y);
+                painted++;
+            }
+        }
+        if (painted == 0) return 0;
+        RuralGround.worked(c, plot);
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef boom = registry == null ? null : registry.doodad(BOOM);
+        int[] centre = pivotCentre(plot);
+        for (int x = centre[0]; x <= centre[0] + pivotRadius(plot); x++) {
+            if (open[x][centre[1]]) PreparedGround.prop(c, x, centre[1], boom, 0);
+        }
+        return painted;
+    }
+
+    /**
+     * Square pivot fields laid over {@code free} ground, largest side first, each wholly on free ground and
+     * {@code gap} cells clear of the next, scanned row by row. {@code free} is left as it was.
+     */
+    static List<Plot> pivotPlots(boolean[][] free, int[] sides, int gap) {
+        int w = free.length, h = w == 0 ? 0 : free[0].length;
+        boolean[][] left = new boolean[w][h];
+        for (int x = 0; x < w; x++) System.arraycopy(free[x], 0, left[x], 0, h);
+        List<Plot> out = new ArrayList<>();
+        for (int side : sides) {
+            int[][] sum = new int[w + 1][h + 1];
+            for (int x = 0; x < w; x++) {
+                for (int y = 0; y < h; y++) {
+                    sum[x + 1][y + 1] = (left[x][y] ? 1 : 0) + sum[x][y + 1] + sum[x + 1][y] - sum[x][y];
+                }
+            }
+            for (int y = 0; y + side <= h; y++) {
+                for (int x = 0; x + side <= w; x++) {
+                    if (!left[x][y] || !left[x + side - 1][y + side - 1]) continue;
+                    int n = sum[x + side][y + side] - sum[x][y + side] - sum[x + side][y] + sum[x][y];
+                    if (n != side * side || !clear(left, x, y, side)) continue;
+                    out.add(new Plot(x, y, x + side - 1, y + side - 1, Use.GRAIN, true, false));
+                    for (int xx = Math.max(0, x - gap); xx < Math.min(w, x + side + gap); xx++) {
+                        for (int yy = Math.max(0, y - gap); yy < Math.min(h, y + side + gap); yy++) {
+                            left[xx][yy] = false;
+                        }
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Whether a square still lies wholly on ground no pivot laid this pass has taken. */
+    private static boolean clear(boolean[][] left, int x0, int y0, int side) {
+        for (int x = x0; x < x0 + side; x++) for (int y = y0; y < y0 + side; y++) if (!left[x][y]) return false;
+        return true;
+    }
+
+    /** The pivot's cell in a plot: its middle. */
+    static int[] pivotCentre(Plot plot) {
+        return new int[]{(plot.x0() + plot.x1()) / 2, (plot.y0() + plot.y1()) / 2};
+    }
+
+    /** The reach of a plot's pivot: to the nearer side, inside a one-cell headland. */
+    static int pivotRadius(Plot plot) {
+        return Math.min(plot.x1() - plot.x0(), plot.y1() - plot.y0()) / 2 - 1;
+    }
+
+    /** What one cell of a pivot field grows: grain in rings inside the pivot's reach, wheel tracks between, grass. */
+    static GroundKind pivotGround(Plot plot, int x, int y) {
+        int[] centre = pivotCentre(plot);
+        double r = Math.hypot(x - centre[0], y - centre[1]);
+        if (r > pivotRadius(plot) + .5) return GroundKind.GRASS;
+        return Math.floorMod((int) Math.round(r), RING_PITCH) == 0 ? GroundKind.DIRT : GroundKind.SAND;
+    }
+
+    /**
+     * The round bins of one leg house ({x0, y0, x1, y1} round its walls): up to {@code count}, each a bin's footprint
+     * of {@code yard} beside a side of the house with a walkable ring round it that no other bin stands on, so the
+     * battery never closes a way.
+     */
+    static List<Props.Placement> bins(int[] box, BiPredicate<Integer, Integer> yard,
+                                      BiPredicate<Integer, Integer> walk, int count) {
+        List<Props.Placement> out = new ArrayList<>();
+        Set<Long> taken = new HashSet<>();
+        int b = BIN_SIDE;
+        int[][] corners = {
+                {box[0], box[3] + 2}, {box[2] - b + 1, box[3] + 2},
+                {box[0], box[1] - 1 - b}, {box[2] - b + 1, box[1] - 1 - b},
+                {box[2] + 2, box[1]}, {box[2] + 2, box[3] - b + 1},
+                {box[0] - 1 - b, box[1]}, {box[0] - 1 - b, box[3] - b + 1}};
+        for (int[] at : corners) {
+            if (out.size() >= count) break;
+            boolean ok = true;
+            for (int dx = -1; dx <= b && ok; dx++) {
+                for (int dy = -1; dy <= b && ok; dy++) {
+                    int x = at[0] + dx, y = at[1] + dy;
+                    boolean inside = dx >= 0 && dy >= 0 && dx < b && dy < b;
+                    ok = !taken.contains(key(x, y)) && (inside ? yard.test(x, y) : walk.test(x, y));
+                }
+            }
+            if (!ok) continue;
+            // The bin's footprint is its own; its ring stays walkable and may be shared with the next bin's.
+            for (int dx = 0; dx < b; dx++) for (int dy = 0; dy < b; dy++) taken.add(key(at[0] + dx, at[1] + dy));
+            out.add(new Props.Placement(BIN, at[0], at[1], 0));
+        }
+        return out;
+    }
+
+    private static long key(int x, int y) { return ((long) x << 32) | (y & 0xffffffffL); }
 
     private static void water(GenContext c, int x, int y) {
         if (!PreparedGround.open(c, x, y)) return;

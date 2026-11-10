@@ -25,7 +25,8 @@ import java.util.List;
  * card by the type and size of the gun the hull was built around ({@link VehicleGunCard}).
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
- * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the compartment.</p>
+ * engine, {@code ARMS} the turret, {@code RIGHT_ARM} the coax card beside it on a hull that has one
+ * ({@link VehicleGunCard#COAX}), the shoulders the bay and the systems, {@code AUXILIARY} the compartment.</p>
  */
 public final class VehicleDoll {
 
@@ -44,6 +45,8 @@ public final class VehicleDoll {
                 case BALLISTIC -> SocketType.BALLISTIC;
             }, gun.rows, "@vehicleDollTurret"));
         }
+        VehicleGunCard coax = VehicleGunCard.coaxOf(type);
+        if (coax != null) sockets.add(card(SocketId.RIGHT_ARM, SocketType.BALLISTIC, coax.rows, "@vehicleDollCoax"));
         if (bay(type) != null) sockets.add(sealed(SocketId.LEFT_SHOULDER, SocketType.AUXILIARY, "@vehicleDollBay"));
         if (!systems(type).isEmpty()) {
             sockets.add(sealed(SocketId.RIGHT_SHOULDER, SocketType.OMNI, "@vehicleDollSystems"));
@@ -94,6 +97,7 @@ public final class VehicleDoll {
             case MORTAR -> "vehicle-turret-mortar";
             case LASER -> "ll-3";
             case LRM -> "lrm-5";
+            case COAX -> "light-machine-gun";
         };
     }
 
@@ -132,6 +136,7 @@ public final class VehicleDoll {
         return switch (card) {
             case CORE -> HardpointBricks.ENGINE;
             case ARMS -> HardpointBricks.tone(VehicleGunCard.of(type).hardpoint);
+            case RIGHT_ARM -> HardpointBricks.tone(VehicleGunCard.COAX.hardpoint);
             case RIGHT_SHOULDER -> HardpointBricks.UTILITY;
             case PLATING -> HardpointBricks.OMNI;
             default -> HardpointBricks.AUXILIARY;

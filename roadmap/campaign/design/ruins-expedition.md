@@ -447,6 +447,17 @@ the rest roll to get home as in any Retreat (`campaign-nouns.md`, Ending an
 operation). The cost of pulling out from deep inside is the soldiers who have
 not got back to the door.
 
+**No machine is dropped inside.** Owner (2026-11-10): "We should also likewise
+prevent dropping mechs inside of the facility." A machine is set down only on
+the open ground outside: the landing, an apron, the ground between. Generation
+marks every cell inside the facility, light wells included, and every way a
+machine reaches the ground refuses those cells: the armor drop's landing zone
+(`LandingZoneScorer.forMachines`) and the boat's unload cell
+(`AirDeliveryContext`). Aimed just inside, the drop falls back to the nearest
+outside cell in reach; aimed deep inside, the order is refused and the marker
+reads NO DROP INSIDE THE FACILITY. Machines go in on their own tracks, through
+the entrances.
+
 ### Where phase B's threats come from
 
 In phase B the threat comes from inside the ruin, toward the company and then

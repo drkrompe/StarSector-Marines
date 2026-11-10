@@ -45,6 +45,8 @@ public enum RuinsRoom {
 
     // ---- shared pieces, each with the stand-in laid until its art ships ------------------------------------
 
+    /** Cells across a run of control desks: three consoles. */
+    static final int DESK = 3;
     static final String CONTROL_DESK = "doodad.ruins-control-desk", CONTROL_DESK_BURNT = "doodad.ruins-control-desk-burnt",
             SHIFT_DESK = "doodad.ruins-shift-desk", CEILING_PANEL = "doodad.ruins-ceiling-panel",
             SAMPLE_HATCH = "doodad.ruins-sample-hatch", FUME_HOOD = "doodad.ruins-fume-hood",
@@ -156,18 +158,25 @@ public enum RuinsRoom {
             // The line's feeds come in through the hall-side wall under a trench to the mimic board.
             stand(theme.board(), bx, top, 3, 1, "feeds");
             if (clearOfMiddle(bx, top - 2, 2, 2)) plan.floor(TRENCH, null, bx, top - 2, 2, 2, "feeds");
-            // The shift's desk runs either side of the board, a chair at each; the west run burned out.
+            // The shift's desk runs either side of the board, whole desks of three from the side wall in, a chair at
+            // each; one run burned out. A side too short for a desk beside the board has its desk on the back wall,
+            // where a narrow room has room for one.
             boolean burnWest = !flip();
             for (int side = 0; side < 2; side++) {
-                int x0 = side == 0 ? 0 : bx + 3, run = side == 0 ? bx : w - bx - 3;
-                if (run < 1) continue;
+                int run = side == 0 ? bx : w - bx - 3, y = top;
+                if (run < DESK) {
+                    run = DESK;
+                    y = 0;
+                }
                 boolean burnt = (side == 0) == burnWest;
-                if (burnt) {
-                    stand(CONTROL_DESK_BURNT, "console-bank.straight-destroyed", x0, top, run, 1, WorksHallPlan.COLLAPSE);
-                    plan.wear(SCORCH, x0, top - 2, 2, 2);
-                } else {
-                    stand(CONTROL_DESK, "console-bank.straight", x0, top, run, 1, "watch");
-                    stand(CHAIR, null, x0 + run / 2, top - 1, 1, 1, "watch");
+                for (int k = 0; k + DESK <= run; k += DESK) {
+                    int x = side == 0 ? k : w - k - DESK;
+                    if (burnt) {
+                        if (stand(CONTROL_DESK_BURNT, "console-bank.straight-destroyed", x, y, DESK, 1,
+                                WorksHallPlan.COLLAPSE)) plan.wear(SCORCH, x, y == 0 ? 1 : y - 2, 2, 2);
+                    } else if (stand(CONTROL_DESK, "console-bank.straight", x, y, DESK, 1, "watch")) {
+                        stand(CHAIR, null, x + 1, y == 0 ? 1 : y - 1, 1, 1, "watch");
+                    }
                 }
             }
             // The shift lead's desk at the back, the chair at it.
