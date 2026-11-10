@@ -501,6 +501,18 @@ Laws):
      throws it, and laid over the tiles under the units, so a narrow ravine's
      floor lies in its walls' shade but for where the sun runs along it.
    - Narrow floor between two rises is a pass, never a bridge.
+   - **A bank, not a cliff** (owner, 2026-11-09: "widen out the hills ...
+     to make sure the player has good views of the action at the bottom ...
+     it doesn't need to be a sheer drop"). A rise climbs in a terraced bank
+     (`NaturalRise.bank`): six even terraces to its top, the top standing ten
+     cells back from the foot. Each face is short, so it leans out little,
+     and the high ground stands well back from the floor, so the camera sees
+     the fighting at the foot rather than the lip of a wall leaning over it.
+     The first pass's cliffs (two ledges and the top 1.6 cells back) leaned
+     over much of a narrow floor; `-Dsnapshot.ravine.sheer=true` still draws
+     them for comparison. Drops keep their sheer walls: the player looks
+     down into them, not out of them. Left: the owner's pick of how wide and
+     how many terraces (`BANK_CELLS`, `BANK_TERRACES`, UNTUNED).
    First pass (ravine wall): the gorge's strata wall, two ledges and the top
    36 m up, camera 120 m. Left: the owner's pick of height; a top with real
    art (a canopy image rather than flat colour, which blurs as the top scales
