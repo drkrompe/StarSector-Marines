@@ -115,7 +115,9 @@ public final class PrecinctDefence {
         DefenceDoctrine.Fits fits = (x, y, kind) -> fits(ctx, inside, clear, x, y, kind);
         int[] threat = threat(ctx);
         List<int[]> hearts = works == null ? List.of() : works.hearts();
-        Map<DefensePostKind, Integer> wanted = owed(fortification, precinct, gates.size());
+        boolean cantonment = precinct.isProgrammed() && precinct.program().cantonment();
+        Map<DefensePostKind, Integer> wanted = owed(fortification, cantonment, gates.size(), hearts.size(),
+                wallLength(own, w, h));
 
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
         for (DefenceDoctrine.Site site : DefenceDoctrine.plan(inside, gates, hearts, threat, wanted, fits)) {
@@ -130,24 +132,51 @@ public final class PrecinctDefence {
         return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
     }
 
+    /** Cells of a military base's wall one perimeter post holds: a post every this many along it. UNTUNED. */
+    static final int WALL_EVERY = 16;
+
+    /** Corners a base's wall turns, each with a tower. */
+    static final int CORNERS = 4;
+
     /**
-     * The posts a place is owed. Its fortification's, and for a cantonment two
-     * flanking each of its gates at least, made up with light posts: a gate
-     * nobody is watching is a door, and a cantonment's gates grow with its market
-     * ({@link CantonmentRoads#gates}), so its guns do too.
+     * The posts a place is owed: its fortification's. A military base (a cantonment) is defended on its approaches and
+     * its walls, not only as far as its grade's loadout reaches: two posts flanking each gate, a tower at each corner,
+     * a post every {@link #WALL_EVERY} cells of wall, whichever asks more, and one at each thing it guards inside.
+     * What its loadout lacks is made up in its heaviest perimeter kind, so a fortified base's wall is lined with
+     * heavy guns and an open one's with light. These are static: the attack picks which to meet
+     * ({@code BattleForceScore#standingDefensePosts}).
      */
-    static Map<DefensePostKind, Integer> owed(Fortification fortification, Precinct precinct, int gates) {
+    static Map<DefensePostKind, Integer> owed(Fortification fortification, boolean cantonment, int gates,
+                                              int hearts, int wallLength) {
         Map<DefensePostKind, Integer> posts = new EnumMap<>(DefensePostKind.class);
         for (DefensePostKind kind : Fortification.PRECEDENCE) {
             if (fortification.posts(kind) > 0) posts.put(kind, fortification.posts(kind));
         }
-        if (precinct.isProgrammed() && precinct.program().cantonment()) {
-            int perimeter = 0;
-            for (DefensePostKind kind : DefenceDoctrine.PERIMETER) perimeter += posts.getOrDefault(kind, 0);
-            int short_ = 2 * gates - perimeter;
-            if (short_ > 0) posts.merge(DefensePostKind.LIGHT, short_, Integer::sum);
+        if (!cantonment) return posts;
+        int perimeter = 0;
+        DefensePostKind heaviest = null;
+        for (DefensePostKind kind : DefenceDoctrine.PERIMETER) {
+            int n = posts.getOrDefault(kind, 0);
+            perimeter += n;
+            if (heaviest == null && n > 0) heaviest = kind;
         }
+        int wall = Math.max(2 * gates + CORNERS, wallLength / WALL_EVERY);
+        int short_ = wall + hearts - perimeter;
+        if (short_ > 0) posts.merge(heaviest == null ? DefensePostKind.LIGHT : heaviest, short_, Integer::sum);
         return posts;
+    }
+
+    /** Cells along the edge of {@code own}: its wall's length. */
+    static int wallLength(boolean[][] own, int w, int h) {
+        int n = 0;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (!own[x][y]) continue;
+                if (x == 0 || y == 0 || x == w - 1 || y == h - 1
+                        || !own[x - 1][y] || !own[x + 1][y] || !own[x][y - 1] || !own[x][y + 1]) n++;
+            }
+        }
+        return n;
     }
 
     /**
