@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ruins.RuinsDoorStates;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -8,7 +9,9 @@ import com.dillon.starsectormarines.battle.world.gen.ship.RoomDoor;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The ruins' sliding leaf doors ({@code ruins-expedition.md}, The ruins' doors are leaf doors): a hall door in every
@@ -17,7 +20,9 @@ import java.util.List;
  *
  * <p>A door that still <b>answers</b> parts for whoever stands in line with it and closes behind them, as a ship's
  * does. A <b>dead</b> door stands part-open where its power died, its leaves in its end cells (shut at generation). A
- * <b>forced</b> door was torn open long ago: one leaf lies on the floor beside the way, the other jammed in its track.
+ * <b>forced</b> door was torn open: one leaf lies on the floor beside the way, the other jammed in its track. A
+ * <b>sealed</b> door stands shut across a way that is wall, its lamps dark. Each door's stance is read as it stands now
+ * ({@link RuinsDoorStates}), so a door forced or opened in the battle, or added to it, is drawn so from then on.
  * Presentation only: passage and sight are the grid's.
  */
 final class RuinsLeafDoorRenderSystem implements RenderSystem {
@@ -36,6 +41,8 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
     private final BattleSprites sprites;
     private final LongBucket near = new LongBucket();
     private BattleSimulation builtFor;
+    private RuinsDoorStates states;
+    private int builtVersion;
     private List<RuinsDelve.LeafDoor> doors = List.of();
     private List<RoomDoor> moving = List.of();
 
@@ -48,7 +55,7 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (sprites == null || ctx.sim == null) return;
-        if (builtFor != ctx.sim) build(ctx.sim);
+        if (builtFor != ctx.sim || states != null && states.version() != builtVersion) build(ctx.sim);
         if (doors.isEmpty()) return;
         ShuttleSpriteCache hall = sprites.spriteByPath(HALL_LEAF), cargo = sprites.spriteByPath(CARGO_LEAF);
         if (hall == null || cargo == null) return;
@@ -70,7 +77,7 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
             float artCells = door.cargo() ? CARGO_ART_CELLS : HALL_ART_CELLS;
             float depth = door.cargo() ? CARGO_DEPTH : HALL_DEPTH;
             int perSide = door.cargo() ? 2 : 1;
-            switch (door.stance()) {
+            switch (states.stanceOf(door)) {
                 case ANSWERS -> {
                     LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_OPEN, ctx.alphaMult);
                     LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, m.leafTravel(), perSide, 0, 1f,
@@ -91,19 +98,45 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
                     LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, FORCED_TRAVEL, perSide, -1, .8f,
                             ctx.alphaMult);
                 }
+                // Torn out wide, jambs and all: rubble at both new ends, one leaf on the floor, none standing.
+                case TORN -> {
+                    int floor = floorSide(ctx.sim, door);
+                    LeafDoorArt.rubble(cam, out, rubble, span, -1, floor, ctx.alphaMult);
+                    LeafDoorArt.rubble(cam, out, rubble, span, 1, -floor, ctx.alphaMult);
+                    LeafDoorArt.torn(cam, out, torn != null ? torn : art, pair, span,
+                            torn != null ? TORN_DEPTH : depth, -1, floor, ctx.alphaMult);
+                }
+                case SEALED -> {
+                    LeafDoorArt.jambs(cam, out, jamb, span, LeafDoorArt.LAMP_DEAD, ctx.alphaMult);
+                    LeafDoorArt.leaves(cam, out, art, pair, artCells, span, depth, 0f, perSide, 0, .8f,
+                            ctx.alphaMult);
+                }
             }
         }
     }
 
+    /** Takes the doors as they stand, keeping each one already held where its leaves have got to. */
     private void build(BattleSimulation sim) {
+        Map<RuinsDelve.LeafDoor, RoomDoor> held = new HashMap<>();
+        Map<RuinsDelve.LeafDoor, RuinsDelve.Area> heldSpan = new HashMap<>();
+        if (builtFor == sim) {
+            for (int i = 0; i < doors.size(); i++) {
+                held.put(doors.get(i), moving.get(i));
+                heldSpan.put(doors.get(i), states.spanOf(doors.get(i)));
+            }
+        }
         builtFor = sim;
         RuinsWorks works = sim.getRuinsWorks();
-        RuinsDelve delve = works == null ? null : works.delve();
-        doors = delve == null || delve.interior() == null ? List.of() : delve.interior().doors();
+        states = works == null ? null : works.doorStates();
+        builtVersion = states == null ? 0 : states.version();
+        doors = states == null ? List.of() : states.doors();
         List<RoomDoor> m = new ArrayList<>(doors.size());
         for (RuinsDelve.LeafDoor door : doors) {
-            RuinsDelve.Area a = door.span();
-            m.add(door.alongX() ? new RoomDoor(true, a.left(), a.right() + 1f, a.bottom() + .5f, false)
+            // A door torn wider stands across new cells: its leaves start afresh there.
+            RuinsDelve.Area a = states.spanOf(door);
+            RoomDoor kept = a.equals(heldSpan.get(door)) ? held.get(door) : null;
+            m.add(kept != null ? kept : door.alongX()
+                    ? new RoomDoor(true, a.left(), a.right() + 1f, a.bottom() + .5f, false)
                     : new RoomDoor(false, a.bottom(), a.top() + 1f, a.left() + .5f, false));
         }
         moving = List.copyOf(m);
@@ -114,7 +147,7 @@ final class RuinsLeafDoorRenderSystem implements RenderSystem {
         var index = sim.getUnitIndex();
         var world = sim.world();
         for (int i = 0; i < doors.size(); i++) {
-            if (doors.get(i).stance() != RuinsDelve.DoorStance.ANSWERS) continue;
+            if (states.stanceOf(doors.get(i)) != RuinsDelve.DoorStance.ANSWERS) continue;
             RoomDoor door = moving.get(i);
             boolean called = false;
             if (index != null) {

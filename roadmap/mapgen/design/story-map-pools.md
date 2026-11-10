@@ -2,10 +2,12 @@
 
 Status: ACTIVE — every pooled story map (Colony Breach, the Cordon's and the
 Heart's, at every density) is one owned seed laid out on the mission's home
-palette and skinned for the world it is fought on (`PlanetSkin`); Conquest and
-the generic contracts stay fully random until they own a map too.
+palette and skinned for the world it is fought on (`PlanetSkin`); so is every
+generic Raid's map, one per Raid site, laid against a reference market
+(`raid-mission.md`, The owned map). Conquest and the other generic contracts
+stay fully random until they own a map too.
 
-Updated: 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
+Updated: 2026-11-10 — every owned map plays the sealed layout, the Raid's included. Earlier, 2026-11-10 — a sealed layout: on a world nobody lives on in the open the owned seed is laid out with every town sealed. Earlier, 2026-11-10 — one owned map per mission, every world skinned (owner: "All of these should use a single seed, that we own and make good. They should be skinned for the planet and make sense for the planet"); the per-biome entries and their candidates are gone.
 
 Written: 2026-10-23
 
@@ -93,25 +95,63 @@ through or built on (`PlanetSkinTest`). It swaps:
   (`PlanetSkin.fieldsOn`). On a frozen, bare-rock, volcanic, irradiated or toxic
   world, or under air that kills, every worked field (`MapResult.fields`: the
   surveyed country's plots, the town's own fields and the lots' kitchen plots)
-  is cleared to the planet's own ground, as walkable as it was; the farmsteads
-  stand. Paved hydroponic bays on the footprint were tried and dropped (owner,
-  2026-11-10: "Do a bunch of paved beds make sense? Why would a planet have
-  those?"): a hazardous world grows its food under cover, so what belongs on
-  those plots is greenhouses or domes, which wait for their own art.
+  is grown under cover: the plot is cleared to the planet's own ground and a
+  **covered farm** stands on it (`PlanetSkin.covered`): rows of pressurised
+  hydroponic sheds (`hydro-sheds`) along the plot's crop rows, a lane between
+  rows and between sheds, each row of long sheds finished with a short one or
+  a pump house, and short sheds on a grid on a plot too short for a long one.
+  Each roof carries two skylights lit by warm amber grow-light (owner, over
+  ImageGen's pink: "Warm amber"). On a dark map the sheds are lamps too
+  (`PlanetSkin.growLights`): amber pools down each shed's middle, drawn with no
+  fixture, so the roofs glow and spill onto the lanes. The sheds are walk-in
+  and coverless, so pathing, sight and cover are the home map's. Paved
+  hydroponic bays were dropped (owner, 2026-11-10: "Do a bunch of paved beds
+  make sense? Why would a planet have those?"), and so were polytunnels
+  (owner: "They don't read like hydroponics"); sheds were picked over
+  geodesic domes and glass halls (planet-skin-farm).
 - **Buildings.** Every town wall in the world's habitat (`HabitatStage.rebuild`,
   `BiomeSkin.habitat`): shielded on an irradiated world, sealed on a toxic or
   airless one (bare rock is airless unless its profile says otherwise),
   insulated on a frozen one.
 
 It does not raise a sealed perimeter round a town, add a drop or grow new
-water or woods: each would move the layout. A drop belongs on a map only where
+water or woods: each would move the layout; the sealed layout (below) is how a
+town is sealed. A drop belongs on a map only where
 its terrain explains one (`owned-maps.md`, Relay Nine). Living worlds (jungle,
 tundra, ocean) reach a story setup as verdant today, since the setups take the
 world's palette alone.
 
+## Sealed layout
+
+A world nobody lives on in the open plays the mission's **sealed layout**: the
+same owned seed and patch on the same home palette, generated with every town
+sealed (`SealedTown.seal`), then skinned as any world is. Every owned map plays
+it, the Raid's as well as the story missions', through one rule
+(`PlanetSkin.sealedFor`), decided by the raided or fought-on world and never the
+home or the Raid's reference market. Which worlds is the
+world's alone (`PlanetSkin.sealsTowns`): wherever its habitat is enclosed, so
+irradiated, toxic and airless worlds, and bare rock, which is airless unless its
+profile says otherwise. Every zoned place the mission names (its colony, towns,
+suburbs, depots and hamlets) is walled where it stands under its own name;
+garrisons, compounds, workings and the landing keep their own boundary, and no
+mission place is dropped. The owner chose one owned layout per case over a wall
+the skin draws on an open town's outline (2026-11-10): a wall changes what can
+be walked, so it belongs to the layout. The regeneration check plays every map
+on every palette, so a sealed layout is checked wherever it is played.
+
+A sealed wall keeps a lock onto every stretch of open ground it borders
+(`SealedTown.groundLocks`), not only where roads cross it: on a city map the
+suburbs' wall ran the map's width with no road out to the landing field, and
+sealed the company out of the whole map.
+Every sealed place is walled as one, so a sealed layout's town plan is laid
+with its envelope's ground held back (`mapgen-nouns.md`, Habitat): it is a
+different street plan from the open layout's, from the same seed.
+
 `createSnapshots -Psnapshot=planet-skin-look` (`-Dsnapshot.planetSkin.maps=`,
 `.worlds=`) frames each mission's map whole under every palette through the
-look preset, with close frames on its fields and woods.
+look preset, with close frames on its fields and woods, and on a world that
+plays the sealed layout a close frame on a lock (a lock floor beside the
+envelope's own wall, not a compound's striped floor).
 
 **Colony Breach.** The colony (`colony-breach`) is generated on its home alone,
 never on the market behind it, with no re-roll, then skinned for the world the
@@ -247,8 +287,12 @@ question about one map.
 
 ## Boundaries
 
-- Conquest, skirmish and every generated contract stay fully random: their
-  value is variety, and their evidence is a matrix over constructed fixtures.
+- Conquest, skirmish and every generated contract but the Raid stay fully
+  random: their value is variety, and their evidence is a matrix over
+  constructed fixtures. The Raid's maps are pooled like a story map's but laid
+  against a reference market, not the battle's (`raid-mission.md`, The owned
+  map); its acceptance is that a raid stands up with every machine of its
+  works reachable.
 - A pool is per story map, not per mission: The Burn and Broad Front are
   different forms at different sizes, so each has its own.
 - The pool does not hold the setup's tuning, timetables or rosters; those

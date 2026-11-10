@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "map": "raid-spaceport",
+  "home": "ARID",
+  "entry": {
+    "seed": 6,
+    "note": "spaceport; the shortest walk in and out passes 5 defenders, a skirting walk 3; screened over seeds 2 to 7 at 400x240 on the reference market for a landing clear of the garrison and a way round it (2026-11-10)"
+  }
+}

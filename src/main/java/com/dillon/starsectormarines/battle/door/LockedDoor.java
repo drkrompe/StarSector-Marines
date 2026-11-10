@@ -131,7 +131,8 @@ public final class LockedDoor {
                     MapEditor.PassageRecord w = editor.recordPassage(nx, ny);
                     return new MapEditor.PassageRecord(x, y, w.flags(), w.edges(), w.wallHp(), w.wall(), w.window(),
                             w.fixture(), w.groundKind(), w.surface(), w.ownCover(), w.ownCatch(), w.towardCover(),
-                            w.towardCatch());
+                            w.towardCatch(),
+                            sim.getTopology().getWallDirMask(x, y), sim.getTopology().getBuildingId(x, y));
                 }
             }
         }

@@ -72,7 +72,7 @@ public final class PrecinctWardStage implements GenStage {
         var claim = ctx.get(BspKeys.PRECINCT_CLAIM);
         var road = ctx.get(BspKeys.PRECINCT_ROAD);
         var masks = PrecinctFill.masks(claim, road, who, ctx.width, ctx.height);
-        emitTacticalNodes(ctx, rooms);
+        emitTacticalNodes(ctx, rooms, precinct.name());
         emitPointsOfInterest(ctx, rooms);
         stampWall(ctx, claim, road, who, precinct.fortification(), true);
         InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), rooms.placed());
@@ -91,7 +91,8 @@ public final class PrecinctWardStage implements GenStage {
         Map<Integer, PrecinctDefence.Works> works = new LinkedHashMap<>();
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
-            boolean walled = precinct.boundary() == Precinct.Boundary.WALLED;
+            // Sealed towns are walled together, once every other place stands (sealTowns).
+            boolean walled = precinct.boundary() == Precinct.Boundary.WALLED && !SealedTown.is(precinct);
             // What the defences are sited against: the ground this place keeps for moving, and what it guards.
             boolean[][] kept = walled ? new boolean[ctx.width][ctx.height] : null;
             List<int[]> hearts = new ArrayList<>();
@@ -117,7 +118,7 @@ public final class PrecinctWardStage implements GenStage {
             if (precinct.isProgrammed() && precinct.program().cantonment()) {
                 masks = PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 result = cantonment(ctx, precinct, masks, own, road, i, unbuilt, shortFields, kept, hearts);
-                emitTacticalNodes(ctx, result);
+                emitTacticalNodes(ctx, result, precinct.name());
                 emitPointsOfInterest(ctx, result);
             } else if (precinct.isProgrammed()) {
                 masks =
@@ -161,7 +162,7 @@ public final class PrecinctWardStage implements GenStage {
                 if (precinct.isLanding()) {
                     emitLandingNodes(ctx, result);
                 } else {
-                    emitTacticalNodes(ctx, result);
+                    emitTacticalNodes(ctx, result, precinct.name());
                     emitPointsOfInterest(ctx, result);
                 }
                 // Recorded rather than dropped. Ground is granted from the
@@ -176,15 +177,10 @@ public final class PrecinctWardStage implements GenStage {
             }
             if (walled) {
                 int gateWidth = wall.gateWidth();
+                List<PrecinctBoundary.Gate> openGates = new ArrayList<>(PrecinctBoundary.openGates(own, ownRoad, i,
+                        ctx.width, ctx.height, wall.gates(), gateWidth));
                 stampWall(ctx, own, ownRoad, i, wall);
-                // A sealed town's gates are its locks; every other walled place's are hung with leaves.
-                List<PrecinctBoundary.Gate> openGates = PrecinctBoundary.openGates(own, ownRoad, i, ctx.width,
-                        ctx.height, wall.gates(), gateWidth);
-                if (!precinct.isProgrammed() && SealedTown.on(ctx.get(BspKeys.MARKET_PROFILE))) {
-                    markLocks(ctx, openGates, own, ownRoad, i);
-                } else {
-                    hangGates(ctx, openGates, own, i);
-                }
+                hangGates(ctx, openGates, own, i);
                 if (masks != null) {
                     for (int x = 0; x < ctx.width; x++) {
                         for (int y = 0; y < ctx.height; y++) if (masks.circulation()[x][y]) kept[x][y] = true;
@@ -234,6 +230,7 @@ public final class PrecinctWardStage implements GenStage {
                 }
             }
         }
+        sealTowns(ctx, plan, claim, road, works);
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));
         ctx.put(BspKeys.PRECINCT_WORKS, Map.copyOf(works));
         ctx.put(BspKeys.UNPLACED_AIRFIELDS, Map.copyOf(shortFields));
@@ -376,7 +373,7 @@ public final class PrecinctWardStage implements GenStage {
      * {@link #emitPointsOfInterest}. A garrison's rooms are things a battle can
      * be about in both vocabularies, so they are said in both.
      */
-    private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result) {
+    private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result, String place) {
         for (RoomPacker.Placed room : result.placed()) {
             TacticalNode.Kind kind = switch (room.purpose()) {
                 case KEEP_THRONE -> TacticalNode.Kind.COMMAND_POST;
@@ -392,11 +389,14 @@ public final class PrecinctWardStage implements GenStage {
             if (kind == null) continue;
             int[] stand = standCell(ctx, room);
             if (stand == null) continue;
-            ctx.tactical.add(new TacticalNode(kind, stand[0], stand[1],
+            TacticalNode node = new TacticalNode(kind, stand[0], stand[1],
                     room.originX(), room.originY(),
                     room.originX() + room.shape().width() - 1,
                     room.originY() + room.shape().height() - 1,
-                    Faction.DEFENDER, weight(kind), 3, false));
+                    Faction.DEFENDER, weight(kind), 3, false);
+            // Which place the room belongs to, so a setup can post a place's own guard (RaidWorksGuard).
+            node.setPlace(place);
+            ctx.tactical.add(node);
         }
     }
 
@@ -723,8 +723,111 @@ public final class PrecinctWardStage implements GenStage {
         InstallationWalls.perimeter(ctx, wall);
     }
 
+    /**
+     * Seals every sealed town on the map inside one envelope ({@link SealedTown}): the places are walled as one group,
+     * so where two of them meet (a colony and its suburb, a city's districts) there is town, not a wall between them.
+     * Its gates are the group's road gates, capped as one place's, plus a lock onto every stretch of ground outside
+     * each part of it ({@link SealedTown#groundLocks}). It faces only the world outside: the edge of the map is no
+     * wall, the town running on past it, and nor is a walled place's own wall ({@link SealedTown#facingOut}).
+     */
+    private static void sealTowns(GenContext ctx, PrecinctPlan plan, int[][] claim, int[][] road,
+                                  Map<Integer, PrecinctDefence.Works> works) {
+        List<Precinct> places = plan.precincts();
+        int group = -1;
+        boolean[] sealed = new boolean[places.size()];
+        for (int i = 0; i < places.size(); i++) {
+            sealed[i] = SealedTown.is(places.get(i));
+            if (sealed[i] && group < 0) group = i;
+        }
+        if (group < 0) return;
+        int[][] merged = new int[ctx.width][ctx.height];
+        boolean[][] open = openGround(ctx);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                int c = claim[x][y];
+                merged[x][y] = c >= 0 && c < places.size() && sealed[c] ? group : c;
+            }
+        }
+        Fortification wall = places.get(group).fortification();
+        List<PrecinctBoundary.Gate> gates = new ArrayList<>(PrecinctBoundary.openGates(merged, road, group,
+                ctx.width, ctx.height, wall.gates(), wall.gateWidth()));
+        boolean[] side = SealedTown.sealedSide(plan);
+        boolean[][] band = SealedTown.band(claim, sealed, side);
+        boolean[][] streetward = SealedTown.streetward(merged, group, open, band, road);
+        gates.addAll(SealedTown.groundLocks(merged, group, open, gates, streetward));
+        boolean[][] outline = PrecinctBoundary.wall(merged, road, group, ctx.width, ctx.height,
+                wall.gates(), wall.gateWidth());
+        for (PrecinctBoundary.Gate gate : gates) for (int[] c : gate.cells()) outline[c[0]][c[1]] = false;
+        SealedTown.Envelope envelope = SealedTown.envelope(merged, group,
+                SealedTown.facingOut(outline, merged, group, side), band, road, gates, open, streetward);
+        boolean[][] cells = envelope.wall();
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!cells[x][y]) continue;
+                ctx.grid.setWalkable(x, y, false);
+                ctx.grid.setWallHp(x, y, wall.wallHp());
+                ctx.topology.setWall(x, y, true);
+                ctx.topology.setGroundKind(x, y, WALL_GROUND);
+            }
+        }
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!cells[x][y]) continue;
+                int mask = 0;
+                if (y + 1 >= ctx.height || !cells[x][y + 1]) mask |= CellTopology.WALL_DIR_N;
+                if (y == 0 || !cells[x][y - 1]) mask |= CellTopology.WALL_DIR_S;
+                if (x + 1 >= ctx.width || !cells[x + 1][y]) mask |= CellTopology.WALL_DIR_E;
+                if (x == 0 || !cells[x - 1][y]) mask |= CellTopology.WALL_DIR_W;
+                ctx.topology.setWallDirMask(x, y, mask);
+            }
+        }
+        dressEnvelope(ctx, cells, SealedTown.outerCourse(cells, merged, group, side));
+        List<int[]> chambers = new ArrayList<>();
+        for (SealedTown.Lock lock : envelope.locks()) {
+            ctx.wallGates.add(WallGate.of(lock.outer(), lock.outX(), lock.outY()));
+            if (!lock.inner().isEmpty()) ctx.wallGates.add(WallGate.of(lock.inner(), lock.outX(), lock.outY()));
+            chambers.addAll(lock.chamber());
+        }
+        markLocks(ctx, chambers);
+        PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), SealedTown.lockWays(envelope,
+                ctx.width, ctx.height));
+        for (int i = 0; i < places.size(); i++) if (sealed[i]) works.put(i, shared);
+    }
+
+    /**
+     * The envelope's surfaces: its own wall ({@link SealedTown#ENVELOPE_WALL}), the plinth along its outer course
+     * ({@link SealedTown#ENVELOPE_PLINTH}) and the buttresses standing out of it
+     * ({@link SealedTown#ENVELOPE_BUTTRESS}), on the perimeter's concrete footing. Only the material: walkability and
+     * wall HP are the wall's, set before.
+     */
+    private static void dressEnvelope(GenContext ctx, boolean[][] cells, boolean[][] course) {
+        int body = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_WALL);
+        int plinth = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_PLINTH);
+        int buttress = ctx.topology.surfaceIndex(SealedTown.ENVELOPE_BUTTRESS);
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!cells[x][y] || ctx.grid.isWalkable(x, y) || ctx.grid.isDoorway(x, y)
+                        || ctx.topology.isFixture(x, y) || ctx.topology.isWater(x, y)) continue;
+                ctx.topology.setSurface(x, y, !course[x][y] ? body : SealedTown.buttress(x, y) ? buttress : plinth);
+                ctx.topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+            }
+        }
+    }
+
+    /** Whether each cell is open ground now: walkable, and no wall, building or water. */
+    private static boolean[][] openGround(GenContext ctx) {
+        boolean[][] open = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                open[x][y] = ctx.grid.isWalkable(x, y) && !ctx.topology.isWall(x, y)
+                        && ctx.topology.getBuildingId(x, y) == 0 && !ctx.topology.isWater(x, y);
+            }
+        }
+        return open;
+    }
+
     /** The floor marking a sealed town's locks are laid in. */
-    static final String LOCK_MARKING = "doodad.fl-striped-yellow";
+    public static final String LOCK_MARKING = "doodad.fl-striped-yellow";
 
     /** Hangs leaves in each of a walled place's open gates ({@link WallGate}), for the battle to draw. */
     private static void hangGates(GenContext ctx, List<PrecinctBoundary.Gate> gates, int[][] claim, int who) {
@@ -737,11 +840,10 @@ public final class PrecinctWardStage implements GenStage {
     }
 
     /**
-     * Marks a sealed town's locks ({@link SealedTown#lockFloors}): a striped floor marking, which has no footprint or
-     * cover, on each open cell of their door lines nothing else stands on.
+     * Floors a sealed town's lock chambers in hazard stripes: a floor marking, which has no footprint or cover, on each
+     * open cell nothing else stands on.
      */
-    private static void markLocks(GenContext ctx, List<PrecinctBoundary.Gate> gates, int[][] own, int[][] road,
-                                  int who) {
+    private static void markLocks(GenContext ctx, List<int[]> chambers) {
         TileRegistry registry = TileRegistry.installed();
         DoodadDef marking = registry == null ? null : registry.doodad(LOCK_MARKING);
         if (marking == null) return;
@@ -753,7 +855,7 @@ public final class PrecinctWardStage implements GenStage {
                 }
             }
         }
-        for (int[] c : SealedTown.lockFloors(gates, own, road, who)) {
+        for (int[] c : chambers) {
             int x = c[0], y = c[1];
             if (taken[x][y] || !ctx.grid.isWalkable(x, y) || ctx.topology.isWall(x, y)
                     || ctx.topology.isWater(x, y) || ctx.topology.isFixture(x, y)

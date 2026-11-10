@@ -387,13 +387,15 @@ public final class MapEditor {
 
     /**
      * What a wall cell was before {@link #openPassage} made it a passage, so {@link #closePassage} can put it back:
-     * its navigation flags, own edges and wall hit points, its topology (wall, window, fixture, ground and surface),
+     * its navigation flags, own edges and wall hit points, its topology (wall, window, fixture, ground, surface and
+     * wall-direction mask, building),
      * and the cover it gave and had, per facing, on itself ({@code own*}) and on each cardinal neighbour's facing
      * towards it ({@code toward*}, indexed N, E, S, W by the neighbour's side).
      */
     public record PassageRecord(int x, int y, long flags, byte edges, int wallHp, boolean wall, boolean window,
                                 boolean fixture, CellTopology.GroundKind groundKind, int surface,
-                                byte[] ownCover, float[] ownCatch, byte[] towardCover, float[] towardCatch) { }
+                                byte[] ownCover, float[] ownCatch, byte[] towardCover, float[] towardCatch,
+                                int wallDir, int buildingId) { }
 
     /** Neighbour offsets N, E, S, W and the neighbour's facing that looks back at the cell. */
     private static final int[][] NEIGHBOURS = {
@@ -418,7 +420,8 @@ public final class MapEditor {
         }
         return new PassageRecord(x, y, grid.cellFlags(x, y), grid.getEdgePassabilityArray()[grid.index(x, y)],
                 grid.getWallHp(x, y), topology.isWall(x, y), topology.isWindow(x, y), topology.isFixture(x, y),
-                topology.getGroundKind(x, y), topology.getSurface(x, y), ownCover, ownCatch, towardCover, towardCatch);
+                topology.getGroundKind(x, y), topology.getSurface(x, y), ownCover, ownCatch, towardCover, towardCatch,
+                topology.getWallDirMask(x, y), topology.getBuildingId(x, y));
     }
 
     /**
@@ -439,6 +442,8 @@ public final class MapEditor {
         topology.setFixture(x, y, record.fixture());
         topology.setGroundKind(x, y, record.groundKind());
         topology.setSurface(x, y, record.surface());
+        topology.setWallDirMask(x, y, record.wallDir());
+        topology.setBuildingId(x, y, record.buildingId());
         for (int f = 0; f < NavigationGrid.FACING_COUNT; f++) {
             grid.setCoverAtFacing(x, y, f, record.ownCover()[f], record.ownCatch()[f]);
         }
@@ -468,7 +473,11 @@ public final class MapEditor {
         topology.setWall(x, y, false);
         topology.setWindow(x, y, false);
         topology.setFixture(x, y, false);
+        // A wall's direction mask picks its wall frame; floor has none, so the passage draws as the floor it joins.
+        topology.setWallDirMask(x, y, 0);
         if (grid.inBounds(likeX, likeY)) {
+            // The passage stands in the building of the floor it joins, under its roof (relief height and shade).
+            topology.setBuildingId(x, y, topology.getBuildingId(likeX, likeY));
             topology.setGroundKind(x, y, topology.getGroundKind(likeX, likeY));
             topology.setSurface(x, y, topology.getSurface(likeX, likeY));
         }

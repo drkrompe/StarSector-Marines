@@ -334,6 +334,7 @@ tasks.register('storyMapPools', Test) {
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'storyMapPools.candidates', providers.gradleProperty('candidates').getOrElse('')
+    systemProperty 'storyMapPools.maps', providers.gradleProperty('maps').getOrElse('')
     systemProperty 'storyMapPools.parallelism', providers.gradleProperty('parallelism')
             .getOrElse(String.valueOf(Math.max(1, Runtime.runtime.availableProcessors().intdiv(2))))
     systemProperty 'storyMapPools.outputDir',

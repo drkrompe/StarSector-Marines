@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
@@ -35,6 +38,15 @@ import java.util.WeakHashMap;
  * <p>A fixed overhead part (a shop awning, a pipe rack) fades to {@link #SEEN_UNDER_ALPHA} while a figure the player
  * can see stands under its prop, so nobody can hide under one from the player's view; it eases back once the ground
  * under it is clear. Moving parts (a crane's bridge) keep their full alpha.
+ *
+ * <p>An overhead prop that stands inside a building, under its intact roof (a mega forge's crane runway), is inside the
+ * building and not over it: the roof pass draws its roof first, so the prop's every part draws at what the roof leaves
+ * of it, {@link #underRoof} of the roof's own fade. Hidden while the roof is shut, it shows as the roof fades for the
+ * people inside. A prop under no roof draws as it always has.
+ *
+ * <p>A prop hung on a building's wall ({@link WallMounts}: an awning, a wall lamp) is left out of the overhead pass:
+ * the roof pass draws it through {@link #collectMounts}, after the faces and before the roofs, stood up on the face it
+ * hangs from, so it moves with that face as the view pans and a roof standing in front of it hides it.
  */
 final class PropMotionRenderSystem implements RenderSystem {
 
@@ -50,6 +62,17 @@ final class PropMotionRenderSystem implements RenderSystem {
     private final Map<Doodad, float[]> fades = new WeakHashMap<>();
     /** Cells where a figure the player can see stands this frame, row-major. */
     private boolean[] seenFigures = new boolean[0];
+    private final float[] mountCorners = new float[8];
+    private final float[] mountPatch = new float[16];
+
+    /** Where a wall mount hangs ({@link WallMounts#standUp}). */
+    interface MountAnchor {
+        /**
+         * Stands the mount's frame up, in place in {@code corners} (laid on the ground by {@link WallMounts#frame}, in
+         * cells); false where it is not drawn at all, its wall gone.
+         */
+        boolean stand(Doodad d, float[] corners);
+    }
 
     PropMotionRenderSystem(BattleSprites sprites, PropMotion.Layer layer, Phases phases) {
         this.sprites = sprites;
@@ -85,6 +108,8 @@ final class PropMotionRenderSystem implements RenderSystem {
             }
             if (motion == null || !motion.draws(layer)
                     || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            // A wall mount draws with the faces, through collectMounts.
+            if (layer == PropMotion.Layer.OVERHEAD && WallMounts.hangs(d.definitionId())) continue;
             float centreX = d.cellX + d.footprintCellsX * 0.5f;
             float centreY = d.cellY + d.footprintCellsY * 0.5f;
             // Moving machinery waits for the fog; a prop that is its own fixed overhead art stands like a roof.
@@ -92,14 +117,93 @@ final class PropMotionRenderSystem implements RenderSystem {
             float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
             float fade = layer == PropMotion.Layer.OVERHEAD
                     ? fade(d, seenUnder(seenFigures, width, d), ctx.realDt) : 1f;
+            float roof = layer == PropMotion.Layer.OVERHEAD ? roofLeaves(sim, (int) centreX, (int) centreY) : 1f;
+            if (roof <= 0f) continue;
             for (PropMotion.Part part : motion.parts()) {
                 if (part.layer() != layer) continue;
                 DoodadDef def = registry.doodad(part.doodadId());
                 SpriteAPI sheet = def == null ? null : sprites.extraTerrainSheet(def.sheetPath);
-                float alpha = part.kind() == PropMotion.Kind.FIXED ? ctx.alphaMult * fade : ctx.alphaMult;
+                float alpha = (part.kind() == PropMotion.Kind.FIXED ? ctx.alphaMult * fade : ctx.alphaMult) * roof;
                 if (sheet != null) emitPart(out, cam, sheet, def, d, part, phase, alpha);
             }
         }
+    }
+
+    /**
+     * The props hung on building walls in view, each stood up on its wall by {@code anchor} and drawn whole in the
+     * roof layer, fading under a seen figure as any fixed overhead part does. Called by the roof pass between the faces
+     * and the roofs; only the overhead instance draws them.
+     */
+    void collectMounts(RenderContext ctx, DrawList out, MountAnchor anchor) {
+        if (layer != PropMotion.Layer.OVERHEAD) return;
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+        BattleSimulation sim = ctx.sim;
+        BattleCamera cam = ctx.camera;
+        int width = sim.getGrid().getWidth(), height = sim.getGrid().getHeight();
+        VisibleCellRect view = cam.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 2, width, height);
+        boolean marked = false;
+        for (Doodad d : sim.getDoodads()) {
+            if (!WallMounts.hangs(d.definitionId())
+                    || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            PropMotion motion = registry.motion(d.definitionId());
+            if (motion == null || !motion.draws(layer)) continue;
+            if (!marked) {
+                markSeenFigures(sim, sim.getFogOfWar(), width, height);
+                marked = true;
+            }
+            WallMounts.frame(d, mountCorners);
+            if (!anchor.stand(d, mountCorners)) continue;
+            float alpha = ctx.alphaMult * fade(d, seenUnder(seenFigures, width, d), ctx.realDt);
+            for (PropMotion.Part part : motion.parts()) {
+                if (part.layer() != layer) continue;
+                DoodadDef def = registry.doodad(part.doodadId());
+                SpriteAPI sheet = def == null ? null : sprites.extraTerrainSheet(def.sheetPath);
+                if (sheet != null) emitMount(out, cam, sheet, def, d, alpha);
+            }
+        }
+    }
+
+    /** A mount's whole frame drawn over its four stood-up corners. */
+    private void emitMount(DrawList out, BattleCamera cam, SpriteAPI sheet, DoodadDef def, Doodad d, float alpha) {
+        int cell = def.sourceCellPx > 0 ? def.sourceCellPx : d.sourceCellPx;
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+        for (int k = 0; k < 4; k++) {
+            float x = cam.cellToScreenX(mountCorners[k * 2]), y = cam.cellToScreenY(mountCorners[k * 2 + 1]);
+            mountPatch[k * 2] = x;
+            mountPatch[k * 2 + 1] = y;
+            minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+        float w = Math.max(maxX - minX, 1e-3f), h = Math.max(maxY - minY, 1e-3f);
+        float[] u = d.mirrored ? WallMounts.MIRRORED_U : WallMounts.U;
+        for (int k = 0; k < 4; k++) {
+            mountPatch[k * 2] = (mountPatch[k * 2] - minX) / w;
+            mountPatch[k * 2 + 1] = (mountPatch[k * 2 + 1] - minY) / h;
+            mountPatch[8 + k * 2] = u[k];
+            mountPatch[8 + k * 2 + 1] = WallMounts.V[k];
+        }
+        out.addSheetPatch(RenderLayer.ROOFS, sheet, def.col * cell, def.row * cell, def.footprintCellsX * cell,
+                def.footprintCellsY * cell, (minX + maxX) / 2f, (minY + maxY) / 2f, w, h, alpha, mountPatch.clone());
+    }
+
+    /** How much of an overhead prop at a cell the roof over it leaves to draw: all of it where no intact roof is. */
+    private static float roofLeaves(BattleSimulation sim, int x, int y) {
+        CellTopology topology = sim.getTopology();
+        Buildings buildings = sim.getBuildings();
+        if (topology == null || buildings == null || !topology.inBounds(x, y) || !topology.isRoofIntact(x, y)) {
+            return 1f;
+        }
+        Building building = buildings.get(topology.getBuildingId(x, y));
+        return building == null ? 1f : underRoof(building.currentAlpha);
+    }
+
+    /**
+     * What a roof drawn at {@code roofAlpha} leaves of what stands under it: nothing under a shut roof, all of it once
+     * the roof has faded away.
+     */
+    static float underRoof(float roofAlpha) {
+        return 1f - Math.max(0f, Math.min(1f, roofAlpha));
     }
 
     /** Marks every cell a live figure stands on where the player can see it. */

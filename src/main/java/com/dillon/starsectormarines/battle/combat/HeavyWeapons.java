@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
+import com.dillon.starsectormarines.battle.mech.MechBodyHardpoints;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechRunSystem;
 import com.dillon.starsectormarines.battle.mech.MechSections;
@@ -339,6 +340,10 @@ public class HeavyWeapons {
         World world = roster.world();
         if (mount == null || !roster.isAliveById(shooter) || !world.hasMechLoadout(shooter)
                 || world.mechLoadout(shooter).mount(mount.slot) != mount) return false;
+        // A gun on a body hardpoint fires only at a bearing its arc turns it to.
+        MechLoadoutComponent loadout = world.mechLoadout(shooter);
+        MechBodyHardpoints.Hardpoint point = MechBodyHardpoints.of(loadout.variant, mount.slot);
+        if (point != null && !point.covers(hipFacing(shooter), loadout.torsoFacingDegrees)) return false;
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
         float x = world.renderX(shooter);
         float y = world.renderY(shooter);
@@ -722,7 +727,17 @@ public class HeavyWeapons {
         }
         return MechHardpointGeometry.muzzle(
                 world.renderX(shooter), world.renderY(shooter),
-                waistOffsetX, waistOffsetY, loadout.torsoFacingDegrees,
+                waistOffsetX, waistOffsetY, hipFacing(shooter), loadout.torsoFacingDegrees,
                 loadout, mount, releaseIndex);
+    }
+
+    /** The shooter's hips' heading: the body a body hardpoint stands on ({@link MechBodyHardpoints}). */
+    private float hipFacing(long shooter) {
+        EntityWorld entityWorld = roster.entityWorld();
+        BattleComponents components = roster.components();
+        return entityWorld.has(shooter, components.MECH_LOCOMOTION)
+                ? entityWorld.getFloat(shooter, components.MECH_LOCOMOTION,
+                        BattleComponents.MECH_LOCOMOTION_FACING_DEGREES)
+                : roster.world().mechLoadout(shooter).torsoFacingDegrees;
     }
 }

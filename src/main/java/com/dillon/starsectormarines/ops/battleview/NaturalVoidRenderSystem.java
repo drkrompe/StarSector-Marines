@@ -106,6 +106,13 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     /** Each band's flat colour per quad, before depth tint; the floor's is worked out each frame. */
     private float[][] colours;
     private float[] frayColours;
+    /**
+     * A lava rift's lip and ledges coloured corner by corner ({@link CornerShading}), twelve floats a piece, so the
+     * melt's glow and the ash run smoothly across the small pieces rather than stepping between them; null on every
+     * other drop, whose pieces stay flat. The lip's are shared with the fray beside it, {@link #frayCorners}.
+     */
+    private float[][] cornerColours;
+    private float[] frayCorners;
 
     private DrawList out;
     private BattleCamera cam;
@@ -294,6 +301,19 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             else if (dry != null) DryVoidLook.rock(dry, fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
+        cornerColours = null;
+        frayCorners = null;
+        if (lava) {
+            cornerColours = new float[n][];
+            float[][] lip = CornerShading.corners(new NaturalVoidField.Band[] {field.bands.get(0), fray},
+                    new float[][] {colours[0], frayColours});
+            cornerColours[0] = lip[0];
+            frayCorners = lip[1];
+            for (int k = 1; k < n; k++) {
+                cornerColours[k] = CornerShading.corners(new NaturalVoidField.Band[] {field.bands.get(k)},
+                        new float[][] {colours[k]})[0];
+            }
+        }
         ramps = pit ? PitVoidLook.ramps(field) : List.of();
         machines = pit ? PitMachines.place(field, ramps, belts.isEmpty() ? null : belts.get(0), MARGIN, seed)
                 : List.of();
@@ -331,6 +351,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 if ((ice || frozenRise || dry != null) && cover < 1f) continue;
                 // A foundry's kerb is a laid strip (below), not rock fraying onto the floor.
                 if (foundry) continue;
+                if (frayCorners != null) {
+                    mesh.appendShadedQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
+                            sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
+                            frayCorners, q * 12, cover * alpha);
+                    continue;
+                }
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], cover * alpha);
@@ -551,6 +577,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
         float[] c = floor ? null : colours[band.step];
+        float[] corners = floor || cornerColours == null ? null : cornerColours[band.step];
+        float[] shaded = corners == null ? null : new float[12];
         float p1 = frac(time / FLOW_PERIOD), p2 = frac(time / FLOW_PERIOD + .5f);
         float w1 = 1f - Math.abs(2f * p1 - 1f);
         for (int q = 0; q < band.count; q++) {
@@ -592,6 +620,18 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             }
             r = lerp(r, deepR, tint); g = lerp(g, deepG, tint); b = lerp(b, deepB, tint);
             float s0 = scale(band.z(q, 0)), s1 = scale(band.z(q, 1)), s2 = scale(band.z(q, 2)), s3 = scale(band.z(q, 3));
+            if (shaded != null) {
+                // Each corner its shared colour, tinted at its own depth.
+                for (int v = 0; v < 4; v++) {
+                    float t = deepMix * band.z(q, v) / floorDepth;
+                    shaded[v * 3] = lerp(corners[q * 12 + v * 3], deepR, t);
+                    shaded[v * 3 + 1] = lerp(corners[q * 12 + v * 3 + 1], deepG, t);
+                    shaded[v * 3 + 2] = lerp(corners[q * 12 + v * 3 + 2], deepB, t);
+                }
+                mesh.appendShadedQuad(sx(qd[o], s0), sy(qd[o + 1], s0), sx(qd[o + 2], s1), sy(qd[o + 3], s1),
+                        sx(qd[o + 4], s2), sy(qd[o + 5], s2), sx(qd[o + 6], s3), sy(qd[o + 7], s3), shaded, 0, alpha);
+                continue;
+            }
             mesh.appendQuad(sx(qd[o], s0), sy(qd[o + 1], s0), sx(qd[o + 2], s1), sy(qd[o + 3], s1),
                     sx(qd[o + 4], s2), sy(qd[o + 5], s2), sx(qd[o + 6], s3), sy(qd[o + 7], s3), r, g, b, alpha);
         }

@@ -46,7 +46,7 @@ public final class MarketSquareLookSuite implements SnapshotSuite {
         for (long seed = 1; seed <= SEEDS_SCANNED && shown.size() < MAPS; seed++) {
             // The colony's first attempt generates exactly this map; a battle that had to retry is skipped below.
             MapResult map = new BspCityGenerator().generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null,
-                    TargetProfile.NEUTRAL, BattleSetup.colonyPlanFor(MapScale.COLONY, seed));
+                    TargetProfile.NEUTRAL, RescueColony.plan(MapScale.COLONY, seed));
             OpenSquare square = null;
             for (OpenSquare candidate : map.openSquares) {
                 if (!shown.contains(candidate.mouths().size())) { square = candidate; break; }

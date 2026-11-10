@@ -593,28 +593,113 @@ Laws):
    whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
    compound view full of buildings. Look suite:
    `createSnapshots -Psnapshot=building-faces-look`.
+   Freestanding walls (wall cells no building owns) stand up the same way
+   (`FreestandingWalls`): each connected run stands at its kind's height, read
+   from its surface: a sealed town's perimeter 7 m, an installation's 5 m, a
+   blast wall or a fort's works 3.5 m, a compound's masonry or an authored wall
+   2.4 m, an olive garden wall 1.6 m; a ruin's stub, or a sealed shell too short
+   to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
+   the view's centre run to a cap of its cells at that lift, drawn before the
+   buildings' faces and re-formed when a breach changes the topology. Fences,
+   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
+   as a staircase of cell blocks.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag
    of its own:
-   - Homes, shops, offices and clinics have windows on every storey.
-   - Works and warehouses are blind above the ground.
+   - A window is drawn only where the battle has one (owner: "Windows are
+     real things already. They should be modeled."): a window on a wall
+     cell's outer edge (`SharedEdgeBarrier.Kind.WINDOW`, which sight and
+     fire pass and a body does not) or a slit pane in a wall cell
+     (`CellTopology.isWindow`). Every other length of wall is blind, so a
+     pane on a face always stands over an opening a marine can really see
+     and shoot through.
+   - On homes, shops, offices and clinics the upper storeys repeat the
+     window below them (`BuildingFaces.storeyFeature`); works and
+     warehouses are blind above the ground.
+   - A window's frame is read live: it darkens as its structure falls, and
+     once shot out it stands as an empty frame, open to a body as the
+     battle now has it. The cells that held a window are remembered for the
+     map, so a shot-out one never reads as a door.
    - A door is drawn only at an outside doorway; works' and warehouses'
      doors are loading doors.
+   - A doorway the map left with no door draws as a doorway; only the
+     rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.
-     Sealed (ceramic) towns get round ports and airlock doors, shielded
+     Sealed (ceramic) towns get square ports and airlock doors, shielded
      (light-concrete) walls get slits, and frozen towns get deep-set
      insulated windows.
 
-   Damage is read live from the battle's own state:
-   - A wall's lost HP scorches its upper part, blows its windows and tears
-     holes through it.
-   - A breached cell opens dark to the room behind.
-   - Once half a building's roof has fallen in or burnt
-     (`BuildingFaces.DESTROYED_SHARE`), it drops flat to its rubble.
-     A broken first storey left standing was tried: under the 120 m eye it
-     stands only a few pixels deep at play zoom, so it was dropped.
+   **Wall dress** (`WallDress`, painted by `FacePainter`). A face is one
+   to two cells tall at play zoom, so the language is bold:
+   - A material by what the building was built as and its habitat, toned
+     by its world, its own number picking among its kind's colours: an
+     open town's plaster homes (adobe on arid worlds, basalt on volcanic,
+     stone on rock), brick or sheet works, concrete forts, stone civic
+     halls, white clinics; an insulated town's timber-clad homes in deep
+     reds, ochres and blues under white trim; a sealed town's ceramic
+     panels; a shielded town's poured concrete. Each has a course (block
+     joints, panel seams or sheet ribs) and a tone shaded from a dark foot
+     to a lit eave.
+   - Trim: a dark plinth, a line at each storey, an eave band under the
+     roof's edge, and a post at each outside corner.
+   - The world's weather at the foot: snow (and snow on sills and eaves),
+     sand, ash, sludge, moss or dust; a toxic world's run-off streaks
+     down from the eave.
+   - Windows cut in the building's way: framed and silled, some shuttered
+     in an open town, a shop's front under a striped awning, a civic
+     hall's tall windows, a sealed town's ports. Works are blind but for a
+     glazed band under the eave, high over any fire; a sealed town's blind
+     walls carry vents and downpipes. Doors are framed leaves, airlocks,
+     or roller doors with hazard-striped jambs.
+   - **A face's foot stands on its wall's outer side**, its top on the
+     roof's edge (`BuildingFaces.segments`): the roof covers only the inner
+     part of a wall cell, and a foot on the roof's line left the rest of
+     the wall cell's flat art showing as a strip along the ground.
+   - **What hangs on a wall hangs on its face** (`WallMounts`): a shop
+     awning, a loading canopy or a wall lamp lies on the ground cell in
+     front of its wall, its rail along the face's foot. Its rail's corners
+     are stood up the face to the height it hangs from (an awning's rail
+     3 m, its valance 2.5 m), at the very point the face is painted there
+     (`BuildingFaces.onFace`); its outer edge takes the plain lift of its
+     own height. So it moves with its wall as the view pans, comes down
+     with the wall when the building is cut away, goes with it when the
+     building is razed, and is drawn between the faces and the roofs, so a
+     roof in front of it hides it. Look suite: `createSnapshots
+     -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
+   Damage is read live from the battle's own state:
+   - A wall is hurt against the most hit points it has held (maps seed 80
+     to 400), never a fixed scale. Its lost HP soots its top, blows its
+     windows (soot plumes over them) and tears ragged holes through it.
+   - A breached cell opens dark to the room behind, its rubble spilled on
+     the ground.
+   - Where a room's roof has fallen in or burnt, the wall over it loses its
+     upper storeys to a ragged, charred edge, with rubble at its foot.
+   - Once half a building's roof has fallen in or burnt
+     (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
+     than a storey high, its corners tallest, drawn over its roof's
+     remnants, with rubble heaped round it.
+
+   Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
+   worlds, intact, cut away and damaged).
+
+   **Cutaway** (owner: "a bit unclear how it will play when we cutaway
+   reveal into structures"). A building opens while one of the player's
+   units stands in it or the pointer is over it (`BuildingVisibilityPass`,
+   the roof reveal in `fog-of-war-nouns.md`); seeing in no longer opens it,
+   so the street keeps its height where the fighting is, and units seen
+   inside a closed building are marked on its roof. With the fade:
+   - the walls turned to the camera drop to knee height
+     (`BuildingFaces.standing`, 0.6 m);
+   - the far walls' inner sides come up to frame the rooms;
+   - nothing pops, and the walls stay opaque.
+
+   A closed building's roof is drawn over the street just past it. A unit
+   standing there gets a small mark in its side's colour over the roofs (an
+   open building hides nothing), and fog of war still hides enemies.
+   The owner chose the knee stub over a ghosted full-height wall. Look suite:
+   `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
    topology change. Windows and doors are drawn only where a cell spans
    10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);
@@ -727,7 +812,10 @@ Laws):
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
      it. Its scorched lip is laid whole out to the fray's wandering end, and
      the fray lies on the drop's own cells outside the smoothed edge, so the
-     bank shows no cell steps (`NaturalVoidField`). Look suite
+     bank shows no cell steps (`NaturalVoidField`). Its lip, ledges and melt
+     are coloured corner by corner, each corner the mean of the pieces that
+     meet there (`CornerShading`), so the glow and ash run smoothly across
+     the small pieces rather than stepping; the other drops stay flat. Look suite
      `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so

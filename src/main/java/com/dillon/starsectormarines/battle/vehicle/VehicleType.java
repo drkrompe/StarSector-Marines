@@ -417,10 +417,10 @@ public enum VehicleType {
      */
     private static final class MidlineCarriers {
         static final float LIGHT_DRAWN = 3.0f, MEDIUM_DRAWN = 4.0227f, HEAVY_DRAWN = 5.2045f;
-        static final Articulation LIGHT = new Articulation(new float[]{.2f}, new float[]{.86f, -.78f});
-        static final Articulation MEDIUM = new Articulation(new float[]{.6f}, new float[]{1.33f, -.765f});
+        static final Articulation LIGHT = new Articulation(new float[]{.2f}, new float[]{.86f, -.78f}, .26f);
+        static final Articulation MEDIUM = new Articulation(new float[]{.6f}, new float[]{1.33f, -.765f}, .28f);
         static final Articulation HEAVY =
-                new Articulation(new float[]{1.155f, -.055f}, new float[]{1.905f, .545f, -1.345f});
+                new Articulation(new float[]{1.155f, -.055f}, new float[]{1.905f, .545f, -1.345f}, .26f);
         static final List<VehicleMount> MEDIUM_SECONDARIES =
                 List.of(new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 0f, -1.34f, false));
         static final List<VehicleMount> HEAVY_SECONDARIES = List.of(
@@ -772,6 +772,13 @@ public enum VehicleType {
 
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden, and a skirt has none. */
     public boolean hasAnimatedTreads() { return (isApc() || isTank()) && !isHover(); }
+
+    /**
+     * Whether the hull's drawn tyres or tracks roll with its travel, so the body keeps the travel they read
+     * ({@link GroundBody#visualTravelCells}): the treaded hulls, and the articulated carriers, whose tyres roll on
+     * their bending modules.
+     */
+    public boolean recordsVisualTravel() { return hasAnimatedTreads() || isMidlineCarrier(); }
 
     /** Multiplier on the hull sprite's colour; white for every hull drawn as painted. */
     public float[] hullTint() { return NO_TINT; }

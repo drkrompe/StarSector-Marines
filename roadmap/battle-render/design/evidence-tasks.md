@@ -146,15 +146,17 @@ the table a weapon's role is tuned against).
 
 ### `storyMapPools`
 
-The Rav Bloom story maps (Cordon Line and Road, The Burn, Broad Front) play
-only from pools of vetted seeds, three per world biome, in
-`mod/data/world/pools/<map>.pool.json` (`story-map-pools.md`). This regenerates
+Every story map (Colony Breach, Cordon Line and Road, The Burn, Broad Front)
+and every generic Raid map plays one owned seed, in
+`mod/data/world/pools/<map>.pool.json` (`story-map-pools.md`; the Raid's in
+`raid-mission.md`, The owned map). This regenerates
 every pooled seed and fails when one no longer passes its mission's acceptance
 on the first generation: **run it after any mapgen change that may move a story
 map.** `commanderEvidence` on `cordon-line`, `cordon-road` and `heart` plays the
 whole pool by default, and `createSnapshots -Psnapshot=story-map-pools` renders
 every pooled map whole; Conquest and skirmish stay fully random. `-Pcandidates=cordon-line:1-40,heart-burn/frozen:1-20` screens unpooled
-seeds (reported, never failing). About 30 s; writes
+seeds (reported, never failing); `-Pmaps=raid,raid-mining` checks only those
+maps' owned seeds (`-Pmaps=none` with `-Pcandidates` screens alone). Writes
 `build/reports/story-map-pools/summary.md`.
 
 ## Loadouts and machines
@@ -224,7 +226,9 @@ replayed twice). Writes `armor-matchups.md`, `armor-matchups.csv` and
   where `arms` fits every arm mount, `la`/`ra` one Bulwark arm, `none` empties a
   mount, `refit` fills the best buildable internals, and an over-budget fit runs
   labelled) or a `VehicleType` in kebab case (`breakthrough-tank`, `technical`,
-  `scout`, `medium-tank`).
+  `scout`, `medium-tank`), or a squad of twelve regular marines on a weapons and
+  an armor card (`squad:line-infantry/fleet-combat`), which attack-moves rather
+  than being steered.
 - Scenarios: `open-ground`; `hull-down` (berms hide the defenders' hulls);
   `street` (defenders behind the last two corners).
 - Attackers are moved as a player would: to a cell at about 70% of their

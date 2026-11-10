@@ -60,6 +60,16 @@ increasing an encounter's total armored threat.
   machine. Nothing authored is four rows yet.
   A chassis may carry no shoulder mounts at all (`MechVariant.hasShoulders`): Tri-Tachyon's crawler has its one
   centreline gun and nothing else.
+  **A body hardpoint** (`MechBodyHardpoints`) is a mount bolted to a body that has no twisting torso: the derelict
+  walkers' flank gun ports (`LEFT_ARM`, `RIGHT_ARM`) and back racks (shoulders). Each has its place on the body (hull
+  widths right and forward of its centre, turned with the hips' heading, never the legs), its arc, its kind and its
+  rows, per walker class. Its gun turns under a **turret head**, the derelict's own housing (one for a gun port, a
+  cradle for a rack), drawn over the weapon's own drawing so any weapon sits on a derelict mount with no art made for
+  that pairing (owner). It turns toward the fire-control bearing (`torsoFacingDegrees`) and
+  stops at its arc's edge; it fires only at a bearing its arc covers, and its round and flash leave the tip of its
+  drawn barrel. The doll draws each mount's weapon by kind (`MountGlyph`: rotary, cannon, laser, small or large
+  rack), so the MG-40's line, siege and vault frames read apart on one body. The MG-25 carries two guns, one in each flank port with their arcs overlapping ahead
+  (owner pick `derelict-rounds-mounts`: flank pair), and has its own doll.
   The arm positions come in two shapes, and a chassis has one or the other:
   a **centreline arm mount** (`ARMS`, the gun under the Hound's nose, a 2x2
   ballistic socket, or the Warden's chin, a 2x3 omni socket that also takes the

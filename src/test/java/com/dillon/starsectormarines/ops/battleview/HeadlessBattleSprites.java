@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.VehiclePaint;
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.TurretHead;
@@ -136,6 +137,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<MechLivery, LayeredMechAssets> mechLiveries = new EnumMap<>(MechLivery.class);
     private final DerelictWalkerAssets derelictWalker;
     private final DerelictWalkerAssets crawler;
+    private final LayeredSpriteCache derelictPortHead;
+    private final LayeredSpriteCache derelictRackHead;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private final LayeredSpriteCache turretCollar;
@@ -226,6 +229,8 @@ final class HeadlessBattleSprites extends BattleSprites {
             if (ring != null) gunMounts.put(style, ring);
         }
         turretCollar = optionalLayer("graphics/battle/vehicles/turret-collar.png");
+        derelictPortHead = optionalLayer(DerelictWalkerGuns.PORT_HEAD);
+        derelictRackHead = optionalLayer(DerelictWalkerGuns.RACK_HEAD);
         turretBase = optionalLayer("graphics/battle/vehicles/turret-base-medium.png");
         turretBaseLight = optionalLayer("graphics/battle/vehicles/turret-base-light.png");
         gunPlate = optionalLayer("graphics/battle/vehicles/gun-plate.png");
@@ -403,6 +408,9 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public DerelictWalkerAssets derelictWalkerSprites() { return derelictWalker; }
     @Override public DerelictWalkerAssets crawlerSprites() { return crawler; }
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
+    @Override public LayeredSpriteCache derelictTurretHead(boolean rack) {
+        return rack ? derelictRackHead : derelictPortHead;
+    }
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
     @Override public LayeredSpriteCache vehicleGunPlate() { return gunPlate; }
@@ -525,6 +533,9 @@ final class HeadlessBattleSprites extends BattleSprites {
      */
     @Override public ShuttleSpriteCache droneSprite() { return spriteByPath(Drone.SPRITE_PATH); }
     @Override public void ensureDroneSprite() { }
+    /** The drone hub's sprite, off the same disk roots, for the same reason: the base class's load is a stub here. */
+    @Override public ShuttleSpriteCache droneHubSprite() { return spriteByPath(DroneHub.SPRITE_PATH); }
+    @Override public void ensureDroneHubSprite() { }
     @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
 
     /** Same resource lookup as the live catalog; evidence must not silently omit shells. */

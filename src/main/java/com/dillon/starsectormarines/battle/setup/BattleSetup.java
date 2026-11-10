@@ -225,6 +225,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -731,9 +732,8 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
-        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
-                MissionType.RAID, profile, marineFighterSupport,
-                enemyFighterSupport, sprawl);
+        return createRaid(seed, manifest, enemyHasHeavyArmor, tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, null, null);
     }
 
     /** Authored Raid target meaning, retained alongside the generated service geometry. */
@@ -743,6 +743,12 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName,
             PointOfInterest.Kind targetKind) {
+        // The generic Raid's owned seed plays the owned map (raid-mission.md, The owned map); any other seed is unvetted.
+        StoryMapPool.Entry owned = ownedRaidEntry(StoryMap.RAID, seed);
+        if (owned != null) {
+            return ownedRaid(StoryMap.RAID, owned, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                    marineFighterSupport, enemyFighterSupport, targetName, targetKind, 0);
+        }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
                 sprawl, null, 1f, false, targetName, targetKind, null, null, null, null, 0);
@@ -772,10 +778,78 @@ public final class BattleSetup {
             TargetProfile profile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl, String targetName, int machines,
             String industryId) {
+        // The site's owned seed plays its owned map, with the map's machines, not the tier's (raid-mission.md, The owned map).
+        StoryMap ownedMap = RaidOwnedMap.mapFor(industryId, machines);
+        StoryMapPool.Entry owned = ownedRaidEntry(ownedMap, seed);
+        if (owned != null) {
+            return ownedRaid(ownedMap, owned, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                    marineFighterSupport, enemyFighterSupport, targetName, null,
+                    machines > 0 ? RaidOwnedMap.MACHINES : 0);
+        }
         return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
                 MissionType.RAID, profile, marineFighterSupport, enemyFighterSupport,
                 sprawl, null, 1f, false, targetName, null, null, null, null, null, machines,
                 machines > 0 ? RaidSiteTemplate.forIndustry(industryId) : null);
+    }
+
+    /**
+     * The seed a campaign Raid plays ({@code raid-mission.md}, The owned map): the owned seed of the map a raid on
+     * {@code industryId} with {@code machines} to wreck plays, or the roll itself when no pool is installed.
+     */
+    public static long raidSeed(String industryId, int machines, long roll) {
+        return StoryMapPools.installed()
+                ? StoryMapPools.pool(RaidOwnedMap.mapFor(industryId, machines)).owned().seed() : roll;
+    }
+
+    /**
+     * The machines a campaign Raid's works holds: the owned map's when the pools are installed, since the map's halls
+     * are laid for them, else the tier's ({@code RaidWorksLayout.machinesFor}).
+     */
+    public static int raidMachines(OperationTier tier) {
+        return StoryMapPools.installed() ? RaidOwnedMap.MACHINES : RaidWorksLayout.machinesFor(tier);
+    }
+
+    /** {@code map}'s owned entry when {@code seed} is its seed and the pools are installed, else {@code null}. */
+    static StoryMapPool.Entry ownedRaidEntry(StoryMap map, long seed) {
+        return StoryMapPools.installed() ? StoryMapPools.pool(map).entry(SurfacePalette.ARID, seed) : null;
+    }
+
+    /**
+     * A Raid on {@code map}'s owned entry against the raided market {@code profile}: the ground laid on the pool's home
+     * against the reference market and skinned for {@code profile}'s world; the defenders, their air and the
+     * objective's name are the raided market's. An owned Raid entry takes no patch yet.
+     */
+    private static BattleSimulation ownedRaid(StoryMap map, StoryMapPool.Entry entry, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, TargetProfile profile,
+            FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport, String targetName,
+            PointOfInterest.Kind targetKind, int machines) {
+        if (!entry.patch().isEmpty()) {
+            throw new IllegalStateException("a Raid pool entry takes no patch yet: " + map.id + " seed " + entry.seed());
+        }
+        SurfacePalette home = StoryMapPools.pool(map).layoutFor(surfaceOrRock(profile));
+        return ownedRaid(RaidOwnedMap.Ground.of(map, home), entry.seed(), manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, targetName, targetKind, machines);
+    }
+
+    private static BattleSimulation ownedRaid(RaidOwnedMap.Ground ground, long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, TargetProfile profile,
+            FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport, String targetName,
+            PointOfInterest.Kind targetKind, int machines) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, MissionType.RAID,
+                profile != null ? profile : TargetProfile.NEUTRAL, marineFighterSupport, enemyFighterSupport, null,
+                null, 1f, false, targetName, targetKind, null, null, null, null, machines, null, null, null, ground);
+    }
+
+    /**
+     * A Raid on {@code ground} with seed {@code seed}, fought on {@code world} against the reference market moved to
+     * that world, at the ground's own tier: how the regeneration check and the look suites stand an owned or candidate
+     * Raid map up. {@code works} lays the raid to wreck the ground's machines; otherwise it is a raid for a target.
+     */
+    public static BattleSimulation createPooledRaid(RaidOwnedMap.Ground ground, SurfacePalette world, long seed,
+                                                    boolean works, List<ShuttleAssignment> manifest) {
+        return ownedRaid(ground, seed, manifest, false, ground.tier(), RaidOwnedMap.RISK,
+                RaidOwnedMap.reference(ground.map(), world), FlybyRoster.EMPTY, FlybyRoster.EMPTY, null, null,
+                works ? ground.machines() : 0);
     }
 
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
@@ -1329,7 +1403,6 @@ public final class BattleSetup {
                 null, null);
     }
 
-    /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes}), null for none or another mission */
     private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
             TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
@@ -1338,6 +1411,21 @@ public final class BattleSetup {
             PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
             RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite,
             RuinsVaultPrize ruinsPrize, Landform landform) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type, profile, marineFighterSupport,
+                enemyFighterSupport, sprawl, alliedGarrisonFactionId, alliedGarrisonStrengthMult, coldAccount,
+                raidTargetName, raidTargetKind, ruinsDelve, ruinsGrade, ruinsOccupant, ruinsCrew, raidWorks, raidSite,
+                ruinsPrize, landform, null);
+    }
+
+    /** @param ruinsPrize a ruins site's vault prize ({@code RuinsVaultPrizes}), null for none or another mission */
+    private static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk, MissionType type,
+            TargetProfile profile, FlybyRoster marineFighterSupport, FlybyRoster enemyFighterSupport,
+            PrecinctPlan.Sprawl sprawl, String alliedGarrisonFactionId,
+            float alliedGarrisonStrengthMult, boolean coldAccount, String raidTargetName,
+            PointOfInterest.Kind raidTargetKind, RuinsDelve ruinsDelve, RuinsGrade ruinsGrade,
+            RuinsOccupant ruinsOccupant, RuinsCrew ruinsCrew, int raidWorks, RaidSiteTemplate raidSite,
+            RuinsVaultPrize ruinsPrize, Landform landform, RaidOwnedMap.Ground ownedRaid) {
         RuinsDefence ruinsDefence = type == MissionType.RUINS && ruinsGrade != null && ruinsOccupant != null
                 ? RuinsDefence.of(ruinsOccupant) : null;
         boolean liveRuin = ruinsDefence == RuinsDefence.SECURITY;
@@ -1345,12 +1433,24 @@ public final class BattleSetup {
         // A scavenger crew is on the pirate roster, whoever once owned the world.
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(ruinsCrew != null
                 ? RuinsCrew.FACTION_ID : profile != null ? profile.factionId() : "");
-        MapScale scale = type == MissionType.RAID ? MapScale.forRaid(tier) : MapScale.forTier(tier);
-        PrecinctPlan precincts = raidSite != null && profile != null && profile.marketSize() > 0
-                ? raidSitePlanFor(raidSite, tier, risk, profile, scale, seed, raidWorks)
-                : precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
+        // An owned Raid map is laid against the reference market at its own tier, never the raided market's
+        // (raid-mission.md, The owned map); the raided market keeps the force, read from profile below.
+        TargetProfile mapProfile = ownedRaid != null ? ownedRaid.reference() : profile;
+        OperationTier mapTier = ownedRaid != null ? ownedRaid.tier() : tier;
+        RiskLevel mapRisk = ownedRaid != null ? RaidOwnedMap.RISK : risk;
+        PrecinctPlan.Sprawl mapSprawl = ownedRaid != null ? null : sprawl;
+        RaidSiteTemplate mapSite = ownedRaid != null ? ownedRaid.site() : raidSite;
+        MapScale scale = ownedRaid != null ? ownedRaid.scale()
+                : type == MissionType.RAID ? MapScale.forRaid(mapTier) : MapScale.forTier(mapTier);
+        PrecinctPlan precincts = mapSite != null && mapProfile != null && mapProfile.marketSize() > 0
+                ? raidSitePlanFor(mapSite, mapTier, mapRisk, mapProfile, scale, seed, raidWorks)
+                : precinctPlanFor(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl);
         // A landform the map's design places: a drop across it, or walls sheltering its town (voids.md).
         precincts = Landform.apply(landform, precincts, scale.width, scale.height);
+        // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
+        // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
+        if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
@@ -1358,7 +1458,9 @@ public final class BattleSetup {
                 : type == MissionType.RUINS
                 ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers())
                         .withDressing(RuinsThemeDressing.of(ruinsPrize)))
-                : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
+                : proceduralOperationMap(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl, precincts);
+        // The owned map, laid on its home, is re-dressed for the raided world; no cell moves (PlanetSkin).
+        if (ownedRaid != null) map = PlanetSkin.apply(map, ownedRaid.home(), profile);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
         if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
@@ -3298,17 +3400,18 @@ public final class BattleSetup {
             mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
         }
         int attempts = pooled != null ? 1 : 8;
+        // The world the colony is fought on: a world nobody lives on in the open plays the sealed layout.
+        TargetProfile world = home != null ? (profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK))
+                : profile;
         String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
-            PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
+            PrecinctPlan colonyPlan = colony ? colonyPlanOn(scale, battleSeed, world) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
                     mapProfile, colonyPlan);
-            if (home != null) {
-                map = PlanetSkin.apply(map, home, profile != null ? profile : BloomHeartSetup.world(SurfacePalette.ROCK));
-            }
+            if (home != null) map = PlanetSkin.apply(map, home, world);
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
                 why = "missing " + missing;
@@ -3470,6 +3573,16 @@ public final class BattleSetup {
      */
     public static boolean isColonyBreachColony(RiskLevel risk, boolean stressTest) {
         return !stressTest && risk == RiskLevel.HIGH;
+    }
+
+    /**
+     * The colony plan a civilian rescue lays from {@code seed} on {@code world}: {@link #colonyPlanFor}, sealed
+     * ({@link SealedTown#seal}) on a world whose habitat is enclosed, where nobody lives in the open
+     * ({@link PlanetSkin#sealsTowns}). The one place the rescue's plan is decided, so a look that frames the
+     * rescue's map lays the same one.
+     */
+    public static PrecinctPlan colonyPlanOn(MapScale scale, long seed, TargetProfile world) {
+        return PlanetSkin.sealedFor(colonyPlanFor(scale, seed), world);
     }
 
     /**
@@ -5386,8 +5499,10 @@ public final class BattleSetup {
             spawnLegacyDefenderCluster(sim, cells, roster, groundRoster, rng);
             return;
         }
-        // Highest priority first — these get garrisons; the rest become patrol anchors.
-        defenderNodes.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
+        // A Raid works' guard posts first, then highest priority first: these get garrisons; the rest become
+        // patrol anchors (RaidWorksGuard).
+        defenderNodes = RaidWorksGuard.seatingOrder(defenderNodes);
+        Set<TacticalNode> worksPosts = new HashSet<>(RaidWorksGuard.posts(defenderNodes));
 
         // Two separate queues — mechs and infantry never share a squad.
         // The planner ships distinct goal/action libraries for each, and a
@@ -5408,7 +5523,8 @@ public final class BattleSetup {
         // from a single source queue (mechs first while available, then
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            boolean spawningMechs = !mechQueue.isEmpty();
+            // A works' guard post is held by riflemen while any are left; a mech does not stand in a guard room.
+            boolean spawningMechs = !mechQueue.isEmpty() && !(worksPosts.contains(node) && !infQueue.isEmpty());
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             if (sourceSize == 0) { patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
@@ -6532,6 +6648,7 @@ public final class BattleSetup {
             if (post.droneHubCellX != null && post.droneHubCellY != null) {
                 long hub = sim.spawn(DroneHub.create("dh" + h++, Faction.DEFENDER,
                         post.droneHubCellX, post.droneHubCellY));
+                sim.setStructureStyle(hub, post.style); // its drones are built in the post's tech family
                 spawned.add(hub);
             }
         }

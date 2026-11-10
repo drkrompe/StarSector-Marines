@@ -5,27 +5,37 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
+import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
  * Each story mission's one owned map under every world's skin ({@code story-map-pools.md}, Planet skin), built as the
  * campaign builds it and framed through the look preset at 1920x1080: the whole map per world
  * ({@code <map>/<nn>-<world>-1-whole.png}), and close frames on the same two spots in every world, where the land use
- * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}). Nothing is played. Opt-in.
- * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} narrows the maps, {@code .worlds=frozen,toxic} the worlds.
+ * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}), and on a world that plays the
+ * sealed layout a town's lock ({@code -4-lock.png}). Nothing is played. Opt-in.
+ * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} names the maps (any pooled map, the Raid's
+ * {@code raid,raid-mining} included), {@code .worlds=frozen,toxic} the worlds,
+ * {@code .night=true} adds night frames ({@code -4-night-whole.png}, {@code -5-night-fields.png}).
  */
 public final class PlanetSkinLookSuite implements SnapshotSuite {
 
@@ -34,6 +44,10 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
     private static final float CLOSE_CELLS = 70f;
     /** The window a close frame's spot is the densest of. */
     private static final int WINDOW = 24;
+    /** {@code -Dsnapshot.planetSkin.night=true} adds each world's whole map and fields after dark. */
+    private static final boolean NIGHT_TOO = Boolean.getBoolean("snapshot.planetSkin.night");
+    /** The dark the fire suites shoot their nights at, with no lamps of its own. */
+    private static final NightLighting NIGHT = new NightLighting(0.78f, List.of(), Set.of());
     private static final List<StoryMap> DEFAULT_MAPS = List.of(StoryMap.COLONY_BREACH, StoryMap.CORDON_ROAD,
             StoryMap.CORDON_LINE, StoryMap.HEART_BURN, StoryMap.HEART_FRONT);
 
@@ -48,11 +62,12 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
         TileRegistryTestInstaller.install(context.projectRoot());
         List<String> maps = asked("snapshot.planetSkin.maps"), worlds = asked("snapshot.planetSkin.worlds");
         List<SnapshotArtifact> out = new ArrayList<>();
-        for (StoryMap map : DEFAULT_MAPS) {
+        // Named maps are any pooled map, the Raid's included; the default is the story missions'.
+        for (StoryMap map : maps.isEmpty() ? DEFAULT_MAPS : List.of(StoryMap.values())) {
             if (!maps.isEmpty() && !maps.contains(map.id)) continue;
             StoryMapPool pool = StoryMapPools.pool(map);
             // The spots are found once on the home, where the fields are crops and the woods stand, and framed in every world.
-            float[] fields, woods;
+            float[] fields, woods, lock;
             try (BattleSimulation probe = sim(map, pool.home(), pool.owned())) {
                 CellTopology t = probe.getTopology();
                 fields = densest(t, (x, y) -> {
@@ -60,6 +75,10 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                     return id != null && (id.equals("floors.grass") || id.equals("floors.dirt") || id.equals("floors.sand"));
                 });
                 woods = densestDoodad(probe, "forest.");
+            }
+            // A lock is found on bare rock, which is airless and plays the sealed layout.
+            try (BattleSimulation probe = sim(map, SurfacePalette.ROCK, pool.owned())) {
+                lock = densestLock(probe);
             }
             for (SurfacePalette world : SurfacePalette.values()) {
                 String tag = world.name().toLowerCase(Locale.ROOT);
@@ -77,6 +96,22 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                     if (woods != null) {
                         look.refocus(woods[0], woods[1], CLOSE_CELLS);
                         out.add(new SnapshotArtifact(base + "3-woods.png", look.render(sim, "")));
+                    }
+                    if (NIGHT_TOO) {
+                        // The same frames after dark, lit only by what the map itself lights: the farm's grow-light.
+                        CellTopology t = sim.getTopology();
+                        t.setNightLighting(PlanetSkin.lit(NIGHT, PlanetSkin.growLights(sim.getDoodads())));
+                        look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
+                        out.add(new SnapshotArtifact(base + "4-night-whole.png", look.render(sim, "")));
+                        if (fields != null) {
+                            look.refocus(fields[0], fields[1], CLOSE_CELLS);
+                            out.add(new SnapshotArtifact(base + "5-night-fields.png", look.render(sim, "")));
+                        }
+                        t.setNightLighting(null);
+                    }
+                    if (lock != null && PlanetSkin.sealsTowns(BloomHeartSetup.world(world))) {
+                        look.refocus(lock[0], lock[1], CLOSE_CELLS);
+                        out.add(new SnapshotArtifact(base + "4-lock.png", look.render(sim, "")));
                     }
                 }
                 System.out.printf(Locale.ROOT, "[%s] %s %s (home %s, seed %d)%n", id(), map.id, tag, pool.home(),
@@ -100,6 +135,9 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                         List.of(), CordonSequence.Timetable.STANDARD);
             }
             case COLONY_BREACH -> BattleSetup.createPooledColonyBreach(world, entry, List.of());
+            case RAID, RAID_HEAVY_INDUSTRY, RAID_MINING, RAID_REFINING, RAID_LIGHT_INDUSTRY, RAID_FARMING, RAID_SPACEPORT,
+                    RAID_MILITARY -> BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map,
+                    StoryMapPools.pool(map).layoutFor(world)), world, entry.seed(), map != StoryMap.RAID, List.of());
             default -> BloomHeartSetup.country(BloomHeartSetup.formOf(map), world, BloomHeartSetup.densityOf(map),
                     entry).sim();
         };
@@ -120,6 +158,34 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
         for (Doodad d : sim.getDoodads()) {
             if (d.definitionId() != null && d.definitionId().startsWith(prefix)
                     && d.cellX >= 0 && d.cellY >= 0 && d.cellX < w && d.cellY < h) count[d.cellY][d.cellX]++;
+        }
+        int[][] sum = new int[h + 1][w + 1];
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+            sum[y + 1][x + 1] = sum[y][x + 1] + sum[y + 1][x] - sum[y][x] + count[y][x];
+        return best(sum, w, h);
+    }
+
+    /**
+     * The densest window of a sealed town's lock floors: the lock marking on a cell beside the envelope's own wall
+     * ({@link SealedTown#ENVELOPE_WALL}), not the same stripes on a compound's or a works' floor.
+     */
+    private static float[] densestLock(BattleSimulation sim) {
+        CellTopology t = sim.getTopology();
+        int w = t.getWidth(), h = t.getHeight();
+        int[][] count = new int[h][w];
+        for (Doodad d : sim.getDoodads()) {
+            if (!PrecinctWardStage.LOCK_MARKING.equals(d.definitionId())) continue;
+            int x = d.cellX, y = d.cellY;
+            if (x < 0 || y < 0 || x >= w || y >= h) continue;
+            boolean byEnvelope = false;
+            for (int dx = -1; dx <= 1 && !byEnvelope; dx++) {
+                for (int dy = -1; dy <= 1 && !byEnvelope; dy++) {
+                    int nx = x + dx, ny = y + dy;
+                    String id = nx < 0 || ny < 0 || nx >= w || ny >= h ? null : t.getSurfaceId(nx, ny);
+                    byEnvelope = id != null && id.startsWith(SealedTown.ENVELOPE_WALL);
+                }
+            }
+            if (byEnvelope) count[y][x]++;
         }
         int[][] sum = new int[h + 1][w + 1];
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)

@@ -31,7 +31,10 @@ class StoryMapPoolEvidenceTest {
         Path output = Path.of(System.getProperty("storyMapPools.outputDir", "build/reports/story-map-pools"));
         int parallelism = Integer.getInteger("storyMapPools.parallelism", 2);
         List<Job> jobs = new ArrayList<>();
+        // -Pmaps=raid,raid-mining: only those maps' pooled seeds (a mapgen change that touches one mission's map).
+        String only = System.getProperty("storyMapPools.maps", "");
         for (StoryMap map : StoryMap.values()) {
+            if (!only.isBlank() && !List.of(only.split(",")).contains(map.id)) continue;
             for (SurfacePalette biome : SurfacePalette.values()) {
                 for (StoryMapPool.Entry entry : StoryMapPools.pool(map).entries(biome)) {
                     jobs.add(new Job(map, biome, entry, true));

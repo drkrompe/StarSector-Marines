@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "map": "raid-military",
+  "home": "ARID",
+  "entry": {
+    "seed": 6,
+    "note": "military; the shortest walk in and out passes 1 defenders, a skirting walk 0; screened over seeds 2 to 7 at 400x240 on the reference market for a landing clear of the garrison and a way round it (2026-11-10)"
+  }
+}

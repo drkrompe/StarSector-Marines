@@ -282,6 +282,8 @@ public final class BloomHeartSetup {
                                long battleSeed, MapPatch patch) {
         TargetProfile profile = world(layout).withBasin(Basin.ravBloom(layout, BASIN_REACH_X, BASIN_REACH_Y));
         PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, density, battleSeed));
+        // A world nobody lives on in the open plays the sealed layout: every town walled, with locks.
+        plan = PlanetSkin.sealedFor(plan, world(biome));
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
         map = PlanetSkin.apply(map, layout, world(biome));
         HeartBores heart = bores(form, map, plan, battleSeed);

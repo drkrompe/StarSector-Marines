@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctInterconne
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -277,11 +278,18 @@ public final class PrecinctSkeletonStage implements GenStage {
     private static List<TrunkPlan.SubRect> parcels(PrecinctPlan plan, int[][] claim,
                                                    int[][] owner, GenContext ctx) {
         List<TrunkPlan.SubRect> out = new ArrayList<>();
+        // A sealed town's envelope is raised on its own outermost ground (SealedTown.band): nothing is built there.
+        boolean[] sealed = new boolean[plan.precincts().size()];
+        boolean any = false;
+        for (int i = 0; i < sealed.length; i++) any |= sealed[i] = SealedTown.is(plan.precincts().get(i));
+        boolean[][] envelope = any ? SealedTown.band(claim, sealed, SealedTown.sealedSide(plan)) : null;
         for (int i = 0; i < plan.precincts().size(); i++) {
             if (plan.precincts().get(i).isProgrammed()) continue;
-            GrownTrunkPlan.decompose(
-                    blockedOutside(claim, owner, i, ctx.width, ctx.height),
-                    ctx.width, ctx.height, out);
+            boolean[][] blocked = blockedOutside(claim, owner, i, ctx.width, ctx.height);
+            if (envelope != null && sealed[i]) {
+                for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) blocked[x][y] |= envelope[x][y];
+            }
+            GrownTrunkPlan.decompose(blocked, ctx.width, ctx.height, out);
         }
         return out;
     }

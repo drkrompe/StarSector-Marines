@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Picture cards for the derelict watch's four picks (`derelict-watch.md`), on the vast derelict ruin through the look
@@ -50,6 +52,8 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
             waking(context, fixture, out);
             sizes(context, fixture, out);
             repair(context, fixture, out);
+            doors(context, fixture, out);
+            ram(context, fixture, out);
             return out;
         }
     }
@@ -60,6 +64,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
             throws Exception {
         BattleSimulation sim = settled(fixture, SETTLE_TICKS);
         DerelictSecurityDirector director = sim.derelictSecurity();
+        log("bulkheads laid %d", director.bulkheads().size());
         // The rounds walker on its round: played on a while it walks.
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
             if (w.frame() != DerelictWalkerFrame.ROUNDS) continue;
@@ -148,8 +153,6 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                     sim.world().renderY(heavy), CLOSE, true, "movement-today");
         }
         add(out, "movement/a-rounds-and-ducts.png", pair(roundShot, ductShot));
-        add(out, "movement/b-rounds-only.png", roundShot);
-        add(out, "movement/c-ducts-only.png", ductShot);
         add(out, "movement/today-posts.png", today);
     }
 
@@ -176,16 +179,168 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
         BufferedImage outerRoused = outerAt == null ? null
                 : look(context, roused, outerAt[0], outerAt[1], WIDE, false, "waking-roused");
         add(out, "waking/a-stir-roused.png", outerRoused);
-        add(out, "waking/b-depth.png", pair(outerRoused, innerQuiet));
-        add(out, "waking/c-breach-only.png", outerQuiet);
         add(out, "waking/today-quiet.png", outerQuiet);
+    }
+
+    // ---- doors: a bulkhead sealed and opened, a dead door forced by a hall frame ----
+
+    private static void doors(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
+            throws Exception {
+        BattleSimulation sim = settled(fixture, SETTLE_TICKS);
+        DerelictSecurityDirector director = sim.derelictSecurity();
+        if (!director.bulkheads().isEmpty()) {
+            RuinsDelve.Area span = director.bulkheads().get(0).door().span();
+            float x = span.centreX() + 1f, y = span.centreY() + 0.5f;
+            log("bulkhead at (%d, %d) %s", span.left(), span.bottom(),
+                    sim.getRuinsWorks().doorStates().stanceOf(director.bulkheads().get(0).door()));
+            BufferedImage sealed = look(context, sim, x, y, CLOSE, true, "doors-bulkhead-sealed");
+            director.wake().advance(FacilityWake.Stage.HUNTING);
+            play(sim, 60);
+            log("bulkhead opened %s, now %s", director.bulkheadsOpened(),
+                    sim.getRuinsWorks().doorStates().stanceOf(director.bulkheads().get(0).door()));
+            BufferedImage open = look(context, sim, x, y, CLOSE, true, "doors-bulkhead-open");
+            add(out, "doors/bulkhead-sealed.png", sealed);
+            add(out, "doors/bulkhead-open.png", open);
+        }
+        BattleSimulation rammed = settled(fixture, SETTLE_TICKS);
+        DerelictSecurityDirector network = rammed.derelictSecurity();
+        RuinsDelve.LeafDoor door = null;
+        for (DerelictSecurityDirector.Walker w : network.walkers()) {
+            if (w.frame() != DerelictWalkerFrame.HALL) continue;
+            RuinsDelve.LeafDoor dead = DerelictSecurity.deadDoorOf(rammed.getRuinsWorks().delve(), w.postX(), w.postY());
+            if (dead == null) continue;
+            door = dead;
+            network.network().stir(w.zoneId(), rammed.getSimTickIndex());
+            break;
+        }
+        boolean standIn = door == null;
+        if (standIn) {
+            // No hall frame is shut in on this site: the first dead hall door is forced by the director's own calls.
+            for (RuinsDelve.LeafDoor d : rammed.getRuinsWorks().doorStates().doors()) {
+                if (d.stance() == RuinsDelve.DoorStance.DEAD
+                        || (door == null && !d.cargo() && d.length() >= 3 && d.stance() == RuinsDelve.DoorStance.ANSWERS)) {
+                    door = d;
+                    if (d.stance() == RuinsDelve.DoorStance.DEAD) break;
+                }
+            }
+            if (door == null) {
+                Map<Object, Integer> n = new TreeMap<>();
+                for (RuinsDelve.LeafDoor d : rammed.getRuinsWorks().doorStates().doors()) {
+                    n.merge(d.stance() + (d.cargo() ? "/cargo" : "") + "/" + d.length(), 1, Integer::sum);
+                }
+                log("no dead door on this site: %s", n);
+                return;
+            }
+            log("no hall frame with a dead door on this site; forcing the %s door at (%d, %d) by the director's calls",
+                    door.stance(), door.span().left(), door.span().bottom());
+        }
+        float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
+        BufferedImage before = look(context, rammed, x, y, CLOSE, true, "doors-dead");
+        if (standIn) {
+            RuinsDelve.Area span = door.span();
+            if (door.stance() == RuinsDelve.DoorStance.DEAD) {
+                rammed.mapEditor().openPassage(span.left(), span.bottom(), span.centreX(), span.centreY());
+                rammed.mapEditor().openPassage(span.right(), span.top(), span.centreX(), span.centreY());
+            }
+            rammed.getRuinsWorks().doorStates().force(door);
+        }
+        for (int t = 0; t < 3000 && !standIn && network.forcedDoors().isEmpty(); t += 60) play(rammed, 60);
+        log("forced %d doors by t=%d, stance %s", network.forcedDoors().size(), rammed.getSimTickIndex(),
+                rammed.getRuinsWorks().doorStates().stanceOf(door));
+        play(rammed, 60);
+        add(out, "doors/dead-before.png", before);
+        add(out, "doors/forced.png", look(context, rammed, x, y, CLOSE, true, "doors-forced"));
+    }
+
+    // ---- a hall frame ramming a dead door, on a seed whose site has one ----
+
+    /** Seeds tried, from the fixture's own, for a hall-bound frame with a dead door on its hall's face. */
+    static final int RAM_SEEDS = 8;
+
+    private static void ram(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
+            throws Exception {
+        long seed0 = fixture.getLong("seed");
+        boolean rammed = false, doorShot = false;
+        for (int k = 0; k < RAM_SEEDS && !rammed; k++) {
+            JSONObject f = new JSONObject(fixture.toString());
+            f.put("seed", seed0 + k);
+            BattleSimulation sim = settled(f, 30);
+            DerelictSecurityDirector director = sim.derelictSecurity();
+            for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                if (w.frame() != DerelictWalkerFrame.HALL) continue;
+                log("ram: seed %d, hall frame %d at (%d, %d), hall-bound %s", seed0 + k, w.squadId(), w.postX(),
+                        w.postY(), director.hallBound(w.squadId()));
+                if (!director.hallBound(w.squadId())) continue;
+                if (!doorShot) {
+                    // The door option (a) tears: the narrowest way out of the frame's hall.
+                    doorShot = true;
+                    RuinsDelve.LeafDoor near = DerelictSecurity.ramDoorOf(sim.getRuinsWorks().delve(), w.postX(),
+                            w.postY(), new int[] {w.postX(), w.postY()});
+                    if (near != null) {
+                        add(out, "ram/a-door.png", look(context, sim, near.span().centreX() + 0.5f,
+                                near.span().centreY() + 0.5f, CLOSE, true, "ram-door"));
+                    }
+                }
+                RuinsDelve.LeafDoor door = director.deadDoorOf(w.squadId());
+                if (door == null) continue;
+                log("ram: seed %d, lance %d, %s door at (%d, %d), %d cells", seed0 + k, w.squadId(), door.stance(),
+                        door.span().left(), door.span().bottom(), door.length());
+                float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
+                log("ram: way to the egress fits the frame before: %s", DerelictSecurity.reaches(sim.getGrid(),
+                        DerelictWalkerFrame.HALL.chassis.radius, new int[] {w.postX(), w.postY()}, director.egress()));
+                add(out, "ram/a-before.png", look(context, sim, x, y, CLOSE, true, "ram-before"));
+                director.network().stir(w.zoneId(), sim.getSimTickIndex());
+                boolean mid = false;
+                for (int t = 0; t < 6000 && director.forcedDoors().isEmpty(); t++) {
+                    // No company is on this ground to keep the zone awake: it is stirred again as one would.
+                    if (t % 300 == 0) director.network().stir(w.zoneId(), sim.getSimTickIndex());
+                    if (!step(sim)) break;
+                    if (!mid && director.ramProgress(w.squadId()) >= 0.5f) {
+                        mid = true;
+                        log("ram: half way at t=%d", sim.getSimTickIndex());
+                        add(out, "ram/a-mid.png", look(context, sim, x, y, CLOSE, true, "ram-mid"));
+                    }
+                }
+                int[] post = {w.postX(), w.postY()};
+                float radius = DerelictWalkerFrame.HALL.chassis.radius;
+                log("ram: way to the egress fits the frame after the door gives: %s",
+                        DerelictSecurity.reaches(sim.getGrid(), radius, post, director.egress()));
+                log("ram: forced %d by t=%d, stance %s, still bound %s", director.forcedDoors().size(),
+                        sim.getSimTickIndex(), sim.getRuinsWorks().doorStates().stanceOf(door),
+                        director.hallBound(w.squadId()));
+                play(sim, 240);
+                long lead = sim.squadMemberAt(w.squadId(), 0);
+                log("ram: frame at (%.1f, %.1f) after", sim.world().x(lead), sim.world().y(lead));
+                add(out, "ram/a-after.png", look(context, sim, x, y, CLOSE, true, "ram-after"));
+                // Out through the forced way: the vault breached, so the frame makes for the egress; followed until it
+                // is well past the door.
+                director.network().breachVault(sim.getSimTickIndex());
+                float past = 0f;
+                for (int t = 0; t < 3600 && past < 8f; t++) {
+                    if (!step(sim)) break;
+                    lead = sim.squadMemberAt(w.squadId(), 0);
+                    past = (float) Math.hypot(sim.world().x(lead) - x, sim.world().y(lead) - y);
+                    float home = (float) Math.hypot(w.postX() - x, w.postY() - y);
+                    float fromPost = (float) Math.hypot(sim.world().x(lead) - w.postX(), sim.world().y(lead) - w.postY());
+                    if (fromPost < home) past = 0f;
+                }
+                float far = (float) Math.hypot(sim.world().x(lead) - w.postX(), sim.world().y(lead) - w.postY());
+                log("ram: frame at (%.1f, %.1f), %.1f cells from its post, at t=%d", sim.world().x(lead),
+                        sim.world().y(lead), far, sim.getSimTickIndex());
+                add(out, "ram/a-out.png", look(context, sim, sim.world().x(lead), sim.world().y(lead), CLOSE, true,
+                        "ram-out"));
+                rammed = true;
+                break;
+            }
+        }
+        if (!rammed) log("ram: no seed of %d has a hall-bound frame with a door to ram", RAM_SEEDS);
     }
 
     // ---- walker sizes ----
 
     private static void sizes(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
-        for (String option : new String[] {"a-medium-and-large", "b-large-only", "c-medium-only", "today-heavy"}) {
+        for (String option : new String[] {"a-medium-and-large", "today-heavy"}) {
             BattleSimulation sim = settled(fixture, SETTLE_TICKS);
             DerelictSecurityDirector director = sim.derelictSecurity();
             RuinsDelve delve = sim.getRuinsWorks() == null ? null : sim.getRuinsWorks().delve();
@@ -218,7 +373,7 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
 
     private static void repair(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
-        for (String option : new String[] {"a-bay-and-raise", "b-bay-only", "c-raise-no-bay"}) {
+        for (String option : new String[] {"a-bay-and-raise"}) {
             BattleSimulation sim = settled(fixture, SETTLE_TICKS);
             DerelictSecurityDirector director = sim.derelictSecurity();
             DerelictSecurityDirector.Walker felled = null;
