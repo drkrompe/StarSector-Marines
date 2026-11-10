@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.SubRect;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkSegment;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -75,6 +76,45 @@ public final class StreetPlan {
         }
         TrunkPlan.Plan planned = new TrunkPlan.Plan(net.road, p.subRects, List.copyOf(net.segments), p.intersection, w, h);
         return new Result(new GrownTrunkPlan.Grown(planned, hinterland, net.owner), stubs, crosses, crowded);
+    }
+
+    /**
+     * Where a road leaving {@code (x, y)} toward {@code side} meets the planned streets square: the foot on the
+     * centre line of the nearest street ahead running across its way, at right angles, so the road runs straight
+     * out and ends as a tee (or a cross, where a street already leaves the far side on its line). Null where none
+     * does: no street lies across the way ahead, a street running the same way is reached first (the road would run
+     * into its end), or another street meets the found one within {@link #SNAP} cells of the foot off its line, so
+     * the tee would make an offset pair. A caller keeps its own road where it gets null.
+     *
+     * @param streets the planned streets ({@code grown.plan().trunks})
+     * @return {@code {x, y}} of the foot, or null
+     */
+    public static int[] meet(int x, int y, Side side, List<TrunkSegment> streets) {
+        boolean eastWest = side.dx != 0;
+        int along = eastWest ? y : x;               // the road's line, held across the street it meets
+        int from = eastWest ? x : y;
+        int sign = eastWest ? side.dx : side.dy;
+        TrunkSegment best = null;
+        int bestDist = Integer.MAX_VALUE;
+        boolean bestAcross = false;
+        for (TrunkSegment s : streets) {
+            int lo = eastWest ? s.top : s.left, hi = eastWest ? s.bottom : s.right;
+            if (along < lo || along > hi) continue;  // not on the road's line
+            int near = sign > 0 ? (eastWest ? s.left : s.top) - from : from - (eastWest ? s.right : s.bottom);
+            if (near < 1 || near >= bestDist) continue;
+            best = s;
+            bestDist = near;
+            bestAcross = s.horizontal != eastWest;
+        }
+        if (best == null || !bestAcross) return null;
+        for (TrunkSegment o : streets) {
+            if (o == best || o.horizontal == best.horizontal) continue;
+            if (Net.side(best, o) == 0 && !Net.crosses(best, o)) continue;
+            int offset = Math.abs(Net.centre(o) - along);
+            if (offset >= 1 && offset <= SNAP) return null;
+        }
+        int foot = Net.centre(best);
+        return eastWest ? new int[]{foot, y} : new int[]{x, foot};
     }
 
     /** The streets as they are being planned: the road mask, its owners and the segments that paint them. */
@@ -159,7 +199,7 @@ public final class StreetPlan {
          * Which side of the crossing street {@code c} the street {@code s} leaves from, having one end on it: -1 it
          * runs off below or left of {@code c}, 1 above or right, 0 when it does not end on {@code c}.
          */
-        private static int side(TrunkSegment c, TrunkSegment s) {
+        static int side(TrunkSegment c, TrunkSegment s) {
             int cLo = c.horizontal ? c.top : c.left, cHi = c.horizontal ? c.bottom : c.right;
             int sLo = s.horizontal ? s.left : s.top, sHi = s.horizontal ? s.right : s.bottom;
             int sAcrossLo = s.horizontal ? s.top : s.left, sAcrossHi = s.horizontal ? s.bottom : s.right;
@@ -170,7 +210,16 @@ public final class StreetPlan {
             return startsOn ? 1 : endsOn ? -1 : 0;
         }
 
-        private static int centre(TrunkSegment s) {
+        /** Whether {@code s} runs right through {@code c}, out on both sides. */
+        static boolean crosses(TrunkSegment c, TrunkSegment s) {
+            int cLo = c.horizontal ? c.top : c.left, cHi = c.horizontal ? c.bottom : c.right;
+            int sLo = s.horizontal ? s.left : s.top, sHi = s.horizontal ? s.right : s.bottom;
+            int sAcross = centre(s);
+            int cAlongLo = c.horizontal ? c.left : c.top, cAlongHi = c.horizontal ? c.right : c.bottom;
+            return sLo < cLo && sHi > cHi && sAcross >= cAlongLo && sAcross <= cAlongHi;
+        }
+
+        static int centre(TrunkSegment s) {
             return s.horizontal ? (s.top + s.bottom) / 2 : (s.left + s.right) / 2;
         }
 

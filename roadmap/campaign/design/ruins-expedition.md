@@ -669,6 +669,33 @@ The art is the art session's, to `ruins-forge-area.md` and the texture contract
 in `ruins-forge-hall.md`. Picture cards:
 `createSnapshots -Psnapshot=ruins-forge-picks`.
 
+**A hall is laid out from its process** (owner, 2026-11-10: "the room itself is
+still just so boring and doesn't make sense... it just feels like a random
+assortment of doodads"; "where does it's metal come from? Where do the parts
+go?"; "a much larger mega facility room... a huge furnace crucible with
+production lines set down it's pour line. The "part" where here to steal is a
+large thing or even the entire room itself is the "tech""; pick
+`ruins-forge-process` open). Every piece in a hall answers where its input comes
+from and where its output goes. A hall lays its chain as one line from its feed
+door to its dispatch door, and the next hall's feed is this hall's dispatch. The
+floor is zoned from that line: deck plate under the work, grating over the
+trenches, rail beds where material moves, painted bays and walkways, and worn
+concrete only in the aisles. The overhead structure follows the movers, and the
+collapse is told on the same line: work stopped mid-step. The forge is the test
+case:
+
+| Option | Shape | Prize |
+| --- | --- | --- |
+| a | Today's foundry slot, laid out feed to dispatch: rail spur, charge bins, tapping furnace, ladle crane, pour trench, mould grid, cooling racks, fettling, dispatch | Unchanged |
+| b1 | One mega forge hall (about 84x44 at extensive) in place of the production halls: a great crucible at its head, six production lines off its pour line | The furnace's control core, one Hermes load, hauled as today |
+| b2 | The same hall | The line is the tech: hold its pulpit while each line's recorder runs, then carry the record cores out |
+| b3 | The same hall | The line is stripped: each key module is a haul and a Hermes load of its own |
+
+The Hermes is the player's only lift, so no variant lifts the room itself. The
+plan, the other halls' chains and the art list are in
+`ruins-themed-environments.md` in the shared notes. Picture cards:
+`createSnapshots -Psnapshot=ruins-mega-forge-picks`.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,

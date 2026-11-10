@@ -136,7 +136,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.profile.commandFrameDetail` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.commandTopologyCpu` | config | 2026-09-27 | Permanent: opt-in profiling instrumentation, off in play. |
 | `battle.profile.pathRequests` | config | 2026-08-24 | Permanent: opt-in profiling instrumentation, off in play. |
-| `battle.render.buildingFaces` | experiment | 2026-11-10 | Buildings stood up with wall faces and roofs lifted by height (voids.md, buildings in depth): remove it, with the losing path, once the owner picks keep, keep for tall buildings, or drop. |
 | `battle.render.cliffLook` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |
 | `battle.render.collectCulling` | control | 2026-09-03 | Standing control: the renderEvidence culled-vs-unculled pixel-identity check (`render-evidence.md`). |
 | `battle.render.colonyThreat` | control | 2026-10-22 | renderEvidence control lever (`render-evidence.md`). Remove it with its fallback path once its renderEvidence reading has been accepted and nothing reads the off arm. |

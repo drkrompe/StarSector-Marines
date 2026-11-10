@@ -79,6 +79,8 @@ public final class NaturalVoidZoning {
     public record Deck(String surface, String doodad) {
         /** A timber footbridge: the outdoor drops' deck. A snow bridge on ice read as two pits with ground between. */
         public static final Deck TIMBER = new Deck("colony.timber", null);
+        /** A causeway of dressed basalt: a lava river's deck. */
+        public static final Deck BASALT = new Deck("colony.basalt", null);
 
         public Deck {
             if (surface == null && doodad == null) throw new IllegalArgumentException("a deck is a surface or a doodad");
@@ -165,11 +167,13 @@ public final class NaturalVoidZoning {
     /**
      * A shallow lava river: a low bank of cooled crust and the melt 4 m down, running so its crust is seen to travel
      * (owner pick, 2026-11-09, of 2.5, 4 and 8 m). A volcanic world's drop (owner pick, 2026-11-10,
-     * over the rift), with its older flows on the plain ({@code LavaFlows}).
+     * over the rift), with its older flows on the plain ({@code LavaFlows}). Its crossings are causeways of dressed
+     * basalt: timber would burn over a melt.
      */
     public static final Drop LAVA_RIVER = new Drop(NaturalVoid.Style.LAVA, List.of(
             new NaturalVoid.Step(1.6f, .45f), new NaturalVoid.Step(4f, .9f)),
-            "graphics/battle/voids/basalt-wall.png", 12f);
+            "graphics/battle/voids/basalt-wall.png", 12f)
+            .withDeck(Deck.BASALT);
 
     /**
      * A foundry's melt: a kerb a metre deep and the melt 2 m down, between firebrick walls
