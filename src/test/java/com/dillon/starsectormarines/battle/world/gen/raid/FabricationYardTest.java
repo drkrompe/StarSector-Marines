@@ -129,8 +129,8 @@ class FabricationYardTest {
     }
 
     /**
-     * The parts line runs hall to hall in the order of the work, over the yard and never through a hall, and ends at
-     * every hall downstream of receiving.
+     * The parts line runs hall to hall in the order of the work, over the yard and never through a hall or across a
+     * road, and ends at every hall downstream of receiving on receiving's side of the road.
      */
     @Test
     void thePartsLineLinksTheStepsInOrder() {
@@ -139,6 +139,7 @@ class FabricationYardTest {
         for (Props.Placement p : d.line()) assertFalse(inHall(p.x(), p.y()), "the line never runs through a hall");
         for (FabricationYard.Hall h : HALLS) {
             if (h.step() == LightIndustryWorks.RECEIVING || h.step() == LightIndustryWorks.CANTEEN) continue;
+            if (h.y1() < ROAD_Y) continue;
             boolean fed = false;
             for (Props.Placement p : d.line()) {
                 if (!p.doodad().equals("line.drive")) continue;
@@ -221,6 +222,21 @@ class FabricationYardTest {
             boolean based = false;
             for (Props.Placement p : d.props()) based |= p.x() == load.x() && p.y() == load.y();
             assertTrue(based, load.doodad() + " at " + load.x() + "," + load.y() + " has its base");
+        }
+    }
+
+    /** Nothing of the yard's stands on a road: not the parts line, its legs, the props or their loads. */
+    @Test
+    void theDressingKeepsOffTheRoads() {
+        for (long seed = 1; seed <= 4; seed++) {
+            FabricationYard.Dressing d = plan(seed);
+            for (List<Props.Placement> group : List.of(d.line(), d.legs(), d.props(), d.loads())) {
+                for (Props.Placement p : group) {
+                    for (int[] c : cells(p)) {
+                        assertFalse(GROUND.road(c[0], c[1]), p.doodad() + " on the road at " + c[0] + "," + c[1]);
+                    }
+                }
+            }
         }
     }
 
