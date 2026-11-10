@@ -192,16 +192,19 @@ class RaidSiteTemplateTest {
         assertFalse(FortressProgram.garrison().detached(), "a garrison's buildings still corner into each other");
     }
 
-    /** A mine's works is its head works: a winding house per shaft, the machines, standing apart on its ore yards. */
+    /** A mine's works is its processing chain: a mill line per machine, standing apart, and one of each other step. */
     @Test
-    void aMinesWorksIsItsWindingHousesStandingApart() {
+    void aMinesWorksIsItsProcessingChain() {
         Precinct works = lay(MINE, market(5, 3), 1L).objective();
         assertEquals(RaidSiteTemplate.WORKS, works.name());
         assertEquals(Precinct.Boundary.WALLED, works.boundary());
         assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE));
         assertTrue(works.program().detached());
-        assertEquals(1, RaidWorksPrograms.mine(4).countOf(RoomPurpose.ENGINE_ROOM), "one ore mill the shafts feed");
-        assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more shafts, more ore yard");
+        for (RoomPurpose step : List.of(RaidWorksPrograms.MINE_RECEIVING, RaidWorksPrograms.MINE_STOCKPILE,
+                RaidWorksPrograms.MINE_SMELTER, RaidWorksPrograms.MINE_LOADOUT)) {
+            assertEquals(1, RaidWorksPrograms.mine(4).countOf(step), "one " + step + " in the processing chain");
+        }
+        assertTrue(RaidWorksPrograms.mine(5).apron() > RaidWorksPrograms.mine(3).apron(), "more mills, more yard");
     }
 
     /** Every industry a raid can name has its site, and each site's works holds one machine per machine asked for. */

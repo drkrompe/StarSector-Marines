@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2e8-bee6-7a03-9e04-0c9ef2837ff1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2e8-bee6-7a03-9e04-0c9ef2837ff1\\exec-0b3744b1-8519-4f07-b53f-36ecfb337090.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-themes\\raw\\ruins-patches.raw.png",
+    "sha256": "a4c916b2fd5e37f079e0d954baa70a2595bc7144cb4c9cb705c7807918134824",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-themes\\prompts\\patches.prompt.txt",
+  "promptSha256": "e5163b011a0054ab55e779b21fdc2f203d5020a693ddd4404f16238d626757ec",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: decal outlines to fill in place\nImage 2: Material/style only for the frost decals; not layout\nImage 3: Material/style only for the growth decals; not layout\n\nAsset: a sheet of four flat floor decals for a top-down tactical game set in a sci-fi colony ruin, seen from directly above (orthographic, 90 degrees), for the Starsector Marines battle map. Decals lie on the floor; they are not objects.\nGeometry: reference 1 is the layout authority. Each translucent grey blob is one decal's exact outline: keep each decal inside its blob, at its size, position and soft irregular shape. The edges must stay organic and lopsided, never star points, spikes, zigzags or a circle. The space between blobs stays fully transparent.\nMaterial: reference 2 is the material reference for the two frost decals, reference 3 for the two growth decals (their right-hand patches); they are not layout. Match the painterly game-sprite finish of the props in those references: restrained, weathered, adult military sci-fi, not cartoon.\nSubjects, left to right:\n1. frost-patch-a: a thin sheet of white-blue hoar frost and cracked clear ice spread over the floor, denser near one side, a few fine frost feathers, edges feathering out to transparent.\n2. frost-patch-b: the same frost, a different spill: a frozen coolant puddle with a glassy pale-cyan middle and a crust of rime round it, feathered edges.\n3. growth-patch-a: a flat mat of dark-green and ochre biofilm and lichen with fine creeping tendrils spreading over the floor, a few tiny pale fungal caps, feathered edges.\n4. growth-patch-b: the same growth, a different spill: a damp stain of olive slime and moss in uneven lobes with root threads reaching out, feathered edges.\nEvery decal is semi-transparent so the floor shows through, flat with no raised geometry, no objects, no cast shadow.\nBackground: true transparent background with clean alpha; no floor tile, border, labels or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-patches-guide.png",
+      "sha256": "a832ea8990f119a7f89532181361f0ee262246dcd55cc11ad0d34871bad81ba9",
+      "dimensions": [
+        2880,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: decal outlines to fill in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-frost.raw.png",
+      "sha256": "9032653e109e8b656d82b7829928d47079643ea52d7376784383404a846f24db",
+      "dimensions": [
+        1933,
+        814
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only for the frost decals; not layout"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-vats.raw.png",
+      "sha256": "fee7d0703023ed4e7d5c51aa00976a8834c0d36ba1dc4c05fb4a14d39791d158",
+      "dimensions": [
+        2111,
+        745
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only for the growth decals; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent decal sheet, using Image 1 for the exact layout and Images 2–3 for the materials."
+  ],
+  "usage": {
+    "input_tokens": 48465,
+    "cached_input_tokens": 39808,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 700,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.1
+}

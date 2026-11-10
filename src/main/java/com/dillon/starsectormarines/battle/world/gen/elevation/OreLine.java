@@ -87,17 +87,28 @@ public final class OreLine {
      * and a drive at its last cell facing the building it feeds at {@code (intoX, intoY)}, the next cell on.
      */
     public static List<Piece> pieces(List<int[]> path, int intoX, int intoY, boolean yUpIsNorth) {
+        if (path.isEmpty()) return List.of();
+        int[] first = path.get(0), second = path.size() > 1 ? path.get(1) : new int[]{intoX, intoY};
+        return pieces(path, 2 * first[0] - second[0], 2 * first[1] - second[1], intoX, intoY, yUpIsNorth);
+    }
+
+    /**
+     * The same, for a course fed from the cell {@code (fromX, fromY)} before its first: a link from one building to
+     * the next, whose first piece turns if the course leaves the building's wall sideways.
+     */
+    public static List<Piece> pieces(List<int[]> path, int fromX, int fromY, int intoX, int intoY,
+                                     boolean yUpIsNorth) {
         List<Piece> out = new ArrayList<>();
         for (int i = 0; i < path.size(); i++) {
             int[] at = path.get(i);
-            int[] prev = i > 0 ? path.get(i - 1) : null;
+            int[] prev = i > 0 ? path.get(i - 1) : new int[]{fromX, fromY};
             int[] next = i + 1 < path.size() ? path.get(i + 1) : new int[]{intoX, intoY};
             int out0 = side(next[0] - at[0], next[1] - at[1], yUpIsNorth);
             if (i == path.size() - 1) {
                 out.add(new Piece(at[0], at[1], Shape.DRIVE, out0));
                 continue;
             }
-            int in = prev == null ? (out0 + 2) % 4 : side(prev[0] - at[0], prev[1] - at[1], yUpIsNorth);
+            int in = side(prev[0] - at[0], prev[1] - at[1], yUpIsNorth);
             if ((in + 2) % 4 == out0) {
                 out.add(new Piece(at[0], at[1], Shape.STRAIGHT, out0));
             } else {

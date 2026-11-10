@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -13,6 +15,11 @@ class RuinsThemeDressingTest {
     @Test
     void noPrizeLeavesThePlainGround() {
         assertEquals(RuinsDressing.NONE, RuinsThemeDressing.of((RuinsVaultPrize) null));
+    }
+
+    @Test
+    void patchesAloneStillDressTheGround() {
+        assertFalse(new RuinsDressing(List.of(), List.of(), List.of("doodad.patch")).none());
     }
 
     @Test

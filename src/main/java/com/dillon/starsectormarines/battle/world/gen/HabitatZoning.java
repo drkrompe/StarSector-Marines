@@ -15,14 +15,16 @@ public final class HabitatZoning {
     /**
      * The habitat a world builds.
      *
-     * @param surface what the world's ground is made of, from {@link SurfaceZoning}: for a palette whose ground implies
-     *                its air, so a world with no market behind it still adapts. No palette does yet.
+     * @param surface what the world's ground is made of, from {@link SurfaceZoning}. A world whose air does nothing to
+     *                its people is still built for its ground: a frozen world insulates. Read from the palette, so a
+     *                site with no market behind it (a story map, a crevasse town) adapts too.
      * @param climate what the world's air does, from {@link ClimateZoning}; null reads as none
      */
     public static Habitat forWorld(SurfacePalette surface, Climate climate) {
         Climate air = climate == null ? Climate.NONE : climate;
         if (air.has(Climate.Hazard.RADIATION)) return Habitat.SHIELDED;
         if (air.has(Climate.Hazard.TOXIC) || air.has(Climate.Hazard.AIRLESS)) return Habitat.SEALED;
+        if (surface == SurfacePalette.FROZEN) return Habitat.INSULATED;
         return Habitat.OPEN;
     }
 
