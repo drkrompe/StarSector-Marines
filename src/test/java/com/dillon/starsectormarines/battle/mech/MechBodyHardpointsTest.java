@@ -77,26 +77,21 @@ class MechBodyHardpointsTest {
     }
 
     @Test
-    void everyRoundsLayoutIsSymmetricOnTheTorsoAndBearsBothGunsAhead() {
-        for (MechBodyHardpoints.RoundsLayout layout : MechBodyHardpoints.RoundsLayout.values()) {
-            MechBodyHardpoints.Hardpoint[] points = layout.points();
-            MechBodyHardpoints.Hardpoint gun = points[MechMountSlot.LEFT_ARM.ordinal()];
-            MechBodyHardpoints.Hardpoint rack = points[MechMountSlot.LEFT_SHOULDER.ordinal()];
-            assertNull(points[MechMountSlot.RIGHT_ARM.ordinal()], layout.key());
-            assertNull(points[MechMountSlot.RIGHT_SHOULDER.ordinal()], layout.key());
-            assertTrue(gun.takes(MechWeaponComponent.CHAINGUN), layout.key());
-            assertTrue(rack.takes(MechWeaponComponent.SRM_5), layout.key());
-            // Symmetric about the centreline: a centreline pair, or a mirrored pair.
-            assertEquals(-gun.right(), rack.right(), EPS, layout.key());
-            if (gun.right() != 0f) assertEquals(gun.forward(), rack.forward(), EPS, layout.key());
-            for (MechBodyHardpoints.Hardpoint point : new MechBodyHardpoints.Hardpoint[] {gun, rack}) {
-                assertTrue(Math.abs(point.right()) < TORSO_HALF && Math.abs(point.forward()) < TORSO_HALF,
-                        layout.key() + " on the torso");
-            }
-            // Both guns bear on one target dead ahead and a little to either side.
-            for (float bearing : new float[] {-45f, 0f, 45f}) {
-                assertTrue(gun.covers(0f, bearing) && rack.covers(0f, bearing), layout.key() + " at " + bearing);
-            }
+    void roundsWalkerPairIsSymmetricOnTheTorsoAndBearsBothGunsAhead() {
+        MechBodyHardpoints.Hardpoint gun = MechBodyHardpoints.of(MechVariant.SECURITY_ROUNDS, MechMountSlot.LEFT_ARM);
+        MechBodyHardpoints.Hardpoint rack = MechBodyHardpoints.of(MechVariant.SECURITY_ROUNDS,
+                MechMountSlot.LEFT_SHOULDER);
+        assertNull(MechBodyHardpoints.of(MechVariant.SECURITY_ROUNDS, MechMountSlot.RIGHT_ARM));
+        assertNull(MechBodyHardpoints.of(MechVariant.SECURITY_ROUNDS, MechMountSlot.RIGHT_SHOULDER));
+        // One each side, mirrored, both on the torso.
+        assertTrue(gun.right() < 0f);
+        assertEquals(-gun.right(), rack.right(), EPS);
+        assertEquals(gun.forward(), rack.forward(), EPS);
+        assertEquals(-gun.arcCentre(), rack.arcCentre(), EPS);
+        assertTrue(Math.abs(gun.right()) < TORSO_HALF && Math.abs(gun.forward()) < TORSO_HALF);
+        // Both bear on one target ahead and a good way to either side.
+        for (float bearing : new float[] {-90f, -45f, 0f, 45f, 90f}) {
+            assertTrue(gun.covers(0f, bearing) && rack.covers(0f, bearing), "at " + bearing);
         }
     }
 

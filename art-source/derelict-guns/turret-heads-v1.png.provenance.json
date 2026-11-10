@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c696-cb2d-7150-a009-22826b77351c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c696-cb2d-7150-a009-22826b77351c\\exec-c20c35de-d6d1-4d33-b113-015c30a45c98.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1ff523dce83a244a\\47176b15-dd89-4e76-98b2-0de6a94a84ca\\scratchpad\\heads\\heads-v1.png",
+    "sha256": "8025f10524119c9a50f62bc26bf4fbe8eb36b9168c5228cf7c6d0da0b4773f97",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1ff523dce83a244a\\47176b15-dd89-4e76-98b2-0de6a94a84ca\\scratchpad\\heads\\brief.txt",
+  "promptSha256": "3e0a4f7865f1852dfcfd7cb77de0b5885dbea795306120ec28070f878ee95638",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: fill these two grey silhouettes exactly, never move or resize them\nImage 2: Material/style only (the robot's hull); not layout\nImage 3: Material/style only (matching parts made earlier); not layout\n\nTwo top-down machine-part sprites for a strategy game, seen from directly above, north-up. They are rotating armoured housings (turret heads) bolted onto an ancient derelict industrial robot; a separate tube or box will be drawn underneath each one, so each housing must read as a cover that sits over something:\n(1) left: an armoured octagonal cowl with a square slot cut into its top edge where a tube will come out; heavy bolted plates, a small sensor block, hinged armour flaps beside the slot.\n(2) right: a low armoured cradle, a yoke whose two raised arms at the top hold something between them, with pivot trunnions on both sides.\n\nFill each grey silhouette in the guide exactly: same outline, same size, same position, same orientation. Do not move, resize or rotate them, and keep the slot and the gap between the cradle arms empty and transparent.\n\nMaterial and style: match the style references exactly - weathered pale sage-green armour plate, heavy rust streaks and chipped paint, worn yellow hazard stripes, dark grey machinery, dense small mechanical detail, lit from the top left, gritty painted game sprite look. Industrial, old, grounded; not cartoonish, not sleek, not modern, no glowing parts.\n\nTrue transparent background, including negative spaces. No ground, no shadow, no border, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1ff523dce83a244a\\47176b15-dd89-4e76-98b2-0de6a94a84ca\\scratchpad\\heads\\guide.png",
+      "sha256": "9fc4e06b4b83e2be586c8fd59d9b967ee56b23652ff5e8f1996f02cd28011c9c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: fill these two grey silhouettes exactly, never move or resize them"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1ff523dce83a244a\\47176b15-dd89-4e76-98b2-0de6a94a84ca\\scratchpad\\heads\\torso-ref.png",
+      "sha256": "eae6c364473a484a890344a578286eecfd36e4c136aa0d127db6385abdb63929",
+      "dimensions": [
+        240,
+        232
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the robot's hull); not layout"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1ff523dce83a244a\\47176b15-dd89-4e76-98b2-0de6a94a84ca\\scratchpad\\heads\\concept-ref.png",
+      "sha256": "080b174de085df1bae9ec45d19936beb9868c9c44f38d4f6f68703c112aa3c04",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (matching parts made earlier); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact silhouettes and the references’ weathered industrial finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 45916,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 743,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.5
+}

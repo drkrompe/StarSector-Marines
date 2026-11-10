@@ -1,12 +1,15 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -158,7 +161,31 @@ public final class RaidOwnedMapLookSuite implements SnapshotSuite {
         int directPassed = passed(direct, threats), skirtPassed = passed(skirt, threats);
         marks.polyline(points(direct), null, ReviewStyle.APPROACH);
         marks.polyline(points(skirt), null, ReviewStyle.ROUTE);
-        if (!whole) return marks.build();
+        if (!whole) {
+            // Close on the objective: every defender guard post in view, manned or empty, so who holds the works reads.
+            float cx = 0f, cy = 0f;
+            for (int[] g : goals) { cx += g[0]; cy += g[1]; }
+            cx /= goals.size();
+            cy /= goals.size();
+            for (TacticalNode post : sim.getTacticalMap().ofKind(TacticalNode.Kind.GUARDPOST)) {
+                if (post.defaultGuard != Faction.DEFENDER) continue;
+                if (Math.abs(post.anchorX - cx) > cellsAcross / 2f || Math.abs(post.anchorY - cy) > cellsAcross * 9f / 32f) {
+                    continue;
+                }
+                int men = 0;
+                for (Squad squad : sim.getSquads()) {
+                    if (squad.assignedNode == post) men += squad.originalSize;
+                }
+                String what = RaidSiteTemplate.WORKS.equals(post.place()) ? "WORKS GUARD POST"
+                        : post.place() != null ? post.place().toUpperCase(Locale.ROOT) + " GUARD POST" : "EMPLACEMENT POST";
+                marks.label(post.anchorX, post.anchorY, what + (men > 0 ? ": " + men + " posted" : ": empty"),
+                        men > 0 ? ReviewStyle.ALLY : ReviewStyle.NOTE);
+                System.out.printf(Locale.ROOT, "[raid-owned-post] %s seed %d post %d,%d bounds %d,%d-%d,%d priority %d "
+                                + "size %d posted %d%n", map.id, seed, post.anchorX, post.anchorY, post.left, post.bottom,
+                        post.right, post.top, post.priorityScore, post.garrisonSize, men);
+            }
+            return marks.build();
+        }
         // A legend down the top-left corner of a whole frame, one row per line, so no route label lands on a machine.
         float row = 26f * cellsAcross / FRAME_W, y = h - 2f;
         marks.label(3, y, String.format(Locale.ROOT, "%s seed %d  %dx%d", map.id, seed, w, h), ReviewStyle.NOTE);

@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.appearance.RavSpitterRig;
 import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -1776,7 +1775,8 @@ public final class UnitRenderService implements RenderSystem {
                         walkerGuns[MechMountSlot.RIGHT_ARM.ordinal()] = mechRightArm[r];
                         walkerGuns[MechMountSlot.LEFT_SHOULDER.ordinal()] = mechLeftShoulder[r];
                         walkerGuns[MechMountSlot.RIGHT_SHOULDER.ordinal()] = mechRightShoulder[r];
-                        DerelictWalkerGuns.emit(out, mechAssets, sprites.vehicleGunMount(TurretMountStyle.GREEN), rig,
+                        DerelictWalkerGuns.emit(out, mechAssets, sprites.derelictTurretHead(false),
+                                sprites.derelictTurretHead(true), rig,
                                 cam, ctx.sim.world().mechLoadout(entityId).variant, roster.renderScale(entityId),
                                 walkerGuns, mechFacing[r], 0.025f * LayeredMechAppearance.recoil(mechChaingunPhase[r]),
                                 0.018f * LayeredMechAppearance.recoil(mechSrmPhase[r]), mechFlags[r], unitAlpha);

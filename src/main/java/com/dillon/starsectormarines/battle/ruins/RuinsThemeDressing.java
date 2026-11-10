@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDressing;
+import com.dillon.starsectormarines.battle.world.gen.ruins.WorksHall;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
 import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 
@@ -64,32 +65,37 @@ public final class RuinsThemeDressing {
     public static RuinsDressing of(RuinsVaultTheme theme) {
         if (theme == null) return RuinsDressing.NONE;
         return switch (theme) {
-            case DEPOT -> set(List.of(CRATES, PALLETS), List.of(CRATES, PALLETS, DRUMS));
+            case DEPOT -> set(List.of(CRATES, PALLETS), List.of(CRATES, PALLETS, DRUMS)).withWorks(WorksHall.HIGH_BAY);
             case ARMORY -> set(List.of(AMMO_LOCKER, READY_LOCKER, RIFLE_RACK),
-                    List.of(RIFLE_RACK, ISSUE_COUNTER, CLEANING_BENCH, AMMO_LOCKER));
+                    List.of(RIFLE_RACK, ISSUE_COUNTER, CLEANING_BENCH, AMMO_LOCKER)).withWorks(WorksHall.FILLING);
             case SERVER_HALL -> set(List.of(SERVER_RACK, SERVER_RACK, SWITCHBOARD),
-                    List.of(SERVER_RACK, WORKSTATIONS, CONSOLE)).withProduct(CORE_CABINET);
+                    List.of(SERVER_RACK, WORKSTATIONS, CONSOLE)).withProduct(CORE_CABINET).withWorks(WorksHall.CORE);
             case PRISTINE_NANOFORGE, CORRUPTED_NANOFORGE ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
                             .withProduct(FORGE_CORE).withFoundry();
             case DRONE_REPLICATOR ->
                     set(List.of(MACHINE_TOOL, ENGINE_BOARD), List.of(MACHINE_TOOL, CABLE_REEL, PALLETS, ENGINE_BOARD))
-                            .withProduct(DRONE_FRAME);
+                            .withProduct(DRONE_FRAME).withWorks(WorksHall.PRINT);
             case SYNCHROTRON -> set(List.of(SWITCHBOARD, GENERATOR), List.of(SWITCHBOARD, CABLE_REEL, CONSOLE))
-                    .withProduct(MAGNET_SEGMENT);
+                    .withProduct(MAGNET_SEGMENT).withWorks(WorksHall.RING);
             case FUSION_LAMP, PLASMA_DYNAMO ->
-                    set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR)).withProduct(FIELD_HOUSING);
-            case HYPERSHUNT_TAP -> set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR));
+                    set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR)).withProduct(FIELD_HOUSING)
+                    .withWorks(WorksHall.FIELD);
+            case HYPERSHUNT_TAP -> set(List.of(REACTOR, PUMPS), List.of(PIPES, PUMPS, TANK, GENERATOR))
+                    .withWorks(WorksHall.FIELD);
             case MANTLE_BORE -> set(List.of(ENGINE_BOARD, CABLE_REEL), List.of(CABLE_REEL, DRUMS, ENGINE_BOARD))
-                    .withProduct(BORE_HEAD);
-            case CATALYTIC_CORE -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(CATALYST_BED);
-            case FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(SPOOL_DRUM);
+                    .withProduct(BORE_HEAD).withWorks(WorksHall.SHAFT);
+            case CATALYTIC_CORE -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(CATALYST_BED)
+                    .withWorks(WorksHall.CRACKER);
+            case FULLERENE_SPOOL -> set(List.of(TANK, PUMPS), List.of(TANK, PIPES, PUMPS)).withProduct(SPOOL_DRUM)
+                    .withWorks(WorksHall.DRAW);
             case SOIL_NANITES, BIOFACTORY_EMBRYO -> new RuinsDressing(List.of(CULTURE_VAT, GROW_BED),
-                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH).withProduct(VAT_UNIT);
+                    List.of(GROW_BED, CULTURE_VAT, TANK, PIPES), GROWTH).withProduct(VAT_UNIT)
+                    .withWorks(WorksHall.CULTURE);
             case CRYOARITHMETIC_ENGINE -> new RuinsDressing(List.of(CRYO_RACK, CRYO_RACK, FROST_HEATSINK),
-                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST).withProduct(CRYO_UNIT);
+                    List.of(CRYO_RACK, FROST_HEATSINK, PIPES), FROST).withProduct(CRYO_UNIT).withWorks(WorksHall.COLD);
             case DEALMAKER_HOLOSUITE -> set(List.of(CONFERENCE, WORKSTATIONS), List.of(CONFERENCE, WORKSTATIONS, CONSOLE))
-                    .withProduct(PROJECTOR_STACK);
+                    .withProduct(PROJECTOR_STACK).withWorks(WorksHall.STAGE);
         };
     }
 

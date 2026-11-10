@@ -1,11 +1,11 @@
-"""Regrades a covered farm sheet's grow-light from ImageGen's magenta to warm sodium amber (owner, 2026-11-10: "I'm not
+"""Regrades the covered farm sheet's grow-light from ImageGen's magenta to warm sodium amber (owner, 2026-11-10: "I'm not
 a fan of the pink/purple"; picked "Warm amber"). Reads `<look>.raw.png`, writes `<look>.amber.png` beside it, which the
 look's tileset-authoring document exports. Geometry and alpha are untouched; only pink-to-violet pixels move.
 
 Strong glow (saturated) takes amber at its own brightness; weak spill (a faint pink or salmon bloom on a roof) is
 neutralised to a warm grey instead, so it reads as lit surface rather than orange speckle.
 
-Usage: python art-source/tilesets/grow-light-amber.py hydro-sheds hydro-domes glasshouses
+Usage: python art-source/tilesets/grow-light-amber.py hydro-sheds
 """
 import sys
 from pathlib import Path
