@@ -99,6 +99,14 @@ public abstract class CommandPower {
         return canTarget(cellX, cellY, battle);
     }
 
+    /**
+     * Why a cell this power cannot target is refused, for the targeting marker's status line; null when there is
+     * no reason more particular than blocked.
+     */
+    public String targetRefusal(int cellX, int cellY, BattleView battle, List<Integer> selection) {
+        return null;
+    }
+
     /** As {@link #resolve(int, int, CommandPowerService, BattleControl)}, with the call's pick. */
     public void resolve(int cellX, int cellY, CommandPowerService service,
                         BattleControl battle, List<Integer> selection) {

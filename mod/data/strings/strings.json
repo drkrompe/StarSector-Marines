@@ -5210,6 +5210,7 @@
 		"battleMarkerCommandPower": "COMMAND POWER",
 		"battleMarkerValid": "VALID",
 		"battleMarkerBlocked": "BLOCKED",
+		"battleMarkerNoDropInside": "NO DROP INSIDE THE FACILITY",
 		"battleMarkerComplete": "COMPLETE",
 		"battleMarkerReturnHere": "RETURN HERE",
 		"battleMarkerAfterSeizure": "AFTER SEIZURE",

@@ -241,6 +241,11 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         BattlefieldMarkerPresentation.TargetMarker marker =
                 BattlefieldMarkerPresentation.target(power.displayName, valid,
                         power.previewRadiusCells(), cover);
+        String refusal = valid ? null : power.targetRefusal(cellX, cellY, sim, selection());
+        if (refusal != null) {
+            marker = new BattlefieldMarkerPresentation.TargetMarker(marker.label(), refusal, marker.tone(),
+                    marker.radiusCells(), false);
+        }
         if (power.previewSquareCells() > 0) {
             paintPlot(camera, marker, cellX + 0.5f, cellY + 0.5f, power.previewSquareCells(), alphaMult);
         }
