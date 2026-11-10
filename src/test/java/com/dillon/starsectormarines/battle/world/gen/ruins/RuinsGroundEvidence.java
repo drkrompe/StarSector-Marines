@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -100,6 +102,11 @@ class RuinsGroundEvidence {
                             }
                         }
                     }
+                    // A works site lays its works hall wherever it has an interior band: the band's trunk runs through it.
+                    if ((seed & 1) == 1 && layers >= 2 && interior.halls().stream().noneMatch(hall ->
+                            hall.stage() == RuinsDelve.PlantStage.FOUNDRY || hall.stage() == RuinsDelve.PlantStage.WORKS)) {
+                        failures.add(where + "the works site laid no works hall");
+                    }
                     for (RuinsDelve.Area chamber : interior.chambers()) {
                         if (!roofed(map, chamber.centreX(), chamber.centreY())) {
                             failures.add(where + "a chamber at " + chamber + " is not roofed");
@@ -112,6 +119,7 @@ class RuinsGroundEvidence {
                             }
                         }
                     }
+                    failures.addAll(crushable(map, delve, where));
                     var start0 = delve.landing().get(0).berth(0);
                     boolean[] reach = DelveCheck.reach(map.grid, start0.centerX, start0.centerY, null);
                     out.append("| ").append(layers).append(" | ").append(surface).append(" | ").append(seed)
@@ -131,6 +139,38 @@ class RuinsGroundEvidence {
         Files.createDirectories(report.getParent());
         Files.writeString(report, out.toString());
         assertTrue(failures.isEmpty(), String.join("\n", failures));
+    }
+
+    /**
+     * The facility holds against every heavy (owner: no heavy drives through the ruin's walls, no walker over a shut
+     * door): no closed cell of an interior chamber's walls (the ring round it) or across a leaf door is pushable at
+     * the heavier crush ceiling, nor opened by a breach view. Props are not read, so they stay the heavies' to push.
+     */
+    static List<String> crushable(MapResult map, RuinsDelve delve, String where) {
+        List<String> out = new ArrayList<>();
+        NavigationGrid view = WallCrush.breachView(map.grid, map.topology, null);
+        List<RuinsDelve.Area> held = new ArrayList<>();
+        for (RuinsDelve.Area c : delve.interior().chambers()) {
+            held.add(new RuinsDelve.Area(c.left() - 1, c.bottom() - 1, c.right() + 1, c.bottom() - 1));
+            held.add(new RuinsDelve.Area(c.left() - 1, c.top() + 1, c.right() + 1, c.top() + 1));
+            held.add(new RuinsDelve.Area(c.left() - 1, c.bottom(), c.left() - 1, c.top()));
+            held.add(new RuinsDelve.Area(c.right() + 1, c.bottom(), c.right() + 1, c.top()));
+        }
+        for (RuinsDelve.LeafDoor door : delve.interior().doors()) held.add(door.span());
+        int found = 0;
+        for (RuinsDelve.Area area : held) {
+            for (int y = area.bottom(); y <= area.top(); y++) {
+                for (int x = area.left(); x <= area.right(); x++) {
+                    if (!map.grid.inBounds(x, y) || map.grid.isWalkable(x, y)) continue;
+                    if (WallCrush.canPush(map.grid, map.topology, null, x, y, WallCrush.ULTRA_HEAVY_CEILING)
+                            || view.hasTag(x, y, NavigationGrid.CellTag.BREACH)) {
+                        if (found++ < 3) out.add(where + "a heavy can push the facility at " + x + "," + y);
+                    }
+                }
+            }
+        }
+        if (found > 3) out.add(where + (found - 3) + " more pushable facility cells");
+        return out;
     }
 
     /** Whether a cell is a building's floor under an intact roof. */
