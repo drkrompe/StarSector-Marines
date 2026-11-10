@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.function.IntFunction;
 
 /**
@@ -42,7 +43,7 @@ final class BuildingFaces {
     enum Segment { BLIND, WINDOW, PANE, DOOR, LOADING, BREACH }
 
     /** Fields of one segment in {@link #segments}' result. */
-    static final int SEG = 8;
+    static final int SEG = 12;
     /** Steps a cell is cut into to trace a roof's outline: every eave depth is a tenth of a cell. */
     static final int RES = 10;
 
@@ -154,12 +155,38 @@ final class BuildingFaces {
     }
 
     /**
+     * A segment's spare slot from {@link #segments}: it starts a run of at least {@link #CORNER_RUN} cells at an
+     * outside corner of the building.
+     */
+    static final int CORNER_START = 1;
+    /** A segment's spare slot from {@link #segments}: it ends such a run at an outside corner. */
+    static final int CORNER_END = 2;
+    /** A run shorter than this is an eave's jog at a doorway, not a building's corner. */
+    static final float CORNER_RUN = 1.5f;
+
+    /**
      * The outline's runs cut at every cell boundary, each piece a segment of {@link #SEG} floats:
-     * {@code x0, y0, x1, y1, nx, ny}, then the cell under its middle (just inside the outline) as {@code x + y * gridW}
-     * and a spare slot the caller fills.
+     * {@code x0, y0, x1, y1, nx, ny}, then the cell under its middle (just inside the outline) as {@code x + y * gridW},
+     * a spare slot holding its outside corners ({@link #CORNER_START}, {@link #CORNER_END}), which the caller may build
+     * on, and last its foot {@code fx0, fy0, fx1, fy1}.
+     *
+     * <p><b>A face's foot stands on its wall's outer side; its top hangs from the roof.</b> The roof covers only the
+     * inner part of a wall cell (its eave, {@link com.dillon.starsectormarines.battle.world.model.RoofCover#rects}), so
+     * a foot on the outline would leave the rest of the wall cell's flat art showing as a strip along the ground. Each
+     * point of the outline is pushed out along the normals of the edges meeting there to the next cell boundary: a run
+     * reaches its wall's outer face, an outside corner reaches the wall's corner, an inside corner draws back to it,
+     * and the short reveal where an eave steps in at a doorway closes up at the foot.
      */
     static float[] segments(float[] outline, int gridW) {
         float[] out = new float[outline.length / 6 * SEG * 4];
+        // Each vertex's normal across the other axis: a run's end is pushed along the edge that turns there.
+        HashMap<Long, Float> turnAt = new HashMap<>();
+        for (int e = 0; e < outline.length; e += 6) {
+            boolean alongX = outline[e + 1] == outline[e + 3];
+            float across = alongX ? outline[e + 5] : outline[e + 4];
+            turnAt.put(vertex(outline[e], outline[e + 1], alongX), across);
+            turnAt.put(vertex(outline[e + 2], outline[e + 3], alongX), across);
+        }
         int n = 0;
         for (int e = 0; e < outline.length; e += 6) {
             float x0 = outline[e], y0 = outline[e + 1], x1 = outline[e + 2], y1 = outline[e + 3];
@@ -167,6 +194,11 @@ final class BuildingFaces {
             boolean alongX = y0 == y1;
             float a = alongX ? x0 : y0, b = alongX ? x1 : y1;
             float lo = Math.min(a, b), hi = Math.max(a, b);
+            // The run's ends as its foot stands: out past an outside corner, back from an inside one.
+            float loTurn = turnAt.getOrDefault(alongX ? vertex(lo, y0, false) : vertex(x0, lo, true), 0f);
+            float hiTurn = turnAt.getOrDefault(alongX ? vertex(hi, y0, false) : vertex(x0, hi, true), 0f);
+            float footLo = push(lo, loTurn), footHi = push(hi, hiTurn);
+            float footAcross = push(alongX ? y0 : x0, alongX ? ny : nx);
             float at = lo;
             while (at < hi - 1e-4f) {
                 float next = Math.min(hi, (float) Math.floor(at + 1e-4f) + 1f);
@@ -176,12 +208,30 @@ final class BuildingFaces {
                 if (n + SEG > out.length) out = Arrays.copyOf(out, out.length * 2 + SEG);
                 if (alongX) { out[n] = at; out[n + 1] = y0; out[n + 2] = next; out[n + 3] = y0; }
                 else { out[n] = x0; out[n + 1] = at; out[n + 2] = x0; out[n + 3] = next; }
-                out[n + 4] = nx; out[n + 5] = ny; out[n + 6] = cx + cy * gridW; out[n + 7] = 0f;
+                int corners = hi - lo < CORNER_RUN ? 0
+                        : (at == lo && loTurn < 0f ? CORNER_START : 0) | (next == hi && hiTurn > 0f ? CORNER_END : 0);
+                out[n + 4] = nx; out[n + 5] = ny; out[n + 6] = cx + cy * gridW; out[n + 7] = corners;
+                float f0 = at == lo ? footLo : at, f1 = next == hi ? footHi : next;
+                if (alongX) { out[n + 8] = f0; out[n + 9] = footAcross; out[n + 10] = f1; out[n + 11] = footAcross; }
+                else { out[n + 8] = footAcross; out[n + 9] = f0; out[n + 10] = footAcross; out[n + 11] = f1; }
                 n += SEG;
                 at = next;
             }
         }
         return Arrays.copyOf(out, n);
+    }
+
+    /** A coordinate pushed to the next cell boundary along a normal's sign; a boundary already stays put. */
+    static float push(float v, float normal) {
+        if (normal > 0f) return (float) Math.ceil(v - 1e-3f);
+        if (normal < 0f) return (float) Math.floor(v + 1e-3f);
+        return v;
+    }
+
+    /** A vertex's key, by the axis of the edge it belongs to, in tenth-cell steps. */
+    private static long vertex(float x, float y, boolean ofEdgeAlongX) {
+        long qx = Math.round(x * RES), qy = Math.round(y * RES);
+        return (qx << 32 ^ qy & 0xFFFFFFFFL) << 1 | (ofEdgeAlongX ? 1L : 0L);
     }
 
     /** A stable number in [0, 1) for a cell and a salt: where a window is blown, where a hole is torn. */

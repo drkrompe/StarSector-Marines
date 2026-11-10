@@ -470,6 +470,7 @@ com.dillon.starsectormarines.ops.BuildingCutawayLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite
+com.dillon.starsectormarines.ops.battleview.BuildingWallsLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsForgePicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDoorPicksSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsEnvironmentPicksSuite
