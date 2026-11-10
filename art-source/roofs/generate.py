@@ -54,10 +54,11 @@ MATERIAL = {
              "scuffed olive primer at the edges; the edge a thick riveted armour band; holes punched craters in "
              "the plate with bent petals; the burnt state blackened steel I-beams.",
     'hull': "Material: the dorsal plating of a crashed Domain-era Explorarium survey mothership, now a roof over "
-            "its interior: broad stepped armour plates in pale teal-green and sage with khaki and bone segments, "
-            "dense kitbashed greebles, pipework and tarnished brass in each plate's machinery channel, rust-brown "
-            "grime in the seams, mottled weathering, crash dust and scorch, a vent block and a hatch, a few broad "
-            "hazard-yellow diagonals kept away from the swatch's edges; the edge the hull's heavy armour rim, "
+            "its interior: broad stepped armour slabs of different sizes in pale teal-green and sage with khaki and "
+            "bone segments, exactly where the guide puts their seams; the seams fine and low in contrast, never a "
+            "regular grid; kitbashed greebles, pipework and tarnished brass only in the one narrow machinery "
+            "channel; rust-brown grime in the seams, mottled weathering, crash dust and scorch, a vent block and a "
+            "hatch, no hazard stripes in the field; the edge the hull's heavy armour rim, "
             "buckled and scorched; holes punched craters in the plate with bent petals and torn structure; the "
             "burnt state blackened hull frames. Painted like Starsector's own derelict ship sprites.",
 }

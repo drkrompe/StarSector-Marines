@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.derelict.DerelictLook;
+import com.dillon.starsectormarines.battle.derelict.FallenHullLook;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
@@ -815,10 +816,18 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = hubs.size(); i < n; i++) {
             long u = hubs.id(i);
-            if (!view.visible(world.renderX(u), world.renderY(u),
-                    Math.max(DroneHub.VISUAL_CELLS, FlockLivery.CRADLE_VISUAL_CELLS) * AUTHORED_EXTENT_SLACK)) continue;
+            if (!view.visible(world.renderX(u), world.renderY(u), Math.max(FallenHullLook.MAX_CELLS,
+                    Math.max(DroneHub.VISUAL_CELLS, FlockLivery.CRADLE_VISUAL_CELLS)) * AUTHORED_EXTENT_SLACK)) continue;
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
+            // A fallen hull's own structures: its autoforge, and its stakes by their stage.
+            FallenHullLook.Piece piece = FallenHullLook.of(ctx.sim.derelictSecurity(), u);
+            ShuttleSpriteCache hullPiece = piece == null ? null : sprites.spriteByPath(piece.path());
+            if (hullPiece != null) {
+                emitWholeSprite(out, hullPiece, 0f, piece.cells() * cellPx / Math.max(1f, hullPiece.aspect), cx, cy,
+                        alphaMult);
+                continue;
+            }
             // A derelict zone's node wears its lineage's relay structure.
             DerelictLook nodeLook = derelictNodeLook(ctx, u);
             ShuttleSpriteCache node = nodeLook == null ? null : sprites.spriteByPath(nodeLook.nodeSpritePath());
@@ -1748,7 +1757,7 @@ public final class UnitRenderService implements RenderSystem {
                         : null;
                 DerelictWalkerAssets walkerArt = mechAssets != null
                         && mechChassis[r] == LayeredMechAppearance.CHASSIS_DERELICT
-                        ? sprites.derelictWalkerSprites() : null;
+                        ? sprites.derelictWalkerSprites(ctx.sim.identity().mechVariant(entityId)) : null;
                 if (walkerArt != null) {
                     // The derelict walker is its own chassis: a torso on reaching legs, drawn from its own rig.
                     // The line's sizes are the walker's rig at their own scale (`derelict-watch.md`).
