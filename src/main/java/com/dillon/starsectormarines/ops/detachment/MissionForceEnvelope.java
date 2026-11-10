@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
 import com.dillon.starsectormarines.ops.WellhollowBloomCampaign;
+import com.dillon.starsectormarines.ops.LongSurveyCampaign;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -61,7 +62,8 @@ public final class MissionForceEnvelope {
                         || mission.source == MissionSource.RUINS_EXPEDITION
                         || OpeningOperationKind.fromMission(mission) != null
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
-                        || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission))
+                        || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission)
+                        || LongSurveyCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST
                 || mission != null && mission.source == MissionSource.NEX_INVASION;
     }
@@ -99,6 +101,7 @@ public final class MissionForceEnvelope {
         if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 || DistrictEscortCampaign.isBattle(mission)) return 2;
         if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_SQUADS;
+        if (LongSurveyCampaign.isBattle(mission)) return LongSurveyCampaign.RECOMMENDED_SQUADS;
         if (CorvusWaylineCampaign.isBattle(mission)) return CorvusWaylineProgress.forMission(mission.id).squads;
         if (mission != null && SupplyRouteCampaign.owns(mission.id)) return 2;
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
@@ -107,6 +110,7 @@ public final class MissionForceEnvelope {
     /** Mechs or vehicles recommended beside the squads: end-game challenge work and the Corvus chapters name any. */
     public static int recommendedMachines(Mission mission) {
         if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_MACHINES;
+        if (LongSurveyCampaign.isBattle(mission)) return LongSurveyCampaign.RECOMMENDED_MACHINES;
         if (ShepherdRecoveryCampaign.isBattle(mission)) return WorkingShipCompany.MACHINES;
         return CorvusWaylineCampaign.isBattle(mission)
                 ? CorvusWaylineProgress.forMission(mission.id).recommendedMachines() : 0;

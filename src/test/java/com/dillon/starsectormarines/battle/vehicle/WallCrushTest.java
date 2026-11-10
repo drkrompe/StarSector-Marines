@@ -239,6 +239,10 @@ class WallCrushTest {
         assertTrue(view.isWalkable(4, 4));
         assertFalse(view.isWalkable(5, 4));
         assertFalse(grid.isWalkable(4, 4), "the live grid is untouched");
+        assertTrue(view.hasTag(4, 4, NavigationGrid.CellTag.BREACH), "an opened cell is marked for the route's price");
+        assertFalse(view.hasTag(5, 4, NavigationGrid.CellTag.BREACH), "a wall it cannot push is not");
+        assertFalse(view.hasTag(3, 4, NavigationGrid.CellTag.BREACH), "nor is open ground");
+        assertFalse(grid.hasTag(4, 4, NavigationGrid.CellTag.BREACH), "nor anything on the live grid");
         for (int y = 0; y < SIZE; y++) for (int x = 0; x < SIZE; x++) {
             if (x == 4 && y == 4) continue;
             assertEquals(grid.isWalkable(x, y), view.isWalkable(x, y), "cell " + x + "," + y);

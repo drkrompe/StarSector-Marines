@@ -117,7 +117,14 @@ public class NavigationGrid {
          * so a heavy cannot drive through it and a locked door shut as one opens only by its lock. Movement, sight and
          * cover never read it.
          */
-        HARDENED;
+        HARDENED,
+        /**
+         * Set only on a breach view ({@code WallCrush#breachView}): a cell open there only because a wall-crushing
+         * body would push it down. A walker's route pays {@link ClearanceRoutePlanner#BREACH_COST} times the length
+         * its centre crosses inside one, so it breaches only where going round is dearer. The live grid never carries
+         * it.
+         */
+        BREACH;
 
         public long mask() { return 1L << ordinal(); }
     }
