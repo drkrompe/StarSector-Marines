@@ -2239,10 +2239,25 @@ that reads pavement are unchanged, and it crosses a street only on the apron
 against the wall. It is the last skin laid (`StormDriftStage`, after
 `RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
 laid only on street with no surface of its own, so a drift laid earlier stripped
-the asphalt off the street beside a wall. A living world's storms pile up nothing. The other hazards are
-carried for adaptations still to come (storm banks, sealed habitats, hardened
-buildings); a bank round the town rarely has room on maps whose town fills the
-frame, and the rest need art the game does not have yet.
+the asphalt off the street beside a wall. A living world's storms pile up nothing.
+
+A desert-like storm world's town banks earth against its weather (`StormBank`,
+owner): on a desert or a rock under storms, a graded berm ten cells through runs
+along the map's windward edge, ramped from the town's side. The wind is the
+planet's (`Climate.wind`, drawn once from the market), so the bank and the
+drifts face the same way. It is planned before anything grows: its bands are
+held from growth (`Landscape.withHeld`) and the strip from the edge to the bank
+is kept (`Landscape.withKept`), so no place grows onto it or round it onto its
+windward side, and a Raid site sets every place leeward of it
+(`StormBank.leeward`) and turns its back to the wind, so the company never lands
+on the windward side. A pass is planned where a road the plan already knows
+leaves the map that way (a works' feeder), and the landscape pass raises the
+rest through `RidgePlanner`, which breaks it again wherever a road, a building or
+an access route crosses and proves the ground on both sides stays one: cover
+and a height to hold, never a seal. It stands past the edge reservation the
+landscape pass keeps, or no segment fits. A mine's pit stops short of it. The
+other hazards are carried for adaptations still to come (sealed habitats,
+hardened buildings, snow fences); those need art the game does not have yet.
 
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's
@@ -2314,12 +2329,15 @@ their banks; venus-like worlds are graded amber under a slow haze; cast-iron and
 metallic worlds are graded darker and cooler, ground, hills and formations alike, with
 metal flecks glinting in the rock.
 
-**A signature is detail, never a rule.** Crater rims and fissures are terrain the stock
-hills' plan takes under the same fit and detour proof: a rim is raised rock, open by at
-least a third of the way round so it seals no island, and a fissure is the excavation
-contract (impassable, seen and shot across). Everything else is presentation: crater
-bowls and vent mounds are marks the renderer draws (`CellTopology.signatureMarks`),
-cracked fissure banks are the ground's cosmetic blast skin, ejecta and rubble are
+**A signature is detail, never a rule.** Crater rims are terrain the stock hills' plan
+takes under the same fit and detour proof: raised rock, open by at least a third of the
+way round so it seals no island. Fissures are cracks drawn in the ground, jagged lines
+opening widest in the middle with hairline branches, walked over like the ground round
+them; the first pass cut them as narrow trench excavations, which read as trenches, and
+that arm stays behind `battle.signature.fissureTrench` until the owner picks. Everything
+else is presentation: crater bowls, vent mounds and cracks are marks the renderer draws
+(`CellTopology.signatureMarks`), cracked fissure banks are the ground's cosmetic blast
+skin, ejecta and rubble are
 passable field stones with no cover, and grade, flecks, haze and vapour are drawn, never
 simulated (`SignatureRenderSystem`, look suite `planet-signature-look`). The haze
 and vapour draw over the props and under the fog and every unit, so they soften the

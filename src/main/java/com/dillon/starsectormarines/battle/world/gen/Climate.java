@@ -14,10 +14,14 @@ import java.util.Set;
  * {@link StormWind}). The others are carried so the next adaptations read the same fact rather than a second
  * distillation.
  *
+ * <p>{@code wind} is the side the prevailing wind blows from, one fact for every adaptation that faces it (a drift on
+ * a wall's windward face, a storm bank on the town's windward edge). It is the planet's, drawn once from the place
+ * ({@link ClimateZoning}), so every battle on a world faces the same way. Never null.
+ *
  * <p>{@link #NONE} is the climate of every battle with no campaign market behind it (fixtures, story maps, previews),
  * so a map that never declared weather is the map it was.
  */
-public record Climate(Set<Hazard> hazards) {
+public record Climate(Set<Hazard> hazards, StormWind.Side wind) {
 
     /** One thing the world does to the people living on it. */
     public enum Hazard {
@@ -36,7 +40,13 @@ public record Climate(Set<Hazard> hazards) {
     /** No weather the generator answers to. */
     public static final Climate NONE = new Climate(EnumSet.noneOf(Hazard.class));
 
+    /** A climate whose wind blows from the west. */
+    public Climate(Set<Hazard> hazards) {
+        this(hazards, StormWind.Side.WEST);
+    }
+
     public Climate {
+        if (wind == null) wind = StormWind.Side.WEST;
         hazards = hazards == null || hazards.isEmpty()
                 ? Collections.unmodifiableSet(EnumSet.noneOf(Hazard.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(hazards));
