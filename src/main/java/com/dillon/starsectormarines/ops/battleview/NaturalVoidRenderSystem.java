@@ -73,6 +73,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private List<PitMachines.Machine> machines = List.of();
     /** The drop this instance draws is a glacial crevasse. */
     private boolean ice;
+    /** The rise this instance draws is a crevasse's ice wall. */
+    private boolean frozenRise;
+    /** How much of a rise's shadow a snow floor takes, as a share of a rock floor's. */
+    static final float ICE_FLOOR_SHADE = .6f;
     /** A dry drop's colours (a canyon, a dry gorge), or null for a drop with water, lava or ice in it. */
     private DryVoidLook.Palette dry;
     /** A dry drop's floor, and a toxic gorge's sludge, drawn into this drop's order. */
@@ -208,6 +212,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
         dry = rising ? null : DryVoidLook.of((NaturalVoid) look);
+        frozenRise = rising && GlacialVoidRenderSystem.frozen((NaturalRise) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -234,10 +239,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             NaturalVoidField.Band band = field.bands.get(k);
             float[] c = new float[band.count * 3];
             for (int q = 0; q < band.count; q++) {
-                if (rising && k == n) plateau(band, q, seed, c);
+                if (rising && k == n && frozenRise) IceVoidLook.snowfield(band, q, seed, c);
+                else if (rising && k == n) plateau(band, q, seed, c);
                 else if (lava) LavaVoidLook.rock(band, q, k, seed, field, c);
                 else if (pit) PitVoidLook.rock(band, q, k, seed, c);
-                else if (ice) IceVoidLook.ice(band, q, k, seed, c);
+                else if (ice || frozenRise) IceVoidLook.ice(band, q, k, seed, c);
                 else if (dry != null) DryVoidLook.rock(dry, band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
@@ -248,7 +254,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         for (int q = 0; q < fray.count; q++) {
             if (lava) LavaVoidLook.rock(fray, q, 0, seed, field, frayColours);
             else if (pit) PitVoidLook.rock(fray, q, 0, seed, frayColours);
-            else if (ice) IceVoidLook.ice(fray, q, 0, seed, frayColours);
+            else if (ice || frozenRise) IceVoidLook.ice(fray, q, 0, seed, frayColours);
             else if (dry != null) DryVoidLook.rock(dry, fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
@@ -283,7 +289,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 // A lava rift's scorched lip ends hard against the plain, softened by the rift's light over it; a
                 // crevasse's cornice and a dry drop's rim go over to the plain's own tone, so their end needs no
                 // fading. A partly covering piece would also thin the ground target's alpha, read as shade.
-                if ((lava || ice || dry != null) && at[o + 7] < 1f) continue;
+                if ((lava || ice || frozenRise || dry != null) && at[o + 7] < 1f) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
                         frayColours[q * 3], frayColours[q * 3 + 1], frayColours[q * 3 + 2], at[o + 7] * alpha);
@@ -291,6 +297,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             // A rise's shadow over the floor at its foot, and over the fray.
             NaturalVoidField.Band shade = field.floorShade;
             float strength = FLOOR_SHADE * (sun == null ? 1f : Math.min(1f, sun.shadowStrength() / .75f));
+            // Shadow on snow is the sky's blue, and lighter: grey over a snow floor reads as dirt.
+            float shadeR = frozenRise ? IceVoidLook.SHADE_R : .02f, shadeG = frozenRise ? IceVoidLook.SHADE_G : .03f;
+            float shadeB = frozenRise ? IceVoidLook.SHADE_B : .06f;
+            if (frozenRise) strength *= ICE_FLOOR_SHADE;
             qd = shade.quads;
             at = shade.attrs;
             for (int q = 0; q < shade.count; q++) {
@@ -298,7 +308,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 if (!inView(at[o], at[o + 1], 1f, margin) || !onMap(at[o], at[o + 1])) continue;
                 mesh.appendQuad(sx(qd[o], 1f), sy(qd[o + 1], 1f), sx(qd[o + 2], 1f), sy(qd[o + 3], 1f),
                         sx(qd[o + 4], 1f), sy(qd[o + 5], 1f), sx(qd[o + 6], 1f), sy(qd[o + 7], 1f),
-                        .02f, .03f, .06f, at[o + 7] * strength * alpha);
+                        shadeR, shadeG, shadeB, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
             if (pit && !belts.isEmpty()) drawBelts(FireLight.clock(ctx.animationTimeSeconds));
@@ -308,6 +318,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     // ----- projection, shared with the lava rift's drawing -----
 
     NaturalVoidField field() { return field; }
+
+    /** Whether this instance draws a rise, the land standing up from the floor, rather than a drop. */
+    boolean rising() { return rising; }
 
     BattleCamera camera() { return cam; }
 
@@ -322,7 +335,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
      * has no drop or its shape is not yet worked out.
      */
     boolean begin(RenderContext ctx, DrawList out) {
-        if (ctx.sim.getTopology().naturalVoid() == null || field == null || builtFor != ctx.sim.getTopology()) return false;
+        if (look(ctx.sim.getTopology()) == null || field == null || builtFor != ctx.sim.getTopology()) return false;
         this.out = out;
         this.cam = ctx.camera;
         this.alpha = ctx.alphaMult;
@@ -552,7 +565,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, .46f, .41f, .34f, alpha);
                 }
                 float dark = 1f - Math.min(1f, light[r]);
-                if (ice) {
+                if (frozenRise) {
+                    // An ice wall seen from the floor: shade lit through blue, and no depth to fall into.
+                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.SHADE_R,
+                            IceVoidLook.SHADE_G, IceVoidLook.SHADE_B, dark * .6f * alpha);
+                } else if (ice) {
                     // Ice in shade is lit through blue, not darkened grey; the crevasse falls to a deep blue.
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.SHADE_R,
                             IceVoidLook.SHADE_G, IceVoidLook.SHADE_B, dark * .6f * alpha);

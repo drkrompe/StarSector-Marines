@@ -25,7 +25,7 @@ import java.util.List;
  * the size-4 Raid site (seed 7) as {@code PlanetGroundLookSuite} builds it, on a plain barren rock as the control and
  * on a bombarded, venus-like, unstable, cast-iron and cryovolcanic world. Each type is framed whole
  * ({@code <type>-whole.png}), at play zoom on the town ({@code <type>-town.png}) and at play zoom on open country
- * ({@code <type>-country.png}), look preset. Nothing is played.
+ * ({@code <type>-country.png}, centred on the first mark the signature placed: a crater, vent or crack), look preset. Nothing is played.
  *
  * <p>{@code -Dsnapshot.signature.types=a,b} renders only those vanilla type ids.
  */
@@ -66,8 +66,12 @@ public final class PlanetSignatureLookSuite implements SnapshotSuite {
                             context.modRoot(), 1920, 1080, w * 0.3f, h * 0.5f,
                             BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
                             .withMissionMarkers().render(sim, "")));
+                    // Open country on the first mark the signature placed, so the shot shows it whatever the layout.
+                    float[] marks = sim.getTopology().signatureMarks();
+                    int at = marks.length > 2 && marks[0] < 0 ? 3 : 0;
+                    float cx = marks.length > at + 1 ? marks[at] : w * 0.2f, cy = marks.length > at + 1 ? marks[at + 1] : h * 0.25f;
                     out.add(new SnapshotArtifact(type + "-country.png", BattleReviewFrameRenderer.look(
-                            context.modRoot(), 1920, 1080, w * 0.2f, h * 0.25f,
+                            context.modRoot(), 1920, 1080, cx, cy,
                             BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
                             .withMissionMarkers().render(sim, "")));
                 }

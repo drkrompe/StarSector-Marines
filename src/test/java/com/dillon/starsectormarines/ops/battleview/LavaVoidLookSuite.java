@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
 import com.dillon.starsectormarines.tools.snapshot.FfmpegVideo;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -51,12 +52,16 @@ public final class LavaVoidLookSuite implements SnapshotSuite {
                 eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
     }
 
-    /** A shallow lava river: a low bank of cooled crust and the running melt, {@code depth} metres down (4 by default). */
+    /**
+     * A shallow lava river ({@link NaturalVoidZoning#LAVA_RIVER}, 4 m, the owner's pick), its steps scaled to put the
+     * melt {@code depth} metres down.
+     */
     static NaturalVoid river(float eye, float depth) {
-        return new NaturalVoid(NaturalVoid.Style.LAVA, List.of(
-                new NaturalVoid.Step(1.6f * depth / 4f, .45f),
-                new NaturalVoid.Step(depth, .9f)),
-                eye, "graphics/battle/voids/basalt-wall.png", 12f, 11);
+        NaturalVoidZoning.Drop river = NaturalVoidZoning.LAVA_RIVER;
+        float f = depth / river.steps().get(river.steps().size() - 1).depthMeters();
+        List<NaturalVoid.Step> steps = new ArrayList<>();
+        for (NaturalVoid.Step step : river.steps()) steps.add(new NaturalVoid.Step(step.depthMeters() * f, step.insetCells()));
+        return new NaturalVoid(river.style(), steps, eye, river.wallTexture(), river.wallTileMeters(), 11);
     }
 
     /** The rift deepening and shallowing along its length: 40 m in the west, 12 m by the bridge, 4 m in the east. */

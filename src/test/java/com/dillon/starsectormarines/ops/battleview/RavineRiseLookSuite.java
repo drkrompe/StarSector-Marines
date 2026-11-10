@@ -37,6 +37,8 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
     static final int W = 200, H = 120;
     static final float PLAY = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS;
     static final int PAN_FRAMES = 240;
+    /** {@code -Dsnapshot.ravine.ice=true}: a crevasse's ice walls over a snow floor in place of the ravine's rock. */
+    static final boolean ICE = Boolean.getBoolean("snapshot.ravine.ice");
     static final float REVIEW_CLOCK = 40f;
     /** The pillar's centre and radius, and the side canyon's column and half width, in cells. */
     static final int PILLAR_X = 62, PILLAR_R = 4, CANYON_X = 128, CANYON_HALF = 5;
@@ -51,6 +53,8 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
                 new NaturalRise.Step(11f * f, .5f),
                 new NaturalRise.Step(23f * f, 1.05f),
                 new NaturalRise.Step(36f * f, 1.6f)) : NaturalRise.bank(height);
+        if (ICE) return new NaturalRise(NaturalRise.Style.ICE_WALL, steps, eye, "graphics/battle/voids/ice-wall.png",
+                10f, 11);
         return new NaturalRise(NaturalRise.Style.RAVINE_WALL, steps, eye, "graphics/battle/voids/gorge-wall.png", 14f,
                 11);
     }
@@ -84,7 +88,7 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
             boolean vary = Boolean.getBoolean("snapshot.ravine.vary");
             boolean sheer = Boolean.getBoolean("snapshot.ravine.sheer");
             String tag = String.format(Locale.ROOT, "ravine-%03dm%s%s-eye%03dm", Math.round(height), vary ? "-vary" : "",
-                    sheer ? "-sheer" : "",
+                    (sheer ? "-sheer" : "") + (ICE ? "-ice" : ""),
                     Math.round(eye));
             try (BattleSimulation sim = ravine(vary ? varying(walls(height, eye, sheer)) : walls(height, eye, sheer))) {
                 out.add(shot(context, sim, tag + "-1-wall-foot.png", 40f, centre(40) - 3f, PLAY));
@@ -157,7 +161,7 @@ public final class RavineRiseLookSuite implements SnapshotSuite {
                     continue;
                 }
                 grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.DIRT);
+                topology.setGroundKind(x, y, ICE ? GroundKind.SNOW : GroundKind.DIRT);
             }
         }
         topology.setNaturalRise(look);
