@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -20,6 +21,9 @@ import java.util.List;
  *       scout car and swinging north round it, so their guns come round and their modules bend at the hinges.</li>
  *   <li>{@code carrier-turn}: each carrier ordered to a point behind it, so it turns hard and its train bends to the
  *       hinge's stop and straightens again.</li>
+ *   <li>{@code carrier-reverse-<weight>}: each carrier driven by hand, as direct control drives it: full left lock
+ *       forward, so its train bends round, then straight back, so the cab pushes the bent modules further round until
+ *       the hinge rams stop them.</li>
  *   <li>{@code carrier-wrecks}: the three wrecked where they stand.</li>
  * </ul>
  * Each at play zoom and close. Opt-in: a look study, not part of {@code all}.
@@ -43,6 +47,7 @@ public final class MidlineCarriersLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         out.addAll(LookReview.record(context.modRoot(), line()));
         out.addAll(LookReview.record(context.modRoot(), turn()));
+        for (int i = 0; i < LINE.length; i++) out.addAll(LookReview.record(context.modRoot(), reverse(i)));
         out.addAll(LookReview.record(context.modRoot(), wrecks()));
         return out;
     }
@@ -83,6 +88,29 @@ public final class MidlineCarriersLookSuite implements SnapshotSuite {
                 LookReview.View.follow("close-light", placement, 10f, "light"),
                 LookReview.View.follow("close-medium", placement, 12f, "medium"),
                 LookReview.View.follow("close-heavy", placement, 14f, "heavy")), 600);
+    }
+
+    /** Ticks of full left lock forward before the hull backs up, and ticks backing up. */
+    static final int LOCK_TICKS = 90, BACK_TICKS = 120;
+
+    static LookReview.Shot reverse(int i) {
+        return LookReview.Shot.of("carrier-reverse-" + NAMES[i], W, H, placement -> {
+            BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
+            long hull = spawn(sim, placement, i, W / 2f - 6f, H / 2f - 4f, -90f);
+            if (!sim.directControl().enter(hull)) throw new IllegalStateException("direct control refused the carrier");
+            int[] tick = {0};
+            placement.beforeTick(s -> {
+                int t = tick[0]++;
+                // Throttle is the intent's y, steering its x: full lock left forward, then straight back.
+                ManualIntent drive = t < LOCK_TICKS ? new ManualIntent(-1f, 1f, Float.NaN, Float.NaN, false, false)
+                        : t < LOCK_TICKS + BACK_TICKS ? new ManualIntent(0f, -1f, Float.NaN, Float.NaN, false, false)
+                        : ManualIntent.NEUTRAL;
+                s.directControl().submit(drive);
+            });
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 10f + 2f * i, NAMES[i]),
+                LookReview.View.followAtPlay(placement, NAMES[i])), LOCK_TICKS + BACK_TICKS + 12)
+                .withStills(LOCK_TICKS / 6, (LOCK_TICKS + BACK_TICKS / 3) / 6, (LOCK_TICKS + BACK_TICKS) / 6);
     }
 
     static LookReview.Shot wrecks() {

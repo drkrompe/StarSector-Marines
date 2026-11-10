@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-10 — habitat: a sealed town's wall is an envelope with lock chambers, and story maps play a sealed layout. Earlier, 2026-11-10 — habitat: a hazardous world's town sealed inside one wall with a few locks. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -773,7 +773,9 @@ the same way along its whole length), which would swell the road into the
 yard, and narrows a broader band that a narrower street band running the same
 way overlaps to that street's breadth, on the line within it nearest the
 narrower's, so a street holds one width along its length rather than swelling
-where its frontage steps back at an end or where it jogs and widens at once;
+where its frontage steps back at an end or where it jogs and widens at once,
+and drops a band that narrowing leaves a cell off a longer street it runs
+along (a lip of asphalt along the kerb);
 it refuses a *pill* (a short band, under four breadths long, met by no
 crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
@@ -782,7 +784,11 @@ swept as a street to where its cells end, because left paved it reads as a
 stub of street with no road on it. It must run on at least two of its
 breadths past the street it leaves; a shorter one is a yard's mouth opening
 off the street and keeps its paving, since swept it is a blob of asphalt
-stepping out of the kerb line. Its mouth takes a kerb radius only where
+stepping out of the kerb line. Spurs do not comb: one within ten cells
+along the street of a side street or spur leaving its other side, off that
+one's line, keeps its paving (of two spurs, the one reaching further is
+swept), so yards opening where their lots fall do not leave stubs on
+alternate sides. Its mouth takes a kerb radius only where
 the turn would lie wholly on street or footway; where the spur opens
 straight onto its yard the corner stays square rather than being cut off at
 the yard's edge. A street that jogs a cell sideways, and a *link* between two
@@ -2155,17 +2161,36 @@ head to the north:
   spout on its east edge pouring onto the line's head; ladles waiting, the
   pour pulpit and the charge racks east of the line, the slag heaped beyond.
   Without its art or room, the head is an open bath;
-- a feed path, a marked lane along the head row from the east wall to the
-  crucible's charge hopper, kept clear. It is generic until the feed's own
-  pieces land: the owner ruled out ore cars and rail ("Ore car does not make
-  sense for a space faring civilization"), and the hall reads as automated
-  heavy industry, not a period foundry;
+- the feed: a mag-rail up the west aisle from the dispatch end to a
+  decelerator stop at the head, beside the crucible's flank, one sealed feed
+  pod waiting on it and another derailed in the aisle. The hall reads as
+  automated, spacefaring heavy industry, never a period foundry (owner: "Ore
+  car does not make sense for a space faring civilization");
+- the slag pit beside the slag heaps, a crashed hover skid on its lip, and
+  the slag lane, a mag-rail down the east aisle with a hover skid stopped on
+  it;
 - a two-cell pour line down the middle, crossed every twelve rows by grate
   catwalks;
 - production lines branching off each side every sixteen rows, each a channel
   to a mould grid over its bed, with two cooling racks beyond, most laden
   with castings;
-- the dispatch end left clear.
+- the dispatch end clear of the line: the trench runs on under covers,
+  pallet bays are marked along it, and a finishing cell and a metrology bed
+  stand by;
+- overhead, drawn above the people under it but hidden under the hall's
+  roof until the roof fades (`ruins-forge-motions`): a crane runway down
+  each long wall, a cable tray beside the pour line with a length fallen to
+  the floor, a ladle lift hung under the spout, and another tipped over a
+  line junction. A crane girder lies fallen across the west aisle as cover;
+- wear laid under it all: scorch round the spout and the core's flank,
+  coolant by the racks, a floor drain in each aisle, oil and a hover
+  skid's thrust wash at dispatch. Markings, wear and overhead pieces are not work, so they never
+  turn a floor zone to deck plate.
+
+An overhead prop inside a building under its intact roof draws at what the
+roof's fade leaves of it (`PropMotionRenderSystem`): hidden while the roof is
+shut, whole once it has faded for the people inside. An overhead prop under no
+roof draws as before.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
@@ -2438,12 +2463,26 @@ continuous wall with a few locks, rather than a sealed door on every building. O
 the precinct path the settlement is a zoned town that is walled, the one place that
 pairing makes: streets, blocks and courts inside, ordinary doors on its buildings,
 and a wall drawn on the outline of what grew, like a garrison's. Its wall keeps two
-locks, where its widest roads meet it, and any more the map's road network needs
-to stay connected; each lock is marked with striped door lines, the outer door in
-the wall and the inner door a few cells in. It owns no emplacements. Outside is bare
+locks, where its widest roads meet it, any more the map's road network needs to
+stay connected, and one onto every stretch of open ground it borders that no road
+reaches (`SealedTown.groundLocks`), so it never seals a field off. The wall is an
+envelope, not a line (`SealedTown.envelope`): a one-cell outline read as a thin
+line wrapped round the town (owner). It stands three cells through on the town's
+own outermost ground (`SealedTown.band`), which is held back from the town's
+parcels before anything is built, so nothing is cut and it is as thick against a
+lane or a field as against open country; only a street running in the band keeps
+its way. Every sealed place on the map is walled as one: where a colony meets its
+suburb, or a city's districts meet, there is town, not wall. The envelope faces
+only the world outside: none along the map's edge, where the town runs on past
+it, and none against a walled place's own wall, so a compound standing in the town
+is no hole in it. Each lock is a chamber straight through it, floored in hazard
+stripes, with a leaf door (`WallGate`) on the town's outline and another at the
+envelope's inner face. It owns no emplacements. Outside is bare
 ground with no outlying places. The garrison stays its own walled compound. Radiation
 is answered the same way: the wall stands for the whole shielded envelope, roof
-included, as it does for air.
+included, as it does for air. A story map on such a world plays its mission's
+sealed layout (`story-map-pools.md`, Sealed layout): every town the mission names
+sealed where it stands.
 
 A habitat is presentation only and never moves a wall, door, window or road: the
 town plan, walkability, sight and every rule are the open town's on the same seed,
@@ -2453,10 +2492,9 @@ fort lot's walls to their works, and never touches the dark installation concret
 which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
-Still to come, in this vocabulary: a lock built as a structure (doors, a
-chamber) rather than a marked floor, and locks sited onto open country rather than
-the garrison's ground; a sealed town for the maps that lay their town without
-precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
+Still to come, in this vocabulary: locks sited onto open country rather than
+the garrison's ground; an envelope with a raised look of its own (its top reads
+as a flat dark band from above); a sealed town for the maps that lay their town without precincts; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.

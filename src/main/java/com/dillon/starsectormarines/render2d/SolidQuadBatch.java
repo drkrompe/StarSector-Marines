@@ -106,6 +106,19 @@ public final class SolidQuadBatch {
         colData[c + 12] = r3;
     }
 
+    /**
+     * Replaces the colour of the quad appended last, corner by corner: twelve floats of {@code rgb} from {@code
+     * offset}, each vertex's {@code (r, g, b)} in vertex order; its alpha stays as appended.
+     */
+    public void setLastQuadColours(float[] rgb, int offset) {
+        int c = (quadCount - 1) * COL_FLOATS_PER_QUAD;
+        for (int v = 0; v < VERTS_PER_QUAD; v++) {
+            colData[c + v * 4] = rgb[offset + v * 3];
+            colData[c + v * 4 + 1] = rgb[offset + v * 3 + 1];
+            colData[c + v * 4 + 2] = rgb[offset + v * 3 + 2];
+        }
+    }
+
     /** Writes {@code (r,g,b,a)} to all four verts of the quad at {@link #quadCount}. */
     private void writeQuadColor(float r, float g, float b, float a) {
         int c = quadCount * COL_FLOATS_PER_QUAD;

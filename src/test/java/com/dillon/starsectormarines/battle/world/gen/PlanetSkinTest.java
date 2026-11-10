@@ -39,6 +39,18 @@ class PlanetSkinTest {
     }
 
     @Test
+    void townsAreSealedWhereverTheHabitatIsEnclosedAndBareRockIsAirless() {
+        for (SurfacePalette palette : SurfacePalette.values()) {
+            boolean enclosed = palette == SurfacePalette.ROCK || palette == SurfacePalette.IRRADIATED
+                    || palette == SurfacePalette.TOXIC;
+            assertEquals(enclosed, PlanetSkin.sealsTowns(world(palette)), palette.toString());
+        }
+        assertTrue(PlanetSkin.sealsTowns(world(SurfacePalette.ARID)
+                .withClimate(new Climate(EnumSet.of(Climate.Hazard.TOXIC)))),
+                "a desert under toxic air is sealed");
+    }
+
+    @Test
     void bareRockIsAirlessUnlessTheProfileSaysOtherwise() {
         assertEquals(Set.of(Climate.Hazard.AIRLESS), PlanetSkin.climateOf(world(SurfacePalette.ROCK)).hazards());
         assertEquals(Climate.NONE, PlanetSkin.climateOf(world(SurfacePalette.FROZEN)));

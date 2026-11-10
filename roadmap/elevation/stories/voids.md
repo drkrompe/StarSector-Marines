@@ -593,6 +593,16 @@ Laws):
    whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
    compound view full of buildings. Look suite:
    `createSnapshots -Psnapshot=building-faces-look`.
+   Freestanding walls (wall cells no building owns) stand up the same way
+   (`FreestandingWalls`): each connected run stands at its kind's height, read
+   from its surface: a sealed town's perimeter 7 m, an installation's 5 m, a
+   blast wall or a fort's works 3.5 m, a compound's masonry or an authored wall
+   2.4 m, an olive garden wall 1.6 m; a ruin's stub, or a sealed shell too short
+   to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
+   the view's centre run to a cap of its cells at that lift, drawn before the
+   buildings' faces and re-formed when a breach changes the topology. Fences,
+   sandbags and barriers are doodads and still lie flat. A diagonal wall stands
+   as a staircase of cell blocks.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag
@@ -615,6 +625,19 @@ Laws):
      A broken first storey left standing was tried: under the 120 m eye it
      stands only a few pixels deep at play zoom, so it was dropped.
 
+   **Cutaway** (owner: "a bit unclear how it will play when we cutaway
+   reveal into structures"). A building's roof fades when the player sees
+   inside it (`BuildingVisibilityPass`). With the fade:
+   - the walls turned to the camera drop to knee height
+     (`BuildingFaces.standing`, 0.6 m);
+   - the far walls' inner sides come up to frame the rooms;
+   - nothing pops, and the walls stay opaque.
+
+   A stood-up roof, or a far wall, is drawn over the street just past its
+   building. A unit standing there, outside any building, gets a small mark
+   in its side's colour over the roofs, and fog of war still hides enemies.
+   The owner chose the knee stub over a ghosted full-height wall. Look suite:
+   `createSnapshots -Psnapshot=building-cutaway-look`.
    Each segment's kind and its building's habitat are settled once per
    topology change. Windows and doors are drawn only where a cell spans
    10 px or more. Whole-map stress ROOFS is about 0.5 to 1 ms (noisy);
@@ -727,7 +750,10 @@ Laws):
      4 m river (`NaturalVoidZoning.forPalette`), and its older flows lie beside
      it. Its scorched lip is laid whole out to the fray's wandering end, and
      the fray lies on the drop's own cells outside the smoothed edge, so the
-     bank shows no cell steps (`NaturalVoidField`). Look suite
+     bank shows no cell steps (`NaturalVoidField`). Its lip, ledges and melt
+     are coloured corner by corner, each corner the mean of the pieces that
+     meet there (`CornerShading`), so the glow and ash run smoothly across
+     the small pieces rather than stepping; the other drops stay flat. Look suite
      `lava-flow-look`.
      - **The source.** The river is fed from its end farthest from the town it
        runs past (the place whose claimed ground comes nearest the river), so

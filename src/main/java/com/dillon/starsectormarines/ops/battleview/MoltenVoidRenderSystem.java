@@ -94,6 +94,13 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     private final float[] puff = new float[2];
 
     private final float[] rgb = new float[3];
+    /**
+     * The melt's pieces coloured corner by corner ({@link CornerShading}), so its heat runs smoothly across them
+     * rather than stepping piece to piece: which corners meet, and this frame's flat and corner colours.
+     */
+    private CornerShading meltCorners;
+    private NaturalVoidField.Band meltBand;
+    private float[][] meltFlat, meltShaded;
 
     MoltenVoidRenderSystem(NaturalVoidRenderSystem drop, BattleSprites sprites) {
         this.drop = drop;
@@ -196,11 +203,20 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float mw = 1f - Math.abs(2f * m1 - 1f);
         PolyMesh mesh = drop.poly();
         float[] qd = band.quads, at = band.attrs;
+        if (meltBand != band) {
+            meltBand = band;
+            meltCorners = new CornerShading(band);
+            meltFlat = new float[][] {new float[band.count * 3]};
+            meltShaded = new float[][] {new float[band.count * 12]};
+        }
+        // Each piece's heat, then its corners' shared colours: worked a little past the view, so a piece at the
+        // view's edge meets neighbours coloured this frame.
+        float[] flat = meltFlat[0];
+        float reach = margin + cam.cellPxSize() * 2f;
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
             float s = drop.scale(band.z(q, 4));
-            if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
-            float px = cam.cellPxSize() * s;
+            if (!drop.inView(at[o], at[o + 1], s, reach)) continue;
             float x = at[o], y = at[o + 1], in = at[o + 3];
             // The heat's streaks laid along the flow and carried down it, two phases fading one into the other.
             float[] fl = band.flow;
@@ -214,13 +230,22 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             // A foundry's melt is kept hot: it runs bright from wall to wall.
             if (drop.foundry()) heat = .62f + .38f * Math.min(1f, heat);
             LavaVoidLook.molten(heat, rgb);
+            System.arraycopy(rgb, 0, flat, q * 3, 3);
+        }
+        meltCorners.shade(meltFlat, meltShaded);
+        float[] shaded = meltShaded[0];
+        for (int q = 0; q < band.count; q++) {
+            int o = q * 8;
+            float s = drop.scale(band.z(q, 4));
+            if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
+            float px = cam.cellPxSize() * s;
             float s0 = drop.scale(band.z(q, 0)), s1 = drop.scale(band.z(q, 1));
             float s2 = drop.scale(band.z(q, 2)), s3 = drop.scale(band.z(q, 3));
-            mesh.appendQuad(wx(qd[o], qd[o + 1], s0, px, time), wy(qd[o], qd[o + 1], s0, px, time),
+            mesh.appendShadedQuad(wx(qd[o], qd[o + 1], s0, px, time), wy(qd[o], qd[o + 1], s0, px, time),
                     wx(qd[o + 2], qd[o + 3], s1, px, time), wy(qd[o + 2], qd[o + 3], s1, px, time),
                     wx(qd[o + 4], qd[o + 5], s2, px, time), wy(qd[o + 4], qd[o + 5], s2, px, time),
                     wx(qd[o + 6], qd[o + 7], s3, px, time), wy(qd[o + 6], qd[o + 7], s3, px, time),
-                    rgb[0], rgb[1], rgb[2], alpha);
+                    shaded, q * 12, alpha);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
         // The crust, two layers drifting downstream, each fading out as the other comes in.

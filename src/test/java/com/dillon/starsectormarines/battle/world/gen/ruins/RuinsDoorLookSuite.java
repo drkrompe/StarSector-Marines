@@ -88,6 +88,18 @@ public final class RuinsDoorLookSuite implements SnapshotSuite {
                 out.add(shot(context, sim, m[0] + .5f, m[1] + .5f, 20f, "store-sealed.png",
                         "A sealed store's three-cell blast door"));
             }
+            // A two-cell hall door torn out to four, as a derelict hall frame leaves it: the drawing only (the cells
+            // stay as they are; the frame's own opening is the derelict watch's).
+            for (RuinsDelve.LeafDoor d : doors) {
+                if (d.cargo() || d.length() != 2) continue;
+                RuinsDelve.Area s = d.span();
+                RuinsDelve.Area wide = d.alongX() ? new RuinsDelve.Area(s.left() - 1, s.bottom(), s.right() + 1, s.top())
+                        : new RuinsDelve.Area(s.left(), s.bottom() - 1, s.right(), s.top() + 1);
+                sim.getRuinsWorks().doorStates().tear(d, wide);
+                out.add(shot(context, sim, s.centreX() + .5f, s.centreY() + .5f, 16f, "hall-door-torn-wide.png",
+                        "Hall door, " + word(RuinsDelve.DoorStance.TORN)));
+                break;
+            }
             // Unlocked: the passage opens and the leaves stand withdrawn into the walls.
             for (LockedDoor door : sim.lockedDoors()) door.settle(sim, true);
             out.add(shot(context, sim, vx, vy, 24f, "vault-open.png", "The vault's blast door, opened by its power"));
@@ -100,6 +112,8 @@ public final class RuinsDoorLookSuite implements SnapshotSuite {
             case ANSWERS -> "still powered: it parts for whoever comes through (shown shut)";
             case DEAD -> "dead part-open: its leaves stand in its end cells";
             case FORCED -> "forced long ago: one leaf torn out onto the floor";
+            case SEALED -> "sealed: shut across a way that is wall, its lamps dark";
+            case TORN -> "torn out wide, jambs and all: rubble at both ends, one leaf on the floor";
         };
     }
 
