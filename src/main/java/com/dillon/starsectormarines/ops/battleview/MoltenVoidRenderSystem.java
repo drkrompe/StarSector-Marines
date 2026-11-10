@@ -31,10 +31,17 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     static final float CRUST_TILE_CELLS = 22f;
     /** How fast the crust drifts, cells a second, and how long one layer drifts before it fades into the other. */
     static final float CRUST_SPEED = .22f, CRUST_PERIOD = 14f;
+    /** The farthest a crust layer is carried before it fades into the next, cells; and the most a piece's corner bends
+     * from its cell's drift, cells. */
+    static final float CRUST_RUN_CELLS = 5f, BEND_CELLS = .35f;
     /** How fast the heat under the crust runs, cells a second. */
     static final float MELT_SPEED = .5f;
     /** A shallow channel's crust drift and its heat's run, cells a second ({@link LavaVoidLook#runShare}). */
     static final float CHANNEL_CRUST_SPEED = 1.1f, CHANNEL_MELT_SPEED = 2.4f;
+    /** How long the heat's streaks are carried before they fade into the next, seconds. */
+    static final float MELT_PERIOD = 8f;
+    /** The most the flow quickens the melt against an even reach ({@link ChannelFlow}), so a pinch never smears it. */
+    static final float FASTEST = 2.5f;
     /** How far the floor ripples in the heat, in cells. */
     static final float SHIMMER_CELLS = .045f;
     /** A soft round light, white, as the city drop's lamps. */
@@ -59,7 +66,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     private final BattleSprites sprites;
 
     private NaturalVoidField builtFrom;
-    /** Floor cells: {@code {x, y, crust cover, flowX, flowY}} in the field's cells. */
+    /** Floor cells: {@code {x, y, crust cover, velocityX, velocityY}} in the field's cells, the velocity the flow's. */
     private float[] floor = new float[0];
     private int floorCount;
     /** Field cells over the floor, for the smoke's footing. */
@@ -70,11 +77,14 @@ final class MoltenVoidRenderSystem implements RenderSystem {
     /** How fast this rift's crust drifts and its heat runs, cells a second, from how deep its melt lies. */
     private float crustSpeed = CRUST_SPEED, meltSpeed = MELT_SPEED;
     /**
-     * The melt's mean bearing downstream, and how far the crust drifts along it rather than each cell's own: a crust
-     * drifting a long way along bearings that differ cell to cell tears its image apart between them, so a running
-     * channel's crust travels as one sheet and a crawling rift's follows its bends.
+     * The crust layer being laid: how far, in cells, it has drifted per unit of the flow's velocity, and the velocity
+     * at the cell it is laid on. Each corner of a piece drifts by its own velocity, so the image bends with the flow
+     * and never tears between cells.
      */
-    private float meanFlowX = 1f, meanFlowY = 0f, sheet;
+    private float layerDrift, layerVx, layerVy;
+    /** How long one crust layer drifts before fading into the next, seconds: {@link #CRUST_PERIOD} at most. */
+    private float crustPeriod = CRUST_PERIOD;
+    private final float[] vel = new float[2];
 
     private final float[] rgb = new float[3];
 
@@ -123,11 +133,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                                     field.sample(field.reach[n], x + 1f, y + 1f)));
                     float most = Math.max(in, least);
                     float cover = most > LavaVoidLook.CRUST_EDGE_CELLS - .7f ? 1f : 0f;
-                    float gx = field.sample(field.edge, cx + .5f, cy) - field.sample(field.edge, cx - .5f, cy);
-                    float gy = field.sample(field.edge, cx, cy + .5f) - field.sample(field.edge, cx, cy - .5f);
-                    float len = (float) Math.hypot(gx, gy);
-                    float fx = len > 1e-4f ? -gy / len : 1f, fy = len > 1e-4f ? gx / len : 0f;
-                    if (Math.abs(fx) >= Math.abs(fy) ? fx < 0 : fy < 0) { fx = -fx; fy = -fy; }
+                    float[] v = carried(field, cx, cy);
+                    float fx = v[0], fy = v[1];
                     floor = grow(floor, floorCount * 5 + 5);
                     int o = floorCount++ * 5;
                     floor[o] = x; floor[o + 1] = y; floor[o + 2] = cover; floor[o + 3] = fx; floor[o + 4] = fy;
@@ -144,17 +151,21 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                 }
             }
         }
-        // One pace for the whole melt, from how deep it lies on the whole: a pace that changed along it would shear
-        // the crust's image between neighbouring cells.
+        // The melt's pace from how deep it lies on the whole: a shallow channel runs, a deep rift crawls. Along it the
+        // flow's own speed quickens it through a narrows or over a shallow.
         float floorMeters = field.gain == null || floorCount == 0 ? field.depth[n] : (float) (floorSum / floorCount);
         crustSpeed = crustSpeed(floorMeters);
-        // Torn well before a channel's full run: a sheet as soon as the melt runs at all.
-        sheet = LavaVoidLook.clamp01(LavaVoidLook.runShare(floorMeters) * 4f);
-        float sx = 0f, sy = 0f;
-        for (int c = 0; c < floorCount; c++) { sx += floor[c * 5 + 3]; sy += floor[c * 5 + 4]; }
-        float len = (float) Math.hypot(sx, sy);
-        if (len > 1e-3f) { meanFlowX = sx / len; meanFlowY = sy / len; }
+        // A crust carried far within one layer bends too far where the flow quickens: a running melt changes layers sooner.
+        crustPeriod = Math.min(CRUST_PERIOD, CRUST_RUN_CELLS / crustSpeed);
         meltSpeed = meltSpeed(floorMeters);
+    }
+
+    /** The flow's velocity at a point, held to {@link #FASTEST}: what the crust there is carried by. */
+    private float[] carried(NaturalVoidField field, float x, float y) {
+        field.flow.velocity(x, y, vel);
+        float speed = (float) Math.hypot(vel[0], vel[1]);
+        if (speed > FASTEST) { vel[0] *= FASTEST / speed; vel[1] *= FASTEST / speed; }
+        return vel;
     }
 
     private static float[] grow(float[] a, int need) {
@@ -174,6 +185,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float margin = cam.cellPxSize() * 2f;
         int seed = drop.seed();
         // The melt, each piece at its own depth along the rift.
+        float m1 = frac(time / MELT_PERIOD), m2 = frac(time / MELT_PERIOD + .5f);
+        float mw = 1f - Math.abs(2f * m1 - 1f);
         PolyMesh mesh = drop.poly();
         float[] qd = band.quads, at = band.attrs;
         for (int q = 0; q < band.count; q++) {
@@ -181,9 +194,14 @@ final class MoltenVoidRenderSystem implements RenderSystem {
             float s = drop.scale(band.z(q, 4));
             if (!drop.inView(at[o], at[o + 1], s, margin)) continue;
             float px = cam.cellPxSize() * s;
-            float x = at[o], y = at[o + 1], in = at[o + 3], fx = at[o + 4], fy = at[o + 5];
-            float along = x * fx + y * fy, across = -x * fy + y * fx;
-            float run = NaturalVoidField.Noise.fbm((along - time * meltSpeed) * .22f, across * .55f, seed + 21);
+            float x = at[o], y = at[o + 1], in = at[o + 3];
+            // The heat's streaks laid along the flow and carried down it, two phases fading one into the other.
+            float[] fl = band.flow;
+            float along = fl[q * 5], across = fl[q * 5 + 1], speed = Math.min(FASTEST, fl[q * 5 + 4]);
+            float carried = meltSpeed * MELT_PERIOD * speed * speed;
+            float r1 = NaturalVoidField.Noise.fbm((along - m1 * carried) * .22f, across * .55f, seed + 21);
+            float r2 = NaturalVoidField.Noise.fbm((along - m2 * carried) * .22f + 13f, across * .55f, seed + 22);
+            float run = mw * r1 + (1f - mw) * r2;
             float pulse = NaturalVoidField.Noise.value(x * .15f, y * .15f + time * .12f, seed + 23);
             float heat = .42f + .3f * run + .14f * pulse + .4f * (1f - LavaVoidLook.crustCover(in));
             LavaVoidLook.molten(heat, rgb);
@@ -199,7 +217,7 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         // The crust, two layers drifting downstream, each fading out as the other comes in.
         ShuttleSpriteCache crust = sprites.spriteByPath(CRUST_TEXTURE);
         if (crust != null && crust.pxW > 4) {
-            float p1 = frac(time / CRUST_PERIOD), p2 = frac(time / CRUST_PERIOD + .5f);
+            float p1 = frac(time / crustPeriod), p2 = frac(time / crustPeriod + .5f);
             float w1 = 1f - Math.abs(2f * p1 - 1f);
             float pa = w1 >= .5f ? p1 : p2, pb = w1 >= .5f ? p2 : p1;
             float wb = Math.min(w1, 1f - w1);
@@ -211,11 +229,14 @@ final class MoltenVoidRenderSystem implements RenderSystem {
                         margin)) continue;
                 float s = drop.scale(field.stepDepth(n, x + .5f, y + .5f)), px = cam.cellPxSize() * s;
                 float fx = floor[o + 3], fy = floor[o + 4];
-                if (sheet > 0f) { fx = LavaVoidLook.lerp(fx, meanFlowX, sheet); fy = LavaVoidLook.lerp(fy, meanFlowY, sheet); }
-                float run = crustSpeed * CRUST_PERIOD;
+                float run = crustSpeed * crustPeriod;
+                layerVx = fx;
+                layerVy = fy;
+                layerDrift = run * pa;
                 crustCell(crust, field, x, y, fx * run * pa + shiftA, fy * run * pa + shiftA * .6f, s, px, time,
                         alpha);
                 if (wb > .01f) {
+                    layerDrift = run * pb;
                     crustCell(crust, field, x, y, fx * run * pb + shiftB, fy * run * pb + shiftB * .6f, s, px,
                             time, wb * alpha);
                 }
@@ -319,6 +340,13 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float bx = wx(qx[1], qy[1], sb, px, time), by = wy(qx[1], qy[1], sb, px, time);
         float cx = wx(qx[2], qy[2], sc, px, time), cy = wy(qx[2], qy[2], sc, px, time);
         float dx = wx(qx[3], qy[3], sd, px, time), dy = wy(qx[3], qy[3], sd, px, time);
+        float[] du = new float[4], dv = new float[4];
+        for (int k = 0; k < 4; k++) {
+            // How much farther this corner has drifted than the cell the image was placed by.
+            float[] v = carried(field, qx[k], qy[k]);
+            du[k] = Math.max(-BEND_CELLS, Math.min(BEND_CELLS, (v[0] - layerVx) * layerDrift));
+            dv[k] = Math.max(-BEND_CELLS, Math.min(BEND_CELLS, (v[1] - layerVy) * layerDrift));
+        }
         float minX = Math.min(Math.min(ax, bx), Math.min(cx, dx)), maxX = Math.max(Math.max(ax, bx), Math.max(cx, dx));
         float minY = Math.min(Math.min(ay, by), Math.min(cy, dy)), maxY = Math.max(Math.max(ay, by), Math.max(cy, dy));
         float w = maxX - minX, h = maxY - minY;
@@ -326,8 +354,8 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         float[] patch = {
                 (ax - minX) / w, (ay - minY) / h, (bx - minX) / w, (by - minY) / h,
                 (cx - minX) / w, (cy - minY) / h, (dx - minX) / w, (dy - minY) / h,
-                u(qx[0], x0, x1), v(qy[0], y0, y1), u(qx[1], x0, x1), v(qy[1], y0, y1),
-                u(qx[2], x0, x1), v(qy[2], y0, y1), u(qx[3], x0, x1), v(qy[3], y0, y1)};
+                u(qx[0] - du[0], x0, x1), v(qy[0] - dv[0], y0, y1), u(qx[1] - du[1], x0, x1), v(qy[1] - dv[1], y0, y1),
+                u(qx[2] - du[2], x0, x1), v(qy[2] - dv[2], y0, y1), u(qx[3] - du[3], x0, x1), v(qy[3] - dv[3], y0, y1)};
         drop.drawList().addSheetPatch(RenderLayer.GROUND, crust.sprite, srcX, srcY, srcW, srcH,
                 minX + w / 2f, minY + h / 2f, w, h, a, patch);
     }
@@ -337,11 +365,11 @@ final class MoltenVoidRenderSystem implements RenderSystem {
         return field.gain == null ? s : drop.scale(field.stepDepth(field.steps(), x, y));
     }
 
-    /** A corner's place across the piece's image, 0 to 1. */
-    private static float u(float x, float x0, float x1) { return (x - x0) / (x1 - x0); }
+    /** A corner's place across the piece's image, 0 to 1, held inside it where a corner drifts past its edge. */
+    private static float u(float x, float x0, float x1) { return LavaVoidLook.clamp01((x - x0) / (x1 - x0)); }
 
     /** A corner's place down the piece's image, 1 at its first row, as the drop's rock patches run. */
-    private static float v(float y, float y0, float y1) { return 1f - (y - y0) / (y1 - y0); }
+    private static float v(float y, float y0, float y1) { return LavaVoidLook.clamp01(1f - (y - y0) / (y1 - y0)); }
 
     /** A floor point's screen x at scale {@code s}, rippled by the heat; the ripple is the point's own, so pieces meet. */
     private float wx(float x, float y, float s, float px, float time) {
