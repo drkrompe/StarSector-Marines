@@ -63,8 +63,8 @@ arrive, and checked by `storyMapPools` (`story-map-pools.md`).
 A mission may instead **own** its map: one layout authored once as a data
 document, its settlements by program and role and its drops by role, which a
 **biome skin** dresses for whatever world the mission is fought on, the layout
-never moving under it (`owned-maps.md`). Relay Nine is the first; owned maps are
-replacing seeded story maps, which name a different layout on every biome.
+never moving under it (`owned-maps.md`). Relay Nine is the first; the rest is
+parked until every pooled mission plays one vetted seed per biome.
 
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
