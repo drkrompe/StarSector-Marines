@@ -151,6 +151,8 @@ public final class RuinsDelveStage implements GenStage {
      */
     static final String HALL_PLATE = "sky-port.deck-plate", HALL_WALKWAY = "apron.marked",
             HALL_AISLE = "pavement.concrete.worn", HALL_AISLE_CRACKED = "pavement.concrete.cracked";
+    /** A feed path's marked lane: the way the charge comes to a great crucible's hopper. */
+    static final String HALL_FEED = "apron.marked";
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
     /** The vault room's floor: the installation's command floor, so the heart of the site reads apart. */
     static final String VAULT_ROOM_FLOOR = "installation.command-floor";
@@ -198,6 +200,8 @@ public final class RuinsDelveStage implements GenStage {
         final boolean[] kept;
         /** The plant kit's floor pieces (cradle pads, dock levelers): dressing never stands on them. */
         final boolean[] kitFloor;
+        /** Cells of a feed path to a great crucible's hopper, kept clear and painted as a lane. */
+        final boolean[] feed;
         /** Shell cells stamped here, for their wall and door masks. */
         final boolean[] drafted;
         /** Every layer line's cells, ways included: no interior corridor crosses one. */
@@ -228,6 +232,7 @@ public final class RuinsDelveStage implements GenStage {
             reserved = new boolean[w * h];
             kept = new boolean[w * h];
             kitFloor = new boolean[w * h];
+            feed = new boolean[w * h];
             drafted = new boolean[w * h];
             lineCell = new boolean[w * h];
             hull = new boolean[w * h];
@@ -461,6 +466,7 @@ public final class RuinsDelveStage implements GenStage {
             }
             int plate = topology.surfaceIndex(HALL_PLATE), walkway = topology.surfaceIndex(HALL_WALKWAY);
             int aisle = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
+            int feedLane = topology.surfaceIndex(HALL_FEED);
             boolean longX = hw >= hh;
             for (int y = hall.bottom(); y <= hall.top(); y++) {
                 for (int x = hall.left(); x <= hall.right(); x++) {
@@ -474,7 +480,7 @@ public final class RuinsDelveStage implements GenStage {
                     }
                     boolean wallSide = longX ? (y == hall.bottom() || y == hall.top())
                             : (x == hall.left() || x == hall.right());
-                    int surface = near ? plate : wallSide ? walkway
+                    int surface = feed[i(x, y)] ? feedLane : near ? plate : wallSide ? walkway
                             : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : aisle;
                     topology.setSurface(x, y, surface);
                 }
@@ -1766,8 +1772,12 @@ public final class RuinsDelveStage implements GenStage {
                 meltBox(melt, hall, centre, cx + 1, y0, cx + 5, y0 + 1);
                 meltBox(melt, hall, centre, cx + 6, y0 - 2, cx + 13, y0 + 2);
                 over(registry, "doodad.ruins-mould-grid", cx + 6, y0 - 2);
-                piece(registry, RACK_STRIPPED, cx - 14, y0 - 6, 6, 2, hall, centre);
-                piece(registry, RACK_STRIPPED, cx + 8, y0 - 6, 6, 2, hall, centre);
+                // Beyond each mould, its castings cooling on their racks; some racks already cleared.
+                for (int k = 0; k < 2; k++) {
+                    int wx = cx - 14 + 3 * k, ex = cx + 8 + 3 * k;
+                    piece(registry, coolingRack(wx, y0), wx, y0 - 9, 2, 4, hall, centre);
+                    piece(registry, coolingRack(ex, y0), ex, y0 - 9, 2, 4, hall, centre);
+                }
                 // Work stopped mid-pour: one line's ladle tipped beside the trench.
                 if (line == 1 && piece(registry, "doodad.ruins-crucible-tipped", cx + 2, y0 + 3, 3, 3, hall, centre)) {
                     over(registry, "doodad.ruins-crucible-tipped-spill", cx + 2, y0 + 3);
@@ -1799,6 +1809,26 @@ public final class RuinsDelveStage implements GenStage {
             piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
+            if (great) feedPath(hall, gx + GREAT_CRUCIBLE_WIDE / 2);
+        }
+
+        /** A cooling rack at {@code x} on line {@code y0}: laden with castings, or by coordinate hash cleared. */
+        private String coolingRack(int x, int y0) {
+            return hash(x, y0, 0xC001) % 3 == 0 ? "doodad.ruins-cooling-rack" : "doodad.ruins-cooling-rack-castings";
+        }
+
+        /**
+         * The feed path to the great crucible's charge hopper: a marked lane along the hall's head row from its east
+         * wall to the hopper above the crucible's middle ({@code hopperX}), kept clear of furniture. Generic until the
+         * feed's own pieces land; {@link #zoneFloor} paints it.
+         */
+        private void feedPath(Area hall, int hopperX) {
+            int y = hall.top();
+            for (int x = hopperX; x <= hall.right(); x++) {
+                if (!grid.isWalkable(x, y) || topology.isFixture(x, y)) continue;
+                feed[i(x, y)] = true;
+                kitFloor[i(x, y)] = true;
+            }
         }
 
         /** Plans melt over a box of a hall's cells, keeping it off the walls, the doorways and the hall's middle. */
