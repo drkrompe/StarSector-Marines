@@ -86,8 +86,8 @@ ordinary ground-to-ship weak. Nothing new is required beyond the profile signal 
 how many there are.
 
 A mission may also **cut a nest's power** (`TurretStateService.cutPower`): the nest stands
-and can still be wrecked, but never fires again. The Dust Ledger's feed objective uses it
-(`dust-ledger-crossing.md`, Cutting the feed).
+and can still be wrecked, but never fires again. Blind Watch's batteries and the ruins'
+battery guns use it.
 
 A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): Locust batteries and Swarmer towers (all on its bastions) that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
 
