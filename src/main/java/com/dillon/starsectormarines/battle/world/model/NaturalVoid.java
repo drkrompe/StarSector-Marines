@@ -35,6 +35,11 @@ public record NaturalVoid(Style style, List<Step> steps, float eyeMeters, String
          */
         ICE,
         /**
+         * A desert canyon on an arid world: banded red and ochre sandstone walls, wind-blown sand on the ledges, and
+         * a dry wash on the floor, pale sand braided between gravel bars with boulders fallen from the walls.
+         */
+        CANYON,
+        /**
          * An open-cut mine: blasted benches stepping down evenly, a haul road ramping down them, ore conveyors
          * climbing out to the works, and a sump on the floor.
          */
