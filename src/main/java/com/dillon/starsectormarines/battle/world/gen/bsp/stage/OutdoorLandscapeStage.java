@@ -108,6 +108,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
         openPits(c, plan, reserved);
         if (!crevasseTown(c, reserved)) chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
@@ -348,6 +349,24 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setSurface(x, y, timber);
         }
         c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+    }
+
+    /**
+     * Keeps the landscape's features out of every walled place ({@link Precinct.Boundary#WALLED}: a garrison's
+     * cantonment, a works compound): its whole claim is reserved before the pit, the drop, the hills, the rises, the
+     * ridges and the formations are laid, so no ravine, void or hill stands inside a wall. A walled place's yard is
+     * made country, not open country, whatever its ground. {@code claim} is the plan's per-cell owner
+     * ({@code BspKeys.PRECINCT_CLAIM}); null reserves nothing.
+     */
+    static void reserveWalled(boolean[] reserved, List<Precinct> precincts, int[][] claim, int width, int height) {
+        if (claim == null) return;
+        for (int x = 0; x < Math.min(width, claim.length); x++) {
+            for (int y = 0; y < Math.min(height, claim[x].length); y++) {
+                int owner = claim[x][y];
+                if (owner < 0 || owner >= precincts.size()) continue;
+                if (precincts.get(owner).boundary() == Precinct.Boundary.WALLED) reserved[y * width + x] = true;
+            }
+        }
     }
 
     /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
