@@ -80,6 +80,10 @@ the 1x4 fallen tray. The slag pit's edge is the `FOUNDRY` drop's own `foundry-li
 drain gutter, crane runway, cable tray) run north-south and are healed in `export.py` (`heal_run`) into a seamless
 repeat along their length.
 
+The forge's wear and b2 consoles (`forge-wear`, 160 px a cell) close the list: oil stain, oil trail, coolant stain,
+scorch mark, arc burn and skid marks, faded as the patches are but with a lower halo cut (`STAIN_FEATHER`), since
+they were drawn translucent to their edges; the 3x3 line pulpit's roof and the 1x2 recorder console.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.
