@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landform;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -24,54 +25,40 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Lava flows on a volcanic world ({@code voids.md}, Lava flows): the same remote volcanic Assault drawn once per
- * {@code battle.mapgen.lavaFlow} option (the 40 m rift, the 4 m river, the river with its older flows, the flows
- * alone), each framed whole ({@code <option>-<seed>-whole.png}) and at play zoom on the channel's nearest stretch to
- * the map's middle ({@code -play.png}). Look preset; nothing is played. {@code -Dsnapshot.lavaFlow.seeds=7,11} picks
- * the seeds, {@code -Dsnapshot.lavaFlow.options=river,flows} the options.
+ * Lava flows on a volcanic world ({@code voids.md}, Lava flows): a remote volcanic Assault, its lava river and the
+ * older flows that broke from it, framed whole ({@code seed<n>-whole.png}) and at play zoom on the flows nearest the
+ * map's middle ({@code -play.png}). Look preset; nothing is played. {@code -Dsnapshot.lavaFlow.seeds=7,11} picks the
+ * seeds.
  */
 public final class LavaFlowLookSuite implements SnapshotSuite {
 
+    /** The map's design: a drop south to north across the approach, which the volcanic palette skins. */
+    private static final Landform DESIGN = new Landform.Drop(false, .62f);
+
     @Override public String id() { return "lava-flow-look"; }
 
-    @Override public String label() { return "Lava flows on a volcanic world, one frame set per option, look preset"; }
+    @Override public String label() { return "Lava flows on a volcanic world: the river and its older flows, look preset"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
-        String was = System.getProperty("battle.mapgen.naturalVoids");
-        String wasFlow = System.getProperty("battle.mapgen.lavaFlow");
-        System.setProperty("battle.mapgen.naturalVoids", "1");
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             DustLedgerMissionPreviewSuite.installFonts(context, Fonts.ORBITRON_12_BOLD, Fonts.INSIGNIA_15_AA);
             List<SnapshotArtifact> out = new ArrayList<>();
-            String[] options = System.getProperty("snapshot.lavaFlow.options", "rift,river,flows,field").split(",");
-            for (String seedText : System.getProperty("snapshot.lavaFlow.seeds", "7").split(",")) {
+            for (String seedText : System.getProperty("snapshot.lavaFlow.seeds", "7,11").split(",")) {
                 long seed = Long.parseLong(seedText.trim());
-                for (String option : options) {
-                    System.setProperty("battle.mapgen.lavaFlow", option.trim());
-                    String id = String.format(Locale.ROOT, "%s-seed%d", option.trim(), seed);
-                    TargetProfile market = new TargetProfile(3, 5, 2, 1, "independent",
-                            EnumSet.of(EconomicFunction.AGRICULTURE, EconomicFunction.HABITATION),
-                            SurfacePalette.VOLCANIC, SettlementLink.ROAD);
-                    try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
-                            false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
-                            FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)) {
-                        render(context, sim, id, out);
-                    }
+                TargetProfile market = new TargetProfile(3, 5, 2, 1, "independent",
+                        EnumSet.of(EconomicFunction.AGRICULTURE, EconomicFunction.HABITATION),
+                        SurfacePalette.VOLCANIC, SettlementLink.ROAD);
+                try (BattleSimulation sim = BattleSetup.createPlaceholder(seed, BattleSetup.defaultManifest(),
+                        false, OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MissionType.ASSAULT, market,
+                        FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, DESIGN)) {
+                    render(context, sim, String.format(Locale.ROOT, "seed%d", seed), out);
                 }
             }
             return out;
-        } finally {
-            restore("battle.mapgen.naturalVoids", was);
-            restore("battle.mapgen.lavaFlow", wasFlow);
         }
-    }
-
-    private static void restore(String key, String value) {
-        if (value == null) System.clearProperty(key);
-        else System.setProperty(key, value);
     }
 
     private void render(SnapshotContext context, BattleSimulation sim, String id, List<SnapshotArtifact> out)

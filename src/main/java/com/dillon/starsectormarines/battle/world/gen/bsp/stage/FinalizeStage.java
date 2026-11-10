@@ -34,7 +34,7 @@ public final class FinalizeStage implements GenStage {
     private static final Logger LOG = Logger.getLogger(FinalizeStage.class);
 
     /** Default starting wall HP — matches legacy {@code UrbanMapGenerator.WALL_HP_DEFAULT}. */
-    private static final int WALL_HP_DEFAULT = 100;
+    static final int WALL_HP_DEFAULT = 100;
 
     /**
      * Drivable lines the vehicle corridor must keep across its narrowest

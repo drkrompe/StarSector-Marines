@@ -1,0 +1,13 @@
+A sprite sheet of sliding compartment-door leaves for a top-down tactical game set aboard an old, low-tech freighter, seen straight down (orthographic, no perspective, no tilt), lit softly from the top-left.
+
+Reference 1 is the geometry guide and the exact layout authority. Every grey box in it is one sprite: fill each box exactly, edge to edge, keeping its position, size and proportions. Do not move, resize, add or merge boxes. Everything outside the boxes stays fully transparent: a true transparent background, including the gutters between pieces; no floor, wall, shadow slab, border, label or text anywhere.
+
+Reference 2 is material and style only, not layout: the ship's own bulkhead and deck art. Match its painted, slightly gritty, worn industrial look exactly: dark gunmetal plate, bolted flat steel straps with small round bolt heads, muted grey-green paint, subtle scuffs and grime, crisp dark outlines, low contrast, readable at small size. No bright sci-fi glow, no chrome, no saturated colour beyond what is named below.
+
+Each long box is one leaf of a sliding door, seen from above as it lies in the bulkhead's slot: its length runs left to right, its depth through the wall top to bottom. The left end slides into the wall; the right end is the meeting edge where it seals against its partner leaf.
+
+- Top box, the ordinary leaf: a thick riveted gunmetal slab with a darker rail along its top and bottom edges (the guide's dark strips), cross ribs as bolted steel straps where the guide shows lighter bars, and at the right-hand meeting edge a worn rubber-and-steel seal strip with a band of faded, chipped amber safety paint. One tiny dim amber indicator light near the meeting edge.
+- Lower long box, the sealed leaf: the same leaf shut for vacuum: darker, soot-stained plate, the cross straps replaced by worn diagonal red-and-black hazard banding across the leaf, and a faded red seal band at the right-hand meeting edge.
+- Short box, the seal clamp: a heavy steel clamp seen from above that bridges the seam of two shut leaves: a central bolted steel block (the guide's grey square) with a red-painted locking bar running left and right through it, one tiny glowing red lamp on the block.
+
+No people, no floor, no wall, no text.

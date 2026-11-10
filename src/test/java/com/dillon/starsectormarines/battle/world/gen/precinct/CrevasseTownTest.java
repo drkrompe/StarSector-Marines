@@ -16,7 +16,7 @@ class CrevasseTownTest {
         List<RidgePlanner.Band> northSouth = CrevasseTown.walls(120, 80, true);
         assertEquals(2, northSouth.size());
         assertTrue(CrevasseTown.alongX(northSouth));
-        for (RidgePlanner.Band band : northSouth) assertEquals(RidgePlanner.Relief.ICE_WALL, band.relief());
+        for (RidgePlanner.Band band : northSouth) assertEquals(RidgePlanner.Relief.SHELTER_WALL, band.relief());
         assertFalse(CrevasseTown.alongX(CrevasseTown.walls(120, 80, false)));
     }
 
