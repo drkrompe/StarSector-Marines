@@ -863,9 +863,8 @@ Every move is kept only where the network stays in as few pieces as before,
 and no street is moved onto ground growth was kept off (the layout's held
 ground, sealed ground). It draws no random number. What is laid later
 (cantonment avenues and gate roads, gates, layout roads, welds, pad
-approaches) is laid onto the planned streets. It plans Raid sites only for
-now: the pooled story maps keep their grown streets until their pools are
-vetted on it. `-Dbattle.mapgen.streetPlan=false` is the control.
+approaches) is laid onto the planned streets. `-Dbattle.mapgen.streetPlan=false`
+is the control.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
