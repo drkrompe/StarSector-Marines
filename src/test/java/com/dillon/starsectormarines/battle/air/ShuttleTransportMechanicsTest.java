@@ -169,8 +169,9 @@ class ShuttleTransportMechanicsTest {
             long shuttle = sim.spawnShuttle(ShuttleType.VALKYRIE, armoured, Faction.MARINE,
                     10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 6);
 
-            assertEquals(ShuttleType.VALKYRIE.maxHp() * 1.75f,
-                    sim.world().maxHp(shuttle), 1e-3f);
+            // Plating is armour over the pattern's hull, not more of it (FittedBoat.maxHp, armor).
+            assertEquals(armoured.maxHp(), sim.world().maxHp(shuttle), 1e-3f);
+            assertEquals(armoured.armor(), sim.world().armor(shuttle), 1e-3f);
             assertSame(armoured, sim.world().airframe(shuttle),
                     "the steering tick reads handling off the identity, so the fit "
                             + "has to be what is stored there");

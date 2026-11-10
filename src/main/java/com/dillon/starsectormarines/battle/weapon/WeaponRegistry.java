@@ -72,6 +72,9 @@ public final class WeaponRegistry {
     public static final String MECH_PL_3_SWEEP_ID = "weapon.mech-pl-3-sweep";
     public static final String MECH_PL_2_ID = "weapon.mech-pl-2";
     public static final String MECH_PL_1_ID = "weapon.mech-pl-1";
+    /** The machine flamers (`mechs-nouns.md`, Machine flamers): the Torch's burner and the Censer's lance. */
+    public static final String MECH_FL_1_ID = "weapon.mech-fl-1";
+    public static final String MECH_FL_2_ID = "weapon.mech-fl-2";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

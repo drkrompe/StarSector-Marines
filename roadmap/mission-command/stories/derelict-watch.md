@@ -4,6 +4,7 @@ Status: IN PROGRESS — the owner picked (a) on `derelict-movement`,
 `derelict-waking`, `derelict-walker-sizes`, `derelict-repair` and
 `hall-frame-ram` ("It should tear and we should have wider doors as well for
 these facilities": the facility's doors and ways are widened by the ground).
+Open, built on (a) meanwhile: `derelict-tender` and `derelict-rearm`.
 What is built is listed under each mechanic.
 
 Written: 2026-11-10
@@ -215,6 +216,68 @@ that gives the company targets to deny.
 | --- | --- |
 | a (picked) | Service bays and raised wrecks, with scrapping |
 
+## 5. Field repair: the tender
+
+Pick `derelict-tender` (open; building (a) meanwhile).
+
+The owner (2026-11-10): "crawlers or drones patching walkers". The repair drone
+keeps the site up between fights: it mends charges and raises wrecks, and it
+stands down under fire. Nothing patches a walker *in* a fight. The canon's
+Rampart is "built so that wrecks repair the lightly damaged". This section adds
+a walker whose job is to do that.
+
+- **The MG-12 tender.** The derelict line's smallest chassis (its rig at under
+  half the heavy's size). Unarmed: a welding arm in place of guns. It is light
+  enough for any door. It is a target, not a fighter.
+- **What it does.** While its zone sleeps it stands at its post, beside the
+  zone's first heavy. Once the zone is awake (or in the contingency) it takes
+  the zone's most worn walker below `TENDER_BELOW` in hand and keeps it until
+  it is back to `TENDER_WHOLE`; with none worn it shadows the most worn walker,
+  ready. It stands within `TENDER_REACH` of its charge and welds plate back at
+  `TENDER_RATE`, from a stock it carries (`TENDER_STOCK`). Dry, it walks to the
+  zone's service bay for another load; with the bay gone it stands at its post.
+  Unlike the drone it **keeps working under fire**: that is what it was bought
+  for. It never raises a wreck: that stays the drone's work.
+- **Strength by grade** (UNTUNED): one tender per zone that holds a heavy, from
+  widespread.
+- **Counterplay.** It is the softest walker on the field and stands at its
+  charge's knees. Killing it first stops the heavy's plate coming back. It
+  leaves a wreck like any walker, which the drone may raise.
+
+| Option | Field repair |
+| --- | --- |
+| a (recommended) | The MG-12 tender: an unarmed walker that welds plate onto its zone's walkers under fire |
+| b | No new unit: the repair drone keeps mending under fire instead of standing down |
+| c | Neither: repair stays between fights |
+
+## 6. Re-arming: racks fill at the service bay
+
+Pick `derelict-rearm` (open; building (a) meanwhile).
+
+The owner: "the facility re-arming". Today a derelict walker's missile racks
+recharge in the field like any mech's, so the facility's supply never matters.
+The plant was built to feed its walkers, and the service bay is where it does.
+
+- **No loader in the field.** A derelict walker carries no missile loader
+  (`MissileReplenisherComponent.NONE`): its racks hold what they launched with.
+  Guns on a belt keep their own hopper.
+- **Re-arming.** A walker whose racks are all spent, and that has nothing to
+  close on or fire at, walks to its zone's service bay and stands within
+  `REARM_REACH` of it: each rack takes a pack every `PACK_SECONDS` until all are
+  full. Then it goes back to its post or its order. A fight on the way breaks it
+  off. The contingency skips re-arming: the walkers fight with what they have.
+  So do the vault frame, which never leaves the vault, and a frame still shut
+  in its hall.
+- **Denial.** The bay re-arms only while it stands and its zone is online.
+  Destroy the bay or cut the zone's branch, and every rack of that zone stays
+  empty once spent. The siege frame, whose racks are its main weapon, is the one
+  this hurts most.
+
+| Option | Re-arming |
+| --- | --- |
+| a (recommended) | Racks fill only at the service bay, a walk away; the bay is a target |
+| b | As now: racks recharge in the field |
+
 ## Slices
 
 1. **Rules.** The round, the ducts, the wake stages, the walker classes and
@@ -293,14 +356,27 @@ of each pick, slice 3's comms lines.
   wider doors and ways laid by the ground so a frame can leave its hall. Both are drawn through the works' `RuinsDoorStates`: a bulkhead is added
   sealed and opened at hunting, a rammed door forced.
 
+- **Field repair and re-arming (sections 5 and 6, option a).**
+  `MechVariant.SECURITY_TENDER` (MG-12, `DerelictWalkerClass.SMALL`,
+  `DerelictWalkerFrame.TENDER`: no mounts). `FieldTender` is the tender's rule
+  (charge in hand, shadowing, weld, reload); `DerelictWalkerClass.tenders`
+  counts them, and `DerelictSecurity.install` stands one beside each zone's first
+  heavy (`beside`: the nearest clear cell a ring at a time). The director's `tend` lays the pulse's plate through `mend` and walks
+  the tender by a hold order. Every derelict walker spawns with
+  `MissileReplenisherComponent.NONE`; `BayRearm` is the re-arming rule, and the
+  director's `rearm` sends a walker to stand just off its bay (`bayStand`, the
+  bay's own cell being the housing's) and puts packs in with
+  `MechWeaponMount.resupplyOne`.
+
 Not built yet:
 the vent and wreck markers and the drone's sparks over a wreck; the housings'
 own looks.
 
 Evidence: `PatrolRoundTest`, `ServiceDuctsTest`, `FacilityWakeTest`,
 `DerelictWalkerClassTest`, `WreckTest`, `RepairDroneTest`, `WalkerPostureTest`,
-`HallFrameReachTest`, `FlockDuctTest`. Picture cards: `createSnapshots
--Psnapshot=derelict-watch-picks` (the four picks on the vast derelict ruin).
+`HallFrameReachTest`, `FlockDuctTest`, `FieldTenderTest`, `BayRearmTest`. Picture cards: `createSnapshots
+-Psnapshot=derelict-watch-picks` (the four picks on the vast derelict ruin);
+`-Psnapshot=derelict-repair-picks` (the tender and re-arming).
 
 ## Constraints
 

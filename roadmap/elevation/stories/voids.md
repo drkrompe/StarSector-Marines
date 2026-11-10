@@ -1017,7 +1017,8 @@ Laws):
      processing facility with burners to refine the ore", the facility "a
      series of buildings that again plausibly make sense"; real buildings,
      dressed). The head works is the chain the ore passes through
-     (`RaidWorksPrograms.mine`): receiving, stockpile, one mill line per
+     (`RaidWorksPrograms.mine`): receiving (in the rear, the pit's side, so
+     the pit's line runs straight in), stockpile, one mill line per
      machine (the raid's machines), smelter, loadout, each a real building the
      battle enters. The ore line links them in that order, each link from the
      wall of one hall nearest the next, never through a hall or a link already
@@ -1056,10 +1057,8 @@ Laws):
      approved concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
-   (to the stores, or from the shafts); dust over the working bench; the
-   receiving house on the pit's side of the works, so the pit's line need not
-   wrap round the compound; a shared trunk where one hall feeds several, not a
-   line each.
+   (to the stores, or from the shafts); dust over the working bench; a shared
+   trunk where one hall feeds several, not a line each.
 
    **The other styles**, each the same field with its own steps, wall image,
    lip and floor, and each its own ImageGen wall under `art-source/voids/`:

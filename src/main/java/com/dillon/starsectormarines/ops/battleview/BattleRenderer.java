@@ -413,6 +413,8 @@ public class BattleRenderer {
                 cliffArt,
                 // The steps of a ramp laid on built ground, which the cliff art leaves to the tiles.
                 new BuiltStairRenderSystem(),
+                // A built floor's trim where its panels step down to the slab: a ruins hall's raised floor and stage.
+                new FloorTrimRenderSystem(sprites),
                 // The planet type's grade over its wild ground and hills, and a metal world's flecks.
                 signature,
                 // Zone debug overlay paints on top of ground tiles, under decals.

@@ -447,8 +447,10 @@ com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite
+com.dillon.starsectormarines.battle.derelict.DerelictRepairPicksSuite
 com.dillon.starsectormarines.battle.mech.CrawlerLookSuite
 com.dillon.starsectormarines.battle.mech.LowtechVariantsLookSuite
+com.dillon.starsectormarines.battle.fire.MachineFlamerLookSuite
 com.dillon.starsectormarines.battle.derelict.RuinsGuardiansLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
 com.dillon.starsectormarines.ops.battleview.GorgeVoidLookSuite

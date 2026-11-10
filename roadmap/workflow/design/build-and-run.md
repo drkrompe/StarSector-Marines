@@ -25,8 +25,7 @@ touch packaging.
     read those before `starsector.log`; log4j buffers and can lose its last
     lines.
   - **The exit status separates the cases.** `0` means something asked the
-    process to stop, so `0` with no shutdown banner means it was killed from
-    outside the JVM (a `gradlew --stop` from another session looks exactly
+    process to stop: a normal quit, or a kill from outside the JVM (a `gradlew --stop` from another session looks exactly
     like this: the game is a child of the daemon; grep
     `~/.gradle/daemon/<version>/*.log` for `stop() called on daemon` at the
     matching second). `0xC0000005` is a native

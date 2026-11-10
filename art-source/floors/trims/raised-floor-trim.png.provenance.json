@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c701-734d-72d3-bffe-a5876a1c22ac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c701-734d-72d3-bffe-a5876a1c22ac\\exec-1ea56417-6df3-4c93-8ab5-cecbfcc0bd57.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\floors\\trims\\raised-floor-trim.png",
+    "sha256": "61b2cf1d6643d78a5480fd128506c26e717a9d0238036bcf66ff51c104bdb301",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\floors\\trims\\raised-floor-trim.prompt.txt",
+  "promptSha256": "93a0c1faf0d03572a2d8063b00c13e09b6f3fce714e753a9c5fb736887499dc5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every band, joint and transparent area exactly as drawn\nImage 2: Material/style only; not layout\n\nA seamless, horizontally tileable texture strip for a top-down tactical game, seen from directly above (orthographic, 90 degrees): the edge trim of a clean-room raised access floor in an abandoned Domain-era factory hall in a spacefaring civilization, where the raised panels step down to the hall's concrete floor. The top of the image lies on the raised panel; the bottom edge is where the panel steps down.\nGeometry: reference 1 is the layout authority: keep every band at its height and position: the top part fully transparent (the panel shows through there), a dark gasket line, an extruded pale aluminium edge trim with four countersunk screws, a ribbed anti-slip tread band, and a darker rounded bullnose along the bottom where the trim turns down. The dark vertical panel joints sit exactly where shown (at both short ends and the middle), so identical copies join end to end seamlessly.\nStyle: reference 2 is material only: the raised panel's own pale grey anti-static composite. Crisp painterly-pixel game texture, clean brushed aluminium, fine scuffs and dust in the ribs, scraped bright metal along the bullnose. Heavy, grounded, adult military sci-fi. Not cartoon, no thick outlines.\nLight: flat even light, no baked lighting gradient, no cast shadow, no glow. The transparent top stays fully transparent. Wide 2:1 canvas. No text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\floors\\trims\\raised-floor-trim-guide.png",
+      "sha256": "65f297576ca0340cf5c75591d369dc5333a3cb9801f0dcd6693e97afd79cb29f",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every band, joint and transparent area exactly as drawn"
+    },
+    {
+      "path": "art-source\\tilesets\\ruins-ground\\raised-floor-master.png",
+      "sha256": "853964c0c0faaf3f0320450695018f28d58b6d77fee7100f385a8d008cfe1905",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact layout and the second for material style, keeping the upper area transparent.\n"
+  ],
+  "usage": {
+    "input_tokens": 43153,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 618,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.1
+}

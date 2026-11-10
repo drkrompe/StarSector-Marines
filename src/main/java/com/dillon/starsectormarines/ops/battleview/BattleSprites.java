@@ -165,6 +165,9 @@ public class BattleSprites {
     private DerelictWalkerAssets crawler;
     /** The hardware variants' own bodies, drawn over their frames' legs and mounts ({@link MechVariantBodies}). */
     private Map<MechVariant, LayeredSpriteCache> mechVariantBodies = Map.of();
+    /** The machine flamers' drawings, the same in every livery ({@link LayeredMechAssets#withFlamers}). */
+    private LayeredSpriteCache mechFlamerBurner;
+    private LayeredSpriteCache mechFlamerLance;
     private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
             new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
@@ -1461,6 +1464,8 @@ public class BattleSprites {
         derelictWalker = DerelictWalkerAssets.load(this::loadLayeredSprite);
         crawler = DerelictWalkerAssets.load(DerelictWalkerAssets.CRAWLER_ROOT, this::loadLayeredSprite);
         mechVariantBodies = MechVariantBodies.load(this::loadLayeredSprite);
+        mechFlamerBurner = loadLayeredSprite(MECH_ROOT + "fl-1.png");
+        mechFlamerLance = loadLayeredSprite(MECH_ROOT + "fl-2.png");
         String root = MECH_ROOT;
         LayeredSpriteCache chassis = loadLayeredSprite(root + "chassis.png");
         LayeredSpriteCache socketedChassis = loadLayeredSprite(root + "chassis-socketed-variant.png");
@@ -1520,7 +1525,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies);
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
@@ -1604,7 +1610,8 @@ public class BattleSprites {
                 dc5, thermalLance, ac6Qs,
                 dc4Qs, srm3QsPod, lightMachineGun, bl1,
                 pl3, bl2, pl3Sweep,
-                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies));
+                pl2, pl1, flash, mechActiveProtection).withVariantBodies(mechVariantBodies)
+                .withFlamers(mechFlamerBurner, mechFlamerLance));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,

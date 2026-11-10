@@ -22,12 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The low-tech row's first faction variants (`mech-lines.md`): the pirate Hauler, and the Luddic Path's Foundry
- * Breaker and Pilgrim, each its own body over its frame's legs and mounts with its stock fit drawn as layers. Three
+ * The low-tech row's faction variants (`mech-lines.md`): the pirate Hauler and Torch, and the Luddic Path's Foundry
+ * Breaker, Pilgrim and Censer, each its own body over its frame's legs and mounts with its stock fit drawn as layers. Three
  * shots, owner-facing look frames only, no outcome judged:
  * <ul>
- *   <li>{@code variants-line}: the three stood beside their frames (a pirate Bulwark and Hound), facing north;</li>
- *   <li>{@code variants-walk}: the three walking east on real move orders, for the gait under each body;</li>
+ *   <li>{@code variants-line}: the five stood beside their frames (a pirate Hound, Warden and Bulwark), facing north;</li>
+ *   <li>{@code variants-walk}: the five walking east on real move orders, for the gait under each body;</li>
  *   <li>{@code pilgrim-crush}: a Pilgrim ordered across an ordinary wall row, which it pushes down by its weight.</li>
  * </ul>
  */
@@ -35,7 +35,7 @@ public final class LowtechVariantsLookSuite implements SnapshotSuite {
 
     @Override public String id() { return "lowtech-variants-look"; }
 
-    @Override public String label() { return "Pirate Hauler, Path Foundry Breaker and Pilgrim: line, walk, wall crush"; }
+    @Override public String label() { return "Pirate Hauler and Torch, Path Foundry Breaker, Pilgrim and Censer: line, walk, wall crush"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -51,12 +51,12 @@ public final class LowtechVariantsLookSuite implements SnapshotSuite {
         return out;
     }
 
-    /** Variants beside their frames, west to east: Hound, Breaker, Bulwark, Hauler, Pilgrim. */
-    private static final MechVariant[] LINE = {MechVariant.HOUND, MechVariant.FOUNDRY_BREAKER, MechVariant.BULWARK,
-            MechVariant.HAULER, MechVariant.PILGRIM};
+    /** Variants beside their frames, west to east: Hound, Breaker, Torch, Warden, Censer, Bulwark, Hauler, Pilgrim. */
+    private static final MechVariant[] LINE = {MechVariant.HOUND, MechVariant.FOUNDRY_BREAKER, MechVariant.TORCH,
+            MechVariant.WARDEN, MechVariant.CENSER, MechVariant.BULWARK, MechVariant.HAULER, MechVariant.PILGRIM};
 
     static LookReview.Shot line() {
-        return LookReview.Shot.of("variants-line", 26, 12, placement -> {
+        return LookReview.Shot.of("variants-line", 40, 12, placement -> {
             SceneBuilder builder = placement.holdouts(placement.builder());
             float[][] at = new float[LINE.length][];
             for (int i = 0; i < LINE.length; i++) {
@@ -76,14 +76,15 @@ public final class LowtechVariantsLookSuite implements SnapshotSuite {
             }
             return world.sim();
         }, placement -> List.of(
-                LookReview.View.followAtPlay(placement, key(0), key(4)),
-                LookReview.View.follow("close", placement, 22f, key(0), key(4))), 30).withStills(2);
+                LookReview.View.followAtPlay(placement, key(0), key(LINE.length - 1)),
+                LookReview.View.follow("close", placement, 22f, key(1), key(4))), 30).withStills(2);
     }
 
-    private static final MechVariant[] WALKERS = {MechVariant.FOUNDRY_BREAKER, MechVariant.HAULER, MechVariant.PILGRIM};
+    private static final MechVariant[] WALKERS = {MechVariant.FOUNDRY_BREAKER, MechVariant.HAULER, MechVariant.PILGRIM,
+            MechVariant.TORCH, MechVariant.CENSER};
 
     static LookReview.Shot walk() {
-        return LookReview.Shot.of("variants-walk", 34, 14, placement -> {
+        return LookReview.Shot.of("variants-walk", 34, 24, placement -> {
             SceneBuilder builder = placement.holdouts(placement.builder());
             long[] ids = new long[WALKERS.length];
             int[][] goal = new int[WALKERS.length][];
@@ -114,7 +115,7 @@ public final class LowtechVariantsLookSuite implements SnapshotSuite {
             });
             return world.sim();
         }, placement -> List.of(
-                LookReview.View.followAtPlay(placement, "walker0", "walker1", "walker2"),
+                LookReview.View.followAtPlay(placement, "walker0", "walker1", "walker2", "walker3", "walker4"),
                 LookReview.View.follow("close", placement, 18f, "walker1")), 600).withStills(20, 50, 80);
     }
 

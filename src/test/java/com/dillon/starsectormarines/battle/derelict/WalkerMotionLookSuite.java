@@ -129,7 +129,7 @@ public final class WalkerMotionLookSuite implements SnapshotSuite {
         for (int i = 0; i < SETTLE_TICKS; i++) sim.advance(BattleSimulation.TICK_DT);
         DerelictSecurityDirector director = sim.derelictSecurity();
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
-            boolean match = frame == null ? w.frame() != DerelictWalkerFrame.ROUNDS && w.frame() != DerelictWalkerFrame.HALL
+            boolean match = frame == null ? DerelictWalkerClass.of(w.frame().chassis) == DerelictWalkerClass.HEAVY
                     : w.frame() == frame;
             if (match && sim.squadMemberCount(w.squadId()) > 0) {
                 walker[0] = sim.squadMemberAt(w.squadId(), 0);
