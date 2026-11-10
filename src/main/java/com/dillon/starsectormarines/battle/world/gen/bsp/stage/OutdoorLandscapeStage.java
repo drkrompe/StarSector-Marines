@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
@@ -15,6 +16,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
+import com.dillon.starsectormarines.battle.world.gen.elevation.NaturalChasm;
+import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
@@ -28,10 +31,13 @@ import com.dillon.starsectormarines.battle.world.gen.forest.UndergrowthBrush;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
+import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
@@ -40,6 +46,8 @@ import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.NaturalVoid;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -64,9 +72,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
-        // Every lawn has been laid by now; the planet decides whether it is lawn. Before the landscape, so a hill
+        // Every lawn and lot has been laid by now; the planet decides whether it is lawn or bare earth. Before the landscape, so a hill
         // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
-        CultivatedGround.settle(c.topology, field);
+        CultivatedGround.settle(c.topology, field, c::isMadeGround);
         landscape(c, field);
     }
 
@@ -84,6 +92,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        openPits(c, plan, reserved);
+        chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
@@ -105,6 +115,122 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.get(BspKeys.TACTICAL_REGIONS) != null) {
             c.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(c.grid, c.topology, c.get(BspKeys.AXIS)));
         }
+    }
+
+    /**
+     * Cuts the open pit the plan's layout names ({@code voids.md}, the open pit): a ground site called
+     * {@link OpenPit#SITE}, held clear of growth, from whose open ground the pit is cut before anything else is grown
+     * on the country, and then reserved. A site the reservations leave too little of, or whose cut would strand
+     * ground, keeps no pit. The pit sends an ore conveyor to the largest building near it, the works it feeds. A map
+     * that already draws a drop or a backdrop is left as it is.
+     */
+    private static void openPits(GenContext c, PrecinctPlan plan, boolean[] reserved) {
+        if (plan == null || plan.layout() == null || c.topology.naturalVoid() != null
+                || c.topology.voidBackdrop() != null) return;
+        if (!(plan.layout().find(OpenPit.SITE) instanceof Site box) || box.purpose() != SitePurpose.GROUND) return;
+        int w = c.width;
+        boolean[] pit = OpenPit.plan(w, c.height, box.x0(), box.y0(), box.x1(), box.y1(),
+                i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w), (int) c.seed);
+        if (pit == null) return;
+        cutDrop(c, pit, reserved);
+        float[] works = pitWorks(c, plan, box);
+        NaturalVoid.Belt belt = works == null ? null : OpenPit.belt(w, c.height, pit, works[0], works[1]);
+        c.topology.setNaturalVoid(OpenPit.look((int) (c.seed ^ 0x5049L), belt == null ? List.of() : List.of(belt)));
+    }
+
+    /** Stamps a drop's cells: void ground, unwalkable, seen and shot across, and reserved from growth. */
+    private static void cutDrop(GenContext c, boolean[] drop, boolean[] reserved) {
+        int w = c.width;
+        for (int i = 0; i < drop.length; i++) {
+            if (!drop[i]) continue;
+            int x = i % w, y = i / w;
+            c.grid.setWalkable(x, y, false);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.SEE_THROUGH, true);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NO_EDGE_COVER, true);
+            c.grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, true);
+            c.topology.setGroundKind(x, y, GroundKind.VOID);
+            c.topology.setSurface(x, y, 0);
+            c.topology.setNatureOverlayIndex(x, y, -1);
+            reserved[i] = true;
+        }
+    }
+
+    /** The surface a crossing's footbridge is decked with. */
+    static final String DECK_SURFACE = "colony.timber";
+
+    /** The share of generated outdoor maps a natural drop is cut across, short of the switch. UNTUNED. */
+    static final float CHASM_CHANCE = .35f;
+    /** The smallest map side a drop is cut across. */
+    static final int CHASM_MIN_SIDE = 64;
+
+    /**
+     * Whether this map is cut by a natural drop: {@code battle.mapgen.naturalVoids} (a share from 0 to 1) when set,
+     * else {@link #CHASM_CHANCE}, drawn on the map's own substream so asking changes no other draw.
+     */
+    static boolean chasmWanted(long seed) {
+        String asked = System.getProperty("battle.mapgen.naturalVoids");
+        float chance = asked == null || asked.isBlank() ? CHASM_CHANCE : Float.parseFloat(asked.trim());
+        return new Random(seed ^ 0x43484153_4d4c4cL).nextFloat() < chance;
+    }
+
+    /**
+     * Cuts a natural drop across open country ({@code voids.md}, placement in generated maps): a gorge, canyon or
+     * crevasse by the world's palette ({@link NaturalVoidZoning}), run edge to edge over the ground the reservations
+     * leave, every road and route crossing it left standing as a bridge and natural crossings between, and proved
+     * to strand nothing ({@link NaturalChasm}). After the open pit, before anything is grown. A map that already
+     * draws a drop or a backdrop, or that no line fits, keeps none.
+     */
+    private static void chasm(GenContext c, SurfaceField field, boolean[] reserved) {
+        if (c.topology.naturalVoid() != null || c.topology.voidBackdrop() != null) return;
+        if (Math.min(c.width, c.height) < CHASM_MIN_SIDE || !chasmWanted(c.seed)) return;
+        int w = c.width;
+        NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height,
+                i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
+        if (cut == null) return;
+        cutDrop(c, cut.drop(), reserved);
+        NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
+        // Each crossing is decked as a timber footbridge. A snow bridge on ice was tried: plain snow over the
+        // crevasse read as two pits with ground between them, not as a way across.
+        int timber = c.topology.surfaceIndex(DECK_SURFACE);
+        boolean[] decks = cut.decks();
+        for (int i = 0; i < decks.length; i++) {
+            if (!decks[i]) continue;
+            reserved[i] = true;
+            int x = i % w, y = i / w;
+            c.topology.setNatureOverlayIndex(x, y, -1);
+            c.topology.setGroundKind(x, y, GroundKind.DIRT);
+            c.topology.setSurface(x, y, timber);
+        }
+        c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+    }
+
+    /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
+    static final int PIT_WORKS_REACH = 32;
+
+    /**
+     * Where the pit's conveyor ends: on the wall of the largest non-residential building within
+     * {@link #PIT_WORKS_REACH} of the plan's objective (a mine's head works, whose largest building is its ore mill),
+     * at the point facing the pit's site. Null when the plan has no objective or none stands near it.
+     */
+    private static float[] pitWorks(GenContext c, PrecinctPlan plan, Site box) {
+        Precinct works = plan.objective();
+        if (works == null) return null;
+        float cx = (box.x0() + box.x1()) / 2f, cy = (box.y0() + box.y1()) / 2f;
+        PointOfInterest best = null;
+        int bestArea = 0;
+        int reach = PIT_WORKS_REACH * PIT_WORKS_REACH;
+        for (PointOfInterest poi : c.pois) {
+            if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;
+            int dx = poi.interiorAnchorX - works.seedX(), dy = poi.interiorAnchorY - works.seedY();
+            if (dx * dx + dy * dy > reach) continue;
+            int area = (poi.right - poi.left + 1) * (poi.bottom - poi.top + 1);
+            if (area > bestArea) { bestArea = area; best = poi; }
+        }
+        if (best == null) return null;
+        return new float[]{Math.max(best.left, Math.min(best.right + 1f, cx)),
+                Math.max(best.top, Math.min(best.bottom + 1f, cy))};
     }
 
     /**
@@ -453,9 +579,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static void hills(GenContext c, SurfaceField palettes, boolean[] reserved, boolean[][] ridgeGround,
                               Random random) {
         SurfacePalette surface = palettes.world();
-        TerrainPlan plan = new TerrainPlan(c.width, c.height,
-                surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
-                        : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
+        TerrainPlan plan = new TerrainPlan(c.width, c.height, TerrainPlan.Finish.of(surface),
                 1.8, .55, c.seed ^ 0x48494c4cL, List.of());
         boolean[] occupied = new boolean[reserved.length], closed = new boolean[reserved.length];
         int desired = Math.max(1, Math.min(10, c.width * c.height / 6000));
@@ -726,7 +850,8 @@ public final class OutdoorLandscapeStage implements GenStage {
     private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
-        if(surface==SurfacePalette.ROCK) {
+        // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
+        if(surface.layoutOf()==SurfacePalette.ROCK) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {

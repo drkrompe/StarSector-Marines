@@ -88,8 +88,13 @@ public final class RuinsPushes {
         RuinsDelve.Layer layer = layer(push.layer());
         if (layer == null) return;
         NavigationGrid grid = sim.getGrid();
-        int[] wake = wakeCell(candidates(layer), companyX, companyY,
-                (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y));
+        Standable standable = (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y);
+        // The layer's wake point when it has one standing; the layer's open ground otherwise.
+        RuinsWorks works = sim.getRuinsWorks();
+        RuinsWorks.WakePoint point = works != null ? works.wakePoint(push.layer()) : null;
+        int[] wake = point != null && !works.wakeCollapsed(push.layer()) && standable.at(point.x(), point.y())
+                ? new int[]{point.x(), point.y()} : null;
+        if (wake == null) wake = wakeCell(candidates(layer), companyX, companyY, standable);
         if (wake == null) return;
         int[] hold = stand(push.layer());
         for (int squad : force.raise(sim, push, wake[0], wake[1])) {
@@ -97,6 +102,18 @@ public final class RuinsPushes {
             fielded.add(new Fielded(push, squad, hold[0], hold[1]));
             issued.add(null);
         }
+    }
+
+    /** Whether a way-back push still standing has reached the stand it holds across the company's way back. */
+    public boolean wayBackHeld(BattleSimulation sim) {
+        for (int i = 0; i < fielded.size(); i++) {
+            Order order = issued.get(i);
+            if (fielded.get(i).push().aim() == Aim.WAY_BACK && order != null && order.kind() == Kind.DEFEND
+                    && sim.squadMemberCount(fielded.get(i).squadId()) > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Every step: on the pulse, each push's squad still standing is told where to go. */
@@ -158,8 +175,8 @@ public final class RuinsPushes {
     }
 
     /**
-     * Where a push may come up in a layer until the ground publishes wake points (slice 2): the open ground of its
-     * ways inside the layer's band, its stand, and its middle.
+     * Where a push may come up in a layer with no wake point standing: the open ground of its ways inside the layer's
+     * band, its stand, and its middle.
      */
     List<int[]> candidates(RuinsDelve.Layer layer) {
         List<int[]> out = new ArrayList<>();

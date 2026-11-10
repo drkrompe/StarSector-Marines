@@ -466,7 +466,9 @@ toward the entrance:
   company that has sat still. Nothing comes up behind the first layer inside.
   Each occupant raises its own: line-frame lances, crew squads called up from
   the dig, or Rav bores woken. Each push is a comms line in the occupant's
-  voice naming the layer.
+  voice naming the layer. A push comes up at its layer's wake point (a
+  service hatch, a crawlway or a bore mound in the side room past the store);
+  a charge collapses one for good, and that layer sends nothing again.
 - **An empty site** sends nothing; its threat is time and charges.
 
 ### Pressing on or pulling out
@@ -580,6 +582,8 @@ tier is set by where it lies, never rolled:
 - **Supply finds** are field salvage's commodity bundles, along the route.
 - **Tech caches** (`RuinsTechCache`) lie in sealed stores, in guardian rooms
   and on the vault store's deepest layer, so the store always holds exactly one.
+  The layer guardian's room is its court: the hive's cache is held from the
+  court and cannot be secured while the flock stands over it.
   A cache holds the game's own equipment, never new items. Its contents roll at
   settlement from one of vanilla's ruins drop groups, picked from the site and
   the find alone: `weapons2` (weapons and fighter wings) five times
@@ -631,6 +635,41 @@ the company commits. The prize's **theme** shows four ways:
 | Catalytic core, fullerene spool | Refinery, tether anchor | Pressure doors |
 | Drone replicator | Drone foundry | Live flocks in the halls (derelict only) |
 
+**Inside the ruin** the theme shows two ways:
+- **Furniture** (`RuinsThemeDressing`, laid by the ruins ground as a
+  `RuinsDressing`). The vault room and the interior's chambers are furnished
+  from the game's own props: server racks for a server hall, rifle racks and
+  ammunition lockers for an armory, reactor housings and pumps for reactor
+  halls, crates for a depot, and so on. Each prop stands against a room's wall,
+  never in a doorway, and only where the room stays one floor. The dressing
+  draws nothing from the layout's random stream, so a site's ground is the
+  same whatever its prize.
+- **A close reading.** At the stand before the vault's layer, the Delve row's
+  close reading names the theme (`RuinsVaultTheme.insideTellKey`) in place of
+  the occupant's sign: the survey's tell, seen up close.
+
+**The works' twist** (`RuinsWorksTwist`). Each theme changes one rule of the
+works, built from the works' own parts, so the prize changes what the company
+does and not only what it sees. The works' row says which rule it is. Every
+twist keeps the works' law that nothing is locked for good: a store that power
+cannot open can be forced, and a store no charge breaks still has its power.
+
+| Theme | Twist | Rule |
+| --- | --- | --- |
+| Depot | Stacked stores | Every layer seals two side rooms as stores where it has them |
+| Armory | Bunkered stores | The stores are hardened: only their power opens them |
+| Server hall | Live hall | The hall runs at landing: the vault has power, and the batteries are awake |
+| Nanoforges, drone replicator | Interlocked line | A junction thrown to its store locks there |
+| Cryoarithmetic engine | Heat valves | The restart takes three times as long |
+| Synchrotron | Magnet gates | Powered doors (not the vault's) cycle, 20 s open, 10 s shut |
+| Mantle bore | Shaft feed | The vault's seal hangs on the last junction's store side, wherever it can cross |
+| Soil nanites, biofactory embryo | Overgrown stores | Power never opens a store; a charge forces it |
+| Fusion lamp, plasma dynamo, hypershunt tap | Coolant load | The hall has no spare capacity: a store costs a door on the way on |
+| Catalytic core, fullerene spool | Pressure doors | Forcing a seal door is as loud as restarting the hall |
+| Dealmaker holosuite | Open directory | The records are read at landing |
+
+The durations are untuned. Theme-made art is still owed.
+
 **How sure the hint is** (pick `ruins-prize-hint` a): the family is always
 true, and so is a colony item, since the item is the site. A core's tier reads
 as "likely": right three times in four, else one step off.
@@ -654,6 +693,23 @@ the breach was held. Breached on the long unpowered hold, it breaks into tech
 caches, one more than its stake. Goods (three supply bundles) and tech (two tech
 caches) pay the same either way. The better the prize, the more the power
 puzzle is worth solving, and nothing is lost outright.
+
+**Paying it.** The battle records whether the seal had power when the breach
+was held (`RuinsVaultObjective.vaultPoweredAtBreach`, carried on
+`MissionOutcome.ruinsVaultPowered`). When a won expedition's record is written,
+`RuinsPrizeSettlement` pays the prize into the fleet's cargo, once:
+- A colony item as vanilla's special item.
+- A core as its commodity.
+- Goods as supply bundles.
+- Each tech cache as one roll of its drop group through vanilla's salvage
+  roller, rerolled past `nothing`.
+
+The tech caches found along the delve settle the same way
+(`RuinsPrizeSettlement.payTechFinds`), on a win or a pull-out, beside the
+commodity finds. They never enter the loot manifest, which holds only the
+commodity finds. The results screen lists each one as a tech cache and gives
+the prize its own row: whole, broken into tech caches, or left sealed in the
+vault.
 
 **The old colony's batteries** (`RuinsBatteries`, pick `ruins-theme-defences`
 a). A site built round a core or a colony item keeps the guns that once kept
@@ -861,8 +917,6 @@ The haul range is the Flow's (step 3), and the battle never changes it.
   lost (`pirates-lore-guide.md`)? The first battle slice has no break rule.
 - Should holding a node, rather than destroying it, put its zone back to sleep?
   The first derelict slice only destroys nodes.
-- Should a sealed store be the first place an equipment cache appears, once
-  `loot-nouns.md` opens that gate?
 - Derelict security beyond ruins: Silent Colony's dead colony, or a
   `theme_derelict` installation on the ground. Each would be its own decision.
 - Ruins ground tuning waits on played battles: the dead town's densities,

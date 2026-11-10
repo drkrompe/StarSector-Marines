@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -272,6 +273,7 @@ public final class RuinsDelveStage implements GenStage {
                 laid.add(new Layer(RuinsDelve.layerName(i), i, d.kind, ground, d.lineLeft, d.lineRight,
                         d.ways, rooms, court));
             }
+            dress(plan.dressing(), vault, chambers);
             finishMasks();
             repairPockets(landing.get(0).berth(0));
 
@@ -1061,6 +1063,114 @@ public final class RuinsDelveStage implements GenStage {
         /** Drops the dead settlement's points of interest under the interior; the vault's own stays. */
         void prunePlaces() {
             ctx.pois.removeIf(p -> p != vaultPoi && interiorBox.contains(p.interiorAnchorX, p.interiorAnchorY));
+        }
+
+        // ---- the prize's dressing ---------------------------------------------------------------
+
+        /** How many props a room of this floor takes at most: one per six cells of its walls. */
+        static int dressingFor(Area room) {
+            return Math.max(2, (room.width() + room.height()) / 3);
+        }
+
+        /**
+         * Furnishes the vault room and the interior's chambers from the site's dressing ({@link RuinsDressing}): props
+         * against each room's walls, drawn by a coordinate hash and never from the layout's stream.
+         */
+        void dress(RuinsDressing dressing, Vault vault, List<Area> chambers) {
+            if (dressing == null || dressing.none()) return;
+            Area room = new Area(vault.innerDoor().x() + 1, vault.footprint().bottom() + 1,
+                    vault.footprint().right() - 1, vault.footprint().top() - 1);
+            dressRoom(room, dressing.vault(), vault.source(), 0x7A);
+            for (Area chamber : chambers) {
+                dressRoom(chamber, dressing.chambers(), new Cell(chamber.centreX(), chamber.centreY()), 0x7B);
+            }
+        }
+
+        /** Props round one room's walls, clockwise from a hashed start, each kept only if the room stays one floor. */
+        void dressRoom(Area room, List<String> props, Cell keepClear, int salt) {
+            TileRegistry registry = TileRegistry.installed();
+            if (registry == null || props.isEmpty()) return;
+            List<int[]> ring = new ArrayList<>();
+            for (int x = room.left(); x <= room.right(); x++) ring.add(new int[]{x, room.bottom()});
+            for (int y = room.bottom() + 1; y <= room.top(); y++) ring.add(new int[]{room.right(), y});
+            for (int x = room.right() - 1; x >= room.left(); x--) ring.add(new int[]{x, room.top()});
+            for (int y = room.top() - 1; y > room.bottom(); y--) ring.add(new int[]{room.left(), y});
+            int start = hash(room.left(), room.bottom(), salt) % ring.size();
+            int placed = 0, limit = dressingFor(room);
+            for (int k = 0; k < ring.size() && placed < limit; k += 2) {
+                int[] at = ring.get((start + k) % ring.size());
+                DoodadDef def = registry.doodad(props.get(hash(at[0], at[1], salt + 1) % props.size()));
+                if (def == null) continue;
+                int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
+                // Anchor the footprint so it lies inside the room from the ring cell.
+                int ax = Math.min(at[0], room.right() - fx + 1), ay = Math.min(at[1], room.top() - fy + 1);
+                if (ax < room.left() || ay < room.bottom()) continue;
+                if (dressProp(def, ax, ay, fx, fy, room, keepClear)) {
+                    placed++;
+                    k += 2 * Math.max(fx, fy);
+                }
+            }
+        }
+
+        /** Stands a prop if its footprint is open room floor, off every doorway and the kept cell, and the room stays whole. */
+        boolean dressProp(DoodadDef def, int ax, int ay, int fx, int fy, Area room, Cell keepClear) {
+            for (int y = ay; y < ay + fy; y++) {
+                for (int x = ax; x < ax + fx; x++) {
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
+                    if (Math.abs(x - keepClear.x()) <= 1 && Math.abs(y - keepClear.y()) <= 1) return false;
+                    // Never in the mouth of a way in: no open cell outside the room beside it.
+                    for (Direction side : Direction.CARDINALS) {
+                        int nx = x + side.dx, ny = y + side.dy;
+                        if (!room.contains(nx, ny) && grid.inBounds(nx, ny) && grid.isWalkable(nx, ny)) return false;
+                    }
+                }
+            }
+            for (int y = ay; y < ay + fy; y++) for (int x = ax; x < ax + fx; x++) grid.setWalkable(x, y, false);
+            if (!oneFloor(room)) {
+                for (int y = ay; y < ay + fy; y++) for (int x = ax; x < ax + fx; x++) grid.setWalkableFloor(x, y);
+                return false;
+            }
+            ctx.doodads.add(new Doodad(ax, ay, def));
+            for (int y = ay; y < ay + fy; y++) {
+                for (int x = ax; x < ax + fx; x++) {
+                    grid.setSeeThrough(x, y, true);
+                    topology.setFixture(x, y, true);
+                    kept[i(x, y)] = true;
+                }
+            }
+            return true;
+        }
+
+        /** Whether a room's open cells are all one floor, four-connected. */
+        boolean oneFloor(Area room) {
+            int open = 0;
+            int[] first = null;
+            for (int y = room.bottom(); y <= room.top(); y++) {
+                for (int x = room.left(); x <= room.right(); x++) {
+                    if (!grid.isWalkable(x, y)) continue;
+                    open++;
+                    if (first == null) first = new int[]{x, y};
+                }
+            }
+            if (first == null) return false;
+            boolean[] seen = new boolean[room.width() * room.height()];
+            ArrayDeque<int[]> queue = new ArrayDeque<>();
+            queue.add(first);
+            seen[(first[1] - room.bottom()) * room.width() + first[0] - room.left()] = true;
+            int reached = 0;
+            while (!queue.isEmpty()) {
+                int[] c = queue.poll();
+                reached++;
+                for (Direction side : Direction.CARDINALS) {
+                    int nx = c[0] + side.dx, ny = c[1] + side.dy;
+                    if (!room.contains(nx, ny) || !grid.isWalkable(nx, ny)) continue;
+                    int at = (ny - room.bottom()) * room.width() + nx - room.left();
+                    if (seen[at]) continue;
+                    seen[at] = true;
+                    queue.add(new int[]{nx, ny});
+                }
+            }
+            return reached == open;
         }
 
         /** A chamber off an interior band: plain hull floor in the solid, its walls the hull round it. */

@@ -226,8 +226,7 @@ public final class BlackSluice {
     private static void terrain(GenContext c) {
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
         SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
-        TerrainPlan.Finish finish = surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
-                : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK;
+        TerrainPlan.Finish finish = TerrainPlan.Finish.of(surface);
         // The station's own country, authored from the apron's west edge and laid APPROACH cells east.
         List<TerrainPlan.Stroke> station = new ArrayList<>();
         // The ridge: a meandering spine of varying height, shouldered by knolls on both faces.

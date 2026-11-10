@@ -2041,6 +2041,14 @@ surface over several seeds, plus seeds that once broke a ground, and holds the
 vault, every interior room and chamber under a roof and every lift point under
 open sky. Ruins ground has no story-map pool: a site's seed names its map.
 
+**Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
+and the interior's chambers wear for the site's vault prize
+(`ruins-expedition.md`, The vault and its prize). The ruins ground lays them
+against room walls, never in a doorway, and only where a room stays one floor.
+It draws them by a coordinate hash, not from the layout's stream, so the same
+seed lays the same ground whatever it wears, and the delve laws above still
+hold it.
+
 ## Rural country
 
 The **country** is the band of open land an open-field landing claims along
@@ -2205,8 +2213,36 @@ basin on a desert keeps its green floor. Lawn on every world used to be the law,
 read as a colony that shipped the soil in; on a desert it was most of what the
 player saw of the town, and it read as a mistake (owner). Cells that carry an
 authored surface — a farm's crop rows and pasture — draw that surface and are
-left as laid. Only the ground kind changes, so walkability, props and random
+left as laid. The town's open dirt lots — industrial yards and waste ground laid
+as bare earth with no surface of their own — settle the same way, so a dead world's
+town is not patched with olive squares (owner). Worked earth keeps its dirt: made
+ground and cells drawn as `floors.dirt` (trench floors, sandbag aprons, fort
+yards) are dug, not lots. Only the ground kind changes, so walkability, props and random
 streams do not move, and a living world's map is the map it was.
+
+**A settlement adapts to its climate.** The palette says what the ground is
+made of; `Climate` says what the weather and air do to the people living on it,
+distilled from the market's conditions by `ClimateZoning` at the same boundary
+(storms, airless, toxic, radiation, quakes). Vanilla has no dust-storm condition,
+so storms are read from the ground as well as the sky: a desert with any air is a
+dust world, a frozen world in extreme cold is a blizzard world, and extreme
+weather storms anywhere; an airless world has no weather at all. A battle with no
+market behind it — a fixture, a story map, a preview — has `Climate.NONE`, so it
+never grows weather it did not ask for.
+
+A storm world drifts its own ground against its town (`StormDrift`): on the
+face of every wall toward the seed's wind (`StormWind`), one to four cells of
+sand (desert, or dust on a rock) or snow (frozen), its depth a slow coordinate
+noise. A drift is a surface skin (`floors.sand`, `floors.snow`), never ground:
+the cell keeps its ground kind, so walkability, cover, fire and every placement
+that reads pavement are unchanged, and it crosses a street only on the apron
+against the wall. It is the last skin laid (`StormDriftStage`, after
+`RoadSurfaceStage`) and never lies on a finished road: the carriageway finish is
+laid only on street with no surface of its own, so a drift laid earlier stripped
+the asphalt off the street beside a wall. A living world's storms pile up nothing. The other hazards are
+carried for adaptations still to come (storm banks, sealed habitats, hardened
+buildings); a bank round the town rarely has room on maps whose town fills the
+frame, and the rest need art the game does not have yet.
 
 **A basin is a second palette in the map's middle.** A `TargetProfile` may carry
 a `Basin`: a floor palette out to an ellipse sized as shares of the map's

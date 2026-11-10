@@ -853,6 +853,7 @@ public final class BattleFixtureJson {
                 if (!deployment.frame().systems().equals(MachineSystems.NONE)) {
                     frame.put("structureFactor", deployment.frame().systems().structureFactor());
                     frame.put("ammoFactor", deployment.frame().systems().ammoFactor());
+                    if (deployment.frame().systems().shieldEmitter()) frame.put("shieldEmitter", true);
                 }
                 mech.put("frame", frame);
                 if (!deployment.refit().neutral()) {
@@ -940,7 +941,8 @@ public final class BattleFixtureJson {
                             (float) encodedFrame.getDouble("fluxCapacity"),
                             (float) encodedFrame.getDouble("dissipationPerSecond"),
                             new MachineSystems((float) encodedFrame.optDouble("structureFactor", 1d),
-                                    (float) encodedFrame.optDouble("ammoFactor", 1d)));
+                                    (float) encodedFrame.optDouble("ammoFactor", 1d), 1f, List.of(), false,
+                                    encodedFrame.optBoolean("shieldEmitter", false)));
                 }
                 MechRefit refit = MechRefit.NEUTRAL;
                 JSONObject encodedRefit = mech.optJSONObject("refit");

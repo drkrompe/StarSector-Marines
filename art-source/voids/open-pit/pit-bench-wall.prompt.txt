@@ -1,0 +1,13 @@
+A seamless, tileable texture for a game: a flat, straight-on elevation
+(orthographic, no perspective, no sky, no horizon) of a blasted bench face
+in an open-cut ore mine, as it would be mapped onto a vertical quarry wall.
+Hard grey and rust-brown ore-bearing rock broken by blasting: angular
+fracture planes, blocky slabs, half-barrel drill traces (vertical parallel
+grooves of presplit drill holes about every metre), iron-oxide staining in
+ochre and rust, pale rock-dust coating, small loose scree lodged in cracks,
+faint horizontal banding of the ore body. No vegetation. Lit evenly by soft
+daylight from straight in front, no cast shadows from outside the tile.
+Even density across the whole tile with no focal point, so it repeats both
+horizontally and vertically. Palette: dusty grey, slate, rust, ochre, a
+little dark iron. No machines, no water, no sky, no people, no text, no
+border, no vignette. Square canvas.

@@ -48,6 +48,11 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     static final int MARGIN = 24;
     /** Water: how fast it runs, metres a second, and how long one pattern lasts before it fades into the next. */
     static final float FLOW_SPEED = 1.6f, FLOW_PERIOD = 5f;
+    /**
+     * The water's pace against an even reach's ({@link ChannelFlow}'s speed): past {@code RAPIDS} it breaks white,
+     * and it is carried no faster than {@code FLOW_FASTEST}, so a pinch does not smear its pattern.
+     */
+    static final float RAPIDS = 1.5f, FLOW_FASTEST = 2.5f;
     /** How dark a rise's shadow lies on the floor at its foot, at its fullest. */
     static final float FLOOR_SHADE = .32f;
 
@@ -60,8 +65,16 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private final GlacialVoidRenderSystem glacial;
     /** The drop this instance draws is a lava rift. */
     private boolean lava;
+    /** The drop this instance draws is an open pit: benches, a haul road down them, conveyors out. */
+    private boolean pit;
+    /** An open pit's haul road, and the conveyors it draws over the ground. */
+    private List<PitVoidLook.Ramp> ramps = List.of();
+    private List<NaturalVoid.Belt> belts = List.of();
+    private List<PitMachines.Machine> machines = List.of();
     /** The drop this instance draws is a glacial crevasse. */
     private boolean ice;
+    /** The drop this instance draws is a dry canyon. */
+    private boolean canyon;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -142,7 +155,12 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         }
         for (int k = n; k >= 0; k--) {
             drawBand(field.bands.get(k), k == n, time);
+            if (pit) drawMachines(k, -1);
             if (k >= 1) drawWalls(field.walls.get(k - 1));
+            if (k >= 1 && pit) {
+                drawRamps(k - 1);
+                drawMachines(k, k - 1);
+            }
         }
         drawBridgeSides();
     }
@@ -162,21 +180,24 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private void build(CellTopology topology, NavigationGrid grid, Object look) {
         NaturalVoidField.Shape shape;
         if (look instanceof NaturalRise rise) {
-            shape = NaturalVoidField.Shape.of(rise);
+            shape = NaturalVoidField.Shape.of(rise).shifted(MARGIN, MARGIN);
             wallTexture = rise.wallTexture();
             wallTileMeters = rise.wallTileMeters();
             eyeMeters = rise.eyeMeters();
             seed = rise.seed();
         } else {
             NaturalVoid drop = (NaturalVoid) look;
-            shape = NaturalVoidField.Shape.of(drop);
+            shape = NaturalVoidField.Shape.of(drop).shifted(MARGIN, MARGIN);
             wallTexture = drop.wallTexture();
             wallTileMeters = drop.wallTileMeters();
             eyeMeters = drop.eyeMeters();
             seed = drop.seed();
         }
         lava = !rising && MoltenVoidRenderSystem.molten((NaturalVoid) look);
+        pit = !rising && PitVoidLook.pit((NaturalVoid) look);
+        belts = pit ? ((NaturalVoid) look).belts() : List.of();
         ice = !rising && GlacialVoidRenderSystem.glacial((NaturalVoid) look);
+        canyon = !rising && CanyonVoidLook.canyon((NaturalVoid) look);
         // A map with both tells them apart as the battle does: a rise blocks sight, a drop does not.
         boolean both = topology.naturalVoid() != null && topology.naturalRise() != null;
         int w = topology.getWidth(), h = topology.getHeight();
@@ -204,8 +225,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             float[] c = new float[band.count * 3];
             for (int q = 0; q < band.count; q++) {
                 if (rising && k == n) plateau(band, q, seed, c);
-                else if (lava) LavaVoidLook.rock(band, q, k, seed, field.depth[n], c);
+                else if (lava) LavaVoidLook.rock(band, q, k, seed, field, c);
+                else if (pit) PitVoidLook.rock(band, q, k, seed, c);
                 else if (ice) IceVoidLook.ice(band, q, k, seed, c);
+                else if (canyon) CanyonVoidLook.rock(band, q, k, seed, c);
                 else albedo(band, q, k, seed, c);
             }
             colours[k] = c;
@@ -213,10 +236,15 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         NaturalVoidField.Band fray = field.fray;
         frayColours = new float[fray.count * 3];
         for (int q = 0; q < fray.count; q++) {
-            if (lava) LavaVoidLook.rock(fray, q, 0, seed, field.depth[n], frayColours);
+            if (lava) LavaVoidLook.rock(fray, q, 0, seed, field, frayColours);
+            else if (pit) PitVoidLook.rock(fray, q, 0, seed, frayColours);
             else if (ice) IceVoidLook.ice(fray, q, 0, seed, frayColours);
+            else if (canyon) CanyonVoidLook.rock(fray, q, 0, seed, frayColours);
             else albedo(fray, q, 0, seed, frayColours);
         }
+        ramps = pit ? PitVoidLook.ramps(field) : List.of();
+        machines = pit ? PitMachines.place(field, ramps, belts.isEmpty() ? null : belts.get(0), MARGIN, seed)
+                : List.of();
     }
 
     /**
@@ -263,6 +291,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                         .02f, .03f, .06f, at[o + 7] * strength * alpha);
             }
             if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+            if (pit && !belts.isEmpty()) drawBelts(FireLight.clock(ctx.animationTimeSeconds));
         });
     }
 
@@ -406,11 +435,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             glacial.drawFloor(band, time);
             return;
         }
-        float s = scale(band.depth);
         float floorDepth = Math.max(1f, field.depth[field.steps()]);
-        float tint = rising ? 0f : ice ? IceVoidLook.deepTint(band.depth, floorDepth) : DEEP_MIX * band.depth / floorDepth;
-        float deepR = ice ? IceVoidLook.DEEP_R : DEEP_R, deepG = ice ? IceVoidLook.DEEP_G : DEEP_G;
-        float deepB = ice ? IceVoidLook.DEEP_B : DEEP_B;
+        float deepR = ice ? IceVoidLook.DEEP_R : canyon ? CanyonVoidLook.DEEP_R : DEEP_R;
+        float deepG = ice ? IceVoidLook.DEEP_G : canyon ? CanyonVoidLook.DEEP_G : DEEP_G;
+        float deepB = ice ? IceVoidLook.DEEP_B : canyon ? CanyonVoidLook.DEEP_B : DEEP_B;
         float margin = cam.cellPxSize() * 2f;
         PolyMesh mesh = poly();
         float[] qd = band.quads, at = band.attrs;
@@ -419,14 +447,26 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         float w1 = 1f - Math.abs(2f * p1 - 1f);
         for (int q = 0; q < band.count; q++) {
             int o = q * 8;
-            if (!inView(at[o], at[o + 1], s, margin)) continue;
+            // Each piece at its own depth along the drop: its centre, and each corner.
+            float zc = band.z(q, 4);
+            if (!inView(at[o], at[o + 1], scale(zc), margin)) continue;
             if (band.step == 0 && !onMap(at[o], at[o + 1])) continue;
+            float tint = rising ? 0f : ice ? IceVoidLook.deepTint(zc, floorDepth) : DEEP_MIX * zc / floorDepth;
             float r, g, b;
-            if (floor) {
+            if (floor && pit) {
+                float[] f = PitVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], at[o + 6], seed);
+                r = f[0]; g = f[1]; b = f[2];
+            } else if (floor && canyon) {
+                float[] f = CanyonVoidLook.floor(at[o], at[o + 1], at[o + 2], at[o + 3], seed);
+                r = f[0]; g = f[1]; b = f[2];
+            } else if (floor) {
                 float x = at[o], y = at[o + 1], light = at[o + 2], edge = at[o + 3];
-                float fx = at[o + 4], fy = at[o + 5], sky = at[o + 6], sunlit = at[o + 7];
-                float along = x * fx + y * fy, across = -x * fy + y * fx;
-                float run = FLOW_SPEED * FLOW_PERIOD;
+                float sky = at[o + 6], sunlit = at[o + 7];
+                // Laid along the channel's own flow (ChannelFlow): its streamlines bend with the gorge, and the
+                // pattern is carried down them as fast as the water runs there, faster through a narrows.
+                float[] fl = band.flow;
+                float along = fl[q * 5], across = fl[q * 5 + 1], speed = Math.min(FLOW_FASTEST, fl[q * 5 + 4]);
+                float run = FLOW_SPEED * FLOW_PERIOD * speed * speed;
                 float s1 = NaturalVoidField.Noise.fbm((along - p1 * run) * .28f, across * 1.5f, seed + 3);
                 float s2 = NaturalVoidField.Noise.fbm((along - p2 * run) * .28f + 17f, across * 1.5f, seed + 5);
                 float streak = w1 * s1 + (1f - w1) * s2;
@@ -437,7 +477,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 r *= bright; g *= bright; b *= bright;
                 // White water along the walls and where the stream breaks.
                 float foam = clamp01((.75f - edge) * 1.6f) * (.55f + .45f * streak)
-                        + clamp01(streak - .45f) * .8f;
+                        + clamp01(streak - .45f) * .8f
+                        + clamp01((speed - RAPIDS) * .9f) * (.4f + .6f * streak);
                 foam = clamp01(foam) * (.5f + .5f * light);
                 r = lerp(r, .80f, foam * .75f); g = lerp(g, .84f, foam * .75f); b = lerp(b, .82f, foam * .75f);
                 if (sunlit > 0f && streak > .3f) { r += .08f; g += .08f; b += .07f; }
@@ -445,8 +486,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 r = c[q * 3]; g = c[q * 3 + 1]; b = c[q * 3 + 2];
             }
             r = lerp(r, deepR, tint); g = lerp(g, deepG, tint); b = lerp(b, deepB, tint);
-            mesh.appendQuad(sx(qd[o], s), sy(qd[o + 1], s), sx(qd[o + 2], s), sy(qd[o + 3], s),
-                    sx(qd[o + 4], s), sy(qd[o + 5], s), sx(qd[o + 6], s), sy(qd[o + 7], s), r, g, b, alpha);
+            float s0 = scale(band.z(q, 0)), s1 = scale(band.z(q, 1)), s2 = scale(band.z(q, 2)), s3 = scale(band.z(q, 3));
+            mesh.appendQuad(sx(qd[o], s0), sy(qd[o + 1], s0), sx(qd[o + 2], s1), sy(qd[o + 3], s1),
+                    sx(qd[o + 4], s2), sy(qd[o + 5], s2), sx(qd[o + 6], s3), sy(qd[o + 7], s3), r, g, b, alpha);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
     }
@@ -464,7 +506,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         PolyMesh shade = poly();
         for (NaturalVoidField.Wall wall : walls) {
             float top = wall.zTop(), bottom = wall.zFoot();
-            float s0 = scale(top), s1 = scale(bottom);
+            // Its depths on the steps, scaled at each end by how deep the drop stands there.
+            float g0 = wall.g0(), g1 = wall.g1(), gm = (g0 + g1) / 2f;
+            float s0 = scale(top * gm), s1 = scale(bottom * gm);
             float mx = (wall.x0() + wall.x1()) / 2f, my = (wall.y0() + wall.y1()) / 2f;
             // A rise's face turned from the camera lies under the top above it: only the top is seen there.
             if (rising && wall.nx() * (px - mx) + wall.ny() * (py - my) <= 0f) continue;
@@ -483,9 +527,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
             int rows = light.length;
             for (int r = 0; r < rows; r++) {
                 float za = top + r * (bottom - top) / rows, zb = top + (r + 1) * (bottom - top) / rows;
-                float sa = scale(za), sb = scale(zb);
-                float ax0 = sx(wall.x0(), sa), ay0 = sy(wall.y0(), sa), bx0 = sx(wall.x1(), sa), by0 = sy(wall.y1(), sa);
-                float ax1 = sx(wall.x0(), sb), ay1 = sy(wall.y0(), sb), bx1 = sx(wall.x1(), sb), by1 = sy(wall.y1(), sb);
+                float sa0 = scale(za * g0), sa1 = scale(za * g1), sb0 = scale(zb * g0), sb1 = scale(zb * g1);
+                float ax0 = sx(wall.x0(), sa0), ay0 = sy(wall.y0(), sa0), bx0 = sx(wall.x1(), sa1), by0 = sy(wall.y1(), sa1);
+                float ax1 = sx(wall.x0(), sb0), ay1 = sy(wall.y0(), sb0), bx1 = sx(wall.x1(), sb1), by1 = sy(wall.y1(), sb1);
+                float zm = (za + zb) / 2f * gm;
                 if (rock == null || rock.pxW <= 4) {
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, .46f, .41f, .34f, alpha);
                 }
@@ -494,18 +539,20 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                     // Ice in shade is lit through blue, not darkened grey; the crevasse falls to a deep blue.
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.SHADE_R,
                             IceVoidLook.SHADE_G, IceVoidLook.SHADE_B, dark * .6f * alpha);
-                    float tint = IceVoidLook.deepTint((za + zb) / 2f, floorDepth);
+                    float tint = IceVoidLook.deepTint(zm, floorDepth);
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, IceVoidLook.DEEP_R,
                             IceVoidLook.DEEP_G, IceVoidLook.DEEP_B, tint * alpha);
                 } else {
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, 0f, 0f, 0f, dark * alpha);
                 }
                 if (!rising && !ice) {
-                    float tint = DEEP_MIX * ((za + zb) / 2f) / floorDepth;
-                    shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
+                    float tint = DEEP_MIX * zm / floorDepth;
+                    if (canyon) shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, CanyonVoidLook.DEEP_R,
+                            CanyonVoidLook.DEEP_G, CanyonVoidLook.DEEP_B, tint * alpha);
+                    else shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, DEEP_R, DEEP_G, DEEP_B, tint * alpha);
                 }
                 if (lava) {
-                    float glow = LavaVoidLook.wallGlow(floorDepth - (za + zb) / 2f);
+                    float glow = LavaVoidLook.wallGlow((floorDepth - (za + zb) / 2f) * gm);
                     shade.appendQuad(ax0, ay0, bx0, by0, bx1, by1, ax1, ay1, LavaVoidLook.GLOW_R,
                             LavaVoidLook.GLOW_G, LavaVoidLook.GLOW_B, glow * alpha);
                 }
@@ -517,9 +564,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     /** The rock image over one segment of face between two depths within one repeat of the image. */
     private void rockPatch(ShuttleSpriteCache rock, NaturalVoidField.Wall wall, float u, float length,
                            float za, float zb, float tile) {
-        float sa = scale(za), sb = scale(zb);
-        float ax0 = sx(wall.x0(), sa), ay0 = sy(wall.y0(), sa), bx0 = sx(wall.x1(), sa), by0 = sy(wall.y1(), sa);
-        float ax1 = sx(wall.x0(), sb), ay1 = sy(wall.y0(), sb), bx1 = sx(wall.x1(), sb), by1 = sy(wall.y1(), sb);
+        float sa0 = scale(za * wall.g0()), sa1 = scale(za * wall.g1());
+        float sb0 = scale(zb * wall.g0()), sb1 = scale(zb * wall.g1());
+        float ax0 = sx(wall.x0(), sa0), ay0 = sy(wall.y0(), sa0), bx0 = sx(wall.x1(), sa1), by0 = sy(wall.y1(), sa1);
+        float ax1 = sx(wall.x0(), sb0), ay1 = sy(wall.y0(), sb0), bx1 = sx(wall.x1(), sb1), by1 = sy(wall.y1(), sb1);
         // One winding for every patch, as the city's walls have: a segment runs either way along its line.
         if ((bx0 - ax0) * (ay1 - ay0) - (by0 - ay0) * (ax1 - ax0) < 0f) {
             float t;
@@ -543,6 +591,173 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 (bx1 - minX) / w, (by1 - minY) / h, (ax1 - minX) / w, (ay1 - minY) / h,
                 0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f};
         out.addSheetPatch(RenderLayer.GROUND, rock.sprite, srcX, srcY, srcW, srcH,
+                minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
+    }
+
+    /**
+     * An open pit's haul road down one face: its surface on the bench below, sloping from the bench above's level
+     * to its own, and its inner edge falling to the bench, drawn after the face and before the bench above.
+     */
+    private void drawRamps(int wall) {
+        if (ramps.isEmpty()) return;
+        PolyMesh mesh = poly();
+        float margin = cam.cellPxSize() * 2f;
+        float lit = sun == null ? .9f : .78f + .22f * Math.min(1f, sun.risePerCell());
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        for (PitVoidLook.Ramp ramp : ramps) {
+            if (ramp.wall() != wall) continue;
+            float[] p = ramp.corners();
+            float s0 = scale(p[2]), s1 = scale(p[5]), s2 = scale(p[8]), s3 = scale(p[11]);
+            if (!inView(p[0], p[1], s0, margin)) continue;
+            float r, g, b;
+            if (ramp.side()) { r = .30f; g = .27f; b = .23f; }
+            else if (ramp.lane() == 1) { r = .44f; g = .40f; b = .34f; }
+            else if (ramp.lane() == 2) { r = .60f; g = .56f; b = .49f; }
+            else { r = .54f; g = .50f; b = .43f; }
+            float tint = DEEP_MIX * (p[2] + p[5]) / 2f / floorDepth;
+            r = lerp(r * lit, DEEP_R, tint); g = lerp(g * lit, DEEP_G, tint); b = lerp(b * lit, DEEP_B, tint);
+            mesh.appendQuad(sx(p[0], s0), sy(p[1], s0), sx(p[3], s1), sy(p[4], s1),
+                    sx(p[6], s2), sy(p[7], s2), sx(p[9], s3), sy(p[10], s3), r, g, b, alpha);
+        }
+        if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+    }
+
+    /**
+     * The machines working an open pit ({@link PitMachines}) that rest on band {@code step}: those on the haul road
+     * down face {@code rampWall}, or with {@code rampWall} -1 those standing on the band itself. Each is its frame of
+     * the sheet, turned to its heading and drawn at its depth's scale, shaded as deep rock is; one the rock hides
+     * from the eye is not drawn.
+     */
+    private void drawMachines(int step, int rampWall) {
+        if (machines.isEmpty()) return;
+        ShuttleSpriteCache sheet = sprites.spriteByPath(PitMachines.SHEET);
+        if (sheet == null || sheet.pxW < 3 || sheet.pxH < 2) return;
+        int fw = sheet.pxW / 4, fh = sheet.pxH / 2;
+        float cell = cam.cellPxSize();
+        float margin = cell * 4f;
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        float lit = sun == null ? .9f : .8f + .2f * Math.min(1f, sun.risePerCell());
+        for (PitMachines.Machine m : machines) {
+            if (m.step() != step || m.rampWall() != rampWall) continue;
+            float s = scale(m.depth());
+            if (!inView(m.x(), m.y(), s, margin) || hidden(m.x(), m.y(), m.depth())) continue;
+            float px = sx(m.x(), s), py = sy(m.y(), s);
+            float angle = (float) Math.toDegrees(Math.atan2(sy(m.y() + m.headingY(), s) - py,
+                    sx(m.x() + m.headingX(), s) - px));
+            float w = m.kind().frameCellsW() * cell * s;
+            float h = m.kind().frameCellsH() * cell * s;
+            float shade = lit * (1f - DEEP_MIX * m.depth() / floorDepth);
+            int frame = m.kind().ordinal();
+            out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (frame % 4) * fw, (frame / 4) * fh, fw, fh,
+                    px, py, w, h, angle, shade, shade, shade * .97f, alpha);
+        }
+    }
+
+    /**
+     * An open pit's spine ({@code voids.md}, the open pit): the covered conveyor gallery from the crushing station on
+     * the floor, climbing on its trestles over the benches to the transfer tower on the rim and running on over the
+     * ground to the works. Drawn over the ground tiles and under every unit: its shadow on the ground, the trestles'
+     * cross-beams, the gallery's bays end to end from {@link PitMachines#SHEET}, each at its depth's scale, and the
+     * tower over the rim.
+     */
+    private void drawBelts(float time) {
+        ShuttleSpriteCache sheet = sprites.spriteByPath(PitMachines.SHEET);
+        PolyMesh mesh = poly();
+        float lift = -PitVoidLook.BELT_METERS;
+        float floorDepth = Math.max(1f, field.depth[field.steps()]);
+        float sdx = sun == null ? .7f : -sun.dirX(), sdy = sun == null ? .7f : -sun.dirY();
+        float reach = sun == null || !sun.casts() ? 0f : 1f / Math.max(.25f, sun.risePerCell());
+        float shadeA = sun == null ? .3f : .45f * Math.min(1f, sun.shadowStrength() / .75f);
+        float half = PitMachines.BAY_CELLS_WIDE / 2f;
+        List<float[]> bays = new ArrayList<>();
+        for (NaturalVoid.Belt belt : belts) {
+            float[][] legs = {
+                    {belt.floorX(), belt.floorY(), floorDepth, belt.rimX(), belt.rimY(), lift},
+                    {belt.rimX(), belt.rimY(), lift, belt.endX(), belt.endY(), lift}};
+            float along0 = 0f;
+            for (float[] leg : legs) {
+                float lx = leg[3] - leg[0], ly = leg[4] - leg[1];
+                float len = (float) Math.hypot(lx, ly);
+                if (len < .01f) continue;
+                float ux = lx / len, uy = ly / len, px = -uy * half, py = ux * half;
+                int pieces = Math.max(1, Math.round(len / PitMachines.BAY_CELLS_LONG));
+                for (int i = 0; i < pieces; i++) {
+                    float t0 = i / (float) pieces, t1 = (i + 1) / (float) pieces;
+                    float ax = leg[0] + lx * t0 + MARGIN, ay = leg[1] + ly * t0 + MARGIN;
+                    float bx = leg[0] + lx * t1 + MARGIN, by = leg[1] + ly * t1 + MARGIN;
+                    float za = leg[2] + (leg[5] - leg[2]) * t0, zb = leg[2] + (leg[5] - leg[2]) * t1;
+                    // The shadow on the ground, only where the gallery runs over it.
+                    if (za <= 0f && zb <= 0f && reach > 0f) {
+                        float oa = -za * reach, ob = -zb * reach;
+                        mesh.appendQuad(sx(ax + px + sdx * oa, 1f), sy(ay + py + sdy * oa, 1f),
+                                sx(bx + px + sdx * ob, 1f), sy(by + py + sdy * ob, 1f),
+                                sx(bx - px + sdx * ob, 1f), sy(by - py + sdy * ob, 1f),
+                                sx(ax - px + sdx * oa, 1f), sy(ay - py + sdy * oa, 1f),
+                                .02f, .03f, .05f, shadeA * alpha);
+                    }
+                    // A trestle's cross-beam under the gallery every few cells along the run.
+                    float from = along0 + len * t0, to = along0 + len * t1;
+                    float sa = scale(za);
+                    if (Math.floor(from / PitVoidLook.TRESTLE_EVERY) != Math.floor(to / PitVoidLook.TRESTLE_EVERY)) {
+                        float qx = ux * .22f, qy = uy * .22f, wx = px * 1.45f, wy = py * 1.45f;
+                        mesh.appendQuad(sx(ax - qx + wx, sa), sy(ay - qy + wy, sa), sx(ax + qx + wx, sa),
+                                sy(ay + qy + wy, sa), sx(ax + qx - wx, sa), sy(ay + qy - wy, sa),
+                                sx(ax - qx - wx, sa), sy(ay - qy - wy, sa), .20f, .19f, .17f, alpha);
+                    }
+                    bays.add(new float[]{ax, ay, za, bx, by, zb, px, py});
+                }
+                along0 += len;
+            }
+        }
+        if (!mesh.isEmpty()) out.addPoly(RenderLayer.GROUND, mesh);
+        if (sheet == null || sheet.pxW < 4 || sheet.pxH < 2) return;
+        int fw = sheet.pxW / 4, fh = sheet.pxH / 2;
+        int gallery = PitMachines.Kind.GALLERY.ordinal();
+        int srcX = (gallery % 4) * fw + Math.round(PitMachines.BAY_U0 * fw);
+        int srcY = (gallery / 4) * fh + Math.round(PitMachines.BAY_V0 * fh);
+        int srcW = Math.round((PitMachines.BAY_U1 - PitMachines.BAY_U0) * fw);
+        int srcH = Math.round((PitMachines.BAY_V1 - PitMachines.BAY_V0) * fh);
+        for (float[] bay : bays) {
+            float sa = scale(bay[2]), sb = scale(bay[5]);
+            float ax0 = sx(bay[0] + bay[6], sa), ay0 = sy(bay[1] + bay[7], sa);
+            float bx0 = sx(bay[3] + bay[6], sb), by0 = sy(bay[4] + bay[7], sb);
+            float bx1 = sx(bay[3] - bay[6], sb), by1 = sy(bay[4] - bay[7], sb);
+            float ax1 = sx(bay[0] - bay[6], sa), ay1 = sy(bay[1] - bay[7], sa);
+            sheetPatch(sheet, srcX, srcY, srcW, srcH, ax0, ay0, bx0, by0, bx1, by1, ax1, ay1);
+        }
+        // The transfer tower over the rim, where the gallery leaves the pit.
+        int tower = PitMachines.Kind.TOWER.ordinal();
+        float cell = cam.cellPxSize();
+        for (NaturalVoid.Belt belt : belts) {
+            float dx = belt.endX() - belt.rimX(), dy = belt.endY() - belt.rimY();
+            if (Math.hypot(dx, dy) < .01f) { dx = belt.rimX() - belt.floorX(); dy = belt.rimY() - belt.floorY(); }
+            float s = scale(lift);
+            float px = sx(belt.rimX() + MARGIN, s), py = sy(belt.rimY() + MARGIN, s);
+            float angle = (float) Math.toDegrees(Math.atan2(sy(belt.rimY() + MARGIN + dy, s) - py,
+                    sx(belt.rimX() + MARGIN + dx, s) - px));
+            out.addSheetQuad(RenderLayer.GROUND, sheet.sprite, (tower % 4) * fw, (tower / 4) * fh, fw, fh, px, py,
+                    PitMachines.Kind.TOWER.frameCellsW() * cell * s, PitMachines.Kind.TOWER.frameCellsH() * cell * s,
+                    angle, 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /**
+     * A rectangle of the sheet over the screen quad {@code a0 b0 b1 a1}: its start along {@code a0..a1}, its end along
+     * {@code b0..b1}, so a piece seen at two depths keeps each end at its own scale.
+     */
+    private void sheetPatch(ShuttleSpriteCache sheet, int srcX, int srcY, int srcW, int srcH, float ax0, float ay0,
+                            float bx0, float by0, float bx1, float by1, float ax1, float ay1) {
+        float minX = Math.min(Math.min(ax0, bx0), Math.min(ax1, bx1));
+        float maxX = Math.max(Math.max(ax0, bx0), Math.max(ax1, bx1));
+        float minY = Math.min(Math.min(ay0, by0), Math.min(ay1, by1));
+        float maxY = Math.max(Math.max(ay0, by0), Math.max(ay1, by1));
+        float w = maxX - minX, h = maxY - minY;
+        if (w < .2f || h < .2f) return;
+        float[] patch = {
+                (ax0 - minX) / w, (ay0 - minY) / h, (bx0 - minX) / w, (by0 - minY) / h,
+                (bx1 - minX) / w, (by1 - minY) / h, (ax1 - minX) / w, (ay1 - minY) / h,
+                0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f};
+        out.addSheetPatch(RenderLayer.GROUND, sheet.sprite, srcX, srcY, srcW, srcH,
                 minX + w / 2f, minY + h / 2f, w, h, alpha, patch);
     }
 

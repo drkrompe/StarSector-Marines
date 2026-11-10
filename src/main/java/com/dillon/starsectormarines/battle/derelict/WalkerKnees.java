@@ -33,6 +33,8 @@ public final class WalkerKnees {
     public static final float LIMP_SPEED_SHARE = 0.6f;
     /** Damage scale on a downed walker's torso from any side: dropped, its underside and back are open. UNTUNED. */
     public static final float DOWNED_SCALE = 1.5f;
+    /** How far out from the torso's centre a knee is seen, cells (about the drawn knee's). */
+    public static final float KNEE_CELLS = 1.0f;
     /** Knees lost that down the walker. */
     public static final int DOWNED_AT = 2;
 
@@ -80,6 +82,13 @@ public final class WalkerKnees {
         if (knee < 0) return 1f;
         structure[knee] = Math.max(0f, structure[knee] - damage);
         return 0f;
+    }
+
+    /** Where leg {@code leg}'s knee stands seen from above, cells: on its hip bearing, {@link #KNEE_CELLS} out. */
+    public static float[] kneeAt(float x, float y, float facingDegrees, int leg) {
+        double heading = Math.toRadians(facingDegrees + HIP_BEARING[leg]);
+        // The battle's facing convention: heading 0 points +y, the forward vector is (-sin, cos).
+        return new float[] {x - (float) Math.sin(heading) * KNEE_CELLS, y + (float) Math.cos(heading) * KNEE_CELLS};
     }
 
     public boolean lost(int leg) {

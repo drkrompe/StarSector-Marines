@@ -1,0 +1,8 @@
+A sprite sheet of glowing lava fissures for a top-down tactical game, seen straight down from above, on a PURE BLACK background (RGB 0,0,0 everywhere that is not glowing). The sheet is drawn additively over dark basalt ground, so black means "adds nothing": there must be no ground, rock, texture, smoke or grey anywhere, only light.
+
+Lay out eight separate sprites in a 4 x 2 grid, each well inside its own quarter-by-half cell with generous black space around it, none touching another or the edge:
+1-4: thin, jagged, branching cooling cracks with a molten core: a bright yellow-white hairline at the centre of the deepest part, orange along the crack, fading to deep red and then black at the tips and edges. Different shapes: a long single crack with two side branches; a short forked crack; a zigzag crack; a three-way junction crack.
+5-6: small round volcanic vents seen from above: a ring of dull red-orange glow around a brighter orange-yellow throat, soft falloff to black.
+7-8: a cluster of tiny scattered glowing pinprick embers and short crack fragments, sparse.
+
+Glow is soft and believable, not neon; the brightest core is small. No text, no labels, no border, no grid lines.

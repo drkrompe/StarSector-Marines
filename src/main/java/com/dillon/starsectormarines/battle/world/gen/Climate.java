@@ -1,0 +1,49 @@
+package com.dillon.starsectormarines.battle.world.gen;
+
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
+
+/**
+ * What the world's weather and air do to a settlement, distilled from the planet's market conditions so
+ * {@code battle.world.gen} never sees a game API: the climate counterpart to {@link SurfacePalette}, which says what
+ * the ground is made of. {@link ClimateZoning} owns what each vanilla condition means.
+ *
+ * <p>A settlement adapts to what it lives under ({@code mapgen-nouns.md}, Climate). Today one hazard is built on:
+ * {@link Hazard#STORMS} banks the world's ground against the windward face of every wall ({@link StormDrift}, wind from
+ * {@link StormWind}). The others are carried so the next adaptations read the same fact rather than a second
+ * distillation.
+ *
+ * <p>{@link #NONE} is the climate of every battle with no campaign market behind it (fixtures, story maps, previews),
+ * so a map that never declared weather is the map it was.
+ */
+public record Climate(Set<Hazard> hazards) {
+
+    /** One thing the world does to the people living on it. */
+    public enum Hazard {
+        /** Wind-borne weather the town shelters from: dust storms, blizzards, extreme weather. Needs an atmosphere. */
+        STORMS,
+        /** No air: nothing blows, and nothing is lived in unsealed. */
+        AIRLESS,
+        /** Air that kills. */
+        TOXIC,
+        /** Hard radiation at the surface. */
+        RADIATION,
+        /** A ground that moves. */
+        QUAKES
+    }
+
+    /** No weather the generator answers to. */
+    public static final Climate NONE = new Climate(EnumSet.noneOf(Hazard.class));
+
+    public Climate {
+        hazards = hazards == null || hazards.isEmpty()
+                ? Collections.unmodifiableSet(EnumSet.noneOf(Hazard.class))
+                : Collections.unmodifiableSet(EnumSet.copyOf(hazards));
+    }
+
+    /** Whether the world does this. */
+    public boolean has(Hazard hazard) {
+        return hazards.contains(hazard);
+    }
+}

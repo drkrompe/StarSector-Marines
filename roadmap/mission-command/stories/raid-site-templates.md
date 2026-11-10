@@ -35,6 +35,45 @@ and the garrison beside the works. The seed and the market vary it.
    compounds in their districts, for a raid for valuables (`raid-mission.md`,
    Steal).
 
+## The planet's chokepoint
+
+The owner (2026-11-09, on the mining site): "We're on scale of planets here".
+A Raid on an industry must read as a blow to the whole planet's industry, so
+every site is the one place that industry cannot route around: the hub the
+rest of the planet's sites feed. Three things carry that.
+
+- **The site is the hub.** The map shows one works, but its roads say that
+  more feeds it: feeder lines leave the works' far gates and run off the map's
+  edge (`RaidSiteTemplate.FEEDER`). A haul road carries its output from the
+  near gate to its industrial district (`RaidSiteTemplate.HAUL_ROAD`). The
+  scale tells are the works' own: stockpiles, apron and yards sized for a
+  planet's throughput, not a town's.
+- **The briefing says so.** The briefing names what the works does for the
+  planet, how many sites feed it, and the days its loss costs (the days the
+  wreck-the-works rule already computes), in a line such as "this concentrator
+  handles the output of N digs; wreck it and the planet's ore stops for X
+  days". N follows the market's size.
+- **Each industry has its own hub and its own tells:**
+
+| Industry | The hub | Tells on the map |
+|---|---|---|
+| Heavy industry | the planet's assembly works, which every foundry ships into | feeder lines in; machine halls; yards beyond |
+| Mining | the central concentrator, which every dig feeds | the open pit beside the head works (`RaidSiteTemplate.PIT`); ore lines in from the other digs; ore stockpiles |
+| Refining | the only cracking and distillation plant | pipelines in; stills; a tank farm |
+| Light industry | the central fabrication works | feeder lines; shop floors; loading sheds |
+| Farming | the central grain elevator and processing hub | farm roads in; silos; packing sheds |
+| Spaceport | the only orbital lift | the lighter apron; bonded sheds; roads in from the planet's towns |
+| Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
+
+**The pit.** A mine holds its pit's ground beside the head works: a held
+ground site on the plan's mission layout (`plan.layout().find(PIT)`,
+`SitePurpose.GROUND`). Nothing grows on that ground before the stage that
+cuts the pit runs. It runs from just past the works' claim
+(`RaidSiteTemplate.PIT_GAP`) to the deep edge. Across the map it reaches
+`PIT_HALF_SPAN` either side of the works, but never nearer the middle than
+`PIT_INNER`, because ground held near the garrison can starve the works of its
+road.
+
 ## Acceptance
 
 - [x] Unit tests: security from the market; the works' wall and buffer graded

@@ -1,0 +1,5 @@
+A sprite sheet of soft volcanic ash drifts for a top-down tactical game, seen straight down from above, on a PURE BLACK background (RGB 0,0,0 everywhere outside the drifts). The sheet is drawn additively over dark basalt ground, so the drifts are expressed as pale neutral grey light on black: brighter grey where the ash lies thick, fading smoothly to black at the drift edges.
+
+Lay out four separate drifts in a 2 x 2 grid, each well inside its own quarter with black space around it, none touching another or the edge. Each is an irregular, elongated, wind-shaped patch of fine grey ash (like ash that has blown and settled into hollows), with fine granular grain, faint wind ripples inside, ragged soft feathered edges, and a few small holes where the dark ground shows through. Peak brightness a mid grey around RGB (90, 88, 86), never white. Shapes: a long streak; a broad kidney-shaped patch; a crescent; a cluster of three small patches.
+
+No colour other than neutral grey, no glow, no orange, no rocks, no objects, no text, no border.

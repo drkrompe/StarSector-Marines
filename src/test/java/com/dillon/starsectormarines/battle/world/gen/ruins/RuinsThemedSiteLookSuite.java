@@ -77,8 +77,36 @@ public final class RuinsThemedSiteLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact("02-awake.png", BattleReviewFrameRenderer.look(context.modRoot(),
                     W, H, frame[0], frame[1], frame[2]).render(sim, "")));
         }
+        // Inside: each shown theme's vault room and a chamber, roofs off, on the same ground.
+        for (RuinsVaultTheme theme : INSIDE) {
+            RuinsVaultPrize prize = new RuinsVaultPrize(theme.family, theme,
+                    theme.family == RuinsVaultPrize.Family.AI_CORE ? RuinsVaultPrize.BETA_CORE : theme.itemId, 2);
+            RuinsBattleFixture themed = RuinsBattleFixture.fromFactoryInputs(seed, BattleSetup.defaultManifest(),
+                    false, OperationTier.VETERAN, RiskLevel.MEDIUM, RuinsGroundEvidence.profile(surface),
+                    FlybyRoster.EMPTY, FlybyRoster.EMPTY, GRADE, RuinsOccupant.SCAVENGERS, List.of(), prize);
+            try (BattleSimulation sim = themed.build()) {
+                // Generation itself holds the dressed ground to the delve laws (DelveCheck), so it built.
+                RuinsDelve delve = sim.getRuinsWorks().delve();
+                String name = theme.name().toLowerCase(Locale.ROOT).replace('_', '-');
+                RuinsDelve.Area vault = delve.vault().footprint();
+                out.add(new SnapshotArtifact("inside/" + name + "-vault.png", BattleReviewFrameRenderer.look(
+                        context.modRoot(), W, H, vault.centreX() + 0.5f, vault.centreY() + 0.5f, CLOSE_CELLS)
+                        .withoutRoofs().render(sim, "")));
+                List<RuinsDelve.Area> chambers = delve.interior().chambers();
+                if (!chambers.isEmpty()) {
+                    RuinsDelve.Area chamber = chambers.get(chambers.size() - 1);
+                    out.add(new SnapshotArtifact("inside/" + name + "-chamber.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, chamber.centreX() + 0.5f, chamber.centreY() + 0.5f,
+                            CLOSE_CELLS).withoutRoofs().render(sim, "")));
+                }
+            }
+        }
         return out;
     }
+
+    /** The themes shown inside: one of each kind of prize, and a reactor site. */
+    private static final List<RuinsVaultTheme> INSIDE = List.of(RuinsVaultTheme.CRYOARITHMETIC_ENGINE,
+            RuinsVaultTheme.SERVER_HALL, RuinsVaultTheme.ARMORY, RuinsVaultTheme.FUSION_LAMP, RuinsVaultTheme.DEPOT);
 
     private static void advance(BattleSimulation sim, float seconds) {
         for (int t = 0; t < Math.round(seconds / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);

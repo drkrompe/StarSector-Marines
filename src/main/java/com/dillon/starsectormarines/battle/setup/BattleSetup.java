@@ -137,6 +137,8 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.RuinsWorksTwist;
+import com.dillon.starsectormarines.battle.ruins.RuinsThemeDressing;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.battle.ruins.RuinsPressure;
 import com.dillon.starsectormarines.battle.ruins.RuinsPushes;
@@ -1331,7 +1333,8 @@ public final class BattleSetup {
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         ColdAccountForce.FORTIFICATION)
                 : type == MissionType.RUINS
-                ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers()))
+                ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers())
+                        .withDressing(RuinsThemeDressing.of(ruinsPrize)))
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
@@ -1408,7 +1411,8 @@ public final class BattleSetup {
             sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
                     ruinsLayout.liftPoints().get(0).route()));
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
-            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence));
+            // The prize bends one rule of the works (RuinsWorksTwist): what the site was built round changes the play.
+            sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence, RuinsWorksTwist.of(ruinsPrize)));
             // An occupied site stirs while the company is inside (ruins-pressure.md); an empty site's threat is time.
             // The vault's prize: its stake deepens the reserve and quickens the stir, and the guardians read it.
             sim.setRuinsPrize(ruinsPrize);
@@ -1424,7 +1428,10 @@ public final class BattleSetup {
                     ruinsLayout.sourceX(), ruinsLayout.sourceY()));
             // The Delve row's watch: its close readings are drawn from the occupant's readings pool.
             RuinsSurvey.Pool readings = ruinsOccupant != null ? RuinsSurvey.poolFor(ruinsOccupant) : RuinsSurvey.NOBODY;
-            sim.installRuinsDelveWatch(RuinsDelveWatch.of(map.ruinsDelve, readings.readingKeys(), seed));
+            RuinsDelveWatch watch = RuinsDelveWatch.of(map.ruinsDelve, readings.readingKeys(), seed);
+            // Up close, the vault's layer reads as what the site was built round.
+            if (ruinsPrize != null) watch.withVaultSign(ruinsPrize.theme().insideTellKey());
+            sim.installRuinsDelveWatch(watch);
         } else if (extractionLayout != null) {
             int sourceZone = sim.getZoneGraph().zoneIdAt(
                     extractionLayout.sourceCellX(),

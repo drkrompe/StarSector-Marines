@@ -1,9 +1,9 @@
 # Ruins guardians
 
 Status: IN PROGRESS — owner direction ("mini bosses"); owner picks
-`derelict-hive-fight` (a, the hatch rhythm) and `derelict-vault-guardian` (a,
-the vault frame braces). The rules for derelict security's two guardians are
-built (What is built). Builds on the picks `ruins-guardian-placement` (a) and
+`derelict-hive-fight` (a, the hatch rhythm), `derelict-vault-guardian` (a,
+the vault frame braces) and `walker-legs` (a, knees on the walker). The rules
+for derelict security's two guardians are built (What is built). Builds on the picks `ruins-guardian-placement` (a) and
 `ruins-guardian-kinds` (a). The walker's look is `derelict-walker-look-v3`'s
 sentinel, which derelict security's heavy line ships.
 
@@ -93,7 +93,7 @@ No new chassis: its boss read is the walker's look, the sentinel
 
 Owner direction ("separate hit boxes for the legs / knees and the central
 body"; "enemies likely should be able to path under the held up torso"),
-built on the recommended option of the open pick `walker-legs` (a). Every
+owner pick `walker-legs` (a, knees on the same unit). Every
 derelict walker carries it; the vault frame's brace reads it.
 
 - **Knees.** Each of the four legs has a knee with its own structure, on the
@@ -152,9 +152,12 @@ Guardian strength does not read the prize's stakes; that waits on the owner.
    the Rav (the old sleeper and the deep bore), an empty site (the vault's own
    battery), as `ruins-guardian-kinds` (a) names them, each a story slice of
    its own once picked.
-8. **Legs shown.** The leg rig limps on three legs, drags the lost leg's
-   foot and grips nothing on that side; sparks at a lost knee; the LEGS pip
-   row; a downed walker drawn with its torso on the floor.
+8. **Legs shown (built).** The leg rig never lifts a lost leg, drags its
+   foot and grips nothing with it, and the body sags and tips toward it; the
+   lost knee bursts once, then throws sparks and is drawn burnt; the LEGS pip
+   row stands over a walker missing a knee; a downed walker's torso sinks to
+   the floor. Knees, feet and sparks read the hips' frame, as the legs hang
+   off the hips.
 
 ## What is built
 
@@ -175,10 +178,13 @@ Guardian strength does not read the prize's stakes; that waits on the owner.
 - `WalkerKnees` and `WalkerFootprint` (`battle.derelict`), worn by every
   derelict walker through `DerelictSecurityDirector.armWalkers`: knee hits
   through `HitScale`, speed through a unit modifier, and the feet-only
-  footprint through `SeparationSystem.Straddle`. Not yet drawn (slice 8).
+  footprint through `SeparationSystem.Straddle`. Drawn by `DerelictLegRig`
+  (`legsLost`) and `DerelictWalkerComposer` (burnt knee, `marker`); sparks
+  from the director. The look suite's `guardian-walker-knee` clip shows a
+  walker losing a knee, then a second.
 
 Tests: `HiveCradleTest`, `VaultFrameBraceTest`, `FlockSystemTest`,
-`WalkerKneesTest`, `WalkerFootprintTest`.
+`WalkerKneesTest`, `WalkerFootprintTest`, `DerelictLegRigTest`.
 
 ## Constraints
 

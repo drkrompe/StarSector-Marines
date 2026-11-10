@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.turret.FortWorks;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MachineHosts;
 import com.dillon.starsectormarines.battle.mech.MachineSystems;
+import com.dillon.starsectormarines.battle.mech.MechShield;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
@@ -753,6 +755,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         occupantStash = stash;
     }
 
+    private final List<SalvageCache> guardianCaches = new ArrayList<>();
+
+    /**
+     * Adds a guardian room's tech cache ({@code RuinsFindTier.Place.GUARDIAN_ROOM}): a field find held like any other,
+     * which nobody secures while its guardian's side stands over it.
+     */
+    public void addGuardianCache(SalvageCache cache) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place a guardian's cache before launch installs finds");
+        guardianCaches.add(cache);
+    }
+
     private List<SalvageCache> vaultStore = List.of();
 
     /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
@@ -772,6 +786,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A ruins site's sealed stores hold their own finds, behind seal doors the placement could not reach.
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
+        finds.addAll(guardianCaches);
         fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
         // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
         vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
@@ -2728,6 +2743,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<float[]> getHeavyImpactsThisFrame() { return effects.getHeavyImpactsThisFrame(); }
     /** Claw strikes queued this tick; see {@code EffectsService.emitClawStrike}. Drained by the host into {@code ImpactFx.spawnClawStrike}. */
     public List<float[]> getClawStrikesThisFrame() { return effects.getClawStrikesThisFrame(); }
+
+    /** The presentation effects queue: what a frame draws besides the bodies (sparks, smoke, flame). */
+    public EffectsService effects() { return effects; }
     /** Rounds landed on plated Rav this tick; see {@code EffectsService.emitSwarmHit}. Drained into {@code ImpactFx.spawnSwarmHit}. */
     public List<float[]> getSwarmHitsThisFrame() { return effects.getSwarmHitsThisFrame(); }
     /** Queues one puff of ground dust; see {@code EffectsService.emitGroundDust}. Presentation only. */
@@ -2952,6 +2970,23 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             String structureId = host.getValue().activeProtectionStructureId();
             if (structureId == null || resolveUnit(id) == 0L) continue;
             pointDefense.mountMachine(id, rosterService.identity().faction(id), structureId);
+        }
+        fitMechShields();
+    }
+
+    /**
+     * Gives every mech whose compartment carries a shield emitter its shield, once: run on the mech's own flux pool
+     * ({@link MechShield}), facing as the mech does. The shield goes when the mech does ({@link #tickTurretShields}).
+     */
+    private void fitMechShields() {
+        for (Map.Entry<Long, MachineSystems> host : rosterService.machineHosts().entries()) {
+            if (!host.getValue().shieldEmitter()) continue;
+            long id = host.getKey();
+            if (resolveUnit(id) == 0L || turretShields.fitted(id) != null) continue;
+            MechLoadoutComponent loadout = world.mechLoadout(id);
+            if (loadout == null) continue;
+            turretShields.fitPooled(id, MechShield.FRONTAL, MechShield.TINT, world.mechHipFacingDegrees(id) + 90f,
+                    loadout.flux);
         }
     }
 

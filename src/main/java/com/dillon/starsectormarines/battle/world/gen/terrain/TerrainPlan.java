@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.terrain;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -9,11 +10,25 @@ import java.util.List;
 /** Ordered brush intent in cell-center coordinates. Raised masses and excavations are inaccessible. */
 public record TerrainPlan(int width, int height, Finish finish, double faceDepth,
                           double ruggedness, long seed, List<Stroke> strokes) {
-    public enum Finish { ROCK, GRASS_TOP, ICE;
-        public String materialPrefix() { return this==ICE?"terrain.ice.":"terrain."; }
+    public enum Finish { ROCK, GRASS_TOP, ICE, BASALT;
+        public String materialPrefix() { return this==ICE?"terrain.ice.":this==BASALT?"terrain.basalt.":"terrain."; }
         @Override public String toString() { return switch(this) {
             case ROCK -> "Rock escarpment"; case GRASS_TOP -> "Grass-topped cliff"; case ICE -> "Glacial ice ridge";
+            case BASALT -> "Basalt flow scarp";
         }; }
+        /**
+         * A world's own finish: grass-topped where things grow, ice on a frozen world, basalt on a volcanic one,
+         * bare rock otherwise. Basalt differs from rock in its material alone, never in shape.
+         */
+        public static Finish of(SurfacePalette surface) {
+            if (surface == null) return ROCK;
+            return switch (surface) {
+                case VERDANT -> GRASS_TOP;
+                case FROZEN -> ICE;
+                case VOLCANIC -> BASALT;
+                default -> ROCK;
+            };
+        }
     }
     public enum Mode { RAISE, ERASE, EXCAVATE;
         @Override public String toString() { return switch (this) {

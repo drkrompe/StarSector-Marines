@@ -70,6 +70,7 @@ public final class RuinsWorks {
     static final String KEYPAD = KEY + "keypad";
     static final String DOOR = KEY + "door/";
     static final String COLLAPSE = KEY + "collapse";
+    static final String WAKE = KEY + "wake/";
     static final String FORCE = "force";
     public static final String VAULT_SEAL = "vault-seal";
 
@@ -122,6 +123,30 @@ public final class RuinsWorks {
     /** For each of {@link #courts}, its index among the vault objective's lift points, or -1; set at install. */
     private int[] courtLifts = new int[0];
 
+    /**
+     * A wake point ({@code ruins-pressure.md}, slice 2): where the occupant's stir pushes come up in a layer inside, the
+     * floor of a side room that is not a store. A company charge going off over it collapses it for good, and no push
+     * comes up in that layer again.
+     *
+     * @param layer the layer it serves
+     * @param spot  its one cell as a span the works' force path can set a charge on
+     */
+    public record WakePoint(int layer, SealDoor spot) {
+        public int x() { return spot.cells()[0][0]; }
+
+        public int y() { return spot.cells()[0][1]; }
+    }
+
+    private final List<WakePoint> wakes = new ArrayList<>();
+    private final List<Boolean> wakeCollapsed = new ArrayList<>();
+    /** The company's charges armed at the last look, {id, x, y, blast radius}, to see which went off where. */
+    private final List<float[]> armed = new ArrayList<>();
+
+    /** How the site's prize bends the works' rules ({@link RuinsWorksTwist}). */
+    private RuinsWorksTwist twist = RuinsWorksTwist.NONE;
+    /** For each seal door, whether it stood forced at the last look, to hear a {@link RuinsWorksTwist#PRESSURE_DOORS} vent. */
+    private boolean[] wasForced;
+
     /** A landing court's lift, a consumer on its layer's store side. */
     record Court(String id, String name, int[] ground) { }
     private float work;
@@ -151,6 +176,12 @@ public final class RuinsWorks {
      * site's ground ({@link VaultAccess}).
      */
     public static RuinsWorks of(RuinsDelve delve, RuinsDefence defence) {
+        return of(delve, defence, RuinsWorksTwist.NONE);
+    }
+
+    /** The works as {@link #of(RuinsDelve, RuinsDefence)} wires them, bent by the site prize's {@code twist}. */
+    public static RuinsWorks of(RuinsDelve delve, RuinsDefence defence, RuinsWorksTwist twist) {
+        if (twist == null) twist = RuinsWorksTwist.NONE;
         boolean empty = defence == RuinsDefence.NONE;
         int layerCount = delve.layerCount();
         int[] onwardBy = new int[layerCount], storeBy = new int[layerCount];
@@ -166,7 +197,8 @@ public final class RuinsWorks {
             junctions.add(new Site(JUNCTION + j, Strings.format("ruinsWorksJunctionName", j + 1),
                     box.stand().x(), box.stand().y()));
             initial.add(Branch.ONWARD);
-            int sealed = storesIn(j, delve.layerCount(), layer.rooms().size(), defence);
+            int sealed = twist.stores(storesIn(j, delve.layerCount(), layer.rooms().size(), defence),
+                    layer.rooms().size());
             for (int r = 0; r < sealed; r++) {
                 RuinsDelve.SideRoom room = layer.rooms().get(r);
                 RuinsDelve.Area f = room.footprint();
@@ -174,7 +206,7 @@ public final class RuinsWorks {
                 String storeId = "store-" + n;
                 doors.add(new SealDoor(storeId, Strings.format("ruinsWorksStoreName", n),
                         new int[][]{{room.door().x(), room.door().y()}}, room.interior().x(), room.interior().y(),
-                        new int[]{f.left(), f.bottom(), f.right(), f.top()}, true));
+                        new int[]{f.left(), f.bottom(), f.right(), f.top()}, true, twist.hardenedStores()));
                 consumers.add(new Consumer(storeId, j, Branch.STORE));
                 storeBy[j]++;
                 SalvageResource resource = SalvageResource.values()[(n - 1) % SalvageResource.values().length];
@@ -182,7 +214,9 @@ public final class RuinsWorks {
                 int cacheX = room.door().x() + Integer.signum(room.interior().x() - room.door().x());
                 int cacheY = room.door().y() + Integer.signum(room.interior().y() - room.door().y());
                 stores.add(new SalvageCache("sealed-" + storeId, cacheX, cacheY, resource, resource.cacheQuantity)
-                        .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN));
+                        .heldFromRoom(f.left(), f.bottom(), f.right(), f.top(), WORK_MARGIN)
+                        // A sealed store keeps the old colony's hardware (RuinsFindTier.Place.SEALED_STORE).
+                        .asTechCache());
             }
             if (empty && layer.court() != null) {
                 // The court's lift comes up with its layer's store: the way on, or the store and the near lift.
@@ -222,7 +256,8 @@ public final class RuinsWorks {
         int ix = vaultPlace.innerDoor().x(), iy = vaultPlace.innerDoor().y();
         doors.add(new SealDoor(VAULT_SEAL, Strings.get("ruinsWorksVaultSealName"), new int[][]{{ix, iy}},
                 vaultPlace.source().x(), vaultPlace.source().y(), box(vaultPlace.footprint()), false, true));
-        VaultAccess access = VaultAccess.draw(siteSeed(delve), delve.records() != null, onwardBy[last] > 0);
+        VaultAccess access = twist.access(VaultAccess.draw(siteSeed(delve), delve.records() != null,
+                onwardBy[last] > 0), onwardBy[last] > 0);
         if (access == VaultAccess.CROSSED_FEED) {
             consumers.add(new Consumer(VAULT_SEAL, last, Branch.STORE));
             storeBy[last]++;
@@ -244,18 +279,105 @@ public final class RuinsWorks {
             collapse = new SealDoor("collapse", Strings.get("ruinsWorksCollapseName"), cells, way.far().x(),
                     way.far().y(), new int[]{span.left(), span.bottom(), span.right(), span.top()}, false);
         }
-        RuinsWorks works = new RuinsWorks(new PowerGraph(capacity(onwardBy, storeBy), initial, consumers), hall, junctions,
-                doors, stores, records, collapse);
+        int onward = 0;
+        for (int n : onwardBy) onward += n;
+        RuinsWorks works = new RuinsWorks(new PowerGraph(twist.capacity(onward, capacity(onwardBy, storeBy)), initial,
+                consumers), hall, junctions, doors, stores, records, collapse);
         works.delve = delve;
+        works.twist = twist;
+        if (twist.hallStartsRunning()) works.graph.restart();
+        if (twist.recordsStartRead() && records != null) works.read = true;
         works.vaultShell = box(vaultPlace.footprint());
         works.access = access;
         works.courts.addAll(courts);
+        if (!empty && defence != null) works.placeWakes(delve, defence, twist);
         if (records != null) {
             // The keypad stands on the antechamber's floor in front of the vault's door, toward its outer door.
             int kx = ix + Integer.signum(vaultPlace.door().x() - ix);
             works.keypad = new Site(KEYPAD, Strings.get("ruinsWorksKeypadName"), kx, iy);
         }
         return works;
+    }
+
+    /**
+     * One wake point in each layer inside that has a side room past its stores, on that room's floor; named for who
+     * comes up through it.
+     */
+    private void placeWakes(RuinsDelve delve, RuinsDefence defence, RuinsWorksTwist twist) {
+        int firstInside = delve.interior() != null ? delve.interior().firstLayer() : 0;
+        String name = Strings.get(switch (defence) {
+            case SECURITY -> "ruinsWakeHatch";
+            case CREW -> "ruinsWakeCrawlway";
+            default -> "ruinsWakeBoreMound";
+        });
+        for (RuinsDelve.Layer layer : delve.layers()) {
+            RuinsDelve.SideRoom room = wakeRoom(layer, firstInside, delve.layerCount(), defence, twist);
+            if (room == null) continue;
+            int x = room.interior().x(), y = room.interior().y();
+            SealDoor spot = new SealDoor("wake-" + (layer.index() + 1),
+                    Strings.format("ruinsWakeName", name, layer.index() + 1), new int[][]{{x, y}}, x, y,
+                    new int[]{x, y, x, y}, false);
+            wakes.add(new WakePoint(layer.index(), spot));
+            wakeCollapsed.add(false);
+        }
+    }
+
+    /** The side room a layer's wake point stands in: its first past the stores, inside only; null for none. */
+    static RuinsDelve.SideRoom wakeRoom(RuinsDelve.Layer layer, int firstInside, int layerCount, RuinsDefence defence) {
+        return wakeRoom(layer, firstInside, layerCount, defence, RuinsWorksTwist.NONE);
+    }
+
+    static RuinsDelve.SideRoom wakeRoom(RuinsDelve.Layer layer, int firstInside, int layerCount, RuinsDefence defence,
+                                        RuinsWorksTwist twist) {
+        if (layer.index() < firstInside) return null;
+        int stores = twist.stores(storesIn(layer.index(), layerCount, layer.rooms().size(), defence),
+                layer.rooms().size());
+        return stores < layer.rooms().size() ? layer.rooms().get(stores) : null;
+    }
+
+    /** The site's wake points, in layer order. */
+    public List<WakePoint> wakePoints() { return List.copyOf(wakes); }
+
+    /** Layer {@code layer}'s wake point, or null where it has none. */
+    public WakePoint wakePoint(int layer) {
+        for (WakePoint wake : wakes) if (wake.layer() == layer) return wake;
+        return null;
+    }
+
+    /** Whether layer {@code layer}'s wake point has been collapsed by a charge. */
+    public boolean wakeCollapsed(int layer) {
+        for (int w = 0; w < wakes.size(); w++) if (wakes.get(w).layer() == layer) return wakeCollapsed.get(w);
+        return false;
+    }
+
+    /** Whether a charge of {@code radius} gone off at {@code (x, y)} collapses a wake point at cell {@code (wx, wy)}. */
+    static boolean collapses(int wx, int wy, float x, float y, float radius) {
+        float dx = wx + 0.5f - x, dy = wy + 0.5f - y;
+        float reach = radius + 0.5f;
+        return dx * dx + dy * dy <= reach * reach;
+    }
+
+    /** The company's charges that went off since the last look collapse the wake points they cover. */
+    private void watchCharges(BattleSimulation sim) {
+        if (wakes.isEmpty()) return;
+        List<float[]> now = new ArrayList<>();
+        for (var charge : sim.satchelCharges().activeCharges()) {
+            if (charge.sourceFaction() == Faction.MARINE) {
+                now.add(new float[]{charge.id(), charge.x(), charge.y(), charge.blastRadius()});
+            }
+        }
+        for (float[] was : armed) {
+            boolean still = false;
+            for (float[] is : now) still |= is[0] == was[0];
+            if (still) continue;
+            for (int w = 0; w < wakes.size(); w++) {
+                if (!wakeCollapsed.get(w) && collapses(wakes.get(w).x(), wakes.get(w).y(), was[1], was[2], was[3])) {
+                    wakeCollapsed.set(w, true);
+                }
+            }
+        }
+        armed.clear();
+        armed.addAll(now);
     }
 
     /**
@@ -345,6 +467,7 @@ public final class RuinsWorks {
                     vaultShell[3]);
         }
         for (LockedDoor lock : locks) lock.install(sim);
+        wasForced = new boolean[locks.size()];
         courtLifts = new int[courts.size()];
         for (int c = 0; c < courts.size(); c++) {
             courtLifts[c] = -1;
@@ -365,6 +488,7 @@ public final class RuinsWorks {
     /** One tick: the player's press, the work at a console or box, then the doors and the vault's seal. */
     public void tick(BattleSimulation sim) {
         if (!installed || sim.isComplete()) return;
+        watchCharges(sim);
         SideField field = SideField.of(sim);
         if (pressedKey != null && FORCE.equals(pressedVerb)) {
             forceKey = pressedKey;
@@ -409,7 +533,8 @@ public final class RuinsWorks {
             read = true;
         } else {
             int j = Integer.parseInt(workKey.substring(JUNCTION.length()));
-            graph.throwJunction(j, Branch.valueOf(workVerb));
+            Branch to = Branch.valueOf(workVerb);
+            if (twist.throwable(graph.position(j), to)) graph.throwJunction(j, to);
             known[j] = true;
         }
         workKey = null;
@@ -423,13 +548,22 @@ public final class RuinsWorks {
         if (sim.ruinsPressure() != null) sim.ruinsPressure().loud(RuinsPressure.HALL_RESTART);
     }
 
-    private static float required(String key) {
-        return key.equals(HALL) ? RESTART_SECONDS : key.equals(RECORDS) ? READ_SECONDS : THROW_SECONDS;
+    private float required(String key) {
+        return key.equals(HALL) ? restartSeconds() : key.equals(RECORDS) ? READ_SECONDS : THROW_SECONDS;
     }
+
+    /** Seconds the hall takes to restart here: the works' own, bent by the twist. */
+    public float restartSeconds() { return twist.restartSeconds(RESTART_SECONDS); }
+
+    /** How the site's prize bends the works. */
+    public RuinsWorksTwist twist() { return twist; }
 
     /** The door or collapse the player asked a charge on, or null once it stands open. */
     private SealDoor forceTarget(String key) {
         if (COLLAPSE.equals(key)) return cleared ? null : collapse;
+        for (int w = 0; w < wakes.size(); w++) {
+            if ((WAKE + wakes.get(w).spot().id()).equals(key)) return wakeCollapsed.get(w) ? null : wakes.get(w).spot();
+        }
         for (int d = 0; d < doors.size(); d++) {
             if ((DOOR + doors.get(d).id()).equals(key)) {
                 return isOpen(d) || doors.get(d).hardened() ? null : doors.get(d);
@@ -486,14 +620,23 @@ public final class RuinsWorks {
     void settle(BattleSimulation sim) {
         if (collapse != null && !cleared && LockedDoor.breached(sim, collapse.cells())) cleared = true;
         boolean vaultBreached = vault != null && vault.breached();
+        float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         for (int d = 0; d < doors.size(); d++) {
             SealDoor door = doors.get(d);
-            boolean powered = graph.powered(graph.consumer(door.id()));
+            boolean vaultDoor = VAULT_SEAL.equals(door.id());
+            // The twist decides whether power opens a store, and when a powered door stands open.
+            boolean powered = graph.powered(graph.consumer(door.id())) && (!door.store() || twist.powerOpensStores());
+            boolean phase = vaultDoor || twist.openPhase(seconds);
             // The vault's door needs its access met as well as its power.
-            boolean keyed = !VAULT_SEAL.equals(door.id()) || vaultAccessMet();
+            boolean keyed = !vaultDoor || vaultAccessMet();
             LockedDoor lock = locks.get(d);
-            lock.settle(sim, powered && keyed || !door.store() && vaultBreached);
+            lock.settle(sim, powered && keyed && phase || !door.store() && vaultBreached);
             lock.setReady(powered && !lock.isOpen());
+            if (wasForced != null && lock.isForced() && !wasForced[d]) {
+                wasForced[d] = true;
+                int[] m = door.middle();
+                if (twist.loudForcing()) loud(sim, m[0], m[1]);
+            }
         }
         if (vault != null) {
             vault.setVaultPowered(graph.powered(graph.consumer(VAULT_SEAL)));
@@ -521,7 +664,7 @@ public final class RuinsWorks {
         String load = Strings.format("ruinsWorksLoad", graph.load(), graph.capacity());
         if (!graph.running() && !hall.key().equals(workKey) && near(field, hall, PROMPT_CELLS)) {
             out.add(new Offer(hall.key(), hall.x(), hall.y(), SideTrigger.Interact.Layout.CARD, hall.name(),
-                    Strings.get("ruinsWorksTagCold"), Strings.format("ruinsWorksHallDetail", seconds(RESTART_SECONDS)),
+                    Strings.get("ruinsWorksTagCold"), Strings.format("ruinsWorksHallDetail", seconds(restartSeconds())),
                     List.of(new OfferVerb("restart", Strings.get("ruinsWorksVerbRestart"), ""))));
         }
         if (records != null && !read && !RECORDS.equals(workKey) && near(field, records, PROMPT_CELLS)) {
@@ -534,6 +677,7 @@ public final class RuinsWorks {
             if (box.key().equals(workKey) || !near(field, box, PROMPT_CELLS)) continue;
             Branch at = graph.position(j);
             Branch other = at == Branch.STORE ? Branch.ONWARD : Branch.STORE;
+            if (!twist.throwable(at, other)) continue;
             String detail = junctionKnown(j)
                     ? Strings.format("ruinsWorksJunctionDetail", Strings.get(at == Branch.STORE
                             ? "ruinsWorksFeedingStore" : "ruinsWorksFeedingOnward"))
@@ -557,6 +701,11 @@ public final class RuinsWorks {
         if (collapse != null && !cleared) {
             forceOffer(out, field, COLLAPSE, collapse, Strings.get("ruinsWorksCollapseChoked"),
                     Strings.get("ruinsWorksCollapseDetail"));
+        }
+        for (int w = 0; w < wakes.size(); w++) {
+            if (wakeCollapsed.get(w)) continue;
+            forceOffer(out, field, WAKE + wakes.get(w).spot().id(), wakes.get(w).spot(), Strings.get("ruinsWakeOpen"),
+                    Strings.get("ruinsWakeDetail"));
         }
         // Once the vault's door is powered, the records console is a key: its card says so.
         if (vaultNeedsKeys() && !keys.turned() && graph.powered(graph.consumer(VAULT_SEAL)) && !RECORDS.equals(workKey)
@@ -646,7 +795,7 @@ public final class RuinsWorks {
                 : "ruinsWorksPhaseRunning");
         String instruction = Strings.get(!running ? "ruinsWorksRestart" : overloaded ? "ruinsWorksShed"
                 : "ruinsWorksRoute");
-        float progress = HALL.equals(workKey) ? work / RESTART_SECONDS : running ? 1f : 0f;
+        float progress = HALL.equals(workKey) ? work / restartSeconds() : running ? 1f : 0f;
         List<Marker> markers = new ArrayList<>();
         MissionObjectiveSnapshot.State active = MissionObjectiveSnapshot.State.ACTIVE;
         markers.add(new Marker(hall.key(), hall.name(), hall.x(), hall.y(), phase,
@@ -693,6 +842,13 @@ public final class RuinsWorks {
                     ? "ruinsWorksCodeEntered" : read ? "ruinsWorksCodeKnown" : "ruinsWorksCodeUnknown"),
                     code.entered() ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
+        for (int w = 0; w < wakes.size(); w++) {
+            WakePoint wake = wakes.get(w);
+            boolean shut = wakeCollapsed.get(w);
+            markers.add(new Marker(WAKE + wake.spot().id(), wake.spot().name(), wake.x(), wake.y(),
+                    Strings.get(shut ? "ruinsWakeCollapsed" : "ruinsWakeOpen"),
+                    shut ? MissionObjectiveSnapshot.State.COMPLETE : active));
+        }
         for (int c = 0; c < courts.size(); c++) {
             int[] g = courts.get(c).ground();
             boolean lit = courtPowered(c);
@@ -701,7 +857,8 @@ public final class RuinsWorks {
                     lit ? MissionObjectiveSnapshot.State.COMPLETE : active));
         }
         return new Item("zz-ruins-works", Strings.get("ruinsWorksName"), running && !overloaded
-                ? MissionObjectiveSnapshot.State.COMPLETE : active, phase, "", instruction,
+                ? MissionObjectiveSnapshot.State.COMPLETE : active, phase,
+                twist.lineKey() == null ? "" : Strings.get(twist.lineKey()), instruction,
                 Strings.format("ruinsWorksLoad", graph.load(), graph.capacity()), Math.max(0f, Math.min(1f, progress)),
                 overloaded ? Strings.get("ruinsWorksOverloadBlocker") : "", markers, hall.key(), true);
     }

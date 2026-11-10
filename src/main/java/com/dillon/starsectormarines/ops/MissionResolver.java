@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionLedger;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
 import com.dillon.starsectormarines.campaign.ruins.RuinsExpeditionMissionKey;
+import com.dillon.starsectormarines.campaign.ruins.RuinsPrizeSettlement;
+import com.dillon.starsectormarines.campaign.bloom.SectorBloomWorld;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
@@ -437,6 +439,7 @@ public final class MissionResolver {
                 .mission(mission)
                 .victory(victory)
                 .pulledOut(pulledOut)
+                .ruinsVaultPowered(RuinsPullOut.vault(sim) != null && RuinsPullOut.vault(sim).vaultPoweredAtBreach())
                 .raidWorksShare(raidWorksShare(sim))
                 .payoutEarned(payoutEarned)
                 .marinesEngaged(marinesEngaged)
@@ -593,6 +596,17 @@ public final class MissionResolver {
                 return;
             }
             LOG.info("MarineOps: ruins expedition " + outcome.missionId + " recorded as " + fought);
+            // The vault's prize comes out with the haul, so only a won expedition takes it; once, with the record.
+            if (outcome.victory && outcome.ruinsPrize != null && CampaignBackend.playerFleet() != null) {
+                RuinsPrizeSettlement.pay(CampaignBackend.playerFleet().getCargo(), outcome.ruinsPrize,
+                        outcome.ruinsVaultPowered, SectorBloomWorld.sectorSeed(), key.marketId());
+            }
+            // The tech caches brought home settle as rolls of the game's equipment, beside the commodity finds.
+            if ((outcome.victory || outcome.pulledOut) && CampaignBackend.playerFleet() != null) {
+                RuinsPrizeSettlement.payTechFinds(CampaignBackend.playerFleet().getCargo(), outcome.fieldSalvage.stream()
+                        .filter(SalvageCache.Recovered::tech).map(SalvageCache.Recovered::id).toList(),
+                        SectorBloomWorld.sectorSeed(), key.marketId());
+            }
         }
         CargoAPI cargo = CampaignBackend.playerFleet() != null
                 ? CampaignBackend.playerFleet().getCargo()

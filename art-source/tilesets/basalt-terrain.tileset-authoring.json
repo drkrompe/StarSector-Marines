@@ -1,0 +1,203 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "id": "terrain.basalt.rock",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.talus",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.0",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.1",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.2",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.3",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.4",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.5",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.basalt.face.6",
+      "layout": "variants"
+    }
+  ],
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 3,
+  "idPrefix": "terrain.basalt",
+  "note": "Derived by art-source/tilesets/basalt-terrain/derive.py: summit, talus, then seven basalt face values dark to light, 384 px cells. Inset material cuts; runtime contour owns all geometry.",
+  "sheet": "art-source/tilesets/basalt-terrain.raw.png",
+  "sheetName": "basalt-terrain",
+  "entries": [
+    {
+      "block": "terrain.basalt.rock",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.rock.sample",
+      "included": true,
+      "rect": [
+        8,
+        8,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.talus",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.talus.sample",
+      "included": true,
+      "rect": [
+        392,
+        8,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.0",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.0.sample",
+      "included": true,
+      "rect": [
+        776,
+        8,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.1",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.1.sample",
+      "included": true,
+      "rect": [
+        8,
+        392,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.2",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.2.sample",
+      "included": true,
+      "rect": [
+        392,
+        392,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.3",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.3.sample",
+      "included": true,
+      "rect": [
+        776,
+        392,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.4",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.4.sample",
+      "included": true,
+      "rect": [
+        8,
+        776,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.5",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.5.sample",
+      "included": true,
+      "rect": [
+        392,
+        776,
+        368,
+        368
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.basalt.face.6",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.basalt.face.6.sample",
+      "included": true,
+      "rect": [
+        776,
+        776,
+        368,
+        368
+      ],
+      "slot": "v1"
+    }
+  ]
+}

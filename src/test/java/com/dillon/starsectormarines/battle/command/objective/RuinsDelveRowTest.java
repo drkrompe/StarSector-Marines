@@ -15,6 +15,38 @@ class RuinsDelveRowTest {
         return new Picture(phase, 7, 18, 24, 1, 0, 3, 1, 42, 2, 4, vaultRoute, stand, fresh);
     }
 
+    private static Picture stirring(RuinsPhase phase, boolean dugIn, boolean wayBackHeld) {
+        return new Picture(phase, 7, 18, 24, 1, 0, 3, 1, 42, 2, 4, -1, null, false,
+                new RuinsDelveRow.Stir("ruinsPressureRoused", 0.4f, "ruinsDelveRowReserveThinned", dugIn, wayBackHeld));
+    }
+
+    @Test
+    void theStirFillsTheBarAndLeadsTheLineInTheDelveOnly() {
+        assertEquals(-1f, RuinsDelveRow.item("R", picture(RuinsPhase.DELVE, -1, null, false)).progress(),
+                "a site with no stir has no bar");
+        var outside = RuinsDelveRow.item("R", stirring(RuinsPhase.APPROACH, false, false));
+        assertEquals(-1f, outside.progress(), "nothing stirs before the entry");
+        var moving = RuinsDelveRow.item("R", stirring(RuinsPhase.DELVE, false, false));
+        assertEquals(0.4f, moving.progress());
+        assertTrue(moving.blocker().isEmpty());
+        assertTrue(moving.progressText().endsWith(RuinsDelveRow.glance(stirring(RuinsPhase.DELVE, false, false))),
+                "the level leads, the company's glance follows");
+        assertFalse(moving.progressText().startsWith(RuinsDelveRow.glance(stirring(RuinsPhase.DELVE, false, false))));
+    }
+
+    @Test
+    void aSittingCompanyIsWarnedOnTheLine() {
+        var row = RuinsDelveRow.item("R", stirring(RuinsPhase.DELVE, true, false));
+        assertFalse(row.blocker().isEmpty());
+        assertEquals(row.blocker(), row.progressText(), "the warning takes the compact line");
+    }
+
+    @Test
+    void aWayBackAPushHoldsReadsContested() {
+        assertFalse(RuinsDelveRow.reads(stirring(RuinsPhase.DELVE, false, false))
+                .equals(RuinsDelveRow.reads(stirring(RuinsPhase.DELVE, false, true))));
+    }
+
     @Test
     void theRowHeadsWithThePhaseAndThePullOutPoint() {
         var approach = RuinsDelveRow.item("R", picture(RuinsPhase.APPROACH, -1, null, false));
