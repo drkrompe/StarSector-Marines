@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -32,6 +33,19 @@ public final class GeneratedRoads {
         boolean holds(boolean[][] cells) {
             for (int x = left; x <= right; x++) for (int y = bottom; y <= top; y++) if (cells[x][y]) return true;
             return false;
+        }
+        /**
+         * A street band that runs the same way as {@code b}, longer, over all of {@code b}'s length but up to a
+         * breadth at either end (where {@code b} reaches into a crossing), and overlaps its line without holding it:
+         * {@code b} is the same street off by a cell line.
+         */
+        boolean shadows(Band b, boolean[][] city) {
+            if (this == b || horizontal() != b.horizontal() || length() <= b.length() || breadth() < b.breadth()
+                    || !holds(city) || contains(b)) return false;
+            int slack = (int) b.breadth();
+            return horizontal()
+                    ? left <= b.left + slack && right >= b.right - slack && bottom <= b.top && top >= b.bottom
+                    : bottom <= b.bottom + slack && top >= b.top - slack && left <= b.right && right >= b.left;
         }
         /** Runs the same way over all of {@code b}'s length and overlaps it, narrower. */
         boolean alongside(Band b) {
@@ -131,6 +145,8 @@ public final class GeneratedRoads {
      * is a blob of asphalt stepping out of the kerb line.
      */
     static final int SPUR_REACH = 2;
+    /** Cells along a street within which two spurs off its opposite sides read as one crossing pulled apart. */
+    static final int SPUR_OFFSET = 10;
     /** Points along a junction turn's quarter arc, past its two ends. */
     static final int TURN_STEPS = 6;
 
@@ -479,6 +495,10 @@ public final class GeneratedRoads {
         if (city != null) {
             List<Band> all = bands;
             bands = all.stream().filter(b -> !b.holds(city) || all.stream().noneMatch(a -> a.alongside(b))).toList();
+            // A street band a cell or two off a longer street running the same way over its whole length is that
+            // street seen from a jogged cell line: swept, it is a lip of asphalt along the street's edge.
+            List<Band> lined = bands;
+            bands = lined.stream().filter(b -> !b.holds(city) || lined.stream().noneMatch(a -> a.shadows(b, city))).toList();
             // A short band is a through street when each of its ends meets
             // another street. One met at a single end by a street that stands on
             // its own is a dead end off that street, a spur: it runs into a yard
@@ -491,9 +511,54 @@ public final class GeneratedRoads {
             for (Band b : kept)
                 if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))
                         && b.reach(streets) >= SPUR_REACH * b.breadth()) spurs.add(b);
+            spurs.removeAll(offsetSpurs(spurs, streets));
             bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
         }
         return new Kept(bands, spurs);
+    }
+
+    /**
+     * The spurs a street keeps paved as ground. Yards either side of a street open where their lots fall, so their
+     * mouths leave the street on alternate sides a few cells apart, a comb of stubs no planner lays. A spur off one
+     * street within {@link #SPUR_OFFSET} cells along it, line to line but not on one line (which makes a cross), of a
+     * side street leaving its other side or crossing it keeps its paving; of two spurs off opposite sides that close,
+     * the one reaching on further is swept (the first along on a tie) and the other keeps its paving.
+     */
+    private static Set<Band> offsetSpurs(Set<Band> spurs, List<Band> streets) {
+        List<Band> order = new ArrayList<>(spurs);
+        order.sort(Comparator.comparingInt((Band b) -> -b.reach(streets))
+                .thenComparingDouble(b -> b.horizontal() ? b.cy() : b.cx())
+                .thenComparingDouble(b -> b.horizontal() ? b.cx() : b.cy()));
+        // A side street off the same street stands before any spur does.
+        List<Band> swept = new ArrayList<>();
+        for (Band s : streets) if (!spurs.contains(s)) swept.add(s);
+        Set<Band> dropped = new HashSet<>();
+        for (Band b : order) {
+            Band street = leaves(b, streets);
+            boolean offset = false;
+            for (Band k : swept) {
+                if (street == null || k == street || k.horizontal() != b.horizontal() || !k.touches(street)) continue;
+                double apart = Math.abs(b.horizontal() ? b.cy() - k.cy() : b.cx() - k.cx());
+                // A street running on through the one the spur leaves meets it on both sides.
+                boolean through = b.horizontal() ? k.left < street.left && k.right > street.right
+                        : k.bottom < street.bottom && k.top > street.top;
+                boolean opposite = through || (b.horizontal() ? (b.cx() < street.cx()) != (k.cx() < street.cx())
+                        : (b.cy() < street.cy()) != (k.cy() < street.cy()));
+                if (opposite && apart >= 1 && apart <= SPUR_OFFSET) offset = true;
+            }
+            if (offset) dropped.add(b);
+            else swept.add(b);
+        }
+        return dropped;
+    }
+
+    /** The street {@code spur} leaves: the crossing street its end meets, or null. */
+    private static Band leaves(Band spur, List<Band> streets) {
+        for (boolean first : new boolean[]{true, false}) {
+            Band end = spur.end(first);
+            for (Band o : streets) if (o != spur && o.horizontal() != spur.horizontal() && o.touches(end)) return o;
+        }
+        return null;
     }
 
     /**

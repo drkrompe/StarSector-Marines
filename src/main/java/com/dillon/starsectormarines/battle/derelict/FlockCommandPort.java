@@ -44,6 +44,15 @@ public interface FlockCommandPort {
         return List.of();
     }
 
+    /** Whether a flock is going through a service duct now (`derelict-watch.md`, Movement). */
+    default boolean inDuct(int flockId) {
+        return false;
+    }
+
+    /** Sends a flock through a service duct; a flock already in one, or one this port cannot move, stays. */
+    default void duct(int flockId, ServiceDucts.Transit transit) {
+    }
+
     /** Whether a zone's node stands, which its flocks' cradles need to rebuild drones. */
     default void nodeStands(int zoneId, boolean stands) {
     }

@@ -5,10 +5,10 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
@@ -29,7 +29,8 @@ import java.util.function.BiPredicate;
  * ({@code <map>/<nn>-<world>-1-whole.png}), and close frames on the same two spots in every world, where the land use
  * changes: the colony's fields ({@code -2-fields.png}) and its woods ({@code -3-woods.png}), and on a world that plays the
  * sealed layout a town's lock ({@code -4-lock.png}). Nothing is played. Opt-in.
- * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} narrows the maps, {@code .worlds=frozen,toxic} the worlds.
+ * {@code -Dsnapshot.planetSkin.maps=colony-breach,heart-burn} names the maps (any pooled map, the Raid's
+ * {@code raid,raid-mining} included), {@code .worlds=frozen,toxic} the worlds.
  */
 public final class PlanetSkinLookSuite implements SnapshotSuite {
 
@@ -52,13 +53,18 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
         TileRegistryTestInstaller.install(context.projectRoot());
         List<String> maps = asked("snapshot.planetSkin.maps"), worlds = asked("snapshot.planetSkin.worlds");
         List<SnapshotArtifact> out = new ArrayList<>();
-        for (StoryMap map : DEFAULT_MAPS) {
+        // Named maps are any pooled map, the Raid's included; the default is the story missions'.
+        for (StoryMap map : maps.isEmpty() ? DEFAULT_MAPS : List.of(StoryMap.values())) {
             if (!maps.isEmpty() && !maps.contains(map.id)) continue;
             StoryMapPool pool = StoryMapPools.pool(map);
-            // The spots are found once on a world whose fields are beds and whose woods stand, and framed in every world.
+            // The spots are found once on the home, where the fields are crops and the woods stand, and framed in every world.
             float[] fields, woods, lock;
-            try (BattleSimulation probe = sim(map, SurfacePalette.FROZEN, pool.owned())) {
-                fields = densest(probe.getTopology(), (x, y) -> probe.getTopology().getGroundKind(x, y) == GroundKind.TILE);
+            try (BattleSimulation probe = sim(map, pool.home(), pool.owned())) {
+                CellTopology t = probe.getTopology();
+                fields = densest(t, (x, y) -> {
+                    String id = t.getSurfaceId(x, y);
+                    return id != null && (id.equals("floors.grass") || id.equals("floors.dirt") || id.equals("floors.sand"));
+                });
                 woods = densestDoodad(probe, "forest.");
             }
             // A lock is found on bare rock, which is airless and plays the sealed layout.
@@ -108,6 +114,9 @@ public final class PlanetSkinLookSuite implements SnapshotSuite {
                         List.of(), CordonSequence.Timetable.STANDARD);
             }
             case COLONY_BREACH -> BattleSetup.createPooledColonyBreach(world, entry, List.of());
+            case RAID, RAID_HEAVY_INDUSTRY, RAID_MINING, RAID_REFINING, RAID_LIGHT_INDUSTRY, RAID_FARMING, RAID_SPACEPORT,
+                    RAID_MILITARY -> BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map,
+                    StoryMapPools.pool(map).layoutFor(world)), world, entry.seed(), map != StoryMap.RAID, List.of());
             default -> BloomHeartSetup.country(BloomHeartSetup.formOf(map), world, BloomHeartSetup.densityOf(map),
                     entry).sim();
         };

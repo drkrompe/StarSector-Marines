@@ -78,6 +78,15 @@ public final class RuinsDelveStage implements GenStage {
     static final int MEGA_WIDE = 40, MEGA_LONG = 76, MEGA_WIDE_VAST = 44, MEGA_LONG_VAST = 92;
     /** The narrowest and shortest hall the mega forge's layout fits; a smaller one is laid as a foundry. */
     static final int MEGA_MIN_WIDE = 32, MEGA_MIN_LONG = 44;
+    /**
+     * The mega forge's great crucible ({@code ruins-forge} sheet): its id, its melt's, its footprint, and the row above
+     * its bottom where the spout on its east edge pours onto the line.
+     */
+    static final String GREAT_CRUCIBLE = "doodad.ruins-great-crucible",
+            GREAT_CRUCIBLE_MELT = "doodad.ruins-great-crucible-melt";
+    static final int GREAT_CRUCIBLE_WIDE = 12, GREAT_CRUCIBLE_LONG = 16, GREAT_CRUCIBLE_SPOUT = 8;
+    /** A forge works' prize as it waits in the vault's cradle: the great crucible's control core, cut free on its skid. */
+    static final String FURNACE_CORE = "doodad.ruins-furnace-core";
     /** Cells across a side room's door: a sealed store's blast door. */
     static final int STORE_DOOR = 3;
     static final int HALL_WIDTH = 11, HALL_HEIGHT = 8;
@@ -142,6 +151,8 @@ public final class RuinsDelveStage implements GenStage {
      */
     static final String HALL_PLATE = "sky-port.deck-plate", HALL_WALKWAY = "apron.marked",
             HALL_AISLE = "pavement.concrete.worn", HALL_AISLE_CRACKED = "pavement.concrete.cracked";
+    /** A feed path's marked lane: the way the charge comes to a great crucible's hopper. */
+    static final String HALL_FEED = "apron.marked";
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
     /** The vault room's floor: the installation's command floor, so the heart of the site reads apart. */
     static final String VAULT_ROOM_FLOOR = "installation.command-floor";
@@ -189,6 +200,8 @@ public final class RuinsDelveStage implements GenStage {
         final boolean[] kept;
         /** The plant kit's floor pieces (cradle pads, dock levelers): dressing never stands on them. */
         final boolean[] kitFloor;
+        /** Cells of a feed path to a great crucible's hopper, kept clear and painted as a lane. */
+        final boolean[] feed;
         /** Shell cells stamped here, for their wall and door masks. */
         final boolean[] drafted;
         /** Every layer line's cells, ways included: no interior corridor crosses one. */
@@ -219,6 +232,7 @@ public final class RuinsDelveStage implements GenStage {
             reserved = new boolean[w * h];
             kept = new boolean[w * h];
             kitFloor = new boolean[w * h];
+            feed = new boolean[w * h];
             drafted = new boolean[w * h];
             lineCell = new boolean[w * h];
             hull = new boolean[w * h];
@@ -428,8 +442,8 @@ public final class RuinsDelveStage implements GenStage {
 
         /**
          * Lays a plant hall's floor by zone rather than as one slab. The work is every cell its furniture stands on:
-         * the kit's floor (cradles, levelers, melt), every doodad's footprint and every fixture. Deck plate lies under
-         * the work and one cell round it; a painted walkway runs a cell deep along the hall's two long walls; the
+         * the kit's floor (cradles, levelers, melt), every covered piece's footprint and every fixture; markings, wear
+         * and overhead structure are not work. Deck plate lies under the work and one cell round it; a painted walkway runs a cell deep along the hall's two long walls; the
          * aisles left between are worn concrete, cracked in patches by coordinate hash. A melt cell keeps its
          * surface, which its drop draws over.
          */
@@ -444,6 +458,8 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             for (Doodad d : ctx.doodads) {
+                // Floor markings, wear and overhead structure are not work: only a piece with cover is.
+                if (d.cover <= 0) continue;
                 for (int y = d.cellY; y < d.cellY + Math.max(1, d.footprintCellsY); y++) {
                     for (int x = d.cellX; x < d.cellX + Math.max(1, d.footprintCellsX); x++) {
                         if (hall.contains(x, y)) work[(y - hall.bottom()) * hw + x - hall.left()] = true;
@@ -452,6 +468,7 @@ public final class RuinsDelveStage implements GenStage {
             }
             int plate = topology.surfaceIndex(HALL_PLATE), walkway = topology.surfaceIndex(HALL_WALKWAY);
             int aisle = topology.surfaceIndex(HALL_AISLE), cracked = topology.surfaceIndex(HALL_AISLE_CRACKED);
+            int feedLane = topology.surfaceIndex(HALL_FEED);
             boolean longX = hw >= hh;
             for (int y = hall.bottom(); y <= hall.top(); y++) {
                 for (int x = hall.left(); x <= hall.right(); x++) {
@@ -465,7 +482,7 @@ public final class RuinsDelveStage implements GenStage {
                     }
                     boolean wallSide = longX ? (y == hall.bottom() || y == hall.top())
                             : (x == hall.left() || x == hall.right());
-                    int surface = near ? plate : wallSide ? walkway
+                    int surface = feed[i(x, y)] ? feedLane : near ? plate : wallSide ? walkway
                             : hash(x / 3, y / 3, 0xF10) % 4 == 0 ? cracked : aisle;
                     topology.setSurface(x, y, surface);
                 }
@@ -632,6 +649,10 @@ public final class RuinsDelveStage implements GenStage {
             TileRegistry registry = TileRegistry.installed();
             int under = ctx.doodads.size();
             String product = plan.dressing().whole();
+            // A forge works' prize is the great crucible's control core on its skid, where the registry has it.
+            if (plan.dressing().foundry() && registry != null && registry.doodad(FURNACE_CORE) != null) {
+                product = FURNACE_CORE;
+            }
             DoodadDef def = registry == null || product == null ? null : registry.doodad(product);
             if (def == null) prop(HAUL, px + 1, cy);
             else {
@@ -1727,10 +1748,18 @@ public final class RuinsDelveStage implements GenStage {
         void megaForge(TileRegistry registry, Area hall, Cell centre) {
             int cx = hall.centreX(), top = hall.top(), bottom = hall.bottom();
             boolean[] melt = new boolean[w * h];
-            // The great crucible's bath at the head.
-            meltBox(melt, hall, centre, cx - 4, top - 9, cx + 3, top - 2);
+            // Wear goes under everything the hall stands.
+            int under = ctx.doodads.size();
+            // The great crucible at the head, west of the line: its spout, flush with its east edge, pours onto the
+            // line's head. Without its art (or room for it) the head is an open bath.
+            int gx = cx - 1 - GREAT_CRUCIBLE_WIDE, gy = top - 1 - GREAT_CRUCIBLE_LONG;
+            boolean great = piece(registry, GREAT_CRUCIBLE, gx, gy, GREAT_CRUCIBLE_WIDE, GREAT_CRUCIBLE_LONG, hall,
+                    centre);
+            if (great) over(registry, GREAT_CRUCIBLE_MELT, gx, gy);
+            else meltBox(melt, hall, centre, cx - 4, top - 9, cx + 3, top - 2);
+            int lineHead = great ? gy + GREAT_CRUCIBLE_SPOUT : top - 10;
             // The pour line down the middle, a crossing every twelve rows.
-            for (int y = bottom + 6; y <= top - 10; y++) {
+            for (int y = bottom + 6; y <= lineHead; y++) {
                 if (Math.floorMod(top - 16 - y, 12) <= 1) continue;
                 meltBox(melt, hall, centre, cx - 1, y, cx, y);
             }
@@ -1739,34 +1768,142 @@ public final class RuinsDelveStage implements GenStage {
             }
             // Production lines: a channel each way to a mould grid over its bed, a cooling rack beyond.
             int line = 0;
-            for (int y0 = top - 20; y0 - 6 > bottom + 6; y0 -= 16, line++) {
+            // The first line leaves a two-row aisle under the great crucible, so no pocket of floor is shut in.
+            for (int y0 = great ? gy - 5 : top - 20; y0 - 6 > bottom + 6; y0 -= 16, line++) {
                 meltBox(melt, hall, centre, cx - 6, y0, cx - 2, y0 + 1);
                 meltBox(melt, hall, centre, cx - 14, y0 - 2, cx - 7, y0 + 2);
                 over(registry, "doodad.ruins-mould-grid", cx - 14, y0 - 2);
                 meltBox(melt, hall, centre, cx + 1, y0, cx + 5, y0 + 1);
                 meltBox(melt, hall, centre, cx + 6, y0 - 2, cx + 13, y0 + 2);
                 over(registry, "doodad.ruins-mould-grid", cx + 6, y0 - 2);
-                piece(registry, RACK_STRIPPED, cx - 14, y0 - 6, 6, 2, hall, centre);
-                piece(registry, RACK_STRIPPED, cx + 8, y0 - 6, 6, 2, hall, centre);
+                // Beyond each mould, its castings cooling on their racks; some racks already cleared.
+                for (int k = 0; k < 2; k++) {
+                    int wx = cx - 14 + 3 * k, ex = cx + 8 + 3 * k;
+                    piece(registry, coolingRack(wx, y0), wx, y0 - 9, 2, 4, hall, centre);
+                    piece(registry, coolingRack(ex, y0), ex, y0 - 9, 2, 4, hall, centre);
+                }
                 // Work stopped mid-pour: one line's ladle tipped beside the trench.
                 if (line == 1 && piece(registry, "doodad.ruins-crucible-tipped", cx + 2, y0 + 3, 3, 3, hall, centre)) {
                     over(registry, "doodad.ruins-crucible-tipped-spill", cx + 2, y0 + 3);
                 }
+                // The line's wear: coolant spilt by the racks, a floor drain in each aisle, its castings' oil.
+                if (hash(cx, y0, 0xC00) % 2 == 0) lay(registry, "doodad.ruins-coolant-stain", cx - 12, y0 - 5, under);
+                else lay(registry, "doodad.ruins-coolant-stain", cx + 10, y0 - 5, under);
+                lay(registry, "doodad.ruins-floor-drain", cx - 4, y0 - 5, under);
+                lay(registry, "doodad.ruins-floor-drain", cx + 3, y0 - 5, under);
+                if (hash(cx, y0, 0x011) % 3 == 0) lay(registry, "doodad.ruins-oil-stain", cx + 14, y0 - 11, under);
+                // A crane girder fallen across the west aisle, the hall's best cover.
+                if (line == 1) piece(registry, "doodad.ruins-fallen-girder", hall.left() + 1, y0 - 4, 7, 1, hall, centre);
             }
-            // The head: ladles waiting either side of the bath, charge racks east, the slag pit west, the pulpit.
-            for (int side = -1; side <= 1; side += 2) {
-                int lx = side < 0 ? cx - 8 : cx + 5;
-                if (piece(registry, "doodad.ruins-crucible", lx, top - 6, 3, 3, hall, centre)) {
-                    over(registry, "doodad.ruins-crucible-melt", lx, top - 6);
+            // The head, east of the line: ladles waiting by the spout, the charge racks feeding the crucible, the
+            // pour pulpit watching the spout; the slag pit beyond the line. With no great crucible, a ladle each side
+            // of the bath.
+            if (great) {
+                if (piece(registry, "doodad.ruins-crucible", cx + 3, top - 6, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-melt", cx + 3, top - 6);
                 }
+                if (piece(registry, "doodad.ruins-crucible", cx + 3, gy + 1, 3, 3, hall, centre)) {
+                    over(registry, "doodad.ruins-crucible-melt", cx + 3, gy + 1);
+                }
+                piece(registry, "doodad.ruins-pour-pulpit", cx + 3, lineHead - 1, 2, 2, hall, centre);
+            } else {
+                for (int side = -1; side <= 1; side += 2) {
+                    int lx = side < 0 ? cx - 8 : cx + 5;
+                    if (piece(registry, "doodad.ruins-crucible", lx, top - 6, 3, 3, hall, centre)) {
+                        over(registry, "doodad.ruins-crucible-melt", lx, top - 6);
+                    }
+                }
+                piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
             }
             piece(registry, RACK_STRIPPED, cx + 9, top - 3, 6, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 14, top - 4, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 12, top - 6, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-slag-heap", cx - 15, top - 7, 2, 2, hall, centre);
-            piece(registry, "doodad.ruins-pour-pulpit", cx + 10, top - 8, 2, 2, hall, centre);
+            // The slag pit, a crashed hover skid with its east edge on the pit's lip, the slag heaped below.
+            meltBox(melt, hall, centre, cx + 14, top - 7, cx + 16, top - 5);
+            if (piece(registry, "doodad.ruins-slag-skid-crashed", cx + 11, top - 7, 3, 3, hall, centre)) {
+                over(registry, "doodad.ruins-slag-skid-crashed-spill", cx + 11, top - 7);
+            }
+            piece(registry, "doodad.ruins-slag-heap", cx + 15, top - 9, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-slag-heap", cx + 12, top - 10, 2, 2, hall, centre);
             sealMelt(melt, hall);
             piece(registry, "doodad.ruins-fallen-ladle", cx + 6, bottom + 3, 3, 2, hall, centre);
+            if (great) {
+                // Scorch round the spout and the core's flank.
+                lay(registry, "doodad.ruins-scorch-mark", cx + 1, lineHead - 3, under);
+                lay(registry, "doodad.ruins-scorch-arc", gx - 2, gy + 6, under);
+                feedRail(registry, hall, centre, gy);
+            }
+            dispatch(registry, hall, centre, under);
+        }
+
+        /**
+         * The mega forge's dispatch end, clear of the line: the pour line's trench runs on under covers, pallet bays
+         * are marked along it, castings were fettled and inspected at the benches, and the haulers' skid marks and oil
+         * lie across the floor. The slag path leaves the slag heaps for the east wall, generic until its own pieces
+         * land.
+         */
+        private void dispatch(TileRegistry registry, Area hall, Cell centre, int under) {
+            int cx = hall.centreX(), bottom = hall.bottom();
+            lay(registry, "doodad.ruins-trench-cover", cx - 1, bottom + 4);
+            lay(registry, "doodad.ruins-trench-cover", cx - 1, bottom + 2);
+            lay(registry, "doodad.ruins-drain-gutter", cx + 1, bottom + 2);
+            for (int k = 0; k < 2; k++) {
+                lay(registry, "doodad.ruins-pallet-bay", hall.left() + 2 + 4 * k, bottom + 1, under);
+                lay(registry, "doodad.ruins-pallet-bay", hall.right() - 4 - 4 * k, bottom + 1, under);
+            }
+            piece(registry, "doodad.ruins-finishing-cell", cx - 9, bottom + 2, 2, 2, hall, centre);
+            piece(registry, "doodad.ruins-metrology-bed", cx - 6, bottom + 2, 2, 2, hall, centre);
+            lay(registry, "doodad.ruins-thrust-wash", cx - 4, bottom + 1, under);
+            lay(registry, "doodad.ruins-oil-trail", cx + 3, bottom + 1, under);
+            lay(registry, "doodad.ruins-oil-stain", cx - 8, bottom + 4, under);
+            // The slag lane: a mag-rail down the east aisle from the pit to the dispatch end, a hover skid
+            // stopped on it half way.
+            int sx = cx + 17;
+            if (piece(registry, "doodad.ruins-slag-skid", sx - 1, hall.centreY(), 3, 3, hall, centre)) {
+                over(registry, "doodad.ruins-slag-skid-melt", sx - 1, hall.centreY());
+            }
+            magRail(registry, sx, bottom + 8, hall.top() - 11, false);
+        }
+
+        /**
+         * The feed to the great crucible: a mag-rail up the west aisle from the dispatch end to its stop at the head,
+         * beside the crucible's flank where the charge goes in. One sealed feed pod waits on the rail by the crucible,
+         * another lies derailed in the aisle.
+         */
+        private void feedRail(TileRegistry registry, Area hall, Cell centre, int gy) {
+            int fx = hall.left() + 2;
+            piece(registry, "doodad.ruins-feed-pod", fx, gy + 9, 2, 3, hall, centre);
+            piece(registry, "doodad.ruins-feed-pod-derailed", fx + 2, hall.centreY() + 2, 2, 3, hall, centre);
+            magRail(registry, fx, hall.bottom() + 8, hall.top() - 1, true);
+        }
+
+        /**
+         * A mag-rail two cells wide at {@code x}, run north-south from {@code from} to {@code to}: 2x2 lengths laid
+         * where the floor is clear (a piece standing on it, a pod or a skid, breaks the run under it), ending at
+         * {@code to} in a decelerator stop when {@code stop}. Its cells are kept clear of dressing and painted as a lane.
+         */
+        private void magRail(TileRegistry registry, int x, int from, int to, boolean stop) {
+            for (int y = from; y + 1 <= to; y += 2) {
+                boolean clear = true;
+                for (int dy = 0; dy < 2 && clear; dy++) {
+                    for (int dx = 0; dx < 2 && clear; dx++) {
+                        clear = grid.inBounds(x + dx, y + dy) && grid.isWalkable(x + dx, y + dy)
+                                && !topology.isFixture(x + dx, y + dy) && !kitFloor[i(x + dx, y + dy)];
+                    }
+                }
+                if (!clear) continue;
+                boolean end = stop && y + 3 > to;
+                lay(registry, end ? "doodad.ruins-mag-rail-end" : "doodad.ruins-mag-rail", x, y);
+                for (int dy = 0; dy < 2; dy++) {
+                    for (int dx = 0; dx < 2; dx++) {
+                        feed[i(x + dx, y + dy)] = true;
+                        kitFloor[i(x + dx, y + dy)] = true;
+                    }
+                }
+            }
+        }
+
+        /** A cooling rack at {@code x} on line {@code y0}: laden with castings, or by coordinate hash cleared. */
+        private String coolingRack(int x, int y0) {
+            return hash(x, y0, 0xC001) % 3 == 0 ? "doodad.ruins-cooling-rack" : "doodad.ruins-cooling-rack-castings";
         }
 
         /** Plans melt over a box of a hall's cells, keeping it off the walls, the doorways and the hall's middle. */

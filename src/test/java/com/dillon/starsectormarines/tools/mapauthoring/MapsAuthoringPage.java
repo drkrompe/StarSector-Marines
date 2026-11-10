@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.mapauthoring;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
@@ -76,7 +77,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
     private final JPanel root = new JPanel(new BorderLayout(6, 6));
     private final Canvas canvas = new Canvas();
     private final JComboBox<String> mapBox = new JComboBox<>();
-    private final JComboBox<MapWorld> worldBox = new JComboBox<>(MapWorld.values());
+    private final JComboBox<SurfacePalette> worldBox = new JComboBox<>(SurfacePalette.values());
     private final ButtonGroup toolGroup = new ButtonGroup();
     private final JComboBox<String> placeBox = new JComboBox<>();
     private final JSpinner radius = new JSpinner(new SpinnerNumberModel(2d, .5d, 16d, .5d));
@@ -108,7 +109,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
         session = new StoryMapsSession(context.projectRoot());
         for (String id : StoryMapsSession.maps()) mapBox.addItem(id);
         open(StoryMapsSession.maps().get(0));
-        worldBox.setSelectedItem(MapWorld.ARID);
+        worldBox.setSelectedItem(opened.home());
         structureBox.setEditable(true);
 
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
@@ -199,7 +200,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
     MapPatch patch() { return patch; }
     StoryMapsSession.Opened opened() { return opened; }
     StoryMapPool.Entry entry() { return StoryMapsSession.withPatch(opened.entry(), patch); }
-    MapWorld world() { return (MapWorld) worldBox.getSelectedItem(); }
+    SurfacePalette world() { return (SurfacePalette) worldBox.getSelectedItem(); }
     List<String> problems() { return problems; }
     StoryMapsSession.Stood stood() { return stood; }
     boolean previewReady() { return !busy && displayed == revision; }
@@ -207,7 +208,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
     String status() { return state.getText(); }
     void saveInto(Path root) { saveRoot = root; }
     void selectEdit(String id) { selected = id; canvas.repaint(); }
-    void selectWorld(MapWorld w) { worldBox.setSelectedItem(w); }
+    void selectWorld(SurfacePalette w) { worldBox.setSelectedItem(w); }
     void selectMap(String id) { mapBox.setSelectedItem(id); }
     void setPin(String place) { placeBox.setSelectedItem(place); }
     void setRuin(double r, DamagePlan.Mode m) { radius.setValue(r); mode.setSelectedItem(m); }
@@ -243,8 +244,8 @@ public final class MapsAuthoringPage implements AuthoringPage {
         patch = saved = opened.entry().patch();
         undo.clear(); redo.clear();
         selected = null;
-        entryLabel.setText("   " + opened.map().id + " · seed " + opened.entry().seed() + " on "
-                + StoryMapsSession.HOME.name().toLowerCase(Locale.ROOT) + (opened.entry().story() ? " (story map)" : "")
+        entryLabel.setText("   " + opened.map().id + " · seed " + opened.entry().seed() + ", laid out on "
+                + opened.home().name().toLowerCase(Locale.ROOT)
                 + (opened.entry().note().isEmpty() ? "" : " · " + opened.entry().note()));
     }
 
@@ -317,7 +318,7 @@ public final class MapsAuthoringPage implements AuthoringPage {
         StoryMapPool.Entry e = entry();
         new SwingWorker<Path, Void>() {
             protected Path doInBackground() throws Exception {
-                BufferedImage sheet = session.contactSheet(o.map(), e);
+                BufferedImage sheet = session.contactSheet(o, e);
                 Path dir = context.projectRoot().resolve("build/map-authoring");
                 Files.createDirectories(dir);
                 Path out = dir.resolve(o.map().id + "-all-worlds.png");
@@ -351,13 +352,13 @@ public final class MapsAuthoringPage implements AuthoringPage {
         recheck = false;
         StoryMapsSession.Opened o = opened;
         StoryMapPool.Entry e = entry();
-        MapWorld world = world();
-        state.setText("Generating " + o.map().id + " seed " + e.seed() + " as " + world.label() + "…");
+        SurfacePalette world = world();
+        state.setText("Generating " + o.map().id + " seed " + e.seed() + " as " + StoryMapsSession.label(world) + "…");
         new SwingWorker<Object[], Void>() {
             protected Object[] doInBackground() throws Exception {
-                StoryMapsSession.Stood s = session.stand(o.map(), e);
-                MapsRender.Frame f = session.frame(world, MapsRender.WIDTH, MapsRender.HEIGHT);
-                List<String> found = check ? session.check(o.map(), e) : null;
+                StoryMapsSession.Stood s = session.stand(o, e);
+                List<String> found = check ? session.check(o, e) : null;
+                MapsRender.Frame f = session.frame(o, e, world);
                 return new Object[]{s, f, found};
             }
             @SuppressWarnings("unchecked")
@@ -372,10 +373,11 @@ public final class MapsAuthoringPage implements AuthoringPage {
                     if (version == revision) displayed = version;
                     bindChoices();
                     checksModel.clear();
-                    if (problems.isEmpty()) checksModel.addElement("✓ The mission's acceptance passes on " + StoryMapsSession.HOME.name().toLowerCase(Locale.ROOT)
+                    if (problems.isEmpty()) checksModel.addElement("✓ The mission's acceptance passes on " + o.home().name().toLowerCase(Locale.ROOT)
                             + " (the storyMapPools check): the setup seats, placed structures stand where put, nothing built on a way.");
                     for (String p : problems) checksModel.addElement("✗ " + p);
-                    state.setText(o.map().id + " seed " + e.seed() + " as " + world.label() + " · "
+                    state.setText(o.map().id + " seed " + e.seed() + " as " + StoryMapsSession.label(world)
+                            + (world == o.home() ? "" : " (laid out on " + o.home().name().toLowerCase(Locale.ROOT) + ", skinned)") + " · "
                             + (hasUnsavedChanges() ? "unsaved" : "saved") + " · 1920 × 1080 / 100%");
                 } catch (Exception ex) {
                     recheck |= check;

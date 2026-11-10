@@ -81,6 +81,12 @@ on it.
   point defence is their weakness where a laser has none, so a rack overloading a shield is their answer to high
   tech, not a fault to cap.
 
+- **The midline carriers' first numbers** (2026-11-10, UNTUNED; `convoy-nouns.md`, the articulated carriers): plate
+  between the low-tech hull and the skimmer of each weight (light 115 at 7.5, medium 135 at 13, heavy 430 at 15), no
+  shield, and a stock fit drawing about twice what it sheds: the light's PL-1 on the factory bank (about 1.7x, as
+  near as a one-row part on the bank comes), the medium's AC-6 and secondary machine gun on a +3.5 plant, the heavy's
+  HC-20 and two secondary machine guns on a +7.5 plant.
+
 ## Open
 
-- The midline row's numbers, when its lines are designed.
+- The midline carriers' numbers, in the owner's playtest.

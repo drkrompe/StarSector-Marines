@@ -65,6 +65,31 @@ upright crucible's), its control core housed on its west flank and its spout flu
 cut free on its skid, `furnace-core`, 3x3. Its guide is drawn at 112 px a cell (`make_guide.FAMILY_CELL`) so the
 whole crucible is one block-out ImageGen takes at once.
 
+The forge's machinery is the spacefaring era's, as the raid mine's mass driver and hover haulers are (owner: an ore
+car "does not make sense for a space faring civilization"): automated, field- or robot-handled plant. Every piece
+below is 160 px a cell in its guide and shares the `ruins-forge` sheet.
+
+- `forge-line`: the 6x7 tapping furnace, its taphole and spout trough running to its south edge
+  (`tapping-furnace-melt`); the 2x2 pour head and mould master (the b3 hauls). Its ore cars, ladle on a hook,
+  fettling bench, inspection table, racks and girder are drawn on this raw but no longer cut.
+- `forge-era-a`: the feed mag-rail (2x2 run), its 4x4 quarter curve (meeting a straight rail at its south and east
+  edges) and 2x2 decelerator end; the 2x3 feed capsule pod and its derailed state; the 3x3 hover slag skid
+  (`slag-skid-melt`) and the skid crashed at the pit lip (`slag-skid-crashed-spill`, running out of its east edge);
+  the 2x3 thrust wash its lift fans leave.
+- `forge-era-b`: the 3x3 ladle in an overhead manipulator's yoke, upright (`ladle-lift-melt`) and tipped mid-pour
+  (`ladle-lift-tipped-pour`), with no cover since it hangs overhead; the 2x2 robot finishing cell and metrology bed;
+  the 2x4 cooling stack, empty and with castings; the overhead 1x4 gantry runway; the 7x1 fallen runway beam.
+- `forge-floor`: the 3x3 pallet bay markings, painted flat from the guide's marks in `export.py` (`flat_paint`), since
+  ImageGen drew them as raised angle; the 2x2 trench cover, 1x2 drain gutter and 1x1 floor drain; the
+  overhead 1x2 cable tray and the 1x4 fallen tray. Its rail bed and slag cars are drawn but no longer cut.
+- `forge-wear`: oil stain, oil trail, coolant stain, scorch mark and arc burn, faded as the patches are but with a
+  lower halo cut (`STAIN_FEATHER`), since they were drawn translucent to their edges; the 3x3 line pulpit's roof and
+  the 1x2 recorder console.
+
+The slag pit's edge is the `FOUNDRY` drop's own `foundry-lip`. The runs (mag-rail, trench cover, drain gutter, gantry
+runway, cable tray) run north-south and are healed in `export.py` (`heal_run`) into a seamless repeat along their
+length. Hazard trim is muted as the spool drum's is, and melt graded as the crucible's.
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

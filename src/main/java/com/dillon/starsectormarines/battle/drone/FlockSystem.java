@@ -284,12 +284,61 @@ public final class FlockSystem {
         return id;
     }
 
+    /**
+     * Sends a flock through a service duct (`derelict-watch.md`, Movement): in at the vent at {@code (entryX, entryY)},
+     * up at {@code (exitX, exitY)} after {@code seconds}. The flock comes up in whatever open sky holds the exit: the
+     * outside, or a shut court's light well, which it is then kept to (a duct is the only way into or out of one). A
+     * flock already in a duct, or a hatch's, does not go.
+     *
+     * @return whether it went
+     */
+    public boolean sendThroughDuct(Flock flock, float entryX, float entryY, float exitX, float exitY, float seconds) {
+        if (flock.duct != null || flock.hatch != null || flock.members.isEmpty()) return false;
+        flock.duct = new FlockDuct(entryX, entryY, exitX, exitY, seconds);
+        return true;
+    }
+
+    /** A flock's duct each tick: members at the entry go in, the clock runs, and they come up at the exit. */
+    private void duct(Flock flock, float dt, BattleSimulation sim) {
+        FlockDuct duct = flock.duct;
+        World world = sim.world();
+        for (Iterator<Long> it = flock.members.iterator(); it.hasNext(); ) {
+            long m = it.next();
+            if (!duct.enters((float) Math.hypot(world.x(m) - duct.entryX, world.y(m) - duct.entryY))) continue;
+            it.remove();
+            sim.takeOffTheField(m);
+            duct.entered();
+        }
+        int up = duct.tick(dt, flock.members.size());
+        if (up > 0) {
+            NavigationGrid grid = sim.getGrid();
+            FlockField.Open open = open(grid, sim.getTopology());
+            int[] cell = nearestOpen(duct.exitX, duct.exitY, open, LAUNCH_SEARCH);
+            if (cell != null && duct.surfaced() == up) flock.well = wellAt(grid.getWidth(), grid.getHeight(), open, sky(sim),
+                    cell[0], cell[1]);
+            for (int i = 0; i < up && cell != null; i++) spawnMember(sim, flock, cell[0], cell[1]);
+        }
+        flock.moveAnchor(duct.anchorX(), duct.anchorY());
+        if (duct.phase() == FlockDuct.Phase.DONE) {
+            flock.duct = null;
+            if (duct.surfaced() > 0) flock.leashFrom(duct.exitX, duct.exitY);
+        }
+    }
+
     public void tick(float dt, BattleSimulation sim) {
         if (flocks.isEmpty()) return;
         boolean scan = sim.getSimTickIndex() % SCAN_TICKS == 0;
         for (Iterator<Flock> it = flocks.iterator(); it.hasNext(); ) {
             Flock flock = it.next();
             flock.members.removeIf(m -> sim.resolveUnit(m) == 0L);
+            if (flock.duct != null) {
+                // In a duct the flock is the duct's: nothing docks, nothing turns it home, nothing disbands it.
+                duct(flock, dt, sim);
+                rebuild(flock, dt, sim);
+                publish(flock, sim, false);
+                continue;
+            }
+            if (flock.task() == FlockTask.RETURN && home(flock)) flock.leashFrom(flock.homeX(), flock.homeY());
             // A hatch's drones never dock: its bay is the hatch's own.
             if (flock.hatch == null) dock(flock, dt, sim);
             rebuild(flock, dt, sim);
@@ -468,6 +517,15 @@ public final class FlockSystem {
         if (flock.well == null) return sky(sim);
         NavigationGrid grid = sim.getGrid();
         return within(open(grid, sim.getTopology()), flock.well, grid.getWidth());
+    }
+
+    /**
+     * The light well holding open cell {@code (x, y)}: its open body, or null when that body is the outside
+     * ({@code outside} answers open there).
+     */
+    static boolean[] wellAt(int width, int height, FlockField.Open open, FlockField.Open outside, int x, int y) {
+        if (outside.open(x, y)) return null;
+        return body(width, height, open, x, y);
     }
 
     /** {@code open} kept to the cells of {@code mask}, a row-major grid {@code width} wide. */

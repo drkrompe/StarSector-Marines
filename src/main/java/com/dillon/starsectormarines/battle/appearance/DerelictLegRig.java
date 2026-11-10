@@ -130,6 +130,20 @@ public final class DerelictLegRig {
                         float shinCells, float wallFootCells, float stepLiftCells, float walkStride, float runStride,
                         float runSpeed, float walkSpeed, float stepSeconds, float scale, float motionScale,
                         float twistDegrees, float jointInsetCells, float suspensionSeconds) {
+
+        /**
+         * This build at {@code k} times its size (`derelict-watch.md`, Medium and large walkers): the derelict line's
+         * rounds walker and hall frame are the walker's rig at their own sizes. Lengths scale with the body, the
+         * stride with them; a larger body steps more slowly, by the square root of its size.
+         */
+        public Build scaled(float k) {
+            if (!(k > 0f)) throw new IllegalArgumentException("A build scales by a positive size");
+            float slow = (float) Math.sqrt(k);
+            return new Build(hipCells * k, restCells * k, gripCells * k, hipHeightCells * k, thighCells * k,
+                    shinCells * k, wallFootCells * k, stepLiftCells * k, walkStride * k, runStride * k,
+                    runSpeed * slow, walkSpeed * slow, stepSeconds * slow, scale * k, motionScale * k,
+                    twistDegrees, jointInsetCells * k, suspensionSeconds);
+        }
     }
 
     /** The derelict security walker: a heavy torso on long reaching legs. */

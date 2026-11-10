@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c5ff-fe4b-75d3-b556-13b1081a6615",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c5ff-fe4b-75d3-b556-13b1081a6615\\exec-50f1eb3e-14be-43db-8ccf-5ef06396764e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\drones\\concepts-fanless\\a-vectored-raw.png",
+    "sha256": "9d9c302f5c0748051accb19b8e89554b35d40398804a6499961cd58418b5d16e",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\drones\\concepts-fanless\\a-vectored-brief.txt",
+  "promptSha256": "1d874b3a6f29ba56a28d90c5fa0e72a661dbc861ec96bf312e23e9842b6dd0e1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Rendering style and detail level only; not layout, palette, shape or subject\nImage 2: Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale\n\nConcept sheet: four small Tri-Tachyon corporate battlefield COMBAT DRONES, each about a metre long, that hover low over a ground battle on VECTORED THRUST. Each is a compact armoured pod whose lift and steering come from small swivelling thrust nozzles and slot vents tucked into its flanks and belly, shown from above as short angled exhaust slots and nozzle cowls with a faint cyan glow; the body is a hard-edged, faceted pod, not round.\n- ESCORT: a long narrow gun pod built around a pulse-laser barrel along its spine, two angled nozzle cowls at the hips, an armoured sensor wedge behind the muzzle.\n- SENSOR: a flat teardrop pod whose whole front is one large dark sensor aperture with a cyan glint, thin antenna blades swept back, small paired nozzles at the tail.\n- POINT-DEFENCE: a short broad hexagonal pod carrying one compact twin laser turret on its back, nozzle slots at four corners so it can hold station.\n- STRIKE: a guided munition, a slim dart with a brass warhead nose, cruciform tail fins and one rear thrust nozzle; reads as a missile that can loiter.\nTri-Tachyon high-tech livery and material: pearl white and pale grey composite with fine graphite seams, restrained cyan lights; image 2 is livery and material reference only, not layout or shape.\nStrict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left, every drone nose UP (toward the top edge), the four drones evenly spaced in one row across a wide landscape canvas, each drawn large and with a small plain caption beneath it naming its role (ESCORT, SENSOR, POINT-DEFENCE, STRIKE). Plain flat dark-grey background, no ground, scene, shadow slab, border or grid. Rendered as finished top-down game sprites in the manner of the attached approved game sprite: grounded, believable, subtly weathered, crisp and readable when shrunk to 40 pixels, not glossy concept art.\nBANNED SHAPES, do not draw any of these anywhere: exposed fans, fan blades, rotor rings, rotor discs, propellers, ducted props, shrouded lift fans, round fan ducts, grilles over circular ducts, quadcopter arms. No drone may be built around a circle. The outline must come from what the drone does (its weapon, sensor or warhead and how it is steered), never from a lift fan.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\tt-hover-scout.png",
+      "sha256": "3449edbfed9e0911c918b4989c7a6ca0f47883e02fa2d8cba19c5c176f803003",
+      "dimensions": [
+        2688,
+        576
+      ],
+      "mode": "RGBA",
+      "role": "Rendering style and detail level only; not layout, palette, shape or subject"
+    },
+    {
+      "path": "C:\\Program Files (x86)\\Fractal Softworks\\Starsector\\starsector-core\\graphics\\ships\\tempest.png",
+      "sha256": "b1811fa2e74ac737e94479f097025bab8e3a5d0c8b6c04128561001babecfc36",
+      "dimensions": [
+        64,
+        92
+      ],
+      "mode": "RGBA",
+      "role": "Tri-Tachyon livery and high-tech material reference only; not layout, pose, shape or scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one concept sheet with the four distinct drone roles, using the references only for rendering and materials."
+  ],
+  "usage": {
+    "input_tokens": 40554,
+    "cached_input_tokens": 27136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 670,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.8
+}

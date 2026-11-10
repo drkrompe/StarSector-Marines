@@ -296,11 +296,13 @@ com.dillon.starsectormarines.ops.battleview.ElevationLookSnapshotSuite
 com.dillon.starsectormarines.battle.command.allied.ScreenedAdvanceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPoolSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.pool.PlanetSkinLookSuite
+com.dillon.starsectormarines.battle.world.gen.pool.RaidOwnedMapLookSuite
 com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleFootprintLookSuite
 com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
+com.dillon.starsectormarines.battle.vehicle.MidlineCarriersLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.LargePostLookSnapshotSuite
@@ -437,11 +439,13 @@ com.dillon.starsectormarines.ops.RaidMilitarySiteLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictHeaviesLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictSecurityLookSuite
 com.dillon.starsectormarines.battle.drone.DerelictFlocksRuinsLookSuite
+com.dillon.starsectormarines.battle.drone.DroneHubLookSuite
 com.dillon.starsectormarines.ops.RuinsBriefingSnapshotSuite
 com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
+com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite
 com.dillon.starsectormarines.battle.mech.CrawlerLookSuite
 com.dillon.starsectormarines.battle.derelict.RuinsGuardiansLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultAccessLookSuite
@@ -460,6 +464,7 @@ com.dillon.starsectormarines.ops.NaturalVoidMapsLookSuite
 com.dillon.starsectormarines.ops.LavaFlowLookSuite
 com.dillon.starsectormarines.ops.CrevasseTownLookSuite
 com.dillon.starsectormarines.ops.BuildingFacesLookSuite
+com.dillon.starsectormarines.ops.BuildingDamageLookSuite
 com.dillon.starsectormarines.ops.battleview.HabitatLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsPortPicksSuite
 com.dillon.starsectormarines.ops.battleview.SealedTownLookSuite

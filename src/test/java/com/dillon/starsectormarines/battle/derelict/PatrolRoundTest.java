@@ -2,10 +2,12 @@ package com.dillon.starsectormarines.battle.derelict;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PatrolRoundTest {
 
@@ -34,5 +36,24 @@ class PatrolRoundTest {
         assertArrayEquals(new int[] {9, 0}, round.advance(0.5f, 0.5f, 1f), "paused long enough: on to the next");
         round.advance(9.5f, 0.5f, PatrolRound.PAUSE_SECONDS);
         assertArrayEquals(new int[] {0, 0}, round.current(), "back to the first");
+    }
+
+    @Test
+    void theRoundKeepsOnlyThePlacesNearestTheNode() {
+        List<int[]> many = new ArrayList<>();
+        for (int d = 1; d <= 8; d++) many.add(new int[] {10 + (d % 2 == 0 ? d : -d), 10});
+        List<int[]> round = PatrolRound.order(ZONE, many);
+        assertEquals(PatrolRound.MAX_PLACES, round.size());
+        for (int[] place : round) assertTrue(Math.abs(place[0] - 10) <= PatrolRound.MAX_PLACES, "the far places go");
+    }
+
+    @Test
+    void aWalkerThatGetsNoNearerGivesThePlaceUp() {
+        PatrolRound round = new PatrolRound(List.of(new int[] {0, 0}, new int[] {9, 0}));
+        round.advance(5f, 0.5f, 1f);
+        assertArrayEquals(new int[] {0, 0}, round.advance(3f, 0.5f, PatrolRound.STUCK_SECONDS - 1f),
+                "getting nearer: headway resets the clock");
+        assertArrayEquals(new int[] {0, 0}, round.advance(3f, 0.5f, PatrolRound.STUCK_SECONDS - 1f));
+        assertArrayEquals(new int[] {9, 0}, round.advance(3f, 0.5f, 1f), "no headway long enough: on to the next");
     }
 }

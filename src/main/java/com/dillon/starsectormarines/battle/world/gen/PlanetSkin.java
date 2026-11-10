@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +28,8 @@ import java.util.Set;
  *
  * <p><b>The layout never moves.</b> No cell changes whether it can be walked, seen through or built on: the skin swaps
  * what ground, trees, stones, cliffs and walls are drawn as, and substitutes worked fields for what a colony grows on
- * a world where open fields make no sense, on the same footprint and as walkable as they were. Every rule here is a
+ * a world where open fields make no sense: the plot cleared to the planet's own ground and a walk-in covered farm
+ * stood on it, as walkable and as open to sight as it was. Every rule here is a
  * pure function of the home palette and the world, so a test states it without a map.
  *
  * <p>What it does not do, because each would move the layout: raise a sealed perimeter round a town, add a drop, grow
@@ -43,34 +45,16 @@ public final class PlanetSkin {
     public enum FieldUse {
         /** Open crops, grain and pasture, as laid: a world where things grow in the open. */
         CROPS,
-        /** Hydroponic beds on the field's footprint: paved bays between walkways, a sealed colony's farm. */
-        BEDS,
-        /** Cleared ground of the planet's own surface: nothing grown there at all. */
+        /**
+         * Grown under cover: the plot cleared to the planet's own ground and a covered farm stood on it in rows
+         * ({@link #covered}), greenhouse tunnels and grow domes a marine walks into and takes no cover behind. Paved
+         * hydroponic bays on the footprint were tried and read as concrete slabs (owner, 2026-11-10).
+         */
         BARE
     }
 
-    /**
-     * {@code -Dbattle.planetSkin.fields=bare} lays fields a world cannot grow in the open as bare ground instead of
-     * hydroponic beds: the arms of the owner's pick between the two (picks question {@code planet-skin-fields}).
-     * Temporary: remove it, and {@link FieldUse} arm the owner did not pick, once the pick is answered.
-     */
-    public static final String FIELDS_PROPERTY = "battle.planetSkin.fields";
-
-    /** What a world's fields become when it cannot grow them in the open. */
-    public static final FieldUse SUBSTITUTE =
-            "bare".equalsIgnoreCase(System.getProperty(FIELDS_PROPERTY)) ? FieldUse.BARE : FieldUse.BEDS;
-
-    /** {@code map}, generated on {@code home}, skinned for {@code world} in place, fields substituted the usual way. */
+    /** {@code map}, generated on {@code home}, skinned for {@code world} in place. Returns {@code map}. */
     public static MapResult apply(MapResult map, SurfacePalette home, TargetProfile world) {
-        return apply(map, home, world, SUBSTITUTE);
-    }
-
-    /**
-     * {@code map}, generated on {@code home}, skinned for {@code world} in place; fields a world cannot grow in the open
-     * are laid as {@code substitute}. Returns {@code map}. A world of the home palette with nothing more to say is the
-     * map as generated.
-     */
-    public static MapResult apply(MapResult map, SurfacePalette home, TargetProfile world, FieldUse substitute) {
         if (map == null || world == null) return map;
         SurfacePalette to = world.surface();
         LivingWorld living = to == SurfacePalette.VERDANT ? world.living() : LivingWorld.TEMPERATE;
@@ -91,7 +75,10 @@ public final class PlanetSkin {
         }
         if (world.signature() != null) topology.setSignature(world.signature());
         FieldUse use = fieldsOn(to, climateOf(world));
-        if (use != FieldUse.CROPS) fields(map, field, use == FieldUse.BEDS ? substitute : use, to, mapping);
+        if (use != FieldUse.CROPS) {
+            fields(map, field, use, to);
+            if (tiles != null) farm(map, field, tiles);
+        }
         Habitat habitat = new BiomeSkin(to, living, world.signature(), climateOf(world)).habitat();
         if (habitat != Habitat.OPEN) HabitatStage.rebuild(topology, habitat);
         return map;
@@ -121,14 +108,14 @@ public final class PlanetSkin {
 
     /**
      * How a world's colony grows its food. In the open only where things grow and the air lets them: a living or
-     * desert world with breathable air. Under cover everywhere else: no open fields on a frozen, bare-rock, volcanic,
+     * desert world with breathable air. Nowhere else: no open fields on a frozen, bare-rock, volcanic,
      * irradiated or toxic world, nor under air that kills (owner: "farm fields don't make sense on a frozen world").
      */
     public static FieldUse fieldsOn(SurfacePalette world, Climate climate) {
         boolean open = world == SurfacePalette.VERDANT || world == SurfacePalette.ARID;
         boolean air = climate == null || !(climate.has(Climate.Hazard.TOXIC) || climate.has(Climate.Hazard.AIRLESS)
                 || climate.has(Climate.Hazard.RADIATION));
-        return open && air ? FieldUse.CROPS : FieldUse.BEDS;
+        return open && air ? FieldUse.CROPS : FieldUse.BARE;
     }
 
     /**
@@ -162,23 +149,10 @@ public final class PlanetSkin {
         return world == SurfacePalette.VERDANT || world == SurfacePalette.ARID;
     }
 
-    /**
-     * What a cell of a worked field is laid as. Crops as laid ({@link RuralGround#plotGround}); hydroponic beds as
-     * paved bays ({@link GroundKind#TILE}) on the crop's rows between courtyard walkways ({@link GroundKind#COURTYARD})
-     * along its headland and tramlines; bare fields as the world's own wild ground.
-     */
+    /** What a cell of a worked field is laid as: crops as laid ({@link RuralGround#plotGround}), else the world's own wild ground. */
     public static GroundKind fieldGround(RuralLayout.Plot plot, int x, int y, FieldUse use, SurfacePalette world) {
         GroundKind crop = RuralGround.plotGround(plot, x, y);
-        return switch (use) {
-            case CROPS -> crop;
-            case BARE -> world.inlandGround();
-            case BEDS -> {
-                boolean headland = x == plot.x0() || x == plot.x1() || y == plot.y0() || y == plot.y1();
-                if (headland) yield GroundKind.COURTYARD;
-                int across = plot.rowsAlongX() ? y - plot.y0() : x - plot.x0();
-                yield Math.floorMod(across, 3) == 0 ? GroundKind.COURTYARD : GroundKind.TILE;
-            }
-        };
+        return use == FieldUse.CROPS ? crop : world.inlandGround();
     }
 
     // --- the passes -----------------------------------------------------------------------------------------------
@@ -312,9 +286,8 @@ public final class PlanetSkin {
         return part.equals("talus") || part.equals("rock") || part.matches("face\\.[0-6]") ? part : null;
     }
 
-    /** Every worked field laid as {@code use}, hedges off it where it is no longer open country. */
-    private static void fields(MapResult map, boolean[] mask, FieldUse use, SurfacePalette world,
-                               GenMappingRegistry mapping) {
+    /** Every worked field laid as {@code use}: cleared to the world's own ground, its hedges off it. */
+    private static void fields(MapResult map, boolean[] mask, FieldUse use, SurfacePalette world) {
         CellTopology topology = map.topology;
         int w = topology.getWidth();
         for (RuralLayout.Plot plot : map.fields) {
@@ -323,11 +296,97 @@ public final class PlanetSkin {
                     if (!mask[y * w + x]) continue;
                     GroundKind kind = fieldGround(plot, x, y, use, world);
                     topology.setGroundKind(x, y, kind);
-                    String block = use == FieldUse.BARE || mapping == null ? null : mapping.groundBlockId(kind);
-                    topology.setSurface(x, y, block == null ? 0 : topology.surfaceIndex(block));
+                    topology.setSurface(x, y, 0);
                     topology.setNatureOverlayIndex(x, y, -1);
                 }
             }
         }
+    }
+
+    // --- the covered farm --------------------------------------------------------------------------------------------
+
+    /** A piece of the covered farm. */
+    public enum Cover {
+        TUNNEL("doodad.greenhouse-tunnel", 6, 2),
+        SHORT_TUNNEL("doodad.greenhouse-tunnel-short", 3, 2),
+        DOME("doodad.grow-dome", 3, 3),
+        SKID("doodad.nutrient-skid", 2, 1);
+
+        public final String id;
+        /** Footprint unturned: along a row, then across it. */
+        public final int along, across;
+
+        Cover(String id, int along, int across) {
+            this.id = id;
+            this.along = along;
+            this.across = across;
+        }
+    }
+
+    /** One piece stood on a plot: its footprint's corner and quarter turns (1 when the rows run along y). */
+    public record Placed(Cover piece, int x, int y, int turns) {
+        public int width() { return turns % 2 == 0 ? piece.along : piece.across; }
+        public int height() { return turns % 2 == 0 ? piece.across : piece.along; }
+    }
+
+    /** The lane left between two rows of the covered farm, and between pieces along a row, in cells. */
+    static final int LANE = 1;
+
+    /**
+     * The covered farm on a plot: inside a one-cell headland, rows two cells deep along the plot's crop rows with a
+     * {@link #LANE} between them, each row long tunnels a lane apart and finished with a short tunnel, or a tank skid
+     * where only that fits. A plot too short for a long tunnel along its rows takes grow domes on a grid instead,
+     * where one fits.
+     * Pure: what stands where depends on the plot alone.
+     */
+    public static List<Placed> covered(RuralLayout.Plot plot) {
+        int x0 = plot.x0() + 1, y0 = plot.y0() + 1, x1 = plot.x1() - 1, y1 = plot.y1() - 1;
+        boolean alongX = plot.rowsAlongX();
+        int length = alongX ? x1 - x0 + 1 : y1 - y0 + 1, depth = alongX ? y1 - y0 + 1 : x1 - x0 + 1;
+        int turns = alongX ? 0 : 1;
+        List<Placed> out = new ArrayList<>();
+        if (length < Cover.TUNNEL.along && length >= Cover.DOME.along && depth >= Cover.DOME.across) {
+            for (int a = 0; a + Cover.DOME.across <= depth; a += Cover.DOME.across + LANE)
+                for (int l = 0; l + Cover.DOME.along <= length; l += Cover.DOME.along + LANE)
+                    out.add(at(Cover.DOME, alongX, x0, y0, l, a, 0));
+            return out;
+        }
+        for (int a = 0; a + Cover.TUNNEL.across <= depth; a += Cover.TUNNEL.across + LANE) {
+            int l = 0;
+            while (l + Cover.TUNNEL.along <= length) {
+                out.add(at(Cover.TUNNEL, alongX, x0, y0, l, a, turns));
+                l += Cover.TUNNEL.along + LANE;
+            }
+            if (l + Cover.SHORT_TUNNEL.along <= length) out.add(at(Cover.SHORT_TUNNEL, alongX, x0, y0, l, a, turns));
+            else if (l + Cover.SKID.along <= length) out.add(at(Cover.SKID, alongX, x0, y0, l, a, turns));
+        }
+        return out;
+    }
+
+    private static Placed at(Cover piece, boolean alongX, int x0, int y0, int along, int across, int turns) {
+        return alongX ? new Placed(piece, x0 + along, y0 + across, turns) : new Placed(piece, x0 + across, y0 + along, turns);
+    }
+
+    /** The covered farm on every cleared field, each piece only where every cell under it is still that field. */
+    private static void farm(MapResult map, boolean[] mask, TileRegistry tiles) {
+        int w = map.topology.getWidth(), h = map.topology.getHeight();
+        boolean[] taken = new boolean[w * h];
+        for (RuralLayout.Plot plot : map.fields) {
+            for (Placed p : covered(plot)) {
+                DoodadDef def = tiles.doodad(p.piece().id);
+                if (def == null || !clear(p, mask, taken, w, h)) continue;
+                for (int y = p.y(); y < p.y() + p.height(); y++)
+                    for (int x = p.x(); x < p.x() + p.width(); x++) taken[y * w + x] = true;
+                map.doodads.add(new Doodad(p.x(), p.y(), def, p.turns()));
+            }
+        }
+    }
+
+    private static boolean clear(Placed p, boolean[] mask, boolean[] taken, int w, int h) {
+        if (p.x() < 0 || p.y() < 0 || p.x() + p.width() > w || p.y() + p.height() > h) return false;
+        for (int y = p.y(); y < p.y() + p.height(); y++)
+            for (int x = p.x(); x < p.x() + p.width(); x++)
+                if (!mask[y * w + x] || taken[y * w + x]) return false;
+        return true;
     }
 }
