@@ -5,34 +5,37 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
-/**
- * A palette draws a ground kind from its own block only where it names one; everything else, and every other world,
- * keeps the kind's ordinary art. That fallback is what lets a palette restyle stone without restyling streets.
- */
+/** A world's own material for a ground kind, and a palette laid out as another taking that one's fillers. */
 class PaletteGroundRenderTest {
 
-    private static GenMappingRegistry mapping(String json) throws Exception {
+    private static GenMappingRegistry mapping() throws Exception {
         GenMappingRegistry registry = new GenMappingRegistry();
-        registry.ingest(new JSONObject(json));
+        registry.ingest(new JSONObject("""
+                {"groundRender": {"STONE": "floors.stone", "SAND": "floors.sand"},
+                 "paletteGroundRender": {"VOLCANIC": {"STONE": "volcanic.basalt"}},
+                 "fillers": {"NATURE_GRASSLAND": {"groundPool": [{"kind": "GRASS", "w": 1}]}},
+                 "surfaceFillers": {"ROCK": {"NATURE_GRASSLAND": {"groundPool": [{"kind": "STONE", "w": 1}]}}}}
+                """));
         return registry;
     }
 
     @Test
-    void aPaletteDrawsOnlyTheKindsItNames() throws Exception {
-        GenMappingRegistry m = mapping("{\"groundRender\":{\"STONE\":\"floors.stone\",\"STREET\":\"road\"},"
-                + "\"paletteGroundRender\":{\"TOXIC\":{\"STONE\":\"toxic.crust\"}}}");
-        assertEquals("toxic.crust", m.groundBlockId(GroundKind.STONE, SurfacePalette.TOXIC));
-        assertEquals("road", m.groundBlockId(GroundKind.STREET, SurfacePalette.TOXIC));
-        assertEquals("floors.stone", m.groundBlockId(GroundKind.STONE, SurfacePalette.ROCK));
-        assertEquals("floors.stone", m.groundBlockId(GroundKind.STONE, null));
+    void aWorldDrawsItsOwnMaterialWhereNamedAndTheKindsOtherwise() throws Exception {
+        GenMappingRegistry registry = mapping();
+        assertEquals("volcanic.basalt", registry.groundBlockId(GroundKind.STONE, SurfacePalette.VOLCANIC));
+        assertEquals("floors.sand", registry.groundBlockId(GroundKind.SAND, SurfacePalette.VOLCANIC));
+        assertEquals("floors.stone", registry.groundBlockId(GroundKind.STONE, SurfacePalette.ROCK));
+        assertEquals("floors.stone", registry.groundBlockId(GroundKind.STONE, null));
     }
 
     @Test
-    void aPaletteKindIsDeclaredOnce() throws Exception {
-        GenMappingRegistry m = mapping("{\"paletteGroundRender\":{\"TOXIC\":{\"STONE\":\"a\"}}}");
-        assertThrows(Exception.class,
-                () -> m.ingest(new JSONObject("{\"paletteGroundRender\":{\"TOXIC\":{\"STONE\":\"b\"}}}")));
+    void aPaletteLaidOutAsAnotherFillsAsThatOneDoes() throws Exception {
+        GenMappingRegistry registry = mapping();
+        assertSame(registry.fillerParams(BlockKind.NATURE_GRASSLAND, SurfacePalette.ROCK),
+                registry.fillerParams(BlockKind.NATURE_GRASSLAND, SurfacePalette.VOLCANIC));
+        assertSame(registry.fillerParams(BlockKind.NATURE_GRASSLAND),
+                registry.fillerParams(BlockKind.NATURE_GRASSLAND, SurfacePalette.FROZEN));
     }
 }

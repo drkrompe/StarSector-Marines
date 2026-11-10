@@ -35,7 +35,15 @@ class SurfaceZoningTest {
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren-bombarded"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("barren_castiron"));
         assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("irradiated"));
-        assertEquals(SurfacePalette.ROCK, SurfaceZoning.forPlanetType("lava_minor"));
+    }
+
+    /** Lava worlds stand on cooled basalt, and are laid out exactly as rock is. */
+    @Test
+    void lavaWorldsAreVolcanicLaidOutAsRock() {
+        assertEquals(SurfacePalette.VOLCANIC, SurfaceZoning.forPlanetType("lava"));
+        assertEquals(SurfacePalette.VOLCANIC, SurfaceZoning.forPlanetType("lava_minor"));
+        assertEquals(SurfacePalette.ROCK, SurfacePalette.VOLCANIC.layoutOf());
+        assertEquals(SurfacePalette.FROZEN, SurfacePalette.FROZEN.layoutOf());
     }
 
     /**

@@ -70,6 +70,13 @@ class StoryMapPoolTest {
     }
 
     @Test
+    void aWorldLaidOutAsAnotherPlaysThatOnesMaps() throws Exception {
+        StoryMapPool pool = StoryMapPool.read(StoryMap.HEART_BURN, new JSONObject(pool("heart-burn", "[{\"seed\":4}]")));
+        assertSame(pool.entries(SurfacePalette.ROCK), pool.entries(SurfacePalette.VOLCANIC));
+        assertEquals(1, pool.pick(SurfacePalette.VOLCANIC, 3).seed());
+    }
+
+    @Test
     void aPoolRefusesADuplicateSeedAMissingBiomeOrAnotherMapsFile() {
         assertThrows(IllegalArgumentException.class, () -> StoryMapPool.read(StoryMap.HEART_BURN,
                 new JSONObject(pool("heart-burn", "[{\"seed\":4},{\"seed\":4}]"))));

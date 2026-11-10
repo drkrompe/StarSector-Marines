@@ -50,7 +50,9 @@ frozen, toxic) picks the pool, and every biome must have maps. A seed names a
 different map on each biome (the palette feeds generation), so a seed is
 vetted per biome; the same seed pooled on several biomes keeps one layout
 under different ground, which makes the biome the only difference between
-those readings.
+those readings. A palette laid out as another (`SurfacePalette.layoutOf`:
+volcanic is rock's layout in basalt) pools no maps of its own and plays that
+one's.
 
 **Density.** The Cordon is also laid out at its world's density (rural, town
 or urban, from the market size; `cordon-nouns.md`, Density), and each density

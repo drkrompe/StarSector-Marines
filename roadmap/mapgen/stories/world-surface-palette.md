@@ -1,7 +1,8 @@
 # World surface palette
 
 Status: IN PROGRESS — the palette reaches wild ground and the wild/cultivated
-line is pinned; worlds beyond rock, dust and ice are open.
+line is pinned; lava worlds have their own ground; toxic and irradiated worlds
+are open.
 
 Written: 2026-08-31
 Updated: 2026-11-09 — toxic worlds have their own ground; irradiated, volcanic and ash material families remain.
@@ -73,13 +74,54 @@ would therefore have scattered no rocks. Stone and rubble now resolve to
 require grass specifically, so a stony surface correctly keeps its rocks and
 correctly grows nothing.
 
+## Volcanic: rock's layout in other art
+
+`VOLCANIC` is the vanilla `lava` and `lava_minor` worlds. It is the first palette
+that differs from another **only in what the ground is made of**, and it says so:
+`SurfacePalette.layoutOf` names the palette whose generated layout it shares
+(`ROCK`). Every generation decision that reads the palette treats it as rock —
+the crater-rim hills, the formation draws, the field stones, the fillers
+(`GenMappingRegistry.fillerParams` falls back to the layout's entries) — so a
+seed makes the same map on either. That is what lets a lava world play the
+story maps already vetted for rock (`story-map-pools.md`) instead of a pool of
+its own, and it makes a control render exact: the same seed as rock and as
+volcanic differs in nothing but art (`volcanic-ground-look`).
+
+What differs, all presentation:
+
+- **Ground.** Its stone draws as cooled ropy basalt and its sand as settled ash
+  (`paletteGroundRender` in the mapping: a world's own material for a ground
+  kind, over the kind's `groundRender`). The cell stays `STONE` or `SAND` for
+  every rule. The art is the `volcanic-ground` sheet, eight wrapped variants of
+  each from ImageGen masters (`art-source/tilesets/volcanic-ground/`). Plaza stone
+  in a volcanic town draws as basalt too: building with local stone.
+- **Hills.** `TerrainPlan.Finish.BASALT` (`Finish.of(palette)` is the one
+  rule for a world's finish): the lava rift's columnar basalt wall for the faces,
+  the flow for the summit (`basalt-terrain`). The craters read as cinder cones.
+- **Formations.** `BASALT_BOULDERS` and `BASALT_SPIRES` share the rock
+  formations' bodies exactly; their art is the rock sheet regraded, with ember in
+  the cracks of the damaged and destroyed states (`volcanic-formations`).
+- **Glow and ash.** `VolcanicGroundRenderSystem` draws, additively over the
+  tiles, ash drifts in the hollows and glowing fissures, vents and embers in
+  active fields, each casting the lava rift's light (`LavaVoidLook`) and
+  breathing. Where they go is `VolcanicGroundLook`'s: only open wild stone or sand
+  with open ground about it, never under a wall, road, raised ground, fixture or
+  authored surface. Coordinate-hashed; nothing gameplay reads.
+- **Storm drift** banks ash, and the field stones are the basalt set.
+
+Known left: the basalt field stones are the barren world's light grey set and
+read as pale pebbles on dark ground (a darker scoria set would need its damage
+states too); raised ground from `ElevationBrush` picks its finish from the
+ground kinds and so stays rock on a lava world; no glow feathering at the ground
+target's edge, since the basalt joins no feathered material, as snow does not.
+
 ## What is open
 
-**Non-living worlds currently use ROCK, ARID, FROZEN and TOXIC.** Irradiated, volcanic and
-ash worlds still collapse into `ROCK`. `TOXIC` is the cheaper template: it restyles
-`STONE`, `SAND` and `WATER` through `paletteGroundRender` on a sheet of its own
-(`mapgen-nouns.md`) rather than adding a ground kind or Floors cells. Splitting them is a JSON block each plus a
-material family, once the art supports a visible difference.
+**Irradiated worlds still use `ROCK`.** Splitting one is a palette plus a material
+family; where its layout is rock's, `layoutOf` and `paletteGroundRender` make it an
+art change only, as volcanic is. `TOXIC` restyles `STONE`, `SAND` and `WATER` the
+same way, on a sheet of its own, and adds ground of its own (sludge pools, sulphur
+flats; `mapgen-nouns.md`).
 
 `mapgen-nouns.md` owns planet terrain and mineral-field behavior. Additional
 palettes must select appropriate permanent masses and destructible obstacles

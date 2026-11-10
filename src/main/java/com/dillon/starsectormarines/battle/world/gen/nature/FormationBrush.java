@@ -26,9 +26,11 @@ public final class FormationBrush {
 
     public static void scatter(GenContext c, SurfacePalette surface, boolean[] reserved) {
         // A toxic world's stained rock stands in the same boulders and spires as bare rock does.
-        if(surface!=SurfacePalette.ROCK && surface!=SurfacePalette.FROZEN && surface!=SurfacePalette.TOXIC) return;
+        if(surface.layoutOf()!=SurfacePalette.ROCK && surface!=SurfacePalette.FROZEN && surface!=SurfacePalette.TOXIC) return;
         boolean ice=surface==SurfacePalette.FROZEN;
+        // Basalt keeps rock's shapes in rock's order, so a volcanic seed draws and blocks exactly as a rock one does.
         MineralFormation[] pool=ice?new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES}
+                :surface==SurfacePalette.VOLCANIC?new MineralFormation[]{MineralFormation.BASALT_BOULDERS,MineralFormation.BASALT_SPIRES}
                 :new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
         Random random=new Random(c.seed^0x4d494e4552414cL);
         PatchField patches=new PatchField(c.seed^0x535049524553L,17);

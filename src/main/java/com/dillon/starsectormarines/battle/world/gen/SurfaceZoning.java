@@ -59,8 +59,12 @@ public final class SurfaceZoning {
         if (id.contains("toxic")) {
             return SurfacePalette.TOXIC;
         }
+        // Lava worlds: "lava" catches lava_minor.
+        if (id.contains("lava")) {
+            return SurfacePalette.VOLCANIC;
+        }
         // Everything else the Sector actually fights over: barren, rocky,
-        // irradiated, lava.
+        // irradiated.
         return SurfacePalette.ROCK;
     }
 }
