@@ -2194,8 +2194,47 @@ roof draws as before.
 
 The hall is proved one floor before the melt is cut. The ground plans the melt
 (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
-lava drop (`voids.md`). Every other theme keeps its line halls, the first laid
-at the old foundry's 34x22.
+lava drop (`voids.md`). A plant with no works hall keeps its line halls, the
+first laid at the old foundry's 34x22.
+
+**Every other theme has a works hall of its own** (`WorksHall`; the designs and
+their art list are in `ruins-theme-halls.md` in the shared notes). A dressing names
+its hall, and the outer band takes it in the mega forge's slot and size, in place of
+the line halls (`RuinsDelve.PlantStage.WORKS`). The hall is planned in its own cells
+before it meets the ground (`WorksHallPlan`, one planner a hall), so its rules are
+unit-proved there. Every hall has the same bones (`HallFrame`):
+
+- the feed rail up the west aisle to the head;
+- the work down a line in the middle, in bays a period apart;
+- the east lane for the hall's waste or return;
+- service drops on both long walls;
+- every aisle a hall frame's three cells wide, and the middle left open.
+
+On those bones each theme lays its own:
+
+- process stations;
+- environment, as skins, shallow water or a drop;
+- overhead;
+- collapse.
+
+The halls by theme:
+
+- cryo: the cold hall;
+- vats: the culture hall;
+- drones: the print hall;
+- AI cores: the core hall;
+- lamps, dynamos and hypershunt taps: the field hall;
+- synchrotron: the ring hall;
+- mantle bore: the shaft hall, with a dry-gorge shaft cut as the melt is;
+- catalytic core: the reactor train;
+- fullerene spool: the draw line;
+- holosuite: the stage hall;
+- depot: the high bay;
+- armory: the filling hall.
+
+A piece whose art has not shipped stands as its stand-in from the game's own
+sets, tiled over its footprint. A works hall and the mega forge take no loose
+chamber dressing. A hall narrower than 32 lays line runs instead.
 
 **Plant hall floors are zoned.** Every plant hall's floor is laid by zone after
 its furniture (`RuinsDelveStage.zoneFloor`), not as one slab:

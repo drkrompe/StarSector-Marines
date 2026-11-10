@@ -16,11 +16,12 @@ import java.util.List;
  * @param chambers props along the interior chambers' walls
  * @param floor    walkable patches on the open floor of the vault room and the chambers
  * @param product  the base id of the theme's unit, or null
- * @param foundry  whether the plant cast its product, so the outer band's first line hall is a foundry
- *                 ({@code ruins-expedition.md}, A forge works has a foundry)
+ * @param works    the great hall the plant made its product in, laid in place of its line halls
+ *                 ({@code ruins-expedition.md}, A hall is laid out from its process); {@link WorksHall#NONE} keeps
+ *                 the line halls
  */
 public record RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product,
-                            boolean foundry) {
+                            WorksHall works) {
 
     /** Plain ground: the ruins as they stand. */
     public static final RuinsDressing NONE = new RuinsDressing(List.of(), List.of(), List.of(), null);
@@ -29,7 +30,17 @@ public record RuinsDressing(List<String> vault, List<String> chambers, List<Stri
         vault = List.copyOf(vault);
         chambers = List.copyOf(chambers);
         floor = List.copyOf(floor);
+        if (works == null) works = WorksHall.NONE;
     }
+
+    /** As the canonical constructor, a forge works' hall given by whether the plant cast its product. */
+    public RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product,
+                         boolean foundry) {
+        this(vault, chambers, floor, product, foundry ? WorksHall.FORGE : WorksHall.NONE);
+    }
+
+    /** Whether the plant cast its product: its works hall is the mega forge. */
+    public boolean foundry() { return works == WorksHall.FORGE; }
 
     /**
      * Props and floor patches, with no product of the theme's own: the secure store's last cradle holds a stand-in.
@@ -40,12 +51,17 @@ public record RuinsDressing(List<String> vault, List<String> chambers, List<Stri
 
     /** Props, floor patches and a product, with no foundry. */
     public RuinsDressing(List<String> vault, List<String> chambers, List<String> floor, String product) {
-        this(vault, chambers, floor, product, false);
+        this(vault, chambers, floor, product, WorksHall.NONE);
     }
 
-    /** The same dressing on a plant that cast its product: the outer band's first line hall is a foundry. */
+    /** The same dressing on a plant that cast its product: its works hall is the mega forge. */
     public RuinsDressing withFoundry() {
-        return new RuinsDressing(vault, chambers, floor, product, true);
+        return withWorks(WorksHall.FORGE);
+    }
+
+    /** The same dressing whose plant made its product in {@code works}. */
+    public RuinsDressing withWorks(WorksHall works) {
+        return new RuinsDressing(vault, chambers, floor, product, works);
     }
 
     /**
@@ -54,7 +70,7 @@ public record RuinsDressing(List<String> vault, List<String> chambers, List<Stri
      * {@code -wrecked}.
      */
     public RuinsDressing withProduct(String product) {
-        return new RuinsDressing(vault, chambers, floor, product, foundry);
+        return new RuinsDressing(vault, chambers, floor, product, works);
     }
 
     /** The product whole, as the prize stands in its cradle; null without a product. */
