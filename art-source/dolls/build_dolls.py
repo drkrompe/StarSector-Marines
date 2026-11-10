@@ -436,6 +436,28 @@ def derelict(name):
     return d.write()
 
 
+def derelict_rounds(name):
+    """The MG-25 rounds walker: the derelict chassis carrying its two guns one each side of its upper band
+    (MechBodyHardpoints RoundsLayout.FLANK_PAIR): its chaingun in the left port (LEFT_ARM) and its rack in the right
+    (LEFT_SHOULDER, the rack mount standing on the right flank). No back racks; its back is bare plate."""
+    d = Doll(name)
+    port = [(-16, 64), (-31, 64), (-31, 82), (-16, 82)]
+    leg = [(-31, 64), (-42, 42), (-48, 42), (-54, 52), (-54, 118), (-57, 130), (-43, 130), (-46, 118), (-46, 62),
+           (-31, 82)]
+    for cx, rear in views():
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-16, 64), (16, 64), (16, 88), (-16, 88)], cx)
+        if rear:
+            continue
+        d.panel("HEAD", [(-4, 54), (4, 54), (6, 64), (-6, 64)], cx)
+        # From in front the machine's left is on the viewer's right.
+        d.shape("LEFT_SHOULDER", port, cx)
+        rack_weapons(d, "LEFT_SHOULDER", cx, -29, 66, -18, 80)
+        d.shape("LEFT_ARM", flip(port), cx)
+        port_weapons(d, "LEFT_ARM", cx, 23.5, 73)
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-54, 52), (-46, 62)), ((-54, 118), (-46, 118))])
+    return d.write()
+
+
 def crawler(name):
     """Tri-Tachyon's crawler: a wide, low carapace on four short legs spread to the sides, one gun in a socket under
     its nose and a small sensor head. No shoulders. From in front the near and far legs of a side are one outline."""
@@ -624,6 +646,7 @@ def main():
         hound("mech-hound"),
         warden("mech-warden"),
         derelict("mech-derelict"),
+        derelict_rounds("mech-derelict-rounds"),
         crawler("mech-crawler"),
         marine("marine"),
         marine("marine-suit", suit=True),

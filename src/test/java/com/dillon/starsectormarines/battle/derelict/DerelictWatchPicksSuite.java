@@ -260,32 +260,20 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
     private static void ram(SnapshotContext context, JSONObject fixture, List<SnapshotArtifact> out)
             throws Exception {
         long seed0 = fixture.getLong("seed");
-        boolean rammed = false, deadShot = false, todayShot = false;
-        for (int k = 0; k < RAM_SEEDS && !(rammed && deadShot); k++) {
+        boolean rammed = false, doorShot = false;
+        for (int k = 0; k < RAM_SEEDS && !rammed; k++) {
             JSONObject f = new JSONObject(fixture.toString());
             f.put("seed", seed0 + k);
             BattleSimulation sim = settled(f, 30);
             DerelictSecurityDirector director = sim.derelictSecurity();
-            if (!deadShot) {
-                // Option b: a plant hall with a dead door three cells or more across, as the ground lays one.
-                for (RuinsDelve.LeafDoor d : sim.getRuinsWorks().doorStates().doors()) {
-                    if (d.stance() != RuinsDelve.DoorStance.DEAD) continue;
-                    log("ram: seed %d dead door at (%d, %d), %d cells", seed0 + k, d.span().left(), d.span().bottom(),
-                            d.length());
-                    add(out, "ram/b-dead-door.png", look(context, sim, d.span().centreX() + 0.5f,
-                            d.span().centreY() + 0.5f, CLOSE, true, "ram-dead-door"));
-                    deadShot = true;
-                    break;
-                }
-            }
-            if (rammed) continue;
             for (DerelictSecurityDirector.Walker w : director.walkers()) {
-                if (w.frame() != DerelictWalkerFrame.HALL || !director.hallBound(w.squadId())) continue;
-                if (!todayShot) {
-                    // Option c, and the door option a would tear: a hall frame kept in its hall, as today.
-                    todayShot = true;
-                    add(out, "ram/c-today.png", look(context, sim, w.postX() + 0.5f, w.postY() + 0.5f, CLOSE, true,
-                            "ram-today"));
+                if (w.frame() != DerelictWalkerFrame.HALL) continue;
+                log("ram: seed %d, hall frame %d at (%d, %d), hall-bound %s", seed0 + k, w.squadId(), w.postX(),
+                        w.postY(), director.hallBound(w.squadId()));
+                if (!director.hallBound(w.squadId())) continue;
+                if (!doorShot) {
+                    // The door option (a) tears: the narrowest way out of the frame's hall.
+                    doorShot = true;
                     RuinsDelve.LeafDoor near = DerelictSecurity.ramDoorOf(sim.getRuinsWorks().delve(), w.postX(),
                             w.postY(), new int[] {w.postX(), w.postY()});
                     if (near != null) {
@@ -298,6 +286,8 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                 log("ram: seed %d, lance %d, %s door at (%d, %d), %d cells", seed0 + k, w.squadId(), door.stance(),
                         door.span().left(), door.span().bottom(), door.length());
                 float x = door.span().centreX() + 0.5f, y = door.span().centreY() + 0.5f;
+                log("ram: way to the egress fits the frame before: %s", DerelictSecurity.reaches(sim.getGrid(),
+                        DerelictWalkerFrame.HALL.chassis.radius, new int[] {w.postX(), w.postY()}, director.egress()));
                 add(out, "ram/a-before.png", look(context, sim, x, y, CLOSE, true, "ram-before"));
                 director.network().stir(w.zoneId(), sim.getSimTickIndex());
                 boolean mid = false;
@@ -311,6 +301,10 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                         add(out, "ram/a-mid.png", look(context, sim, x, y, CLOSE, true, "ram-mid"));
                     }
                 }
+                int[] post = {w.postX(), w.postY()};
+                float radius = DerelictWalkerFrame.HALL.chassis.radius;
+                log("ram: way to the egress fits the frame after the door gives: %s",
+                        DerelictSecurity.reaches(sim.getGrid(), radius, post, director.egress()));
                 log("ram: forced %d by t=%d, stance %s, still bound %s", director.forcedDoors().size(),
                         sim.getSimTickIndex(), sim.getRuinsWorks().doorStates().stanceOf(door),
                         director.hallBound(w.squadId()));
@@ -318,6 +312,23 @@ public final class DerelictWatchPicksSuite implements SnapshotSuite {
                 long lead = sim.squadMemberAt(w.squadId(), 0);
                 log("ram: frame at (%.1f, %.1f) after", sim.world().x(lead), sim.world().y(lead));
                 add(out, "ram/a-after.png", look(context, sim, x, y, CLOSE, true, "ram-after"));
+                // Out through the forced way: the vault breached, so the frame makes for the egress; followed until it
+                // is well past the door.
+                director.network().breachVault(sim.getSimTickIndex());
+                float past = 0f;
+                for (int t = 0; t < 3600 && past < 8f; t++) {
+                    if (!step(sim)) break;
+                    lead = sim.squadMemberAt(w.squadId(), 0);
+                    past = (float) Math.hypot(sim.world().x(lead) - x, sim.world().y(lead) - y);
+                    float home = (float) Math.hypot(w.postX() - x, w.postY() - y);
+                    float fromPost = (float) Math.hypot(sim.world().x(lead) - w.postX(), sim.world().y(lead) - w.postY());
+                    if (fromPost < home) past = 0f;
+                }
+                float far = (float) Math.hypot(sim.world().x(lead) - w.postX(), sim.world().y(lead) - w.postY());
+                log("ram: frame at (%.1f, %.1f), %.1f cells from its post, at t=%d", sim.world().x(lead),
+                        sim.world().y(lead), far, sim.getSimTickIndex());
+                add(out, "ram/a-out.png", look(context, sim, sim.world().x(lead), sim.world().y(lead), CLOSE, true,
+                        "ram-out"));
                 rammed = true;
                 break;
             }

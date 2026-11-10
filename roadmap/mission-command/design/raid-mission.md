@@ -119,6 +119,12 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
 
 - **Defenders** are the tier's share of the market's garrison, posted at their
   stations and in a held mobile pool (`raid-command.md`).
+- **The works' own guard.** On a site, a squad stands at each of the works'
+  guard posts from the first tick, out of the garrison's share and never the
+  mobile pool, so the machines are held when the raid lands and the garrison
+  beside the works answers the alarm (owner pick `raid-works-guard` a;
+  `RaidWorksGuard`). Riflemen hold the posts while any are left; a mech does
+  not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
   alarm. Each wave is at most three mobile squads; a bigger garrison has more
   waves, not bigger ones, so a company that lingers meets more of them.
