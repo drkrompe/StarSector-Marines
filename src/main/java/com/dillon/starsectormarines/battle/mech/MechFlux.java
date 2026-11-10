@@ -1,7 +1,16 @@
 package com.dillon.starsectormarines.battle.mech;
 
-/** Battle-owned shared flux reservoir. Control handback never resets it. */
-public final class MechFlux {
+import com.dillon.starsectormarines.battle.turret.FluxPool;
+
+/**
+ * Battle-owned shared flux reservoir. Control handback never resets it.
+ *
+ * <p>A mech with a shield emitter feeds its shield from this same pool ({@code FluxShield}'s pooled shield): every
+ * round the shield stops and every second it is held up {@link #charge charges} it, so blocking spends the guns'
+ * headroom and firing spends the shield's. A charge is never refused; one that fills the pool
+ * {@link #overload overloads} the mech: shield down and every gun silent while the pool vents to empty.
+ */
+public final class MechFlux implements FluxPool {
     public static final float CAPACITY = 100f;
     public static final float DISSIPATION_PER_SECOND = 6f;
     public static final float WARNING = 75f;
@@ -10,6 +19,8 @@ public final class MechFlux {
     private float flux;
     private boolean venting;
     private boolean aiDissipating;
+    private float overloadSeconds;
+    private float overloadLeft;
 
     public MechFlux() { }
 
@@ -30,14 +41,23 @@ public final class MechFlux {
         this.dissipation = dissipationPerSecond;
     }
 
+    @Override
     public float capacity() { return capacity; }
     public float dissipationPerSecond() { return dissipation; }
+    @Override
     public float value() { return flux; }
+    @Override
     public boolean venting() { return venting; }
     public boolean aiDissipating() { return aiDissipating; }
+    /** Whether the pool is overloaded: every gun on it silent, and its shield down, until it has vented. */
+    @Override
+    public boolean overloaded() { return overloadLeft > 0f; }
+    /** Share of the overload still to run, {@code [0, 1]}; zero when not overloaded. */
+    @Override
+    public float overloadShare() { return overloadLeft > 0f ? overloadLeft / overloadSeconds : 0f; }
 
     public boolean permits(float cost, boolean autonomous) {
-        return Float.isFinite(cost) && cost >= 0f && !venting
+        return Float.isFinite(cost) && cost >= 0f && !venting && overloadLeft <= 0f
                 && (!autonomous || (!aiDissipating && flux + cost <= scaled(90f))) && flux + cost <= capacity;
     }
 
@@ -48,6 +68,7 @@ public final class MechFlux {
      */
     public float secondsUntilPermits(float cost, boolean autonomous) {
         if (permits(cost, autonomous)) return 0f;
+        if (overloadLeft > 0f) return overloadLeft + secondsAfterOverload(cost, autonomous);
         float level = capacity - cost;
         if (autonomous) level = Math.min(level, scaled(90f) - cost);
         if (venting) level = Math.min(level, scaled(55f));
@@ -64,8 +85,44 @@ public final class MechFlux {
         if (flux >= scaled(95f)) venting = true;
     }
 
+    /**
+     * Flux from outside the guns, a blocked round or a held shield: never refused, unlike a trigger's
+     * {@link #commit}, and it never starts a vent, so a shield stays up until the pool is full. Past the
+     * {@link #WARNING} mark the AI's guns hold fire for the shield. True when it filled the pool, which the shield
+     * answers by {@link #overload overloading} it; nothing is charged while overloaded.
+     */
+    @Override
+    public boolean charge(float amount) {
+        if (!Float.isFinite(amount) || amount < 0f) throw new IllegalArgumentException("Invalid flux charge");
+        if (overloadLeft > 0f) return false;
+        flux = Math.min(capacity, flux + amount);
+        if (flux >= scaled(WARNING)) aiDissipating = true;
+        return flux >= capacity;
+    }
+
+    /**
+     * Overloads the pool for {@code seconds}: every gun on it silent, its shield down, and the pool venting from full
+     * to empty over that time; then it is clear, with no vent or AI hold left to run.
+     */
+    @Override
+    public void overload(float seconds) {
+        if (!(seconds > 0f) || !Float.isFinite(seconds)) throw new IllegalArgumentException("Invalid overload");
+        overloadSeconds = seconds;
+        overloadLeft = seconds;
+        flux = capacity;
+        venting = false;
+        aiDissipating = true;
+    }
+
     public void advance(float dt) {
         if (!Float.isFinite(dt) || dt < 0f) throw new IllegalArgumentException("Invalid dissipation step");
+        if (overloadLeft > 0f) {
+            overloadLeft = Math.max(0f, overloadLeft - dt);
+            flux = capacity * overloadLeft / overloadSeconds;
+            if (overloadLeft > 0f) return;
+            aiDissipating = false;
+            return;
+        }
         flux = Math.max(0f, flux - dissipation * dt);
         if (flux <= scaled(55f)) venting = false;
         if (flux <= scaled(40f)) aiDissipating = false;
@@ -80,6 +137,12 @@ public final class MechFlux {
         this.flux = Math.max(0f, Math.min(capacity, value));
         this.venting = venting;
         this.aiDissipating = venting || flux >= scaled(WARNING);
+    }
+
+    /** What {@link #secondsUntilPermits} would answer for {@code cost} on the empty, clear pool an overload leaves. */
+    private float secondsAfterOverload(float cost, boolean autonomous) {
+        float limit = autonomous ? Math.min(capacity, scaled(90f)) : capacity;
+        return cost <= limit ? 0f : Float.POSITIVE_INFINITY;
     }
 
     /** A stock-100 threshold expressed as the same fraction of this reservoir. */

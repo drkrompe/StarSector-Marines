@@ -47,6 +47,14 @@ Every track reads on one scale the player learns once:
 | **Restored** | neutral: the numbers every other company and every evidence harness uses | no glyph (healthy rooms stay quiet) |
 | **Improved I / II** | past neutral; a named bonus | upgrade pip(s) on the room |
 
+**The tree reads as plain upgrade chains** (owner, 2026-11-09). On screen the bands
+are Tier 0–3. A track is named for what it scales (Mech Lab capacity, Morale
+recovery, Infantry aim), and a tier for what the player gets (2 mechs, +15%
+recovery). The room and its hardware (gantries, galley, bunkrooms) belong in
+the track's description, never in its name. The buttons say review and install
+an upgrade, not repair. Repairing a damaged room on the deck keeps its repair
+wording.
+
 Neutral is the ship's calibration point. Mission balance, `commanderEvidence`,
 scenes and matchups all run at neutral, so a Deficit or an upgrade is a known
 offset from tuned ground, not a new tuning surface. Only the campaign company
