@@ -94,6 +94,25 @@ public enum DerelictWalkerClass {
     }
 
     /**
+     * The span a rammed door stands across once torn wide enough for the hall frame: its own span and the jamb cells
+     * {@link #tornCells} opens along its line; null for a door already wide enough, which gives way at its own width.
+     */
+    public static RuinsDelve.Area tornSpan(RuinsDelve.LeafDoor door) {
+        RuinsDelve.Area s = door.span();
+        int left = s.left(), right = s.right(), bottom = s.bottom(), top = s.top();
+        boolean widened = false;
+        for (int[] c : tornCells(door)) {
+            if (s.contains(c[0], c[1])) continue;
+            widened = true;
+            left = Math.min(left, c[0]);
+            right = Math.max(right, c[0]);
+            bottom = Math.min(bottom, c[1]);
+            top = Math.max(top, c[1]);
+        }
+        return widened ? new RuinsDelve.Area(left, bottom, right, top) : null;
+    }
+
+    /**
      * A hall frame against a dead door: it must stand pressed against it {@link #FORCE_SECONDS} at a stretch, and then the
      * door is forced for good. Backing off starts the count again.
      */

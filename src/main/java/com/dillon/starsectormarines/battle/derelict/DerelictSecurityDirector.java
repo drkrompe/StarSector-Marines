@@ -870,7 +870,11 @@ public final class DerelictSecurityDirector {
             for (int[] c : DerelictWalkerClass.tornCells(door)) sim.mapEditor().openPassage(c[0], c[1], likeX, likeY);
             forced.add(door);
             RuinsDoorStates doors = doorStates(sim);
-            if (doors != null && doors.stanceOf(door) != null) doors.force(door);
+            if (doors != null && doors.stanceOf(door) != null) {
+                RuinsDelve.Area widened = DerelictWalkerClass.tornSpan(door);
+                if (widened != null) doors.tear(door, widened);
+                else doors.force(door);
+            }
             hallBound.remove(walker.squadId());
             return order;
         }

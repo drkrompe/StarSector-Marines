@@ -9,6 +9,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DerelictWalkerClassTest {
@@ -66,5 +67,15 @@ class DerelictWalkerClassTest {
         assertEquals(2, opened.size(), "three cells already fit: only its leaves' cells open");
         assertArrayEquals(new int[] {3, 0}, opened.get(0));
         assertArrayEquals(new int[] {3, 2}, opened.get(1));
+    }
+
+    @Test
+    void aDoorTornWiderStandsAcrossItsOpenedJambsAndADoorWideEnoughIsNotWidened() {
+        RuinsDelve.LeafDoor narrow = new RuinsDelve.LeafDoor(new RuinsDelve.Area(10, 5, 11, 5), true, false,
+                RuinsDelve.DoorStance.ANSWERS);
+        assertEquals(new RuinsDelve.Area(9, 5, 12, 5), DerelictWalkerClass.tornSpan(narrow));
+        RuinsDelve.LeafDoor dead = new RuinsDelve.LeafDoor(new RuinsDelve.Area(3, 0, 3, 2), false, false,
+                RuinsDelve.DoorStance.DEAD);
+        assertNull(DerelictWalkerClass.tornSpan(dead));
     }
 }
