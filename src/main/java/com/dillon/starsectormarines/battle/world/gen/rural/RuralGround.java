@@ -165,7 +165,7 @@ public final class RuralGround {
 
     /** Ground a field may be laid on: the planet's own surface, not anything made or paved. */
     private static final Set<GroundKind> NATURAL = EnumSet.of(GroundKind.GRASS, GroundKind.DIRT,
-            GroundKind.STONE, GroundKind.SAND, GroundKind.SNOW, GroundKind.RUBBLE);
+            GroundKind.STONE, GroundKind.SAND, GroundKind.SNOW, GroundKind.HARDPAN, GroundKind.RUBBLE);
 
     private static boolean nearField(FieldOfFire field, long clear, int x, int y) {
         if (field == null) return false;

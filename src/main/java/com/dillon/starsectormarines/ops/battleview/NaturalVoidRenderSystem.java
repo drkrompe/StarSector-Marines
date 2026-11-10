@@ -75,8 +75,9 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private boolean ice;
     /** A dry drop's colours (a canyon, a dry gorge), or null for a drop with water, lava or ice in it. */
     private DryVoidLook.Palette dry;
-    /** A dry drop's floor, drawn into this drop's order. */
+    /** A dry drop's floor, and a toxic gorge's sludge, drawn into this drop's order. */
     private final DryVoidFloor dryFloor;
+    private final ToxicVoidFloor toxicFloor;
     private SunLight sun;
 
     private CellTopology builtFor;
@@ -107,6 +108,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.molten = new MoltenVoidRenderSystem(this, sprites);
         this.glacial = new GlacialVoidRenderSystem(this, sprites);
         this.dryFloor = new DryVoidFloor(this, sprites);
+        this.toxicFloor = new ToxicVoidFloor(this, sprites);
     }
 
     /** A lava rift's drawing over the ground beside it, which the renderer lists after the {@link #fray()}. */
@@ -441,6 +443,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         }
         if (floor && ice) {
             glacial.drawFloor(band, time);
+            return;
+        }
+        if (floor && dry == DryVoidLook.TOXIC) {
+            toxicFloor.draw(dry, band, time);
             return;
         }
         if (floor && dry != null) {

@@ -55,7 +55,7 @@ public final class ForestBrush {
         }
         // The entire canopy is protected, not just its trunk. Refusal is atomic.
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (blocked[y * w + x]) {
-            boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW -> true; default -> false; };
+            boolean natural = switch (topology.getGroundKind(x, y)) { case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true; default -> false; };
             boolean summit = allowSummits && isGrassySummit(grid, topology, x, y);
             if (!natural || (!grid.isWalkable(x, y) && !summit) || grid.isDoorway(x, y) || topology.isWall(x, y)
                     || (topology.isFixture(x, y) && !summit) || topology.getBuildingId(x, y) != 0 || topology.getSurface(x, y) != 0

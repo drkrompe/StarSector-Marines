@@ -25,6 +25,11 @@
       { "seed": 2, "note": "two mothers" },
       { "seed": 3, "note": "two mothers" },
       { "seed": 5, "note": "two mothers" }
+    ],
+    "IRRADIATED": [
+      { "seed": 2, "note": "two mothers" },
+      { "seed": 3, "note": "two mothers" },
+      { "seed": 5, "note": "two mothers" }
     ]
   }
 }
