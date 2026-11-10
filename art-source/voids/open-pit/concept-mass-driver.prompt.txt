@@ -1,0 +1,10 @@
+Concept art for a top-down tactical science-fiction game: one finished concept frame, 16:9 landscape.
+
+Image 1 is the layout authority: the game's own overhead view of an open-cut ore pit on a desert world, terraced in six benches down to a floor with a murky sump, a haul road spiralling down the benches, a dark conveyor leaving to the upper right toward the processing works off-frame. Keep the camera (straight down, the same framing), the pit's outline, its benches and the desert ground around it. Repaint everything at the same painted, gritty game-sprite finish. You may change the conveyor and add machines as described below; nothing else moves.
+Images 2 and 3 are the setting's own illustrations of a mine and an industrial megafacility: material and design language only (Domain-era spacefaring industry: heavy, worn, ribbed and plated hulls, lattice gantries, cable rigs, thick pipework, rust, grime, sodium-orange work lights, hazard striping). Not layout, not camera.
+
+This is a starfaring colony's planetary megaproject, not a modern Earth quarry: no recognisable modern trucks, excavators or bulldozers. Machines are the size of buildings, read clearly from far above, and look old, repaired and hard-used, never clean or glossy. No people, no text, no labels, no UI, no border.
+
+The ore's path must make plausible sense and be easy to follow by eye: from the face where the ore is cut, through the machine that takes it, up and out of the pit, toward the works at the upper right edge of the frame.
+
+Option C, "Mass driver": on the pit floor a cutting-head crawler feeds an in-pit crusher and capsule loader. From it an electromagnetic mass-driver rail, a long straight ribbed launch track with coil rings every few metres, climbs the benches on its own trestles out of the pit and runs to the works at the upper right, throwing sealed ore capsules (a few glowing streaks along the rail). Hovering ore haulers with lift fans ferry ore from the upper benches to the loader.

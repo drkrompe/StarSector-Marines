@@ -799,12 +799,15 @@ Laws):
      marks nothing.
    - **The floor** is wet ore rubble with a still sump where it lies farthest
      from the walls.
-   - **The spine.** `NaturalVoid.belts`: the covered conveyor gallery that
-     carries the ore from the crushing station on the floor up the benches on
-     its trestles to a transfer tower on the rim. It leaves the floor where the
+   - **The mass driver.** `NaturalVoid.belts`: the electromagnetic rail that
+     fires sealed ore capsules from the loader on the floor up the benches on
+     its trestles to the catch station on the rim, where they are stopped and
+     opened and the ore line takes the ore on. It leaves the floor where the
      floor lies nearest the works. Drawn after the ground tiles and before every
-     unit: the gallery's bays end to end at each one's depth, the trestles'
-     cross-beams and their shadow. Drawn only.
+     unit: the rail's bays end to end at each one's depth, each with its coil
+     ring, the trestles' cross-beams and their shadow, and capsules running up
+     it (`PitMachines.CAPSULE_EVERY`, `CAPSULE_SPEED`) with the glow of their
+     hot noses. Drawn only.
    - **The ore line** (owner, 2026-11-09: the conveyor "another layer above
      and also built onto the grid system", its legs giving cover). From the
      first ground cell past the tower, `OreLine` finds a course on the grid to
@@ -842,20 +845,22 @@ Laws):
      open ground is taken into the pit, and any other stranding refuses the
      pit and the map keeps none. No bridge is ever needed.
    - **Machines** (owner, 2026-11-09: a spacefaring megaproject, not a
-     modern quarry; the conveyor must make plausible sense, `raid-mine-megaworks`
-     option a, crawler and spine). `PitMachines` lays the ore's path: a cutting
-     crawler the size of a building works a dry face on the floor, its back to
-     the crushing station at the spine's foot so its boom swings the ore back
-     into the station's hopper. A hopper beside the spine on a bench takes a
-     loaded ore crawler's tip, where the upper benches' ore joins the spine. Ore
-     crawlers climb the haul road loaded and come down it empty, and a drilling
-     gantry readies the next blast on the first bench with room. Each machine is
-     drawn at its depth's scale, after its bench and before the face above it.
-     At the battle's vehicle scale, an ore crawler is three to four cells long
-     and the haul road (`PitVoidLook.RAMP_CELLS`) is as wide. One ImageGen
-     sheet, `pit-megaworks.png`, filled in over a geometry guide
-     (`art-source/voids/open-pit/megaworks-guide.py`) after the approved
-     concept. Scenery only.
+     modern quarry; the conveyor must make plausible sense. Owner pick
+     `raid-mine-megaworks` option c, the mass driver, 2026-11-10).
+     `PitMachines` lays the ore's path: a cutting crawler the size of a
+     building works a dry face on the floor, its back to the crusher and
+     capsule loader at the driver's foot so its boom swings the ore back into
+     the loader's hopper. Hover haulers on four lift fans bring the upper
+     benches' ore: one comes in over the floor to tip into the loader, one
+     lifts off a bench loaded, turned into the pit, and one flies back empty
+     over another bench. They fly over the faces, so they are drawn after
+     every band, their shadows on the ground beneath (thrown at most
+     `HOVER_SHADOW_REACH`). A drilling gantry readies the next blast on the
+     first bench with room. The haul road is left to the ground's own traffic.
+     The rest is drawn at its depth's scale, after its bench and before the
+     face above it. One ImageGen sheet, `pit-massdriver.png`, filled in over a
+     geometry guide (`art-source/voids/open-pit/massdriver-guide.py`) after the
+     approved concept. Scenery only.
    - **Battle.** Unchanged: an open pit is a drop like every other style.
    Left: spoil heaps and parked machines on the rim; more than one conveyor
    (to the stores, or from the shafts); dust over the working bench; the
