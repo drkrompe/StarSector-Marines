@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ruins;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -1472,7 +1473,8 @@ public final class RuinsDelveStage implements GenStage {
                     }
                 }
                 over(registry, "doodad.ruins-mould-grid", cx - 2, hall.bottom() + 2);
-                lay(registry, "doodad.ruins-grate-catwalk", cx + 1, crossing);
+                // Each crossing wears the foundry drop's deck: the hall's floor under a grate catwalk.
+                lay(registry, NaturalVoidZoning.FOUNDRY.deck().doodad(), cx + 1, crossing);
                 // The bank: a crucible over its channel's head, the last of the bank tipped on some sites.
                 boolean tipped = k == n - 1 && hash(cx, bank, 0xF0D) % 3 == 0;
                 if (piece(registry, tipped ? "doodad.ruins-crucible-tipped" : "doodad.ruins-crucible", cx, bank, 3, 3,

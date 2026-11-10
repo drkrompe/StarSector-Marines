@@ -62,8 +62,10 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     static final float FLOOR_SHADE = .32f;
 
     private final BattleSprites sprites;
-    /** This instance draws the map's rise rather than its drop. */
+    /** This instance draws the map's rise rather than a drop. */
     private final boolean rising;
+    /** Which of the map's drops this instance draws ({@code CellTopology.naturalVoids}); 0 for a rise. */
+    private final int slot;
     /** A lava rift's floor, light and air, drawn into this drop's order and over the ground after it. */
     private final MoltenVoidRenderSystem molten;
     /** A glacial crevasse's floor, mist and blown snow, drawn into this drop's order and over the ground after it. */
@@ -112,12 +114,22 @@ final class NaturalVoidRenderSystem implements RenderSystem {
     private int polysUsed;
 
     NaturalVoidRenderSystem(BattleSprites sprites) {
-        this(sprites, false);
+        this(sprites, false, 0);
     }
 
     NaturalVoidRenderSystem(BattleSprites sprites, boolean rising) {
+        this(sprites, rising, 0);
+    }
+
+    /** The instance drawing the map's drop at {@code slot}, one of several a map may carry, each over its own cells. */
+    static NaturalVoidRenderSystem drop(BattleSprites sprites, int slot) {
+        return new NaturalVoidRenderSystem(sprites, false, slot);
+    }
+
+    private NaturalVoidRenderSystem(BattleSprites sprites, boolean rising, int slot) {
         this.sprites = sprites;
         this.rising = rising;
+        this.slot = slot;
         this.molten = new MoltenVoidRenderSystem(this, sprites);
         this.glacial = new GlacialVoidRenderSystem(this, sprites);
         this.dryFloor = new DryVoidFloor(this, sprites);
@@ -136,7 +148,17 @@ final class NaturalVoidRenderSystem implements RenderSystem {
 
     /** The map's drop or rise, whichever this instance draws, or null. */
     private Object look(CellTopology topology) {
-        return rising ? topology.naturalRise() : topology.naturalVoid();
+        return rising ? topology.naturalRise() : topology.naturalVoid(slot);
+    }
+
+    /** The drop this instance draws, or null for a rise or a map without one in its slot. */
+    NaturalVoid naturalVoid(CellTopology topology) {
+        return rising ? null : topology.naturalVoid(slot);
+    }
+
+    /** Whether a cell is one of this drop's void cells, rather than ground, a rise's or another drop's. */
+    private boolean ownCell(CellTopology topology, int x, int y) {
+        return topology.getGroundKind(x, y) == GroundKind.VOID && topology.dropAt(x, y) == slot;
     }
 
     void useSun(SunLight sun) {
@@ -237,6 +259,8 @@ final class NaturalVoidRenderSystem implements RenderSystem {
                 int mx = Math.max(0, Math.min(w - 1, x - MARGIN)), my = Math.max(0, Math.min(h - 1, y - MARGIN));
                 boolean cell = topology.getGroundKind(mx, my) == GroundKind.VOID;
                 if (cell && (rising || both)) cell = rising != grid.hasTag(mx, my, CellTag.SEE_THROUGH);
+                // A map with several drops gives each its own cells: another drop's are ground to this one.
+                if (cell && !rising) cell = topology.dropAt(mx, my) == slot;
                 voidCell[y * fw + x] = cell;
             }
         }
@@ -341,13 +365,13 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         int w = topology.getWidth(), h = topology.getHeight();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (topology.getGroundKind(x, y) == GroundKind.VOID) continue;
+                if (ownCell(topology, x, y)) continue;
                 float fx = x + MARGIN + .5f, fy = y + MARGIN + .5f;
                 if (!inView(fx, fy, 1f, margin)) continue;
                 for (int side = 0; side < 4; side++) {
                     int dx = side == 1 ? 1 : side == 3 ? -1 : 0, dy = side == 0 ? -1 : side == 2 ? 1 : 0;
                     int nx = x + dx, ny = y + dy;
-                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || topology.getGroundKind(nx, ny) != GroundKind.VOID) {
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || !ownCell(topology, nx, ny)) {
                         continue;
                     }
                     // The strip lies inside the floor cell against the shared edge, turned so its bottom faces the

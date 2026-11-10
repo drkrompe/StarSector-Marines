@@ -58,9 +58,9 @@ is its flux per blocked point: high-tech 0.6 to 0.75, midline 1.0.
 
 Armour and shields counter different weapons. Plate turns low-penetration fire (lasers, chainguns, light guns) and
 loses to high penetration. A shield is blind to penetration: it pays for every point alike, so it turns the big
-armour-piercing hits plate cannot and loses to volume. A missile salvo's contact damage would fill a stock pool in one
-salvo if the shield is charged for it (five SRM contacts at 66 is about 200 flux at 0.6, against a stock pool of 100),
-which would make missiles high-tech's hard counter; measure what a shield is charged for a contact hit before tuning
+armour-piercing hits plate cannot and loses to volume. Missiles are the burst that breaks it: a salvo's contact
+damage can fill a pool at once (five SRM contacts at 66 is about 250 flux on the crawler's shield), so racks are
+high-tech's counter, and point defence is theirs. Measure what a shield is charged for a contact hit before tuning
 on it.
 
 ## Decided (owner, 2026-11-10)
@@ -77,8 +77,10 @@ on it.
 - **A high-tech shield replaces plate.** The heavy skimmer's plate is 350 at rating 12; the crawler's shield blocks
   at 0.75 flux a point, so its 150 pool blocks 200.
 
+- **Missiles may break a shield in one salvo** (owner: "this might be fine"). Missiles are the burst weapon, and
+  point defence is their weakness where a laser has none, so a rack overloading a shield is their answer to high
+  tech, not a fault to cap.
+
 ## Open
 
-- Whether a missile's contact damage should overload a shield in one salvo; measure what a shield is charged for a
-  contact hit first.
 - The midline row's numbers, when its lines are designed.

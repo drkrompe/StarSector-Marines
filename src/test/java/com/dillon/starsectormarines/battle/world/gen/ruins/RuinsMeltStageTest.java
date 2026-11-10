@@ -38,12 +38,16 @@ class RuinsMeltStageTest {
     }
 
     @Test
-    void aMapThatAlreadyDrawsADropKeepsItAndCutsNoMelt() {
+    void aMapThatAlreadyDrawsADropKeepsItAndTheMeltOwnsOnlyItsOwnCells() {
         GenContext ctx = context();
         NaturalVoid rift = NaturalVoidZoning.LAVA_RIFT.look(3);
-        ctx.topology.setNaturalVoid(rift);
+        boolean[] riftCells = new boolean[12];
+        riftCells[0] = true;
+        ctx.topology.addNaturalVoid(rift, riftCells);
         new RuinsMeltStage().run(ctx);
-        assertSame(rift, ctx.topology.naturalVoid());
-        assertTrue(ctx.grid.isWalkable(1, 1));
+        assertSame(rift, ctx.topology.naturalVoid(0));
+        assertEquals(NaturalVoid.Style.FOUNDRY, ctx.topology.naturalVoid(1).style());
+        assertEquals(1, ctx.topology.dropAt(1, 1));
+        assertEquals(0, ctx.topology.dropAt(0, 0), "the rift keeps its own cells");
     }
 }
