@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.elevation;
 
+import java.util.Arrays;
 import java.util.function.IntPredicate;
 
 /**
@@ -8,11 +9,13 @@ import java.util.function.IntPredicate;
  * palette ({@code NaturalVoidZoning}). GL-free; the landscape pass asks it once and stamps what it returns.
  *
  * <p>It runs from one edge of the map to the opposite one, wandering, its width swelling and narrowing. It takes only open ground
- * ({@code free}): the caller's reservations keep roads, buildings, doorways, fixtures, the landing and the routes
- * between required places out of it, so each of those that crosses its line is left standing across it as a
- * bridge. It is opened by {@link #OPEN_RADIUS} so no sliver of drop is left; then every {@link #CROSS_EVERY} cells
- * along its line a crossing is left standing, a strip of the ground it runs through, which the landscape decks as a
- * footbridge; then pieces smaller than {@link #MIN_PIECE} are dropped.
+ * ({@code free}): the caller's reservations keep roads, buildings, doorways, fixtures and the landing out of it, so
+ * each of those that crosses its line is left standing across it as a bridge. A route between required places is
+ * not kept out: where its line ({@code route}) crosses the drop's a crossing is left, so the river runs on either
+ * side of the route rather than stopping for the whole of its reserved width. It is opened by {@link #OPEN_RADIUS}
+ * so no sliver of drop is left; then every {@link #CROSS_EVERY} cells along its line and wherever a route crosses,
+ * a crossing is left standing, a strip of the ground it runs through, which the landscape decks as a footbridge;
+ * then pieces smaller than {@link #MIN_PIECE} are dropped.
  *
  * <p>Then it is proved: every stretch of walkable ground connected before stays connected after, through the
  * crossings. A small pocket of open ground the drop would strand ({@link #MAX_POCKET} cells or fewer) is taken into
@@ -31,8 +34,11 @@ public final class NaturalChasm {
     static final int MIN_PIECE = 60, MIN_CELLS = 300;
     /** The largest pocket of open ground the drop may swallow rather than strand. */
     static final int MAX_POCKET = 40;
-    /** How far its line wanders either side, as a share of the side it crosses. */
+    /** How far its line wanders either side, as a share of the side it crosses, and at most, in cells. */
     static final float WANDER = .09f;
+    public static final int MAX_WANDER = 14;
+    /** The farthest any cut of it reaches off its line: its wander, its widest swell, and a crossing's strip past it. */
+    public static final int REACH = MAX_WANDER + (int) Math.ceil(HALF_WIDTH + SWELL + 1.5f);
 
     /** Cells along its line a deck looks for the drop on either side of it. */
     static final int DECK_REACH = 6;
@@ -56,9 +62,18 @@ public final class NaturalChasm {
      */
     public static Cut plan(int w, int h, boolean along, float across, IntPredicate free, IntPredicate walkable,
                            int seed) {
+        return plan(w, h, along, across, free, walkable, i -> false, seed);
+    }
+
+    /**
+     * As above, with a crossing left wherever a route's line ({@code route}: the cells a route between required
+     * places runs along) crosses the drop's, the route's other ground left to the drop when {@code free}.
+     */
+    public static Cut plan(int w, int h, boolean along, float across, IntPredicate free, IntPredicate walkable,
+                           IntPredicate route, int seed) {
         int[] before = OpenPit.label(w, h, walkable);
         boolean[] crossings = new boolean[w * h];
-        boolean[] cut = line(w, h, free, walkable, along, across, seed, crossings);
+        boolean[] cut = line(w, h, free, walkable, route, along, across, seed, crossings);
         if (cut == null) return null;
         cut = proved(w, h, cut, before, free, walkable);
         return cut == null ? null : new Cut(cut, decks(w, h, cut, crossings, along, free, walkable));
@@ -92,19 +107,48 @@ public final class NaturalChasm {
      * @param along     whether it runs west to east, else north to south
      * @param crossings filled with the crossings' strips across its band
      */
-    static boolean[] line(int w, int h, IntPredicate free, IntPredicate walkable, boolean along, float across,
-                          int seed, boolean[] crossings) {
+    static boolean[] line(int w, int h, IntPredicate free, IntPredicate walkable, IntPredicate route, boolean along,
+                          float across, int seed, boolean[] crossings) {
         int length = along ? w : h, span = along ? h : w;
         float phase = (seed & 0xff) / 40f, phase2 = ((seed >> 8) & 0xff) / 40f;
         int crossOffset = Math.floorMod(seed >> 4, CROSS_EVERY);
-        float mid = across * span, wander = WANDER * span;
+        float mid = across * span, wander = Math.min(WANDER * span, MAX_WANDER);
+        float[] centres = new float[length], halves = new float[length];
+        // Where a route's line meets the drop's: a crossing's width centred on it.
+        boolean[] routed = new boolean[length];
+        for (int t = 0; t < length; t++) {
+            centres[t] = mid + wander * ((float) Math.sin(t / 29f + phase) * .7f
+                    + (float) Math.sin(t / 11f + phase2) * .3f);
+            halves[t] = HALF_WIDTH + SWELL * (.5f + .5f * (float) Math.sin(t / 17f + phase2 * 2f));
+            int lo = (int) Math.floor(centres[t] - halves[t]), hi = (int) Math.ceil(centres[t] + halves[t]);
+            boolean meets = false;
+            for (int s = Math.max(0, lo); s <= Math.min(span - 1, hi) && !meets; s++)
+                meets = route.test(along ? s * w + t : t * w + s);
+            if (!meets) continue;
+            for (int u = t - (CROSS_WIDTH - 1) / 2; u <= t + CROSS_WIDTH / 2; u++)
+                if (u >= 0 && u < length) routed[u] = true;
+        }
+        // A natural crossing gives way to a route's within half the spacing of it, so no sliver of drop is left
+        // between the two.
+        int[] nearestRoute = new int[length];
+        Arrays.fill(nearestRoute, Integer.MAX_VALUE);
+        for (int t = 0, last = Integer.MIN_VALUE / 2; t < length; t++) {
+            if (routed[t]) last = t;
+            nearestRoute[t] = t - last;
+        }
+        for (int t = length - 1, next = Integer.MAX_VALUE / 2; t >= 0; t--) {
+            if (routed[t]) next = t;
+            nearestRoute[t] = Math.min(nearestRoute[t], next - t);
+        }
         boolean[] cut = new boolean[w * h];
         for (int t = 0; t < length; t++) {
             // A crossing: a strip of the country left standing across the drop, decked over.
-            boolean crossing = Math.floorMod(t - crossOffset, CROSS_EVERY) < CROSS_WIDTH;
-            float centre = mid + wander * ((float) Math.sin(t / 29f + phase) * .7f
-                    + (float) Math.sin(t / 11f + phase2) * .3f);
-            float half = HALF_WIDTH + SWELL * (.5f + .5f * (float) Math.sin(t / 17f + phase2 * 2f));
+            int into = Math.floorMod(t - crossOffset, CROSS_EVERY);
+            // Judged at the crossing's middle, so a crossing is left whole or not at all.
+            int middle = Math.max(0, Math.min(length - 1, t - into + CROSS_WIDTH / 2));
+            boolean natural = into < CROSS_WIDTH && nearestRoute[middle] > CROSS_EVERY / 2;
+            boolean crossing = routed[t] || natural;
+            float centre = centres[t], half = halves[t];
             // A crossing's strip reaches past the banks, so its deck runs from ground to ground.
             float reach = crossing ? half + 1.5f : half;
             int lo = (int) Math.floor(centre - reach), hi = (int) Math.ceil(centre + reach);

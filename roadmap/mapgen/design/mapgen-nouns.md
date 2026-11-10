@@ -56,15 +56,17 @@ profile. The seed is part of the contract: identical request inputs and recipe
 composition produce the same map. A stage must not add an RNG draw for a silent
 or absent feature, and unordered iteration must never decide an outcome.
 
-A story map does not take any seed: it plays from a **pool** of vetted seeds,
-each with an optional patch, regenerated every time so generator changes still
-arrive, and checked by `storyMapPools` (`story-map-pools.md`).
+A story map does not take any seed: it **owns one**, with an optional patch,
+laid out on the mission's home palette and regenerated every time so generator
+changes still arrive, checked by `storyMapPools`; a **planet skin** re-dresses
+that one map for the world it is fought on, the layout never moving
+(`story-map-pools.md`).
 
 A mission may instead **own** its map: one layout authored once as a data
 document, its settlements by program and role and its drops by role, which a
 **biome skin** dresses for whatever world the mission is fought on, the layout
-never moving under it (`owned-maps.md`). Relay Nine is the first; the rest is
-parked until every pooled mission plays one vetted seed per biome.
+never moving under it (`owned-maps.md`). Relay Nine is the first; the
+document format is parked, and story missions own a seed instead.
 
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
@@ -863,9 +865,12 @@ Every move is kept only where the network stays in as few pieces as before,
 and no street is moved onto ground growth was kept off (the layout's held
 ground, sealed ground). It draws no random number. What is laid later
 (cantonment avenues and gate roads, gates, layout roads, welds, pad
-approaches) is laid onto the planned streets. It plans Raid sites only for
-now: the pooled story maps keep their grown streets until their pools are
-vetted on it. `-Dbattle.mapgen.streetPlan=false` is the control.
+approaches) is laid onto the planned streets. A road leaving a walled place
+meets them square (`StreetPlan.meet`): straight out of its gate onto the
+centre line of the nearest street across its way, as a tee, or a cross where
+a street leaves the far side on its line, never an offset tee within ten
+cells of another; where none qualifies the place keeps its own road. Inside a
+walled place's claim the streets are the place's own.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
@@ -1321,8 +1326,10 @@ small a motor pool and airfield). Its claim is a square kept whole on the map
 and slid the least it takes off ground a place before it holds (a Raid site's
 works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
-**road in** laid straight from its middle to the town's nearest road
-(`CantonmentRoads`), and no weld between road networks is cut back across it.
+**road in** laid on its middle line, from the patrol lane inside the gate to the
+town's nearest road (`CantonmentRoads`); it ends at the gate, and the streets
+inside are the cantonment's own. No weld between road networks is cut back
+across it.
 The **main gate** is where that road comes in, the widest road in; the avenue
 runs from the gate side's middle, with a forecourt street inside the wall where
 the road enters off that line. A base has more than one way in and out (owner:
@@ -1331,33 +1338,47 @@ four from size 7 (`CantonmentRoads.gates`), and each **further gate** is a
 narrower road from the patrol lane inside the wall, out across the glacis, on
 until it meets the town's road, in the middle of each further side that faces
 one, nearest first. Every gate therefore joins the map's network; a side whose
-road would only leave the map has none. Planned, not built: a further gate opens
-on the patrol lane, which walks but does not drive, so the layout is to keep a
-way three cells wide from each further gate to the nearest street once the
-motor pool plan is picked. The grade does not close gates: it arms
-them (`precincts.md`, Defences are sited by doctrine). Its parts:
+road would only leave the map has none. Inside the wall each further gate's road
+goes on as a lane three cells wide to the nearest street (`Cantonment.gateLanes`),
+so every gate road reaches the avenue (`CantonmentTest`). The grade does not close
+gates: it arms them (`precincts.md`, Defences are sited by doctrine).
 
-- the **motor pool**: vehicle sheds whose door ends open on a paved
-  **hardstand**, joined to the avenue, so every shed has a way out of the gate
-  at least three cells wide that no building stands on (`CantonmentTest`);
-- the **quadrangle**: a column of barracks down each side of the parade ground
-  facing it, the headquarters across its head facing the gate, the messes
-  either hand;
-- the **depot** (magazines, stores, workshops, generator) in rows outside the
-  barracks, and the **flight line**.
+The inside is laid from its logistics outward (the owner's pick `bands`: "where
+do trucks go? Where do they park? Where do they unload?"). Three **bands** run
+across the square from the gate to the back wall, each served by its own
+streets, with the avenue down the middle and a **cross street** between bands;
+every building's door opens on paving (`CantonmentTest`):
+
+- **logistics**, at the gate: the gate row (guard posts on the avenue, the
+  guardroom opening onto the **front lane** behind them); the **motor yard**,
+  vehicle sheds flanking the avenue with their doors on the paved
+  **hardstand** it widens into; to one hand the **depot**, warehouses whose
+  loading doors face an **unloading apron** that runs from the front lane to the
+  cross street; to the other the vehicle **fuel point** and the workshops on a
+  service street (both columns go to one hand when the other is too narrow);
+- **garrison**, in the middle: barracks and messes in lines on the side
+  streets, the **parade ground** split by the avenue, which runs through to the
+  second cross street;
+- **operations**, at the back: the headquarters with the generator beside it
+  facing the gate, the **flight line**, its own fuel point, and the **armoury**,
+  magazines staggered apart down an ammunition lane.
+
+A supply truck's round (`Cantonment.Laid.truckRoute`) enters at the main gate,
+unloads on the apron, fuels at the fuel point, parks on the hardstand and drives
+out; the flight line's round runs from each magazine and its fuel point to the
+field. Both drive only on paving no building stands on. Depth left over goes
+to the yard and the parade ground, a third and two thirds, so the bands fill
+the square rather than leaving the back empty.
 
 Every building stands on a footprint the ground takes whole and steps round any
 ground it cannot take; what cannot be seated in its place takes the nearest free
 spot. The program (`FortressProgram.cantonment`) counts barracks, sheds
-(one, two from size 6), workshops and stores from the
-market's size, and the guardroom, corner towers and magazines from its
-security; the flight line is sized by the garrison (`Cantonment.fieldFor`: a
-pad, a field with its runway from size 6). Only a Raid site's garrison is a cantonment
-(`PrecinctPlan.raidGarrison`); every other garrison is packed as before. The
-motor yard stands at the gate (the owner's pick `raid-garrison`): sheds flank
-the avenue just inside it, their doors on the hardstand it widens into, so a
-vehicle drives out of its shed and straight out of the gate; the flight line
-stands against the back wall.
+(one, two from size 6), workshops, warehouses and fuel points (one, a second
+for the flight line) from the market's size, and the guardroom, corner towers
+and magazines from its security; the flight line is sized by the garrison
+(`Cantonment.fieldFor`: a pad, a field with its runway from size 6). Only a Raid
+site's garrison is a cantonment (`PrecinctPlan.raidGarrison`); every other
+garrison is packed as before.
 
 An authored **compound layout** may fix relationships between groups of buildings
 and their shared outdoor spaces before placement. Its footprint, buildings,
@@ -2123,14 +2144,32 @@ line end feeding 6x3 modules with a gap after every second and a wreck here and
 there, some modules carrying the theme's unit half-built or wrecked on their bed; 6x2 rack rows, mostly stripped; and dock doors along the intake's north
 wall (their levelers are floor) with stock left on the dock floor.
 
-**A forge works has a foundry.** The outer band's first line hall is laid at a
-foundry's size, 34x22 (40x24 at vast), whatever the theme. A dressing marked
-`foundry` fills it with a bank of crucibles on its north wall, a two-cell pour
-channel from each to a casting bed, and a grate crossing over each channel,
-staggered from channel to channel, all clear of doorways and the hall's middle.
-The hall is proved one floor across its crossings before the melt is cut. The
-ground plans the melt (`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after
-finalize as a `FOUNDRY` lava drop (`voids.md`).
+**A forge works has a mega forge hall** (owner pick `ruins-forge-process` b1).
+A dressing marked `foundry` lays its halls before its side rooms, and the outer
+band takes one mega forge hall in place of every line hall: about 40x76 (44x92
+at vast). It is shortened to fit, never below 44 long, and a hall narrower than
+32 is laid as the old foundry instead. The hall is laid out from its process,
+head to the north:
+
+- a great crucible's open bath, with waiting ladles, charge racks and a slag
+  pit;
+- a two-cell pour line down the middle, crossed every twelve rows by grate
+  catwalks;
+- production lines branching off each side every sixteen rows, each a channel
+  to a mould grid over its bed, with a cooling rack beyond;
+- the dispatch end left clear.
+
+The hall is proved one floor before the melt is cut. The ground plans the melt
+(`RuinsKeys.MELT`), and `RuinsMeltStage` cuts it after finalize as a `FOUNDRY`
+lava drop (`voids.md`). Every other theme keeps its line halls, the first laid
+at the old foundry's 34x22.
+
+**Plant hall floors are zoned.** Every plant hall's floor is laid by zone after
+its furniture (`RuinsDelveStage.zoneFloor`), not as one slab:
+
+- deck plate under the work and one cell round it;
+- a painted walkway along the two long walls;
+- worn concrete in the aisles, cracked in patches by coordinate hash.
 
 **Dressing.** The plan may carry a `RuinsDressing`, the props the vault room
 and the interior's chambers wear for the site's vault prize

@@ -1,38 +1,9 @@
 {
-  "version": 2,
+  "version": 3,
   "map": "cordon-road-urban",
-  "biomes": {
-    "VERDANT": [ {"seed": 6, "note": "rear north; redoubt guns 2-2-0-2; corridor 306 cells, 100% on road"} ],
-    "ARID": [ {"seed": 6, "note": "rear north; redoubt guns 2-2-0-2; corridor 306 cells, 100% on road"} ],
-    "ROCK": [ {"seed": 11, "note": "rear north; redoubt guns 2-2-0-2; corridor 263 cells, 100% on road"} ],
-    "FROZEN": [ {"seed": 11, "note": "rear north; redoubt guns 2-2-0-2; corridor 263 cells, 100% on road"} ],
-    "IRRADIATED": [ {"seed": 11, "note": "rear north; redoubt guns 2-2-0-2; corridor 263 cells, 100% on road"} ],
-    "TOXIC": [ {"seed": 11, "note": "rear north; redoubt guns 7-7-7-7"} ]
-  },
-  "candidates": {
-    "VERDANT": [
-      {"seed": 11, "note": "rear north; redoubt guns 2-2-0-2; corridor 263 cells, 100% on road"},
-      {"seed": 1, "note": "rear north; redoubt guns 0-2-0-2; corridor 246 cells, 92% on road"}
-    ],
-    "ARID": [
-      {"seed": 11, "note": "rear north; redoubt guns 2-2-0-2; corridor 263 cells, 100% on road"},
-      {"seed": 1, "note": "rear north; redoubt guns 0-2-0-2; corridor 246 cells, 92% on road"}
-    ],
-    "ROCK": [
-      {"seed": 6, "note": "rear north; redoubt guns 2-1-0-2; corridor 306 cells, 100% on road"},
-      {"seed": 1, "note": "rear north; redoubt guns 0-2-0-2; corridor 246 cells, 92% on road"}
-    ],
-    "FROZEN": [
-      {"seed": 1, "note": "rear north; redoubt guns 0-2-0-2; corridor 246 cells, 92% on road"},
-      {"seed": 9, "note": "rear south; redoubt guns 0-0-2-2; corridor 284 cells, 93% on road"}
-    ],
-    "IRRADIATED": [
-      {"seed": 6, "note": "rear north; redoubt guns 2-1-0-2; corridor 306 cells, 100% on road"},
-      {"seed": 1, "note": "rear north; redoubt guns 0-2-0-2; corridor 246 cells, 92% on road"}
-    ],
-    "TOXIC": [
-      {"seed": 6, "note": "rear north; redoubt guns 9-6-9-9"},
-      {"seed": 1, "note": "rear north; redoubt guns 9-7-7-7"}
-    ]
+  "home": "ARID",
+  "entry": {
+    "seed": 6,
+    "note": "rear north; redoubt guns 2-2-0-2; corridor 306 cells, 100% on road"
   }
 }

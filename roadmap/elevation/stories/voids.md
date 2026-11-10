@@ -571,21 +571,24 @@ Laws):
      so the landscape pass finishes them itself: their walls' hit points and
      tags, and their entries in the town's buildings, numbered on so no
      earlier building's id moves (`BuildingFloodFill.populate`).
-   **Buildings in depth** (experiment; owner, 2026-11-10: "a similar trick
-   for walls to get that partially 3d look ... see how a town looks"). The
-   rise's pinhole camera turned on buildings (`BuildingFaces`, behind
-   `-Dbattle.render.buildingFaces=true`): each building's roof is lifted to
-   its eave, one, two or three storeys by its size (4.5, 8 and 11.5 m,
-   UNTUNED), scaled about the view's centre as a rise's top is, and each wall
-   turned to the camera is a face from its foot to the eave, tinted from the
-   building's own and lit by its side, with a window to each cell on every
-   storey. A wall turned away lies under its own roof. All faces are drawn
-   before all roofs. Roofs are streamed while it is on, each building lifting
-   by its own height, so the resident roof mesh is not used: about 6 ms more
-   at whole-map framing on the stress map, about 0.2 ms at play zoom. A
-   keeper bakes the lift into the resident mesh. Look suite:
-   `createSnapshots -Psnapshot=building-faces-look` (an open verdant town and
-   a frozen crevasse town, flat and stood up, and a pan).
+   **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
+   get that partially 3d look"; kept for every building). The rise's pinhole
+   camera turned on buildings (`BuildingFaces`): each building's roof is
+   lifted to its eave, one, two or three storeys by its floor's size (4.5, 8
+   and 11.5 m, UNTUNED), scaled about the view's centre as a rise's top is,
+   and each wall turned to the camera is a face from its foot to the eave,
+   tinted from the building's own and lit by its side, with a window to each
+   cell on every storey. A wall turned away lies under its own roof. All faces
+   are drawn before all roofs. A face is built on the outline of the roof as
+   drawn (its eaves stop short of each outside cell, `RoofCover.rects`), never
+   on its cells, so its top is the roof's edge at any view; the first pass
+   used the cells and its walls slid against the roofs as the view panned.
+   The resident roof mesh is baked by storey class and each class drawn at its
+   own lift, so the stood-up roofs cost what flat ones did: on
+   `renderEvidence -PrenderMaps=stress` the roof layer is about 0.5 ms at
+   whole-map framing (0.17 flat), and about 0.3 ms on the 280x168 control's
+   compound view full of buildings. Look suite:
+   `createSnapshots -Psnapshot=building-faces-look`.
    Next: each terrace a walkable tier (elevation's terraces,
    `elevation-nouns.md`) with stairs, ramps and lifts between them, enclosed
    walkways crossing the floor, heat and glow from below (lit windows, vents
@@ -680,8 +683,10 @@ Laws):
      (`LavaFlows`, `CellTopology.lavaFlows`): tongues of cooled crust that broke
      from the melt, widening to rounded toes and now and then splitting, hot
      where they leave the melt and cold at the toe. They are walkable ground
-     whose look alone changes (`VolcanicGroundRenderSystem`: the crust image
-     laid dark, its cracks glowing by the heat, the margin rounded), and they
+     whose look alone changes (`LavaFlowShading`, one shader pass: the crust
+     image laid dark, its cracks glowing by the heat, the margin a curve where
+     the flow's blurred cover crosses a half, lobed and frayed by noise, never
+     the cells' steps), and they
      keep the landscape's later features off what they buried. The owner picked
      the river with its older flows (2026-11-10, of the rift, the river, the
      river with its flows and the flows alone): a volcanic world's drop is the
@@ -702,8 +707,10 @@ Laws):
        and access the ridge planner proves, at once when the map has no
        ridges of its own, else with them, its ground held from the hills
        meanwhile. A town too far from the river, or with no room, has none.
-       Left: basalt causeways for the crossings, waiting on a per-drop deck
-       (the ruins forge hall's multi-drop change).
+       Its crossings are causeways of dressed basalt (`Deck.BASALT`), where
+       an outdoor drop elsewhere lays timber.
+       A road across the river stands as a bridge; a walled place never
+       stands on it (Where, below).
 
    **Glacial crevasse** (ice; owner, 2026-11-09: more environment types for
    the map toolbelt, ice first): a natural drop split through a frozen
@@ -1014,15 +1021,27 @@ Laws):
      (`NaturalVoid.Style.CANYON`, `DRY_GORGE`), each row drawing its own wall;
      the basalt wall was tried on rock and read as holes at a wide zoom.
    - **Where.** A drop runs edge to edge along its design's line
-     (`NaturalChasm`), wandering, 7 to 12 cells wide. It takes only ground the landscape pass's reservations leave
-     (`OutdoorLandscapeStage`), after the open pit and before anything grows:
-     so it never covers a road, building, doorway, fixture, prop, landing or
-     its approach, a spawn, or a route between required places, and each of
-     those that crosses its line is left standing across it as a bridge.
-   - **Crossings.** Every 34 cells along its line a crossing four cells wide
-     is left standing, decked with its drop's deck (`NaturalVoidZoning.Deck`:
-     a surface laid on the crossing, a doodad laid over it, or both), a
-     timber footbridge for every outdoor drop today; the drop is opened
+     (`NaturalChasm`), wandering at most 14 cells off it, 7 to 12 cells wide.
+     The design holds a band as wide as it can reach (`Landform.Drop`), and
+     moves every programmed place's seed off that band's held ground, so a
+     walled place's claim keeps off it (`FortReservations.dropGround`) and the
+     drop runs past its wall. It takes only ground the landscape pass's
+     reservations leave (`OutdoorLandscapeStage`), after the open pit and
+     before anything grows: so it never covers a road, building, doorway,
+     fixture, prop, landing or a spawn, and each of those that crosses its
+     line is left standing across it as a bridge. A route between required
+     places is not kept out: its five reserved cells left standing read as the
+     drop stopping, so a crossing is left where the route's own line meets the
+     drop's and the drop takes the rest of the route's ground. A landing's
+     approach to the edge keeps only trees and rises off a flight path, so the
+     drop runs under it.
+   - **Crossings.** Every 34 cells along its line, and wherever a route
+     crosses it, a crossing four cells wide is left standing; a regular
+     crossing within 17 cells of a route's gives way to it, so no sliver of
+     drop is left between them. Each is decked with its drop's deck
+     (`NaturalVoidZoning.Deck`: a surface laid on the crossing, a doodad laid
+     over it, or both), a timber footbridge outdoors and a basalt causeway
+     over a lava river; the drop is opened
      before the crossings are taken out, so it meets each deck square and runs
      on under it. A snow bridge on ice was tried: plain snow over a crevasse
      read as two pits with ground between them, not as a way across.

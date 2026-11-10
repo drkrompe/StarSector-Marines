@@ -117,15 +117,19 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin(), field);
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape, field);
-        boolean[] reserved = reservations(c, hostAnchors, true);
-        reserveRamps(c, reserved);
-        reserveTracks(c, landscape, reserved);
-        // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
-        int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
-        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
-        if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
+        boolean[] routeLines = new boolean[c.width * c.height];
+        boolean[] reserved = reservations(c, hostAnchors, true, null, 2, 4, routeLines, true);
+        // A designed drop may take the access routes' ground, decking a crossing where each route's line meets it,
+        // and run under a landing's approach, which only keeps trees and rises out of the flight path: so it is cut
+        // against everything reserved but those.
+        boolean[] firm = Landform.Drop.of(landscape, c.width, c.height) == null ? null
+                : reservations(c, hostAnchors, false, null, 2, 4, null, false);
+        reserveLaid(c, landscape, plan, brookCells, reserved);
+        if (firm != null) reserveLaid(c, landscape, plan, brookCells, firm);
+        boolean[] beforePits = firm == null ? null : reserved.clone();
         openPits(c, plan, reserved);
-        RidgePlanner.Band berm = crevasseTown(c, field, reserved) ? null : chasm(c, field, reserved);
+        if (firm != null) for (int i = 0; i < firm.length; i++) firm[i] |= reserved[i] && !beforePits[i];
+        RidgePlanner.Band berm = crevasseTown(c, field, reserved) ? null : chasm(c, field, reserved, firm, routeLines);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
@@ -514,25 +518,28 @@ public final class OutdoorLandscapeStage implements GenStage {
     /**
      * Cuts a natural drop across open country where the map's design placed one ({@code voids.md}, placed by design;
      * {@link Landform.Drop}): a gorge, canyon, crevasse or rift by the world's palette ({@link NaturalVoidZoning}),
-     * run edge to edge along the design's line over the ground the reservations leave, every road and route crossing
-     * it left standing as a bridge and natural crossings between, and proved to strand nothing ({@link NaturalChasm}).
+     * run edge to edge along the design's line over the ground the reservations leave, every road crossing it left
+     * standing as a bridge, a deck where each access route's line crosses it ({@code routeLines}: the drop takes the
+     * rest of the route's ground and runs under a landing's approach, {@code firm} being everything reserved but
+     * those) and natural crossings between, and proved to strand nothing ({@link NaturalChasm}).
      * After the open pit, before anything is grown. A map whose design places none, that already draws a drop or a
      * backdrop, or whose line does not fit, keeps none. Returns a volcanic town's lava berm, for the ridges, or
      * null.
      */
-    private static RidgePlanner.Band chasm(GenContext c, SurfaceField field, boolean[] reserved) {
+    private static RidgePlanner.Band chasm(GenContext c, SurfaceField field, boolean[] reserved, boolean[] firm,
+                                           boolean[] routeLines) {
         if (outdoorDrop(c.topology) || c.topology.voidBackdrop() != null) return null;
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landform.Drop design = plan == null ? null : Landform.Drop.of(plan.landscape(), c.width, c.height);
         if (design == null) return null;
         int w = c.width;
         NaturalChasm.Cut cut = NaturalChasm.plan(w, c.height, design.alongX(), design.across(),
-                i -> !reserved[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
-                i -> c.grid.isWalkable(i % w, i / w), (int) (c.seed ^ 0x4348L));
+                i -> !firm[i] && naturalGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> c.grid.isWalkable(i % w, i / w), i -> routeLines[i], (int) (c.seed ^ 0x4348L));
         if (cut == null) return null;
         cutDrop(c, cut.drop(), reserved);
         NaturalVoidZoning.Drop drop = NaturalVoidZoning.forPalette(field.world());
-        // Each crossing wears the drop's deck: a timber footbridge for every outdoor drop today.
+        // Each crossing wears the drop's deck: a timber footbridge, or a lava river's basalt causeway.
         int deck = drop.deck().surface() == null ? -1 : c.topology.surfaceIndex(drop.deck().surface());
         boolean[] decks = cut.decks();
         for (int i = 0; i < decks.length; i++) {
@@ -911,6 +918,17 @@ public final class OutdoorLandscapeStage implements GenStage {
         }
     }
 
+    /** The ramps, tracks, brook banks and walled places reserved on top of {@link #reservations}. */
+    private static void reserveLaid(GenContext c, Landscape landscape, PrecinctPlan plan, List<int[]> brookCells,
+                                    boolean[] reserved) {
+        reserveRamps(c, reserved);
+        reserveTracks(c, landscape, reserved);
+        // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
+        int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
+        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
+    }
+
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes) {
         return reservations(c, hostAnchors, routes, null, 2, 4);
     }
@@ -927,6 +945,15 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** @param edgeBand how many cells in from the map's edge are reserved outright: none for a sea, which lies there */
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
                                           int roadMargin, int edgeBand) {
+        return reservations(c, hostAnchors, routes, own, roadMargin, edgeBand, null, true);
+    }
+
+    /**
+     * @param routeLines filled with the access routes' own lines ({@link LandscapeAccess#reserveRoutes}), or null
+     * @param approaches whether a landing pad's approach out to the edge is reserved, past the pad and its margin
+     */
+    private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
+                                          int roadMargin, int edgeBand, boolean[] routeLines, boolean approaches) {
         boolean[] reserved = new boolean[c.width * c.height];
         boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION), roadCells = c.get(BspKeys.ROAD_CELLS);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -951,6 +978,10 @@ public final class OutdoorLandscapeStage implements GenStage {
             anchors.add(new int[]{pad.centerX, pad.centerY});
             int l = pad.left() - 4, r = pad.right() + 4, b = pad.bottom() - 4, t = pad.top() + 4;
             int l0 = l, r0 = r, b0 = b, t0 = t;
+            if (!approaches) {
+                reserve(c, reserved, l, b, r, t);
+                continue;
+            }
             switch (pad.approach) {
                 case WEST -> l = 0;
                 case EAST -> r = c.width - 1;
@@ -1014,7 +1045,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int[] cell : cells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
         }
         for (int[] point : anchors) reserve(c, reserved, point[0] - 5, point[1] - 5, point[0] + 5, point[1] + 5);
-        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c), heldBands(c));
+        if (routes) LandscapeAccess.reserveRoutes(c.grid, anchors, reserved, sealedBands(c), heldBands(c), routeLines);
         return reserved;
     }
 

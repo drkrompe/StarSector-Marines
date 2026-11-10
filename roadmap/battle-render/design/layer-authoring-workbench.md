@@ -4,7 +4,9 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Page-by-page detail of the `gradlew.bat layerAuthoring` workbench (Layers, Turrets, Rooms, Map damage, Tilesets), moved verbatim from `CLAUDE.md` (Build & deploy). Read it when working on or with a workbench page.
+Updated: 2026-11-10 — the Maps page edits a story map's owned seed: world dress and its pool patch.
+
+Page-by-page detail of the `gradlew.bat layerAuthoring` workbench (Layers, Turrets, Rooms, Map damage, Maps, Tilesets), moved verbatim from `CLAUDE.md` (Build & deploy). Read it when working on or with a workbench page.
 
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
 Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -99,6 +101,29 @@ Save writes `mod/data/world/damage/relief.damage.json` atomically. The shared
 document and brush are recipe-independent; Relief is the first linked host.
 `createSnapshots -Psnapshot=relief-damage` checks exact intact restoration,
 production destruction and editor gestures, and renders at 1920x1080 / 100%.
+The Maps page edits a story map's one owned seed (`story-map-pools.md`). It
+opens the pool's owned `entry`, generates it on the pool's `home` palette with
+its patch through the mission's own setup and draws it whole in the battle
+renderer's look preset, never an empty grid. The **world** switch draws the
+same entry as each world palette the way the campaign builds it: the setup lays
+it out on home and the planet skin (`PlanetSkin`) re-dresses it, so ground,
+flora, worked fields (hydroponic beds on a frozen or toxic world) and habitat
+walls change and nothing a unit stands on moves. **All worlds sheet** shows
+them side by side. The tools edit the entry's patch on the picture: **pin** a
+plan place where it should grow from, drag a **ruin** stroke (radius and mode),
+and **place** a layout structure by name at its footprint corner. A Colony
+Breach entry's lift, bores and holdouts are shown and kept. Every edit is one
+undo step and regenerates the map. **The mission's acceptance runs with every
+edit** on the home palette (`StoryMapAcceptance`, the `storyMapPools` check),
+and a save is refused while it fails. Save writes
+`data/world/pools/<map>.pool.json` in the pool files' own form (writing a
+file's own entry gives it back byte for byte, so only the edited lines change),
+reads it back equal and replaces it atomically. Headless, through
+`tools/authoring.sh`: `map_list`, `map_render` (a patch in place of the saved
+one, one world or `ALL` for the sheet; lists the places a pin moves and the
+structures a placement names) and `map_save`. `createSnapshots
+-Psnapshot=maps-editor` drives the page on Heart Front: a pin, a ruin stroke, a
+refused placement and its undo, and a save into a temporary folder.
 The Tilesets page opens on a question rather than on a workspace: **what are
 you doing?** Three ways in, each a walkthrough of numbered screens with Back
 and Next, and each screen holding only the controls its own step needs. The

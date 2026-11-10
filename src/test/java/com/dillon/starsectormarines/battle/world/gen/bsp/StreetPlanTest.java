@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkKind;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkSegment;
+import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.road.StreetGraph;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +10,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A town's grown streets are planned as one network: no stubs, no crossings pulled apart, no crowded streets. */
@@ -97,5 +100,27 @@ class StreetPlanTest {
         var h = grown(across(1, W - 2, 25, 3), up(30, 26, 44, 3), across(28, 32, 45, 3), up(36, 5, 24, 3),
                 across(34, 38, 4, 3));
         assertEquals(0, StreetPlan.plan(h, null).crosses());
+    }
+
+    @Test
+    void aRoadOutOfAGateMeetsTheNearestStreetAcrossItsWaySquareOnItsCentreLine() {
+        // A gate at 10,20 opening east; the street at x 30 runs north-south across its way, one at x 50 beyond it.
+        var streets = List.of(up(30, 1, 48, 5), up(50, 1, 48, 3));
+        assertArrayEquals(new int[]{30, 20}, StreetPlan.meet(10, 20, Side.EAST, streets));
+        // Opening north it meets a street running east-west.
+        assertArrayEquals(new int[]{10, 40}, StreetPlan.meet(10, 20, Side.NORTH, List.of(across(1, 78, 40, 3))));
+        // Nothing across the way, or a street running the same way reached first: no foot.
+        assertNull(StreetPlan.meet(10, 20, Side.WEST, streets));
+        assertNull(StreetPlan.meet(10, 20, Side.EAST, List.of(across(15, 40, 20, 3), up(50, 1, 48, 3))));
+    }
+
+    @Test
+    void aRoadOutOfAGateMakesNoOffsetTeeButMayMakeACross() {
+        // A side street leaving the far side 6 cells along from the foot: the tee would make an offset pair.
+        var offset = List.of(up(30, 1, 48, 3), across(31, 70, 26, 3));
+        assertNull(StreetPlan.meet(10, 20, Side.EAST, offset));
+        // One leaving it on the road's own line makes a cross; one 11 cells along is clear of it.
+        assertArrayEquals(new int[]{30, 20}, StreetPlan.meet(10, 20, Side.EAST, List.of(up(30, 1, 48, 3),
+                across(31, 70, 20, 3), across(31, 70, 31, 3))));
     }
 }
