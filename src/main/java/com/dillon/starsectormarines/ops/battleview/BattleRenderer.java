@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
@@ -274,6 +275,10 @@ public class BattleRenderer {
     private final FacePainter facePainter = new FacePainter();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
     private final PolyMesh ruinShells = new PolyMesh(64);
+    /** The overhead props' pass, which also draws the props hung on walls for the roof pass ({@link WallMounts}). */
+    private PropMotionRenderSystem overheadProps;
+    /** A wall mount's rail corners' eaves, reused. */
+    private final float[] mountEaves = new float[4];
     /** Each building's wall dress ({@link WallDress}), settled with its outline. */
     private final IdentityHashMap<Building, Dress> buildingDress = new IdentityHashMap<>();
     /** The most hit points each wall cell has been seen to hold, so its hurt reads against its own ({@link WallDress#hurt}). */
@@ -371,6 +376,7 @@ public class BattleRenderer {
         });
         ShipDressingRenderSystem dressing = new ShipDressingRenderSystem(doodads);
         PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
+        this.overheadProps = new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases);
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
         this.units = new UnitRenderService(sprites);
@@ -479,10 +485,10 @@ public class BattleRenderer {
                 new SmokeRenderSystem(sprites),
                 fire.flames(),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
-                        collectRoofs(ctx.sim, out, ctx.alphaMult)),
+                        collectRoofs(ctx, out, ctx.alphaMult)),
                 new FortBuildingRenderSystem(sprites),
                 // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
-                new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
+                overheadProps,
                 new DroneRenderSystem(sprites),
                 new SpirePerchRenderSystem(sprites),
                 new HarrierRenderSystem(sprites),
@@ -985,20 +991,27 @@ public class BattleRenderer {
      * {@code surfaceRender.ROOF} block, as roofs were drawn before they had art
      * of their own.
      */
-    private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
+    private void collectRoofs(RenderContext ctx, DrawList out, float alphaMult) {
+        BattleSimulation sim = ctx.sim;
         // Freestanding walls stood up first, so every building's faces and roof stand over them.
         freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
         Buildings buildings = sim.getBuildings();
-        if (buildings == null || buildings.isEmpty()) return;
         CellTopology topology = sim.getTopology();
+        if (buildings == null || buildings.isEmpty()) {
+            overheadProps.collectMounts(ctx, out, (d, corners) -> true);
+            return;
+        }
         // Sheets are ensured at BattleScreen.attach; collect stays GL-free. Guards cover the not-loaded case.
         if (sprites.roofSheet() == null) {
             streamPavedRoofs(sim, out, alphaMult, topology);
+            overheadProps.collectMounts(ctx, out, (d, corners) -> true);
             return;
         }
         // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
         buildingFaces(sim, out, alphaMult, topology);
         occludedUnits(sim, out, alphaMult, topology);
+        // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
+        overheadProps.collectMounts(ctx, out, (d, corners) -> standMount(sim, d, corners));
         if (rc.hostProfile.residentGroundAllowed()) {
             RoofMesh.RoofResolver resolver = (building, x, y, sink) -> {
                 RoofPlans.Plan plan = roofPlans.of(topology, buildings, building);
@@ -1017,6 +1030,60 @@ public class BattleRenderer {
         }
         // A razed building's broken shell stands over its roof's remnants.
         if (!ruinShells.isEmpty()) out.addPoly(RenderLayer.ROOFS, ruinShells);
+    }
+
+    /**
+     * Stands a wall mount up on its wall's face ({@link WallMounts#standUp}): the wall is the building's beyond the
+     * mount's rail, at its height now and as much of it as stands, and each rail corner's eave is read off the face
+     * segment over it. A mount on a razed building is gone with its wall; one on no building's wall lies as laid.
+     */
+    private boolean standMount(BattleSimulation sim, Doodad d, float[] corners) {
+        CellTopology topology = sim.getTopology();
+        Buildings buildings = sim.getBuildings();
+        int[] step = WallMounts.wallStep(d.quarterTurns);
+        float midX = (corners[0] + corners[2]) * .5f, midY = (corners[1] + corners[3]) * .5f;
+        Building b = wallOf(topology, buildings, corners, step);
+        if (b == null) return true;
+        int heightClass = buildingClass(topology, buildings, b);
+        if (heightClass == BuildingFaces.RAZED) return false;
+        boolean frozen = topology.groundPalette() == SurfacePalette.FROZEN;
+        float[] segs = buildingEdges.computeIfAbsent(b,
+                k -> faceSegments(topology, sim.getGrid(), buildings, k, frozen));
+        for (int k = 0; k < 2; k++) {
+            float px = corners[k * 2], py = corners[k * 2 + 1];
+            // Just inside the rail's span, so a corner on a segment's end reads the segment the mount hangs over.
+            float sx = px + (midX - px) * .02f, sy = py + (midY - py) * .02f;
+            WallMounts.eave(segs, -step[0], -step[1], px, py, sx, sy, mountEaves, k * 2);
+        }
+        float meters = BuildingFaces.HEIGHTS[heightClass];
+        WallMounts.standUp(corners, mountEaves, rc.camera.panCellX(), rc.camera.panCellY(), meters,
+                ROOF_LIFTS[heightClass], BuildingFaces.standing(meters, 1f - b.currentAlpha),
+                WallMounts.railMeters(d.definitionId()), WallMounts.outerMeters(d.definitionId()));
+        return true;
+    }
+
+    /**
+     * The building whose wall a mount's rail runs along: the first building cell met on the wall's side of the rail,
+     * cell by cell along it from its middle out (a doorway's own cell belongs to no building), a cell deep or two.
+     */
+    private static Building wallOf(CellTopology topology, Buildings buildings, float[] corners, int[] step) {
+        float x0 = corners[0], y0 = corners[1], x1 = corners[2], y1 = corners[3];
+        int cells = Math.max(1, Math.round(Math.abs(x1 - x0) + Math.abs(y1 - y0)));
+        float ux = (x1 - x0) / cells, uy = (y1 - y0) / cells;
+        for (int i = 0; i < cells; i++) {
+            // From the middle out: middle, then either side of it.
+            int k = cells / 2 + ((i & 1) == 0 ? i / 2 : -(i + 1) / 2);
+            if (k < 0 || k >= cells) continue;
+            float cx = x0 + ux * (k + .5f), cy = y0 + uy * (k + .5f);
+            for (int depth = 0; depth < 2; depth++) {
+                int wx = (int) Math.floor(cx + step[0] * (depth + .5f));
+                int wy = (int) Math.floor(cy + step[1] * (depth + .5f));
+                if (!topology.inBounds(wx, wy)) continue;
+                Building b = buildings.get(topology.getBuildingId(wx, wy));
+                if (b != null) return b;
+            }
+        }
+        return null;
     }
 
     /** Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre. */
