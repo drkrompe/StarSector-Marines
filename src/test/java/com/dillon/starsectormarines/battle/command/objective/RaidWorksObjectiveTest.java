@@ -98,7 +98,7 @@ class RaidWorksObjectiveTest {
     }
 
     @Test
-    void bringingDownAMachinesHallWrecksItWithNoChargeAndOpensTheWayOut() {
+    void bringingDownAMachinesHallWrecksItOnceWithNoChargeAndOpensTheWayOut() {
         Fixture f = new Fixture();
         // Machine 0 stands in a hall: a 3x3 floor at 4..6 walled round at 3 and 7, sixteen wall cells.
         for (int x = 3; x <= 7; x++) for (int y = 3; y <= 7; y++) {
@@ -106,21 +106,28 @@ class RaidWorksObjectiveTest {
         }
         int[] floorX = {4, 5, 6, 4, 5, 6, 4, 5, 6}, floorY = {4, 4, 4, 5, 5, 5, 6, 6, 6};
         List<int[]> hall = BuildingStanding.outline(floorX, floorY, f.topology::isWall, 24, 24);
-        RaidObjective works = f.works().withHalls(List.of(hall, List.of(), List.of()));
+        List<Integer> fallen = new ArrayList<>();
+        RaidObjective works = f.works().withHalls(List.of(new RaidObjective.Hall(hall, List.of()),
+                RaidObjective.Hall.NONE, RaidObjective.Hall.NONE), fallen::add);
         assertTrue(works.hasHall(0));
         assertFalse(works.hasHall(1));
 
         for (int i = 0; i < 7; i++) f.topology.setWall(hall.get(i)[0], hall.get(i)[1], false);
         works.tick(f.view);
         assertEquals(0, works.sitesDone(), "seven of sixteen down is not half");
-        assertEquals(7f / 8f, works.hallProgress(f.view, 0), 1e-6);
+        assertTrue(fallen.isEmpty());
+        assertEquals(7f / 8f, works.hallProgress(0), 1e-6);
+        assertEquals(7f / 8f, works.siteProgress(0), 1e-6, "the further way along is the hall");
 
         f.topology.setWall(hall.get(7)[0], hall.get(7)[1], false);
         works.tick(f.view);
         assertTrue(works.siteDone(0));
+        works.tick(f.view);
+        assertEquals(List.of(0), fallen, "the battle hears the hall fall once");
         assertTrue(works.egressOpen());
         assertTrue(works.defenderAlarm().active());
-        assertEquals(0f, works.hallProgress(f.view, 1));
+        assertEquals(0f, works.hallProgress(1));
+        assertEquals(1f, works.siteProgress(0));
     }
 
     @Test
