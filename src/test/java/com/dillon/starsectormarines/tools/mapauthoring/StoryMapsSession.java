@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.tools.mapauthoring;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -118,6 +119,10 @@ public final class StoryMapsSession implements AutoCloseable {
     }
 
     private static Stood generate(StoryMap map, StoryMapPool.Entry entry) {
+        if (RaidOwnedMap.isRaid(map)) {
+            return new Stood(entry, BattleSetup.createPooledRaid(RaidOwnedMap.Ground.of(map, HOME), HOME, entry.seed(),
+                    map != StoryMap.RAID, List.of()), List.of(), List.of(), null);
+        }
         if (map == StoryMap.COLONY_BREACH) {
             return new Stood(entry, BattleSetup.createPooledColonyBreach(HOME, entry, List.of()), List.of(), List.of(), null);
         }
