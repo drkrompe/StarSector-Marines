@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6df-7e09-7520-9734-11fb3fb249fb",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6df-7e09-7520-9734-11fb3fb249fb\\exec-80ede062-412f-4ec4-b3d4-7880ec68ab41.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\raised-floor-master.png",
+    "sha256": "853964c0c0faaf3f0320450695018f28d58b6d77fee7100f385a8d008cfe1905",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\raised-floor-master.prompt.txt",
+  "promptSha256": "ee3455b29b086a4797217f4ecfd92248f0f47bbd83c6ca192de1a83b7ec42171",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: the top surface of a clean-room raised access floor panel: smooth pale grey anti-static composite with a very fine regular perforation pattern of tiny dark holes, faint scuffs and dust. Average colour a light grey around RGB (150, 152, 154). No panel seams or grid lines (those are added separately).\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one floor texture using the reference’s flatness, fine detail, and scale."
+  ],
+  "usage": {
+    "input_tokens": 36234,
+    "cached_input_tokens": 30720,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 359,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 33.7
+}

@@ -169,6 +169,7 @@ public final class TileRegistry {
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/ground-feather.tileset.json",
             "data/tilesets/toxic-ground.tileset.json",
+            "data/tilesets/ruins-ground.tileset.json",
             "data/tilesets/water-shore.tileset.json",
             "data/tilesets/water-ford.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",

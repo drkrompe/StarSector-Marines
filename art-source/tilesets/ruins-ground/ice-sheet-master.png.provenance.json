@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6de-9df6-7522-af3f-7b3594753310",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6de-9df6-7522-af3f-7b3594753310\\exec-1e51065d-40c7-4c3b-93a9-0641bfcc2444.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ruins-ground\\ice-sheet-master.png",
+    "sha256": "93a10e2147a1c943962eb0dc66aa4e725a73ab7d617516a33c43058af709e944",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\ruins-ground\\ice-sheet-master.prompt.txt",
+  "promptSha256": "0050603fd274639fd1623dd6d3be5b1a010ce3f3a34d33be98be3af4426dcb16",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format reference only: flatness, fineness, scale; not its colour\n\nUse case: tileable floor material for a top-down tactical game, inside an abandoned Domain-era factory hall in a spacefaring civilization. Image 1 is a FORMAT reference only: the hall's shipped concrete floor tile, showing how flat, fine and low-contrast the surface must be and the scale of its detail.\nA wide square canvas filled edge to edge with one continuous floor surface, seen STRAIGHT DOWN, orthographic, with flat even light: no directional lighting, no highlights, no cast shadows, no vignette, no horizon.\nThe material: a thin sheet of frozen coolant over the steel and concrete deck: translucent blue-grey ice with the grey deck faintly showing through, fine internal cracks and trapped bubbles, faint white frost bloom, a few scratches. Average colour a cold pale blue-grey around RGB (150, 162, 172). Desaturated, dull, not bright white, not cyan.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly over the whole surface so any crop of it looks like any other. No objects, machines, pipes, footprints, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\ground-format-ref.png",
+      "sha256": "f5d4a9062ddd5a87584801ae2bbe5db6e68da15ecac78ebd0430dcabb92850d8",
+      "dimensions": [
+        448,
+        448
+      ],
+      "mode": "RGB",
+      "role": "Format reference only: flatness, fineness, scale; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, finely detailed coolant-ice texture using the reference’s scale and low contrast."
+  ],
+  "usage": {
+    "input_tokens": 38130,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 383,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.3
+}

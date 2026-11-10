@@ -120,6 +120,10 @@ generation serves several of them:
 
 Every works piece is cut at its exact frame; ImageGen's faint gutter haze (alpha under 8) is cleared.
 
+The halls' floor coverings are the `ruins-ground` tileset (`art-source/tilesets/README.md`). The shaft hall's bore
+has an engineered collar, `mod/graphics/battle/voids/shaft-collar-lip.png`, a 128x64 strip laid along the drop's edge
+as the foundry's kerb is (`art-source/voids/shaft/`: `make_guide.py`, `derive.py`).
+
 The frost and vats sheets' own patches are concept-only and not exported.
 `raw/ruins-forge-concept.png` is the forge floor and shaft head concept
 (assembly cradle, shaft head, hoist winch), not yet shipped.

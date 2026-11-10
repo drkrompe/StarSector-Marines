@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c6de-9df6-76f3-940f-a2ecbb245718",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c6de-9df6-76f3-940f-a2ecbb245718\\exec-77c9bc8e-ff5a-4b63-9668-33ad8759e150.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\voids\\shaft\\shaft-collar-lip.png",
+    "sha256": "08b4c90445ed7b7495b3e1c317e0fd9f9e541cdb08d2344cafe31bb85308da49",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\voids\\shaft\\shaft-collar-lip.prompt.txt",
+  "promptSha256": "08930307449a6d8d1601f814f0667887a8095144abb00fbc1a79b3da4c2f116e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: bands to reskin in place\nImage 2: Material and style: the same hall's plant; not layout\n\nA seamless, horizontally tileable texture strip for a top-down tactical game, seen from directly above (orthographic, 90 degrees): the engineered collar round the mouth of a deep mantle bore shaft in an abandoned Domain-era factory hall in a spacefaring civilization. The top of the image meets the hall's concrete floor; the bottom edge is where the collar drops away into the shaft.\nGeometry: reference 1 is the layout authority: keep every band at its height and position: a steel kerb plate along the top with four bolt heads, a dark joint, a row of heavy cast collar segments (dense grey cast composite, each with two recessed anchor plates where shown) whose joints sit exactly where shown, a dark joint, and a heavy steel nosing along the bottom. Both short ends are cut through the middle of a segment, so identical copies join end to end seamlessly.\nStyle: match reference 2 for material and painting (the same works hall's plant): crisp painterly-pixel game sprite, gunmetal and blue-gray steel, worn ochre trim on the kerb plate, rock dust and spoil grit settled on the collar, scraped bright steel along the nosing where the cutter heads were lowered, rust. Heavy, grounded, industrial, adult military sci-fi. Not cartoon, no thick outlines.\nLight: no baked lighting gradient, no glow. The transparent area below the nosing stays fully transparent. Wide 2:1 canvas. No text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\voids\\shaft\\shaft-collar-lip-guide.png",
+      "sha256": "7267c6dec37db5e3c60597e83bc26b3735f4c7291682241944ceea0a14daa8e5",
+      "dimensions": [
+        1024,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: bands to reskin in place"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-plant-b.raw.png",
+      "sha256": "32a8049c53740aeee0e07d95146de996ee844dc005ac83e57e358b2f34b4baa1",
+      "dimensions": [
+        1525,
+        1031
+      ],
+      "mode": "RGBA",
+      "role": "Material and style: the same hall's plant; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for exact layout and the second for materials and style."
+  ],
+  "usage": {
+    "input_tokens": 43090,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 557,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.3
+}
