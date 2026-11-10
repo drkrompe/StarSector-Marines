@@ -1,0 +1,26 @@
+A seamless ground material texture for a top-down tactical game: the bare
+ground of an irradiated, airless dead world, seen from directly overhead.
+
+Material: scorched, bleached, glassed hardpan. Pale bone and ash-white to pale
+grey-beige baked crust, broken into a polygonal desiccation crack network: flat
+plates separated by clearly legible dark grey cracks, 2 to 4 pixels wide,
+so the network still reads when the image is shrunk to a quarter of its size. Plates are irregular polygons,
+each roughly 1/12 to 1/16 of the image width across, so there are many of them.
+Harsh and washed out, very low saturation, nothing grows. Average colour close
+to RGB (182, 178, 164): pale and slightly warm grey, lighter than grey stone,
+greyer than desert sand, warmer and duller than snow.
+
+Variant feature: black soot settled in the cracks and two or three faint scorch-darkened streaks; the plates are bleached paler than average between them.
+
+Rules:
+- Square image, the whole frame filled edge to edge with this one surface.
+- Flat, even, overhead lighting. No directional sun, no cast shadows, no
+  vignette, no gradient across the frame, no highlights larger than a few pixels.
+- The feature is repeated and spread evenly across the ENTIRE image, so that
+  any crop of the middle third still contains it. No single central subject.
+- Low contrast, fine detail. No objects, rocks, debris piles, craters, rubble,
+  plants, footprints, vehicles, text, borders or frames.
+- Photographic orthographic material scan, not an illustration.
+
+The reference image is for format only (an opaque, flat, fine-grained ground
+tile seen from overhead); do not copy its colour or its texture.

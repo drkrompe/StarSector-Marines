@@ -997,7 +997,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
         // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
-        if(surface.layoutOf()==SurfacePalette.ROCK) {
+        // An irradiated world's are the same crater rims, glassed.
+        if(surface.layoutOf()==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {
@@ -1234,7 +1235,7 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static boolean brookGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)
@@ -1463,7 +1464,7 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** Walkable natural ground outside any building, door, fixture or road, whatever surface dresses it. */
     private static boolean naturalGround(GenContext c, int x, int y) {
         boolean natural = switch (c.topology.getGroundKind(x, y)) {
-            case GRASS, DIRT, STONE, SAND, SNOW -> true;
+            case GRASS, DIRT, STONE, SAND, SNOW, HARDPAN -> true;
             default -> false;
         };
         return natural && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y)

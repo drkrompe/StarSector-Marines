@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2ac-d910-7e20-b6b7-9b2cfe29735f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2ac-d910-7e20-b6b7-9b2cfe29735f\\exec-eb9e6ef3-6126-4012-b908-e9726630ac81.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\hardpan-variants\\hardpan-5.png",
+    "sha256": "8f36f08582cb448d2b5ab174603a4cfaabd3a098652ac3c903a8fbcc6cfc7614",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\hardpan-variants\\hardpan-5.prompt.txt",
+  "promptSha256": "2f4c87f07adda6677238e3dbcded99079869a0a3f61ebb6ec2ae669a4d74a1cd",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: an opaque flat overhead ground tile; not colour, not texture, not layout\n\nA seamless ground material texture for a top-down tactical game: the bare\nground of an irradiated, airless dead world, seen from directly overhead.\n\nMaterial: scorched, bleached, glassed hardpan. Pale bone and ash-white to pale\ngrey-beige baked crust, broken into a polygonal desiccation crack network: flat\nplates separated by clearly legible dark grey cracks, 2 to 4 pixels wide,\nso the network still reads when the image is shrunk to a quarter of its size. Plates are irregular polygons,\neach roughly 1/12 to 1/16 of the image width across, so there are many of them.\nHarsh and washed out, very low saturation, nothing grows. Average colour close\nto RGB (182, 178, 164): pale and slightly warm grey, lighter than grey stone,\ngreyer than desert sand, warmer and duller than snow.\n\nVariant feature: a sparse scatter of tiny fused glass beads and droplets (pale olive-green, glossy pinpoints) across the plates and in the cracks.\n\nRules:\n- Square image, the whole frame filled edge to edge with this one surface.\n- Flat, even, overhead lighting. No directional sun, no cast shadows, no\n  vignette, no gradient across the frame, no highlights larger than a few pixels.\n- The feature is repeated and spread evenly across the ENTIRE image, so that\n  any crop of the middle third still contains it. No single central subject.\n- Low contrast, fine detail. No objects, rocks, debris piles, craters, rubble,\n  plants, footprints, vehicles, text, borders or frames.\n- Photographic orthographic material scan, not an illustration.\n\nThe reference image is for format only (an opaque, flat, fine-grained ground\ntile seen from overhead); do not copy its colour or its texture.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\atlas-material-source\\regolith\\regolith-1.png",
+      "sha256": "1f5288369ab66a7f95217d69a2cf6e6ada9dbe89c63d0b35dacbf2c61fa580a3",
+      "dimensions": [
+        56,
+        56
+      ],
+      "mode": "RGB",
+      "role": "Format only: an opaque flat overhead ground tile; not colour, not texture, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one seamless overhead texture with the pale cracked hardpan and tiny olive glass beads you described."
+  ],
+  "usage": {
+    "input_tokens": 92879,
+    "cached_input_tokens": 88448,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 518,
+    "reasoning_output_tokens": 10
+  },
+  "elapsedSeconds": 44.7
+}

@@ -857,7 +857,8 @@ Laws):
    on each palette, `-Dbattle.mapgen.naturalVoids=1`).
    - **Which style.** One table beside `SurfaceZoning`,
      `NaturalVoidZoning.forPalette`: verdant takes the gorge river, frozen the
-     glacial crevasse, arid the canyon, rock the dry gorge, and a molten palette the lava
+     glacial crevasse, arid the canyon, rock and irradiated the dry gorge (irradiated
+     until a glassed wall of its own exists), and a molten palette the lava
      rift (`NaturalVoidZoning.LAVA_RIFT`, its row added with the palette).
      Each row is the style, its steps, its wall image and the image's tile;
      the camera is the natural 120 m. A new palette does not compile until it

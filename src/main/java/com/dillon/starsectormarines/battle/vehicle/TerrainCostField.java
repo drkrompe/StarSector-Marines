@@ -135,6 +135,7 @@ public final class TerrainCostField {
             case COURTYARD:
             case BRICK:
             case STONE:
+            case HARDPAN:
             case TILE:
                 return COST_HARDSCAPE;
             case GRASS:
