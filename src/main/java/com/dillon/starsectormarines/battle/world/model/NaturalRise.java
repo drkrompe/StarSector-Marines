@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,6 +35,30 @@ public record NaturalRise(Style style, List<Step> steps, float eyeMeters, String
 
     /** A ledge: its height above the walkable ground, and how far into the rise from the foot it begins. */
     public record Step(float heightMeters, float insetCells) { }
+
+    /** How many terraces a bank climbs in, the top among them. UNTUNED. */
+    public static final int BANK_TERRACES = 6;
+    /** How far the top stands back from the bank's foot, in cells. UNTUNED. */
+    public static final float BANK_CELLS = 10f;
+    /** The first terrace's set-back from the foot, in cells. */
+    static final float BANK_FIRST_CELLS = .6f;
+
+    /**
+     * A bank rather than a cliff (owner, 2026-11-09: "widen out the hills ... it doesn't need to be a sheer drop"):
+     * {@link #BANK_TERRACES} even terraces climbing to {@code topMeters}, the top standing {@link #BANK_CELLS} back
+     * from the foot. Each face is short, so it leans out little under the camera, and the high ground stands well
+     * back from the floor, so the camera looking down sees the fighting at the foot clearly rather than past the
+     * lip of a wall.
+     */
+    public static List<Step> bank(float topMeters) {
+        if (!(topMeters > 0f)) throw new IllegalArgumentException("a bank's top stands above its foot");
+        List<Step> steps = new ArrayList<>();
+        for (int k = 1; k <= BANK_TERRACES; k++) {
+            float t = (k - 1) / (float) (BANK_TERRACES - 1);
+            steps.add(new Step(topMeters * k / BANK_TERRACES, BANK_FIRST_CELLS + (BANK_CELLS - BANK_FIRST_CELLS) * t));
+        }
+        return steps;
+    }
 
     /**
      * How high the rise stands at one place along it: at map cell {@code (x, y)} its top stands {@code topMeters}

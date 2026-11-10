@@ -96,7 +96,7 @@ class HoverSkirtTest {
     @Test void theHoverLineAndTheOnagerHaveASkirtAndOnlyALightSkirtPushesNobody() {
         for (VehicleType type : VehicleType.values()) {
             boolean lightSkirt = type == VehicleType.HOVER_SCOUT || type == VehicleType.DRONE_SKIMMER;
-            boolean hover = lightSkirt || type == VehicleType.BREAKTHROUGH_TANK;
+            boolean hover = lightSkirt || type == VehicleType.HEAVY_SKIMMER || type == VehicleType.BREAKTHROUGH_TANK;
             assertEquals(hover, type.isHover(), type.name());
             assertEquals(!lightSkirt, type.repelsBodies(), type.name());
             if (hover) assertFalse(type.hasAnimatedTreads(), type.name());
