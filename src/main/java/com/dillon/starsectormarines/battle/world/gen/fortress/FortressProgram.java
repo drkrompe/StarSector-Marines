@@ -266,10 +266,12 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
     private static final RoomShape HEADQUARTERS = RoomShape.rectangle(14, 7);
     /** A cantonment's guardroom by its gate. */
     private static final RoomShape GUARDROOM = RoomShape.rectangle(9, 4);
+    /** A cantonment's fuel point: the motor yard's, on the trucks' round, and the flight line's beside its armoury. */
+    static final RoomShape FUEL_POINT = RoomShape.rectangle(8, 6);
 
     /**
      * A garrison laid out as an installation ({@link Cantonment}): the same kinds of building as {@link #garrison()},
-     * counted from the market. Its size sets the barracks, the motor pool's vehicle sheds (one, two from size 6), workshops and stores, and with the barracks the flight line's size ({@link Cantonment#fieldFor});
+     * counted from the market. Its size sets the barracks, the motor pool's vehicle sheds (one, two from size 6), workshops and stores, and with the barracks the flight line's size ({@link Cantonment#fieldFor}); it keeps a fuel point for its vehicles and one for its flight line;
      * its security ({@code grade} 0 open, 1 guarded, 2 fortified) sets the guardroom, the corner towers and the
      * magazines. One flight line at most.
      *
@@ -293,6 +295,7 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
                 new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE, posts)));
         if (grade > 0) buildings.add(new FortressBuilding(RoomPurpose.KEEP_ENTRY, GUARDROOM, Ward.FRONTAGE, 1));
+        buildings.add(new FortressBuilding(RoomPurpose.STOCKROOM, FUEL_POINT, Ward.YARD, airfields > 0 ? 2 : 1));
         return new FortressProgram(buildings, Math.min(1, airfields), 0, false, true);
     }
 

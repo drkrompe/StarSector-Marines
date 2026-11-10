@@ -118,11 +118,12 @@ public final class OutdoorLandscapeStage implements GenStage {
         clearTracks(c, landscape);
         List<int[]> brookCells = runBrooks(c, landscape, field);
         boolean[] routeLines = new boolean[c.width * c.height];
-        boolean[] reserved = reservations(c, hostAnchors, true, null, 2, 4, routeLines);
+        boolean[] reserved = reservations(c, hostAnchors, true, null, 2, 4, routeLines, true);
         // A designed drop may take the access routes' ground, decking a crossing where each route's line meets it,
-        // so it is cut against everything reserved but the routes.
+        // and run under a landing's approach, which only keeps trees and rises out of the flight path: so it is cut
+        // against everything reserved but those.
         boolean[] firm = Landform.Drop.of(landscape, c.width, c.height) == null ? null
-                : reservations(c, hostAnchors, false);
+                : reservations(c, hostAnchors, false, null, 2, 4, null, false);
         reserveLaid(c, landscape, plan, brookCells, reserved);
         if (firm != null) reserveLaid(c, landscape, plan, brookCells, firm);
         boolean[] beforePits = firm == null ? null : reserved.clone();
@@ -519,8 +520,8 @@ public final class OutdoorLandscapeStage implements GenStage {
      * {@link Landform.Drop}): a gorge, canyon, crevasse or rift by the world's palette ({@link NaturalVoidZoning}),
      * run edge to edge along the design's line over the ground the reservations leave, every road crossing it left
      * standing as a bridge, a deck where each access route's line crosses it ({@code routeLines}: the drop takes the
-     * rest of the route's ground, {@code firm} being everything reserved but the routes) and natural crossings
-     * between, and proved to strand nothing ({@link NaturalChasm}).
+     * rest of the route's ground and runs under a landing's approach, {@code firm} being everything reserved but
+     * those) and natural crossings between, and proved to strand nothing ({@link NaturalChasm}).
      * After the open pit, before anything is grown. A map whose design places none, that already draws a drop or a
      * backdrop, or whose line does not fit, keeps none. Returns a volcanic town's lava berm, for the ridges, or
      * null.
@@ -944,12 +945,15 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** @param edgeBand how many cells in from the map's edge are reserved outright: none for a sea, which lies there */
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
                                           int roadMargin, int edgeBand) {
-        return reservations(c, hostAnchors, routes, own, roadMargin, edgeBand, null);
+        return reservations(c, hostAnchors, routes, own, roadMargin, edgeBand, null, true);
     }
 
-    /** @param routeLines filled with the access routes' own lines ({@link LandscapeAccess#reserveRoutes}), or null */
+    /**
+     * @param routeLines filled with the access routes' own lines ({@link LandscapeAccess#reserveRoutes}), or null
+     * @param approaches whether a landing pad's approach out to the edge is reserved, past the pad and its margin
+     */
     private static boolean[] reservations(GenContext c, int[] hostAnchors, boolean routes, boolean[] own,
-                                          int roadMargin, int edgeBand, boolean[] routeLines) {
+                                          int roadMargin, int edgeBand, boolean[] routeLines, boolean approaches) {
         boolean[] reserved = new boolean[c.width * c.height];
         boolean[][] roads = c.get(BspKeys.ROAD_RESERVATION), roadCells = c.get(BspKeys.ROAD_CELLS);
         for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++) {
@@ -974,6 +978,10 @@ public final class OutdoorLandscapeStage implements GenStage {
             anchors.add(new int[]{pad.centerX, pad.centerY});
             int l = pad.left() - 4, r = pad.right() + 4, b = pad.bottom() - 4, t = pad.top() + 4;
             int l0 = l, r0 = r, b0 = b, t0 = t;
+            if (!approaches) {
+                reserve(c, reserved, l, b, r, t);
+                continue;
+            }
             switch (pad.approach) {
                 case WEST -> l = 0;
                 case EAST -> r = c.width - 1;
