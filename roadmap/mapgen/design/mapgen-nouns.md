@@ -2146,6 +2146,10 @@ was the owner's pick (2026-11-09) over a dedicated megastructure roof set and
 over roof strips with bare hull between them. Rooms and the power hall inside
 are built of the hull; the power hall stands inside at extensive and vast, and
 at widespread, whose only layer before the last is outside, it stays out.
+Every cell inside, from the hull face in (on scattered ground the bunker's box),
+light wells included, is tagged `NO_MACHINE_DROP` on the navigation grid, and
+no machine is set down on a tagged cell (`ruins-expedition.md`, No machine is
+dropped inside).
 
 **The vault is the plant's secure store** (`ruins-expedition.md`, The site is
 the plant that made the prize). Buttressed dark cast concrete, an antechamber
@@ -2196,7 +2200,9 @@ whole, so it is always laid at full size. The band's spine then runs down its
 west wall, in at the dispatch end and out at the head, three cells kept clear
 of every piece and melt; the band's court stands across the same column and the
 power hall clear of it. No other way enters the hall: the ways through the
-lines, the other halls and the rooms meet the spine beyond the hall's ends. So
+lines, the other halls and the rooms meet the spine beyond the hall's ends:
+the ways in from the west south of the hall, the ways on to the east (or the
+vault's apron, in the last band) north of it (`RuinsDelveStage.keepOff`). So
 the route through the band passes through the works hall
 (`ruins-expedition.md`, The works hall is the trunk). The interior publishes the hall's
 stand (`RuinsDelve.Interior.worksStand`), the floor cell its zone is held from:

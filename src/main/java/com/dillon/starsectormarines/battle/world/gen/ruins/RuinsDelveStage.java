@@ -441,6 +441,11 @@ public final class RuinsDelveStage implements GenStage {
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
                     entrances, aprons, chambers, plantHalls, leafDoors, settledStand());
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
+            // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
+            // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) if (insideCell(x, y)) grid.markNoMachineDrop(x, y);
+            }
             return new RuinsDelve(layers, landingGround, landing, vault, laid, hall, junctions, records, collapse,
                     interior);
         }

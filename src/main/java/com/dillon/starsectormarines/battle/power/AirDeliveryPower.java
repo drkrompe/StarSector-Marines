@@ -118,8 +118,14 @@ abstract class AirDeliveryPower extends CommandPower {
     /** The scored landing cell near the target, or {@code null} when nowhere there will do. */
     protected int[] landingZoneNear(int cellX, int cellY, BattleView battle) {
         if (battle == null || !battle.getGrid().inBounds(cellX, cellY)) return null;
-        return new LandingZoneScorer(battle.getGrid(), battle.getTopology())
+        LandingZoneScorer scorer = new LandingZoneScorer(battle.getGrid(), battle.getTopology());
+        return (setsDownMachines() ? scorer.forMachines() : scorer)
                 .bestNear(cellX, cellY, LZ_SEARCH_RADIUS, minimumClearance);
+    }
+
+    /** Whether this delivery sets a machine down, so ground closed to machines is no landing zone for it. */
+    protected boolean setsDownMachines() {
+        return false;
     }
 
     /** Entry and exit points just off the map edge nearest the landing point: {@code {entryX, entryY, exitX, exitY}}. */

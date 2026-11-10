@@ -39,10 +39,24 @@ public final class LandingZoneScorer {
 
     private final NavigationGrid grid;
     private final CellTopology topo;
+    private final boolean machines;
 
     public LandingZoneScorer(NavigationGrid grid, CellTopology topo) {
+        this(grid, topo, false);
+    }
+
+    private LandingZoneScorer(NavigationGrid grid, CellTopology topo, boolean machines) {
         this.grid = grid;
         this.topo = topo;
+        this.machines = machines;
+    }
+
+    /**
+     * This scorer for setting down a machine: it also refuses ground marked
+     * {@link NavigationGrid.CellTag#NO_MACHINE_DROP}, a ruins facility's inside.
+     */
+    public LandingZoneScorer forMachines() {
+        return new LandingZoneScorer(grid, topo, true);
     }
 
     /**
@@ -51,7 +65,8 @@ public final class LandingZoneScorer {
      * already excluded by the walkability check.)
      */
     public boolean isViable(int x, int y) {
-        return grid.inBounds(x, y) && grid.isWalkable(x, y) && topo.getBuildingId(x, y) == 0;
+        return grid.inBounds(x, y) && grid.isWalkable(x, y) && topo.getBuildingId(x, y) == 0
+                && !(machines && grid.hasTag(x, y, NavigationGrid.CellTag.NO_MACHINE_DROP));
     }
 
     /** Count of viable cells among the 8 neighbours — how much open space surrounds a dropoff. */
