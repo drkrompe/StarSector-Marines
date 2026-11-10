@@ -71,7 +71,7 @@ final class GroundTileSelector {
         if (topology.isWall(x, y)) return true;
         int surface = topology.getSurface(x, y);
         String drawn = surface > 0 ? topology.surfaceId(surface)
-                : mapping == null ? null : mapping.groundBlockId(topology.getGroundKind(x, y));
+                : mapping == null ? null : mapping.groundBlockId(topology.getGroundKind(x, y), topology.groundPalette());
         return !blockId.equals(drawn);
     }
 

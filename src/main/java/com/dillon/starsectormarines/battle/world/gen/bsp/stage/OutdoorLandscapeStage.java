@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.CultivatedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LivingWorld;
 import com.dillon.starsectormarines.battle.world.gen.NaturalVoidZoning;
@@ -46,6 +47,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.nature.SignatureGround;
+import com.dillon.starsectormarines.battle.world.gen.nature.SludgeGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.CrevasseTown;
@@ -87,6 +89,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         SurfaceField field = SurfaceField.of(c);
         // The basin's edge is drawn as a line whether or not the landscape below dresses it.
         if (!field.uniform()) c.topology.setSurfaceField(field);
+        // The ground draws from the world's own art (a toxic world's stone is stained crust).
+        c.topology.setGroundPalette(field.world());
         // Every lawn and lot has been laid by now; the planet decides whether it is lawn or bare earth. Before the landscape, so a hill
         // finishes from the ground it really stands on; the landscape's own margins ask the palette as they go.
         CultivatedGround.settle(c.topology, field, c::isMadeGround);
@@ -110,6 +114,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
         int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
         for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
+        if (plan != null) reserveWalled(reserved, plan.precincts(), c.get(BspKeys.PRECINCT_CLAIM), c.width, c.height);
         openPits(c, plan, reserved);
         if (!crevasseTown(c, reserved)) chasm(c, field, reserved);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
@@ -132,6 +137,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         // A basin's woods grow on its floor and thin out toward its rim; the rim's own palette dresses the rest.
         // A desert with no basin grows the rim's open dry scrub across the whole map.
         if (grows(field, dryScrubInstalled())) trees(c, reserved, landscape.woodland(), field);
+        // Sludge pools and sulphur flats before the formations, so no boulder stands in a pool.
+        SludgeGround.paint(c, field.world(), reserved);
         if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
         // The planet type's own detail over its palette: craters and ejecta, cracks and their rubble, vents.
         int w = c.width;
@@ -447,6 +454,24 @@ public final class OutdoorLandscapeStage implements GenStage {
             c.topology.setSurface(x, y, timber);
         }
         c.topology.setNaturalVoid(drop.look((int) (c.seed ^ 0x4356L)));
+    }
+
+    /**
+     * Keeps the landscape's features out of every walled place ({@link Precinct.Boundary#WALLED}: a garrison's
+     * cantonment, a works compound): its whole claim is reserved before the pit, the drop, the hills, the rises, the
+     * ridges and the formations are laid, so no ravine, void or hill stands inside a wall. A walled place's yard is
+     * made country, not open country, whatever its ground. {@code claim} is the plan's per-cell owner
+     * ({@code BspKeys.PRECINCT_CLAIM}); null reserves nothing.
+     */
+    static void reserveWalled(boolean[] reserved, List<Precinct> precincts, int[][] claim, int width, int height) {
+        if (claim == null) return;
+        for (int x = 0; x < Math.min(width, claim.length); x++) {
+            for (int y = 0; y < Math.min(height, claim[x].length); y++) {
+                int owner = claim[x][y];
+                if (owner < 0 || owner >= precincts.size()) continue;
+                if (precincts.get(owner).boundary() == Precinct.Boundary.WALLED) reserved[y * width + x] = true;
+            }
+        }
     }
 
     /** Cells from the plan's objective (the works) its buildings are looked for in. UNTUNED. */
@@ -1143,8 +1168,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<TerrainPlan.Point> points=new ArrayList<>();
         double brushRadius=radius;
         // A volcanic world is rock's shape in other art: its craters are cinder cones (SurfacePalette.layoutOf).
-        // An irradiated world's are the same crater rims, glassed.
-        if(surface.layoutOf()==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED) {
+        // An irradiated world's are the same crater rims, glassed; a toxic world's are bare rock's.
+        if(surface.layoutOf()==SurfacePalette.ROCK || surface==SurfacePalette.IRRADIATED || surface==SurfacePalette.TOXIC) {
             // Open crescent rim: a crater suggests enclosure without sealing a movement island.
             brushRadius=3;
             for(int i=0;i<=6;i++) {
@@ -1599,8 +1624,11 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     /** Natural open ground under painted floor (a lawn), nothing built: what a layout's ridge may rise over. */
     private static boolean lawn(GenContext c, int x, int y) {
-        return naturalGround(c, x, y) && !c.isMadeGround(x, y) && c.topology.getSurface(x, y) != 0
-                && c.topology.getSurfaceId(x, y).startsWith("floors.");
+        if (!naturalGround(c, x, y) || c.isMadeGround(x, y) || c.topology.getSurface(x, y) == 0) return false;
+        // A world's own ground block (a toxic world's crust) is that world's earth, as floors.* is everyone else's.
+        String id = c.topology.getSurfaceId(x, y);
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        return id.startsWith("floors.") || mapping != null && mapping.isPaletteGroundBlock(id);
     }
 
     private static boolean openGround(GenContext c, int x, int y) {

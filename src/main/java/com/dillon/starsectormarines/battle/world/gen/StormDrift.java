@@ -35,6 +35,7 @@ public final class StormDrift {
             case ARID, ROCK, IRRADIATED -> "floors.sand";
             case FROZEN -> "floors.snow";
             case VOLCANIC -> "volcanic.ash";
+            case TOXIC -> "toxic-ground.sulphur";
             case VERDANT -> null;
         };
     }

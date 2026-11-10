@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c2a2-e8ae-7b81-99a4-e335b4400fe0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c2a2-e8ae-7b81-99a4-e335b4400fe0\\exec-f0e525e2-d835-4402-930d-5c1c8d32be9c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\toxic-ground\\sludge-master.png",
+    "sha256": "6512969a83f8af59491e407d373bfd0c6320881d290050b43d5211e85f939903",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\tilesets\\toxic-ground\\sludge-master.prompt.txt",
+  "promptSha256": "a8b8dd26145f730e6d3f2291e1ff40ba029141a877f9f727a45b7a92b1a5fb25",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Format only: how flat and low-contrast a liquid tile is; not its colour\n\nUse case: tileable liquid surface for a top-down tactical game. Image 1 is a FORMAT reference only: a shipped open-water tile showing how flat and low-contrast a liquid surface must be. Its blue colour is NOT the colour to use.\nA wide square canvas filled edge to edge with one continuous pool surface, seen STRAIGHT DOWN, orthographic, with flat even overcast light: no sun glint, no reflections of sky or objects, no shore, no edge, no vignette.\nThe liquid: a still pool of thick acidic chemical sludge on a toxic world. Murky dark yellow-green and olive liquid with a faint oily sheen, slow swirls of paler sickly green scum and small clusters of tiny bubbles, a few drifting patches of darker brown froth. Average colour a dark murky olive-green around RGB (70, 86, 38). Murky and dull, slightly brighter and greener than the ground beside it but not neon and not glowing.\nFine detail only: nothing larger than about one twentieth of the canvas, spread evenly so any crop looks like any other. No rocks, banks, debris, plants, objects, labels, text or border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\e0dc25c1c7dcf776\\d110d96a-c63f-4d95-9a72-5bc8700b6479\\scratchpad\\water-ref.png",
+      "sha256": "c418d489a7b5d16d2457580bdd844b9f8a2d67d2e944c809df084c7d5775a801",
+      "dimensions": [
+        480,
+        160
+      ],
+      "mode": "RGB",
+      "role": "Format only: how flat and low-contrast a liquid tile is; not its colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one flat, low-contrast olive sludge tile using the reference only for surface format."
+  ],
+  "usage": {
+    "input_tokens": 37850,
+    "cached_input_tokens": 31488,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 358,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 39.7
+}

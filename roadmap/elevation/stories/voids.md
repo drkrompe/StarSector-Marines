@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-11-07
 
-Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge; a toxic gorge waits for the toxic palette; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
+Updated: 2026-11-09 — rises: the ravine wall, verticality up, the battle on the floor between cliffs; the gorge's camera height settled at 120 m; the lava rift, a natural style, has a look experiment; the glacial crevasse, ice, has one; the open pit, the first void a generated map lays, cut on a Raid mining site; a natural drop or rise deepens and shallows along its length, and a shallow lava river runs a few metres down; generated outdoor maps cut a natural drop across their country, its style picked by the world's palette, with a dry canyon for barren and desert worlds; the arid canyon has its own sandstone look and wall, the first dry style, and barren rock its dry gorge, and a toxic world its toxic gorge; rises climb in terraced banks; a frozen world's town may shelter in a great crevasse.
 
 Read `elevation-nouns.md` (tiers, faces, sight, look) and `surface-relief-nouns.md`
 (macro relief, the sun) first.
@@ -755,11 +755,12 @@ Laws):
      where the sludge laps it; bubbles swelling and bursting out in the
      sludge, never in the crust. Two decks of yellow-green fumes lie over it,
      drifting different ways.
+   - **Placement.** Toxic worlds (`SurfacePalette.TOXIC`) are cut by it
+     (`NaturalVoidZoning.TOXIC_GORGE`).
    - **Battle.** Unchanged: no hazard (as the lava rift's heat, undecided).
    First pass: three ledges to sludge 34 m down, a gorge 10 to 22 cells
    across. Left: the owner's look against the real toxic ground, once it is
-   on main; the zoning row (`NaturalVoidZoning`) when the TOXIC palette lands;
-   fumes rising off the lip; a faint glow off the sludge at dusk.
+   on main; fumes rising off the lip; a faint glow off the sludge at dusk.
 
    **Open pit** (owner pick, 2026-11-09: "An open pit" on the mining site, and the
    site must read as planetary industry, a centralized works processing more

@@ -59,7 +59,15 @@ public final class RuinsDelveStage implements GenStage {
     static final int BERTH_COLUMN = 5;
     /** Half the lateral spread of one arrival area's berths, as the shipped arrival areas have it. */
     static final int BERTH_OFFSET = 4;
-    static final int VAULT_WIDTH = 11, VAULT_HEIGHT = 9;
+    /**
+     * The secure store's size by layer count ({@code ruins-expedition.md}, The site is the plant that made the
+     * prize): the plant's cradle hall with its antechamber, from a satellite depot's at scattered to a works' at vast.
+     */
+    static final int[] VAULT_WIDTHS = {15, 21, 25, 29}, VAULT_HEIGHTS = {11, 15, 17, 19};
+    /** A cradle's side, cells, and the aisle left between cradles. */
+    static final int CRADLE = 3, CRADLE_GAP = 1;
+    static final String WRECK = "doodad.industrial-scrap-pile";
+    static final String PULLED = "doodad.industrial-pallet-stack";
     /** Open ground in front of the vault's door, so its approach is a place to hold. */
     static final int FORECOURT = 9;
     static final int ROOM_WIDTH = 7, ROOM_HEIGHT = 6;
@@ -207,7 +215,8 @@ public final class RuinsDelveStage implements GenStage {
                         LandingPad.civilian(berthX, lateral + BERTH_OFFSET, LandingPad.Approach.WEST)));
             }
 
-            int vaultY = clamp(h / 2 + rng.nextInt(h / 3 + 1) - h / 6, 10, h - 11);
+            int half = vaultHeight() / 2;
+            int vaultY = clamp(h / 2 + rng.nextInt(h / 3 + 1) - h / 6, half + 5, h - half - 6);
             Vault vault = vault(vaultY);
             int zoneStart = landingGround.right() + 2;
             int zoneEnd = vault.footprint().left() - FORECOURT - 1;
@@ -378,7 +387,7 @@ public final class RuinsDelveStage implements GenStage {
         // ---- vault ---------------------------------------------------------------------------
 
         Vault vault(int cy) {
-            int x1 = w - 4, x0 = x1 - VAULT_WIDTH + 1, y0 = cy - VAULT_HEIGHT / 2, y1 = y0 + VAULT_HEIGHT - 1;
+            int x1 = w - 4, x0 = x1 - vaultWidth() + 1, y0 = cy - vaultHeight() / 2, y1 = y0 + vaultHeight() - 1;
             apron = new Area(x0 - FORECOURT, y0 - 3, w - 2, y1 + 3);
             open(apron, null);
             reserve(apron, 1);
@@ -387,7 +396,8 @@ public final class RuinsDelveStage implements GenStage {
             for (int y = y0 + 1; y < y1; y++) wall(partition, y, VAULT_WALL, BuildingKind.FORTIFIED);
             door(x0, cy);
             door(partition, cy);
-            Cell source = new Cell((partition + 1 + x1 - 1) / 2, cy);
+            // The breach is held on the aisle, before the cradle the prize survives in at its far end.
+            Cell source = new Cell(x1 - CRADLE - 2, cy);
             dressVault(x0, y0, x1, y1, partition, cy);
             Cell approach = new Cell(x0 - 1, cy);
             vaultPoi = new PointOfInterest(PointOfInterest.Kind.DEPOT, x0, y0, x1, y1,
@@ -402,18 +412,56 @@ public final class RuinsDelveStage implements GenStage {
          * command floor, the haul stands crated in its corners, and a console stands in the antechamber.
          */
         void dressVault(int x0, int y0, int x1, int y1, int partition, int cy) {
-            int[][] buttresses = {{x0 - 1, y0 - 1}, {x0 - 1, y1 + 1}, {x1 + 1, y0 - 1}, {x1 + 1, y1 + 1},
-                    {x0 + 3, y0 - 1}, {x0 + 3, y1 + 1}, {x0 + 7, y0 - 1}, {x0 + 7, y1 + 1},
-                    {x1 + 1, cy - 2}, {x1 + 1, cy + 2}};
+            List<int[]> buttresses = new ArrayList<>(List.of(new int[]{x0 - 1, y0 - 1}, new int[]{x0 - 1, y1 + 1},
+                    new int[]{x1 + 1, y0 - 1}, new int[]{x1 + 1, y1 + 1}, new int[]{x1 + 1, cy - 2},
+                    new int[]{x1 + 1, cy + 2}));
+            for (int x = x0 + 3; x < x1; x += 4) {
+                buttresses.add(new int[]{x, y0 - 1});
+                buttresses.add(new int[]{x, y1 + 1});
+            }
             for (int[] b : buttresses) wall(b[0], b[1], VAULT_WALL, BuildingKind.FORTIFIED);
             int room = topology.surfaceIndex(VAULT_ROOM_FLOOR);
             for (int y = y0 + 1; y < y1; y++) for (int x = partition + 1; x < x1; x++) topology.setSurface(x, y, room);
-            prop(HAUL, x1 - 1, y0 + 1);
-            prop(HAUL, x1 - 1, y1 - 1);
-            prop(HAUL, partition + 1, y0 + 1);
-            prop(HAUL, partition + 1, y1 - 1);
+            cradles(partition, y0, x1, y1, cy);
             prop(CONSOLE, x0 + 2, y1 - 1);
         }
+
+        /**
+         * The secure store's cradles: rows of {@link #CRADLE}-square pads along its long walls, an aisle left down the
+         * middle from the inner door. Units were pulled out of most and the rest wrecked where they stood; the one
+         * at the aisle's far end still holds the prize. Stand-in props until the plant kit's cradle art lands.
+         */
+        void cradles(int partition, int y0, int x1, int y1, int cy) {
+            int pad = topology.surfaceIndex(VAULT_FLOOR);
+            int left = partition + 2, right = x1 - 1;
+            int[] rowsLow = {y0 + 1}, rowsHigh = {y1 - CRADLE};
+            if (y1 - y0 - 1 >= 4 * CRADLE + 3) {
+                rowsLow = new int[]{y0 + 1, y0 + 1 + CRADLE + CRADLE_GAP};
+                rowsHigh = new int[]{y1 - CRADLE, y1 - 2 * CRADLE - CRADLE_GAP};
+            }
+            for (int[] rows : new int[][]{rowsLow, rowsHigh}) {
+                for (int by : rows) {
+                    for (int bx = left; bx + CRADLE - 1 <= right - CRADLE - 1; bx += CRADLE + CRADLE_GAP) {
+                        if (by <= cy + 1 && by + CRADLE - 1 >= cy - 1) continue;
+                        for (int y = by; y < by + CRADLE; y++) for (int x = bx; x < bx + CRADLE; x++) {
+                            topology.setSurface(x, y, pad);
+                        }
+                        long hash = (bx * 73_856_093L) ^ (by * 19_349_663L) ^ (ctx.seed * 83_492_791L);
+                        int kind = (int) Math.floorMod(hash ^ (hash >>> 17), 4L);
+                        if (kind == 0) prop(WRECK, bx + 1, by + 1);
+                        else if (kind == 1) prop(PULLED, bx + 1, by + 1);
+                    }
+                }
+            }
+            // The prize's cradle closes the aisle at the far wall: the one unit that never left.
+            int px = x1 - CRADLE;
+            for (int y = cy - 1; y <= cy + 1; y++) for (int x = px; x < px + CRADLE; x++) topology.setSurface(x, y, pad);
+            prop(HAUL, px + 1, cy);
+        }
+
+        int vaultWidth() { return VAULT_WIDTHS[Math.min(plan.layers(), VAULT_WIDTHS.length) - 1]; }
+
+        int vaultHeight() { return VAULT_HEIGHTS[Math.min(plan.layers(), VAULT_HEIGHTS.length) - 1]; }
 
         // ---- layers --------------------------------------------------------------------------
 

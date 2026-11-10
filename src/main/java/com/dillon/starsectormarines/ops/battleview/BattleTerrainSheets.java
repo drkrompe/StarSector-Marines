@@ -79,7 +79,7 @@ public final class BattleTerrainSheets {
         kinds.add(CellTopology.GroundKind.RUBBLE);
         if (mapping != null) {
             for (CellTopology.GroundKind kind : kinds) {
-                blocks.add(mapping.groundBlockId(kind));
+                blocks.add(mapping.groundBlockId(kind, topology.groundPalette()));
                 blocks.add(mapping.groundDamageBlockId(kind));
             }
             for (SurfaceRole role : SurfaceRole.values()) blocks.add(mapping.surfaceBlockId(role));

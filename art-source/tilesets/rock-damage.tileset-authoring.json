@@ -1351,6 +1351,230 @@
         385,
         330
       ]
+    },
+    {
+      "id": "nature.rock-toxic-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        30,
+        10698,
+        286,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        30,
+        11585,
+        286,
+        357
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        525,
+        10699,
+        311,
+        356
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        525,
+        11586,
+        311,
+        356
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        934,
+        10703,
+        365,
+        356
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        934,
+        11590,
+        365,
+        356
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1387,
+        10711,
+        345,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1387,
+        11598,
+        345,
+        340
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        23,
+        11132,
+        392,
+        360
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        23,
+        12019,
+        392,
+        360
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        11147,
+        372,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        478,
+        12034,
+        372,
+        322
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        922,
+        11158,
+        378,
+        328
+      ]
+    },
+    {
+      "id": "nature.rock-toxic-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        922,
+        12045,
+        378,
+        328
+      ]
     }
   ]
 }

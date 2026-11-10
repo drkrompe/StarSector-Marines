@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-11-09 — habitat: an irradiated world's places are sealed complexes; frozen towns insulate. Earlier, 2026-11-09 — habitat: a town built for its world, shielded under radiation and sealed where the air kills or is absent. Earlier, 2026-11-09 — ruins ground: a ruins site's dead settlement laid as a delve, its places published by name. Earlier, 2026-10-31: a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -1092,7 +1092,7 @@ Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy
 summits, frozen worlds use narrow glacial pressure ridges, and barren worlds
-use open crescent crater rims. Irradiated worlds use the same crater rims in a
+use open crescent crater rims, as do toxic worlds. Irradiated worlds use the same crater rims in a
 glassed finish (`TerrainPlan.Finish.GLASSED`). Other palettes keep bare rock. Forest crowns may sit entirely
 on full grassy summit cells; they do not straddle cliff faces or talus. Summit
 trees add appearance to already inaccessible ground, never a playable upper
@@ -1107,7 +1107,7 @@ placement and collision rules, and the preview uses the battle renderer.
 ## Planet mineral fields
 
 A **mineral formation** is a multi-cell solid obstacle with a code-owned overhead
-silhouette. Barren worlds use clustered boulders and rock spires; frozen worlds
+silhouette. Barren worlds and toxic worlds use clustered boulders and rock spires; frozen worlds
 use ice blocks and pinnacles; irradiated worlds use dead husks, squat pairs and
 tall split spires, each only on its own world's wild ground
 (`FormationBrush.pool`, `MineralFormation.Material`). Fields of these formations provide forest-like
@@ -1277,9 +1277,19 @@ works), walled and glacised like a square place; it is laid on the largest
 square of its own ground. Every road across its claim is taken up and one
 **road in** laid straight from its middle to the town's nearest road
 (`CantonmentRoads`), and no weld between road networks is cut back across it.
-The **gate** is where that road comes in; the avenue runs from the gate side's
-middle, with a forecourt street inside the wall where the road enters off that
-line. Its parts:
+The **main gate** is where that road comes in, the widest road in; the avenue
+runs from the gate side's middle, with a forecourt street inside the wall where
+the road enters off that line. A base has more than one way in and out (owner:
+"multiple entrances and exits"): its market owes two gates, three from size 5,
+four from size 7 (`CantonmentRoads.gates`), and each **further gate** is a
+narrower road from the patrol lane inside the wall, out across the glacis, on
+until it meets the town's road, in the middle of each further side that faces
+one, nearest first. Every gate therefore joins the map's network; a side whose
+road would only leave the map has none. Planned, not built: a further gate opens
+on the patrol lane, which walks but does not drive, so the layout is to keep a
+way three cells wide from each further gate to the nearest street once the
+motor pool plan is picked. The grade does not close gates: it arms
+them (`precincts.md`, Defences are sited by doctrine). Its parts:
 
 - the **motor pool**: vehicle sheds whose door ends open on a paved
   **hardstand**, joined to the avenue, so every shed has a way out of the gate
@@ -2030,9 +2040,15 @@ over roof strips with bare hull between them. Rooms and the power hall inside
 are built of the hull; the power hall stands inside at extensive and vast, and
 at widespread, whose only layer before the last is outside, it stays out.
 
-**The vault is the site's hardened heart.** Buttressed dark cast concrete,
-an antechamber and the vault room behind an inner door, the haul crated in its
-corners: the one shell on the map that reads intact and strong.
+**The vault is the plant's secure store** (`ruins-expedition.md`, The site is
+the plant that made the prize). Buttressed dark cast concrete, an antechamber
+and the cradle hall behind an inner door: the one shell on the map that reads
+intact and strong. It grows with the layer count, 15x11 at scattered, 21x15,
+25x17 and 29x19 at vast (`RuinsDelveStage.VAULT_WIDTHS`). Rows of 3x3 cradle
+pads stand along its long walls with an aisle down the middle from the inner
+door. Units were pulled out of most cradles and wrecked in others, and the
+breach is held on the aisle before the far cradle, where the prize still
+stands. The cradles' props are stand-ins until the plant kit's art lands.
 
 **The laws are checked on the finished map.** `DelveCheck` walks the finished
 grid one cardinal step at a time, stricter than the pathfinder, from the
@@ -2236,7 +2252,7 @@ never grows weather it did not ask for.
 
 A storm world drifts its own ground against its town (`StormDrift`): on the
 face of every wall toward the seed's wind (`StormWind`), one to four cells of
-sand (desert, or dust on a rock) or snow (frozen), its depth a slow coordinate
+sand (desert, or dust on a rock), snow (frozen) or sulphur dust (toxic), its depth a slow coordinate
 noise. A drift is a surface skin (`floors.sand`, `floors.snow`), never ground:
 the cell keeps its ground kind, so walkability, cover, fire and every placement
 that reads pavement are unchanged, and it crosses a street only on the apron
@@ -2250,17 +2266,27 @@ owner): on a desert or a rock under storms, a graded berm ten cells through runs
 along the map's windward edge, ramped from the town's side. The wind is the
 planet's (`Climate.wind`, drawn once from the market), so the bank and the
 drifts face the same way. It is planned before anything grows: its bands are
-held from growth (`Landscape.withHeld`) and the strip from the edge to the bank
-is kept (`Landscape.withKept`), so no place grows onto it or round it onto its
-windward side, and a Raid site sets every place leeward of it
+held from growth (`Landscape.withHeld`) and the strip from the edge to a few
+cells past the bank's lee apron is kept (`Landscape.withKept`), so no place
+grows onto it or round it onto its windward side, and no road the town lays
+beside it reserves the apron's last row and refuses the whole stretch, and a Raid site sets every place leeward of it
 (`StormBank.leeward`) and turns its back to the wind, so the company never lands
 on the windward side. A pass is planned where a road the plan already knows
 leaves the map that way (a works' feeder), and the landscape pass raises the
 rest through `RidgePlanner`, which breaks it again wherever a road, a building or
 an access route crosses and proves the ground on both sides stays one: cover
 and a height to hold, never a seal. It stands past the edge reservation the
-landscape pass keeps, or no segment fits. A mine's pit stops short of it. Snow
-fences and quake hardening are still to come.
+landscape pass keeps, or no segment fits. A mine's pit stops short of it.
+
+The bank reads as works a colony keeps, not as a ridge (`StormBankDressing`,
+owner), dressed from existing art once the streets are finished: sand on its
+windward foot and the windward half of its crest, the lee half swept clean; a
+sandbag windbreak along the crest's windward edge, in panels; a worn
+maintenance track along its lee foot that runs on through the passes; a crash
+barrier and a work lamp either side of every pass, with a hauler or loader
+parked by it; and out toward the edge an older line, half buried, of broken
+parapet, broken again wherever a pass runs out. Nothing stands on a road or in
+a pass. Snow fences and quake hardening are still to come.
 
 **A settlement is built for the world it stands on: its habitat.** An irradiated
 world's town is not a garden world's open town on grey ground (owner). `Habitat`
@@ -2272,9 +2298,26 @@ people the town is still built for its ground, read from the palette so a site
 with no market behind it adapts too: a frozen world **insulates**. Every other
 world builds the **open** town it always did.
 
-- **Shielded.** Every town building's shell is poured concrete (the installation
-  wall's brutalist look, a block of its own, so the town is never marked as a
-  fort's lot) under a flat slab roof.
+- **Shielded: no town at all.** Hard radiation is not something a society lives
+  beside in suits; it is kept out by mass, so the people live sealed away from it
+  by design (owner). On a battle laid out as places (`precincts.md`) every place
+  is a **sealed complex** (`SealedComplex`): the settlement is programmed rather
+  than zoned (`FortressProgram.habitat`: hab blocks counted from the market, a
+  mess, a workshop, stores, a power hall, a control room, and a vehicle bay and
+  lock posts on its face), and the garrison is the same garrison sealed. A
+  sealed program (`FortressProgram.sealedComplex`) packs as a hull
+  (`RoomPacker.Massing.WEDGED`) on tighter ground than a yard needs; its roads
+  give way to building except the stubs at its edge, so the packer cuts its own
+  halls in from the gates as a deck's passages are cut; whatever ground inside
+  its wall no room took is hall floored in installation concrete, and halls,
+  rooms and locks are one building under one roof. Its wall is the shielding,
+  poured as brutalist concrete, and where a road meets it the opening is an
+  airlock with a marked floor. Outside lies bare ground crossed by the roads in,
+  with no outlying places and no airfield. The battle is an approach over open
+  ground, a breach at the locks and a fight through the interior. A battle not
+  laid out as places (a stock map, a look frame) still builds its town shielded:
+  poured concrete under flat slab roofs (the installation wall's brutalist look,
+  a block of its own, so the town is never marked as a fort's lot).
 - **Sealed.** Masonry houses are rebuilt as white ceramic panel blocks; the olive
   prefabs stay as they are.
 - **Insulated.** Brick and steel that hold heat: the white ceramic blocks are
@@ -2286,16 +2329,19 @@ world builds the **open** town it always did.
   edge holds oxygen spheres, the life support kept outside where a leak vents to
   nothing, instead of benches (`ParkFiller`, on the park's own draws).
 
-A habitat is presentation only and never moves a wall, door, window or road: the
-town plan, walkability, sight and every rule are the open town's on the same seed,
-except that a court's spheres are real bodies with cover where a park's benches
-were. It is laid by `HabitatStage` once the open ground is settled; it leaves a
+A sealed, insulated or shielded town is presentation only and never moves a wall,
+door, window or road: the town plan, walkability, sight and every rule are the
+open town's on the same seed, except that a court's spheres are real bodies with
+cover where a park's benches were. A sealed complex is not presentation: it is a
+different map, and its look is `sealed-complex-look`. It is laid by `HabitatStage` once the open ground is settled; it leaves a
 fort lot's walls to their works, and never touches the dark installation concrete,
 which is a compound's perimeter that the Cordon's rules read by its surface. The
 look is `habitat-look`.
 
-Still to come, in this vocabulary: enclosed walkways linking a sealed town's
-blocks; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
+Still to come, in this vocabulary: dressing for a complex's open courts
+(hydroponics) and outside works (radiators, intakes, sensor masts); whether
+toxic and airless worlds live in sealed complexes too, which is the owner's
+call; enclosed walkways linking a sealed town's blocks; compact heated blocks for a frozen town's narrow terraces, volcanic towns raised and heat
 shielded, desert towns thick-walled and shaded; jungle towns on stilts and ocean
 towns on piers. The toxic and irradiated palettes, once they exist, join the
 hazards in `HabitatZoning`, so a story map on such a world adapts without a market.
@@ -2397,9 +2443,9 @@ nothing anywhere reported a problem. A dead enum value is not a neutral
 placeholder; it is a silent verdict that some quarter of the map space does not
 exist.
 
-That is the shape of the remaining gap rather than a closed question. Toxic
-and volcanic worlds still collapse into rock for exactly the same reason, and
-will until each has a material family of its own.
+That is the shape of the remaining gap rather than a closed question. Volcanic,
+irradiated and toxic worlds each have a look of their own now; a planet type
+that matches no palette still collapses into rock for exactly the same reason.
 
 **An irradiated world is scorched, glassed and bleached.** `irradiated` resolves
 to `IRRADIATED`, whose wild ground is its own kind, `GroundKind.HARDPAN`: pale,
@@ -2413,6 +2459,25 @@ ground composite grades an irradiated world's sunlit ground pale and washed out,
 with hard neutral shadows (`WorldLight`); every other palette's light is neutral
 and its ground draws exactly as its tiles paint it. No hazard reaches the
 simulation: radiation is carried on `Climate` and is not yet built on.
+
+**A palette may restyle a ground kind instead of adding one.** `TOXIC` (vanilla
+`toxic`) is corroded, chemically stained rock with crusted sulphur flats and
+pools of acid sludge, and none of it is a new `GroundKind`: the stained rock is
+`STONE`, a flat is `SAND` and a pool is `WATER`. The mapping's
+`paletteGroundRender` names the block each kind draws from on that world
+(`GenMappingRegistry.groundBlockId(GroundKind, SurfacePalette)`, falling back to
+`groundRender`), and the map carries its palette for the renderer
+(`CellTopology.groundPalette`). So a pool is impassable and see-through exactly
+as water is, a flat is open going, and every rule about stone holds; only the
+picture changes. The art is its own sheet (`toxic-ground`), not cells on the
+Floors plate. `SludgeGround` lays the pools and flats on wild ground in the
+closing outdoor pass, before the mineral fields: a pool is all or nothing, needs
+open wild ground for two cells around it and the local detour proof, and is
+ringed with sulphur; flats follow a slow patch noise. Its rocks are the toxic
+field-stone set, its hills crescent crater rims and its fields boulders and
+spires, as on bare rock. No toxic ground harms anyone; hazard is not a ground
+rule. `toxic_cold` stays `FROZEN`: its air is toxic but its ground is ice at
+cryogenic cold, where nothing pools as liquid.
 
 An **economic district** earns its identity through navigable geometry, cover,
 destruction, and sightlines. Spaceport aprons exemplify this: they are open

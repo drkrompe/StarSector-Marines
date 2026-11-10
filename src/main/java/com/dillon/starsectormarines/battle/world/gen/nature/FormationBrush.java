@@ -61,7 +61,8 @@ public final class FormationBrush {
     public static MineralFormation[] pool(SurfacePalette surface) {
         if(surface==null) return new MineralFormation[0];
         return switch(surface) {
-            case ROCK -> new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
+            // A toxic world's stained rock stands in the same boulders and spires as bare rock does.
+            case ROCK, TOXIC -> new MineralFormation[]{MineralFormation.BOULDERS,MineralFormation.SPIRES};
             case FROZEN -> new MineralFormation[]{MineralFormation.ICE_BLOCKS,MineralFormation.ICE_PINNACLES};
             // Basalt keeps rock's shapes in rock's order, so a volcanic seed draws and blocks exactly as a rock one does.
             case VOLCANIC -> new MineralFormation[]{MineralFormation.BASALT_BOULDERS,MineralFormation.BASALT_SPIRES};
@@ -108,7 +109,7 @@ public final class FormationBrush {
         props.addAll(additions);
     }
 
-    private static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
+    static boolean eligible(NavigationGrid grid,CellTopology topology,boolean[] reserved,int x,int y) {
         boolean natural=switch(topology.getGroundKind(x,y)){case STONE,DIRT,SNOW,SAND,GRASS,HARDPAN -> true;default -> false;};
         if(!natural || !grid.isWalkable(x,y) || grid.isDoorway(x,y) || topology.isWall(x,y) || topology.isFixture(x,y)
                 || topology.getBuildingId(x,y)!=0 || topology.getSurface(x,y)!=0
