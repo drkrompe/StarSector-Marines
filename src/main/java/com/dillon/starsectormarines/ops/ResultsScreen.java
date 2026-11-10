@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.FirstRefit;
@@ -403,12 +404,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         }
         if (!outcome.fieldSalvage.isEmpty()) {
             String finds = Strings.join("separatorDot", outcome.fieldSalvage.stream()
-                    .map(f -> Strings.format("resultsScreenFieldFind", f.quantity(),
-                            f.resource().displayName))
+                    .map(SalvageCache.Recovered::label)
                     .toArray(String[]::new));
             rows.add(row("result-field-salvage", Strings.get("resultsScreenFieldFinds"),
                     banked(outcome) ? finds : Strings.format("resultsScreenLeftBehind", finds),
                     banked(outcome) ? "tone-good" : "tone-muted"));
+        }
+        String prize = RuinsPrizeWording.of(outcome);
+        if (prize != null) {
+            rows.add(row("result-ruins-prize", Strings.get("resultsScreenVaultPrize"), prize,
+                    outcome.victory ? "tone-good" : "tone-muted"));
         }
         for (ObjectiveResult objective : outcome.objectives) {
             rows.add(row("result-objective-" + objective.key(), objective.title(),

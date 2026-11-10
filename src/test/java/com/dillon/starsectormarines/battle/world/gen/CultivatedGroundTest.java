@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** The colony's lawn grows only where the planet grows things ({@link CultivatedGround}). */
+/** The colony's lawn grows, and its dirt lots stay dirt, only where the planet grows things ({@link CultivatedGround}). */
 class CultivatedGroundTest {
 
     private static final int W = 40;
@@ -31,7 +31,7 @@ class CultivatedGroundTest {
 
     private static CellTopology settled(SurfacePalette world, Basin basin) {
         CellTopology topology = lawn();
-        CultivatedGround.settle(topology, new SurfaceField(world, basin, W, H, 7));
+        CultivatedGround.settle(topology, new SurfaceField(world, basin, W, H, 7), CultivatedGround.MadeGround.NONE);
         return topology;
     }
 
@@ -59,7 +59,8 @@ class CultivatedGroundTest {
     void aCellWithAnAuthoredSurfaceKeepsItsGround() {
         CellTopology topology = lawn();
         topology.setSurface(3, 3, 1);
-        CultivatedGround.settle(topology, new SurfaceField(SurfacePalette.ROCK, Basin.NONE, W, H, 7));
+        CultivatedGround.settle(topology, new SurfaceField(SurfacePalette.ROCK, Basin.NONE, W, H, 7),
+                CultivatedGround.MadeGround.NONE);
         assertEquals(GroundKind.GRASS, topology.getGroundKind(3, 3), "a farm's surfaced field is left as laid");
         assertEquals(GroundKind.STONE, topology.getGroundKind(4, 3));
     }
@@ -68,7 +69,7 @@ class CultivatedGroundTest {
     void aLivingBasinOnADesertKeepsItsLawnAndItsRimDoesNot() {
         SurfaceField field = new SurfaceField(SurfacePalette.ARID, new Basin(SurfacePalette.VERDANT, .6f, .6f), W, H, 7);
         CellTopology topology = lawn();
-        CultivatedGround.settle(topology, field);
+        CultivatedGround.settle(topology, field, CultivatedGround.MadeGround.NONE);
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) {
                 if (y == H / 2) continue;
@@ -78,5 +79,23 @@ class CultivatedGroundTest {
         }
         assertEquals(GroundKind.GRASS, topology.getGroundKind(W / 2, H / 2 - 1), "the basin's middle is lawn");
         assertEquals(GroundKind.SAND, topology.getGroundKind(0, 0), "the desert corner is not");
+    }
+
+    @Test
+    void anUnworkedLotIsTheWorldsGroundAndDugEarthKeepsItsDirt() {
+        CellTopology topology = new CellTopology(W, H);
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) topology.setGroundKind(x, y, GroundKind.DIRT);
+        topology.setSurface(5, 5, topology.surfaceIndex("floors.dirt"));
+        CultivatedGround.settle(topology, new SurfaceField(SurfacePalette.FROZEN, Basin.NONE, W, H, 7),
+                (x, y) -> x == 9 && y == 9);
+        assertEquals(GroundKind.SNOW, topology.getGroundKind(0, 0), "an open lot is the world's snow");
+        assertEquals(GroundKind.DIRT, topology.getGroundKind(9, 9), "made ground keeps its dirt");
+        assertEquals(GroundKind.DIRT, topology.getGroundKind(5, 5), "worked earth keeps its dirt");
+
+        CellTopology living = new CellTopology(W, H);
+        for (int y = 0; y < H; y++) for (int x = 0; x < W; x++) living.setGroundKind(x, y, GroundKind.DIRT);
+        CultivatedGround.settle(living, new SurfaceField(SurfacePalette.VERDANT, Basin.NONE, W, H, 7),
+                CultivatedGround.MadeGround.NONE);
+        assertEquals(W * H, count(living, GroundKind.DIRT), "a living world's lots stay dirt");
     }
 }

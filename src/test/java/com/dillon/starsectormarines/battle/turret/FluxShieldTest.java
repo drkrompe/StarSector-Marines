@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -141,5 +142,44 @@ class FluxShieldTest {
         shield.noteRound(30f);
         shield.tick(DT, Float.NaN);
         assertTrue(shield.flux() <= during, "an overloaded pool takes no more");
+    }
+
+    @Test
+    void aPooledShieldChargesTheGunsPoolSoBlockingSpendsTheirHeadroom() {
+        MechFlux pool = new MechFlux();
+        FluxShield shield = FluxShield.pooled(SPEC, 0f, pool);
+        run(shield, 0.6f, 0f);
+        float beforeBlock = pool.value();
+        assertTrue(shield.absorb(0f, 40f), "a round from the front is stopped");
+        assertEquals(beforeBlock + 40f, pool.value(), 0.001f, "and its damage lands on the guns' pool");
+        assertFalse(pool.permits(60f, false), "leaving the guns less to fire with");
+    }
+
+    @Test
+    void aPooledShieldThatFillsThePoolOverloadsTheMechShieldAndGuns() {
+        MechFlux pool = new MechFlux();
+        FluxShield shield = FluxShield.pooled(SPEC, 0f, pool);
+        run(shield, 0.6f, 0f);
+        assertTrue(shield.absorb(0f, 200f), "the round that fills the pool is still stopped");
+        assertTrue(shield.overloaded() && pool.overloaded());
+        assertFalse(shield.covers(0f));
+        assertFalse(pool.permits(0f, false), "every gun on the pool is silent");
+        for (float t = 0f; t < SPEC.overloadSeconds() + DT; t += DT) {
+            pool.advance(DT);
+            shield.tick(DT, 0f);
+        }
+        assertFalse(pool.overloaded());
+        assertTrue(pool.value() < 1f, "the overload vents the pool to empty, but for the re-raised shield's upkeep");
+    }
+
+    @Test
+    void aPooledShieldFoldsWhileTheGunsHaveThePoolVenting() {
+        MechFlux pool = new MechFlux();
+        FluxShield shield = FluxShield.pooled(SPEC, 0f, pool);
+        run(shield, 0.6f, 0f);
+        pool.commit(97f);
+        assertTrue(pool.venting());
+        run(shield, SPEC.lowerSeconds() + DT, 0f);
+        assertFalse(shield.covers(0f), "firing hot leaves the mech open until the vent is done");
     }
 }
