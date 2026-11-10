@@ -70,7 +70,7 @@ public final class WalkerTurnLookSuite implements SnapshotSuite {
         long id = 0L;
         String name = frame == null ? "heavy" : frame.name().toLowerCase();
         for (DerelictSecurityDirector.Walker w : director.walkers()) {
-            boolean match = frame == null ? w.frame() != DerelictWalkerFrame.ROUNDS && w.frame() != DerelictWalkerFrame.HALL
+            boolean match = frame == null ? DerelictWalkerClass.of(w.frame().chassis) == DerelictWalkerClass.HEAVY
                     : w.frame() == frame;
             if (match && sim.squadMemberCount(w.squadId()) > 0) {
                 id = sim.squadMemberAt(w.squadId(), 0);
