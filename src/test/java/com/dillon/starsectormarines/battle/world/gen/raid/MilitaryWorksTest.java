@@ -40,7 +40,7 @@ class MilitaryWorksTest {
     void theBaseIsAMotorPoolWithWhatThePatrolsDrawOn() {
         MilitaryWorks works = new MilitaryWorks();
         assertEquals(3, count(works.works(3), MilitaryWorks.MOTOR_POOL));
-        for (RoomPurpose step : List.of(MilitaryWorks.MAGAZINE, MilitaryWorks.FUEL_POINT)) {
+        for (RoomPurpose step : List.of(MilitaryWorks.MAGAZINE, MilitaryWorks.FUEL_POINT, MilitaryWorks.MEDICAL_POST)) {
             assertEquals(1, count(works.works(3), step), step.name());
         }
         // Dispatch is a control room, as the gate guard posts are.
