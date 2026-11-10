@@ -284,6 +284,54 @@ class ClearanceRoutePlannerTest {
         return search.result();
     }
 
+    @Test
+    void aBreachCostsItsSurchargeSoAShortDetourIsTakenAndALongOneIsNot() {
+        // A wall line across the field at y = 6, open in a breach view; a gap in it at gapX.
+        NavigationGrid near = breachLine(20, 10, 10);
+        var round = route(near, 7f, 2f, 7f, 10f, 0.6f, 0f);
+        assertEquals(ClearanceRoutePlanner.Status.FOUND, round.status());
+        assertFalse(crossesBreach(near, round.waypoints()), "a gap three cells over is cheaper than the wall");
+
+        NavigationGrid far = breachLine(40, 38, 10);
+        var through = route(far, 7f, 2f, 7f, 10f, 0.6f, 0f);
+        assertEquals(ClearanceRoutePlanner.Status.FOUND, through.status());
+        assertTrue(crossesBreach(far, through.waypoints()), "a gap thirty cells over is dearer than the wall");
+    }
+
+    @Test
+    void aLinkInsideABreachCellCostsItsSurcharge() {
+        NavigationGrid grid = new NavigationGrid(4, 4);
+        floor(grid, 0, 0, 4, 4);
+        grid.setTag(1, 1, NavigationGrid.CellTag.BREACH, true);
+        assertEquals(.5f, ClearanceRoutePlanner.linkCost(grid, 0.5f, 0.5f, 1f, 0.5f), 1e-6f);
+        assertEquals(.5f * ClearanceRoutePlanner.BREACH_COST,
+                ClearanceRoutePlanner.linkCost(grid, 1f, 1.5f, 1.5f, 1.5f), 1e-6f);
+        assertEquals((float) Math.sqrt(.5d) * ClearanceRoutePlanner.BREACH_COST,
+                ClearanceRoutePlanner.linkCost(grid, 1f, 1f, 1.5f, 1.5f), 1e-6f);
+        assertTrue(ClearanceRoutePlanner.crossesBreach(grid, 0.5f, 1.5f, 3.5f, 1.5f));
+        assertFalse(ClearanceRoutePlanner.crossesBreach(grid, 0.5f, 2.5f, 3.5f, 2.5f));
+    }
+
+    /** A {@code width} x 13 field crossed at y = 6 by breach-view wall cells, open as ground at x = {@code gapX}. */
+    private static NavigationGrid breachLine(int width, int gapX, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height + 3);
+        floor(grid, 0, 0, width, height + 3);
+        for (int x = 0; x < width; x++) {
+            if (x >= gapX && x < gapX + 2) continue;
+            grid.setTag(x, 6, NavigationGrid.CellTag.BREACH, true);
+        }
+        return grid;
+    }
+
+    private static boolean crossesBreach(NavigationGrid grid, List<ClearanceRoutePlanner.Point> points) {
+        for (int i = 1; i < points.size(); i++) {
+            var a = points.get(i - 1);
+            var b = points.get(i);
+            if (ClearanceRoutePlanner.crossesBreach(grid, a.x(), a.y(), b.x(), b.y())) return true;
+        }
+        return false;
+    }
+
     private static NavigationGrid detour() {
         NavigationGrid grid = new NavigationGrid(12, 8);
         floor(grid, 0, 0, 12, 8);

@@ -686,6 +686,13 @@ Laws):
      (`BuildingFaces.DESTROYED_SHARE`), it stands as a broken shell no more
      than a storey high, its corners tallest, drawn over its roof's
      remnants, with rubble heaped round it.
+   - **Rubble** (`WallRubble`, sheet `graphics/decals/wall-rubble.png` from
+     `art-source/wall-rubble`): a breached or razed wall heaps a long pile
+     against its foot with blocks and scattered fragments beyond it; a wall
+     whose roof fell in heaps a smaller one; a badly hurt wall sheds a slab
+     or a few blocks. Pieces are neutral grey, tinted half toward their
+     wall's finish. Rubble lies on the open ground, so it is laid outside
+     every wall that sheds it, whichever way the wall faces the view.
 
    Look suite: `createSnapshots -Psnapshot=building-walls-look` (six
    worlds, intact, cut away and damaged).

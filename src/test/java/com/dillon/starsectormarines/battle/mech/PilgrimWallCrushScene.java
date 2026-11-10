@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * The Pilgrim's wall crush ({@link MechWallCrush}): a Pilgrim given a real player move order across a wall line plans
  * through its ordinary part, walks into it, pushes it down by its weight and walks on, while the fortified part stands.
- * The control is the same order to a plain Bulwark, its frame, which does not cross.
+ * The control is the same order to a Warden, a medium frame, which does not cross.
  *
  * <p>The field is cut in two by a two-cell wall edge to edge: ordinary wall (100, the heavy ceiling) west of
  * {@link #FORTIFIED_X}, fortified (150) east of it. Nothing here clears a cell: any gap is what the walker pushed.
@@ -54,7 +54,7 @@ public final class PilgrimWallCrushScene implements BehaviorScene {
 
     @Override public String label() {
         return "Pilgrim wall crush: the Pilgrim walks through an ordinary wall line by its weight; the control is a "
-                + "Bulwark given the same order, which does not cross";
+                + "Warden given the same order, which does not cross";
     }
 
     @Override public int frameDelayMillis() { return 90; }
@@ -62,7 +62,7 @@ public final class PilgrimWallCrushScene implements BehaviorScene {
     @Override public List<SceneReport> play(FrameSink frames) {
         List<SceneReport> reports = new ArrayList<>();
         reports.add(run(PILGRIM, MechVariant.PILGRIM, frames));
-        reports.add(run(CONTROL, MechVariant.BULWARK, frames));
+        reports.add(run(CONTROL, MechVariant.WARDEN, frames));
         return reports;
     }
 
@@ -121,8 +121,8 @@ public final class PilgrimWallCrushScene implements BehaviorScene {
             verdicts.add(Verdict.of("breach-opened", openedOrdinary > 0,
                     openedOrdinary + " ordinary wall cells pushed down"));
         } else {
-            verdicts.add(Verdict.of("bulwark-held", throughTick < 0 && openedOrdinary == 0,
-                    "the Bulwark never crosses: furthest north y=" + String.format(Locale.ROOT, "%.1f", maxY)));
+            verdicts.add(Verdict.of("control-held", throughTick < 0 && openedOrdinary == 0,
+                    "the Warden never crosses: furthest north y=" + String.format(Locale.ROOT, "%.1f", maxY)));
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("openedOrdinaryCells", openedOrdinary);

@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 
+import java.util.Arrays;
+
 /**
  * Paints one cell's length of a stood-up wall ({@link BuildingFaces}) in its dress ({@link WallDress}): the material
  * shaded from a dark foot to a lit eave, its course, the world's weather at its foot, the trim (plinth, storey lines,
@@ -15,8 +17,14 @@ final class FacePainter {
 
     /** The wall faces, drawn before every roof. */
     final PolyMesh faces = new PolyMesh(1024);
-    /** Rubble at the foot of hurt walls, on the ground under the units. */
-    final PolyMesh rubble = new PolyMesh(128);
+    /**
+     * Rubble at the foot of hurt walls ({@link WallRubble}), on the ground under the units: {@link #DEBRIS} floats a
+     * piece, its centre and size on screen, its turn, its sheet frame and its tint {@code r, g, b, a}.
+     */
+    private float[] debris = new float[DEBRIS * 64];
+    private int debrisCount;
+    static final int DEBRIS = 9;
+    private final float[] placed = new float[WallRubble.PIECE * WallRubble.MOST];
 
     private PolyMesh into = faces;
     private float ax, ay, bx, by, fax, fay, fbx, fby, sx, sy, lift, alpha, nxPx, nyPx;
@@ -26,7 +34,7 @@ final class FacePainter {
 
     void reset() {
         faces.reset();
-        rubble.reset();
+        debrisCount = 0;
         into = faces;
     }
 
@@ -81,17 +89,46 @@ final class FacePainter {
         xy[at + 1] = BuildingFaces.onFace(fay + (fby - fay) * t, ay + (by - ay) * t, sy, lift, z);
     }
 
-    /** A chunk of rubble on the ground {@code out} cells from the wall's foot at {@code t}, {@code size} cells across. */
-    void chunk(float t, float out, float size, float r, float g, float b) {
-        float fx = fax + (fbx - fax) * t + nxPx * out, fy = fay + (fby - fay) * t + nyPx * out;
-        float ux = (fbx - fax), uy = (fby - fay);
-        float len = (float) Math.sqrt(ux * ux + uy * uy);
-        float cell = (float) Math.sqrt(nxPx * nxPx + nyPx * nyPx);
-        if (len < 1e-3f || cell < 1e-3f) return;
-        ux = ux / len * cell * size * .5f; uy = uy / len * cell * size * .5f;
-        float vx = nxPx * size * .38f, vy = nyPx * size * .38f;
-        rubble.appendQuad(fx - ux - vx, fy - uy - vy, fx + ux * .7f - vx, fy + uy * .7f - vy,
-                fx + ux + vx, fy + uy + vy, fx - ux * .6f + vx, fy - uy * .6f + vy, r, g, b, alpha);
+    /**
+     * The rubble a wall cell has shed ({@link WallRubble#place}) laid on the ground at the current wall's foot, each
+     * piece tinted by the wall's material, {@code fog} its shade.
+     */
+    void rubble(int cell, int amount, float[] wall, float fog) {
+        float cellPx = (float) Math.sqrt(nxPx * nxPx + nyPx * nyPx);
+        if (amount <= 0 || cellPx < 1e-3f) return;
+        int n = WallRubble.place(cell, amount, placed, 0);
+        float nx = nxPx / cellPx, ny = nyPx / cellPx;
+        float square = WallRubble.towardWall(nx, ny);
+        // Broken wall is mostly its grey core, with a hint of its finish.
+        float r = rubbleTint(wall[0]) * fog, g = rubbleTint(wall[1]) * fog, b = rubbleTint(wall[2]) * fog;
+        if (debris.length < (debrisCount + n) * DEBRIS) debris = Arrays.copyOf(debris, debris.length * 2);
+        for (int k = 0; k < n; k++) {
+            int p = k * WallRubble.PIECE, o = debrisCount * DEBRIS;
+            float t = placed[p], out = placed[p + 1] * cellPx;
+            debris[o] = fax + (fbx - fax) * t + nx * out;
+            debris[o + 1] = fay + (fby - fay) * t + ny * out;
+            debris[o + 2] = placed[p + 2] * cellPx;
+            debris[o + 3] = square + placed[p + 3];
+            debris[o + 4] = placed[p + 4];
+            debris[o + 5] = r;
+            debris[o + 6] = g;
+            debris[o + 7] = b;
+            debris[o + 8] = alpha;
+            debrisCount++;
+        }
+    }
+
+    private static float rubbleTint(float wall) {
+        return .5f + .5f * Math.min(1f, wall * 1.25f);
+    }
+
+    /** This frame's rubble pieces, {@link #DEBRIS} floats each; {@link #debrisCount} of them. */
+    float[] debris() {
+        return debris;
+    }
+
+    int debrisCount() {
+        return debrisCount;
     }
 
     /**
@@ -205,16 +242,6 @@ final class FacePainter {
             }
         }
         holes(cell, hurt, height, light);
-        if (hurt > .45f || broken) {
-            int n = broken ? 4 : 1 + (int) (hurt * 3f);
-            for (int k = 0; k < n; k++) {
-                float t = BuildingFaces.hash(cell, 90 + k);
-                float sz = .16f + .22f * BuildingFaces.hash(cell, 100 + k);
-                float shade = .6f + .5f * BuildingFaces.hash(cell, 110 + k);
-                chunk(t, .12f + .45f * BuildingFaces.hash(cell, 120 + k), sz,
-                        m.wall()[0] * shade * light, m.wall()[1] * shade * light, m.wall()[2] * shade * light);
-            }
-        }
     }
 
     private void cornerPost(float t0, float t1, float height, float tr, float tg, float tb, float[] cut) {
@@ -432,7 +459,7 @@ final class FacePainter {
 
     /**
      * A razed building's wall: a broken shell a storey high at most, its corners standing tallest, soot-black along
-     * its ragged top, its window holes dark, rubble heaped at its foot.
+     * its ragged top, its window holes dark (its rubble is laid by {@link #rubble}).
      */
     void shell(WallDress.Material m, int cell, boolean corner, float light, boolean inner) {
         float r = m.wall()[0] * light * (inner ? .62f : 1f), g = m.wall()[1] * light * (inner ? .62f : 1f);
@@ -446,14 +473,6 @@ final class FacePainter {
         if (!inner && BuildingFaces.hash(cell, 64) < .5f) {
             float h = WallDress.shellTop(cell, corner, .5f);
             quad(.36f, .64f, .3f, Math.min(h - .06f, .75f), .05f, .045f, .045f);
-        }
-        if (!inner) {
-            for (int k = 0; k < 4; k++) {
-                float shade = .55f + .45f * BuildingFaces.hash(cell, 130 + k);
-                chunk(BuildingFaces.hash(cell, 140 + k), .1f + .5f * BuildingFaces.hash(cell, 150 + k),
-                        .2f + .25f * BuildingFaces.hash(cell, 160 + k), m.wall()[0] * shade * light,
-                        m.wall()[1] * shade * light, m.wall()[2] * shade * light);
-            }
         }
     }
 }
