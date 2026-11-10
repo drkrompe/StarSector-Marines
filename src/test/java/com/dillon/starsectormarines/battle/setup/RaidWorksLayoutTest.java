@@ -24,6 +24,16 @@ class RaidWorksLayoutTest {
         assertArrayEquals(new int[]{120, 50}, halls.get(1));
     }
 
+    /** The machine houses lead the compound's other depots, however much nearer the seed the others stand. */
+    @Test
+    void aCompoundsMachineHousesLeadItsOtherDepots() {
+        PointOfInterest stores = poi(PointOfInterest.Kind.DEPOT, 103, 50);
+        PointOfInterest machine = poi(PointOfInterest.Kind.DEPOT, 115, 50);
+        List<int[]> halls = RaidWorksLayout.compoundHalls(List.of(stores, machine), 100, 50, poi -> poi == machine);
+        assertArrayEquals(new int[]{115, 50}, halls.get(0));
+        assertArrayEquals(new int[]{103, 50}, halls.get(1));
+    }
+
     private static PointOfInterest poi(PointOfInterest.Kind kind, int x, int y) {
         return new PointOfInterest(kind, x - 2, y - 2, x + 2, y + 2, x, y + 3, x, y);
     }
