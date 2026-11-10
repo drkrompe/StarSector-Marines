@@ -12,6 +12,26 @@
       "windowBlock": "fallen-hull.armour-port"
     },
     {
+      "doorBlock": "fallen-hull.armour-hatch",
+      "id": "fallen-hull.armour-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        0,
+        0
+      ],
+      "rubbleBlock": "fallen-hull.armour-breach",
+      "windowBlock": "fallen-hull.armour-port"
+    },
+    {
+      "id": "fallen-hull.sheared-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        4,
+        9
+      ],
+      "rubbleBlock": "fallen-hull.armour-breach"
+    },
+    {
       "id": "fallen-hull.armour-breach",
       "layout": "wall-faces-4x4",
       "origin": [
@@ -299,6 +319,102 @@
       "row": 5,
       "name": "fallen-hull.armour-port west",
       "description": "armour port facing west"
+    },
+    {
+      "col": 4,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-0",
+      "description": "armour cap"
+    },
+    {
+      "col": 5,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-1",
+      "description": "armour sheared through on north"
+    },
+    {
+      "col": 6,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-2",
+      "description": "armour sheared through on east"
+    },
+    {
+      "col": 7,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-3",
+      "description": "armour sheared through on north and east"
+    },
+    {
+      "col": 4,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-4",
+      "description": "armour sheared through on south"
+    },
+    {
+      "col": 5,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-5",
+      "description": "armour sheared through on north and south"
+    },
+    {
+      "col": 6,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-6",
+      "description": "armour sheared through on east and south"
+    },
+    {
+      "col": 7,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-7",
+      "description": "armour sheared through on north and east and south"
+    },
+    {
+      "col": 4,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-8",
+      "description": "armour sheared through on west"
+    },
+    {
+      "col": 5,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-9",
+      "description": "armour sheared through on north and west"
+    },
+    {
+      "col": 6,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-10",
+      "description": "armour sheared through on east and west"
+    },
+    {
+      "col": 7,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-11",
+      "description": "armour sheared through on north and east and west"
+    },
+    {
+      "col": 4,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-12",
+      "description": "armour sheared through on south and west"
+    },
+    {
+      "col": 5,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-13",
+      "description": "armour sheared through on north and south and west"
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-14",
+      "description": "armour sheared through on east and south and west"
+    },
+    {
+      "col": 7,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-15",
+      "description": "armour sheared through on north and east and south and west"
     }
   ],
   "doodads": [
@@ -564,6 +680,347 @@
       "footprintCells": [
         3,
         4
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-edge",
+      "col": 8,
+      "row": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shear-edge",
+      "col": 9,
+      "row": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-a",
+      "col": 0,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-b",
+      "col": 1,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-c",
+      "col": 2,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-plate-a",
+      "col": 3,
+      "row": 13,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-cable-fall",
+      "col": 5,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-collapsed-panel-wall",
+      "col": 6,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.crater-small",
+      "col": 8,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-plate-b",
+      "col": 10,
+      "row": 13,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-pod",
+      "col": 12,
+      "row": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-buckled-deck",
+      "col": 14,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-slab",
+      "col": 0,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-girders",
+      "col": 4,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-bell",
+      "col": 7,
+      "row": 15,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.scorch-splash",
+      "col": 10,
+      "row": 15,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-scorch",
+      "col": 13,
+      "row": 15,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-mast",
+      "col": 0,
+      "row": 18,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        5,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.scorch-streak",
+      "col": 5,
+      "row": 18,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.crater-large",
+      "col": 9,
+      "row": 18,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-spill",
+      "col": 8,
+      "row": 7,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rib-h",
+      "col": 0,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rib-v",
+      "col": 1,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-conduit-h",
+      "col": 2,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-conduit-v",
+      "col": 3,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-cables",
+      "col": 11,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-scatter",
+      "col": 6,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-console-wall",
+      "col": 5,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-junction-wall",
+      "col": 4,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rack-wall",
+      "col": 7,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-crushed-bulkhead-wall",
+      "col": 13,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
       ]
     }
   ],

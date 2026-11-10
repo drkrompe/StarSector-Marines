@@ -191,7 +191,7 @@ public final class FabricationYard {
      * off, and nothing else standing is moved.
      */
     private static void floor(GenContext c, List<AssemblyLine.Station> stations, Ground g) {
-        int concrete = c.topology.surfaceIndex(PortApronDressing.CONCRETE);
+        int concrete = c.topology.surfaceIndex(PortHubDressing.CONCRETE);
         int reach = (AssemblyLine.GAP + 1) / 2 + 1;
         boolean[] paved = new boolean[c.width * c.height];
         for (AssemblyLine.Station s : stations) {
@@ -247,7 +247,7 @@ public final class FabricationYard {
      */
     private static void gantry(GenContext c, TileRegistry registry, AssemblyLine.Station s) {
         if (s.stage() == AssemblyLine.Stage.FINISHED) return;
-        DoodadDef span = registry.doodad(PortApronDressing.CRANE_SPAN), leg = registry.doodad(PortApronDressing.CRANE_LEG);
+        DoodadDef span = registry.doodad(PortHubDressing.CRANE_SPAN), leg = registry.doodad(PortHubDressing.CRANE_LEG);
         if (span == null || leg == null) return;
         // Across the line: along x when the line runs along y.
         boolean acrossX = s.x1() - s.x0() < s.y1() - s.y0();
