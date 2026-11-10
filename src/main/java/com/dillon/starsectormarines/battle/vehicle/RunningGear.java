@@ -43,7 +43,7 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
             case SCOUT_CAR -> ofFrame(type, 640f, 146f, 225f, 180f);
             // The trailer's rear axles under its tail, the tractor's under its cab.
             case CARGO_CARRIER -> ofFrame(type, 1024f, 110f, 388f, 400f);
-            case HOVER_SCOUT, DRONE_SKIMMER, BREAKTHROUGH_TANK -> NONE;
+            case HOVER_SCOUT, DRONE_SKIMMER, HEAVY_SKIMMER, BREAKTHROUGH_TANK -> NONE;
         };
     }
 }

@@ -106,6 +106,7 @@
     {"item": "mech-pattern:vehicle:drone_skimmer", "station": "thunder-run"},
     {"item": "mech-pattern:vehicle:hover_scout", "station": "dust-ledger"},
     {"item": "mech-pattern:vehicle:laser_tank", "station": "blind-watch"},
+    {"item": "mech-pattern:vehicle:heavy_skimmer", "station": "blind-watch"},
     {"item": "mech-pattern:vehicle:heavy_apc", "station": "none"},
     {"item": "mech-pattern:vehicle:supply_truck", "station": "none"},
     {"item": "mech-pattern:vehicle:scout_car", "station": "none"},
