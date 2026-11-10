@@ -924,6 +924,8 @@ public class MarineOpsContext {
             generated = Collections.unmodifiableList(polityDefenceMissions());
         } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
             generated = WellhollowBloomCampaign.offers(planet);
+        } else if (LongSurveyCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
+            generated = LongSurveyCampaign.offers(planet);
         } else if (CompletedReplays.isClient(client)) {
             MarineRosterScript rosterScript = MarineRosterScript.getInstance();
             generated = CompletedReplays.offers(rosterScript == null ? null : rosterScript.roster(), planet);
@@ -1023,6 +1025,12 @@ public class MarineOpsContext {
                 && !WellhollowBloomCampaign.offers(planet).isEmpty()) {
             out.add(WellhollowBloomCampaign.client());
             seen.add(WellhollowBloomCampaign.CLIENT_FACTION_ID);
+        }
+
+        // 0b''. The garrison commander's board for The Long Survey: its own contact on the arc's world.
+        if (LongSurveyCampaign.contactAt(planet) && !LongSurveyCampaign.offers(planet).isEmpty()) {
+            out.add(LongSurveyCampaign.client());
+            seen.add(LongSurveyCampaign.CLIENT_FACTION_ID);
         }
 
         // 0c. The player's own colony. Never rep-locked: the polity is the company's
