@@ -136,7 +136,11 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   "Yes, we should"). Riflemen hold the posts while any are left; a mech does
   not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
-  alarm, which sends the whole mobile pool at the works. The defence is the
+  alarm, which sends the whole mobile pool at the works. The colony's wider
+  garrison drives in from off the map all the while (`RaidPressureTrigger`):
+  a wave for each machine wrecked, and garrison columns on a clock the
+  market's security sets, quicker once the alarm is up and larger each time,
+  with the next column's countdown on the objective. The defence is the
   market's, never fitted to the company that came: no attacker-strength budget
   trims its mechs, air or turrets (`BattleForceScore`, as Conquest).
 - **The landing is a cadence, not a block.** With one boat the company comes
