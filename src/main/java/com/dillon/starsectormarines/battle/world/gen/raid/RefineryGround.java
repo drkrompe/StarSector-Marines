@@ -49,6 +49,8 @@ public final class RefineryGround {
     static final String SPHERE_ART = "refinery.sphere";
     static final String COLUMN_ART = "refinery.column";
     static final String STRIPPER_ART = "refinery.stripper";
+    /** The column and stripper mirrored, their vapour lines leaving west. */
+    static final String COLUMN_WEST_ART = "refinery.column-west", STRIPPER_WEST_ART = "refinery.stripper-west";
     static final String FLARE_ART = "refinery.flare";
     static final String SPILL_ART = "refinery.spill";
     /**
@@ -93,15 +95,15 @@ public final class RefineryGround {
     static final String TRAIL_ART = "doodad.ruins-oil-trail";
     static final String TANKER_ART = "doodad.parked-tanker-truck";
 
-    /**
-     * A unit's columns, the main column and its stripper side by side on the plot: the biggest pair the yard beside its
-     * house takes. Each drawn {@link #COLUMN_SPAN} times over, a divisor of the frame's 480 px. UNTUNED.
-     */
-    static final int[][] PLOT_SIZES = {{8, 6}, {6, 4}};
-    /** How far along the house's side a plot may slide to find its ground. */
+    /** How far along a house's side a prop beside it may slide to find its ground. */
     static final int[] PLOT_SLIDES = {0, -2, 2, -4, 4, -6, 6, -8, 8, -10, 10};
-    /** Cells between a unit's house and its plot. */
-    static final int PLOT_GAP = 2;
+    /** The process area's lanes and rack corridor: the roadway ground a fortress lays. */
+    static final GroundKind LANE = GroundKind.STONE;
+    /** Most units the process area stands; the raid takes as many as its tier asks of them. */
+    static final int MOST_UNITS = 5;
+    /** A unit's fired heater: a firebox with its stack, drawn in an 8-cell frame from a row above its box. */
+    static final String HEATER_ART = "refinery.heater";
+    static final int HEATER_FRAME = 8, HEATER_ROW = 1;
     /** The flare stack's footprint, and the clear ground it keeps round it. UNTUNED. */
     static final int FLARE = 8;
     /** The soot round the flare's foot. */
@@ -204,15 +206,14 @@ public final class RefineryGround {
         }
 
         void dress(Site site) {
-            List<House> units = rooms(RefiningWorks.UNIT_ROOM);
             List<House> receiving = rooms(RefiningWorks.RECEIVING_ROOM);
             List<House> pump = rooms(RefiningWorks.PUMP_ROOM);
             List<House> boiler = rooms(RefiningWorks.BOILER_ROOM);
             TankFarm.Plan farm = tankFarm(site);
-            for (House unit : units) plot(unit);
-            // What each house does, stood beside it: a unit's furnace stack, the boiler's cooling tower and stack,
-            // the pumps where crude comes in and product goes out, the control room's mast, the lab's gases.
-            for (House unit : units) stack(unit);
+            List<House> spines = new ArrayList<>();
+            List<House> units = process(spines);
+            // What each house does, stood beside it: the boiler's cooling tower and stack, the pumps where crude
+            // comes in and product goes out, the control room's mast, the lab's gases.
             for (House b : boiler) {
                 tower(b);
                 stack(b);
@@ -231,10 +232,11 @@ public final class RefineryGround {
                         feeder(piece.name().substring(RaidSiteTemplate.FEEDER.length()), manifold);
                     }
                 }
-                // Receiving, then each unit nearest the last, then the pump house: the order the stock passes.
+                // Receiving, then the process area's racks (nearest first, across the road between them), then the
+                // pump house: the order the stock passes.
                 List<House> chain = new ArrayList<>();
                 chain.add(manifold);
-                List<House> left = new ArrayList<>(units);
+                List<House> left = new ArrayList<>(spines);
                 while (!left.isEmpty()) {
                     House at = chain.get(chain.size() - 1);
                     left.sort(Comparator.comparingInt(p -> gap(at, p)));
@@ -243,14 +245,14 @@ public final class RefineryGround {
                 if (!pump.isEmpty()) chain.add(pump.get(0));
                 for (int k = 0; k + 1 < chain.size(); k++) link(chain.get(k), chain.get(k + 1));
             }
-            // The steam main: from the boiler house to the unit nearest it.
-            if (!boiler.isEmpty() && !units.isEmpty()) {
+            // The steam main: from the boiler house to the nearest of the process area's racks.
+            if (!boiler.isEmpty() && !spines.isEmpty()) {
                 House b = boiler.get(0);
-                House near = units.get(0);
-                for (House u : units) if (gap(b, u) < gap(b, near)) near = u;
+                House near = spines.get(0);
+                for (House u : spines) if (gap(b, u) < gap(b, near)) near = u;
                 link(b, near);
             }
-            House out = !pump.isEmpty() ? pump.get(0) : units.isEmpty() ? null : units.get(units.size() - 1);
+            House out = !pump.isEmpty() ? pump.get(0) : spines.isEmpty() ? null : spines.get(spines.size() - 1);
             if (farm != null && out != null) product(out, farm);
             flare(units);
         }
@@ -307,8 +309,13 @@ public final class RefineryGround {
 
         /** {@code id}'s frame drawn over the disc {@code disc} cells across at {@code (x, y)}, by {@link #over}. */
         void drawOver(String id, int disc, float span, float at, int x, int y) {
+            drawOver(id, disc, span, at, at, x, y);
+        }
+
+        /** As above, the disc's middle {@code atX} along the frame and {@code atY} down it (a mirrored frame's). */
+        void drawOver(String id, int disc, float span, float atX, float atY, int x, int y) {
             DoodadDef art = registry.doodad(id);
-            int[] ox = over(disc, span, at, x), oy = over(disc, span, at, y);
+            int[] ox = over(disc, span, atX, x), oy = over(disc, span, atY, y);
             if (art == null || ox == null || oy == null) return;
             Doodad d = scaled(art, ox[0], ox[1], oy[1]);
             if (d != null) c.doodads.add(d);
@@ -355,42 +362,6 @@ public final class RefineryGround {
             }
         }
 
-        // ---- the units' plots ----
-
-        /** A unit's columns on open yard beside its house: the first side and slide where the plot fits. */
-        void plot(House unit) {
-            for (int[] sizes : PLOT_SIZES) if (plot(unit, sizes[0], sizes[1])) return;
-        }
-
-        /** The plot of a column and its stripper of these sizes beside the house, if one fits; true when laid. */
-        boolean plot(House unit, int column, int stripper) {
-            int len = column + PLOT_GAP + stripper;
-            for (int side = 0; side < 4; side++) {
-                boolean alongX = side < 2;
-                int pw = alongX ? len : column, ph = alongX ? column : len;
-                for (int slide : PLOT_SLIDES) {
-                    int x, y;
-                    switch (side) {
-                        case 0 -> { x = unit.left() + slide; y = unit.bottom() + 1 + PLOT_GAP; }
-                        case 1 -> { x = unit.left() + slide; y = unit.top() - PLOT_GAP - ph; }
-                        case 2 -> { x = unit.right() + 1 + PLOT_GAP; y = unit.top() + slide; }
-                        default -> { x = unit.left() - PLOT_GAP - pw; y = unit.top() + slide; }
-                    }
-                    if (!plotFits(x, y, pw, ph)) continue;
-                    int sx = alongX ? x + column + PLOT_GAP : x + (column - stripper) / 2;
-                    int sy = alongX ? y + (column - stripper) / 2 : y + column + PLOT_GAP;
-                    if (strands(x, y, column) || strands(sx, sy, stripper)) continue;
-                    for (int py = y - 1; py <= y + ph; py++) for (int px = x - 1; px <= x + pw; px++) pave(px, py, PAD);
-                    stampDisc(x, y, column);
-                    stampDisc(sx, sy, stripper);
-                    drawOver(COLUMN_ART, column, COLUMN_SPAN, COLUMN_AT, x, y);
-                    drawOver(STRIPPER_ART, stripper, COLUMN_SPAN, COLUMN_AT, sx, sy);
-                    return true;
-                }
-            }
-            return false;
-        }
-
         /** The plot and a ring round it are open yard inside the works: walkable, off the roads and doors. */
         boolean plotFits(int x0, int y0, int pw, int ph) {
             for (int y = y0 - 1; y <= y0 + ph; y++) {
@@ -402,9 +373,90 @@ public final class RefineryGround {
             return true;
         }
 
-        boolean strands(int x0, int y0, int size) {
-            List<int[]> cells = disc(x0, y0, size);
-            return PlacementGuards.wouldStrandGround(c.grid, cells.toArray(new int[0][]));
+        // ---- the process area ----
+
+        /**
+         * The process area on its two sites either side of the outer feeder road ({@link ProcessArea}): each block
+         * its column and stripper by the rack and its fired heater behind them, on a sealed pad; the lanes between
+         * and round the blocks and the rack's corridor laid as roadway; the rack along the corridor. Each unit's
+         * charge cell goes to the raid ({@code GenContext.raidMachines}), nearest the works first. Returns the units'
+         * heaters, and adds each laid rack's corridor to {@code spines}.
+         */
+        List<House> process(List<House> spines) {
+            List<ProcessArea.Block> laid = new ArrayList<>();
+            List<House> units = new ArrayList<>();
+            for (String name : new String[]{RefiningWorks.PROCESS_WEST, RefiningWorks.PROCESS_EAST}) {
+                if (!(plan.layout().find(name) instanceof Site site) || site.purpose() != SitePurpose.GROUND) continue;
+                // The west site's spine is its east edge, toward the road; the east site's its west edge.
+                boolean spineLeft = RefiningWorks.PROCESS_EAST.equals(name);
+                int[] clear = TankFarm.largestClear(w, site.x0(), site.y0(), site.x1(), site.y1(), free);
+                if (clear == null) continue;
+                // The area one process area wide from its spine edge; the site's slack beyond stays open ground.
+                if (spineLeft) clear[2] = Math.min(clear[2], clear[0] + ProcessArea.width() - 1);
+                else clear[0] = Math.max(clear[0], clear[2] - ProcessArea.width() + 1);
+                ProcessArea.Plan area = ProcessArea.plan(clear[0], clear[1], clear[2], clear[3], spineLeft,
+                        MOST_UNITS - laid.size());
+                if (area == null) continue;
+                for (int y = area.y0(); y <= area.y1(); y++) for (int x = area.x0(); x <= area.x1(); x++) keep(x, y);
+                for (ProcessArea.Box lane : area.lanes()) paveBox(lane, LANE);
+                paveBox(area.rack(), LANE);
+                for (ProcessArea.Block block : area.blocks()) {
+                    unit(block, spineLeft);
+                    laid.add(block);
+                    ProcessArea.Box hb = block.heater();
+                    units.add(new House(hb.x(), hb.y(), hb.x() + hb.w() - 1, hb.y() + hb.h() - 1));
+                }
+                ProcessArea.Box rack = area.rack();
+                int rx = spineLeft ? rack.x() + 1 : rack.x() + rack.w() - 2;
+                ProcessArea.Block first = area.blocks().get(0), last = area.blocks().get(area.blocks().size() - 1);
+                int ry0 = first.pad().y(), ry1 = last.pad().y() + last.pad().h() - 1;
+                StreetDressing.pipeRun(c.grid, c.topology, c.doodads, rx, ry0, rx, ry1, 4);
+                for (int y = ry0; y <= ry1; y++) racked[y * w + rx] = true;
+                spines.add(new House(rx, ry0, rx, ry1));
+            }
+            // The spine between the two sides: the lane the racks run beside, laid wherever it is open.
+            if (!laid.isEmpty() && plan.layout().find(RefiningWorks.PROCESS_SPINE) instanceof Site spine
+                    && spine.purpose() == SitePurpose.GROUND) {
+                for (int y = spine.y0(); y <= spine.y1(); y++) for (int x = spine.x0(); x <= spine.x1(); x++) {
+                    if (x <= 0 || y <= 0 || x >= w - 1 || y >= h - 1 || !free.test(y * w + x)) continue;
+                    keep(x, y);
+                    pave(x, y, LANE);
+                }
+            }
+            if (works != null) {
+                laid.sort(Comparator.comparingInt(b -> Math.abs(b.chargeX() - works.seedX())
+                        + Math.abs(b.chargeY() - works.seedY())));
+            }
+            for (ProcessArea.Block b : laid) c.raidMachines.add(new int[]{b.chargeX(), b.chargeY()});
+            return units;
+        }
+
+        void paveBox(ProcessArea.Box box, GroundKind kind) {
+            for (int y = box.y(); y < box.y() + box.h(); y++) for (int x = box.x(); x < box.x() + box.w(); x++) {
+                pave(x, y, kind);
+            }
+        }
+
+        /**
+         * One unit: its pad sealed, its column and stripper solid discs drawn with their vapour lines toward the
+         * rack, and its fired heater a solid box drawn with its stack.
+         */
+        void unit(ProcessArea.Block block, boolean spineLeft) {
+            paveBox(block.pad(), PAD);
+            ProcessArea.Box col = block.column(), str = block.stripper(), heater = block.heater();
+            stampDisc(col.x(), col.y(), col.w());
+            stampDisc(str.x(), str.y(), str.w());
+            for (int y = heater.y(); y < heater.y() + heater.h(); y++) {
+                for (int x = heater.x(); x < heater.x() + heater.w(); x++) fixture(x, y, false);
+            }
+            // The column art's vapour line leaves east; where the rack is west of it, its mirror's leaves west.
+            float atX = spineLeft ? 1f - COLUMN_AT : COLUMN_AT;
+            drawOver(spineLeft ? COLUMN_WEST_ART : COLUMN_ART, col.w(), COLUMN_SPAN, atX, COLUMN_AT, col.x(), col.y());
+            drawOver(spineLeft ? STRIPPER_WEST_ART : STRIPPER_ART, str.w(), COLUMN_SPAN, atX, COLUMN_AT,
+                    str.x(), str.y());
+            DoodadDef art = registry.doodad(HEATER_ART);
+            Doodad d = art == null ? null : scaled(art, HEATER_FRAME, heater.x(), heater.y() - HEATER_ROW);
+            if (d != null) c.doodads.add(d);
         }
 
         // ---- what each house does ----

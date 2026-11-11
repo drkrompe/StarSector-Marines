@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.hull;
 
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -84,9 +85,11 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
                 out.add(new SnapshotArtifact(chapter.id + "/4-claim.png", look.renderMarked(sim, claim(site))));
             }
-            System.out.printf(Locale.ROOT, "[%s] %s: hull %s, %d lattice points, %d roads, %d stakes, problems %s%n",
-                    id(), chapter.id, site.footprint(), site.lattice().size(), site.roads().size(),
-                    site.stakes().size(), site.problems());
+            long sites = ground.map().pointsOfInterest.stream()
+                    .filter(p -> p.kind != PointOfInterest.Kind.RESIDENTIAL).count();
+            System.out.printf(Locale.ROOT, "[%s] %s: hull %s, %d lattice points, %d roads, %d stakes, %d site buildings,"
+                    + " problems %s%n", id(), chapter.id, site.footprint(), site.lattice().size(), site.roads().size(),
+                    site.stakes().size(), sites, site.problems());
         }
         return out;
     }

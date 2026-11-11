@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1caf8-e278-7970-87b8-81d42a2138d7",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1caf8-e278-7970-87b8-81d42a2138d7\\exec-cf47c180-7f3e-4862-874f-67cea1793251.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\refinery\\refinery-works.raw.png",
+    "sha256": "c690a34ff9cf39ffb58c61427d7c59cc056782b7d8b898d84869d10b337d4209",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\refinery\\refinery-works.prompt.txt",
+  "promptSha256": "d8bced8500e475a292a94edd05af2b6c85592868805e7b975355312593d25a4b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six pieces' positions, sizes and outlines; repaint them, never move them\nImage 2: Style authority only (rendering, palette, flat top-down finish); not layout\n\nUse case: style-transfer. Asset type: production transparent prop sheet: six pieces of industrial plant equipment for a top-down building game, which must sit quietly in the existing industrial tileset and not stand out from it.\n\nImage 1 is the authoritative geometry guide and edit target: repaint these SIX exact pieces in their two rows of three, keeping each piece's position, size and outline. Do not move, rotate, enlarge or shrink anything. Five of them are already painted in a darker, busier style that sticks out: repaint them in the style below, keeping what each one is. The first piece (top left) is a flat grey block-out: paint it fully.\nImage 2 is the game's existing works tileset (round hatches, fans, vessels, panels seen from above): it is the STYLE AUTHORITY. Match it exactly: flat straight-down plates with almost no perspective or dome shading, cool gunmetal and grey steel, riveted rims and panel seams, small dull copper accents, light rust and grime, the same soft painted finish, the same muted value range. Material and style only, not layout.\n\nSix pieces, top row left to right, then bottom row:\n1. A refinery fired heater seen from directly above: a long rectangular steel firebox the block-out's exact size, its roof of four long riveted steel panels, a row of five small round burner ports along its lower side, and at its right end a round riveted chimney rim with a dark sooty flue inside a flat grated ring; a thin short wisp of grey smoke drifting right, faint and semi-transparent.\n2. A round cooling tower seen from above: a thick flat concrete-and-steel rim with small vents, the dark fill basin inside, a faint soft plume of white vapour.\n3. A pump skid: two electric pumps with their motors on a steel base frame, flanged pipes leaving left and right.\n4. A small radio mast: a square lattice base with a small dish.\n5. A tanker loading island: a long concrete island with a steel walkway, two loading arms reaching right, a short ladder.\n6. A gas cylinder rack: two rows of four upright gas cylinders in a steel frame, a small grey cabinet to its right.\n\nStrictly: no brass or gold, no yellow paint or hazard striping, no glowing or orange lights, no glossy highlights, no bulging domes, no long dramatic shadows. Shadows only short and soft to the lower right.\n\nTrue orthographic zenith camera, light from the upper left. True alpha transparency around every piece; no ground, no background, no border, no labels, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\refinery\\refinery-works-guide.png",
+      "sha256": "f4872f3a8afd07f3b0494fa192d8691f44db23782d111bf97bdf4269702df36c",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six pieces' positions, sizes and outlines; repaint them, never move them"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\ruins-works-plant.png",
+      "sha256": "a14efaa5cb530472ce43e4a1d0ace48fcdb803d30d7f1737efb68ca51073986b",
+      "dimensions": [
+        4096,
+        1664
+      ],
+      "mode": "RGBA",
+      "role": "Style authority only (rendering, palette, flat top-down finish); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to repaint the six pieces, preserving Image 1’s layout and matching Image 2’s muted steel finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 47509,
+    "cached_input_tokens": 39168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 590,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.1
+}

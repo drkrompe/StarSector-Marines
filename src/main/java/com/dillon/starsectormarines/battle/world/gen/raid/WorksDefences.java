@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.battle.world.gen.raid;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Side;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -12,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -68,6 +71,8 @@ public final class WorksDefences {
         }
         machinePosts(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
         approach(c, plan, works, layer == Layer.FORTIFIED);
+        outworks(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
+        heldBuildings(c, plan, works, layer == Layer.FORTIFIED ? HELD_FORTIFIED : HELD_GUARDED);
         if (layer == Layer.FORTIFIED) {
             for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
                 if (WorksProps.purposeOf(c, b) != RoomPurpose.PARTS_CAGE) continue;
@@ -260,6 +265,136 @@ public final class WorksDefences {
             if (along >= 0 && across <= LANE_CLEAR) return true;
         }
         return false;
+    }
+
+    /** Buildings facing each side of the works held as strongpoints, guarded and fortified. UNTUNED. */
+    static final int HELD_GUARDED = 1, HELD_FORTIFIED = 2;
+    /** Nearest and furthest a held building stands from the works' ground, in cells. UNTUNED. */
+    static final int HELD_NEAR = 2, HELD_FAR = 12;
+    /** Cells to the side of a gate's approach its emplacement stands, past the approach's clear lane. UNTUNED. */
+    static final int GATE_GUN_ASIDE = LANE_CLEAR + 3;
+
+    /**
+     * The buildings facing the works held as strongpoints (pick {@code raid-works-approach}, owner: "(a) and (c)"):
+     * on each side, the nearest {@code perSide} buildings standing {@link #HELD_NEAR} to {@link #HELD_FAR} cells out
+     * from the works' ground and not already a defended place, each a forward post of riflemen security adds at its
+     * interior.
+     */
+    static void heldBuildings(GenContext c, PrecinctPlan plan, Precinct works, int perSide) {
+        int index = plan.precincts().indexOf(works);
+        int[] b = claimBounds(c, index);
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+        if (b == null || claim == null) return;
+        List<PointOfInterest> facing = new ArrayList<>();
+        List<Integer> sides = new ArrayList<>(), gaps = new ArrayList<>();
+        for (PointOfInterest poi : c.pois) {
+            int x = poi.interiorAnchorX, y = poi.interiorAnchorY;
+            if (!c.grid.inBounds(x, y) || claim[x][y] == index || defended(c, poi)) continue;
+            int x0 = Math.min(poi.left, poi.right), x1 = Math.max(poi.left, poi.right);
+            int y0 = Math.min(poi.top, poi.bottom), y1 = Math.max(poi.top, poi.bottom);
+            int side = heldSide(b, x0, y0, x1, y1);
+            if (side < 0) continue;
+            int gap = gap(b, x0, y0, x1, y1);
+            if (gap < HELD_NEAR || gap > HELD_FAR) continue;
+            int at = 0;
+            while (at < gaps.size() && gaps.get(at) <= gap) at++;
+            facing.add(at, poi);
+            sides.add(at, side);
+            gaps.add(at, gap);
+        }
+        int[] held = new int[4];
+        for (int i = 0; i < facing.size(); i++) {
+            if (held[sides.get(i)]++ >= perSide) continue;
+            PointOfInterest poi = facing.get(i);
+            post(c, poi.interiorAnchorX, poi.interiorAnchorY, FORWARD_RIFLES, RaidSiteTemplate.WORKS_FORWARD);
+        }
+    }
+
+    /**
+     * Which side of the works' bounds {@code b} {x0, y0, x1, y1} a building's box faces: 0 west, 1 east, 2 low y, 3
+     * high y, the side it lies furthest out past; -1 for one overlapping the works' bounds.
+     */
+    static int heldSide(int[] b, int x0, int y0, int x1, int y1) {
+        int west = b[0] - x1, east = x0 - b[2], low = b[1] - y1, high = y0 - b[3];
+        int most = Math.max(Math.max(west, east), Math.max(low, high));
+        if (most <= 0) return -1;
+        return most == west ? 0 : most == east ? 1 : most == low ? 2 : 3;
+    }
+
+    /** Cells between a building's box and the works' bounds {@code b}, along the side it lies out past. */
+    static int gap(int[] b, int x0, int y0, int x1, int y1) {
+        return Math.max(Math.max(b[0] - x1, x0 - b[2]), Math.max(b[1] - y1, y0 - b[3]));
+    }
+
+    /** Whether a defender node already stands inside {@code poi}: a garrison's own building is not held twice. */
+    private static boolean defended(GenContext c, PointOfInterest poi) {
+        int x0 = Math.min(poi.left, poi.right), x1 = Math.max(poi.left, poi.right);
+        int y0 = Math.min(poi.top, poi.bottom), y1 = Math.max(poi.top, poi.bottom);
+        for (TacticalNode node : c.tactical) {
+            if (node.defaultGuard == Faction.DEFENDER && node.anchorX >= x0 && node.anchorX <= x1
+                    && node.anchorY >= y0 && node.anchorY <= y1) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The works' outworks guns (owner: "why don't they have turrets OUTSIDE of the works? Defense in depth"): crewed
+     * emplacements outside the wall, crewed by riflemen security adds ({@link RaidSiteTemplate#WORKS_FORWARD}). On a
+     * guarded works a light emplacement stands beside each open gate's approach, on the glacis' outer edge; a fortified
+     * works also sets a medium emplacement mid-way along each side of its glacis.
+     */
+    static void outworks(GenContext c, PrecinctPlan plan, Precinct works, int glacis, boolean fortified) {
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM), owner = c.get(BspKeys.PRECINCT_ROAD);
+        int index = plan.precincts().indexOf(works);
+        int[] b = claimBounds(c, index);
+        if (claim == null || owner == null || b == null) return;
+        // Outside the wall: the glacis band of the works' own ground, or anywhere beyond it.
+        DefensePostStamper.Ground outside = (x, y) -> c.grid.inBounds(x, y)
+                && (claim[x][y] != index || distanceOut(claim, index, x, y, glacis + 1) <= Math.max(1, glacis));
+        boolean[][] clear = c.get(BspKeys.ROAD_RESERVATION);
+        int placed = 0;
+        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, owner, index, c.width, c.height,
+                Integer.MAX_VALUE)) {
+            int[] m = mouth(c, claim, index, gate);
+            if (m == null) continue;
+            int edge = 0;
+            while (c.grid.inBounds(m[0] + m[2] * edge, m[1] + m[3] * edge)
+                    && claim[m[0] + m[2] * edge][m[1] + m[3] * edge] == index) edge++;
+            for (int sign : new int[]{1, -1}) {
+                int x = m[0] + m[2] * edge + m[3] * GATE_GUN_ASIDE * sign;
+                int y = m[1] + m[3] * edge + m[2] * GATE_GUN_ASIDE * sign;
+                int got = gun(c, outside, clear, DefensePostKind.LIGHT, x, y);
+                placed += got;
+                if (got > 0) break;
+            }
+        }
+        if (fortified) {
+            int in = Math.max(1, glacis / 2);
+            int mx = (b[0] + b[2]) / 2, my = (b[1] + b[3]) / 2;
+            for (int[] site : new int[][]{{mx, b[1] + in}, {mx, b[3] - in}, {b[0] + in, my}, {b[2] - in, my}}) {
+                placed += gun(c, outside, clear, DefensePostKind.MEDIUM, site[0], site[1]);
+            }
+        }
+        if (placed > 0) {
+            TacticalRegionMap regions = c.get(BspKeys.TACTICAL_REGIONS);
+            if (regions != null) c.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(c.grid, c.topology,
+                    c.get(BspKeys.AXIS)));
+        }
+    }
+
+    /** Stamps one {@code tier} emplacement at or slid near {@code (x, y)}, its guard post named a forward post. */
+    private static int gun(GenContext c, DefensePostStamper.Ground where, boolean[][] clear, DefensePostKind tier,
+                           int x, int y) {
+        int before = c.tactical.size();
+        int got = DefensePostStamper.stampAtSites(c.grid, c.topology, where, clear, c.doodads, c.tactical,
+                c.defensePosts, c.rng, tier, List.of(new int[]{x, y}));
+        TacticalMap linked = c.get(BspKeys.TACTICAL_MAP);
+        for (int i = before; i < c.tactical.size(); i++) {
+            TacticalNode node = c.tactical.get(i);
+            node.setPlace(RaidSiteTemplate.WORKS_FORWARD);
+            if (linked != null) linked.add(node);
+        }
+        return got;
     }
 
     /** A defender post at {@code (x, y)} holding {@code machines} (or riflemen), named with {@code place}. */

@@ -2025,6 +2025,7 @@
 		"objectiveRaidAwaitingReturn": "Awaiting survivor return",
 		"objectiveRaidTimer": "Seizure",
 		"objectiveRaidBerthsIn": "The freighter berths in {0}: hold the platform until it does.",
+		"objectiveRaidColumnIn": "A garrison column drives in from off the map in {0}.",
 		"objectiveRaidLeavesIn": "The freighter leaves in {0}: keep a settled marine at its hold, uncontested.",
 		"objectiveRaidBlocker": "The target needs settled Marine presence and uncontested control.",
 		"objectiveMarkerSecured": "SECURED",

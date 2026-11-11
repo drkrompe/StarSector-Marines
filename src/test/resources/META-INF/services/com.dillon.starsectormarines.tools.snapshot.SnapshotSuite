@@ -221,6 +221,7 @@ com.dillon.starsectormarines.battle.mech.MechLocationalDamageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechHullDownSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.MechDuelRangeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.mech.PilgrimWallCrushSceneSnapshotSuite
+com.dillon.starsectormarines.battle.mech.WalkerBreachVideoSuite
 com.dillon.starsectormarines.battle.mech.PdBeamSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.BurstLaserLookSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.FireSupportApcSceneSnapshotSuite

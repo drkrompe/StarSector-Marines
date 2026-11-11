@@ -189,6 +189,16 @@ public final class MechSections {
         return destroyed[TORSO];
     }
 
+    /**
+     * Takes {@code amount} off {@code section}'s structure, armor untouched, never below one point, so it destroys
+     * nothing: wear outside the damage path, for {@code MechWallCrush}'s breach-damage A/B.
+     */
+    public void wearStructure(MechSection section, float amount) {
+        int i = section.ordinal();
+        if (!(amount > 0f) || structure[i] <= 1f) return;
+        structure[i] = Math.max(1f, structure[i] - amount);
+    }
+
     /** Structure left across every section; what the chassis health bar reads while it stands. */
     public float totalStructure() {
         float sum = 0f;

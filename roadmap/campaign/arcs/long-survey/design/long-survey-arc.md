@@ -62,11 +62,14 @@ Khettara (seven squads, four machines).
 | --- | --- | --- | --- | --- |
 | 1 | **The Fall** | Civilian Rescue (Extraction adapter, the derelict director in place of the swarm director) | The night it came down. The town on the trench's lip is sealed in its shelter; flocks over the streets, rounds walkers in the trench, strippers on the headframes. Lift the people out. Bonus: blow the hull's forward bay so it cannot launch again. | The hull only: no stakes, a fixed first wake, the forge's first cycles running |
 | 2 | **Stakes** | Sabotage (exactly three named sites) | The forge has printed its first stakes and trains are carrying them out across the mine country. Three are planted on the lattice and counting down. Kill them planted; a stake that rises is a zone to fight through. | The hull; three stakes planted; one raised beyond them |
-| 3 | **The Line** | Cordon (the Line variant: hold redoubts; `cordon-nouns.md`) | The claim has reached the district road. The garrison holds a redoubt line; established stakes send walker trains and flocks at it in surges. The company is the moving hand: strike haul roads, cut a chain, plug the line where walkers break it. Large-scale walkers and flocks against the garrison's armour. | Several established stakes in a chain; haul roads live |
+| 3 | **The Line** | Broad Front at city density (`heart-nouns.md`; the city push below), the claim's stakes in the mothers' place | The claim has reached the district capital. The garrison's armour columns and the company push the watch out of the city street by street toward the trench, each lane taking its next stake; heavy walkers and the columns' guns bring the city down round them. Cut the chains and the haul roads as the lanes go. Win: every stake in the city down or stranded. | Established stakes chained through the city to the hull; haul roads live; trains running |
 | 4 | **The Surveyor** | Broad Front (the heart variant), the hull as its heart, then the hull's interior as a delve to the autoforge | The garrison's columns go in on the trench. Cut the outer chain to strand the claim, break into the hull, and put the autoforge out in its forge hall, guarded by the vault frame and a hall frame. | The full claim; the contingency on the forge's breach |
 
 The order runs as the Khettara's does: the company alone, then a sabotage
-raid, then beside the garrison on a line, then the all-in finale. Each chapter
+raid, then beside the garrison through the city, then the all-in finale.
+Each chapter has one authored map, designed around its objective first and
+then filled to serve it, and The Line is the arc's ground war through a
+populated city, there to show off destruction (owner, 2026-11-11). Each chapter
 adds one fallen-hull mechanic to the shipped watch:
 
 | Chapter | New to the player |
@@ -87,9 +90,43 @@ moves. The first attempt, retries, replays and the debug player all play it;
 | Chapter | Map | Ground | The hull |
 | --- | --- | --- | --- |
 | The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, broken in three, bow west, a short trench ploughed west off the bow along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
-| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1 | Beside the installation, broken in three, bow west, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
-| The Line | `long-survey-line` | `cordon-line` seed 3, the line and base built | North-east beyond the redoubts, broken in three, bow east, the trench run in from the map's east edge; three established stakes in a chain toward redoubts 3 and 4 and one raised |
+| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1, its installation laid as a Raid site's cantonment in a square wall (`PrecinctPlan.withCantonments`), not the grown diamond-walled garrison | Beside the installation, broken in three, bow west, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
+| The Line | `long-survey-line` | Being redesigned as the city push (the ground session's map plan); the shipped patch on `cordon-line` seed 3 stands until then | Beyond the city on the trench side, the stakes chained back through its districts (map plan pending) |
 | The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
+
+## The Line as a city push
+
+Proposed (2026-11-11), built on once the ground's map plan for the chapter is
+agreed; the family is pick `line-family`.
+
+- **Family: Broad Front at city density.** It is the shipped family with an
+  allied push and armour: allied columns, each a combined-arms lane advancing
+  screened to its next objective and re-routed when it falls, infantry
+  screening the streets and armour the open ground, guns and an air wing
+  behind (`heart-allied-commander.md`, `heart-allied-forces.md`), and a city
+  form already exists (`HeartCountry.Density.CITY`). Assault's allied
+  garrison holds ground but does not advance; Conquest takes compounds in a
+  city with no allied columns; Cordon holds a line rather than pushing one.
+- **Objective and win.** The heart's mothers become the claim's stakes in the
+  city: each lane's objective is its next stake, and the battle is won when
+  every stake on the map is scrapped or stranded (its chain to the hull cut,
+  `fallen-hull-nouns.md`, Relay chain). Stranding counts, so cutting a chain
+  near the trench can win a lane without fighting every block. The hull and its
+  forge are out of reach; that is chapter 4. Lost as every chapter is: the
+  company eliminated. Allies never end the battle.
+- **What the adapter needs.** A Broad Front setup on the chapter's owned city
+  map with the hull patch; `FallenHull.install` in place of the bores and the
+  swarm director, its queue printing trains toward the city so the haul roads
+  are live; the lane objectives read from `FallenHull.stakes()` (nodes of raised
+  and established stakes, pylons of planted ones) where the heart reads its
+  bores; the win condition above as the heart's "every mother collapsed"
+  replaced; beats and radio keyed `stake-N` in place of `mother-N`; and the
+  allied commander fighting flocks and walkers (anti-air on flocks, anti-armour
+  on frames, targeting stakes), which is the board's "garrison against the
+  watch" row.
+- **Destruction.** The city is the shipped city form; the heavy frames crush
+  ordinary walls and props on their way (`mechs-nouns.md`, Wall crush), the
+  columns' guns and the company's demolitions do the rest.
 
 ## Unlocks and replay
 
@@ -143,6 +180,11 @@ chapter (pick through the art session), voiced later as the Khettara is.
 
 ## Open picks
 
+`line-family` (recommended: Broad Front at city density, above; alternatives:
+Conquest in the capital, or Cordon's Line kept), with a consequence for
+chapter 4: with The Line on Broad Front, The Surveyor would repeat the family,
+so its outer push is best kept short and the chapter weighted on the delve into
+the hull (the Ruins family's interior, the autoforge as its vault).
 `hull-fall-cause`, `long-survey-world`, `long-survey-opens`, and the nouns
 doc's `hull-spread-law` and `stake-look`. All are built on the recommended
 option meanwhile and stand on the arc's picks page as picture cards. The nouns
