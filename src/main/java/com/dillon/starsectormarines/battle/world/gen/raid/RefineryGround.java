@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
-import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -15,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -293,8 +293,6 @@ public final class RefineryGround {
                     }
                 }
             }
-            Precinct landing = plan.landingPlace();
-            int[] threat = landing == null ? null : new int[]{landing.seedX(), landing.seedY()};
             if (!areas.isEmpty()) {
                 int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = -1, y1 = -1;
                 for (ProcessArea.Plan a : areas) {
@@ -315,52 +313,36 @@ public final class RefineryGround {
                     gates.add(FieldDefence.laneMouth(lane.y(), lane.y() + lane.h() - 1, left ? x1 : x0,
                             left ? 1 : -1));
                 }
-                guard(FieldDefence.mask(w, h, x0, y0, x1, y1), gates, kind, threat);
+                guard(FieldDefence.mask(w, h, x0, y0, x1, y1), gates, kind);
             }
             if (farm != null) {
                 int[] f = farm.paved(), lane = farm.lane();
                 guard(FieldDefence.mask(w, h, f[0], f[1], f[2], f[3]),
                         List.of(FieldDefence.laneMouth(lane[1], lane[3], f[0], -1),
-                                FieldDefence.laneMouth(lane[1], lane[3], f[2], 1)), kind, threat);
+                                FieldDefence.laneMouth(lane[1], lane[3], f[2], 1)), kind);
             }
         }
 
-        /** Stamps a field's sites on open country off the roads, each laid along its bearing and crewed by the works. */
-        void guard(boolean[][] field, List<DefenceDoctrine.Gate> gates, DefensePostKind kind, int[] threat) {
-            FieldDefence.Ground ground = new FieldDefence.Ground() {
-                @Override public boolean takes(int x, int y) {
-                    return x >= 0 && y >= 0 && x < w && y < h && !field[x][y] && !reserved[y * w + x]
-                            && c.grid.isWalkable(x, y) && !c.grid.isDoorway(x, y) && !c.topology.isWall(x, y)
-                            && c.topology.getBuildingId(x, y) == 0 && (roads == null || !roads[x][y]);
-                }
-
-                @Override public boolean seesThrough(int x, int y) {
-                    return !c.topology.isWall(x, y) && (c.grid.isWalkable(x, y) || c.grid.isSeeThrough(x, y));
-                }
-
-                @Override public boolean anchors(int x, int y) {
-                    int far = DefensePostStamper.POST_MIN_SEPARATION;
-                    for (DefensePost p : c.defensePosts) {
-                        int dx = p.anchorX - x, dy = p.anchorY - y;
-                        if (dx * dx + dy * dy < far * far) return false;
+        /**
+         * Arms a field by the shared doctrine ({@code PrecinctDefence.stampField}): its own posts, on top of the works'
+         * wall's, crewed by the works' guard; off the roads, and out of reach of the posts already standing (the
+         * placer keeps {@code DefensePostStamper.POST_MIN_SEPARATION} between anchors), so the doctrine moves a site
+         * rather than lose it.
+         */
+        void guard(boolean[][] field, List<DefenceDoctrine.Gate> gates, DefensePostKind kind) {
+            boolean[][] clear = new boolean[w][h];
+            int far = DefensePostStamper.POST_MIN_SEPARATION;
+            for (DefensePost p : c.defensePosts) {
+                for (int x = Math.max(0, p.anchorX - far); x <= Math.min(w - 1, p.anchorX + far); x++) {
+                    for (int y = Math.max(0, p.anchorY - far); y <= Math.min(h - 1, p.anchorY + far); y++) {
+                        int dx = x - p.anchorX, dy = y - p.anchorY;
+                        if (dx * dx + dy * dy < far * far) clear[x][y] = true;
                     }
-                    return true;
                 }
-            };
-            boolean[][] clear = DefenceDoctrine.approaches(gates, w, h);
-            if (roads != null) for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) clear[x][y] |= roads[x][y];
-            for (DefenceDoctrine.Site site : FieldDefence.plan(field, gates, threat, kind, ground)) {
-                int posts = c.defensePosts.size(), nodes = c.tactical.size();
-                DefensePostStamper.stampAtSites(c.grid, c.topology, ground::takes, clear, c.doodads, c.tactical,
-                        c.defensePosts, c.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
-                float facing = LayeredAppearance.facingDegrees(site.faceX(), site.faceY());
-                System.out.println("DBGF " + site + " -> " + facing + " new " + (c.defensePosts.size() - posts)
-                        + (c.defensePosts.size() > posts ? " at " + c.defensePosts.get(posts).anchorX + "," + c.defensePosts.get(posts).anchorY : ""));
-                for (int p = posts; p < c.defensePosts.size(); p++) {
-                    c.defensePosts.set(p, c.defensePosts.get(p).withRestFacing(facing));
-                }
-                for (int i = nodes; i < c.tactical.size(); i++) c.tactical.get(i).setPlace(works.name());
             }
+            if (roads != null) for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) clear[x][y] |= roads[x][y];
+            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), clear,
+                    RaidSiteTemplate.WORKS);
         }
 
         // ---- the tank farm ----

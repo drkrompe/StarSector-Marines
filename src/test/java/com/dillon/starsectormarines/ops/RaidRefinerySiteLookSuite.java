@@ -101,8 +101,8 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
 
     /**
      * The whole frame with every emplacement marked: a ring on its anchor and an arrow along the bearing its guns are
-     * laid on, so each gun's place and facing can be read off the site. The field's guns (by a heater or a farm tank)
-     * are marked yellow, the rest of the site's red.
+     * laid on, so each gun's place and facing can be read off the site. The field's guns (beside the process area or
+     * the farm, facing away from it) are marked yellow, the rest of the site's red.
      */
     private static BufferedImage guns(BufferedImage whole, BattleSimulation sim, BattleCamera camera) {
         BufferedImage out = new BufferedImage(whole.getWidth(), whole.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -125,14 +125,18 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
         }
         int laid = 0, fieldPosts = 0;
         for (DefensePost post : sim.getDefensePosts()) {
+            // The field's own posts stand by it and face away from it; the works' wall posts beside it face the other
+            // way, away from the wall.
             boolean ours = false;
             for (float[] b : field) {
+                if (b[2] < b[0] || post.restFacing == null) continue;
                 float dx = Math.max(0, Math.max(b[0] - post.anchorX, post.anchorX - b[2]));
                 float dy = Math.max(0, Math.max(b[1] - post.anchorY, post.anchorY - b[3]));
-                ours |= b[2] >= b[0] && Math.hypot(dx, dy) < FIELD_REACH;
+                double a = Math.toRadians(post.restFacing);
+                float ox = post.anchorX - (b[0] + b[2]) / 2f, oy = post.anchorY - (b[1] + b[3]) / 2f;
+                ours |= Math.hypot(dx, dy) < FIELD_REACH && -Math.sin(a) * ox + Math.cos(a) * oy > 0;
             }
             if (ours) fieldPosts++;
-            if (ours) System.out.println("DBGF post " + post.anchorX + "," + post.anchorY + " " + post.restFacing);
             Color mark = ours ? new Color(255, 215, 40) : new Color(255, 70, 50);
             float sx = camera.cellToScreenX(post.anchorX + .5f);
             float sy = whole.getHeight() - camera.cellToScreenY(post.anchorY + .5f);
