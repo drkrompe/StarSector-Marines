@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1caf6-9f22-77c0-91dd-f3ba53c6f24c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1caf6-9f22-77c0-91dd-f3ba53c6f24c\\exec-bef5b0b0-7b1f-422f-8f63-76ff46377b5c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\raid-sites\\military\\raw\\military-base-3.raw.png",
+    "sha256": "18538ef58b02de70ef8751e691be1412e2c293315d2946769afb1d80fcb64962",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\raid-sites\\military\\prompts\\military-base-3.prompt.txt",
+  "promptSha256": "fa40693c9f3cd2ddb58e5e7a4f33b71c0f1fc26e2b79e13bbb06d7c7aac1e262",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every piece's size, position, silhouette and shadow\nImage 2: Material/style only (the same outpost's other pieces); not layout\n\nUse case: sketch-to-render, game doodad sheet. Image 1 is the authoritative geometry guide: keep every piece exactly where it is, at its size and silhouette, on the same 2016x640 canvas; do not move, rescale, rotate, merge or add pieces. Output on a TRUE TRANSPARENT background, including every negative space; no ground, floor, border, slab or text. Each piece's cast shadow (the grey shape in the guide, falling to the lower right) is painted as a translucent dark shadow, kept inside the guide's grey shape.\nThree pieces for a dusty frontier colony outpost's motor pool, medical post and drill yard in a science-fiction strategy game, seen from directly overhead, for a top-down map. They must read clearly at a glance from high above.\nPIECE 1 (left), FIELD AMBULANCE, parked, nose pointing LEFT (west): a boxy six-wheeled olive-drab utility truck seen from straight above: a short cab at the left end with a dark windscreen strip, a tall box body behind it. On the box body's flat roof a square GREEN panel with a plain WHITE cross on it (white cross on green only; never a red cross, never red on white). A roof hatch, a spare wheel lying on the roof, dust and worn paint; its soft shadow to the lower right. Seen from straight above the road wheels are hidden under the body: no wheels, tyres or sides may show beyond the body's outline.\nPIECE 2 (middle), WORKSHOP GANTRY: a steel A-frame gantry crane seen from straight above, standing over a vehicle bay: at the left and right ends the A-frame legs splay to dark feet at top and bottom; a horizontal yellow-grey steel I-beam spans between them across the middle; a hoist trolley on the beam's middle, and directly beneath it, exactly where the guide's block is, a dirty grey engine block hanging from the hoist, seen from above as the engine's top (rocker covers, intake, hoses); the beam and trolley pass OVER the engine's middle. From straight above the hanging chain is hidden behind the trolley: no chain, no side view, nothing drawn hanging down the image; a long steel tool bench along the top edge with tools, a vice and an oily rag. The beam's shadow falls to the lower right.\nPIECE 3 (right), KHAKI FIELD TENT: a long ridge tent seen from straight above: its ridge line runs left to right across the middle; the upper roof slope sun-lit pale khaki canvas, the lower slope in shade, darker khaki; sagging canvas, seams and patches; a closed door flap at the right end; thin guy ropes run up and down from the eaves to small wooden pegs; its shadow to the lower right.\nPalette: olive drab, khaki, grey steel, dust and worn paint. No insignia, emblems, flags, text, numbers or markings of any real organisation; the ambulance's only marking is the plain white cross on its green panel.\nStraight 90-degree overhead orthographic camera, no perspective: every object shows only its top; nothing shows a side, a front, wheels or a hanging drop. Sun from the upper left. Hand-painted gritty science-fiction game art like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 32 to 64 pixels per cell. No text, letters, numbers, labels, watermark, UI, people or extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\raid-sites\\military\\guide-3.png",
+      "sha256": "3a641b7f503755bda8986c118e7824e47ff71ccee36a70e7b9ad129ec2324f86",
+      "dimensions": [
+        2016,
+        640
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every piece's size, position, silhouette and shadow"
+    },
+    {
+      "path": "art-source\\raid-sites\\military\\raw\\military-base-2.raw.png",
+      "sha256": "ecf11bd55b353ed3d38c49145cfd4ea54de8fa603c852a3b4423f05a68138788",
+      "dimensions": [
+        1639,
+        960
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the same outpost's other pieces); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 for the exact layout and silhouettes, and Image 2 only for materials and painting style, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 45829,
+    "cached_input_tokens": 35840,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 878,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.7
+}

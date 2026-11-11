@@ -59,6 +59,12 @@ PIECES = {
                      "shadow.", 1, 1, "none", {}),
     "medical-marker": ("Medical marker", "A painted panel by the medical post: a plain white cross on a green square, "
                        "worn. A floor decal; blocks nothing.", 3, 3, "none", {}),
+    "parked-ambulance": ("Parked ambulance", "An olive field ambulance parked at the medical post, nose west, a white "
+                         "cross on a green roof panel.", 3, 2, "med", {"ballisticHalfHeight": 0.5}),
+    "workshop-gantry": ("Workshop gantry", "An A-frame gantry crane over a vehicle bay: an engine block hung under its "
+                        "hoist, a tool bench along its north side.", 4, 3, "light", {}),
+    "tent-khaki": ("Khaki tent", "A khaki ridge tent, ridge east-west, door flap east, guy ropes to pegs.", 4, 3, "light",
+                   {}),
 }
 # The medical marker's paint: a plain white cross on green, never the red-on-white protective emblem.
 MEDICAL_GREEN = (46, 112, 64)
@@ -103,6 +109,7 @@ def register_on_guide(raw, guide):
 def painted():
     yield from cut_raw("military-base.raw.png", G.FRAMES, None)
     yield from cut_raw("military-base-2.raw.png", G.FRAMES2, "guide-2.png")
+    yield from cut_raw("military-base-3.raw.png", G.FRAMES3, "guide-3.png")
 
 
 def cut_raw(name, frames, guide):
