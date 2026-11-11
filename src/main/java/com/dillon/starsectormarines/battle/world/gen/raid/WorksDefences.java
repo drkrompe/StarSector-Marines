@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
@@ -63,6 +66,7 @@ public final class WorksDefences {
                 if (bounds != null) MilitaryGround.watchtowers(c, bounds);
             }
         }
+        machinePosts(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
         if (layer == Layer.FORTIFIED) {
             for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
                 if (WorksProps.purposeOf(c, b) != RoomPurpose.PARTS_CAGE) continue;
@@ -71,6 +75,77 @@ public final class WorksDefences {
                 }
             }
         }
+    }
+
+    /** Cells in past the wall a gate's machine post stands. UNTUNED. */
+    static final int GATE_POST_IN = 4;
+    /** Priority of a machine post: after the works' guard, whose seating comes first anyway. UNTUNED. */
+    static final int MACHINE_POST_PRIORITY = 75;
+    /** Machines at a gate, and in the reserve. UNTUNED; owner pick {@code raid-works-machines} pending. */
+    static final int GATE_MACHINES = 1, RESERVE_MACHINES = 2;
+
+    /**
+     * The works' machine posts ({@code raid-demolish-the-works.md}, slice 6; owner picks {@code raid-works-machines}
+     * and {@code raid-works-machines-source}, (a) recommended): a post just inside each open gate, past the wall
+     * ({@code glacis} cells of cleared ground and {@link #GATE_POST_IN} more), and on a fortified works a reserve on
+     * the largest open yard inside. Each is an inner position named with {@link RaidSiteTemplate#WORKS_MACHINES}, which
+     * the defender allocation seats with the market's machines right after the works' own guard.
+     */
+    static void machinePosts(GenContext c, PrecinctPlan plan, Precinct works, int glacis, boolean reserve) {
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM), owner = c.get(BspKeys.PRECINCT_ROAD);
+        int index = plan.precincts().indexOf(works);
+        if (claim == null || index < 0) return;
+        if (owner != null) {
+            for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, owner, index, c.width, c.height,
+                    Integer.MAX_VALUE)) {
+                int[] mouth = mouth(c, claim, index, gate);
+                if (mouth == null) continue;
+                int in = glacis + GATE_POST_IN;
+                post(c, mouth[0] - mouth[2] * in, mouth[1] - mouth[3] * in, GATE_MACHINES);
+            }
+        }
+        if (!reserve) return;
+        boolean[][] open = new boolean[c.width][c.height];
+        for (int x = 0; x < c.width; x++) {
+            for (int y = 0; y < c.height; y++) {
+                open[x][y] = claim[x][y] == index && distanceOut(claim, index, x, y, glacis + 1) > glacis + 1
+                        && c.grid.isWalkable(x, y) && !c.topology.isWall(x, y) && !c.topology.isFixture(x, y)
+                        && c.topology.getBuildingId(x, y) == 0;
+            }
+        }
+        int[] yard = MilitaryGround.largestRectangle(open);
+        if (yard != null) post(c, (yard[0] + yard[2]) / 2, (yard[1] + yard[3]) / 2, RESERVE_MACHINES);
+    }
+
+    /** A defender machine post at {@code (x, y)} holding {@code machines}. */
+    private static void post(GenContext c, int x, int y, int machines) {
+        if (!c.grid.inBounds(x, y)) return;
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.INNER_POSITION, x, y, x, y, x, y, Faction.DEFENDER,
+                MACHINE_POST_PRIORITY, machines);
+        node.setPlace(RaidSiteTemplate.WORKS_MACHINES);
+        c.tactical.add(node);
+        // The works is dressed after the tactical link: the linked map takes the post as a node found after it.
+        TacticalMap linked = c.get(BspKeys.TACTICAL_MAP);
+        if (linked != null) linked.add(node);
+    }
+
+    /**
+     * A gate's mouth: its middle cell and the outward step {x, y, dx, dy}, the side whose cell beyond the checkpoint
+     * line is outside the works; null for a gate with no cells or no outward side.
+     */
+    private static int[] mouth(GenContext c, int[][] claim, int index, PrecinctBoundary.Gate gate) {
+        if (gate.cells().isEmpty()) return null;
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = -1, maxY = -1;
+        for (int[] cell : gate.cells()) {
+            minX = Math.min(minX, cell[0]); minY = Math.min(minY, cell[1]);
+            maxX = Math.max(maxX, cell[0]); maxY = Math.max(maxY, cell[1]);
+        }
+        int cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        for (Side out : Side.values()) {
+            int ox = cx + out.dx * (CHECKPOINT_OUT + 1), oy = cy + out.dy * (CHECKPOINT_OUT + 1);
+            if (c.grid.inBounds(ox, oy) && claim[ox][oy] != index) return new int[]{cx, cy, out.dx, out.dy};
+        }
+        return null;
     }
 
     /** Cells out from a hall's wall its parapet stands, and the parapet's way through every this many cells. UNTUNED. */

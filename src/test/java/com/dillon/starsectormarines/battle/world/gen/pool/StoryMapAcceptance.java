@@ -170,6 +170,13 @@ public final class StoryMapAcceptance {
             }
             if (map != StoryMap.RAID && posts == 0) throw new AssertionError("the works has no guard post");
             detail.append(String.format(Locale.ROOT, "; %d works guard posts held, %d of them crewing a gun", posts, guns));
+            // The works' machine posts (raid-demolish-the-works.md, slice 6): one inside each gate of a guarded works.
+            int machinePosts = 0;
+            for (TacticalNode node : sim.getTacticalMap().all()) {
+                if (RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) machinePosts++;
+            }
+            if (map != StoryMap.RAID && machinePosts == 0) throw new AssertionError("the works has no machine post");
+            detail.append(String.format(Locale.ROOT, ", %d machine posts", machinePosts));
             detail.append(String.format(Locale.ROOT, "; works %d machines, egress %d,%d; map %dx%d",
                     works.sites().size(), works.egressCellX(), works.egressCellY(),
                     sim.getTopology().getWidth(), sim.getTopology().getHeight()));

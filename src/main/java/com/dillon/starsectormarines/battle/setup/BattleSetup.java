@@ -865,12 +865,13 @@ public final class BattleSetup {
 
     /**
      * {@link #createPooledRaid(RaidOwnedMap.Ground, SurfacePalette, long, boolean, List)} raided from {@code raided}
-     * rather than the reference market: the owned layout, with what the raided market decides on it (its force, its
-     * sealed towns, its works' defences). For look suites.
+     * rather than the reference market, fielding mechs when {@code heavyArmor}: the owned layout, with what the raided
+     * market decides on it (its force, its sealed towns, its works' defences). For look suites.
      */
     public static BattleSimulation createPooledRaid(RaidOwnedMap.Ground ground, long seed, boolean works,
-                                                    List<ShuttleAssignment> manifest, TargetProfile raided) {
-        return ownedRaid(ground, seed, manifest, false, ground.tier(), RaidOwnedMap.RISK, raided, FlybyRoster.EMPTY,
+                                                    List<ShuttleAssignment> manifest, TargetProfile raided,
+                                                    boolean heavyArmor) {
+        return ownedRaid(ground, seed, manifest, heavyArmor, ground.tier(), RaidOwnedMap.RISK, raided, FlybyRoster.EMPTY,
                 FlybyRoster.EMPTY, null, null, works ? ground.machines() : 0);
     }
 
@@ -5614,6 +5615,7 @@ public final class BattleSetup {
         // patrol anchors (RaidWorksGuard).
         defenderNodes = RaidWorksGuard.seatingOrder(defenderNodes);
         Set<TacticalNode> worksPosts = new HashSet<>(RaidWorksGuard.posts(defenderNodes));
+        Set<TacticalNode> worksMachinePosts = new HashSet<>(RaidWorksGuard.machinePosts(defenderNodes));
 
         // Two separate queues — mechs and infantry never share a squad.
         // The planner ships distinct goal/action libraries for each, and a
@@ -5634,12 +5636,22 @@ public final class BattleSetup {
         // from a single source queue (mechs first while available, then
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            // A works' guard post is held by riflemen while any are left; a mech does not stand in a guard room.
-            boolean spawningMechs = !mechQueue.isEmpty() && !(worksPosts.contains(node) && !infQueue.isEmpty());
+            // A works' guard post is held by riflemen while any are left; its machine posts by machines only.
+            RaidWorksGuard.Holder holder = RaidWorksGuard.holder(worksPosts.contains(node),
+                    worksMachinePosts.contains(node), !mechQueue.isEmpty(), !infQueue.isEmpty());
+            if (holder == RaidWorksGuard.Holder.NONE) {
+                if (!worksMachinePosts.contains(node)) patrolAnchors.add(node);
+                continue;
+            }
+            boolean spawningMechs = holder == RaidWorksGuard.Holder.MACHINES;
+            // A works' machine post is for machines alone: never a patrol's anchor when it stands empty.
+            boolean machinePost = worksMachinePosts.contains(node);
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
-            if (sourceSize == 0) { patrolAnchors.add(node); continue; }
+            if (sourceSize == 0) { if (!machinePost) patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
-            int garrisonBudget = Math.max(0, remaining
+            // A machine post draws below the mobile pool's floor: its few machines hold a gate, or are the works'
+            // own reserve, which answers the alarm itself (raid-demolish-the-works.md, slice 6).
+            int garrisonBudget = machinePost ? remaining : Math.max(0, remaining
                     - Math.max(0, minimumPatrolMembers));
             if (garrisonBudget == 0) {
                 patrolAnchors.add(node);
@@ -5652,7 +5664,7 @@ public final class BattleSetup {
                 int spawned = spawnPlacedDefenderMechs(sim, candidates, mechQueue, want,
                         roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
                 defenderIdx += spawned;
-                if (spawned == 0) patrolAnchors.add(node);
+                if (spawned == 0 && !machinePost) patrolAnchors.add(node);
                 continue;
             }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
@@ -5698,6 +5710,8 @@ public final class BattleSetup {
         if (mechQueue.isEmpty() && infQueue.isEmpty()) return;
         List<TacticalNode> originalAnchors = new ArrayList<>(
                 patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors);
+        originalAnchors.removeAll(worksMachinePosts);
+        if (originalAnchors.isEmpty()) originalAnchors.addAll(defenderNodes);
         List<TacticalNode> anchorPool = new ArrayList<>(originalAnchors);
         int anchorIdx = 0;
         while (!mechQueue.isEmpty() || !infQueue.isEmpty()) {

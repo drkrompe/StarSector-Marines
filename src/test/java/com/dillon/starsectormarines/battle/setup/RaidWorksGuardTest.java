@@ -42,6 +42,27 @@ class RaidWorksGuardTest {
     }
 
     @Test
+    void theWorksMachinePostsAreSeatedRightAfterItsGuardAndBeforeEverythingElse() {
+        TacticalNode command = node(TacticalNode.Kind.COMMAND_POST, Faction.DEFENDER, 90, RaidSiteTemplate.GARRISON);
+        TacticalNode guard = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 40, RaidSiteTemplate.WORKS);
+        TacticalNode gate = node(TacticalNode.Kind.INNER_POSITION, Faction.DEFENDER, 75, RaidSiteTemplate.WORKS_MACHINES);
+        assertEquals(List.of(gate), RaidWorksGuard.machinePosts(List.of(command, guard, gate)));
+        assertEquals(List.of(guard, gate, command), RaidWorksGuard.seatingOrder(List.of(command, gate, guard)));
+    }
+
+    @Test
+    void aMachinePostTakesOnlyMachinesAndAGuardPostRiflemenFirst() {
+        assertEquals(RaidWorksGuard.Holder.MACHINES, RaidWorksGuard.holder(false, true, true, true));
+        assertEquals(RaidWorksGuard.Holder.NONE, RaidWorksGuard.holder(false, true, false, true),
+                "no machines left: the post stays empty, the market's force is not grown for it");
+        assertEquals(RaidWorksGuard.Holder.INFANTRY, RaidWorksGuard.holder(true, false, true, true));
+        assertEquals(RaidWorksGuard.Holder.MACHINES, RaidWorksGuard.holder(true, false, true, false));
+        assertEquals(RaidWorksGuard.Holder.MACHINES, RaidWorksGuard.holder(false, false, true, true));
+        assertEquals(RaidWorksGuard.Holder.INFANTRY, RaidWorksGuard.holder(false, false, false, true));
+        assertEquals(RaidWorksGuard.Holder.NONE, RaidWorksGuard.holder(false, false, false, false));
+    }
+
+    @Test
     void aMapWithNoWorksSeatsByPriorityAlone() {
         TacticalNode low = node(TacticalNode.Kind.GUARDPOST, Faction.DEFENDER, 40, null);
         TacticalNode high = node(TacticalNode.Kind.ARMORY, Faction.DEFENDER, 70, null);
