@@ -373,14 +373,29 @@ public final class DefenceDoctrine {
      * covers nothing (a garrison backed into the map's corner once lined its edge-side walls with guns facing off it).
      */
     public static boolean lane(boolean[][] inside, int x, int y, int fx, int fy) {
-        int w = inside.length, h = inside[0].length;
+        return lane((cx, cy) -> inside[cx][cy], inside.length, inside[0].length, x, y, fx, fy, 0);
+    }
+
+    /** A cell a lane may not cross. */
+    @FunctionalInterface
+    public interface Blocks {
+        boolean at(int x, int y);
+    }
+
+    /**
+     * Whether a post at {@code (x, y)} laid along the step {@code (fx, fy)} has its lane open: rays at its bearing and
+     * {@link #ARC_DEGREES} either side, each from {@code from} cells out (past the post's own footprint) to
+     * {@link #LANE}, meet no cell that {@code blocked} names and stay on the map ({@code w} by {@code h}): past the
+     * edge no attacker comes.
+     */
+    public static boolean lane(Blocks blocked, int w, int h, int x, int y, int fx, int fy, int from) {
         double bearing = Math.atan2(fy, fx);
         for (int turn = -1; turn <= 1; turn++) {
             double a = bearing + Math.toRadians(ARC_DEGREES * turn);
             double ux = Math.cos(a), uy = Math.sin(a);
-            for (int t = 0; t <= LANE; t++) {
+            for (int t = from; t <= LANE; t++) {
                 int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-                if (cx < 0 || cy < 0 || cx >= w || cy >= h || inside[cx][cy]) return false;
+                if (cx < 0 || cy < 0 || cx >= w || cy >= h || blocked.at(cx, cy)) return false;
             }
         }
         return true;

@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -15,6 +18,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The stage scatters nests when a mission declares them and not otherwise, on a bare field. */
@@ -91,6 +95,47 @@ class DefenceNestStageTest {
                         a.defensePosts.get(i).anchorY - a.defensePosts.get(j).anchorY);
                 assertTrue(d >= 20, "two nests " + d + " cells apart: a cluster, not a network");
             }
+        }
+    }
+
+    /** Buildings in rows: walls every {@code pitch} columns, so no gun between two has ten open cells east or west. */
+    private static void streets(GenContext ctx, int pitch) {
+        for (int x = 0; x < W; x += pitch) {
+            for (int y = 0; y < H; y++) {
+                ctx.grid.setWalkable(x, y, false);
+                ctx.topology.setWall(x, y, true);
+            }
+        }
+    }
+
+    @Test
+    void aNestHardAgainstABuildingIsNotPlaced() {
+        GenContext ctx = field(declared(6));
+        ctx.put(BspKeys.AXIS, TraversalAxis.WEST_TO_EAST);
+        streets(ctx, 6);
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, TraversalAxis.WEST_TO_EAST));
+        new DefenceNestStage().run(ctx);
+        assertTrue(ctx.defensePosts.isEmpty(), "a nest stood facing the attacker with a building across its arc");
+    }
+
+    @Test
+    void everyNestFacesTheAttackerOverOpenGround() {
+        GenContext ctx = field(declared(6));
+        ctx.put(BspKeys.AXIS, TraversalAxis.SOUTH_TO_NORTH);
+        streets(ctx, 30);
+        ctx.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(ctx.grid, ctx.topology, TraversalAxis.SOUTH_TO_NORTH));
+        new DefenceNestStage().run(ctx);
+        assertEquals(6, ctx.defensePosts.size());
+        int[][] steps = {{0, -1}, {1, -1}, {-1, -1}};
+        for (DefensePost post : ctx.defensePosts) {
+            assertNotNull(post.restFacing, "the nest's guns are laid");
+            int[] laid = null;
+            for (int[] step : steps) {
+                if (Math.abs(LayeredAppearance.facingDegrees(step[0], step[1]) - post.restFacing) < 0.01f) laid = step;
+            }
+            assertNotNull(laid, "nest at " + post.anchorX + "," + post.anchorY + " faces away from the attacker");
+            assertTrue(PrecinctDefence.openArc(ctx, post.anchorX, post.anchorY, laid[0], laid[1], DefenceNestStage.ARC_FROM),
+                    "nest at " + post.anchorX + "," + post.anchorY + " has a building across its arc");
         }
     }
 

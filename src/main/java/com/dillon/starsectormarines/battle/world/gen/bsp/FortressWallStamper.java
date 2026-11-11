@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.TacticalNode.StandPosition;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -275,7 +277,7 @@ public final class FortressWallStamper implements GenStage {
      * The attacker-facing wall is horizontal at {@code wBot}; east/west walls
      * are vertical returns up to the map edge.
      */
-    private static void stampSouthToNorth(NavigationGrid grid, CellTopology topology,
+    static void stampSouthToNorth(NavigationGrid grid, CellTopology topology,
                                           int[] bbox, Compound keepCompound,
                                           boolean[][] wallMask,
                                           boolean[][] roadReservation,
@@ -402,6 +404,7 @@ public final class FortressWallStamper implements GenStage {
                 if (tooClose) continue;
                 if (!hasValidBunkerSite(grid,
                         roadReservation, bx, by, TraversalAxis.SOUTH_TO_NORTH)) continue;
+                if (masksTower(bx, by, TraversalAxis.SOUTH_TO_NORTH, towerCentersX, wBot - 1, w, h)) continue;
                 List<StandPosition> standPositions = stampForwardBunker(
                         grid, topology, bx, by, TraversalAxis.SOUTH_TO_NORTH,
                         wallMask, roadReservation);
@@ -426,7 +429,7 @@ public final class FortressWallStamper implements GenStage {
      * swapped. The attacker-facing wall is vertical at {@code wLeft}; the
      * north/south walls are horizontal returns to the map edge at x=w-1.
      */
-    private static void stampWestToEast(NavigationGrid grid, CellTopology topology,
+    static void stampWestToEast(NavigationGrid grid, CellTopology topology,
                                         int[] bbox, Compound keepCompound,
                                         boolean[][] wallMask,
                                         boolean[][] roadReservation,
@@ -461,19 +464,21 @@ public final class FortressWallStamper implements GenStage {
             paintWall(grid, topology, x, wTop, wallMask, roadReservation);
         }
 
+        // Towers protrude west of the wall line, toward the attacker, as the south-to-north towers protrude south: a
+        // wall blocks direct fire whole, so a tower standing behind its own wall has nothing to shoot.
         List<Integer> towerCentersY = new ArrayList<>();
-        stampTower3x3(grid, topology, wLeft + 1, wBot, wallMask, roadReservation);
-        emitHeavyTower(tactical, wLeft + 1, wBot);
+        stampTower3x3(grid, topology, wLeft - 1, wBot, wallMask, roadReservation);
+        emitHeavyTower(tactical, wLeft - 1, wBot);
         towerCentersY.add(wBot);
-        stampTower3x3(grid, topology, wLeft + 1, wTop, wallMask, roadReservation);
-        emitHeavyTower(tactical, wLeft + 1, wTop);
+        stampTower3x3(grid, topology, wLeft - 1, wTop, wallMask, roadReservation);
+        emitHeavyTower(tactical, wLeft - 1, wTop);
         towerCentersY.add(wTop);
         int span = wTop - wBot;
         int innerCount = Math.max(0, (span / HEAVY_TOWER_SPACING) - 1);
         for (int i = 1; i <= innerCount; i++) {
             int cy = wBot + (span * i) / (innerCount + 1);
-            stampTower3x3(grid, topology, wLeft + 1, cy, wallMask, roadReservation);
-            emitHeavyTower(tactical, wLeft + 1, cy);
+            stampTower3x3(grid, topology, wLeft - 1, cy, wallMask, roadReservation);
+            emitHeavyTower(tactical, wLeft - 1, cy);
             towerCentersY.add(cy);
         }
 
@@ -530,6 +535,7 @@ public final class FortressWallStamper implements GenStage {
                 if (tooClose) continue;
                 if (!hasValidBunkerSite(grid,
                         roadReservation, bx, by, TraversalAxis.WEST_TO_EAST)) continue;
+                if (masksTower(bx, by, TraversalAxis.WEST_TO_EAST, towerCentersY, wLeft - 1, w, h)) continue;
                 List<StandPosition> standPositions = stampForwardBunker(
                         grid, topology, bx, by, TraversalAxis.WEST_TO_EAST,
                         wallMask, roadReservation);
@@ -546,6 +552,31 @@ public final class FortressWallStamper implements GenStage {
         applyFortressMasks(topology, wallMask,
                 wLeft + 1, wRight, wBot + 1, wTop - 1,
                 grid.getWidth(), grid.getHeight());
+    }
+
+    /**
+     * Whether a forward bunker at {@code (bx, by)} would stand in a wall tower's field of fire. The towers stand on
+     * the line {@code towerLine} (the row or column one cell out from the wall) at {@code towerCentres} along it, and
+     * fire out toward the attacker; a bunker inside one's arc ({@link DefenceDoctrine#lane}) masks its guns, as a
+     * wall would, since the sim has no wall height.
+     */
+    private static boolean masksTower(int bx, int by, TraversalAxis axis, List<Integer> towerCentres, int towerLine,
+                                      int w, int h) {
+        boolean southToNorth = axis == TraversalAxis.SOUTH_TO_NORTH;
+        int halfX = southToNorth ? BUNKER_HALF_FRONTAGE : BUNKER_HALF_DEPTH;
+        int halfY = southToNorth ? BUNKER_HALF_DEPTH : BUNKER_HALF_FRONTAGE;
+        int[] out = towerFacing(axis);
+        DefenceDoctrine.Blocks bunker = (x, y) -> Math.abs(x - bx) <= halfX && Math.abs(y - by) <= halfY;
+        for (int along : towerCentres) {
+            int tx = southToNorth ? along : towerLine, ty = southToNorth ? towerLine : along;
+            if (!DefenceDoctrine.lane(bunker, w, h, tx, ty, out[0], out[1], TOWER_SIZE / 2 + 1)) return true;
+        }
+        return false;
+    }
+
+    /** The step a wall tower faces: out from the wall toward the side the attacker enters by. */
+    static int[] towerFacing(TraversalAxis axis) {
+        return axis == TraversalAxis.SOUTH_TO_NORTH ? new int[]{0, -1} : new int[]{-1, 0};
     }
 
     /** HEAVY_TOWER node — anchor at the turret-mount center; bbox covers the 3×3 footprint. */
