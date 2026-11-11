@@ -107,4 +107,14 @@ class TankFarmTest {
     }
 
     private static long key(int x, int y) { return ((long) x << 32) | (y & 0xffffffffL); }
+
+    /** A farm laid with a narrower lane gives the bunds the ground the lane no longer takes. */
+    @Test
+    void aNarrowerLaneLeavesTheBundsMoreGround() {
+        int lane = TankFarm.LANE - 2, depth = TankFarm.bundHeight(TankFarm.SMALL) + lane;
+        TankFarm.Plan narrow = TankFarm.plan(W, 0, 0, 59, depth - 1, i -> true, depth + 10, 0, lane);
+        assertNotNull(narrow, "a bund fits beside the narrow lane");
+        assertEquals(lane, narrow.lane()[3] - narrow.lane()[1] + 1);
+        assertNull(TankFarm.plan(W, 0, 0, 59, depth - 1, i -> true, depth + 10, 0), "and none beside the full lane");
+    }
 }

@@ -234,6 +234,15 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   dressing of whatever the hull came down on) are spared only beyond the 20
   cells. It only takes walls and roofs down, so the lift, the shelters, the
   stake points and the haul roads stay as open as they were.
+- **The port's yards** (`PortYards`): where the patch names a `yards` row, every
+  worked field wholly south of it is a port's yards instead of the skin's covered
+  farm, laid before the shower and the lattice so both see them standing. Each
+  clear piece of a field (its farm tracks, worn to trodden earth, and the
+  landing's field of fire part it) takes by turns two tank farms (`TankFarm` in
+  bunds, a loading rack over the lane's bay, the product main along the back and
+  down the far end) to one apron of landing pads (painted rings, stores, a
+  bowser's tank and pump sets down the gaps, the fuel line behind). Nothing that
+  stands is laid in the field of fire or on the hull, trench or aprons.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
@@ -280,6 +289,11 @@ lamps, with welding, builder drones and dust; the pylon drives in, the mast turn
 open; the drone pad, `stake-pad.png`, stays); `hull-painting-res` (b), the
 hull's roof painting regenerated at 48 px a cell in five sections registered to
 the accepted card (`hull_hires.py`), so it holds up at play's closest zoom.
+
+Also answered (owner, 2026-11-11), with the art session building both:
+`hull-painting-res` (b), the hull's painting regenerated at a higher
+resolution; `stake-composed` (a), the stake drawn as separate parts, with a
+construction animation to come.
 
 ## What is built
 

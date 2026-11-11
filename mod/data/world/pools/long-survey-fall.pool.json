@@ -51,7 +51,8 @@
         "x": 318,
         "y": 54,
         "heading": "west",
-        "trench": 12
+        "trench": 12,
+        "yards": 80
       }
     }
   }

@@ -101,6 +101,7 @@ public final class PoolEntryText {
                 }
                 hull.put("stakes", stakes);
             }
+            if (h.yards() > 0) hull.put("yards", h.yards());
             m.put("hull", hull);
         }
         return m;
