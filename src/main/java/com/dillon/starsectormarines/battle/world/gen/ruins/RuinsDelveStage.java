@@ -34,6 +34,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -135,6 +136,14 @@ public final class RuinsDelveStage implements GenStage {
     static final int MIN_BAY = 24;
     /** The grid the building's mass is partitioned on into bays: a partition wall every this many cells. */
     static final int BAY_BLOCK = 16;
+    /** The kit a bay is dressed from for its job ({@link BayJob}). */
+    static final String BAY_PIPE_RUN = "doodad.ruins-pipe-run", BAY_PIPE_FALLEN = "doodad.ruins-pipe-run-fallen",
+            BAY_CABLE_TRAY = "doodad.ruins-cable-tray",
+            BAY_FEED_TANK = "doodad.ruins-feed-tank", BAY_FLUID_TANK = "doodad.industrial-fluid-tank",
+            BAY_PUMPS = "doodad.industrial-pump-set", BAY_DRUMS = "doodad.ruins-coolant-drums",
+            BAY_PALLET = "doodad.ruins-pallet-bay", BAY_STORE_PALLET = "doodad.ruins-store-pallet";
+    static final String[] BAY_CRATES = {"doodad.ruins-stack-crate", "doodad.ruins-housing-crate",
+            "doodad.ruins-hardware-crate"};
     /** How many bays against the outer hull a plant's ruin breaches. */
     static final int BREACHES = 2;
     /** How far from the vault's row a plant's deeper band line lets its ways cross. */
@@ -415,6 +424,8 @@ public final class RuinsDelveStage implements GenStage {
         final List<Integer> spines = new ArrayList<>();
         /** The building's bays with doors, and those breached from outside ({@link #fillMass}). */
         final List<List<Integer>> bays = new ArrayList<>(), breached = new ArrayList<>();
+        /** Each bay's job, by its bounds ({@link #fillMass}). */
+        final Map<Area, BayJob> bayJobs = new HashMap<>();
         /** The bays' blast doors, published with the plant's other leaf doors. */
         final List<RuinsDelve.LeafDoor> bayDoors = new ArrayList<>();
         /** The bay whose roof came down ({@link #ruin}), or null. */
@@ -1678,15 +1689,22 @@ public final class RuinsDelveStage implements GenStage {
          * the works hall; a pocket too small to be a bay, or with no floor beside it to open onto, stays hull.
          */
         void fillMass(boolean[] occupied) {
-            boolean[] walls = near(occupied, OUTLINE_WALL), shell = near(beyond, OUTLINE_WALL);
-            boolean[] mass = new boolean[w * h];
+            boolean[] walls = near(occupied, OUTLINE_WALL), shell = near(beyond, OUTLINE_WALL),
+                    hullSide = near(beyond, OUTLINE_WALL + 1);
+            boolean[] raw = new boolean[w * h];
             for (int y = 1; y < h - 1; y++) {
                 for (int x = 1; x < w - 1; x++) {
                     int k = i(x, y);
-                    // Partitions on a grid cut the mass into bays of a room's size.
-                    mass[k] = insideCell(x, y) && hull[k] && !walls[k] && !shell[k] && !lineCell[k]
-                            && x % BAY_BLOCK != 0 && y % BAY_BLOCK != 0;
+                    raw[k] = insideCell(x, y) && hull[k] && !walls[k] && !shell[k] && !lineCell[k];
                 }
+            }
+            // Each cell of the bay grid takes its job by where it stands; neighbouring cells of one job are one bay.
+            int cols = (w + BAY_BLOCK - 1) / BAY_BLOCK, rows = (h + BAY_BLOCK - 1) / BAY_BLOCK;
+            int[] jobs = blockJobs(raw, hullSide, cols, rows);
+            int[] group = BayJob.fuse(jobs, cols, rows);
+            boolean[] mass = new boolean[w * h];
+            for (int y = 1; y < h - 1; y++) {
+                for (int x = 1; x < w - 1; x++) mass[i(x, y)] = raw[i(x, y)] && !partition(x, y, group, cols, rows);
             }
             List<List<Integer>> pockets = new ArrayList<>();
             int[] owner = new int[w * h];
@@ -1711,17 +1729,27 @@ public final class RuinsDelveStage implements GenStage {
                     pockets.add(bay);
                 }
             }
+            BayJob[] jobOf = new BayJob[pockets.size()];
+            for (int p = 0; p < pockets.size(); p++) {
+                int c = pockets.get(p).get(0), j = jobs[(c / w / BAY_BLOCK) * cols + c % w / BAY_BLOCK];
+                jobOf[p] = j < 0 ? BayJob.SPARES : BayJob.values()[j];
+            }
             // 0: shut; 1: open, one door to the plant or to an open bay; 2: breached from outside, no door inward.
             int[] state = new int[pockets.size()];
+            Cell[] doorAt = new Cell[pockets.size()];
             for (int p = 0; p < pockets.size(); p++) {
                 List<Integer> bay = pockets.get(p);
-                if (bay.size() < MIN_BAY || breached.size() >= BREACHES || !breach(bay)) continue;
+                if (bay.size() < MIN_BAY || breached.size() >= BREACHES || jobOf[p] == BayJob.MARSHALLING) continue;
+                Cell gap = breach(bay);
+                if (gap == null) continue;
                 for (int c : bay) bayFloor(c % w, c / w);
                 breached.add(bay);
                 spaces.put(RuinsDelve.Interior.spaceName("breached-bay-" + breached.size()), bounds(bay));
                 state[p] = 2;
+                doorAt[p] = gap;
             }
-            // Each bay takes one door, onto the plant's floor or into a bay already open, so the bays hang off the
+            // A marshalling floor opens whole onto its store or the dock: one space with it, a dead end off it. Every
+            // other bay takes one door, onto the plant's floor or into a bay already open, so the bays hang off the
             // plant in trees, each a dead end: none carries a way round the works hall.
             boolean grew = true;
             while (grew) {
@@ -1729,24 +1757,284 @@ public final class RuinsDelveStage implements GenStage {
                 for (int p = 0; p < pockets.size(); p++) {
                     List<Integer> bay = pockets.get(p);
                     if (state[p] != 0 || bay.size() < MIN_BAY) continue;
-                    boolean opened = door(bay, OUTLINE_WALL, (x, y) -> doorable(x, y))
-                            || door(bay, 1, (x, y) -> grid.inBounds(x, y) && owner[i(x, y)] >= 0
-                            && state[owner[i(x, y)]] == 1 && grid.isWalkable(x, y) && !topology.isFixture(x, y));
-                    if (!opened) continue;
+                    Cell opened = jobOf[p] == BayJob.MARSHALLING ? openWide(bay) : null;
+                    if (opened == null) opened = door(bay, OUTLINE_WALL, (x, y) -> doorable(x, y));
+                    if (opened == null) {
+                        opened = door(bay, 1, (x, y) -> grid.inBounds(x, y) && owner[i(x, y)] >= 0
+                                && state[owner[i(x, y)]] == 1 && grid.isWalkable(x, y) && !topology.isFixture(x, y));
+                    }
+                    if (opened == null) continue;
                     state[p] = 1;
+                    doorAt[p] = opened;
                     bays.add(bay);
                     grew = true;
                 }
+            }
+            // Each bay dressed for its job and published by it, numbered.
+            TileRegistry registry = TileRegistry.installed();
+            Map<BayJob, Integer> count = new EnumMap<>(BayJob.class);
+            for (int p = 0; p < pockets.size(); p++) {
+                if (state[p] == 0) continue;
+                int n = count.merge(jobOf[p], 1, Integer::sum);
+                Area rect = inscribed(pockets.get(p));
+                spaces.put(RuinsDelve.Interior.spaceName(jobOf[p].id + "-" + n), bounds(pockets.get(p)));
+                bayJobs.put(bounds(pockets.get(p)), jobOf[p]);
+                if (registry != null && rect != null) dressBay(registry, jobOf[p], rect, doorAt[p]);
             }
             ruin();
         }
 
         /**
+         * The job of each cell of the bay grid, {@code cols} by {@code rows} (as {@link BayJob} ordinals; -1 where it
+         * holds no bay): beside the store or dock a wall away, against the outer hull, else by the brief's space
+         * nearest its middle.
+         */
+        private int[] blockJobs(boolean[] raw, boolean[] hullSide, int cols, int rows) {
+            Map<String, Area> brief = new LinkedHashMap<>();
+            for (Map.Entry<String, Area> e : spaces.entrySet()) {
+                brief.put(e.getKey().substring(RuinsDelve.INTERIOR.length() + 1), e.getValue());
+            }
+            if (trunkHall != null) brief.put("works-hall", trunkHall);
+            int[] jobs = new int[cols * rows];
+            for (int by = 0; by < rows; by++) {
+                for (int bx = 0; bx < cols; bx++) {
+                    long sx = 0, sy = 0;
+                    int n = 0;
+                    boolean onHull = false;
+                    String beside = null;
+                    for (int y = by * BAY_BLOCK; y < Math.min(h, (by + 1) * BAY_BLOCK); y++) {
+                        for (int x = bx * BAY_BLOCK; x < Math.min(w, (bx + 1) * BAY_BLOCK); x++) {
+                            if (!raw[i(x, y)]) continue;
+                            sx += x;
+                            sy += y;
+                            n++;
+                            onHull |= hullSide[i(x, y)];
+                            for (Direction side : Direction.CARDINALS) {
+                                int tx = x + side.dx * (OUTLINE_WALL + 1), ty = y + side.dy * (OUTLINE_WALL + 1);
+                                for (String store : BayJob.MARSHALLED) {
+                                    Area a = brief.get(store);
+                                    if (beside == null && a != null && a.contains(tx, ty) && doorable(tx, ty)) beside = store;
+                                }
+                            }
+                        }
+                    }
+                    if (n < MIN_BAY) {
+                        jobs[by * cols + bx] = -1;
+                        continue;
+                    }
+                    int cx = (int) (sx / n), cy = (int) (sy / n);
+                    String nearest = null;
+                    int best = Integer.MAX_VALUE;
+                    for (Map.Entry<String, Area> e : brief.entrySet()) {
+                        Area a = e.getValue();
+                        int d = Math.max(Math.max(a.left() - cx, cx - a.right()), Math.max(a.bottom() - cy, cy - a.top()));
+                        if (d < best) {
+                            best = d;
+                            nearest = e.getKey();
+                        }
+                    }
+                    jobs[by * cols + bx] = BayJob.of(nearest, beside, onHull).ordinal();
+                }
+            }
+            return jobs;
+        }
+
+        /**
+         * Whether a cell is a partition of the bay grid: on a grid line, unless the grid cells either side of it are
+         * one bay ({@link BayJob#fuse}).
+         */
+        private boolean partition(int x, int y, int[] group, int cols, int rows) {
+            boolean onX = x % BAY_BLOCK == 0, onY = y % BAY_BLOCK == 0;
+            if (!onX && !onY) return false;
+            int g = -2;
+            for (int dy = onY ? -1 : 0; dy <= (onY ? 1 : 0); dy += 2) {
+                for (int dx = onX ? -1 : 0; dx <= (onX ? 1 : 0); dx += 2) {
+                    int bx = (x + dx) / BAY_BLOCK, by = (y + dy) / BAY_BLOCK;
+                    if (x + dx < 0 || y + dy < 0 || bx >= cols || by >= rows) return true;
+                    int at = group[by * cols + bx];
+                    if (at < 0 || (g != -2 && at != g)) return true;
+                    g = at;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Opens a marshalling bay whole onto the store or dock beside it: every run of its wall that stands between
+         * the bay and that one space's open floor, with nothing else alongside, is cut away. The middle of the cut on
+         * the bay's side, or null where no three cells of wall could open.
+         */
+        private Cell openWide(List<Integer> list) {
+            Set<Integer> cells = new HashSet<>(list);
+            for (String store : BayJob.MARSHALLED) {
+                Area a = spaces.get(RuinsDelve.Interior.spaceName(store));
+                if (a == null) continue;
+                List<int[]> cuts = new ArrayList<>();
+                for (int k : list) {
+                    int x = k % w, y = k / w;
+                    for (Direction side : Direction.CARDINALS) {
+                        int tx = x + side.dx * (OUTLINE_WALL + 1), ty = y + side.dy * (OUTLINE_WALL + 1);
+                        if (!a.contains(tx, ty) || !doorable(tx, ty)) continue;
+                        int px = side.dx == 0 ? 1 : 0, py = side.dy == 0 ? 1 : 0;
+                        boolean clear = true;
+                        for (int d = 1; d <= OUTLINE_WALL && clear; d++) {
+                            int wx = x + side.dx * d, wy = y + side.dy * d;
+                            clear = insideCell(wx, wy) && !grid.isWalkable(wx, wy) && !topology.isFixture(wx, wy)
+                                    && !grid.isDoorway(wx, wy) && !lineCell[i(wx, wy)] && !cells.contains(i(wx, wy));
+                            // Nothing alongside the cut but wall, so it joins the bay to the store alone.
+                            for (int o = -1; o <= 1 && clear; o += 2) {
+                                int ox = wx + px * o, oy = wy + py * o;
+                                clear = !grid.inBounds(ox, oy) || !grid.isWalkable(ox, oy) && !grid.isDoorway(ox, oy);
+                            }
+                        }
+                        if (clear) cuts.add(new int[]{x, y, side.dx, side.dy});
+                    }
+                }
+                if (cuts.size() < 3) continue;
+                for (int c : list) bayFloor(c % w, c / w);
+                for (int[] c : cuts) {
+                    for (int d = 1; d <= OUTLINE_WALL; d++) interiorFloor(c[0] + c[2] * d, c[1] + c[3] * d);
+                }
+                int[] mid = cuts.get(cuts.size() / 2);
+                return new Cell(mid[0], mid[1]);
+            }
+            return null;
+        }
+
+        /** The largest rectangle wholly inside a bay, or null when the bay has none four cells square. */
+        private Area inscribed(List<Integer> list) {
+            Area box = bounds(list);
+            Set<Integer> cells = new HashSet<>(list);
+            int bw = box.width(), best = 0;
+            int[] height = new int[bw];
+            Area out = null;
+            for (int y = box.bottom(); y <= box.top(); y++) {
+                for (int x = 0; x < bw; x++) height[x] = cells.contains(i(box.left() + x, y)) ? height[x] + 1 : 0;
+                for (int x = 0; x < bw; x++) {
+                    int lo = Integer.MAX_VALUE;
+                    for (int r = x; r < bw && height[r] > 0; r++) {
+                        lo = Math.min(lo, height[r]);
+                        int area = lo * (r - x + 1);
+                        if (area > best && lo >= 4 && r - x + 1 >= 4) {
+                            best = area;
+                            out = new Area(box.left() + x, y - lo + 1, box.left() + r, y);
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+
+        /**
+         * A bay dressed for its job ({@link BayJob}) over its largest rectangle {@code rect}, its door's cell
+         * {@code door} kept open: line two's runs on through a line bay; the room kit for the workshops, spares stores and lockers, turned to their door;
+         * pipe and cable runs down a gallery's long walls; a tank farm's tanks in rows; crates and pallet bays on a
+         * crating floor; pallets marked out on a marshalling floor, most taken.
+         */
+        void dressBay(TileRegistry registry, BayJob job, Area rect, Cell door) {
+            Cell keep = door == null ? new Cell(rect.centreX(), rect.centreY())
+                    : new Cell(Math.max(rect.left() + 1, Math.min(rect.right() - 1, door.x())),
+                    Math.max(rect.bottom() + 1, Math.min(rect.top() - 1, door.y())));
+            int q = RuinsRoom.facing(keep.x() - rect.centreX(), keep.y() - rect.centreY());
+            WorksHall works = plan.dressing().works();
+            switch (job) {
+                case LINE -> lines(registry, rect, keep);
+                case WORKSHOP -> layRoom(registry, RuinsRoom.WORKSHOP, works, rect, keep, q);
+                case SPARES -> layRoom(registry, RuinsRoom.STORE, works, rect, keep, (q + 2) % 4);
+                case LOCKERS -> {
+                    wallRun(registry, rect, keep, new String[]{RuinsRoom.CREW_LOCKER, RuinsRoom.CREW_LOCKER,
+                            RuinsRoom.CREW_LOCKER_OPEN}, 1, 2, 2);
+                    rows(registry, rect, keep, RuinsRoom.STORE_SHELF, 2, 1, 4, 4, 0);
+                }
+                case GALLERY -> {
+                    wallRun(registry, rect, keep, new String[]{BAY_PIPE_RUN, BAY_PIPE_RUN, BAY_CABLE_TRAY,
+                            BAY_PIPE_RUN, BAY_CABLE_TRAY, BAY_PIPE_FALLEN}, 1, 2, 0);
+                    // The gallery's runs down its length, a walkway between each pair, a run here and there down.
+                    boolean across = rect.width() > rect.height();
+                    rows(registry, rect, keep, BAY_PIPE_RUN, across ? 2 : 1, across ? 1 : 2, 3, 3, 4, across ? 1 : 0);
+                }
+                case TANK_FARM -> {
+                    if (!rows(registry, rect, keep, BAY_FEED_TANK, 4, 4, 6, 6, 0)) {
+                        rows(registry, rect, keep, BAY_FLUID_TANK, 1, 1, 3, 3, 0);
+                    }
+                    wallRun(registry, rect, keep, new String[]{BAY_PUMPS, BAY_DRUMS}, 2, 1, 1);
+                }
+                case CRATING -> {
+                    rows(registry, rect, keep, BAY_CRATES[0], 3, 2, 5, 4, 1);
+                    rows(registry, rect, keep, BAY_PALLET, 3, 3, 4, 4, -1);
+                }
+                case MARSHALLING -> {
+                    rows(registry, rect, keep, BAY_STORE_PALLET, 2, 2, 5, 5, 2);
+                    rows(registry, rect, keep, BAY_PALLET, 3, 3, 4, 4, -1);
+                }
+            }
+        }
+
+        /**
+         * Pieces of {@code ids} in turn along a bay's two long walls, a cell off each end, every {@code gap} cells a
+         * gap; each {@code fx} by {@code fy} drawn standing up a north-south wall, turned along an east-west one.
+         */
+        private void wallRun(TileRegistry registry, Area rect, Cell keep, String[] ids, int fx, int fy, int gap) {
+            boolean alongX = rect.width() > rect.height();
+            int n = 0;
+            for (int side = 0; side < 2; side++) {
+                if (alongX) {
+                    int y = side == 0 ? rect.bottom() : rect.top() - fx + 1;
+                    for (int x = rect.left() + 1; x + fy - 1 <= rect.right() - 1; x += fy + gap) {
+                        DoodadDef def = registry.doodad(ids[n++ % ids.length]);
+                        if (def != null) dressProp(def, x, y, fy, fx, rect, keep, 1);
+                    }
+                } else {
+                    int x = side == 0 ? rect.left() : rect.right() - fx + 1;
+                    for (int y = rect.bottom() + 1; y + fy - 1 <= rect.top() - 1; y += fy + gap) {
+                        DoodadDef def = registry.doodad(ids[n++ % ids.length]);
+                        if (def != null) dressProp(def, x, y, fx, fy, rect, keep);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Pieces of {@code id}, {@code fx} by {@code fy}, in rows over a bay's floor a cell in from its walls, one every
+         * {@code sx} by {@code sy} cells. With {@code skip} above zero, one place in {@code skip + 1} is left bare, its
+         * load gone; with {@code skip} negative the piece is floor to walk on, laid wherever its footprint is open.
+         * Whether any stood.
+         */
+        private boolean rows(TileRegistry registry, Area rect, Cell keep, String id, int fx, int fy, int sx, int sy,
+                             int skip) {
+            return rows(registry, rect, keep, id, fx, fy, sx, sy, skip, 0);
+        }
+
+        /** {@link #rows(TileRegistry, Area, Cell, String, int, int, int, int, int)}, each piece turned {@code turns}. */
+        private boolean rows(TileRegistry registry, Area rect, Cell keep, String id, int fx, int fy, int sx, int sy,
+                             int skip, int turns) {
+            DoodadDef def = registry.doodad(id);
+            if (def == null) return false;
+            boolean any = false;
+            for (int y = rect.bottom() + 1; y + fy - 1 <= rect.top() - 1; y += sy) {
+                for (int x = rect.left() + 1; x + fx - 1 <= rect.right() - 1; x += sx) {
+                    if (skip < 0) {
+                        if (!openFloor(x, y, fx, fy, keep)) continue;
+                        ctx.doodads.add(0, new Doodad(x, y, def, turns));
+                        for (int dy = 0; dy < fy; dy++) for (int dx = 0; dx < fx; dx++) kitFloor[i(x + dx, y + dy)] = true;
+                        any = true;
+                        continue;
+                    }
+                    if (skip > 0 && hash(x, y, 0xBA7) % (skip + 1) == 0) continue;
+                    String at = id.equals(BAY_CRATES[0]) ? BAY_CRATES[hash(x, y, 0xC7A) % BAY_CRATES.length] : id;
+                    DoodadDef d = registry.doodad(at);
+                    any |= dressProp(d == null ? def : d, x, y, fx, fy, rect, keep, turns);
+                }
+            }
+            return any;
+        }
+
+        /**
          * Opens a bay of the mass with a three-cell blast door through {@code thick} cells of wall onto cells
          * {@code onto} accepts; floors the bay. The safe shutdown left the door dead part-open, its leaves in its end
-         * cells, or now and then torn open since. Whether it opened.
+         * cells, or now and then torn open since. The bay's cell inside the door, or null where none could open.
          */
-        private boolean door(List<Integer> list, int thick, BiPredicate<Integer, Integer> onto) {
+        private Cell door(List<Integer> list, int thick, BiPredicate<Integer, Integer> onto) {
             Set<Integer> cells = new HashSet<>(list);
             for (int k : list) {
                 int x = k % w, y = k / w;
@@ -1777,10 +2065,10 @@ public final class RuinsDelveStage implements GenStage {
                         leaf(span.right(), span.top());
                     }
                     bayDoors.add(new RuinsDelve.LeafDoor(span, side.dy != 0, false, stance));
-                    return true;
+                    return new Cell(x + px, y + py);
                 }
             }
-            return false;
+            return null;
         }
 
         /** The smallest area holding every cell of {@code cells}. */
@@ -1802,9 +2090,9 @@ public final class RuinsDelveStage implements GenStage {
 
         /**
          * Breaches a bay through the outer hull where the outside lies within {@link #OUTLINE_WALL} + 1 of it: a gap
-         * four cells wide, rubble on its floor, onto the ruin's ground. Whether it was breached.
+         * four cells wide, rubble on its floor, onto the ruin's ground. The bay's cell at the gap, or null.
          */
-        private boolean breach(List<Integer> list) {
+        private Cell breach(List<Integer> list) {
             for (int k : list) {
                 int x = k % w, y = k / w;
                 for (Direction side : Direction.CARDINALS) {
@@ -1828,10 +2116,10 @@ public final class RuinsDelveStage implements GenStage {
                             drafted[i(bx, by)] = false;
                         }
                     }
-                    return true;
+                    return new Cell(x, y);
                 }
             }
-            return false;
+            return null;
         }
 
         /**
@@ -1843,7 +2131,10 @@ public final class RuinsDelveStage implements GenStage {
          */
         void ruin() {
             List<Integer> biggest = null;
-            for (List<Integer> bay : bays) if (biggest == null || bay.size() > biggest.size()) biggest = bay;
+            for (List<Integer> bay : bays) {
+                if (bayJobs.get(bounds(bay)) == BayJob.MARSHALLING) continue;
+                if (biggest == null || bay.size() > biggest.size()) biggest = bay;
+            }
             if (biggest != null) collapse(biggest);
             Area raw = spaces.get(RuinsDelve.Interior.spaceName("raw-stock"));
             if (raw != null) spill(raw);
