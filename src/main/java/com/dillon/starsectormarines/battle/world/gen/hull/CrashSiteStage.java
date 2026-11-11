@@ -88,6 +88,8 @@ public final class CrashSiteStage implements GenStage {
     static final int TRENCH_HALF_HULL = 12, TRENCH_HALF_END = 4;
     /** Cells of thrown-up spoil either side of the trench. */
     static final int LIP = 2;
+    /** How far back under the bow's tip the trench runs, filling the ground its taper leaves open. */
+    static final int TRENCH_BACK = 10;
     /** An apron: this deep outward from its door, this wide across it, this far from the hull's face. */
     static final int APRON_DEPTH = 13, APRON_HALF = 4, APRON_GAP = 1;
     /** Hull fragments tried and laid along the trench. UNTUNED. */
@@ -308,12 +310,27 @@ public final class CrashSiteStage implements GenStage {
             HullPlan.Section bow = HullPlan.SECTIONS.get(HullPlan.SECTIONS.size() - 1);
             int mid = HullPlan.laidV(bow, HullPlan.BREADTH / 2);
             List<int[]> cells = new ArrayList<>();
-            for (int t = 1; t <= plan.trench(); t++) {
-                int half = TRENCH_HALF_HULL + (TRENCH_HALF_END - TRENCH_HALF_HULL) * t / plan.trench();
-                half += Math.floorMod(hash(t, 0, 0x7E), 3) - 1;
-                for (int dv = -half - LIP; dv < half + LIP; dv++) {
-                    boolean lip = dv < -half || dv >= half;
-                    cells.add(new int[]{HullPlan.LAID_LENGTH - 1 + t, mid + dv, lip ? 1 : 0});
+            // A furrow, not a staircase: its sides narrow smoothly from the bow to a rounded nose, each wandering on
+            // its own slow wave, with a spoil lip of wandering width; it wraps the bow's tip where the taper leaves
+            // ground open.
+            int tip = HullPlan.LAID_LENGTH - 1, top = HullPlan.laidV(bow, 0);
+            float p0 = Math.floorMod(hash(1, 0, 0x7E), 628) / 100f, p1 = Math.floorMod(hash(2, 0, 0x7E), 628) / 100f;
+            float p2 = Math.floorMod(hash(3, 0, 0x7E), 628) / 100f;
+            for (int t = 1 - TRENCH_BACK; t <= plan.trench() + TRENCH_HALF_END; t++) {
+                float half = trenchHalf(t, plan.trench());
+                if (half <= 0) continue;
+                for (int side = -1; side <= 1; side += 2) {
+                    float p = side < 0 ? p0 : p1;
+                    float edge = half + 1.3f * (float) Math.sin(t * 0.37f + p) + 0.7f * (float) Math.sin(t * 0.91f + p * 2);
+                    float lip = 1.6f + 1.2f * (float) Math.sin(t * 0.53f + p2 + side);
+                    for (int d = 0; d + 0.5f <= edge + lip; d++) {
+                        int l = tip + t, c = mid + (side < 0 ? -1 - d : d);
+                        if (l <= tip) {
+                            int u = HullPlan.planU(l), v = c - top;
+                            if (u >= 0 && hull.at(u, v) != HullPlan.Kind.OUTSIDE) continue;
+                        }
+                        cells.add(new int[]{l, c, d + 0.5f > edge ? 1 : 0});
+                    }
                 }
             }
             // The gaps between sections: ploughed as the trench is, across the hull's breadth.
@@ -332,6 +349,21 @@ public final class CrashSiteStage implements GenStage {
             }
             if (minX > maxX) throw new IllegalStateException("the hull's trench runs off the map");
             return new Area(minX, minY, maxX, maxY);
+        }
+
+        /**
+         * The trench's half width {@code t} cells off the bow's tip: full under the tip, easing to its far end's width,
+         * then closing in a rounded nose.
+         */
+        static float trenchHalf(int t, int length) {
+            if (t <= 0) return TRENCH_HALF_HULL;
+            if (t <= length) {
+                float f = t / (float) length;
+                f = f * f * (3 - 2 * f);
+                return TRENCH_HALF_HULL + (TRENCH_HALF_END - TRENCH_HALF_HULL) * f;
+            }
+            float n = t - length;
+            return n >= TRENCH_HALF_END ? 0 : (float) Math.sqrt(TRENCH_HALF_END * TRENCH_HALF_END - n * n);
         }
 
         /** Each section's laid cells on the map, stern to bow. */
@@ -356,7 +388,10 @@ public final class CrashSiteStage implements GenStage {
                 int x = k % w, y = k / w;
                 if (hullCells.get(k)) continue;
                 free(x, y);
-                ground(x, y, GroundKind.RUBBLE);
+                // Thrown-up earth, trodden: a soft margin between the plough and the ground, not a band of rubble.
+                ground(x, y, GroundKind.DIRT);
+                String earth = block(GroundKind.DIRT);
+                if (earth != null) topology.setSurface(x, y, topology.surfaceIndex(earth));
             }
             // Scrap the hull shed as it ploughed, loose on the trench floor.
             for (int k = trenchCells.nextSetBit(0); k >= 0; k = trenchCells.nextSetBit(k + 1)) {

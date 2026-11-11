@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
@@ -32,6 +33,11 @@ import java.util.Random;
  * Falls on the finished country, after the mission's structures and terraces are sited and before the claim lattice
  * seats its stakes; a piece in the way keeps clear of every tactical node and of the lattice's grid points. Its own
  * stream, derived from the seed, so the country under it is unmoved.
+ *
+ * <p>Flat pieces lie on streets and roads too: rubble, not a barrier. Where a great or middling piece comes down on a
+ * building, it strikes it instead ({@link #STRIKES}): a few buildings are knocked down and more roofs are holed or
+ * burnt, as initial damage the battle applies when it is assembled, never a mission place, a fighting position, the
+ * landing's field of fire or the hull. A few lone great pieces fly well out, into the fields and the town.
  */
 final class DebrisShower {
 
@@ -53,13 +59,24 @@ final class DebrisShower {
             "fallen-hull.scorch-splash", "fallen-hull.scorch-streak", "ship-wear.scorch"};
 
     /** How far the shower runs ahead of the stern and uprange of the trench's far end, cells. UNTUNED. */
-    static final int AHEAD = 90, UPRANGE = 120;
+    static final int AHEAD = 90, UPRANGE = 160;
     /** Spread across the line at the wreck, and its growth per cell out along the line. UNTUNED. */
-    static final float SPREAD = 34f, SPREAD_GROWTH = 0.5f;
+    static final float SPREAD = 52f, SPREAD_GROWTH = 0.6f;
     /** How fast the shower thins along and across the line, cells per e-fold. UNTUNED. */
-    static final float THIN_ALONG = 150f, THIN_ACROSS = 110f;
+    static final float THIN_ALONG = 170f, THIN_ACROSS = 150f;
     /** Pieces tried, and the most of each kind laid. UNTUNED. */
-    static final int TRIES = 14000, MAX_LARGE = 14, MAX_MEDIUM = 80, MAX_SMALL = 320, MAX_MARKS = 140;
+    static final int TRIES = 60000, MAX_LARGE = 28, MAX_MEDIUM = 200, MAX_SMALL = 1100, MAX_MARKS = 420;
+    /** Lone great pieces thrown well out, and how far across the line they may land. UNTUNED. */
+    static final int LONE = 8, LONE_ACROSS = 150;
+    /** Buildings knocked down, roofs holed, and the least distance between two strikes, cells. UNTUNED. */
+    static final int KNOCKDOWNS = 3, HOLES = 14, STRIKE_GAP = 9;
+    /** A knocked-down building's collapse and battering radii, and a holed roof's, cells. UNTUNED. */
+    static final double KNOCKDOWN_RADIUS = 4.5, BATTER_RADIUS = 7, HOLE_RADIUS = 1.6;
+    /**
+     * How far a strike keeps from the landing's field of fire; from a mission place or a fighting position it keeps its
+     * own reach and two cells more; a knocked-down building keeps its collapse off fighting positions.
+     */
+    static final int STRIKE_CLEAR = 10;
     /** Open ground kept round a piece that stands in the way, and kept off the landing's field of fire. */
     static final int RING = 2, FIELD_MARGIN = 4;
     /**
@@ -72,14 +89,18 @@ final class DebrisShower {
 
     private DebrisShower() { }
 
-    static void fall(GenContext ctx, CrashSiteStage.Frame frame, int trench, BitSet hull, BitSet trenchCells,
-                     BitSet aprons, FieldOfFire field) {
+    /** Lays the shower; returns its strikes on buildings, as damage strokes for the battle to apply. */
+    static List<DamagePlan.Stroke> fall(GenContext ctx, CrashSiteStage.Frame frame, int trench, BitSet hull,
+                                        BitSet trenchCells, BitSet aprons, FieldOfFire field) {
         TileRegistry registry = TileRegistry.installed();
-        if (registry == null) return;
+        if (registry == null) return List.of();
         List<DoodadDef> large = present(registry, LARGE), medium = present(registry, MEDIUM);
         List<DoodadDef> small = present(registry, SMALL), marks = present(registry, MARKS);
         boolean[][] roads = RoadReservation.mask(ctx.get(BspKeys.ROAD_GRAPH), ctx.width, ctx.height);
-        new Fall(ctx, frame, trench, hull, trenchCells, aprons, field, roads).lay(large, medium, small, marks);
+        Fall fall = new Fall(ctx, frame, trench, hull, trenchCells, aprons, field, roads);
+        fall.lay(large, medium, small, marks);
+        fall.lone(large);
+        return fall.strikes;
     }
 
     private static List<DoodadDef> present(TileRegistry registry, String[] ids) {
@@ -109,6 +130,9 @@ final class DebrisShower {
         final boolean[][] roads;
         final boolean[] taken;
         final Random rng;
+        final List<DamagePlan.Stroke> strikes = new ArrayList<>();
+        final List<int[]> struck = new ArrayList<>();
+        int knockdowns, holes;
 
         Fall(GenContext ctx, CrashSiteStage.Frame frame, int trench, BitSet hull, BitSet trenchCells, BitSet aprons,
              FieldOfFire field, boolean[][] roads) {
@@ -159,6 +183,7 @@ final class DebrisShower {
                 else if (nMarks < MAX_MARKS) pool = marks;
                 else continue;
                 if (pool.isEmpty()) continue;
+                if ((pool == large || pool == medium) && strike(x, y, pool == large)) continue;
                 DoodadDef def = pool.get(rng.nextInt(pool.size()));
                 if (!place(def, x, y)) continue;
                 if (pool == large) nLarge++;
@@ -166,6 +191,66 @@ final class DebrisShower {
                 else if (pool == small) nSmall++;
                 else nMarks++;
             }
+        }
+
+        /** A few great pieces thrown far: anywhere along the line, well out across it. */
+        void lone(List<DoodadDef> large) {
+            if (large.isEmpty()) return;
+            int from = -AHEAD, to = HullPlan.LAID_LENGTH + trench + UPRANGE, mid = HullPlan.LAID_BREADTH / 2;
+            int laid = 0;
+            for (int k = 0; k < LONE * 60 && laid < LONE; k++) {
+                int l = from + rng.nextInt(to - from);
+                int across = (rng.nextBoolean() ? 1 : -1) * (40 + rng.nextInt(LONE_ACROSS - 40));
+                int x = frame.lx(l, mid + across), y = frame.ly(l, mid + across);
+                if (place(large.get(rng.nextInt(large.size())), x, y)) laid++;
+            }
+        }
+
+        /**
+         * Where a piece comes down on a building, it strikes it: a great piece knocks it down, a middling one holes its
+         * roof. Whether the cell was a building's and the piece is spent on it.
+         */
+        boolean strike(int x, int y, boolean great) {
+            if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) return false;
+            if (!topology.hasBuildingKindHint(x, y) && topology.getGroundKind(x, y) != GroundKind.INDOOR) return false;
+            boolean knock = great && knockdowns < KNOCKDOWNS;
+            if (!knock && holes >= HOLES) return true;
+            int clear = (int) Math.ceil(knock ? BATTER_RADIUS : HOLE_RADIUS) + 1;
+            for (int[] s : struck) {
+                if (Math.abs(s[0] - x) < STRIKE_GAP && Math.abs(s[1] - y) < STRIKE_GAP) return true;
+            }
+            for (int yy = y - clear; yy <= y + clear; yy++) {
+                for (int xx = x - clear; xx <= x + clear; xx++) {
+                    if (xx < 0 || yy < 0 || xx >= w || yy >= h) return true;
+                    int k = yy * w + xx;
+                    if (hull.get(k) || aprons.get(k) || trenchCells.get(k)) return true;
+                }
+            }
+            if (inField(x - STRIKE_CLEAR, y - STRIKE_CLEAR, 2 * STRIKE_CLEAR + 1, 2 * STRIKE_CLEAR + 1)) return true;
+            for (PointOfInterest poi : ctx.pois) {
+                // Homes and stores may be struck; a building a mission anchors to (a lab, comms, the offices, the
+                // clinic, a landing) keeps clear.
+                if (poi.kind == PointOfInterest.Kind.RESIDENTIAL || poi.kind == PointOfInterest.Kind.DEPOT) continue;
+                int l = Math.min(poi.left, poi.right) - clear, r = Math.max(poi.left, poi.right) + clear;
+                int b = Math.min(poi.top, poi.bottom) - clear, t = Math.max(poi.top, poi.bottom) + clear;
+                if (x >= l && x <= r && y >= b && y <= t) return true;
+            }
+            // A knocked-down building keeps clear of fighting positions; a holed roof leaves its walls and nodes stand.
+            int keep = (int) Math.ceil(KNOCKDOWN_RADIUS) + 1;
+            for (TacticalNode node : ctx.tactical) {
+                if (knock && Math.abs(node.anchorX - x) <= keep && Math.abs(node.anchorY - y) <= keep) return true;
+            }
+            List<DamagePlan.Point> at = List.of(new DamagePlan.Point(x, y));
+            if (knock) {
+                strikes.add(new DamagePlan.Stroke(DamagePlan.Mode.BATTERED, BATTER_RADIUS, at));
+                strikes.add(new DamagePlan.Stroke(DamagePlan.Mode.RUIN, KNOCKDOWN_RADIUS, at));
+                knockdowns++;
+            } else {
+                strikes.add(new DamagePlan.Stroke(DamagePlan.Mode.RUIN, HOLE_RADIUS, at));
+                holes++;
+            }
+            struck.add(new int[]{x, y});
+            return true;
         }
 
         /** Lays {@code def} with its middle at {@code (cx, cy)} where it may lie; whether it did. */
@@ -200,12 +285,14 @@ final class DebrisShower {
         boolean open(int x, int y, boolean blocks) {
             if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) return false;
             int k = y * w + x;
-            if (taken[k] || hull.get(k) || aprons.get(k) || roads[x][y]) return false;
-            if (blocks && (trenchCells.get(k) || nodes[k])) return false;
+            if (taken[k] || hull.get(k) || aprons.get(k)) return false;
+            // Rubble lies on a road or a street; nothing in the way does.
+            if (blocks && (roads[x][y] || trenchCells.get(k) || nodes[k])) return false;
             if (!grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isWall(x, y) || topology.isFixture(x, y)
                     || topology.hasBuildingKindHint(x, y) || topology.getWallRemnant(x, y) != null) return false;
             GroundKind g = topology.getGroundKind(x, y);
-            return g != GroundKind.INDOOR && g != GroundKind.WATER && g != GroundKind.STREET && g != GroundKind.VOID;
+            return g != GroundKind.INDOOR && g != GroundKind.WATER && g != GroundKind.VOID
+                    && (!blocks || g != GroundKind.STREET);
         }
 
         boolean nearStake(int x0, int y0, int fx, int fy) {

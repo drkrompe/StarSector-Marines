@@ -445,13 +445,15 @@ whole plant pulses red; the contingency lights every zone with a live node. A
 zone cut off at its junction, or whose node is down, stays dark through all of
 it, the contingency included. Each zone's service bay (where its walkers re-arm
 and its tender and repair drone work) is lit while its zone is online and the
-bay stands. Whether the hall's restart also raises the wake is the watch's rule
-(`derelict-watch.md`); the hatches follow whatever stage the wake reads. Light is presentation: it draws none of the hall's capacity and changes
+bay stands. Restarting the hall also brings the wake to Stirring at least
+(`FacilityWake.plantRestarted`, owner pick `ruins-light-escalation`), so the
+vent hatches glow amber as the plant comes up. Light is presentation: it draws none of the hall's capacity and changes
 no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
 lit).
 
-Open (owner picks, raised on the parent's picks page): the company's
-own helmet and vehicle lamps, and whether darkness shortens the company's sight.
+Owner picks: `ruins-light-start` black, `ruins-light-power` the works,
+`ruins-light-escalation` the watch's lights and the Stirring floor,
+`ruins-light-sight` presentation only (darkness never shortens sight).
 
 ### The entrance and the pull-out point
 
