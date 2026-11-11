@@ -133,28 +133,37 @@ final class HullRoof {
         int w = topology.getWidth();
         int h = topology.getHeight();
         BitSet hull = new BitSet(w * h);
-        int[] owner = new int[w * h];
         Building[] byIndex = new Building[buildings.all().size() + 1];
         int k = 0;
         for (Building b : buildings.all()) {
             RoofPlans.Plan plan = plans.of(topology, buildings, b);
             if (plan == null || plan.style != RoofStyle.HULL) continue;
             byIndex[++k] = b;
-            for (int at : plan.cells) {
-                hull.set(at);
-                owner[at] = k;
-            }
+            for (int at : plan.cells) hull.set(at);
         }
         if (hull.isEmpty()) return null;
         List<BitSet> patches = patches(hull, w, h);
         HullRoof ship = fit(patches, w);
         if (ship == null) return null;
-        for (int i = 0; i < patches.size(); i++) {
-            BitSet patch = patches.get(i);
-            Section s = ship.sectionOf(patch, w);
-            for (int at = patch.nextSetBit(0); at >= 0; at = patch.nextSetBit(at + 1)) {
-                if (owner[at] > 0) ship.of.putIfAbsent(byIndex[owner[at]], s);
+        // A hull roof is the ship's when most of it lies on the sections; it takes the one holding most of it.
+        for (int i = 1; i <= k; i++) {
+            RoofPlans.Plan plan = plans.of(topology, buildings, byIndex[i]);
+            Map<Section, Integer> on = new HashMap<>();
+            for (int at : plan.cells) {
+                Section s = ship.at(at % w, at / w);
+                if (s != null) on.merge(s, 1, Integer::sum);
             }
+            Section most = null;
+            int held = 0;
+            for (Map.Entry<Section, Integer> e : on.entrySet()) {
+                if (e.getValue() > held) {
+                    held = e.getValue();
+                    most = e.getKey();
+                }
+            }
+            int inside = 0;
+            for (int n : on.values()) inside += n;
+            if (most != null && inside * 2 > plan.cells.length) ship.of.put(byIndex[i], most);
         }
         BitSet roofed = new BitSet(w * h);
         for (Building b : buildings.all()) {
@@ -206,11 +215,6 @@ final class HullRoof {
         return false;
     }
 
-    private Section sectionOf(BitSet patch, int w) {
-        int at = patch.nextSetBit(0);
-        return at(at % w, at / w);
-    }
-
     /**
      * The ship laid over {@code patches} (each a section's cells as indices, {@code w} wide), or null when they are no
      * hull of the plan: not on one axis, none the plan's breadth, or longer together than the plan.
@@ -240,11 +244,18 @@ final class HullRoof {
             total += alongX ? b[2] - b[0] + 1 : b[3] - b[1] + 1;
             broadest = Math.max(broadest, alongX ? b[3] - b[1] + 1 : b[2] - b[0] + 1);
         }
-        if (broadest != HullPlan.BREADTH || total > HullPlan.LENGTH || total * 2 < HullPlan.LENGTH) return null;
         List<Integer> order = new ArrayList<>();
         for (int i = 0; i < bounds.size(); i++) order.add(i);
         order.sort(Comparator.comparingInt(i -> alongX ? bounds.get(i)[0] : bounds.get(i)[1]));
-        if (patches.size() == HullPlan.SECTIONS.size()) return matched(patches, bounds, order, w, alongX);
+        // As many patches as the plan has sections: each laid where its plan section fits it, so roofs the ground joins
+        // onto a section (an apron's, a neighbour's) neither stop the fit nor move it. Each must be the hull's breadth.
+        if (patches.size() == HullPlan.SECTIONS.size()) {
+            for (int[] b : bounds) {
+                if ((alongX ? b[3] - b[1] + 1 : b[2] - b[0] + 1) < HullPlan.BREADTH) return null;
+            }
+            return matched(patches, bounds, order, w, alongX);
+        }
+        if (broadest != HullPlan.BREADTH || total > HullPlan.LENGTH || total * 2 < HullPlan.LENGTH) return null;
         int first = order.get(0), last = order.get(order.size() - 1);
         boolean bowHigh = openEnd(patches.get(last), bounds.get(last), w, alongX, true)
                 || !openEnd(patches.get(first), bounds.get(first), w, alongX, false);
