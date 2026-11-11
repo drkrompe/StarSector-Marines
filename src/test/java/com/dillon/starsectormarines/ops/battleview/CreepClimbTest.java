@@ -7,69 +7,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CreepClimbTest {
 
+    /** A wall's north side: its outer side along y = 10 from x 4 to 5, looking out north (-y). */
+    private static final float AX = 4f, AY = 10f, BX = 5f, BY = 10f, NX = 0f, NY = -1f;
+
     @Test
-    void creepClimbsHigherTheLongerItHoldsAWallAndNoHigherThanItsReach() {
-        assertEquals(0f, CreepClimb.reach(CreepClimb.FIRST - 1, 8f), 0f, "no creep yet");
-        float young = CreepClimb.reach(60, 8f), old = CreepClimb.reach(255, 8f);
-        assertTrue(young > 0f && young < old, "young " + young + " below old " + old);
-        assertEquals(CreepClimb.CLIMB_METERS / 8f, old, 1e-6f, "full coverage climbs its metres");
-        assertEquals(1f, CreepClimb.reach(255, 1.6f), 0f, "a garden wall is overgrown to its top");
+    void aFaceReadsInsideItsWallFromTheOuterSideInAsItRises() {
+        float[] out = new float[8];
+        CreepClimb.faceCells(AX, AY, BX, BY, NX, NY, 0f, 1f, 0f, 1f, out);
+        // The foot reads just inside the wall, never the ground beside it.
+        assertTrue(out[1] > AY && out[3] > AY, "foot inside the wall: " + out[1]);
+        assertEquals(AY + CreepClimb.SKIN, out[1], 1e-6f);
+        // The top reads further in, by the face's depth.
+        assertEquals(AY + CreepClimb.SKIN + CreepClimb.FACE_DEPTH, out[5], 1e-6f);
+        assertEquals(out[5], out[7], 0f);
+        assertTrue(out[5] < AY + 1f, "the whole face reads its own wall cell");
+        // Along the face as it runs.
+        assertEquals(AX, out[0], 0f);
+        assertEquals(BX, out[2], 0f);
+        assertEquals(BX, out[4], 0f);
+        assertEquals(AX, out[6], 0f);
     }
 
     @Test
-    void aYoungWallTakesVeinsAndAnOldOneACrust() {
-        assertEquals(0f, CreepClimb.crust(CreepClimb.CRUST_FROM), 0f);
-        assertEquals(1f, CreepClimb.crust(255), 0f);
-        assertTrue(CreepClimb.crust(200) > 0f && CreepClimb.crust(200) < 1f);
+    void aCutAwayStubReadsOnlyAsFarInAsItStands() {
+        float[] whole = new float[8], stub = new float[8];
+        CreepClimb.faceCells(AX, AY, BX, BY, NX, NY, 0f, 1f, 0f, 1f, whole);
+        CreepClimb.faceCells(AX, AY, BX, BY, NX, NY, 0f, 1f, 0f, .25f, stub);
+        assertEquals(whole[1], stub[1], 0f, "the same foot");
+        assertTrue(stub[5] < whole[5], "a stub's top reads short of a whole wall's");
     }
 
     @Test
-    void dyingCreepFadesFromTheLivingStripToTheDeadOne() {
-        float[] living = {0f}, dead = {0f};
-        CreepClimb.Sink sink = (t0, t1, z0, z1, row, u0, u1, v0, v1, light, alpha) -> {
-            if (row == CreepClimb.CRUST) living[0] = alpha;
-            if (row == CreepClimb.DEAD_CRUST) dead[0] = alpha;
-        };
-        CreepClimb.paint(255, 255, 3f, 1f, 4, 1f, true, sink);
-        assertEquals(1f, living[0], 0f);
-        assertEquals(0f, dead[0], 0f, "living creep draws no dead strip");
-        living[0] = dead[0] = 0f;
-        CreepClimb.paint(255, 0, 3f, 1f, 4, 1f, true, sink);
-        assertEquals(0f, living[0], 0f, "dead creep draws no living strip");
-        assertEquals(1f, dead[0], 0f);
-    }
-
-    @Test
-    void nothingIsPaintedAboveWhatOfTheWallStandsAndThePlatesKeepTheGroundsSize() {
-        float[] highest = {0f};
-        int[] patches = {0};
-        CreepClimb.paint(255, 255, 3f, .2f, 77, 1f, true, (t0, t1, z0, z1, row, u0, u1, v0, v1, light, alpha) -> {
-            highest[0] = Math.max(highest[0], z1);
-            patches[0]++;
-            assertTrue(t0 >= 0f && t1 <= 1f && z0 >= 0f, "on the face");
-            // As many cells of the strip as the creep stands metres (a cell a metre), so the plates are the ground's.
-            assertEquals(z1 * 3f, v1 - v0, 1e-5f, "strip cells shown");
-            assertEquals(1f, u1 - u0, 0f, "a cell along");
-            assertEquals(CreepClimb.along(77), u0, 0f, "walls' cells side by side run on along the strip");
-        });
-        assertTrue(patches[0] > 0, "an old creep paints the face");
-        assertTrue(highest[0] <= .2f + 1e-6f, "a cut-away stub keeps its creep under its top: " + highest[0]);
-    }
-
-    @Test
-    void anOldCrustComesOverTheTopFromTheOuterSideOnly() {
-        int[] patches = {0};
-        CreepClimb.paintTop(CreepClimb.CRUST_FROM, 255, 5, 0f, 0f, 1f, 0f, 0f, -1f, 1f,
-                (x0, y0, x1, y1, x2, y2, x3, y3, row, u0, u1, vOut, vIn, light, alpha) -> patches[0]++);
-        assertEquals(0, patches[0], "a young claim has not come over the top");
-        // A wall's north side (outward -y) at y 0: the crust lies in from it, toward +y, no further than a wall.
-        CreepClimb.paintTop(255, 255, 5, 0f, 0f, 1f, 0f, 0f, -1f, 1f,
-                (x0, y0, x1, y1, x2, y2, x3, y3, row, u0, u1, vOut, vIn, light, alpha) -> {
-                    patches[0]++;
-                    for (float y : new float[]{y0, y1, y2, y3}) assertTrue(y >= 0f && y <= 1f, "in from the side: " + y);
-                    assertTrue(y2 > y1 && y3 > y0, "inward");
-                    assertTrue(vOut > vIn, "the lip toward the middle");
-                });
-        assertTrue(patches[0] > 0, "an old crust comes over the top");
+    void aTopReadsTheCellsItCoversInFromItsOuterSide() {
+        float[] out = new float[8];
+        CreepClimb.topCells(AX, AY, BX, BY, NX, NY, 1f, out);
+        assertEquals(AX, out[0], 0f);
+        assertEquals(AY, out[1], 0f);
+        assertEquals(BX, out[2], 0f);
+        assertEquals(BY + 1f, out[5], 0f, "a cell in from the outer side");
+        assertEquals(AY + 1f, out[7], 0f);
     }
 }

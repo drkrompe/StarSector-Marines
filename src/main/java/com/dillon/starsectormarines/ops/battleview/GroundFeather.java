@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,6 +60,8 @@ public final class GroundFeather {
      * earth's is ({@code LivingWorld#TUNDRA}), and on a frozen world the bare ground it surrounds frays out over it.
      */
     public static final List<String> MATERIALS = List.of(
+            // A fallen hull's trench, freshly ploughed: its earth frays out over the lip and whatever it cut through.
+            "fallen-hull.trench",
             "floors.grass", "kind:GRASS",
             "floors.dirt", "kind:DIRT", "pavement.dirt.worn",
             "floors.sand", "pavement.gravel.cracked", "floors.stone", "floors.snow",
@@ -223,5 +226,117 @@ public final class GroundFeather {
     /** Tiles in one material's block. */
     public static int tilesPerMaterial() {
         return Shape.values().length * EDGE_CODES;
+    }
+
+    /**
+     * Materials whose outline is smoothed, strongest first: the cells along it are cut to a contour through the share
+     * of the ground around each cell corner that is this material or stronger ({@link #smoothCorners},
+     * {@link #contour}), so a staircase of whole-cell steps, and the square corners of a run laid as rectangles, read
+     * as a curve. The fallen hull's trench is laid cell by cell along the hull's slide, and its trodden lip with it;
+     * ploughed earth has no steps. Only a map the first lies on is smoothed, so trodden earth elsewhere keeps its cells.
+     */
+    public static final List<String> SMOOTHED = List.of("fallen-hull.trench", "pavement.dirt.worn");
+
+    /**
+     * Cells either side of a corner each smoothed material's share is taken over: three rounds the trench's corners
+     * over about three cells; one keeps a trodden path a cell wide.
+     */
+    private static final int[] SMOOTH_RADII = {3, 1};
+
+    /** The radius {@link #SMOOTHED}'s {@code index}th material is smoothed over. */
+    public static int smoothRadius(int index) {
+        return SMOOTH_RADII[index];
+    }
+
+    /** A cell of the outlined material, for {@link #smoothCorners}. */
+    public static final byte INSIDE = 1;
+    /** A cell of other ground the outline may take or give back. */
+    public static final byte OUTSIDE = 0;
+    /** A cell that takes no part (a wall, a hull, paving): counted neither way. */
+    public static final byte NEUTRAL = -1;
+
+    /**
+     * Each cell corner's share of the outlined material among the cells that take part within {@code radius} cells of
+     * it, {@code (w + 1) * (h + 1)} values row by row from the south-west; zero where no cell takes part. A straight
+     * edge's corners hold exactly one half, so the contour lies on it and only steps and corners move.
+     */
+    public static float[] smoothCorners(byte[] cells, int w, int h, int radius) {
+        int[] inside = new int[(w + 1) * (h + 1)], counted = new int[(w + 1) * (h + 1)];
+        for (int y = 0; y < h; y++) {
+            int rowIn = 0, rowCounted = 0;
+            for (int x = 0; x < w; x++) {
+                byte c = cells[y * w + x];
+                if (c == INSIDE) rowIn++;
+                if (c != NEUTRAL) rowCounted++;
+                int at = (y + 1) * (w + 1) + x + 1, below = y * (w + 1) + x + 1;
+                inside[at] = inside[below] + rowIn;
+                counted[at] = counted[below] + rowCounted;
+            }
+        }
+        float[] out = new float[(w + 1) * (h + 1)];
+        for (int cy = 0; cy <= h; cy++) {
+            int y0 = Math.max(0, cy - radius), y1 = Math.min(h, cy + radius);
+            for (int cx = 0; cx <= w; cx++) {
+                int x0 = Math.max(0, cx - radius), x1 = Math.min(w, cx + radius);
+                int n = box(counted, w, x0, y0, x1, y1);
+                out[cy * (w + 1) + cx] = n == 0 ? 0f : box(inside, w, x0, y0, x1, y1) / (float) n;
+            }
+        }
+        return out;
+    }
+
+    /** The sum over cells {@code [x0, x1) x [y0, y1)} of a summed-area table {@code w + 1} wide. */
+    private static int box(int[] table, int w, int x0, int y0, int x1, int y1) {
+        int stride = w + 1;
+        return table[y1 * stride + x1] - table[y0 * stride + x1] - table[y1 * stride + x0] + table[y0 * stride + x0];
+    }
+
+    /**
+     * The part of a cell on one side of the contour through its corners' shares at one half, as cell-space quads (a
+     * triangle repeats its last vertex), the corners given from the south-west counter-clockwise: the side holding
+     * the material when {@code inside}, the other otherwise. Empty when that side has no area.
+     */
+    public static List<float[]> contour(float sw, float se, float ne, float nw, boolean inside) {
+        float[] value = {sw, se, ne, nw};
+        float[][] corner = {{0f, 0f}, {1f, 0f}, {1f, 1f}, {0f, 1f}};
+        float[] poly = new float[16];
+        int n = 0;
+        for (int i = 0; i < 4; i++) {
+            int j = (i + 1) % 4;
+            boolean in = value[i] >= .5f == inside, nextIn = value[j] >= .5f == inside;
+            if (in) n = add(poly, n, corner[i][0], corner[i][1]);
+            if (in != nextIn) {
+                float t = (.5f - value[i]) / (value[j] - value[i]);
+                n = add(poly, n, corner[i][0] + t * (corner[j][0] - corner[i][0]),
+                        corner[i][1] + t * (corner[j][1] - corner[i][1]));
+            }
+        }
+        if (n > 1 && poly[0] == poly[2 * (n - 1)] && poly[1] == poly[2 * (n - 1) + 1]) n--;
+        float area = 0f;
+        for (int i = 0; i < n; i++) {
+            int j = (i + 1) % n;
+            area += poly[2 * i] * poly[2 * j + 1] - poly[2 * j] * poly[2 * i + 1];
+        }
+        List<float[]> out = new ArrayList<>(2);
+        if (n < 3 || area < 1e-3f) return out;
+        // A fan from the first vertex, four at a time: the side of one straight cut is convex.
+        for (int start = 1; start < n - 1; start += 2) {
+            float[] quad = new float[8];
+            for (int k = 0; k < 4; k++) {
+                int v = k == 0 ? 0 : Math.min(start + k - 1, n - 1);
+                quad[2 * k] = poly[2 * v];
+                quad[2 * k + 1] = poly[2 * v + 1];
+            }
+            out.add(quad);
+        }
+        return out;
+    }
+
+    /** Appends a vertex unless it repeats the last. */
+    private static int add(float[] poly, int n, float x, float y) {
+        if (n > 0 && poly[2 * n - 2] == x && poly[2 * n - 1] == y) return n;
+        poly[2 * n] = x;
+        poly[2 * n + 1] = y;
+        return n + 1;
     }
 }

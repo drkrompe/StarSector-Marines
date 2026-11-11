@@ -308,7 +308,7 @@ public final class MilitaryWorks implements RaidIndustry {
                     commandPost(c, b);
                     hq = b;
                 }
-                case ENGINE_ROOM -> generators |= near(c, b, 1, GENERATOR_SETS) > 0;
+                case ENGINE_ROOM -> generators |= generatorPlant(c, b, 1);
                 case ARMORY -> revetment(c, b);
                 case PARTS_CAGE -> near(c, b, 1, WORKSHOP_YARD);
                 case VEHICLE_BAY -> motorPark(c, b, sheds++);
@@ -322,7 +322,23 @@ public final class MilitaryWorks implements RaidIndustry {
             }
         }
         // A garrison whose generator hall did not stand still powers its command post: the sets stand by it.
-        if (!generators && hq != null) near(c, hq, 2, GENERATOR_SETS);
+        if (!generators && hq != null) generatorPlant(c, hq, 2);
+    }
+
+    /**
+     * The generator plant beside {@code b}: its shed with the stacks behind it ({@link MilitarySetPieces}), or where no
+     * ground takes one, the sets themselves on the nearest open ground. Whether either stood.
+     */
+    private static boolean generatorPlant(GenContext c, PointOfInterest b, int gap) {
+        return setPiece(c, b, MilitarySetPieces.Kind.GENERATOR_PLANT, gap) || near(c, b, gap, GENERATOR_SETS) > 0;
+    }
+
+    /** Raises a {@code kind} set piece on the nearest ground beside {@code b} that takes it; whether one stood. */
+    private static boolean setPiece(GenContext c, PointOfInterest b, MilitarySetPieces.Kind kind, int gap) {
+        MilitarySetPieces.Plan plan = MilitarySetPieces.site(c, b, kind, gap);
+        if (plan == null) return false;
+        MilitarySetPieces.raise(c, plan);
+        return true;
     }
 
     /** The generator plant, its cable reel and its day tank, stood by whatever it powers. */
@@ -343,14 +359,20 @@ public final class MilitaryWorks implements RaidIndustry {
     static final int LEAN = 6;
 
     /**
-     * The command post: its sat comms dishes on the nearest open ground round it, then the radar mast and the flag,
-     * so the dishes, mast and flag mark it out from the barracks round it.
+     * The command post: its sat comms dish compound and its radar hardstand on the nearest open ground round it
+     * ({@link MilitarySetPieces}), each falling back to the bare dishes or mast where no ground takes it, then the
+     * flag, so they mark it out from the barracks round it.
      */
     private static void commandPost(GenContext c, PointOfInterest hq) {
-        List<String> dishes = new ArrayList<>();
-        for (int i = 0; i < SATCOM_DISHES; i++) dishes.add("doodad.listening-dish");
-        near(c, hq, 2, dishes);
-        near(c, hq, 1, List.of("doodad.military-radar-dish", "doodad.flag-mast"));
+        if (!setPiece(c, hq, MilitarySetPieces.Kind.DISH_COMPOUND, 2)) {
+            List<String> dishes = new ArrayList<>();
+            for (int i = 0; i < SATCOM_DISHES; i++) dishes.add("doodad.listening-dish");
+            near(c, hq, 2, dishes);
+        }
+        if (!setPiece(c, hq, MilitarySetPieces.Kind.RADAR_HARDSTAND, 2)) {
+            near(c, hq, 1, List.of("doodad.military-radar-dish"));
+        }
+        near(c, hq, 1, List.of("doodad.flag-mast"));
     }
 
     /**
@@ -384,9 +406,14 @@ public final class MilitaryWorks implements RaidIndustry {
 
     /** Whether a {@code size}-square prop at {@code (x, y)} stands under building {@code b}'s leaning walls. */
     private static boolean hidden(PointOfInterest b, int x, int y, int size) {
-        boolean alongY = y + size - 1 >= b.top && y <= b.bottom + LEAN;
-        boolean alongX = x + size - 1 >= b.left - LEAN && x <= b.right;
-        return (x + size - 1 < b.left && b.left - (x + size - 1) <= LEAN && alongY)
+        return hidden(b, x, y, size, size);
+    }
+
+    /** Whether a {@code w} by {@code h} footprint at {@code (x, y)} stands under building {@code b}'s leaning walls. */
+    static boolean hidden(PointOfInterest b, int x, int y, int w, int h) {
+        boolean alongY = y + h - 1 >= b.top && y <= b.bottom + LEAN;
+        boolean alongX = x + w - 1 >= b.left - LEAN && x <= b.right;
+        return (x + w - 1 < b.left && b.left - (x + w - 1) <= LEAN && alongY)
                 || (y > b.bottom && y - b.bottom <= LEAN && alongX);
     }
 
@@ -395,8 +422,13 @@ public final class MilitaryWorks implements RaidIndustry {
      * ground (a cantonment's avenues), which no road mask marks.
      */
     private static boolean onRoad(GenContext c, int x, int y, int size) {
-        for (int xx = x; xx < x + size; xx++) {
-            for (int yy = y; yy < y + size; yy++) {
+        return onRoad(c, x, y, size, size);
+    }
+
+    /** {@link #onRoad(GenContext, int, int, int)} for a {@code w} by {@code h} footprint. */
+    static boolean onRoad(GenContext c, int x, int y, int w, int h) {
+        for (int xx = x; xx < x + w; xx++) {
+            for (int yy = y; yy < y + h; yy++) {
                 if (!c.grid.inBounds(xx, yy)) continue;
                 String surface = c.topology.getSurfaceId(xx, yy);
                 if (surface != null && surface.startsWith("pavement.asphalt.")) return true;
@@ -410,7 +442,7 @@ public final class MilitaryWorks implements RaidIndustry {
      * the prop's middle toward the building's, a wall cell is met before the building's own wall ring. A structure
      * stands on its building's side of the base's wall, never out on the glacis beyond it.
      */
-    private static boolean pastWall(GenContext c, PointOfInterest b, int x, int y, int size) {
+    static boolean pastWall(GenContext c, PointOfInterest b, int x, int y, int size) {
         float fx = x + size / 2f, fy = y + size / 2f;
         float tx = (b.left + b.right + 1) / 2f, ty = (b.top + b.bottom + 1) / 2f;
         int steps = (int) Math.ceil(Math.max(Math.abs(tx - fx), Math.abs(ty - fy)));
@@ -436,7 +468,7 @@ public final class MilitaryWorks implements RaidIndustry {
     static final String BASE_WALL = "colony.olive-wall";
 
     /** Marks a building's roof {@code kind}; a gun lot's building keeps its fort works roof. */
-    private static void roof(GenContext c, PointOfInterest b, CellTopology.RoofKind kind) {
+    static void roof(GenContext c, PointOfInterest b, CellTopology.RoofKind kind) {
         for (int x = b.left; x <= b.right; x++) {
             for (int y = b.top; y <= b.bottom; y++) {
                 if (c.topology.getWorksStyle(x, y) != 0) return;
@@ -448,7 +480,7 @@ public final class MilitaryWorks implements RaidIndustry {
     }
 
     /** Rebuilds a building's walls in {@link #BASE_WALL}. */
-    private static void oliveWalls(GenContext c, PointOfInterest b) {
+    static void oliveWalls(GenContext c, PointOfInterest b) {
         int surface = c.topology.surfaceIndex(BASE_WALL);
         for (int x = b.left - 1; x <= b.right + 1; x++) {
             for (int y = b.top - 1; y <= b.bottom + 1; y++) {
@@ -523,15 +555,15 @@ public final class MilitaryWorks implements RaidIndustry {
     static final int DEPOT_TANKS = 3;
 
     /**
-     * The fuel point and its fuel depot: the tanker filling at the pump house, and on its other side the depot's
-     * tanks in a row a little further out, drums at the row's end.
+     * The fuel point and its fuel depot: the tanker filling at the pump house, and beside it the depot's tank farm
+     * inside its bund ({@link MilitarySetPieces}), or where no ground takes one, its tanks in a row.
      */
     private static void fuelPoint(GenContext c, PointOfInterest fuel) {
         aside(c, fuel, 2, List.of("doodad.parked-tanker-truck", "doodad.industrial-drum-cluster"), 2);
         List<String> tanks = new ArrayList<>();
         for (int i = 0; i < DEPOT_TANKS; i++) tanks.add(DEPOT_TANK);
         tanks.add("doodad.industrial-drum-cluster");
-        near(c, fuel, 3, tanks);
+        if (!setPiece(c, fuel, MilitarySetPieces.Kind.TANK_FARM, 2)) near(c, fuel, 3, tanks);
     }
 
     /** Sandbags round the magazine, a cell out from its walls, broken only where they would block its door. */

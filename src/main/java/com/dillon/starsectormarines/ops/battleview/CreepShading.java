@@ -145,6 +145,16 @@ final class CreepShading {
      */
     static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun,
                       Scratch tmp, float[] out) {
+        shade(f, x, y, cellPx, time, pal, sun, false, tmp, out);
+    }
+
+    /**
+     * As {@link #shade(Field, float, float, float, float, CreepPalette, Sun, Scratch, float[])}; {@code standing} for
+     * a wall stood up ({@link CreepClimb}), whose faces show it standing, so its crust takes none of the lift, bevel and
+     * outline that make a flat wall read as raised.
+     */
+    static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun,
+                      boolean standing, Scratch tmp, float[] out) {
         float[] own = tmp.own, here = tmp.here, noise = tmp.noise, fine = tmp.fine, surf = tmp.surf, col = tmp.col, turned = tmp.turned;
         f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
         f.sample(x, y, here);
@@ -288,6 +298,8 @@ final class CreepShading {
         if (ac > 0f) {
             body(clamp(dc, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun,
                     0f, 0f, 0f, 0f, 0f, surf, col);
+        }
+        if (ac > 0f && !standing) {
             float[] tap = tmp.tap;
             f.sample(x + TAP, y, tap);
             float we = tap[3];

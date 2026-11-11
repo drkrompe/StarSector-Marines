@@ -114,21 +114,30 @@ public final class PrecinctDefence {
 
         boolean[][] clear = keepClear(road, ctx.get(BspKeys.ROAD_RESERVATION),
                 works == null ? null : works.kept(), gates, w, h);
-        DefenceDoctrine.Fits fits = (x, y, kind) -> fits(ctx, inside, clear, x, y, kind);
         int[] threat = threat(ctx);
         List<int[]> hearts = works == null ? List.of() : works.hearts();
         boolean cantonment = precinct.isProgrammed() && precinct.program().cantonment();
         Map<DefensePostKind, Integer> wanted = owed(fortification, cantonment, gates.size(), wallLength(own, w, h));
 
-        DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
         int emitted = ctx.tactical.size();
         // Sited against the ground the wall encloses, not against every wall in it: measured against the buildings'
-        // walls too, the ring "behind the wall" ran round every barracks and the guns stood inside the base guarding
-        // nothing (owner, 2026-11-11); measured against the claim, it ran out on the glacis beyond the wall. Where a
-        // gun can stand is still {@code inside}'s, through {@code fits}.
+        // walls too, the ring round the wall ran round every barracks (owner, 2026-11-11). A wall blocks direct fire
+        // whole, so every direct-fire post stands outside it on ground of this place's or no place's, its lane open
+        // ahead; only the standoff weapons, which need no line, stand inside.
         boolean[][] enclosed = enclosed(ctx, own, open);
-        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(enclosed == null ? inside : enclosed, gates, hearts,
-                threat, wanted, fits)) {
+        boolean[][] place = enclosed == null ? inside : enclosed;
+        boolean[][] outer = new boolean[w][h];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                outer[x][y] = !place[x][y] && !own[x][y] && !ctx.topology.isWall(x, y)
+                        && (claim[x][y] == who || claim[x][y] < 0);
+            }
+        }
+        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> DefenceDoctrine.STANDOFF.contains(kind)
+                ? fits(ctx, inside, clear, x, y, kind)
+                : fits(ctx, outer, clear, x, y, kind) && lineOfFire(ctx, x, y, fx, fy);
+        DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && (inside[x][y] || outer[x][y]);
+        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(place, gates, hearts, threat, wanted, fits)) {
             int before = ctx.defensePosts.size();
             int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, clear, ctx.doodads,
                     ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
@@ -273,6 +282,24 @@ public final class PrecinctDefence {
                 if (clear[nx][ny]) return false;
                 if (Math.abs(dx) > r || Math.abs(dy) > r) continue;
                 if (!inside[nx][ny] || !ctx.grid.isWalkable(nx, ny) || ctx.grid.isDoorway(nx, ny)) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether a post at {@code (x, y)} laid along {@code (fx, fy)} sees out: the cells of its lane
+     * ({@link DefenceDoctrine#LANE} long, past its own box) block no line of sight, so nothing standing there (a wall,
+     * a building) masks its guns.
+     */
+    private static boolean lineOfFire(GenContext ctx, int x, int y, int fx, int fy) {
+        double len = Math.hypot(fx, fy);
+        double ux = fx / len, uy = fy / len;
+        for (int t = 3; t <= DefenceDoctrine.LANE; t++) {
+            int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
+            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height) break;
+            if (ctx.topology.isWall(cx, cy) || !ctx.grid.isWalkable(cx, cy) && !ctx.grid.isSeeThrough(cx, cy)) {
+                return false;
             }
         }
         return true;

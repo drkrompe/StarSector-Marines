@@ -14,6 +14,8 @@ final class CreepPass implements Runnable {
     float screenX0, screenY0, cellPx;
     float timeSeconds;
     float alpha;
+    /** Drawn over stood-up walls ({@link WallCreepPass}): the crust takes no flat wall's lift, bevel or outline. */
+    boolean standing;
     CreepPalette palette;
     CreepShading.Sun sun = new CreepShading.Sun(-0.7071f, 0.7071f, 0.78f, 0.75f);
 

@@ -281,17 +281,29 @@ public final class PortHubDressing {
         // Two ranks of stalls along the park, a drive between them; stall lines in keep-clear paint.
         int[] rankY = hub.outerNorth() ? new int[]{park.y0() + 1, park.y1() - 3}
                 : new int[]{park.y1() - 3, park.y0() + 1};
-        for (int ry : rankY) {
-            for (int x = park.x0() + 1; x + 1 <= park.x1() - 1; x += STALL) {
-                for (int y = ry; y <= ry + 2; y++) if (free(c, x + 2, y)) c.topology.setSurface(x + 2, y, keep);
-                if (rng.nextInt(4) == 0 || !freeRect(c, x, ry, x + 1, ry + 2)) continue;
-                DoodadDef def = registry.doodad(HAULER_ART[rng.nextInt(HAULER_ART.length)]);
-                if (def == null) continue;
-                fixtures(c, x, ry, x + 1, ry + 2, false);
-                c.doodads.add(new Doodad(x, ry, def, rng.nextBoolean() ? 1 : 3));
-            }
+        for (int ry : rankY) rank(c, registry, park.x0() + 1, park.x1() - 1, ry, keep, null, -1, rng);
+    }
+
+    /**
+     * One rank of truck stalls along x from {@code x0} to {@code x1}, three rows from {@code ry}: a stall line in
+     * keep-clear paint between stalls, about three stalls in four holding an upright truck. No stall is laid on the
+     * terminal's own ground ({@code claim} index {@code works}; null for none).
+     */
+    private static void rank(GenContext c, TileRegistry registry, int x0, int x1, int ry, int keep, int[][] claim,
+                             int works, SplittableRandom rng) {
+        for (int x = x0; x + 1 <= x1; x += STALL) {
+            if (!outside(claim, works, x, ry) || !outside(claim, works, x + 2, ry + 2)) continue;
+            for (int y = ry; y <= ry + 2; y++) if (free(c, x + 2, y)) c.topology.setSurface(x + 2, y, keep);
+            if (rng.nextInt(4) == 0 || !freeRect(c, x, ry, x + 1, ry + 2)) continue;
+            DoodadDef def = registry.doodad(HAULER_ART[rng.nextInt(HAULER_ART.length)]);
+            if (def == null) continue;
+            fixtures(c, x, ry, x + 1, ry + 2, false);
+            c.doodads.add(new Doodad(x, ry, def, rng.nextBoolean() ? 1 : 3));
         }
     }
+
+    /** Rows from one rank of the forecourt's truck park to the next: three of stalls, five of drive. */
+    static final int PARK_PITCH = 8;
 
     /** A marshalling stall's width: a truck's breadth and its stall line. */
     static final int STALL = 3;
@@ -588,42 +600,64 @@ public final class PortHubDressing {
     /** Width of the terminal's rear gate onto the hub. */
     static final int REAR_GATE = 3;
     /** Furthest the rear lane walks from the hub toward the terminal before it gives up. */
-    static final int REAR_REACH = 30;
+    static final int REAR_REACH = 48;
+
+    /** Rows either side of the yard road's middle the rear gate may be opened on, where a hall stands on it. */
+    static final int REAR_SHIFT = 10;
 
     /**
-     * The terminal's rear gate: the way the bonded cargo goes out to the yard road and staging. From the hub's edge on
-     * the terminal's side, along the yard road's rows, a lane is paved across the cleared ground and opened through
-     * the terminal's perimeter wall into its yard. Nothing is opened where the lane would meet a building first, or
-     * where it finds no wall within {@link #REAR_REACH}.
+     * The terminal's rear gate: the way the bonded cargo goes out to the hub. From the hub's edge on the terminal's
+     * side, beside the truck gate's road, a lane is laid across the forecourt as street and opened through the
+     * terminal's perimeter wall into its yard, on the yard road's middle row or the nearest row within
+     * {@link #REAR_SHIFT} where no hall stands behind the wall. Nothing is opened where no such row finds a wall within
+     * {@link #REAR_REACH}.
      *
-     * @return whether the gate was opened
+     * @return the lane laid, or null where no gate was opened
      */
-    public static boolean rearGate(GenContext c, PortHub hub) {
+    public static PortHub.Rect rearGate(GenContext c, PortHub hub) {
         int step = hub.deepEast() ? -1 : 1;
         int startX = hub.terminalX() + step;
         PortHub.Rect apron = hub.apron();
         int midY = hub.outerNorth() ? apron.y0() + PortHub.YARD_ROAD / 2 : apron.y1() - PortHub.YARD_ROAD / 2;
-        int length = -1;
-        // Measured on the middle row; the gate is that run, REAR_GATE rows wide.
+        for (int shift = 0; shift <= REAR_SHIFT; shift++) {
+            for (int sign = 1; sign >= -1; sign -= 2) {
+                if (shift == 0 && sign < 0) continue;
+                int row = midY + sign * shift;
+                int length = gateRun(c, startX, step, row);
+                if (length < 0) continue;
+                lane(c, startX, step, row, length);
+                int endX = startX + step * (length - 1);
+                return PortHub.Rect.of(startX, row - REAR_GATE / 2, endX, row + REAR_GATE / 2);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Cells from {@code startX} stepping {@code step} along {@code row} to just past the terminal's wall, or -1 where
+     * a hall or door comes first, the row leaves the map, or no wall is met within {@link #REAR_REACH}.
+     */
+    private static int gateRun(GenContext c, int startX, int step, int row) {
+        if (row - REAR_GATE / 2 < 1 || row + REAR_GATE / 2 >= c.height - 1) return -1;
         boolean walled = false;
         for (int k = 0; k < REAR_REACH; k++) {
             int x = startX + step * k;
-            if (x < 1 || x >= c.width - 1) return false;
-            for (int y = midY - REAR_GATE / 2; y <= midY + REAR_GATE / 2; y++) {
-                if (c.topology.getBuildingId(x, y) != 0 || c.grid.isDoorway(x, y)) return false;
+            if (x < 1 || x >= c.width - 1) return -1;
+            for (int y = row - REAR_GATE / 2; y <= row + REAR_GATE / 2; y++) {
+                if (c.topology.getBuildingId(x, y) != 0 || c.grid.isDoorway(x, y)) return -1;
             }
-            boolean wall = c.topology.isWall(x, midY);
+            boolean wall = c.topology.isWall(x, row);
             if (wall) walled = true;
-            if (walled && !wall && c.grid.isWalkable(x, midY)) {
-                length = k;
-                break;
-            }
+            if (walled && !wall && c.grid.isWalkable(x, row)) return k;
         }
-        if (length < 0) return false;
-        int concrete = c.topology.surfaceIndex(CONCRETE);
+        return -1;
+    }
+
+    /** The rear lane, {@link #REAR_GATE} rows about {@code row}, as street, the wall opened where it crosses. */
+    private static void lane(GenContext c, int startX, int step, int row, int length) {
         for (int k = 0; k < length; k++) {
             int x = startX + step * k;
-            for (int y = midY - REAR_GATE / 2; y <= midY + REAR_GATE / 2; y++) {
+            for (int y = row - REAR_GATE / 2; y <= row + REAR_GATE / 2; y++) {
                 boolean wall = c.topology.isWall(x, y);
                 if (!wall && !free(c, x, y)) continue;
                 for (Direction d : new Direction[]{Direction.N, Direction.E, Direction.S, Direction.W}) {
@@ -636,12 +670,47 @@ public final class PortHubDressing {
                 c.topology.setWallDirMask(x, y, 0);
                 c.topology.setFixture(x, y, false);
                 c.topology.setGroundKind(x, y, GroundKind.STREET);
-                c.topology.setSurface(x, y, concrete);
+                // Street for the city's finish: the road from the truck gate on through the gate, not a slab.
+                c.topology.setSurface(x, y, 0);
                 c.topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
+    }
+
+    /**
+     * The forecourt between the terminal and the hub ({@code PortWorks.FORECOURT}): paved as the hub is round the rear
+     * {@code lane} ({@link #rearGate}, null for none), which stays street, so the one road from the truck gate runs across it into the
+     * works; on the rest, ranks of haulers waiting their call. The terminal's own ground ({@code claim} index
+     * {@code works}) is its own and is not touched.
+     */
+    public static void forecourt(GenContext c, PortHub.Rect court, PortHub.Rect lane, int[][] claim, int works,
+                                 long seed) {
+        int concrete = c.topology.surfaceIndex(CONCRETE);
+        c.doodads.removeIf(d -> court.contains(d.cellX, d.cellY) && outside(claim, works, d.cellX, d.cellY)
+                && free(c, d.cellX, d.cellY) && (lane == null || !lane.contains(d.cellX, d.cellY)));
+        for (int y = court.y0(); y <= court.y1(); y++) {
+            for (int x = court.x0(); x <= court.x1(); x++) {
+                if (!outside(claim, works, x, y) || !free(c, x, y) || lane != null && lane.contains(x, y)) continue;
+                c.topology.setGroundKind(x, y, GroundKind.STREET);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+                c.topology.setSurface(x, y, concrete);
                 c.markMadeGround(x, y);
             }
         }
-        return true;
+        // The haulers cleared through customs wait here for the rear gate, in ranks clear of the lane.
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+        SplittableRandom rng = new SplittableRandom(seed);
+        int keep = c.topology.surfaceIndex(KEEP_CLEAR);
+        for (int ry = court.y0() + 2; ry + 2 <= court.y1() - 2; ry += PARK_PITCH) {
+            if (lane != null && ry + 2 >= lane.y0() - 2 && ry <= lane.y1() + 2) continue;
+            rank(c, registry, court.x0() + 2, court.x1() - 2, ry, keep, claim, works, rng);
+        }
+    }
+
+    /** Whether the cell lies off the terminal's own ground. */
+    private static boolean outside(int[][] claim, int works, int x, int y) {
+        return claim == null || x < 0 || y < 0 || x >= claim.length || y >= claim[x].length || claim[x][y] != works;
     }
 
     /** Haulers queued at the terminal's gates, nose to tail on the verge, waiting on customs. */

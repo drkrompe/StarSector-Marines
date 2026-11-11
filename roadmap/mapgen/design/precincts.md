@@ -1411,26 +1411,36 @@ post six cells in along each gate's own road; and every post after the first
 was a uniform draw from the claim, glacis included. `DefenceDoctrine` now sites
 every emplacement by role, heaviest first:
 
-- **gates**: a post either side of each gate's approach, set back behind the
+- **gates**: a post either side of each gate's approach, out in front of the
   wall, every gate once before any gate twice, the main gate first, so the
   heaviest guns hold the way most of the attack will come — a gate nobody is
   watching is a door;
 - **corners**: then the wall's corners, the one facing the threat (the landing)
-  first, each seeing down two faces and out over the approach;
-- **wall**: a loadout with posts to spare lines the ring behind the wall, the
-  face toward the threat first (a grown claim's corners are the ring's own
+  first, each off its corner seeing along two faces and out over the approach;
+- **wall**: a loadout with posts to spare lines the ring in front of the wall,
+  the face toward the threat first (a grown claim's corners are the ring's own
   extremes, not its bounding box's);
 - **depth**: artillery and drone hubs on the deepest ground furthest from the
   main gate, because their whole point is reaching past the wall from
-  somewhere the attacker must get through the wall to reach.
+  somewhere the attacker must get through the wall to reach. The artillery
+  fires indirect, over the wall, and the hubs launch drones: neither needs a
+  line of fire.
 
-No gun stands inside a place without a standoff job: the posts once sited
-beside the motor pool and command covered nothing an attacker crosses (owner:
-"What are they guarding?"). The ring behind the wall is measured from the
-place's own outline, never from the walls of the buildings inside it, which
-had run the ring round every barracks. Every site faces out (`Site.faceX`,
-`faceY`): a gate post along its gate's way out, a corner or wall post toward
-the nearest ground beyond the wall, a standoff weapon toward the threat. The
+A wall blocks direct fire whole: no gun in the sim fires over one (a plinth
+raises a gun's eye, not its rounds past a wall), and only indirect fire needs
+no line. So every direct-fire post stands outside its wall, five cells out on
+the glacis or on ground no other place holds, inside its own sandbagged ring,
+and only where its laid arc (its bearing and twenty degrees either side) runs
+ten cells over open ground without crossing back over the place or meeting a
+wall (`DefenceDoctrine.lane`, `PrecinctDefence.lineOfFire`; owner: "They
+can't shoot over walls!"). No gun stands inside a place without a standoff job
+either: the posts once sited beside the motor pool and command covered nothing
+an attacker crosses (owner: "What are they guarding?"). The ring is measured
+from the ground the place's wall encloses, never from the walls of the
+buildings inside it, which had run it round every barracks. Every site faces
+out (`Site.faceX`, `faceY`): a gate post along its gate's way out, a corner or
+wall post away from the nearest ground of the place, a standoff weapon toward
+the threat. The
 post carries that bearing (`DefensePost.restFacing`), and its guns are laid on
 it before the fight.
 

@@ -34,7 +34,7 @@ class ProcessAreaTest {
         }
     }
 
-    /** Nothing solid stands on a lane or under the rack. */
+    /** Nothing solid stands on a lane, or on the rack corridor's road-side column. */
     @Test
     void lanesAndRackStayClear() {
         for (boolean left : new boolean[]{true, false}) {
@@ -45,9 +45,8 @@ class ProcessAreaTest {
                 }
             }
             ProcessArea.Box rack = p.rack();
-            for (int y = rack.y(); y < rack.y() + rack.h(); y++) {
-                for (int x = rack.x(); x < rack.x() + rack.w(); x++) assertFalse(p.blocked(x, y));
-            }
+            int edge = left ? rack.x() : rack.x() + rack.w() - 1;
+            for (int y = rack.y(); y < rack.y() + rack.h(); y++) assertFalse(p.blocked(edge, y));
         }
     }
 
@@ -59,6 +58,40 @@ class ProcessAreaTest {
             assertTrue(p.allReached(left));
             for (ProcessArea.Block b : p.blocks()) assertFalse(p.blocked(b.chargeX(), b.chargeY()));
         }
+    }
+
+    /**
+     * Every unit is tied in: its feed spur runs from the rack's line to its heater's face, its transfer line from the
+     * heater to the column, its draw from the column to the stripper, and each stays inside its block.
+     */
+    @Test
+    void everyUnitIsPipedToTheRackAndWithin() {
+        for (boolean left : new boolean[]{true, false}) {
+            ProcessArea.Plan p = plan(left, 80);
+            ProcessArea.Box rack = p.rack();
+            int rackLine = rack.x() + rack.w() / 2;
+            for (ProcessArea.Block b : p.blocks()) {
+                ProcessArea.Run feed = b.feed(), transfer = b.transfer(), draw = b.draw();
+                assertEquals(rackLine, feed.x0(), "the feed spur leaves the rack");
+                assertTrue(beside(b.heater(), feed.x1(), feed.y1()), "and ends at the heater");
+                assertTrue(beside(b.heater(), transfer.x1(), transfer.y1()), "the transfer leaves the heater");
+                assertTrue(beside(b.column(), transfer.x0(), transfer.y0()) || b.column().contains(transfer.x0(),
+                        transfer.y0()), "into the column");
+                assertTrue(ProcessArea.disc(b.column(), draw.x0(), draw.y0()), "the draw leaves the column");
+                assertTrue(ProcessArea.disc(b.stripper(), draw.x1(), draw.y1()), "into the stripper");
+                for (ProcessArea.Run r : b.pipes()) {
+                    for (int[] c : new int[][]{{r.x0(), r.y0()}, {r.x1(), r.y1()}}) {
+                        assertTrue(b.pad().contains(c[0], c[1]) || rack.contains(c[0], c[1]), "inside the block");
+                    }
+                }
+            }
+            assertTrue(p.allReached(left), "and the pipes wall nothing in");
+        }
+    }
+
+    private static boolean beside(ProcessArea.Box b, int x, int y) {
+        return !b.contains(x, y) && (b.contains(x + 1, y) || b.contains(x - 1, y) || b.contains(x, y + 1)
+                || b.contains(x, y - 1));
     }
 
     /** The area is crossed both ways: a lane the full width between every pair of blocks, and one the full length. */

@@ -96,6 +96,23 @@ class PortWorksTest {
     }
 
     @Test
+    void theForecourtHoldsTheGroundBetweenTheTerminalAndTheHubBesideTheLines() {
+        PortHub hub = PortHub.lay(150, 67, 277, 165, true, true, PortWorks.back(32));
+        Site court = PortWorks.forecourt(hub, 115, 32, 280, 168);
+        assertNotNull(court);
+        assertEquals(SitePurpose.GROUND, court.purpose(), "held from the town's growth");
+        assertEquals(115 + 16, court.x0(), "from half the terminal's reach");
+        assertEquals(hub.paved().x0() - 1, court.x1(), "to the hub's start");
+        assertEquals(hub.built().y0(), court.y0(), "beside the lines, not over them");
+        assertEquals(hub.paved().y1(), court.y1());
+        PortHub turned = PortHub.lay(2, 2, 129, 100, false, false, PortWorks.back(32));
+        Site west = PortWorks.forecourt(turned, 165, 32, 280, 168);
+        assertEquals(turned.paved().x1() + 1, west.x0());
+        assertEquals(165 - 16, west.x1());
+        assertEquals(turned.built().y1(), west.y1());
+    }
+
+    @Test
     void groundBesideAWorksComesInToItsClaimButNeverAcrossABuilding() {
         Site east = PortWorks.apronSite(150, 110, 30, false, false, 280, 168);
         assertEquals(150 + 30 + PortWorks.APRON_GAP, east.x0());
