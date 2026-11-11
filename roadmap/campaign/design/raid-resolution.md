@@ -59,9 +59,8 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
    and the post-raid rules. Other content that listens for a finished raid (for
    example Nexerelin's disrupt-a-competitor mission) therefore sees an ordinary
    raid. The mod adjusts only the raid record, and only for the outcome:
-   - **won**: committed as set up, at the effectiveness the command computed;
-     a disrupting raid's effectiveness is first multiplied by the share of the
-     works the battle wrecked (`raid-mission.md`, Break);
+   - **won**: committed as the market's full raid with its security's premium
+     (law 9);
    - **lost or withdrawn**: committed with no objectives. The attack happened
      and is on record, but it takes nothing, disrupts nothing and reports no
      objective achieved.
@@ -77,6 +76,21 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 8. **A raid commits once.** Backing out of the briefing commits nothing and
    returns to the fork. A fought battle is recorded once at Results and
    committed once when the panel closes; a replayed result commits nothing.
+9. **Leading on the ground pays more, and a harder market pays most** (owner:
+   "We just need to offer more potential rewards for leading on the ground to
+   compensate"). The company goes in with up to twelve squads and four mechs or
+   vehicles; it needs no marines in the hold and no hundreds of them, yet it
+   can take a fortified works the standard raid would barely scratch. A won
+   led raid is committed as the market's full raid whatever the cargo marines
+   would have earned: at full effectiveness, its marine tokens (which the raid
+   command reckons loot and disruption by) filled to the full raid's ten times
+   the market's security premium (open none, guarded a quarter, fortified a
+   half; untuned), spread over the objectives the player chose in proportion
+   to their choice, and a disrupting raid's times the share of the works
+   wrecked, so every hall brought down adds days down (`LedRaidReward`,
+   `RaidOutcomeCommit`). The fork shows both payouts side by side, and what
+   the company faces at that security. The standard raid itself is never
+   changed (law 3).
 
 ## Flow
 
@@ -94,15 +108,19 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 
 ## Mismatches the design accepts
 
-- **Effectiveness is graded only by the works.** A won battle earns what the
-  command's own strength ratio gives, never more for a clean win; a disrupting
-  raid earns that times the share of the works wrecked; a lost one earns
-  nothing.
+- **A won raid is graded by the market and the works, not the win.** A won
+  battle earns the full raid at its security's premium, never more for a clean
+  win; a disrupting raid earns that times the share of the works wrecked; a
+  lost one earns nothing.
 - **The story-point secret raid** confirms inside the command, not through a
   rule, so it always resolves the standard way.
-- **Cargo marines still set the odds the menu shows.** The command computes
-  effectiveness and the loss estimate from the fleet's marines before the fork;
-  the company's squads are invisible to it.
+- **Cargo marines still decide whether the raid is offered.** The command
+  computes effectiveness from the fleet's marines before the fork, and below
+  its thresholds (a quarter to disrupt, a twentieth for valuables) it offers no
+  confirm, so a fleet with few marines never reaches the fork at a strong
+  market, and the player assigns only the tokens those marines allow. A won
+  led raid fills the tokens (law 9); whether the company may lead a raid the
+  cargo marines could not set up is pick `raid-led-entry` (law 1).
 
 ## Boundaries
 
