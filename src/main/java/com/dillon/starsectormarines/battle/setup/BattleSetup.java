@@ -5636,6 +5636,9 @@ public final class BattleSetup {
         Deque<MechVariant> worksMechQueue = new ArrayDeque<>(RaidWorksMachines.extraMechs(
                 RaidWorksGuard.machinePosts(defenderNodes),
                 groundRoster == null ? List.of() : groundRoster.heavySupport()));
+        Set<TacticalNode> worksForwardPosts = new HashSet<>(RaidWorksGuard.forwardPosts(defenderNodes));
+        Deque<GroundRosterProfile.ForceTier> worksInfQueue = new ArrayDeque<>(
+                RaidWorksMachines.extraRiflemen(RaidWorksGuard.forwardPosts(defenderNodes)));
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
         infQueue.addAll(roster.infantryOrder());
 
@@ -5648,20 +5651,24 @@ public final class BattleSetup {
         for (TacticalNode node : defenderNodes) {
             // A works' guard post is held by riflemen while any are left; its machine posts by machines only.
             boolean machinePost = worksMachinePosts.contains(node);
+            boolean forwardPost = worksForwardPosts.contains(node);
+            // Security's own posts (machines, forward riflemen) draw only on what security adds.
+            boolean securityPost = machinePost || forwardPost;
             Deque<MechVariant> mechs = machinePost ? worksMechQueue : mechQueue;
+            Deque<GroundRosterProfile.ForceTier> riflemen = forwardPost ? worksInfQueue : infQueue;
             RaidWorksGuard.Holder holder = RaidWorksGuard.holder(worksPosts.contains(node),
-                    machinePost, !mechs.isEmpty(), !infQueue.isEmpty());
+                    machinePost, forwardPost, !mechs.isEmpty(), !riflemen.isEmpty());
             if (holder == RaidWorksGuard.Holder.NONE) {
-                if (!worksMachinePosts.contains(node)) patrolAnchors.add(node);
+                if (!securityPost) patrolAnchors.add(node);
                 continue;
             }
             boolean spawningMechs = holder == RaidWorksGuard.Holder.MACHINES;
             // A works' machine post is for machines alone: never a patrol's anchor when it stands empty.
-            int sourceSize = spawningMechs ? mechs.size() : infQueue.size();
-            if (sourceSize == 0) { if (!machinePost) patrolAnchors.add(node); continue; }
+            int sourceSize = spawningMechs ? mechs.size() : riflemen.size();
+            if (sourceSize == 0) { if (!securityPost) patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
             // A machine post's machines are security's own, on top of the force: the mobile pool's floor is not theirs.
-            int garrisonBudget = machinePost ? mechs.size() : Math.max(0, remaining
+            int garrisonBudget = securityPost ? sourceSize : Math.max(0, remaining
                     - Math.max(0, minimumPatrolMembers));
             if (garrisonBudget == 0) {
                 patrolAnchors.add(node);
@@ -5674,18 +5681,18 @@ public final class BattleSetup {
                 int spawned = spawnPlacedDefenderMechs(sim, candidates, mechs, want,
                         roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
                 defenderIdx += spawned;
-                if (spawned == 0 && !machinePost) patrolAnchors.add(node);
+                if (spawned == 0 && !securityPost) patrolAnchors.add(node);
                 continue;
             }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
                     node, GARRISON_SPAWN_RADIUS, want);
-            if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
+            if (cells.isEmpty()) { if (!securityPost) patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
-                MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
-                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? infQueue.poll() : null;
+                if ((spawningMechs ? mechs : riflemen).isEmpty()) break;
+                MechVariant mechVariant = spawningMechs ? mechs.poll() : null;
+                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? riflemen.poll() : null;
                 UnitType type = mechVariant != null ? mechType : groundRoster.unitType(forceTier);
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
                         roster.risk, groundRoster, forceTier, rng, mechVariant);
@@ -5721,6 +5728,7 @@ public final class BattleSetup {
         List<TacticalNode> originalAnchors = new ArrayList<>(
                 patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors);
         originalAnchors.removeAll(worksMachinePosts);
+        originalAnchors.removeAll(worksForwardPosts);
         if (originalAnchors.isEmpty()) originalAnchors.addAll(defenderNodes);
         List<TacticalNode> anchorPool = new ArrayList<>(originalAnchors);
         int anchorIdx = 0;

@@ -46,7 +46,22 @@ PIECES = {
                     4, 2, "heavy", {"ballisticHalfHeight": 0.55}),
     "parked-apc-army": ("Parked APC", "An army APC parked in the vehicle park, nose and turret forward (west).", 3, 2,
                         "heavy", {"ballisticHalfHeight": 0.55}),
+    # Round 2 (`military-base-art-2`): the structures a working base needs.
+    "satcom-dish": ("Satellite uplink dish", "A ground station dish tilted up on its pedestal, a feed horn on struts, "
+                    "on a railed concrete pad; for the command post's dish farm.", 3, 3, "light", {}),
+    "radar-tower": ("Search radar tower", "A steel lattice tower carrying a long search-radar antenna bar, its long "
+                    "shadow to the south-east.", 3, 3, "light", {}),
+    "fuel-bladder": ("Fuel bladder", "A pillow fuel bladder in a low earth bund, a hose to its pump; a fuel depot "
+                     "cell.", 3, 3, "light", {}),
+    "generator-set": ("Generator set", "A skid-mounted diesel generator in an olive housing: exhaust stack, fuel tank, "
+                      "cable runs.", 3, 2, "med", {"ballisticHalfHeight": 0.45}),
+    "antenna-mast": ("Antenna mast", "A tall guyed radio mast: base plate, three guy wires to anchors, its long thin "
+                     "shadow.", 1, 1, "none", {}),
+    "medical-marker": ("Medical marker", "A painted panel by the medical post: a plain white cross on a green square, "
+                       "worn. A floor decal; blocks nothing.", 3, 3, "none", {}),
 }
+# The medical marker's paint: a plain white cross on green, never the red-on-white protective emblem.
+MEDICAL_GREEN = (46, 112, 64)
 
 # Parked armour composited from the shipped vehicle sprites (graphics/battle/vehicles, plain livery, intact frames):
 # frame 0 the hull and frame 1 the turret, 768x576 each, nose to the west (-x). The turret is drawn on its ring
@@ -73,10 +88,30 @@ def register(raw, frames):
     return sx, sy, xs.min() - gx0 * sx, ys.min() - gy0 * sy
 
 
+def register_on_guide(raw, guide):
+    """Scale and offset taking guide pixels to raw pixels: the guide's drawn (non-white) extent onto the raw's drawn
+    (alpha) extent. For a guide whose pieces do not reach their frames' edges."""
+    g = np.asarray(guide.convert("L")) < 250
+    gy, gx = np.nonzero(g)
+    a = np.asarray(raw.getchannel("A")) > 64
+    ys, xs = np.nonzero(a)
+    sx = (xs.max() + 1 - xs.min()) / (gx.max() + 1 - gx.min())
+    sy = (ys.max() + 1 - ys.min()) / (gy.max() + 1 - gy.min())
+    return sx, sy, xs.min() - gx.min() * sx, ys.min() - gy.min() * sy
+
+
 def painted():
-    raw = Image.open(HERE / "raw" / "military-base.raw.png").convert("RGBA")
-    sx, sy, ox, oy = register(raw, G.FRAMES)
-    for pid, x, y, cw, ch in G.FRAMES:
+    yield from cut_raw("military-base.raw.png", G.FRAMES, None)
+    yield from cut_raw("military-base-2.raw.png", G.FRAMES2, "guide-2.png")
+
+
+def cut_raw(name, frames, guide):
+    raw = Image.open(HERE / "raw" / name).convert("RGBA")
+    if guide is None:
+        sx, sy, ox, oy = register(raw, frames)
+    else:
+        sx, sy, ox, oy = register_on_guide(raw, Image.open(HERE / guide))
+    for pid, x, y, cw, ch in frames:
         box = (round(ox + x * sx), round(oy + y * sy), round(ox + (x + cw * G.CELL) * sx),
                round(oy + (y + ch * G.CELL) * sy))
         piece = raw.crop(box).resize((cw * CELL_PX, ch * CELL_PX), Image.LANCZOS)
@@ -128,6 +163,25 @@ def markings():
     yield "parade-centre", worn(m, 4)
 
 
+def medical_marker():
+    """A worn painted panel: a green square with a plain white cross, the cross a fifth of the panel wide."""
+    c = CELL_PX
+    size = 3 * c
+    m = Image.new("L", (size, size))
+    ImageDraw.Draw(m).rectangle((c * 0.25, c * 0.25, size - c * 0.25, size - c * 0.25), fill=255)
+    green = worn(m, 5)
+    green = Image.merge("RGBA", (*(Image.new("L", green.size, v) for v in MEDICAL_GREEN), green.getchannel("A")))
+    arm, half = size * 0.2, size / 2
+    m = Image.new("L", (size, size))
+    d = ImageDraw.Draw(m)
+    d.rectangle((half - arm / 2, c * 0.55, half + arm / 2, size - c * 0.55), fill=255)
+    d.rectangle((c * 0.55, half - arm / 2, size - c * 0.55, half + arm / 2), fill=255)
+    out = Image.new("RGBA", (size, size))
+    out.alpha_composite(green)
+    out.alpha_composite(worn(m, 6))
+    yield "medical-marker", out
+
+
 def vehicles():
     fw, fh = VEHICLE_FRAME
     for pid, (sprite, mount, turret_scale) in VEHICLES.items():
@@ -168,7 +222,7 @@ def main():
     meta.write_text(json.dumps(metadata(), indent=2) + "\n", encoding="utf-8")
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
-        for pid, piece in (*painted(), *markings(), *vehicles()):
+        for pid, piece in (*painted(), *markings(), *medical_marker(), *vehicles()):
             piece.save(staged / f"{pid}.png")
         build_atlas(BuildOptions(
             input_dir=staged,
