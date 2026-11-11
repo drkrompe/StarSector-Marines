@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 
@@ -256,7 +257,6 @@ final class FacePainter {
                 if (z < height) quad(.01f, .1f, z - .015f, z + .015f, pr * .7f, pg * .7f, pb * .7f);
             }
         }
-        holes(cell, hurt, height, light);
     }
 
     private void cornerPost(float t0, float t1, float height, float tr, float tg, float tb, float[] cut) {
@@ -460,16 +460,51 @@ final class FacePainter {
     }
 
     /** Holes torn through a badly hurt wall: a dark core, ragged round its edge, with the masonry showing. */
-    private void holes(int cell, float hurt, float height, float light) {
-        if (hurt <= .4f || BuildingFaces.hash(cell, 3) >= hurt) return;
-        float t = .12f + .5f * BuildingFaces.hash(cell, 4);
-        float z = height * (.18f + .45f * BuildingFaces.hash(cell, 5));
-        float w = .22f + .18f * BuildingFaces.hash(cell, 6), h = Math.min(.28f, height * .3f);
-        float zt = Math.min(height, z + h);
-        quad(t - .04f, t + w + .04f, z - .03f, Math.min(height, zt + .03f), .42f * light, .38f * light, .34f * light);
-        quad(t, t + w, z, zt, .05f, .045f, .045f);
-        quad(t + w * .2f, t + w * .8f, zt - .01f, Math.min(height, zt + .05f), .05f, .045f, .045f);
-        quad(t - .03f, t + w * .4f, z + h * .2f, z + h * .7f, .05f, .045f, .045f);
+    /**
+     * The hits that landed on the wall just painted ({@link FaceScars#lay}), each where it struck: a chipped pock with
+     * a pale rim, a deep gouge, or a burst's soot round a punched hole. Only what stands below {@code top} (a share
+     * of the wall's {@code meters}) shows.
+     */
+    void scars(float[] laid, int count, float meters, float top, float light, WallDress.Material m) {
+        float rr = Math.min(1f, m.wall()[0] * 1.12f) * light, rg = Math.min(1f, m.wall()[1] * 1.12f) * light;
+        float rb = Math.min(1f, m.wall()[2] * 1.12f) * light;
+        for (int i = 0; i < count; i++) {
+            int o = i * FaceScars.STRIDE;
+            float u = laid[o], z = laid[o + 1] / meters, size = laid[o + 2];
+            int mark = (int) laid[o + 3];
+            if (z >= top) continue;
+            if (mark == WallScars.Mark.CHIP.ordinal()) {
+                float w = .13f, h = SCAR_SCALE * .13f / meters;
+                quad(u - w * .8f, u + w * .8f, z - h * .8f, Math.min(top, z + h * .8f), rr, rg, rb);
+                quad(u - w * .45f, u + w * .45f, z - h * .45f, Math.min(top, z + h * .45f), .07f, .06f, .06f);
+            } else if (mark == WallScars.Mark.GOUGE.ordinal()) {
+                float w = .24f, h = SCAR_SCALE * .22f / meters;
+                quad(u - w * .75f, u + w * .75f, z - h * .7f, Math.min(top, z + h * .7f), rr * .9f, rg * .9f,
+                        rb * .9f);
+                quad(u - w * .45f, u + w * .45f, z - h * .45f, Math.min(top, z + h * .45f), .05f, .045f, .045f);
+                quad(u - w * .15f, u + w * .6f, z + h * .2f, Math.min(top, z + h * .55f), .05f, .045f, .045f);
+            } else {
+                float w = Math.max(.5f, Math.min(1.2f, size * .7f)), h = SCAR_SCALE * w * .9f / meters;
+                float soot = .12f * light;
+                shadedBlast(u, w, z, h, top, soot, m, light);
+                float hw = w * .32f, hh = h * .3f;
+                quad(u - hw, u + hw, z - hh, Math.min(top, z + hh), .04f, .035f, .035f);
+            }
+        }
+    }
+
+    /**
+     * Metres up a face per cell along it, for a mark's shape: a cell along a face is drawn about as wide as a storey
+     * is tall, so a round pock is that much taller in metres than it is wide in cells.
+     */
+    private static final float SCAR_SCALE = 3f;
+
+    /** A burst's soot: dark at its heart, fading out to the wall's own colour at its edge. */
+    private void shadedBlast(float u, float w, float z, float h, float top, float soot, WallDress.Material m,
+                             float light) {
+        float r = m.wall()[0] * light * .55f, g = m.wall()[1] * light * .55f, b = m.wall()[2] * light * .55f;
+        shaded(u - w / 2f, u + w / 2f, Math.max(0f, z - h / 2f), Math.min(top, z), r, g, b, soot, soot, soot);
+        shaded(u - w / 2f, u + w / 2f, Math.min(top, z), Math.min(top, z + h / 2f), soot, soot, soot, r, g, b);
     }
 
     /**

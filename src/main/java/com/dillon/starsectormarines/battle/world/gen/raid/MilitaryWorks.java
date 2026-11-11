@@ -310,9 +310,7 @@ public final class MilitaryWorks implements RaidIndustry {
                 }
                 case ENGINE_ROOM -> generators |= near(c, b, 1, GENERATOR_SETS) > 0;
                 case ARMORY -> revetment(c, b);
-                case PARTS_CAGE -> aside(c, b, 1, List.of("doodad.industrial-machine-tool",
-                        "doodad.industrial-crate-stack", "doodad.industrial-machine-tool",
-                        "doodad.industrial-drum-cluster"), 4);
+                case PARTS_CAGE -> near(c, b, 1, WORKSHOP_YARD);
                 case VEHICLE_BAY -> motorPark(c, b, sheds++);
                 case STOCKROOM -> {
                     if (Math.min(width(b), height(b)) <= FUEL_HOUSE.height()
@@ -327,10 +325,14 @@ public final class MilitaryWorks implements RaidIndustry {
         if (!generators && hq != null) near(c, hq, 2, GENERATOR_SETS);
     }
 
-    /** The generator sets, their cable reel and their day tank, stood by whatever they power. */
-    private static final List<String> GENERATOR_SETS = List.of("doodad.industrial-generator",
-            "doodad.industrial-generator", "doodad.industrial-generator", "doodad.industrial-cable-reel",
+    /** The generator plant, its cable reel and its day tank, stood by whatever it powers. */
+    static final List<String> GENERATOR_SETS = List.of("ship-engineering.generator", "doodad.industrial-cable-reel",
             "doodad.industrial-fluid-tank");
+    /** A workshop's yard at its door: the gantry engines are lifted under, a machine tool and a drum. */
+    static final List<String> WORKSHOP_YARD = List.of("doodad.ruins-workshop-hoist", "doodad.industrial-machine-tool",
+            "doodad.industrial-drum-cluster");
+    /** The fuel depot's storage spheres. */
+    static final String DEPOT_TANK = "doodad.oxygen-sphere";
 
     /** Farthest out from its building a structure looks for open ground, cells. UNTUNED. */
     static final int NEAR_MOST = 14;
@@ -368,7 +370,9 @@ public final class MilitaryWorks implements RaidIndustry {
                         // A prop beyond the building's left or top side stands back from its corner by its size.
                         int size = footprint(id);
                         int px = x < b.left ? x - size + 1 : x, py = y < b.top ? y - size + 1 : y;
-                        if (hidden(b, px, py, size)) continue;
+                        if (hidden(b, px, py, size) || onRoad(c, px, py, size) || pastWall(c, b, px, py, size)) {
+                            continue;
+                        }
                         stood = WorksProps.place(c, px, py, id, 0);
                     }
                 }
@@ -384,6 +388,39 @@ public final class MilitaryWorks implements RaidIndustry {
         boolean alongX = x + size - 1 >= b.left - LEAN && x <= b.right;
         return (x + size - 1 < b.left && b.left - (x + size - 1) <= LEAN && alongY)
                 || (y > b.bottom && y - b.bottom <= LEAN && alongX);
+    }
+
+    /**
+     * Whether a {@code size}-square prop at {@code (x, y)} would stand on a road a place painted as asphalt over its
+     * ground (a cantonment's avenues), which no road mask marks.
+     */
+    private static boolean onRoad(GenContext c, int x, int y, int size) {
+        for (int xx = x; xx < x + size; xx++) {
+            for (int yy = y; yy < y + size; yy++) {
+                if (!c.grid.inBounds(xx, yy)) continue;
+                String surface = c.topology.getSurfaceId(xx, yy);
+                if (surface != null && surface.startsWith("pavement.asphalt.")) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether a wall stands between building {@code b} and a {@code size}-square prop at {@code (x, y)}: walking from
+     * the prop's middle toward the building's, a wall cell is met before the building's own wall ring. A structure
+     * stands on its building's side of the base's wall, never out on the glacis beyond it.
+     */
+    private static boolean pastWall(GenContext c, PointOfInterest b, int x, int y, int size) {
+        float fx = x + size / 2f, fy = y + size / 2f;
+        float tx = (b.left + b.right + 1) / 2f, ty = (b.top + b.bottom + 1) / 2f;
+        int steps = (int) Math.ceil(Math.max(Math.abs(tx - fx), Math.abs(ty - fy)));
+        for (int i = 0; i <= steps; i++) {
+            int cx = (int) Math.floor(fx + (tx - fx) * i / Math.max(1, steps));
+            int cy = (int) Math.floor(fy + (ty - fy) * i / Math.max(1, steps));
+            if (cx >= b.left - 1 && cx <= b.right + 1 && cy >= b.top - 1 && cy <= b.bottom + 1) return false;
+            if (c.grid.inBounds(cx, cy) && c.topology.isWall(cx, cy)) return true;
+        }
+        return false;
     }
 
     /** The larger side of a prop's footprint, cells; one where it is not installed. */
@@ -483,7 +520,7 @@ public final class MilitaryWorks implements RaidIndustry {
     }
 
     /** Fuel tanks the fuel depot keeps beside the fuel point. UNTUNED. */
-    static final int DEPOT_TANKS = 4;
+    static final int DEPOT_TANKS = 3;
 
     /**
      * The fuel point and its fuel depot: the tanker filling at the pump house, and on its other side the depot's
@@ -492,9 +529,9 @@ public final class MilitaryWorks implements RaidIndustry {
     private static void fuelPoint(GenContext c, PointOfInterest fuel) {
         aside(c, fuel, 2, List.of("doodad.parked-tanker-truck", "doodad.industrial-drum-cluster"), 2);
         List<String> tanks = new ArrayList<>();
-        for (int i = 0; i < DEPOT_TANKS; i++) tanks.add("doodad.industrial-fluid-tank");
+        for (int i = 0; i < DEPOT_TANKS; i++) tanks.add(DEPOT_TANK);
         tanks.add("doodad.industrial-drum-cluster");
-        aside(c, fuel, 4, tanks, tanks.size());
+        near(c, fuel, 3, tanks);
     }
 
     /** Sandbags round the magazine, a cell out from its walls, broken only where they would block its door. */

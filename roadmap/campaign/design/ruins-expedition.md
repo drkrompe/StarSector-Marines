@@ -860,10 +860,12 @@ cell, footprint, goods and space, for the finds to be picked from (`plant-store-
 The hull is drawn round the plant (pick `ruins-plant-hull`, building on the redraw). Each interior band's line stands
 back from the vault only as far as its spaces need, and the outer layers spread over the ground that frees. The deeper band's
 line lets its ways cross only within 30 rows of the vault's row. Each band's spine is walled up beyond the last thing that
-joins it. The hull that then walls nothing, more than two cells from any
-floor, piece or door, and that the ruin's ground outside reaches is cut back to open ground. The plant stands as a
-building, with the ground round it, outside the facility, so a machine may be set down there. Hull that the outside
-ground cannot reach stays solid.
+joins it. The plant is one enclosed building (owner, on the first shot: "Where's the rest of the building in this preview? It
+looks like it's just outside"). The outline cuts back to open ground only hull more than ten cells from any floor,
+piece or door, so spaces near each other fuse under one continuous outer hull. The outside starts at that hull face, on
+the ruin's own ground, and a machine may be set down there. Inside, the building's mass is opened as plant floor: every
+pocket more than two cells from any floor and from the outside becomes a bay. Each bay has one door onto the floor
+beside it, so no bay carries a way round the works hall.
 
 Still to come:
 - each space dressed from its own plan;
@@ -1088,8 +1090,10 @@ load the plant left in its stores, drawn on the recovery skid
 - The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
   `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
   rest to raw stock and maintenance.
-- A find takes one of the store's loaded bays and is drawn as its cache
-  variant, which gives no cover. The other loads stay as cover and dressing,
+- A find takes one of the store's loads (`RuinsDelve.Interior.loads`,
+  picked by `StoreFinds`) and is drawn as its cache variant, which gives no
+  cover. It is recovered from the open floor beside the load, and it settles as
+  its own goods. The other loads stay as cover and dressing,
   never taken. If there are more finds than loaded bays, a store turns empty bays
   into finds before any find goes elsewhere.
 - Each find is worth about one field cache at the base game's base price

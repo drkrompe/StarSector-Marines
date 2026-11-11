@@ -5,7 +5,9 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
 6 (the works' machines) is built on the owner's (a) on `raid-works-machines`
-and (c) on `raid-works-vehicles`.
+and (c) on `raid-works-vehicles`; slice 7 (the approach) on the recommended
+`raid-works-approach` (a); slice 8 (pressure over time) waits on
+`raid-pressure`.
 
 Written: 2026-11-10
 
@@ -160,6 +162,45 @@ the player over time".
 - Tests: `RaidWorksMachinesTest`, `RaidWorksGuardTest`,
   `RaidDefenderReserveTest`; `storyMapPools` counts the posts;
   `raid-demolition-look`'s `built-*` labels who stands at each.
+
+### 7. The works' approach: BUILT on the recommended `raid-works-approach` (a)
+
+Owner: "Seems somewhat strange that we have all of this space outside of the
+works that we don't use for defensive layers." The raid now fights through
+depth before it reaches the wall (`WorksDefences.approach`), all of it held by
+riflemen security adds on top of the force (`RaidSiteTemplate.WORKS_FORWARD`,
+`RaidWorksMachines.extraRiflemen`, seated after the machines and never a
+patrol's anchor):
+
+- Guarded: a sandbagged forward post on each open gate's approach, past the
+  works' ground, slid aside off the road onto open ground.
+- Fortified: also up to two firing positions on the largest open ground within
+  reach of the works, facing out, and a staggered double row of hedgehogs
+  beyond the glacis, broken where the gates' approaches run.
+
+Pick `raid-works-approach` (pictures under
+`review/owned-maps/2026-11-11_raid-works-depth_win/`): (a) posts, positions and
+a belt (built); (b) a continuous trench line; (c) the facing buildings held as
+strongpoints. Tests: `WorksDefencesTest`, `RaidWorksGuardTest`,
+`RaidWorksMachinesTest`; `storyMapPools`.
+
+### 8. Pressure over time: PROPOSED (pick `raid-pressure`)
+
+Owner: "Our first rule is to make it fun and to keep pressure on the player
+over time so they are not bored." Today a Raid's reinforcements come only when
+a garrison is depleted or an objective lost (`GarrisonDepletedTrigger`,
+`ObjectiveLostTrigger`, through the convoy, shuttle and walk-in means and their
+supply gates), and the alarm sends at most three mobile squads at a time.
+Nothing is driven by time. Options:
+
+- (a) An alarm clock (recommended): from the alarm, a reinforcement request on
+  a clock that runs faster with security (about 90 s guarded, 60 s fortified;
+  untuned), each wave a squad larger, armour from the third on a fortified
+  market. It arrives by the existing means, so taking the armory or command
+  post ends it. The next wave's countdown is shown to the player. A new
+  trigger beside the two above, decided and tested as a pure clock.
+- (b) Each hall that falls brings a wave, sized by security.
+- (c) One large counter-attack a fixed time after the alarm, with a countdown.
 
 ## Not in this story
 

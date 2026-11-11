@@ -60,12 +60,15 @@ final class RaidWorksGuard {
     static List<TacticalNode> seatingOrder(List<TacticalNode> nodes) {
         List<TacticalNode> posts = posts(nodes);
         List<TacticalNode> machines = machinePosts(nodes);
+        List<TacticalNode> forward = forwardPosts(nodes);
         List<TacticalNode> rest = new ArrayList<>(nodes);
         rest.removeAll(posts);
         rest.removeAll(machines);
+        rest.removeAll(forward);
         rest.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
         List<TacticalNode> order = new ArrayList<>(posts);
         order.addAll(machines);
+        order.addAll(forward);
         order.addAll(rest);
         return order;
     }
@@ -83,6 +86,17 @@ final class RaidWorksGuard {
         return reserve;
     }
 
+    /** The works' forward posts among {@code nodes}: defender posts named {@link RaidSiteTemplate#WORKS_FORWARD}. */
+    static List<TacticalNode> forwardPosts(List<TacticalNode> nodes) {
+        List<TacticalNode> posts = new ArrayList<>();
+        for (TacticalNode node : nodes) {
+            if (node.defaultGuard == Faction.DEFENDER && RaidSiteTemplate.WORKS_FORWARD.equals(node.place())) {
+                posts.add(node);
+            }
+        }
+        return posts;
+    }
+
     /** Who a node is held by when the allocation reaches it. */
     enum Holder { MACHINES, INFANTRY, NONE }
 
@@ -94,6 +108,13 @@ final class RaidWorksGuard {
      * machines first, then infantry.
      */
     static Holder holder(boolean worksPost, boolean machinePost, boolean machinesLeft, boolean infantryLeft) {
+        return holder(worksPost, machinePost, false, machinesLeft, infantryLeft);
+    }
+
+    /** As {@link #holder(boolean, boolean, boolean, boolean)}, where a forward post is held only by riflemen. */
+    static Holder holder(boolean worksPost, boolean machinePost, boolean forwardPost, boolean machinesLeft,
+                         boolean infantryLeft) {
+        if (forwardPost) return infantryLeft ? Holder.INFANTRY : Holder.NONE;
         if (machinePost) return machinesLeft ? Holder.MACHINES : Holder.NONE;
         if (worksPost) return infantryLeft ? Holder.INFANTRY : machinesLeft ? Holder.MACHINES : Holder.NONE;
         return machinesLeft ? Holder.MACHINES : infantryLeft ? Holder.INFANTRY : Holder.NONE;
