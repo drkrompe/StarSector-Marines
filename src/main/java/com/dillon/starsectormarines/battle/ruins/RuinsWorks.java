@@ -571,7 +571,6 @@ public final class RuinsWorks {
         if (workKey.equals(HALL)) {
             graph.restart();
             loud(sim, hall.x(), hall.y());
-            if (sim.derelictSecurity() != null) sim.derelictSecurity().wake().plantRestarted();
         } else if (workKey.equals(RECORDS)) {
             read = true;
         } else {

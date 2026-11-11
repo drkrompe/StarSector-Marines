@@ -96,7 +96,7 @@ there. That keeps the watch apart from the Rav.
 | Stage (stir level) | What wakes |
 | --- | --- |
 | Quiet | Nothing: dormant zones, rounds walked |
-| Stirring | The **service ducts** come up: drone vents open (section 1). Restarting the works hall's power brings the wake to Stirring at least, whatever the stir (`FacilityWake.plantRestarted`) |
+| Stirring | The **service ducts** come up: drone vents open (section 1) |
 | Roused | The **reserve bays** open: each online zone's sealed reserve bay puts up a second flock, the deepest zones first |
 | Hunting | The **security bulkheads** open: shut-down service passages between halls open as short ways, and every online zone goes alert where it stands |
 | Contingency (the breach) | Everything left wakes, as today |

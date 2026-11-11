@@ -87,16 +87,6 @@ public final class FacilityWake {
     }
 
     /**
-     * The company has restarted the works hall's power (`ruins-expedition.md`, Works): the plant coming up brings the
-     * wake to at least {@link Stage#STIRRING}, its ducts cycling. It never lowers the stage and opens no bays.
-     *
-     * @return whether the stage rose
-     */
-    public boolean plantRestarted() {
-        return advance(Stage.STIRRING);
-    }
-
-    /**
      * The zones whose reserve bays open now, deepest first (zone 0 keeps the vault): the stage opens bays, the bay still
      * stands, its zone is online, and it has not opened before. Each is marked opened.
      *
