@@ -238,4 +238,37 @@ class SealedTownTest {
     private static boolean has(List<int[]> cells, int x, int y) {
         return cells.stream().anyMatch(c -> c[0] == x && c[1] == y);
     }
+
+    /**
+     * A sealed town is laid as its bounding rectangle: the free ground inside becomes the town's, so its envelope
+     * runs straight; another place's ground, the ground within the setback of it and ground the plan keeps are left
+     * alone.
+     */
+    @Test
+    void aSealedTownIsLaidAsItsRectangle() {
+        int u = GrownTrunkPlan.UNOWNED, w = 40, h = 20;
+        int[][] claim = new int[w][h];
+        for (int[] column : claim) Arrays.fill(column, u);
+        int[][] grown = new int[w][h];
+        // An L of town (place 0) from (1,1) to (15,8), a neighbour's cell (place 1) in its corner, a kept cell.
+        for (int x = 1; x <= 15; x++) claim[x][1] = 0;
+        for (int y = 1; y <= 8; y++) claim[1][y] = 0;
+        claim[15][8] = 0;
+        claim[14][8] = 1;
+        for (int x = 0; x < w; x++) grown[x] = claim[x].clone();
+        boolean[][] kept = new boolean[w][h];
+        kept[3][3] = true;
+
+        SealedTown.lay(claim, new boolean[]{true, false}, new boolean[]{true, false}, kept,
+                SealedTown.Laying.RECTANGLE);
+
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                boolean inside = x >= 1 && x <= 15 && y >= 1 && y <= 8;
+                boolean setBack = Math.abs(x - 14) <= SealedTown.SETBACK && Math.abs(y - 8) <= SealedTown.SETBACK;
+                int expected = grown[x][y] != u ? grown[x][y] : inside && !kept[x][y] && !setBack ? 0 : u;
+                assertEquals(expected, claim[x][y], "cell " + x + "," + y);
+            }
+        }
+    }
 }

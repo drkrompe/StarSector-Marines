@@ -20,8 +20,8 @@ import java.util.Set;
  * continuous wall, with a couple of airlocks in it, rather than a lock on every building's door. Inside the wall it is
  * an ordinary town of streets, blocks and courts; outside it is bare ground, with no outlying places.
  *
- * <p>The wall is the place's {@link Precinct.Boundary#WALLED boundary}, drawn on the outline of what grew like a
- * garrison's, so the town is a zoned precinct that is walled; that pairing exists for nothing else. It is an envelope,
+ * <p>The wall is the place's {@link Precinct.Boundary#WALLED boundary}, drawn on the outline of its claim once that is
+ * laid straight ({@link #lay}), so the town is a zoned precinct that is walled; that pairing exists for nothing else. It is an envelope,
  * not a line ({@link #envelope}): {@link #WALL_THICKNESS} cells through, on the town's own outermost ground, and each
  * lock is a chamber through it with a door at either end.
  */
@@ -69,6 +69,151 @@ public final class SealedTown {
     private static final int[][] SIDES = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     private SealedTown() { }
+
+    /**
+     * How a sealed town's ground is laid before its envelope is raised on it: the envelope stands on the town's
+     * outermost cells ({@link #band}), so a claim grown along streets gave it a stair-stepped, diagonal outline (owner,
+     * 2026-11-11: the fort with that wall was bad). Laid, its outline is straight runs.
+     */
+    public enum Laying {
+        /** The town's whole bounding rectangle: four straight sides, square corners. */
+        RECTANGLE,
+        /**
+         * The town snapped to {@link #BLOCK}-cell blocks: a block is the town's where half its free ground is, so the
+         * wall keeps to the town's shape in long straight steps.
+         */
+        BLOCKS
+    }
+
+    /**
+     * Which {@link Laying} sealed towns take. Temporary A/B switch ({@code switches.md}): remove it, with the losing
+     * arm, once the owner picks the sealed town's wall ({@code sealed-town-wall} on the picks page).
+     */
+    static final String LAYING_PROPERTY = "battle.sealedTown.laying";
+
+    /** Cells along a side of one {@link Laying#BLOCKS} block. UNTUNED. */
+    public static final int BLOCK = 12;
+
+    /**
+     * Cells of free ground a laid town leaves open beside another place's claim, measured square so the notch it
+     * leaves is straight too: what a neighbour builds round its own edge (a redoubt's crest and its apron) stays clear.
+     * UNTUNED.
+     */
+    public static final int SETBACK = 6;
+
+    /**
+     * {@link #SETBACK} beside a walled place the town does not already touch (a Cordon redoubt out on the line): a
+     * redoubt's terrace pushes its cliff out past built ground by up to {@code TerracePlanner.MAX_GROWTH} cells beyond
+     * its margin, and the envelope's wall is built ground, so a laid town keeps that far back. A walled place the town
+     * already touches is set back from by nothing: the envelope does not face a wall, so the town meets it.
+     * UNTUNED.
+     */
+    public static final int WALLED_SETBACK = 24;
+
+    /** The laying in force: {@link Laying#RECTANGLE} unless {@link #LAYING_PROPERTY} says otherwise. */
+    public static Laying laying() {
+        String asked = System.getProperty(LAYING_PROPERTY, "rectangle");
+        return "blocks".equalsIgnoreCase(asked) ? Laying.BLOCKS : Laying.RECTANGLE;
+    }
+
+    /**
+     * Lays each sealed town's claim straight ({@link Laying}), in place: ground nobody claimed inside its laid shape
+     * becomes the town's, and under {@link Laying#BLOCKS} the town gives up its cells in a block mostly not its own.
+     * Ground another place claimed stays that place's, and ground {@code kept} (may be {@code null}) is never taken.
+     * Runs after the claim and before anything is built, so the town's streets and parcels fill the laid ground.
+     *
+     * @param sealed which places are sealed towns, by index
+     * @param walled which places are walled, by index ({@link #sealedSide})
+     */
+    public static void lay(int[][] claim, boolean[] sealed, boolean[] walled, boolean[][] kept, Laying laying) {
+        int width = claim.length, height = claim[0].length;
+        for (int who = 0; who < sealed.length; who++) {
+            if (!sealed[who]) continue;
+            boolean[][] beside = besideOthers(claim, who, walled);
+            boolean[][] held = new boolean[width][height];
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) held[x][y] = beside[x][y] || kept != null && kept[x][y];
+            }
+            int l = Integer.MAX_VALUE, b = Integer.MAX_VALUE, r = -1, t = -1;
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    if (claim[x][y] != who) continue;
+                    l = Math.min(l, x); b = Math.min(b, y); r = Math.max(r, x); t = Math.max(t, y);
+                }
+            }
+            if (r < 0) continue;
+            int step = laying == Laying.BLOCKS ? BLOCK : Math.max(r - l + 1, t - b + 1);
+            for (int x0 = l; x0 <= r; x0 += step) {
+                for (int y0 = b; y0 <= t; y0 += step) {
+                    int x1 = Math.min(r, x0 + step - 1), y1 = Math.min(t, y0 + step - 1);
+                    int mine = 0, free = 0;
+                    for (int x = x0; x <= x1; x++) {
+                        for (int y = y0; y <= y1; y++) {
+                            if (claim[x][y] == who) mine++;
+                            else if (claim[x][y] == GrownTrunkPlan.UNOWNED && !held[x][y]) free++;
+                        }
+                    }
+                    boolean town = laying == Laying.RECTANGLE || 2 * mine >= mine + free;
+                    for (int x = x0; x <= x1; x++) {
+                        for (int y = y0; y <= y1; y++) {
+                            if (town && claim[x][y] == GrownTrunkPlan.UNOWNED && !held[x][y]) {
+                                claim[x][y] = who;
+                            } else if (!town && claim[x][y] == who) {
+                                claim[x][y] = GrownTrunkPlan.UNOWNED;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Cells within {@link #SETBACK} (square) of ground an open place other than {@code who} claims, and within
+     * {@link #WALLED_SETBACK} of a walled one's the town does not already touch.
+     */
+    private static boolean[][] besideOthers(int[][] claim, int who, boolean[] walled) {
+        int width = claim.length, height = claim[0].length;
+        boolean[] touched = new boolean[walled.length];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (claim[x][y] != who) continue;
+                for (int[] s : SIDES) {
+                    int nx = x + s[0], ny = y + s[1];
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                    int c = claim[nx][ny];
+                    if (c >= 0 && c < touched.length) touched[c] = true;
+                }
+            }
+        }
+        boolean[][] out = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int c = claim[x][y];
+                if (c == who || c == GrownTrunkPlan.UNOWNED || !onEdge(claim, x, y)) continue;
+                boolean wall = c < walled.length && walled[c];
+                if (wall && touched[c]) continue;
+                int r = wall ? WALLED_SETBACK : SETBACK;
+                for (int nx = Math.max(0, x - r); nx <= Math.min(width - 1, x + r); nx++) {
+                    for (int ny = Math.max(0, y - r); ny <= Math.min(height - 1, y + r); ny++) {
+                        out[nx][ny] = true;
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Whether a claimed cell borders a cell of another claim or the map's edge: what a setback is measured from. */
+    private static boolean onEdge(int[][] claim, int x, int y) {
+        for (int[] s : SIDES) {
+            int nx = x + s[0], ny = y + s[1];
+            if (nx < 0 || ny < 0 || nx >= claim.length || ny >= claim[0].length || claim[nx][ny] != claim[x][y]) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * The envelope's outer course: its cells beside the world outside across a side (what no sealed town or walled place
