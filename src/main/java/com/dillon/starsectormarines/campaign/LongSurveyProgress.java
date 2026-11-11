@@ -17,7 +17,7 @@ public final class LongSurveyProgress implements Serializable {
     public enum Chapter {
         THE_FALL("fall", 22_000, true),
         STAKES("stakes", 30_000, true),
-        THE_LINE("line", 34_000, false),
+        THE_LINE("line", 34_000, true),
         THE_SURVEYOR("surveyor", 42_000, false);
 
         public final String code;

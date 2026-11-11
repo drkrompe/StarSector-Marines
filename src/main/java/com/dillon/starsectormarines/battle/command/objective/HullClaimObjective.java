@@ -93,7 +93,7 @@ public final class HullClaimObjective implements Objective {
         if (complete) return;
         complete = switch (goal) {
             case NAMED -> allDown(hull.stakes(), named);
-            case CLAIM -> allDown(hull.stakes(), hull.stakes().keySet());
+            case CLAIM -> hull.claimDown();
             case FORGE -> !hull.forge().lit();
         };
     }

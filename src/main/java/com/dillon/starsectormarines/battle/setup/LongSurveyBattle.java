@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HullClaimObjective;
@@ -10,11 +11,13 @@ import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
+import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
@@ -23,7 +26,10 @@ import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
+import java.util.function.IntFunction;
 
 /**
  * The Long Survey's chapters 2 to 4 as battles ({@code long-survey-arc.md}, Chapters): each chapter's owned ground
@@ -33,6 +39,8 @@ import java.util.Random;
  *
  * <ul>
  *   <li>Stakes: the Sabotage family's three named sites are the three stakes the ground planted; kill them.</li>
+ *   <li>The Line: Broad Front's allied lanes push through the port city, each lane's objective its next stake, won
+ *   when every stake on the map is down.</li>
  * </ul>
  */
 public final class LongSurveyBattle {
@@ -47,6 +55,7 @@ public final class LongSurveyBattle {
                                           TargetProfile profile, FlockLivery livery) {
         return switch (map) {
             case LONG_SURVEY_STAKES -> stakes(seed, manifest, profile, livery);
+            case LONG_SURVEY_LINE -> line(seed, manifest, profile, livery);
             default -> throw new IllegalArgumentException(map.id + " is not a built Long Survey battle");
         };
     }
@@ -81,6 +90,66 @@ public final class LongSurveyBattle {
         List<Integer> out = new ArrayList<>();
         for (FallenHullSite.StartingStake s : site.stakes()) if (s.stage() == SurveyStake.Stage.PLANTED) out.add(s.pointId());
         if (out.isEmpty()) throw new IllegalStateException("the ground stood no planted stake");
+        return out;
+    }
+
+    // ---- The Line ----
+
+    /**
+     * The Line's forge program (`long-survey-arc.md`, The Line: haul roads live, trains running): haulers on the
+     * roads, stakes escorted by line frames, more line frames for the city. UNTUNED.
+     */
+    static final BuildQueue LINE_QUEUE = new BuildQueue(List.of(
+            BuildQueue.Item.walker(DerelictWalkerFrame.HAULER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.stake(BuildQueue.STAKE_COST, DerelictWalkerFrame.LINE),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.stake(BuildQueue.STAKE_COST, DerelictWalkerFrame.ROUNDS),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
+    /** The hull's store at the start: a train's worth. UNTUNED. */
+    static final float LINE_FEEDSTOCK = BuildQueue.STAKE_COST + BuildQueue.WORKER_COST;
+    /** The watch already out at the mouth: line frames, a rounds walker and a hauler. UNTUNED. */
+    static final List<DerelictWalkerFrame> LINE_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.LINE,
+            DerelictWalkerFrame.ROUNDS, DerelictWalkerFrame.HAULER);
+
+    /**
+     * The Line: the company down on the port city's avenue, Broad Front's allied lanes stepping off from the port
+     * yards, each going for its next stake (an established stake, nearest the hull, is one any lane goes for once its
+     * own are down), won when every stake on the map is down.
+     *
+     * <p>The lanes advance on the stakes and fight what they meet; the allied commander fighting the watch (anti-air
+     * on flocks, anti-armour on frames, firing on stakes' pylons and nodes) is the hull-rules session's
+     * ({@code stories.md}, The garrison against the watch), so a lane at a standing stake holds round it until the
+     * company or that work brings it down.
+     */
+    static BattleSimulation line(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                 FlockLivery livery) {
+        Stood stood = stand(StoryMap.LONG_SURVEY_LINE, seed, manifest, profile, "Company lands on the avenue");
+        BattleSimulation sim = stood.sim();
+        FallenHullSite site = LongSurveyGround.rulesSite(stood.ground().hull(), List.of(),
+                atMouth(stood.ground(), LINE_WALKERS), LINE_FEEDSTOCK);
+        FallenHull hull = FallenHull.install(sim, site, LINE_QUEUE, livery);
+        sim.addObjective(HullClaimObjective.claim(hull, Strings.get("longSurveyObjectiveLine")));
+        HeartLanes lanes = BloomHeartSetup.alliedLanes(sim, Form.BROAD_FRONT, stood.ground().battleSeed())
+                .targets(s -> stakeTargets(hull.stakes(), hull::seatOf));
+        sim.installAlliedPush(lanes);
+        return sim;
+    }
+
+    /**
+     * The claim's stakes as the lanes' targets, keyed {@code stake-N} by lattice point: each at its seat, living while
+     * it stands; an established stake is a mother (any lane's once its own are down), a younger one a satellite (the
+     * lane's whose band it stands in). A stake with no seat yet is not a target.
+     */
+    static List<KnownBore> stakeTargets(Map<Integer, SurveyStake> stakes, IntFunction<int[]> seat) {
+        List<KnownBore> out = new ArrayList<>();
+        for (Map.Entry<Integer, SurveyStake> e : new TreeMap<>(stakes).entrySet()) {
+            int[] at = seat.apply(e.getKey());
+            if (at == null) continue;
+            SurveyStake stake = e.getValue();
+            out.add(new KnownBore("stake-" + e.getKey(), stake.stage() == SurveyStake.Stage.ESTABLISHED, at[0], at[1],
+                    !HullClaimObjective.down(stake)));
+        }
         return out;
     }
 

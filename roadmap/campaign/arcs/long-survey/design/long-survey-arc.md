@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — authored fallen-hull arc: four story chapters on owned
 seeds, built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). The
-campaign scaffolding, The Fall and Stakes are built (What is built); chapters 3
-and 4 are open in `stories.md`.
+campaign scaffolding, The Fall, Stakes and The Line are built (What is built);
+The Surveyor is open in `stories.md`.
 
 Written: 2026-11-10
 
@@ -202,10 +202,25 @@ chapter (pick through the art session), voiced later as the Khettara is.
     prints the survey program (`STAKES_QUEUE`, stakes escorted by rounds
     walkers) from `STAKES_FEEDSTOCK`, `STAKES_WALKERS` out at the mouth. All
     UNTUNED.
+  - **The Line.** The port city with the hull across its north edge; won when
+    every stake on the map is down. Broad Front's allied lanes
+    (`BloomHeartSetup.alliedLanes`) step off from the port yards with the
+    claim's stakes as their targets (`HeartLanes.targets`,
+    `LongSurveyBattle.stakeTargets`: `stake-N` at its seat, an established
+    stake a mother any lane goes for, a younger one its band's), installed
+    with no heart (`BattleSimulation.installAlliedPush`, ticked where the
+    heart ticks its lanes; their beats are not voiced yet). A target with no
+    bore behind it is advanced on and fought round, never assaulted as a bore.
+    The hull prints `LINE_QUEUE` (haulers, escorted stakes, line frames).
+    The win reads `FallenHull.claimDown`. Open: `GarrisonTasking`'s orders
+    (anti-armour on frames, rifles on flocks, the stranding kill first) issued
+    to the lanes' squads, which the lanes command themselves today (`stories.md`,
+    The garrison against the watch); the lanes' vehicle park, tool shed and air
+    wing; and the beats keyed `stake-N`.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Garnir, each on its chapter's seed with the challenge force (a
   Veteran Company, seven squads, four machines); a chapter is listed once
-  built (`Chapter.built`): LS1 and LS2 show.
+  built (`Chapter.built`): LS1 to LS3 show.
 
 ## Open picks
 

@@ -35,9 +35,10 @@ class LongSurveyProgressTest {
         var p = new LongSurveyProgress();
         play(p, p.missionId(Chapter.THE_FALL, false), true);
         play(p, p.missionId(Chapter.STAKES, false), true);
-        assertFalse(Chapter.THE_LINE.built);
-        assertEquals(Chapter.THE_LINE, p.current());
-        assertFalse(p.begin(p.missionId(Chapter.THE_LINE, false)));
+        play(p, p.missionId(Chapter.THE_LINE, false), true);
+        assertFalse(Chapter.THE_SURVEYOR.built);
+        assertEquals(Chapter.THE_SURVEYOR, p.current());
+        assertFalse(p.begin(p.missionId(Chapter.THE_SURVEYOR, false)));
     }
 
     @Test

@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeMap;
@@ -1043,7 +1045,7 @@ public final class HeartLanes {
     }
 
     /** The living bore at the lane's target, or {@code null} when its target is no bore (a barrage hold) or has fallen. */
-    private static KnownBore sentFor(BattleSimulation sim, Lane lane) {
+    private KnownBore sentFor(BattleSimulation sim, Lane lane) {
         if (lane.targetX < 0) return null;
         for (KnownBore bore : known(sim)) {
             if (bore.living() && bore.x() == lane.targetX && bore.y() == lane.targetY) return bore;
@@ -2062,7 +2064,23 @@ public final class HeartLanes {
         return mainGrounds.computeIfAbsent(radius, r -> VehicleClearance.mainGround(sim.getGrid(), r));
     }
 
-    private static List<KnownBore> known(BattleSimulation sim) {
+    /**
+     * What the lanes go for, in the order a lane takes them: the swarm's bores by default; a battle with no swarm
+     * names its own (the Long Survey's stakes, `long-survey-arc.md`, The Line as a city push). A target with no bore
+     * behind it is advanced on and fought round, never assaulted as a bore.
+     */
+    public HeartLanes targets(Function<BattleSimulation, List<KnownBore>> source) {
+        targets = Objects.requireNonNull(source, "source");
+        return this;
+    }
+
+    private Function<BattleSimulation, List<KnownBore>> targets = HeartLanes::swarmTargets;
+
+    private List<KnownBore> known(BattleSimulation sim) {
+        return targets.apply(sim);
+    }
+
+    private static List<KnownBore> swarmTargets(BattleSimulation sim) {
         List<KnownBore> out = new ArrayList<>();
         for (SwarmBore bore : sim.swarmBores().bores()) {
             out.add(new KnownBore(bore.beatKey(), bore.mother(), bore.x(), bore.y(), !bore.collapsed()));
@@ -2070,9 +2088,9 @@ public final class HeartLanes {
         return out;
     }
 
-    private static boolean livingBoreAt(BattleSimulation sim, int x, int y) {
-        for (SwarmBore bore : sim.swarmBores().bores()) {
-            if (!bore.collapsed() && bore.x() == x && bore.y() == y) return true;
+    private boolean livingBoreAt(BattleSimulation sim, int x, int y) {
+        for (KnownBore bore : known(sim)) {
+            if (bore.living() && bore.x() == x && bore.y() == y) return true;
         }
         return false;
     }

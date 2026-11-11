@@ -400,6 +400,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
@@ -1213,6 +1214,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private HeartSequence heart;
     /** The heart's battle, or {@code null} when this is not the heart. */
     public HeartSequence getHeart() { return heart; }
+    private HeartLanes alliedPush;
+    /** Allied lanes pushing in a battle with no heart (the Long Survey's columns), or {@code null}. */
+    public HeartLanes getAlliedPush() { return alliedPush; }
+
+    /**
+     * Installs allied lanes that push without a heart: a battle fought on Broad Front's ground with no swarm, its lanes
+     * aimed at what the battle names ({@link HeartLanes#targets}). Ticked where the heart ticks its own; their beats
+     * are not voiced yet.
+     */
+    public void installAlliedPush(HeartLanes lanes) {
+        if (simTickIndex != 0 || heart != null || alliedPush != null)
+            throw new IllegalStateException("Install the allied push once at setup, in a battle with no heart");
+        alliedPush = Objects.requireNonNull(lanes, "lanes");
+    }
 
     /**
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
@@ -4553,6 +4568,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the breach clock, so a family leaves on the tick the ground opens.
         if (colonyLivingField != null) colonyLivingField.tick(this);
         if (heart != null) heart.tick(this);
+        if (alliedPush != null) alliedPush.tick(this, new ArrayList<>());
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);
