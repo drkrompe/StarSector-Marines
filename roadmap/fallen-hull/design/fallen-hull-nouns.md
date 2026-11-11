@@ -162,7 +162,8 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
 - **Shell and bulkheads.** The solid hull within two cells of the outside or a
   breach is the **armour** (the hull-plate installation wall, whose door,
   window and rubble are the armour's hatch, port and torn breach roots); the
-  rest is the ship deck's own bulkhead. Each **compartment** (the spine with the stern door, and each hall
+  inner walls facing a deck are the ship deck's own bulkhead, and the solid
+  hull behind them is armour plate too. Each **compartment** (the spine with the stern door, and each hall
   with its dock) has its kit's deck: passage plate, worn hold plate, bay deck,
   crew deck, bolted plate in the forge hall. `HullDressing` fits it out with the
   hull's own pieces (`fallen-hull.*`) over the ship kits: a conduit run and
