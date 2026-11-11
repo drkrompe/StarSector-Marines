@@ -182,6 +182,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.command.reinforcement.RaidPressureTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
@@ -1765,6 +1766,11 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new RaidDefenderCommand(raidMobileSquads).worksReserve(RaidWorksGuard.reserveSquads(sim)),
                     RaidDefenderCommandDisclosure.INSTANCE);
+            // The market's wider garrison drives in from off the map: a wave for each machine wrecked, and columns on
+            // a clock its security sets (raid-demolish-the-works.md, slice 8).
+            if (!coldAccount) sim.getReinforcementService().addTrigger(new RaidPressureTrigger(
+                    RaidPressureClocks.of(profile == null ? RaidSiteTemplate.Security.OPEN
+                            : RaidSiteTemplate.Security.of(profile))));
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,

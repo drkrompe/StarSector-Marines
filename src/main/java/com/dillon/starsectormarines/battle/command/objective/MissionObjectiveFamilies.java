@@ -152,8 +152,14 @@ public final class MissionObjectiveFamilies {
                 state == State.COMPLETE ? Strings.get("objectiveComplete")
                         : timed(Strings.get("objectiveRaidWorksTimer"), raid.serviceProgress(), raid.serviceDuration()),
                 state == State.COMPLETE ? 1 : (float) wrecked / total,
-                open || raid.marineServicing() ? "" : Strings.get("objectiveRaidWorksBlocker"),
+                open || raid.marineServicing() ? columnWarning(raid) : Strings.get("objectiveRaidWorksBlocker"),
                 markers, firstStanding == null ? pickupId : firstStanding);
+    }
+
+    /** The countdown to the market's next garrison column driving in, or nothing when none is coming. */
+    static String columnWarning(RaidObjective raid) {
+        if (raid.columnDueTick() < 0 || raid.isComplete() || raid.isFailed()) return "";
+        return Strings.format("objectiveRaidColumnIn", clock(raid.columnDueTick() - raid.lastTick()));
     }
 
     public static Item salvage(SalvageRightsSequence sequence) {
