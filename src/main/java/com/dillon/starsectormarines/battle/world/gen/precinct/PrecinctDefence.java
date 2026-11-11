@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayDeque;
@@ -133,9 +135,10 @@ public final class PrecinctDefence {
                         && (claim[x][y] == who || claim[x][y] < 0);
             }
         }
-        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> DefenceDoctrine.STANDOFF.contains(kind)
+        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> spaced(ctx.defensePosts, x, y)
+                && (DefenceDoctrine.STANDOFF.contains(kind)
                 ? fits(ctx, inside, clear, x, y, kind)
-                : fits(ctx, outer, clear, x, y, kind) && lineOfFire(ctx, x, y, fx, fy);
+                : fits(ctx, outer, clear, x, y, kind) && lineOfFire(ctx, x, y, fx, fy));
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && (inside[x][y] || outer[x][y]);
         for (DefenceDoctrine.Site site : DefenceDoctrine.plan(place, gates, hearts, threat, wanted, fits)) {
             int before = ctx.defensePosts.size();
@@ -188,9 +191,10 @@ public final class PrecinctDefence {
                 outer[x][y] = !field[x][y] && !ctx.topology.isWall(x, y);
             }
         }
-        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> DefenceDoctrine.STANDOFF.contains(kind)
+        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> spaced(ctx.defensePosts, x, y)
+                && (DefenceDoctrine.STANDOFF.contains(kind)
                 ? fits(ctx, inside, keep, x, y, kind)
-                : fits(ctx, outer, keep, x, y, kind) && lineOfFire(ctx, x, y, fx, fy);
+                : fits(ctx, outer, keep, x, y, kind) && lineOfFire(ctx, x, y, fx, fy));
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && (inside[x][y] || outer[x][y]);
         int emitted = ctx.tactical.size();
         for (DefenceDoctrine.Site site : DefenceDoctrine.plan(field, gates, List.of(), threat(ctx), posts, fits)) {
@@ -324,6 +328,20 @@ public final class PrecinctDefence {
      * footprint's box behind the wall on open walkable ground, and that box and a
      * verge round it off the ground kept clear.
      */
+    /**
+     * Whether an emplacement at (x, y) stands far enough from every post already on the map, another place's or a
+     * field's: the placer refuses one closer ({@link DefensePostStamper#POST_MIN_SEPARATION}), so a site planned
+     * there was lost rather than moved.
+     */
+    static boolean spaced(List<DefensePost> posts, int x, int y) {
+        int min = DefensePostStamper.POST_MIN_SEPARATION * DefensePostStamper.POST_MIN_SEPARATION;
+        for (DefensePost p : posts) {
+            int dx = p.anchorX - x, dy = p.anchorY - y;
+            if (dx * dx + dy * dy < min) return false;
+        }
+        return true;
+    }
+
     private static boolean fits(GenContext ctx, boolean[][] inside, boolean[][] clear, int x, int y,
                                 DefensePostKind kind) {
         int r = reach(kind);
@@ -350,12 +368,39 @@ public final class PrecinctDefence {
         double ux = fx / len, uy = fy / len;
         for (int t = 3; t <= DefenceDoctrine.LANE; t++) {
             int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height) break;
-            if (ctx.topology.isWall(cx, cy) || !ctx.grid.isWalkable(cx, cy) && !ctx.grid.isSeeThrough(cx, cy)) {
-                return false;
-            }
+            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height || blocksFire(ctx, cx, cy)) return false;
         }
         return true;
+    }
+
+    /**
+     * Whether a cell masks direct fire: a wall, or solid ground nothing sees through (a building, a rock). Low cover a
+     * gun sees over (sandbags, wire, a hedgehog) does not.
+     */
+    public static boolean blocksFire(GenContext ctx, int x, int y) {
+        return ctx.topology.isWall(x, y) || !ctx.grid.isWalkable(x, y) && !ctx.grid.isSeeThrough(x, y);
+    }
+
+    /**
+     * Whether a cell stands in a gun's arc as something other than open ground: what masks fire ({@link #blocksFire}),
+     * or a building's floor. A gun can see a window through, so a house's rooms are not always opaque to it, but they
+     * are not the ground it was sited to cover.
+     */
+    public static boolean masksArc(GenContext ctx, int x, int y) {
+        return blocksFire(ctx, x, y) || ctx.topology.getBuildingId(x, y) != 0
+                || ctx.topology.getGroundKind(x, y) == CellTopology.GroundKind.INDOOR;
+    }
+
+    /**
+     * Whether a direct-fire gun at {@code (x, y)} laid along {@code (fx, fy)} has open ground in front of it: its whole
+     * arc ({@link DefenceDoctrine#lane}, the bearing and {@link DefenceDoctrine#ARC_DEGREES} either side,
+     * {@link DefenceDoctrine#LANE} cells long) crosses no wall or building ({@link #masksArc}), counted from
+     * {@code clearOf} cells out so the post's own ring does not mask it. A wall blocks direct fire whole in the sim
+     * (there is no wall height; a plinth raises only the gun's eye), so a placer siting a gun that fires on a line
+     * asks this of every candidate, whatever kind of place it guards.
+     */
+    public static boolean openArc(GenContext ctx, int x, int y, int fx, int fy, int clearOf) {
+        return DefenceDoctrine.lane((cx, cy) -> masksArc(ctx, cx, cy), ctx.width, ctx.height, x, y, fx, fy, clearOf);
     }
 
     /** Half the widest footprint a kind stamps: a heavy post's five cells, three for the rest. */

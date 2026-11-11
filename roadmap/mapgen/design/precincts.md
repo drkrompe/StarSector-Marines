@@ -9,8 +9,8 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-11-11 — every garrison is laid square; the grown, walled
-garrison is retired.
+Updated: 2026-11-11 — every garrison is laid square and every sealed town is
+laid straight; the grown, walled garrison is retired.
 
 Earlier 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
 fire round its berths and owns the open country along its edge; Colony Breach
@@ -275,7 +275,12 @@ The exception is a place somebody surveyed and pegged out before building: a
 frontier colony's civil-defence compound is square because it was laid out
 square, and a lobed outline would say it grew. A `Fortification` can ask for
 that (`laidSquare`): the claim then takes a square of its allowance round the
-seed whole, before anything pools, and its wall is straight runs.
+seed whole, before anything pools, and its wall is straight runs. Its
+neighbours' streets meet it and become its gates the ordinary way. It keeps a
+**glacis**: the outermost `Fortification.GLACIS` cells of the square stay
+claimed but are built on by nobody, walled inside and laid as bare earth, so
+no house stands against the wall; each gate's road is carried across it and
+paved as the street it leaves by, so the road runs on unbroken to the wall.
 
 **Every garrison is laid square.** A walled place with a program (a derived
 plan's garrison, a Conquest lane's post, a brief's garrison) is built square
@@ -284,15 +289,21 @@ refuses one that is not. Pooled round its seed and walled round whatever
 outline it grew to, a garrison's wall stair-stepped into diagonals (owner,
 2026-11-11: "ugly diagonal wall forts"), so that path is retired. Its program is
 its own: a laid square holds a packed garrison as well as a cantonment's rows.
-What still pools is the landing place, which is open, and what is still walled
-round a grown outline is the sealed town, which is a town rather than a
-garrison. An authored compound (`CompoundGround`) writes its claim from its
-template and is not claimed at all. Its
-neighbours' streets meet it and become its gates the ordinary way. It keeps a
-**glacis**: the outermost `Fortification.GLACIS` cells of the square stay
-claimed but are built on by nobody, walled inside and laid as bare earth, so
-no house stands against the wall; each gate's road is carried across it and
-paved as the street it leaves by, so the road runs on unbroken to the wall.
+What still pools is the landing place, which is open. An authored compound
+(`CompoundGround`) writes its claim from its template and is not claimed at
+all.
+
+**A sealed town is laid straight too** (`SealedTown.lay`), right after the
+claim and before anything is built, so its streets and parcels fill the laid
+ground and its envelope stands on straight runs. It takes its bounding
+rectangle: the free ground inside becomes the town's, while another place's
+ground and ground the plan keeps stay theirs. It stands back from its
+neighbours: `SealedTown.SETBACK` from an open place, `SealedTown.WALLED_SETBACK`
+from a walled place it does not already touch (a Cordon redoubt's terrace
+pushes its cliff well out past built ground), and not at all from a walled
+place it touches, since the envelope does not face a wall. A block-stepped
+alternative (`SealedTown.Laying.BLOCKS`) stands behind the temporary switch
+`battle.sealedTown.laying` until the owner picks.
 
 ## Connectedness is solved for, not hoped for
 
@@ -1433,7 +1444,9 @@ the glacis or on ground no other place holds, inside its own sandbagged ring,
 and only where its laid arc (its bearing and twenty degrees either side) runs
 ten cells over open ground without crossing back over the place or meeting a
 wall (`DefenceDoctrine.lane`, `PrecinctDefence.lineOfFire`; owner: "They
-can't shoot over walls!"). No gun stands inside a place without a standoff job
+can't shoot over walls!"). That ground is on the map: past the edge no attacker
+comes, so a place backed against the edge leaves its faces there bare, and
+their posts go to the faces looking over the map. No gun stands inside a place without a standoff job
 either: the posts once sited beside the motor pool and command covered nothing
 an attacker crosses (owner: "What are they guarding?"). The ring is measured
 from the ground the place's wall encloses, never from the walls of the

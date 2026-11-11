@@ -89,7 +89,7 @@ moves. The first attempt, retries, replays and the debug player all play it;
 | Chapter | Map | Ground | The hull |
 | --- | --- | --- | --- |
 | The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, broken in three, bow west, a short trench ploughed west off the bow along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
-| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1, its installation laid as a Raid site's cantonment in a square wall (`PrecinctPlan.withCantonments`) (`long-survey-maps.md`, Chapter 2) | In the middle of the mine country, broken in three, bow west, its trench stopping short of the cantonment; three stakes planted in a line across its south flank and one raised beyond them among the outcrops |
+| Stakes | `long-survey-stakes` | The owned Raid mine's works on its own seed (`RaidOwnedMap`, the mining site), seed 2, laid out frozen and airless (`long-survey-maps.md`, Chapter 2) | Down in the open ground east of the works, broken in three, bow west; a trunk south to the head works' and the ore line's planted stakes through a raised junction, and a chain down the east side to the pit's rim |
 | The Line | `long-survey-line` | Its own: the district capital, Broad Front's city (`heart-front-city`'s plan) on seed 2 (`long-survey-maps.md`, Chapter 3) | Down across the city's north edge in the heart's place, broken in three, bow west; two chains of stakes running south into the city and branching along the boulevard, established nearest the hull, raised and planted at the three lanes' heads |
 | The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
@@ -161,8 +161,11 @@ chapter (pick through the art session), voiced later as the Khettara is.
   board (`SYSTEM`, `PLANET_ID`: Corvus, `corvus_IIIa`), opening with the
   Khettara when Morrow departs at the end of A Working Ship
   (`EndGameBranches.open`, the one rule both arcs read). The chapters are fought
-  on Garnir's frozen skin (`SURFACE`), each owned map laid out on its pool's
-  home palette and skinned for it. Rows read "Survey N of 4";
+  on Garnir as `LongSurveyCampaign.world()` reads it: the frozen surface with no
+  atmosphere (vanilla's `no_atmosphere`), so towns are sealed and nothing is
+  farmed in the open; each owned map is laid out on its pool's home palette and
+  skinned for it. Whether The Fall's town is sealed (one lock on its avenue,
+  every civilian route through it) is on the picks page, built sealed meanwhile. Rows read "Survey N of 4";
   never the event gate, no clock. Briefings are unvoiced stub exchanges between
   the defence chief and Castle (`longSurvey*` in `strings.json`), with a retry
   and a replay line; the chief's name and portrait wait on the owner.

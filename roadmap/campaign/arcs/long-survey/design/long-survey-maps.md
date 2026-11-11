@@ -40,38 +40,44 @@ the avenue; 3, the band's edge, where the watch breaks into the town.
 
 **Allies.** The colony's militia in the holdouts; the company is the rescue.
 
-## Chapter 2: Stakes, the mine country
+## Chapter 2: Stakes, the mine
 
-**Objective.** The forge has printed its first stakes. Three are planted in a line
-across the hull's south flank, counting down; a fourth has risen beyond them among
-the rocks. Kill the planted three before they rise; the raised one is a zone to
-fight through (Sabotage, exactly three named sites).
+**Objective.** The forge has printed its first stakes and walked them out into the
+mine beside it. Three are planted and counting down, each in a different kind of
+ground; kill them before they rise. A raised stake is the junction of their chain,
+a zone to fight through (Sabotage, exactly three named sites).
 
-**Ground.** Mine country of its own, a Sabotage plan in remote sprawl for a mining
-district, `long-survey-stakes` seed 1, 400 by 240. The installation is the
-garrison's cantonment in a square wall at the west (x 20 to 140, y 102 to 224);
-outcrops of the mine country's rock cover the south (y 30 to 120).
+**Ground.** Garnir's mine: the owned Raid mine's works (`RaidOwnedMap`, the
+mining site against the same reference market), `long-survey-stakes` seed 2, 400
+by 240, laid out frozen and airless. The pirates' walled works fill the
+north-west (x 86 to 229, y 92 to 235), the port's mining town the west and south,
+the head works where the ore line lands (x 237 to 292, y 47 to 97) and the open
+pit in the south-east (x 332 to 392, y 45 to 105), the raised ore line between
+them along y 69.
 
 - **Entry.** The company comes in from the south edge.
-- **The hull.** In the middle of the map, broken in three, bow west (sections x 237
-  to 364, y 142 to 178), its trench run west toward the cantonment.
-- **The stakes.** Planted at 220,120, 300,120 and 340,120, each linked straight to
-  the hull, so its chain holds until it is killed; raised at 300,80 among the
-  outcrops, chained through the centre stake. Each seats on every world's skin.
+- **The hull.** Down in the open ground east of the works, broken in three, bow
+  west (centre 314,185; x 251 to 378, y 167 to 203), its trench stopping short of
+  the works' east wall; the impact band wrecks the works' east yards.
+- **The claim.** A trunk south from the hull's middle: established at 314,145,
+  raised at 314,105 (the junction, in the snow between the iced pools); planted
+  at 274,105 by the head works and 314,65 on the ore line. A second chain down the
+  east side: established at 394,145, planted at 394,105 on the pit's north-east
+  rim. Every stake seats on every world's skin.
 
 **Routes**, from the south edge:
 
-- **West, along the cantonment's wall** to the stake at the trench's mouth, under
-  the garrison's guns.
-- **Centre, through the outcrops**: rock cover, through the raised stake's zone to
-  the centre stake.
-- **East, the open flats**: long sightlines and the haul roads' trains, to the
-  stake under the hull's midsection.
+- **West, the town and the head works**: through the mining town's streets and the
+  head works' yards to the planted stake at its north gate.
+- **Centre, the ore line**: up the open snow along the ore line to the planted
+  stake on it, then north to the junction.
+- **East, round the pit**: along the pit's east rim to its planted stake.
 
-**Set pieces.** 1, the raised stake in the rocks; 2, the trench mouth, the west
-stake beside the trench where trains come out; 3, trains across the flats.
+**Set pieces.** 1, the ore line, open ground under the line's trestles; 2, the
+junction: cutting the raised stake at 314,105 strands the head works' and the ore
+line's stakes; 3, the pit's rim, the east stake on its lip.
 
-**Allies.** The garrison holds its cantonment and covers the west stake.
+**Allies.** The pirates hold their works behind its walls and cover the west.
 
 ## Chapter 3: The Line, the district capital
 

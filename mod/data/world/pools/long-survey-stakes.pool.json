@@ -1,36 +1,46 @@
 {
   "version": 3,
   "map": "long-survey-stakes",
-  "home": "ARID",
+  "home": "FROZEN",
   "entry": {
-    "seed": 1,
-    "note": "Stakes: mine country of its own (a Sabotage plan in remote sprawl at the colony's size, its installation a cantonment) with the Surveyor down in it, bow west (long-survey-maps.md, Chapter 2); three stakes planted in a line across the hull's south flank, each linked straight to the hull, and one raised beyond them among the outcrops, the first zone the company fights through from the south edge",
+    "seed": 2,
+    "note": "Stakes on Garnir: the owned Raid mine's works on its own seed (long-survey-maps.md, Chapter 2) with the Surveyor down in the open ground east of the works, bow west; a trunk south from the hull through a raised junction to two planted stakes, by the head works and on the ore line, and a chain down the east side to a planted stake on the pit's rim",
     "patch": {
       "hull": {
-        "x": 300,
-        "y": 160,
+        "x": 314,
+        "y": 185,
         "heading": "west",
-        "trench": 56,
+        "trench": 15,
         "stakes": [
           {
-            "x": 220,
-            "y": 120,
-            "stage": "planted"
+            "x": 314,
+            "y": 145,
+            "stage": "established"
           },
           {
-            "x": 300,
-            "y": 120,
-            "stage": "planted"
-          },
-          {
-            "x": 340,
-            "y": 120,
-            "stage": "planted"
-          },
-          {
-            "x": 300,
-            "y": 80,
+            "x": 314,
+            "y": 105,
             "stage": "raised"
+          },
+          {
+            "x": 274,
+            "y": 105,
+            "stage": "planted"
+          },
+          {
+            "x": 314,
+            "y": 65,
+            "stage": "planted"
+          },
+          {
+            "x": 394,
+            "y": 145,
+            "stage": "established"
+          },
+          {
+            "x": 394,
+            "y": 105,
+            "stage": "planted"
           }
         ]
       }

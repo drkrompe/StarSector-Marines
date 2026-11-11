@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
@@ -105,7 +106,8 @@ public final class DustLedgerCrossing {
      * @param warehouses       market warehouses a crew can staff
      * @param shops            market shops (the cantina among them) a crew can staff
      * @param homes            market buildings ambient civilians live in; the compound's bunkhouse is not one
-     * @param nests            the compound's three powered gun nests: gate drive, tank farm, east yard
+     * @param nests            the compound's three powered gun nests, one outside each way in: the crawler gate, the
+     *                         postern, the south gate
      * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
      * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
      * @param feedJunctionArea the junction's pad, outside the exclusion ring
@@ -171,9 +173,16 @@ public final class DustLedgerCrossing {
     /** The terraforming pipeline's line, from the canal bank north through the south wall to the pump gear. */
     private static final int PIPELINE_X = 184;
 
-    /** The gun nests' mounts, each on a paved pad: the gate drive, by the tank farm, the east yard. */
-    private static final List<Cell> NEST_CELLS = List.of(new Cell(198, 63), new Cell(153, 47), new Cell(212, 47));
-    private static final List<Direction> NEST_FACING = List.of(Direction.N, Direction.W, Direction.W);
+    /**
+     * The gun nests' mounts, one outside each way in and facing across it, as a walled place's posts flank its gates
+     * ({@code DefenceDoctrine}), on open ground off every road: north of the crawler gate on the sand between the
+     * ridge's foot and the roads, looking south over the ground in front of the gate where the crawler road and the
+     * ridge road meet; south-west of the postern, looking north across its front; the south gate's west flank, looking
+     * south down the track to the skimmer pad. A wall blocks direct fire whole, so a nest inside the compound had only
+     * its own yard to shoot at.
+     */
+    private static final List<Cell> NEST_CELLS = List.of(new Cell(205, 85), new Cell(129, 28), new Cell(151, 26));
+    private static final List<Direction> NEST_FACING = List.of(Direction.S, Direction.N, Direction.S);
     /** The light cannon on the drive, where a crawler would come in; machine guns where infantry does. */
     private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);
@@ -885,9 +894,11 @@ public final class DustLedgerCrossing {
     private static void nests(GenContext c, Sites s) {
         for (int i = 0; i < NEST_CELLS.size(); i++) {
             Cell at = NEST_CELLS.get(i);
-            DefensePost post = DefensePostStamper.stampNest(c.grid, c.topology, c.doodads, at.x(), at.y(), NEST_GUNS.get(i));
+            Direction facing = NEST_FACING.get(i);
+            DefensePost post = DefensePostStamper.stampNest(c.grid, c.topology, c.doodads, at.x(), at.y(), NEST_GUNS.get(i))
+                    .withRestFacing(LayeredAppearance.facingDegrees(facing.dx, facing.dy));
             c.defensePosts.add(post);
-            s.nests.add(new Nest(at, NEST_FACING.get(i), post));
+            s.nests.add(new Nest(at, facing, post));
         }
     }
 

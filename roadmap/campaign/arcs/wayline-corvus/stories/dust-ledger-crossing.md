@@ -115,10 +115,17 @@ The first headless runs on the larger compound read as a cakewalk. The owner
 asked for environmental dangers that a careful approach evens out, built from the fort machinery (`forts.md`, `ground-defences.md`)
 rather than new systems.
 
-- **Gun nests.** Three powered nests, machine gun or light cannon, never flak:
-  - one on the gate drive, covering the crawler-road approach;
-  - one by the tank farm, covering the postern and the market approach;
-  - one in the east yard, covering the ledger room's yard doors.
+- **Gun nests.** Three powered nests, machine gun or light cannon, never flak,
+  one outside each way into the compound and facing across it (a wall blocks
+  direct fire whole, so a nest inside the wall would have only the yard to
+  shoot at; the yard doors are the pillboxes' to cover):
+  - the light cannon north of the crawler gate, on the sand between the ridge's
+    foot and the roads, looking south over the ground in front of the gate
+    where the crawler road and the ridge road meet;
+  - a machine gun south-west of the postern, across its front and the market
+    approach;
+  - a machine gun on the south gate's west flank, down the track to the
+    skimmer pad.
 
   They are deadly to infantry in the open. They fall to rockets, the Hound or
   charges. Rockets are in reach at this point in
@@ -171,7 +178,7 @@ capture point by accident. Surface palette follows the actual planet (ARID).
 | Crawler road | The Harrow salvage yard with its stranded crawler, between market and compound. |
 | North | A rock escarpment (raised cliffs) with a standable ridge reached by ramps, overlooking the compound yard: an overwatch position to take during the quiet phase. |
 | South | The dry terraforming canal (excavated, impassable, see-through) with dead fields along it and two crossings. |
-| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The defences (`Layout.nests`, `Layout.pillboxes`): three gun nests on paved pads (a light cannon on the gate drive, machine guns by the tank farm and in the east yard) and three pillboxes, at the gate, the postern and the pump house's yard doors, crewed from the gate, wall and clerks' posts. The east yard leaves a light hull a lane (`Layout.technicalStands`): north between the pump house and the workshop to the gate drive and out through the gate, south past the clerks' pillbox into the south yard. No wall is opened for it, so infantry gain no way in. The feed junction (`Layout.feedJunction`) stands on its pad south of the back lane, with the power line carried overhead to the compound's west wall. The broker's skimmer pad lies beyond the southern canal crossing. |
+| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The defences (`Layout.nests`, `Layout.pillboxes`): three gun nests outside the wall, one flanking each way in (a light cannon at the crawler gate, machine guns at the postern and the south gate), each laid on its facing and three pillboxes, at the gate, the postern and the pump house's yard doors, crewed from the gate, wall and clerks' posts. The east yard leaves a light hull a lane (`Layout.technicalStands`): north between the pump house and the workshop to the gate drive and out through the gate, south past the clerks' pillbox into the south yard. No wall is opened for it, so infantry gain no way in. The feed junction (`Layout.feedJunction`) stands on its pad south of the back lane, with the power line carried overhead to the compound's west wall. The broker's skimmer pad lies beyond the southern canal crossing. |
 | Beyond | Open hardpan, wreck debris and scattered ruins framing the edges. |
 
 Three approaches to the compound must be real choices: through the market

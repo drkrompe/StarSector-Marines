@@ -47,8 +47,10 @@ generation, acceptance and patch coordinates are the home's. A palette feeds
 generation in many places that move the layout (rock chance and its draws,
 formations, woods, sludge pools, the desert's green basin), so a world never
 generates its own map: it plays the home's layout, skinned. Every pool's home
-is ARID today, the ground the Wellhollow campaign plays and its maps were tuned
-on.
+is ARID, the ground the Wellhollow campaign plays and its maps were tuned on,
+except the Long Survey's four, which are laid out FROZEN with no green basin:
+Garnir is an airless, cold mining moon, so nothing grows there and the ground
+is laid that way, not skinned into it.
 
 **The owned seed.** The battle seed itself: the map it names on its home
 passes the mission's acceptance on the first generation, with no re-roll. The
@@ -61,7 +63,7 @@ note is for people: what the map is and why it is the one.
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
 | `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
-| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 1, 3, 5 | the Long Survey's chapters: the colony's, a Sabotage country's, the Cordon line's and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
+| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 2, 2, 5 | the Long Survey's chapters: the colony's, the Raid mine's, Broad Front's city and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the

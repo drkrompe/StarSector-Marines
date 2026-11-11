@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.DepthBand;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegion;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
@@ -38,6 +40,11 @@ import java.util.List;
  * each pick is the candidate furthest from every post and nest already standing, with distance counted only up to a
  * spacing set by the map's area and the declared count, and ties going to the ground nearest the map's centre. A
  * network, not a cluster.
+ *
+ * <p>A nest fires on a line, and a wall or building blocks direct fire whole (there is no wall height in the sim), so
+ * a site counts only where the nest has open ground in front of it: the arc of {@link PrecinctDefence#openArc} along
+ * the way it faces. It faces the attacker's side of the map ({@link TraversalAxis}), or the map's centre on a map with
+ * no axis, turning up to 45 degrees either way to find its arc; its guns are laid on that bearing.
  */
 public final class DefenceNestStage implements GenStage {
 
@@ -56,7 +63,10 @@ public final class DefenceNestStage implements GenStage {
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID
     };
 
-    private record Site(int x, int y, long centreDistSq) {}
+    /** The ring's half-width plus one: a nest's arc is counted from beyond its own ring. */
+    static final int ARC_FROM = 2;
+
+    private record Site(int x, int y, long centreDistSq, int fx, int fy) {}
 
     public DefenceNestStage() {}
 
@@ -74,7 +84,7 @@ public final class DefenceNestStage implements GenStage {
         boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
 
         int budget = profile.declaredDefences().nests();
-        List<Site> sites = candidates(ctx, regions, roadReservation);
+        List<Site> sites = candidates(ctx, regions, roadReservation, axis);
         double pitch = Math.sqrt((double) ctx.width * ctx.height / budget);
         double cap = Math.max(MIN_SPACING, SPACING_OF_PITCH * pitch);
         double capSq = cap * cap;
@@ -106,7 +116,7 @@ public final class DefenceNestStage implements GenStage {
             // The ring must not cut the walkable graph; a refused site is simply not used.
             if (PlacementGuards.wouldStrandGround(grid, DefensePostStamper.nestBlockedFootprint(s.x(), s.y()))) continue;
             ctx.defensePosts.add(DefensePostStamper.stampNest(grid, ctx.topology, ctx.doodads, s.x(), s.y(),
-                    NEST_GUNS[placed % NEST_GUNS.length]));
+                    NEST_GUNS[placed % NEST_GUNS.length]).withRestFacing(LayeredAppearance.facingDegrees(s.fx(), s.fy())));
             placed++;
             for (int i = 0; i < nearest.length; i++) {
                 nearest[i] = Math.min(nearest[i], distSq(sites.get(i), s.x(), s.y()));
@@ -124,7 +134,8 @@ public final class DefenceNestStage implements GenStage {
         return dx * dx + dy * dy;
     }
 
-    private static List<Site> candidates(GenContext ctx, TacticalRegionMap regions, boolean[][] roadReservation) {
+    private static List<Site> candidates(GenContext ctx, TacticalRegionMap regions, boolean[][] roadReservation,
+                                         TraversalAxis axis) {
         List<Site> out = new ArrayList<>();
         float cx = ctx.width * 0.5f;
         float cy = ctx.height * 0.5f;
@@ -134,12 +145,40 @@ public final class DefenceNestStage implements GenStage {
                 if (region != null && !ALLOWED_BANDS.contains(region.depthBand)) continue;
                 if (!DefensePostStamper.nestFits(ctx.grid, ctx.topology, roadReservation, x, y)) continue;
                 if (insideAuthoredInfantryPlace(ctx.tactical, x, y)) continue;
+                int[] facing = facing(ctx, axis, x, y);
+                if (facing == null) continue;
                 long dx = Math.round(x - cx);
                 long dy = Math.round(y - cy);
-                out.add(new Site(x, y, dx * dx + dy * dy));
+                out.add(new Site(x, y, dx * dx + dy * dy, facing[0], facing[1]));
             }
         }
         return out;
+    }
+
+    /**
+     * The step a nest at {@code (x, y)} faces: toward the attacker's side of the map, or toward its centre where the
+     * map has no axis, turned up to 45 degrees either way (the straight bearing first) to the first whose arc is open.
+     * Null where none is: a nest there would have a wall or building in front of it.
+     */
+    static int[] facing(GenContext ctx, TraversalAxis axis, int x, int y) {
+        int[] ahead = axis == TraversalAxis.SOUTH_TO_NORTH ? new int[]{0, -1}
+                : axis == TraversalAxis.WEST_TO_EAST ? new int[]{-1, 0}
+                : new int[]{Integer.signum(ctx.width / 2 - x), Integer.signum(ctx.height / 2 - y)};
+        if (ahead[0] == 0 && ahead[1] == 0) ahead = new int[]{0, -1};
+        int[][] turns = {ahead, turn(ahead, 1), turn(ahead, -1)};
+        for (int[] step : turns) {
+            if (PrecinctDefence.openArc(ctx, x, y, step[0], step[1], ARC_FROM)) return step;
+        }
+        return null;
+    }
+
+    /** The eight-way step {@code step} turned 45 degrees anticlockwise ({@code sense} 1) or clockwise (-1). */
+    private static int[] turn(int[] step, int sense) {
+        int[][] ring = {{1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}};
+        for (int i = 0; i < ring.length; i++) {
+            if (ring[i][0] == step[0] && ring[i][1] == step[1]) return ring[Math.floorMod(i + sense, ring.length)];
+        }
+        throw new IllegalArgumentException("not an eight-way step");
     }
 
     private static boolean insideAuthoredInfantryPlace(List<TacticalNode> nodes, int x, int y) {

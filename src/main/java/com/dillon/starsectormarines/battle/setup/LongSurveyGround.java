@@ -4,11 +4,8 @@ import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.Basin;
-import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
-import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -27,14 +24,10 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
-import com.dillon.starsectormarines.ops.MissionType;
-import com.dillon.starsectormarines.ops.OperationTier;
-import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The Long Survey's ground ({@code long-survey-arc.md}, Seeds): each chapter's owned map, the ground of the mission it
@@ -52,14 +45,6 @@ import java.util.Set;
 public final class LongSurveyGround {
 
     private static final BspCityGenerator MAP_GEN = new BspCityGenerator();
-
-    /**
-     * The market a Stakes country is derived from: a mining district of a settled world, so the plan grows an
-     * installation (the mine works) and the country round it. The campaign's world only skins it.
-     */
-    static TargetProfile stakesMarket(SurfacePalette surface) {
-        return new TargetProfile(5, 5, 2, 1, "", Set.of(EconomicFunction.MINING), surface, SettlementLink.ROAD);
-    }
 
     private LongSurveyGround() { }
 
@@ -92,28 +77,28 @@ public final class LongSurveyGround {
         long seed = entry.seed();
         return switch (chapter) {
             case LONG_SURVEY_FALL -> {
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BattleSetup.COLONY_BASIN_X, BattleSetup.COLONY_BASIN_Y));
+                // Garnir has no bloom: its ground is laid as the cold moon it is, with no green basin.
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(BattleSetup.colonyPlanOn(MapScale.COLONY, seed, worldProfile));
                 MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_STAKES -> {
-                TargetProfile market = stakesMarket(home);
-                PrecinctPlan plan = BattleSetup.precinctPlanFor(MissionType.SABOTAGE, OperationTier.REINFORCED,
-                        RiskLevel.HIGH, market, MapScale.COLONY, seed, PrecinctPlan.Sprawl.REMOTE)
-                        // The installation laid as a cantonment in a square wall, not a grown diamond-walled fort.
-                        .withCantonments(market, MapScale.COLONY.width, MapScale.COLONY.height);
+                // Garnir's mine country: the owned Raid mine's works (head works, ore line, open pit, the town round
+                // them), laid against the same reference market, with the hull down in the open ground beside it.
+                TargetProfile market = RaidOwnedMap.reference(StoryMap.RAID_MINING, home);
+                PrecinctPlan plan = BattleSetup.raidSitePlanFor(RaidOwnedMap.site(StoryMap.RAID_MINING),
+                        RaidOwnedMap.TIER, RaidOwnedMap.RISK, market, RaidOwnedMap.SCALE, seed, RaidOwnedMap.MACHINES);
                 plan = PlanetSkin.sealedFor(entry.patch().pinned(plan), worldProfile);
-                MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, market, plan);
+                MapResult map = MAP_GEN.generate(RaidOwnedMap.SCALE.width, RaidOwnedMap.SCALE.height, seed, null,
+                        market, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_LINE -> {
                 // The district capital: Broad Front's city, the columns stepping off from the south edge, the hull down
                 // across the north edge in the heart's place.
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
@@ -121,8 +106,7 @@ public final class LongSurveyGround {
             }
             case LONG_SURVEY_SURVEYOR -> {
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);

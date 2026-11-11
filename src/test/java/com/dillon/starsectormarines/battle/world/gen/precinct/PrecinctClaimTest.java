@@ -248,6 +248,33 @@ class PrecinctClaimTest {
     }
 
     /**
+     * A cantonment moved off its seed by held ground claims its square there and nothing else: no second, detached
+     * claim pooled from the seed for its wall to go round with nothing inside.
+     */
+    @Test
+    void aCantonmentMovedOffItsSeedClaimsOnlyItsSquare() {
+        int[][] owner = new int[W][H];
+        for (int[] column : owner) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+        boolean[][] held = new boolean[W][H];
+        for (int x = 36; x < W; x++) for (int y = 0; y < H; y++) held[x][y] = true;
+        Precinct cantonment = Precinct.garrison("garrison", 48, 20, GrownTrunkPlan.Profile.hamlet(),
+                FortressProgram.cantonment(4, 1, 0), new Fortification(2, 110).laidSquare());
+        int[][] claim = PrecinctClaim.byKind(List.of(town(), cantonment), held)
+                .assign(owner, W, H, new int[]{TOWN_BUDGET, 144});
+        int x0 = W, y0 = H, x1 = -1, y1 = -1, cells = 0;
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) {
+                if (claim[x][y] != 1) continue;
+                cells++;
+                x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+            }
+        }
+        assertTrue(x1 < 36, "the cantonment claimed out to " + x1 + " on the held ground round its seed");
+        assertTrue(cells > 0 && cells == (x1 - x0 + 1) * (y1 - y0 + 1),
+                "one solid square, got " + cells + " cells over " + (x1 - x0 + 1) + "x" + (y1 - y0 + 1));
+    }
+
+    /**
      * A square cut back off held ground keeps the most ground clear of it: a band across its top leaves the rectangle
      * below the band, and a square clear of it is unchanged.
      */
@@ -257,5 +284,14 @@ class PrecinctClaimTest {
         for (int x = 0; x < 20; x++) for (int y = 14; y <= 15; y++) off[x][y] = true;
         assertArrayEquals(new int[]{2, 2, 17, 13}, PrecinctClaim.clipOff(off, 2, 2, 17, 17));
         assertArrayEquals(new int[]{2, 2, 10, 10}, PrecinctClaim.clipOff(off, 2, 2, 10, 10));
+    }
+
+    /** A cut-back strip is squared off on its short side, at the end nearest the seed and never past the strip. */
+    @Test
+    void aStripIsSquaredNearestItsSeed() {
+        int[] strip = {0, 0, 9, 29};
+        assertArrayEquals(new int[]{0, 20, 9, 29}, PrecinctClaim.squared(strip, 5, 40));
+        assertArrayEquals(new int[]{0, 10, 9, 19}, PrecinctClaim.squared(strip, 5, 15));
+        assertArrayEquals(new int[]{0, 0, 9, 9}, PrecinctClaim.squared(new int[]{0, 0, 9, 9}, 50, 50));
     }
 }
