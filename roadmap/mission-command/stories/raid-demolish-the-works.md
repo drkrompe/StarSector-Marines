@@ -5,7 +5,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
 6 (the works' machines) is built on the recommended (a) of
-`raid-works-machines` and `raid-works-machines-source` while they are open.
+`raid-works-machines` and `raid-works-machines-source` while they are open, but
+for its vehicles, which wait on `raid-works-vehicles`.
 
 Written: 2026-11-10
 
@@ -135,7 +136,7 @@ own belt, checkpoints and towers at every security
 `WorksDefencesTest`; `storyMapPools`; the as-built pictures are
 `raid-demolition-look`'s `built-*`.
 
-### 6. The works' machines: IN PROGRESS (step 1 built on the recommended picks)
+### 6. The works' machines: IN PROGRESS (steps 1 and 3 built on the recommended picks; step 2 waits on a pick)
 
 The owner's note on `raid-works-defences`: "Also consider things like vehicles
 and mechs." Today a Raid has no defender vehicles: its machines are the
@@ -169,13 +170,23 @@ On the recommended options the work is:
    floor: a gate takes one machine, and the reserve answers the alarm itself.
    Tests: `RaidWorksGuardTest`; `storyMapPools` counts the posts (one or more
    per works); `raid-demolition-look`'s `built-*` labels who stands at each.
-2. **Vehicles.** A market whose faction fields vehicles (`FactionVehiclePoints`)
-   parks them as live hulls at the same places (`BattleSetup.parkHull`,
-   `VehicleMission.deployed`), out of the same force.
-3. **The reserve answers the alarm.** On the works' alarm the reserve is
-   ordered to the hall under attack as a machine guard (`MachineGuards`, the
-   `MachineGuardDirector` pattern), held there; a gate picket never leaves its
-   gate. Decided in `RaidDefenderCommand`, tested on its facts.
+2. **Vehicles: WAITS ON `raid-works-vehicles`.** No faction has a ground
+   vehicle roster (`FactionVehiclePoints` only picks a gun tank's weapon
+   colour; defender hulls are placed by hand per story mission, as
+   `BasinOccupiers` does), so a market has no vehicles to post. Options: (a)
+   mechs only until a market vehicle roster is designed on its own
+   (recommended, changes no strength); (b) a heavy-armour market parks a hull
+   at each empty gate post, paid for out of its infantry at a set rate; (c)
+   hulls on top, by security. On (b) or (c) the hulls park at the same posts
+   (`BattleSetup.parkHull`, `VehicleMission.deployed`).
+3. **The reserve answers the alarm: BUILT.** The yard reserve's post is named
+   `RaidSiteTemplate.WORKS_RESERVE`; its squads (`RaidWorksGuard.reserveSquads`)
+   are handed to `RaidDefenderCommand.worksReserve`. They hold their post until
+   the alarm, are then taken over from their setup hold
+   (`CommandEffects.takeOverSquad`, as a counter-attack's sortie is) and sent
+   to defend the hall under attack (the objective's current site), outside the
+   mobile pool's limit of three, and keep to it. A gate picket is never taken
+   over. Tests: `RaidDefenderReserveTest` (`RaidDefenderCommand.reserveOrder`).
 
 ## Not in this story
 

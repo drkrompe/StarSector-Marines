@@ -1,12 +1,16 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The works' own guard ({@code raid-mission.md}, Security): on a Raid site, a squad stands at each of the works' guard
@@ -35,12 +39,13 @@ final class RaidWorksGuard {
 
     /**
      * The works' machine posts among {@code nodes} ({@code raid-demolish-the-works.md}, slice 6): defender posts named
-     * {@link RaidSiteTemplate#WORKS_MACHINES}, at its gates and in its yard reserve.
+     * {@link RaidSiteTemplate#WORKS_MACHINES} at its gates and {@link RaidSiteTemplate#WORKS_RESERVE} in its yard.
      */
     static List<TacticalNode> machinePosts(List<TacticalNode> nodes) {
         List<TacticalNode> posts = new ArrayList<>();
         for (TacticalNode node : nodes) {
-            if (node.defaultGuard == Faction.DEFENDER && RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) {
+            if (node.defaultGuard == Faction.DEFENDER && (RaidSiteTemplate.WORKS_MACHINES.equals(node.place())
+                    || RaidSiteTemplate.WORKS_RESERVE.equals(node.place()))) {
                 posts.add(node);
             }
         }
@@ -63,6 +68,19 @@ final class RaidWorksGuard {
         order.addAll(machines);
         order.addAll(rest);
         return order;
+    }
+
+    /**
+     * The squads standing at the works' yard reserve once the defenders are seated: those the defender command sends to
+     * the hall under attack on the alarm ({@code raid-demolish-the-works.md}, slice 6).
+     */
+    static Set<Integer> reserveSquads(BattleSimulation sim) {
+        Set<Integer> reserve = new TreeSet<>();
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction == Faction.DEFENDER && squad.assignedNode != null
+                    && RaidSiteTemplate.WORKS_RESERVE.equals(squad.assignedNode.place())) reserve.add(squad.id);
+        }
+        return reserve;
     }
 
     /** Who a node is held by when the allocation reaches it. */

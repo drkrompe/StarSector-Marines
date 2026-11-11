@@ -204,10 +204,11 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
     /** Each of the works' machine posts with the machines posted at it. */
     private static void machinePostLabels(Works w, ReviewAnnotations.Builder m) {
         for (TacticalNode node : w.sim().getTacticalMap().all()) {
-            if (!RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
+            boolean reserve = RaidSiteTemplate.WORKS_RESERVE.equals(node.place());
+            if (!reserve && !RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
             int posted = 0;
             for (Squad squad : w.sim().getSquads()) if (squad.assignedNode == node) posted += squad.originalSize;
-            m.label(node.anchorX, node.anchorY + 2, "MACHINE POST: " + posted + " mech" + (posted == 1 ? "" : "s"),
+            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : "GATE PICKET: ") + posted + " mech" + (posted == 1 ? "" : "s"),
                     posted > 0 ? ReviewStyle.ALLY : ReviewStyle.KEEP);
             System.out.printf(Locale.ROOT, "[raid-demolition-look] machine post %d,%d posted %d%n", node.anchorX,
                     node.anchorY, posted);
