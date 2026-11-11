@@ -26,6 +26,9 @@ SRC = ROOT / "art-source/refinery/refinery-utilities.raw.png"
 SHEET = ROOT / "mod/graphics/doodads/refinery-utilities.png"
 TILESET = ROOT / "mod/data/tilesets/refinery-utilities.tileset.json"
 FRAME = 480
+# Redrawn in the works tileset's flat style on refinery-heaters.png (refinery-heaters-export.py): left blank here,
+# so each id is defined once.
+SUPERSEDED = {"refinery.stack"}
 
 # id, col, row, centre measured on the master (px), crop side (px), where the centre falls across the crop
 PIECES = [
@@ -43,6 +46,8 @@ def main():
     sheet = Image.new("RGBA", (3 * FRAME, 2 * FRAME), (0, 0, 0, 0))
     cells, doodads = [], []
     for pid, col, row, (cx, cy), side, at in PIECES:
+        if pid in SUPERSEDED:
+            continue
         x0, y0 = cx - at * side, cy - at * side
         box = tuple(int(round(v)) for v in (x0, y0, x0 + side, y0 + side))
         img = src.crop(box).resize((FRAME, FRAME), Image.LANCZOS)
