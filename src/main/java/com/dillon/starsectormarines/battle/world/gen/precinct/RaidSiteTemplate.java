@@ -60,6 +60,11 @@ public final class RaidSiteTemplate {
     public static final String GARRISON = "garrison";
     /** The place a works' machine posts are named with ({@code WorksDefences}): its gates and its yard reserve. */
     public static final String WORKS_MACHINES = "works-machines";
+    /**
+     * The place a fortified works' yard reserve is named with ({@code WorksDefences}): a machine post too, whose
+     * machines answer the alarm at the hall under attack ({@code RaidDefenderCommand}).
+     */
+    public static final String WORKS_RESERVE = "works-reserve";
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";
