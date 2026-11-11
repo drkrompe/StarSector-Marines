@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.derelict;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static com.dillon.starsectormarines.battle.derelict.SecurityZone.State.ALERT;
 import static com.dillon.starsectormarines.battle.derelict.SecurityZone.State.AWAKE;
 import static com.dillon.starsectormarines.battle.derelict.SecurityZone.State.DORMANT;
@@ -92,5 +94,16 @@ class SecurityNetworkTest {
         assertEquals(0, network.zoneAt(5, 0).id);
         assertFalse(network.zone(0).inside(11, 0));
         assertNull(network.zoneAt(40, 40));
+    }
+
+    @Test
+    void aZoneKeptRoundSectionsHoldsTheGroundOffEachAndNoneBeyond() {
+        SecurityZone hull = new SecurityZone(0, 35, 2, 6, List.of(new FallenHullSite.Rect(0, 0, 9, 4),
+                new FallenHullSite.Rect(30, 0, 39, 4)));
+        SecurityNetwork network = new SecurityNetwork().add(hull).add(new SecurityZone(1, 20, 8, 6));
+        assertTrue(hull.inside(2, 8), "off the far section from its node");
+        assertFalse(hull.inside(35, 12), "the perimeter runs off the plates, not round the node");
+        assertEquals(0, network.zoneAt(12, 2).id, "a cell near a section is the hull's");
+        assertEquals(1, network.zoneAt(15, 6).id, "where both reach, the nearer keeps it");
     }
 }

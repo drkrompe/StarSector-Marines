@@ -104,6 +104,10 @@ sight lines before the works' wall.
   (`createSnapshots -Psnapshot=raid-mine-site-look`).
 - [x] A site for every industry a raid can name: refining, light industry,
   farming, spaceport and military too (`raid-<industry>-site-look` suites).
+- [x] Farming accepted (owner, 2026-11-10): the grain hub as its process, the
+  grain elevators as the target, long fields with a rare centre pivot; its laws
+  are in `raid-mission.md` (Site templates, Farming). Stand-in art for the
+  bins, haulers, gallery and roofs until the hub's own lands.
 - [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
   as its process after the owner rejected the generic shops (`LightIndustryWorks`,
   `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`),

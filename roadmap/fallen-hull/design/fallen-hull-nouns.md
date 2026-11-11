@@ -250,8 +250,8 @@ Numbers UNTUNED.
   `BuildQueue` (the fixed program, round and round, read ahead by `peek`; the
   stand-in `survey()` order); `Feedstock` (a store, and the forge's draw over
   the hull's and the linked stakes' stores, all or nothing, the hull's first);
-  `ClaimLattice` (links within `linkCells` of a point or the hull's footprint;
-  `nextPlantable`: the open point nearest the hull's middle that links to the
+  `ClaimLattice` (links within `linkCells` of a point or of any hull section;
+  `nextPlantable`: the open point nearest the plates that links to the
   hull or to an anchor, an established stake whose chain holds, its parent the
   hull where it can be, else the nearest anchor); `SurveyStake` (planted,
   raised, established on `RAISE_SECONDS` and `ESTABLISH_SECONDS`, counting only
@@ -273,9 +273,12 @@ Numbers UNTUNED.
   session's looks ship (pick `stripper-hauler`, option a).
 
 - **The seam from the ground.** `FallenHullSite` is what the crash-site ground
-  fills and the battle stands on: the hull's footprint (`Rect`), the forge's
+  fills and the battle stands on: the hull's laid box (`Rect`) and its
+  sections as they lie (one `Rect` each; a hull in one piece is its own only
+  section), the forge's
   cell (the vault, deep in the forge hall), the bay mouth (open ground outside
-  the hull where everything printed walks out), the hull zone's perimeter, the
+  the hull where everything printed walks out), the hull zone's perimeter (its
+  reach off the sections' plates), the
   lattice points and their link distance, the haul roads (polylines of cells),
   the stakes already standing with their stage (`StartingStake`), the metal on
   the claim (`Pile`: headframes, fences, vehicles, the town's structures), the
@@ -283,7 +286,9 @@ Numbers UNTUNED.
   walkers hold in the contingency, and the hull store's metal at the start.
   `FallenHullFixtures` (tests) stands one in on open ground meanwhile.
 - **The battle.** `FallenHull.install(sim, site, queue, livery)` stands the
-  hull's zone (`HULL_ZONE`) over the footprint with the autoforge as its node
+  hull's zone (`HULL_ZONE`), keeping the ground within its perimeter of any
+  section (`SecurityZone` with keeps; nearest keep first where zones overlap),
+  with the autoforge as its node
   and vault (an armoured, unarmed structure at the forge cell), its flock at the
   mouth, its service bay and repair drone; the ground's stakes nearest first,
   each chained through the anchors before it (one the chain cannot reach is

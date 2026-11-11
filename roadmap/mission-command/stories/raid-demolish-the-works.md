@@ -2,8 +2,10 @@
 
 Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
-`raid-demolition-effort`. Slices 1 to 4 are built; slice 5 (more works
-defences) waits on its pick, `raid-works-defences`.
+`raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
+"Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
+6 (the works' machines) waits on `raid-works-machines` and
+`raid-works-machines-source`.
 
 Written: 2026-11-10
 
@@ -109,27 +111,66 @@ the nearest standing outline cell of an unwrecked machine's hall within reach
 not an order: the player still commands the company. Test:
 `WorksDemolitionTest`.
 
-### 5. A works worth assaulting
+### 5. A works worth assaulting: BUILT
 
-The owner: "We likely need to add a good amount of defenses still." Today a
-works has its wall, gates, two to four emplacements and its own guard. Proposed,
-scaled by security like everything else in `raid-mission.md`:
+The owner: "We likely need to add a good amount of defenses still." Picked
+(a), layered by security. `WorksDefences` lays them after the industry dresses
+its works (`RaidWorksDressingStage`), by the raided market's security
+(`PrecinctPlan.raidSecurity`). On an owned map that is the raided market's, not
+the reference market the layout is laid against: like a sealed town, the
+defences are the raided world's dressing and move no cell of the layout.
 
-- **Open**: the wall and the works' own guard, as today.
-- **Guarded**: adds a hedgehog belt outside the wall and a sandbagged
-  checkpoint at each gate.
-- **Fortified**: adds a watchtower in each corner of the wall and sandbag
-  parapets round every hall, so a hall is fought for once the wall is passed.
+- **Open**: the wall and the works' own guard, as before.
+- **Guarded**: a hedgehog belt on the works' glacis (the cleared ground its
+  claim holds outside the wall, so the road that rings it stays clear) and a
+  sandbagged checkpoint at each gate, inside the mouth where the gate opens
+  straight onto a road.
+- **Fortified**: also a watchtower in each corner of the works and a sandbag
+  parapet round every machine hall, with a way through every few cells.
 
-The pick `raid-works-defences` (pictures under
-`review/owned-maps/2026-11-10_raid-works-defences_win/`, mock-ups with the
-game's own props): (a) layered by security as above (recommended); (b) the
-wall line only; (c) round the halls only.
+Every piece is a prop that yields to circulation (`WorksProps.place`), so a
+corner or a parapet stretch with no room is left out. A military base lays its
+own belt, checkpoints and towers at every security
+(`RaidIndustry.laysOwnPerimeter`) and takes only the parapets. Test:
+`WorksDefencesTest`; `storyMapPools`; the as-built pictures are
+`raid-demolition-look`'s `built-*`.
 
-Placed by the works' precinct like its emplacements (`PrecinctDefence`), named
-with the works' place so the works' guard seats them first
-(`RaidWorksGuard`). `storyMapPools` counts them in the Raid acceptance. This is
-the one slice whose look goes back to the owner before it is built.
+### 6. The works' machines: PLANNED
+
+The owner's note on `raid-works-defences`: "Also consider things like vehicles
+and mechs." Today a Raid has no defender vehicles: its machines are the
+roster's mechs (`DefenderRoster.mechVariantsFor`, only with heavy armour and
+above low risk), seated on general posts or patrolling, and a mech never
+stands on a works guard post. The alarm (`RaidObjective.defenderAlarm`,
+`RaidDefenderCommand`) sends up to three mobile squads; no machine answers it.
+
+Two picks (pictures under `review/owned-maps/2026-11-10_raid-works-machines_win/`):
+
+- `raid-works-machines`, where they post and how they react: (a) layered by
+  security (recommended): open none; guarded a light vehicle holding each gate
+  behind its checkpoint; fortified also an armour reserve parked in the works'
+  yard that drives to the hall under attack on the alarm; (b) a patrol inside
+  the wall; (c) the garrison's armour only, driving over on the alarm.
+- `raid-works-machines-source`: (a) out of the market's force (recommended):
+  the machines its roster already fields are posted at the works instead of
+  elsewhere, keeping the rule that security changes where the force stands,
+  never its size; (b) on top, by security.
+
+On the recommended options the work is:
+
+1. **Seat the market's machines at the works.** The defender allocation seats
+   the roster's mechs on the works' gate places (guarded and fortified) before
+   any other place, as `RaidWorksGuard` seats the works' guard; on fortified the
+   rest form the works' reserve in its yard. The gate places and the reserve's
+   yard are laid by `WorksDefences` with the checkpoints, named with the works'
+   place. Proven where the seating is decided, by unit test.
+2. **Vehicles.** A market whose faction fields vehicles (`FactionVehiclePoints`)
+   parks them as live hulls at the same places (`BattleSetup.parkHull`,
+   `VehicleMission.deployed`), out of the same force.
+3. **The reserve answers the alarm.** On the works' alarm the reserve is
+   ordered to the hall under attack as a machine guard (`MachineGuards`, the
+   `MachineGuardDirector` pattern), held there; a gate picket never leaves its
+   gate. Decided in `RaidDefenderCommand`, tested on its facts.
 
 ## Not in this story
 

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.nexerelin.InvasionForkSetting;
 import com.dillon.starsectormarines.campaign.nexerelin.Nexerelin;
 import com.dillon.starsectormarines.campaign.raid.RaidForkSetting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsForkSetting;
+import com.dillon.starsectormarines.ops.battleview.WallDepth;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -55,13 +56,15 @@ public final class SettingsScreen implements Screen {
     }
 
     /**
-     * The voice-over, and whether the raid, invasion and ruins forks ask. Each fork's answer is made every time it
-     * is offered; turning one off hands that action to the game (or Nexerelin) untouched. The invasion key shows only
-     * with Nexerelin, and the ruins key only where this build offers the ruins fork.
+     * The voice-over, the battle view's 3D walls, and whether the raid, invasion and ruins forks ask. Each fork's
+     * answer is made every time it is offered; turning one off hands that action to the game (or Nexerelin)
+     * untouched. The invasion key shows only with Nexerelin, and the ruins key only where this build offers the ruins
+     * fork.
      */
     private static List<SettingsViewModel.Setting> settings() {
         return List.of(
                 new SettingsViewModel.Setting("voiceOver", VoiceOver::enabled, VoiceOver::setEnabled),
+                new SettingsViewModel.Setting("wallDepth", WallDepth::enabled, WallDepth::setEnabled),
                 new SettingsViewModel.Setting("raidFork",
                         () -> RaidForkSetting.asks(state()), on -> RaidForkSetting.setAsks(state(), on)),
                 new SettingsViewModel.Setting("invasionFork",

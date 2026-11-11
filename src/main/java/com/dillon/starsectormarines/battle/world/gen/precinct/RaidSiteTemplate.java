@@ -256,7 +256,7 @@ public final class RaidSiteTemplate {
         boolean deepFeeder = industry.deepFeeder();
         pieces.addAll(lines(mirrorX, mirrorY, !deepFeeder));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, !deepFeeder, width, height));
-        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key());
+        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key()).withRaidSecurity(security);
     }
 
     /**
