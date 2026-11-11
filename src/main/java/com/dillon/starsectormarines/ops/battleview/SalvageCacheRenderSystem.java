@@ -54,7 +54,8 @@ public final class SalvageCacheRenderSystem implements RenderSystem {
             float r = cache.secured() ? .45f : 1f, g = cache.contested() ? .3f : .78f, b = .35f;
             float radius = Math.max(12, px * .9f);
             PolyTess.appendAnnulus(mesh, x, y, radius - 2, radius, 4, r, g, b, alpha);
-            var art = registry == null ? null : registry.doodad(spriteId(cache));
+            // A plant store's find stands on its own load's art; only a field bundle draws one.
+            var art = registry == null || cache.goods() != null ? null : registry.doodad(spriteId(cache));
             if (!cache.secured() && seen && art != null) {
                 var sheet = art.sheetPath.equals(TileManifest.SHEET) ? sprites.tileSheet()
                         : sprites.extraTerrainSheet(art.sheetPath);
