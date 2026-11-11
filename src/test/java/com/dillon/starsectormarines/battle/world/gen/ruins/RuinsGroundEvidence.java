@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.ruins;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.ruins.StoreFinds;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.WallCrush;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -162,6 +164,21 @@ class RuinsGroundEvidence {
                         }
                     }
                     failures.addAll(crushable(map, delve, where));
+                    // A plant's stores hold its supply finds: every load has open floor beside it and its skid art.
+                    var loads = interior.loads();
+                    if (!loads.isEmpty()) {
+                        var picks = StoreFinds.pick(loads, loads.size(), seed,
+                                (x, y) -> map.grid.inBounds(x, y) && map.grid.isWalkable(x, y),
+                                StoreFinds.BASE_PRICE::get);
+                        if (picks.size() < loads.size()) {
+                            failures.add(where + (loads.size() - picks.size()) + " store loads cannot be taken as finds");
+                        }
+                        for (var load : loads) {
+                            if (TileRegistry.installed().doodad(load.goods() + StoreFinds.CACHE_SUFFIX) == null) {
+                                failures.add(where + load.goods() + " has no skid art");
+                            }
+                        }
+                    }
                     var vault = delve.vault().source();
                     if (!map.grid.hasTag(vault.x(), vault.y(), NavigationGrid.CellTag.NO_MACHINE_DROP)) {
                         failures.add(where + "a machine may be dropped at the vault");

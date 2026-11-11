@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullPlan;
@@ -275,6 +276,8 @@ public class BattleRenderer {
     private final RoofStream roofStream = new RoofStream();
     /** Buildings stood up ({@link BuildingFaces}): this frame's wall faces in their dress, and their rubble. */
     private final FacePainter facePainter = new FacePainter();
+    /** A face's hits laid on it this frame ({@link FaceScars}). */
+    private final float[] laidScars = new float[WallScars.PER_CELL * FaceScars.STRIDE];
     /** Creep up a stood-up wall's face ({@link CreepClimb}), painted onto the wall {@link #facePainter} holds. */
     private final CreepClimb.Sink creepOnFace = facePainter::quad;
     private final CreepPalette creepPalette = CreepPalette.active();
@@ -1401,6 +1404,9 @@ public class BattleRenderer {
                 }
                 paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
                         broken, hurt, glassHurt, upper, shade, detail);
+                // Where rounds struck this face, as they landed.
+                int scarred = FaceScars.lay(sim.effects().wallScars(), cell, gridW, x0, y0, x1, y1, nx, ny, laidScars);
+                if (scarred > 0 && detail) paint.scars(laidScars, scarred, meters, upright, shade, m);
                 if (creep != null) {
                     CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, upright, cell,
                             creepPalette, shade, detail, creepOnFace);

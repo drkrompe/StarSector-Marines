@@ -32,8 +32,7 @@ import java.util.Locale;
  * The Long Survey's crash-site ground ({@code long-survey-arc.md}, Seeds; {@code fallen-hull-nouns.md}): each chapter's
  * owned map built as its setup builds it, on its home, at 1920x1080. Through the look preset: the whole map
  * ({@code <chapter>/1-whole.png}), the hull with its trench and debris ({@code 2-hull.png}) and the hull with its roof
- * lifted ({@code 3-interior.png}). A diagram of the claim, marked on the review frame and not a look picture
- * ({@code 4-claim.png}): the lattice points by ring, the haul roads, the starting stakes by stage, the forge and the
+ * lifted ({@code 3-interior.png}). The claim marked over the whole map's look frame ({@code 4-claim.png}): the lattice points by ring, the haul roads, the starting stakes by stage, the forge and the
  * hull's aprons. Nothing is played. Opt-in; {@code -Dsnapshot.longSurvey.chapters=fall,line} names chapters.
  */
 public final class LongSurveyGroundLookSuite implements SnapshotSuite {
@@ -81,11 +80,9 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                         hull.centreX(), hull.centreY(), Math.max(hull.width(), hull.height() * 16f / 9f) + 16f)
                         .withoutRoofs();
                 out.add(new SnapshotArtifact(chapter.id + "/3-interior.png", open.render(sim, "")));
-                BattleReviewFrameRenderer diagram = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
-                        w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
-                out.add(new SnapshotArtifact(chapter.id + "/4-claim.png", diagram.render(sim,
-                        chapter.id + " seed " + ground.battleSeed() + " | lattice, haul roads and starting stakes",
-                        claim(site))));
+                // The claim marked over the look frame: no caption band, no unit markers.
+                look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
+                out.add(new SnapshotArtifact(chapter.id + "/4-claim.png", look.renderMarked(sim, claim(site))));
             }
             System.out.printf(Locale.ROOT, "[%s] %s: hull %s, %d lattice points, %d roads, %d stakes, problems %s%n",
                     id(), chapter.id, site.footprint(), site.lattice().size(), site.roads().size(),

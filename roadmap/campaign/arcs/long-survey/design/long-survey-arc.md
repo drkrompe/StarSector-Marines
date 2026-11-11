@@ -144,6 +144,6 @@ chapter (pick through the art session), voiced later as the Khettara is.
 ## Open picks
 
 `hull-fall-cause`, `long-survey-world`, `long-survey-opens`, and the nouns
-doc's `hull-spread-law`, `hull-lineage` and `stripper-hauler`. All are built on
-the recommended option meanwhile; they go on the arc's picks page as picture
-cards once the art session has pictures for them.
+doc's `hull-spread-law` and `stake-look`. All are built on the recommended
+option meanwhile and stand on the arc's picks page as picture cards. The nouns
+doc's `hull-lineage`, `stripper-hauler` and `autoforge-look` are answered.

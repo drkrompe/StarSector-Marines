@@ -101,6 +101,11 @@ public final class EffectsService {
 
     public Collection<Decal> getDecals() { return decals; }
 
+    /** Where rounds have struck the walls, for the faces to show ({@link WallScars}). */
+    public WallScars wallScars() { return wallScars; }
+
+    private final WallScars wallScars = new WallScars();
+
     public long getDecalsEverAdded() { return decalsEverAdded; }
 
     // ---- Wrecks ----
