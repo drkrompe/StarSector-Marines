@@ -230,6 +230,11 @@ public final class MapResult {
      * sense. Empty on a map with none, and never null.
      */
     public final List<RuralLayout.Plot> fields;
+    /**
+     * The machines an industry's Raid site stands in the open, where its works' halls do not hold them: each a cell
+     * where the raid sets a charge ({@code RaidWorksLayout} takes these first). Empty on every other map, never null.
+     */
+    public final List<int[]> raidMachines;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -506,6 +511,7 @@ public final class MapResult {
         this.hullSite = null;
         this.wallGates = List.of();
         this.fields = List.of();
+        this.raidMachines = List.of();
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
@@ -579,7 +585,7 @@ public final class MapResult {
                       List<LoadingBay> bays, List<OpenSquare> squares, List<ServiceLane> laidLanes,
                       List<MainStreet> streets, List<CordonedFacility> facilities,
                       List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates,
-                      List<RuralLayout.Plot> worked, HullSite site) {
+                      List<RuralLayout.Plot> worked, HullSite site, List<int[]> machines) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -617,6 +623,7 @@ public final class MapResult {
         wallGates = gates;
         fields = worked;
         hullSite = site;
+        raidMachines = machines;
     }
 
     /** The same map, carrying the fields its colony works. */
@@ -627,13 +634,20 @@ public final class MapResult {
     private MapResult(MapResult base, List<RuralLayout.Plot> worked) {
         this(base, base.initialDamage, base.fieldOfFire, base.layout, base.loadingBays, base.openSquares,
                 base.serviceLanes, base.mainStreets, base.cordonedFacilities, base.industrialZones, base.ruinsDelve,
-                base.wallGates, worked, base.hullSite);
+                base.wallGates, worked, base.hullSite, base.raidMachines);
     }
 
     /** The same map, carrying the fallen hull its ground laid. */
     public MapResult withHullSite(HullSite site) {
         return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
-                mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates, fields, site);
+                mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates, fields, site, raidMachines);
+    }
+
+    /** The same map, carrying the machines its Raid site stood in the open ({@link #raidMachines}). */
+    public MapResult withRaidMachines(List<int[]> machines) {
+        return new MapResult(this, initialDamage, fieldOfFire, layout, loadingBays, openSquares, serviceLanes,
+                mainStreets, cordonedFacilities, industrialZones, ruinsDelve, wallGates, fields, hullSite,
+                machines == null ? List.of() : List.copyOf(machines));
     }
 
     private MapResult(MapResult base, DamagePlan damage, FieldOfFire field, LaidLayout laid,
@@ -641,6 +655,6 @@ public final class MapResult {
                       List<MainStreet> streets, List<CordonedFacility> facilities,
                       List<IndustrialZone> zones, RuinsDelve delve, List<WallGate> gates) {
         this(base, damage, field, laid, bays, squares, laidLanes, streets, facilities, zones, delve, gates,
-                base.fields, base.hullSite);
+                base.fields, base.hullSite, base.raidMachines);
     }
 }

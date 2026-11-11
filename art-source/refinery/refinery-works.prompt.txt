@@ -1,0 +1,16 @@
+Use case: style-transfer. Asset type: production transparent prop sheet: six pieces of industrial plant equipment for a top-down building game, which must sit quietly in the existing industrial tileset and not stand out from it.
+
+Image 1 is the authoritative geometry guide and edit target: repaint these SIX exact pieces in their two rows of three, keeping each piece's position, size and outline. Do not move, rotate, enlarge or shrink anything. Five of them are already painted in a darker, busier style that sticks out: repaint them in the style below, keeping what each one is. The first piece (top left) is a flat grey block-out: paint it fully.
+Image 2 is the game's existing works tileset (round hatches, fans, vessels, panels seen from above): it is the STYLE AUTHORITY. Match it exactly: flat straight-down plates with almost no perspective or dome shading, cool gunmetal and grey steel, riveted rims and panel seams, small dull copper accents, light rust and grime, the same soft painted finish, the same muted value range. Material and style only, not layout.
+
+Six pieces, top row left to right, then bottom row:
+1. A refinery fired heater seen from directly above: a long rectangular steel firebox the block-out's exact size, its roof of four long riveted steel panels, a row of five small round burner ports along its lower side, and at its right end a round riveted chimney rim with a dark sooty flue inside a flat grated ring; a thin short wisp of grey smoke drifting right, faint and semi-transparent.
+2. A round cooling tower seen from above: a thick flat concrete-and-steel rim with small vents, the dark fill basin inside, a faint soft plume of white vapour.
+3. A pump skid: two electric pumps with their motors on a steel base frame, flanged pipes leaving left and right.
+4. A small radio mast: a square lattice base with a small dish.
+5. A tanker loading island: a long concrete island with a steel walkway, two loading arms reaching right, a short ladder.
+6. A gas cylinder rack: two rows of four upright gas cylinders in a steel frame, a small grey cabinet to its right.
+
+Strictly: no brass or gold, no yellow paint or hazard striping, no glowing or orange lights, no glossy highlights, no bulging domes, no long dramatic shadows. Shadows only short and soft to the lower right.
+
+True orthographic zenith camera, light from the upper left. True alpha transparency around every piece; no ground, no background, no border, no labels, no text.
