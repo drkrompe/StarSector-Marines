@@ -831,12 +831,17 @@ is the plant its architect briefed, and only then a ruin.
 The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
 undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
 The works band is laid as a block plan, round the works hall:
-- the raw stock store under its dispatch end with the dock below it, and the QA lab at the outfeed;
-- the control gallery down its east wall, with a stair onto the hall's floor;
-- maintenance and consumables over its head, and the habitat beyond.
+- the raw stock store under its dispatch end, and the QA lab at the outfeed;
+- the dock on the hull face behind the way in nearest the raw stock: its cargo lock is that entrance, so the way in opens
+  straight into it;
+- the control gallery down the hall's east wall (or its west where the east has no room), with a stair onto the floor;
+- maintenance and consumables over its head;
+- the habitat on the hull face behind another way in, its personnel lock, or else beyond maintenance.
 
-Each space joins the network on its own side of the hall, after the ways through the band, so the route still crosses
-the hall.
+A space at a lock stands west of the hall's wall and spine, and takes no way but its lock. Each other space joins the
+network on its own side of the hall, after the ways through the band, so the route still crosses the hall. An infantry
+room is closed to ways with its wall; its doors are cut by hand. Where the vault's apron stands beside the works hall,
+the way on to the vault leaves through the hall's east wall.
 
 Still to come:
 - a block plan for the deeper band;
