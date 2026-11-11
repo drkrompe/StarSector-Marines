@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1cbae-c3eb-7c90-a7df-6483fdbee78f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1cbae-c3eb-7c90-a7df-6483fdbee78f\\exec-5b7ee922-6408-4038-acbe-d13279d9a5af.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\mine-heaps.raw.png",
+    "sha256": "23b9172fa368000b9fd03f55f9be3e33bb22441e928e8cba30cc2a2440e2f4c2",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\mine-heaps.prompt.txt",
+  "promptSha256": "675f9fc2e641f6b89d5945ed4d8e88de7bcfbd04620779b0afc9d7acbd3e7cde",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and geometry authority: each pile's place, outline and size\nImage 2: Material/style only; not layout\n\nUse case: sketch-to-render, top-down game prop sheet. Image 1 is the edit target and exact geometry authority: four mounded piles on a transparent canvas, each in its own place at its own size. Render each blob as a painted, realistic pile seen from straight overhead, keeping its position, outline and size: the two left/top ones and the small top-right pair are spoil heaps of coarse broken grey-brown rock, rubble and boulders, mounded high in the middle and lit from the upper left so the north-west slopes are bright and the south-east slopes fall into shadow; the wide flat-topped ones (top right and the large bottom one) are tailings mounds of fine pale grey-ochre sand and silt, flat topped, stepped in low terraces with bulldozer track marks, slumped and eroded at their edges. The setting is a cold, airless mining moon: no water, no plants, no snow drifts; a thin pale blue-white frost rims each pile and lies in the hollows of its shaded lower slopes, its edges soft and feathered into the rock, never a hard outline. Each pile's edge fades softly into transparency with a little loose scatter, not a cut-out jagged edge and not a hard line. Image 2 is material and painting style only, not layout. True transparent background everywhere, including between the piles; no ground plane, no cast shadow slab, no border, no frame, no labels. Absolutely no text, letters, numbers or symbols. Strict 90-degree overhead orthographic view, a realistic painted game-asset style.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\mine-heaps-guide.png",
+      "sha256": "a51e66b7fc7718dec8af75997b3f242ac71ca3733834eb019ff0869eb75f41b2",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and geometry authority: each pile's place, outline and size"
+    },
+    {
+      "path": "art-source\\tilesets\\planet-formations.raw.png",
+      "sha256": "8902f3f3237738312d93909151b1640dbb3655913e7e680ab7c352aa9ad1ac50",
+      "dimensions": [
+        1448,
+        1086
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one transparent prop sheet, preserving Image 1’s four pile shapes and layout.\n"
+  ],
+  "usage": {
+    "input_tokens": 85552,
+    "cached_input_tokens": 68736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 592,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 55.9
+}
