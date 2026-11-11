@@ -71,7 +71,9 @@ public final class WorksDefences {
         }
         machinePosts(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
         approach(c, plan, works, layer == Layer.FORTIFIED);
-        outworks(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
+        GuardedGrounds.Grounds spread = industry.guardedGrounds(c, plan, works, layer);
+        if (spread != null) GuardedGrounds.arm(c, plan, works, spread);
+        else outworks(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
         heldBuildings(c, plan, works, layer == Layer.FORTIFIED ? HELD_FORTIFIED : HELD_GUARDED);
         if (layer == Layer.FORTIFIED) {
             for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
