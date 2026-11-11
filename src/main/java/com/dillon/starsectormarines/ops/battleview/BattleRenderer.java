@@ -300,6 +300,14 @@ public class BattleRenderer {
     private final FreestandingWallFaces freestandingWalls = new FreestandingWallFaces();
     /** Whether this frame draws the fog: what is drawn above it carries the fog itself only then. */
     private boolean fogDrawn = true;
+
+    /**
+     * The darkening a building's roof and faces carry for the fog over it, drawn above the fog; none in a frame that
+     * draws no fog (a look shot), whose ground is all in light, so an unseen roof is not left standing black.
+     */
+    private float fogShade(Building b) {
+        return fogDrawn ? FogField.roofShade(b.currentFog) : 1f;
+    }
     private final IdentityHashMap<Building, float[]> buildingEdges = new IdentityHashMap<>();
     /** Each building's outline as built ({@link #builtOutline}), kept for the battle's map whatever falls. */
     private final IdentityHashMap<Building, float[]> buildingOutlines = new IdentityHashMap<>();
@@ -1066,6 +1074,7 @@ public class BattleRenderer {
             };
             boolean serving = roofMesh.isServing(topology, buildings);
             out.addCustom(RenderLayer.ROOFS, () -> {
+                roofMesh.fogDrawn(fogDrawn);
                 boolean drawable = roofMesh.sync(topology, buildings, sprites.roofSheet(),
                         sprites.roofSheetPxW(), sprites.roofSheetPxH(), resolver, alphaMult,
                         b -> buildingClass(topology, buildings, b));
@@ -1282,7 +1291,7 @@ public class BattleRenderer {
             int heightClass = buildingClass(topology, buildings, b);
             float[] segs = buildingEdges.computeIfAbsent(b, k -> faceSegments(topology, grid, buildings, k, frozen));
             if (segs.length == 0) continue;
-            float fog = FogField.roofShade(b.currentFog);
+            float fog = fogShade(b);
             BuildingFaces.Look look = LOOKS[((int) segs[7] >> 2) / SEGMENTS.length];
             Dress dress = buildingDress.computeIfAbsent(b, k -> new Dress(
                     WallDress.material(k.kind, look, palette, BuildingFaces.hash(k.id, 23)),
@@ -1764,7 +1773,7 @@ public class BattleRenderer {
         void begin(DrawList out, Building building, float alpha) {
             this.out = out;
             // Over the fog, so a roof nobody can see is darkened here instead.
-            float fogShade = FogField.roofShade(building.currentFog);
+            float fogShade = fogShade(building);
             // The ship is painted in its own colours; a town's tint is for telling neighbouring roofs apart.
             r = (ship != null ? 1f : RoofTiles.tint(building.tintR)) * fogShade;
             g = (ship != null ? 1f : RoofTiles.tint(building.tintG)) * fogShade;
@@ -1863,7 +1872,7 @@ public class BattleRenderer {
             float roofAlpha = b.currentAlpha;
             if (roofAlpha <= 0.01f) continue;
             if (!view.intersects(b.minX, b.maxX, b.minY, b.maxY)) continue;
-            float fogShade = FogField.roofShade(b.currentFog);
+            float fogShade = fogShade(b);
             for (int i = 0, n = b.cellCount(); i < n; i++) {
                 int cx = b.cellsX[i];
                 int cy = b.cellsY[i];

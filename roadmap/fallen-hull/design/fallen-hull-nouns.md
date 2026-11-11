@@ -48,7 +48,7 @@ put its forge out.
   hull is not a site network: its autoforge is the one derelict thing that
   makes more, and only from feedstock it hauls home where anyone can see it.
   Every stake it plants becomes an ordinary site zone the moment its link to
-  the hull is cut. (Pick `hull-spread-law`.)
+  the hull is cut. (Pick `hull-spread-law`, answered a.)
 
 ## The hull and the Rav
 
@@ -249,19 +249,15 @@ world, the hull's claim grows by stakes week to week as a market condition, and
 the world's owner calls for help. Its stages, its clock and its interaction with
 the event gate are not designed yet.
 
-## Open picks
-
-- `hull-spread-law`: (a, recommended) the hull alone spreads, through its
-  autoforge and only from feedstock; site networks keep their fixed numbers.
-  (b) No spread: the hull pours out what it carried and stops.
-- `stake-look`: (a, recommended) the spire, a square armoured spike that
-  opens four petals round its node mast. (b) the tripod, a round core whose
-  three legs splay and anchor. The spire is built.
+## Picks
 
 Answered by the owner (2026-11-11), each the recommended option and built as
 it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
 `stripper-hauler` (a), two units, the stripper and the hauler; `autoforge-look`
-(c), the ring forge.
+(c), the ring forge; `hull-spread-law` (a), the hull alone spreads, through its
+autoforge and only from feedstock, while site networks keep their fixed
+numbers; `stake-look` (a), the spire, a square armoured spike that opens four
+petals round its node mast.
 
 ## What is built
 
