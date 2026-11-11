@@ -9,7 +9,10 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
+Updated: 2026-11-11 — every garrison is laid square; the grown, walled
+garrison is retired.
+
+Earlier 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
 fire round its berths and owns the open country along its edge; Colony Breach
 lands in one outside the colony.
 
@@ -272,7 +275,19 @@ The exception is a place somebody surveyed and pegged out before building: a
 frontier colony's civil-defence compound is square because it was laid out
 square, and a lobed outline would say it grew. A `Fortification` can ask for
 that (`laidSquare`): the claim then takes a square of its allowance round the
-seed whole, before anything pools, and its wall is straight runs. Its
+seed whole, before anything pools, and its wall is straight runs.
+
+**Every garrison is laid square.** A walled place with a program (a derived
+plan's garrison, a Conquest lane's post, a brief's garrison) is built square
+by `Precinct.garrison` and `PrecinctBrief.garrison`, and `PrecinctClaim`
+refuses one that is not. Pooled round its seed and walled round whatever
+outline it grew to, a garrison's wall stair-stepped into diagonals (owner,
+2026-11-11: "ugly diagonal wall forts"), so that path is retired. Its program is
+its own: a laid square holds a packed garrison as well as a cantonment's rows.
+What still pools is the landing place, which is open, and what is still walled
+round a grown outline is the sealed town, which is a town rather than a
+garrison. An authored compound (`CompoundGround`) writes its claim from its
+template and is not claimed at all. Its
 neighbours' streets meet it and become its gates the ordinary way. It keeps a
 **glacis**: the outermost `Fortification.GLACIS` cells of the square stay
 claimed but are built on by nobody, walled inside and laid as bare earth, so
@@ -1396,26 +1411,36 @@ post six cells in along each gate's own road; and every post after the first
 was a uniform draw from the claim, glacis included. `DefenceDoctrine` now sites
 every emplacement by role, heaviest first:
 
-- **gates**: a post either side of each gate's approach, set back behind the
+- **gates**: a post either side of each gate's approach, out in front of the
   wall, every gate once before any gate twice, the main gate first, so the
   heaviest guns hold the way most of the attack will come — a gate nobody is
   watching is a door;
 - **corners**: then the wall's corners, the one facing the threat (the landing)
-  first, each seeing down two faces and out over the approach;
-- **wall**: a loadout with posts to spare lines the ring behind the wall, the
-  face toward the threat first (a grown claim's corners are the ring's own
+  first, each off its corner seeing along two faces and out over the approach;
+- **wall**: a loadout with posts to spare lines the ring in front of the wall,
+  the face toward the threat first (a grown claim's corners are the ring's own
   extremes, not its bounding box's);
 - **depth**: artillery and drone hubs on the deepest ground furthest from the
   main gate, because their whole point is reaching past the wall from
-  somewhere the attacker must get through the wall to reach.
+  somewhere the attacker must get through the wall to reach. The artillery
+  fires indirect, over the wall, and the hubs launch drones: neither needs a
+  line of fire.
 
-No gun stands inside a place without a standoff job: the posts once sited
-beside the motor pool and command covered nothing an attacker crosses (owner:
-"What are they guarding?"). The ring behind the wall is measured from the
-place's own outline, never from the walls of the buildings inside it, which
-had run the ring round every barracks. Every site faces out (`Site.faceX`,
-`faceY`): a gate post along its gate's way out, a corner or wall post toward
-the nearest ground beyond the wall, a standoff weapon toward the threat. The
+A wall blocks direct fire whole: no gun in the sim fires over one (a plinth
+raises a gun's eye, not its rounds past a wall), and only indirect fire needs
+no line. So every direct-fire post stands outside its wall, five cells out on
+the glacis or on ground no other place holds, inside its own sandbagged ring,
+and only where its laid arc (its bearing and twenty degrees either side) runs
+ten cells over open ground without crossing back over the place or meeting a
+wall (`DefenceDoctrine.lane`, `PrecinctDefence.lineOfFire`; owner: "They
+can't shoot over walls!"). No gun stands inside a place without a standoff job
+either: the posts once sited beside the motor pool and command covered nothing
+an attacker crosses (owner: "What are they guarding?"). The ring is measured
+from the ground the place's wall encloses, never from the walls of the
+buildings inside it, which had run it round every barracks. Every site faces
+out (`Site.faceX`, `faceY`): a gate post along its gate's way out, a corner or
+wall post away from the nearest ground of the place, a standoff weapon toward
+the threat. The
 post carries that bearing (`DefensePost.restFacing`), and its guns are laid on
 it before the fight.
 

@@ -76,6 +76,11 @@ final class RaidWorksMachines {
         return Collections.nCopies(count, GroundRosterProfile.ForceTier.BULK);
     }
 
+    /** The hulls that join a raided market's later garrison columns: its gate hull, then its yard tank. */
+    static List<VehicleType> columnArmour(String factionId) {
+        return List.of(gateHull(factionId), yardHull(factionId));
+    }
+
     /** Parks a hull of {@code factionId}'s at each of the works' machine posts among {@code nodes}. */
     static void parkHulls(BattleSimulation sim, List<TacticalNode> nodes, String factionId) {
         for (TacticalNode post : RaidWorksGuard.machinePosts(nodes)) {
