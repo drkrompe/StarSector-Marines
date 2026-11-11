@@ -4,37 +4,62 @@
   "home": "ARID",
   "entry": {
     "seed": 2,
-    "note": "The Line: the district capital, The Burn's city on its own seed (long-survey-maps.md, Chapter 3), the Surveyor down along its east edge, bow south, its trench run on south; three established stakes in a chain west into the city, one raised on the Avenue and one planted beyond",
+    "note": "The Line: the district capital, Broad Front's city on its own seed (long-survey-maps.md, Chapter 3), the Surveyor down across its north edge in the heart's place, bow west, its trench run on west; the claim's chains reach south into the city, established nearest the hull, raised and planted at the heads of the three columns' lanes",
     "patch": {
       "hull": {
-        "x": 356,
-        "y": 150,
-        "heading": "south",
-        "trench": 36,
+        "x": 330,
+        "y": 296,
+        "heading": "west",
+        "trench": 40,
         "stakes": [
           {
-            "x": 316,
-            "y": 150,
+            "x": 330,
+            "y": 256,
             "stage": "established"
           },
           {
-            "x": 276,
-            "y": 150,
+            "x": 330,
+            "y": 216,
             "stage": "established"
           },
           {
-            "x": 276,
-            "y": 110,
+            "x": 330,
+            "y": 176,
             "stage": "established"
           },
           {
-            "x": 236,
-            "y": 150,
+            "x": 370,
+            "y": 256,
+            "stage": "established"
+          },
+          {
+            "x": 370,
+            "y": 216,
+            "stage": "established"
+          },
+          {
+            "x": 290,
+            "y": 176,
             "stage": "raised"
           },
           {
-            "x": 236,
-            "y": 110,
+            "x": 330,
+            "y": 136,
+            "stage": "raised"
+          },
+          {
+            "x": 370,
+            "y": 176,
+            "stage": "raised"
+          },
+          {
+            "x": 250,
+            "y": 176,
+            "stage": "planted"
+          },
+          {
+            "x": 410,
+            "y": 176,
             "stage": "planted"
           }
         ]

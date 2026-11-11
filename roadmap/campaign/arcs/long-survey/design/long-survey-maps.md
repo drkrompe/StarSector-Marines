@@ -9,53 +9,52 @@ Coordinates are map cells, `x` east, `y` north.
 
 ## Chapter 3: The Line, the district capital
 
-**Objective.** The claim has reached the district capital. The garrison's armour and
-the company push the watch out of the city street by street, east toward the hull
-and its trench, and the company cuts the chain: the established stakes that hold
-the city, and the haul roads that feed them. A ground war through a populated city,
-built to show the destruction mechanics: walls and roofs break, blocks collapse and
-burn under the fight.
+**Objective.** The claim has reached the district capital. The garrison's columns
+and the company push the watch out of the city street by street, north toward
+the hull, each column's lane taking its next stake, and the company cuts the
+chains and the haul roads that feed them (`long-survey-arc.md`, The Line as a city
+push). A ground war through a populated city, built to show the destruction
+mechanics: walls and roofs break, blocks collapse and burn under the fight.
 
-**Ground.** The Burn's city (`HeartCountry.planFor(THE_BURN, CITY)`), `long-survey-line`
-seed 2, 400 by 240. Dense blocks run from the fields at the west edge to the east
-edge. The city is intact at the start apart from the hull's impact band
-(`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
+**Ground.** Broad Front's city (`HeartCountry.planFor(BROAD_FRONT, CITY)`),
+`long-survey-line` seed 2, 560 by 336. Fields along the south edge, then dense
+blocks to the north edge. The city is intact at the start apart from the hull's
+impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
-- **Entry.** The company and the garrison's armour step off from the fields along
-  the west edge (x 0 to 75), with the landing and the airfield at the north-west.
-- **The hull.** Down along the east edge, broken in three, heading south
-  (centre 356,150; sections x 338 to 374, y 87 to 214), the bay's door facing the
-  city, the forge in the bow at the south end. Its trench runs on south from the
-  bow (to y 48). The impact band flattens the eastern blocks (x 300 and east);
-  beyond it the city stands.
-- **The chain.** Three established stakes in a chain west from the hull into the
-  city (316,150; 276,150; 276,110), a raised stake on the Avenue (236,150) and a
-  planted one beyond it (236,110). Every lattice point has a haul road home; the
-  roads run through the streets.
+- **Entry.** The garrison's columns and the company step off from the fields
+  along the south edge (y 0 to 70), the landing on the Avenue at 279,39.
+- **The hull.** Down across the north edge in the heart's place, broken in three,
+  bow west (centre 330,296; x 267 to 394, y 278 to 314), the forge in the bow, the
+  bay's door facing the city. Its trench runs on west from the bow. The impact
+  band flattens the blocks round it (to about y 250); south of that the city
+  stands, and the heart's overgrown commons lie open in front of the hull.
+- **The claim.** Two chains run south from the hull into the city and branch
+  along the boulevard (y about 186): established stakes nearest the hull
+  (330,256; 330,216; 330,176; 370,256; 370,216), raised ones at the lane heads
+  (290,176; 330,136; 370,176) and planted ones beyond (250,176; 410,176). Every
+  stake sits on a lattice point that seats on every world's skin, and every
+  lattice point has a haul road home through the streets.
 
-**Routes**, west to east, three of different character:
+**Lanes**, south to north, one per column, three of different character:
 
-- **A, the Avenue** (y about 160): the main road from the fields to the hull's bay.
-  The armour's axis: wide, long sightlines, the allied column's road. The raised
-  stake stands on it.
-- **B, the North Wards** (y 190 to 235): dense blocks and narrow streets, short
-  sightlines, fought building to building; the company's road to the stern without
-  the Avenue's guns, where walls and roofs come down.
-- **C, the South Yards** (y 40 to 95): the rail edge, yards and the ravine to the
-  trench; broken ground, the walkers' flank toward the bow and the forge.
+- **West lane** (x about 150 to 250): the dense west wards, narrow streets and
+  short sightlines, fought building to building to the planted stake at 250,176
+  and the raised one behind it.
+- **Centre lane, the Avenue** (x about 279): the main road from the landing north
+  to the boulevard; the armour's axis, wide with long sightlines, to the raised
+  stake at 330,136 and the chain's trunk above it.
+- **East lane** (x about 410 to 470): the east wards to the planted stake at
+  410,176 and up the second chain to the hull's stern.
 
 **Set pieces.**
 
-1. The Avenue stake: the raised stake on the Avenue, armour against the watch in
-   the open, the first fight the column meets.
-2. The chain's knot: the three established stakes between the Avenue and the
-   South Yards, where cutting the chain strands the stakes west of it.
-3. The rubble field: the impact band before the hull, flattened blocks and debris,
-   the last assault into the hull's mouth.
+1. The Cross: the boulevard junction where the lanes meet the chains' branches;
+   cutting the trunk at 330,176 strands both west stakes.
+2. The commons under the hull: open overgrown ground in front of the hull, the
+   established stakes standing in it under the watch's guns.
+3. The rubble band: the flattened blocks round the hull, the last push to its
+   mouth. The hull and its forge stay out of reach; that is chapter 4.
 
-**Allies.** The garrison's armour holds the Avenue and pushes along it; its
-infantry follows on the South Yards. The company works the wards and the yards,
-cutting haul roads and the chain where the armour cannot reach.
-
-**Mission family.** Open: a city push means Broad Front or Assault rather than the
-Cordon's redoubt line (`long-survey-arc.md`, Open picks).
+**Allies.** Each lane is a garrison column, infantry screening the streets and
+armour on the open ground, guns and air behind; the company works between the
+lanes, cutting haul roads and chains where the columns cannot reach.

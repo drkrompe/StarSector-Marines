@@ -45,7 +45,7 @@ import java.util.Set;
  * <ul>
  *   <li>The Fall: the Colony Breach's colony ({@code colony-breach}'s generation, basin and all).</li>
  *   <li>Stakes: mine country of its own, a Sabotage plan in remote sprawl at the colony's size.</li>
- *   <li>The Line: the district capital, The Burn's city ({@link HeartCountry#planFor}), the hull down along its east edge.</li>
+ *   <li>The Line: the district capital, Broad Front's city ({@link HeartCountry#planFor}), the hull down across its north edge.</li>
  *   <li>The Surveyor: Broad Front's country ({@code heart-front}'s plan and basin), its airbases placed.</li>
  * </ul>
  */
@@ -101,9 +101,9 @@ public final class LongSurveyGround {
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_LINE -> {
-                // The district capital: The Burn's city, the company stepping off from the west edge, the hull down at
-                // the east edge in the heart's place with its trench ploughed west into the city's flank.
-                Form form = Form.THE_BURN;
+                // The district capital: Broad Front's city, the columns stepping off from the south edge, the hull down
+                // across the north edge in the heart's place.
+                Form form = Form.BROAD_FRONT;
                 TargetProfile profile = BloomHeartSetup.world(home)
                         .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
                 PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
