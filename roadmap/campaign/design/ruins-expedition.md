@@ -841,7 +841,8 @@ The works band is laid as a block plan, round the works hall:
 A space at a lock stands west of the hall's wall and spine, and takes no way but its lock. Each other space joins the
 network on its own side of the hall, after the ways through the band, so the route still crosses the hall. An infantry
 room is closed to ways with its wall; its doors are cut by hand. Where the vault's apron stands beside the works hall,
-the way on to the vault leaves through the hall's east wall.
+the way on to the vault leaves through the hall's east wall. A bulkhead, a cargo leaf door that never dies, stands
+wherever a way crosses a band line inside the hull.
 
 Still to come:
 - a block plan for the deeper band;

@@ -505,7 +505,14 @@ public final class RuinsDelveStage implements GenStage {
             Way shortWay = null;
             for (Way way : last.ways) if (way.kind() == WayKind.COLLAPSE) shortWay = way;
             Collapse collapse = new Collapse(RuinsDelve.COLLAPSE, layers - 1, shortWay);
-            List<RuinsDelve.LeafDoor> leafDoors = leafDoors(plantHalls, entrances);
+            // A plant's bulkheads: a cargo door wherever a way crosses a band line inside the hull.
+            List<Area> bulkheads = new ArrayList<>();
+            if (plantMode) {
+                for (int k = firstInside + 1; k < layers; k++) {
+                    for (Way way : drafts.get(k).ways) if (way.open()) bulkheads.add(way.span());
+                }
+            }
+            List<RuinsDelve.LeafDoor> leafDoors = leafDoors(plantHalls, entrances, bulkheads);
             // The vault's outer door: a hall door across its three cells, kept powered so the haul's way stays whole.
             Cell outer = vault.door();
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
@@ -719,9 +726,11 @@ public final class RuinsDelveStage implements GenStage {
          * long, through the ring of hull round a hall. Each door's stance is drawn by coordinate hash: a third stand
          * dead part-open, one in six was forced long ago, the rest still answer. A dead door's leaves stand in its
          * end cells, which are shut so the way narrows to the cells between; only a hall door of three cells or more
-         * can die so. A cargo door stands in a way in, which stays open its whole width, so it never dies.
+         * can die so. A cargo door stands in a way in, which stays open its whole width, so it never dies; so does a
+         * bulkhead, a cargo door in each of {@code bulkheads}, the ways across a band line inside the hull.
          */
-        List<RuinsDelve.LeafDoor> leafDoors(List<RuinsDelve.PlantHall> halls, List<Area> entrances) {
+        List<RuinsDelve.LeafDoor> leafDoors(List<RuinsDelve.PlantHall> halls, List<Area> entrances,
+                                            List<Area> bulkheads) {
             List<RuinsDelve.LeafDoor> out = new ArrayList<>();
             Set<Long> seen = new HashSet<>();
             for (RuinsDelve.PlantHall hall : halls) {
@@ -731,7 +740,9 @@ public final class RuinsDelveStage implements GenStage {
                 joins(out, seen, false, f.bottom(), f.top(), f.left() - 1);
                 joins(out, seen, false, f.bottom(), f.top(), f.right() + 1);
             }
-            for (Area way : entrances) {
+            List<Area> cargo = new ArrayList<>(entrances);
+            cargo.addAll(bulkheads);
+            for (Area way : cargo) {
                 boolean alongX = way.width() > way.height();
                 Area span = alongX ? new Area(way.left(), way.bottom(), way.right(), way.bottom())
                         : new Area(way.left(), way.bottom(), way.left(), way.top());
