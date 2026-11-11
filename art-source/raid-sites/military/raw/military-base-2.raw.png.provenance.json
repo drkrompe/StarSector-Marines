@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1caf0-d255-7c51-99f3-98e756cdeedf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1caf0-d255-7c51-99f3-98e756cdeedf\\exec-2473bf54-3045-46a8-8d57-90b05a6f9746.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\raid-sites\\military\\raw\\military-base-2.raw.png",
+    "sha256": "ecf11bd55b353ed3d38c49145cfd4ea54de8fa603c852a3b4423f05a68138788",
+    "dimensions": [
+      1639,
+      960
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\raid-sites\\military\\prompts\\military-base-2.prompt.txt",
+  "promptSha256": "111ba4f6f3bb5d25989e84aa14eb056d2f8591424a662b7123c0da2cca89c766",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every piece's size, position, silhouette and shadow\nImage 2: Material/style only (the same outpost's round-1 pieces); not layout\n\nUse case: sketch-to-render, game doodad sheet. Image 1 is the authoritative geometry guide: keep every piece exactly where it is, at its size and silhouette, on the same 1696x992 canvas; do not move, rescale, rotate, merge or add pieces. Output on a TRUE TRANSPARENT background, including every negative space; no ground, floor, border, slab or text. Each piece's cast shadow (the grey shape in the guide, falling to the lower right) is painted as a translucent dark shadow, kept inside the guide's grey shape.\nFive pieces of infrastructure for a dusty frontier colony outpost's communications, power and fuel yard in a science-fiction strategy game, seen from directly overhead, for a top-down map. They must read clearly at a glance from high above: bold shapes, strong tall shadows.\nPIECE 1 (top left), SATELLITE UPLINK DISH: a ground station dish on a square pale concrete pad with a low steel railing around its edge; the big white-grey parabolic dish is tilted up toward the upper left so from above it shows as a broad oval bowl, three struts holding a small feed horn over its middle, a dark pedestal under it; the dish's cast shadow falls to the lower right. It must read as a communications dish.\nPIECE 2 (top middle), SEARCH RADAR TOWER: a tall steel lattice tower seen from straight above: four splayed dark legs at the corners, cross bracing, a small grated platform at the top, and across it a long flat search-radar antenna bar (a slatted rectangular array in pale grey) on a rotator. Its long dramatic cast shadow (the tower and the antenna bar) stretches far to the lower right; the shadow is the read.\nPIECE 3 (top right), FUEL BLADDER IN A BUND: a big soft pillow-shaped fuel bladder of dark olive rubberised fabric, slightly sagging with seams and a filler cap, lying inside a low square earth bund wall of packed khaki earth with a pale gravel floor; a black hose runs from the bladder to a small dark pump unit in the lower right corner.\nPIECE 4 (bottom left), GENERATOR SET: a skid-mounted diesel generator in an olive-drab sheet-steel housing seen from above: louvred vent panels, access hatches, a round black exhaust stack near the upper right of the roof, a small pale fuel tank on the skid's right end, thick black cable runs leaving to the lower right; a dark steel skid frame under it; its blocky shadow to the lower right.\nPIECE 5 (bottom middle), RADIO ANTENNA MAST: a tall thin guyed radio mast seen from straight above: just a small round base plate and the mast tip in the middle, three thin taut guy wires out to three small ground anchors, and the mast's long thin cast shadow running to the lower right.\nPalette: olive drab, khaki, sun-bleached grey concrete and steel, dust and worn paint. No insignia, emblems, flags, text or markings of any real organisation.\nStraight 90-degree overhead orthographic camera, no perspective. Sun from the upper left. Hand-painted gritty science-fiction game art like Starsector, restrained palette, coarse readable detail that survives being shrunk to about 32 to 64 pixels per cell. No text, letters, numbers, labels, watermark, UI, people or extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\raid-sites\\military\\guide-2.png",
+      "sha256": "0581c6c43a0f61678a0dc74d5ad78f3a99c188c06ef57204895f972ab1b2c045",
+      "dimensions": [
+        1696,
+        992
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every piece's size, position, silhouette and shadow"
+    },
+    {
+      "path": "art-source\\raid-sites\\military\\raw\\military-base.raw.png",
+      "sha256": "936901abe2e06a1dbff6e3d2358533ad16843686570e3534eb304b1ceff496dd",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the same outpost's round-1 pieces); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent image, keeping Image 1’s geometry and using Image 2 only for materials and style.\n"
+  ],
+  "usage": {
+    "input_tokens": 46790,
+    "cached_input_tokens": 36096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 754,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 79.6
+}

@@ -101,6 +101,8 @@ public class BattleSprites {
     private static final String SPRITE_DECAL_SHEET  = "graphics/decals/decals.png";
     /** The rubble damaged building walls leave at their foot ({@link WallRubble}). */
     static final String SPRITE_WALL_RUBBLE = "graphics/decals/wall-rubble.png";
+    /** The creep a stood-up wall wears ({@link CreepClimb}), baked from the ground creep's model by CreepWallBaker. */
+    static final String SPRITE_CREEP_WALL = "graphics/decals/creep-wall.png";
     /** Vanilla, so the headless sprite set resolves these off the install root rather than through the game. */
     static final String WARSHIP_ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
     static final String WARSHIP_ENGINE_GLOW_SPRITE = "graphics/fx/engineglow32.png";
@@ -214,6 +216,8 @@ public class BattleSprites {
     private SpriteAPI rubbleSheet;
     private SpriteSheetFrames rubbleFrames;
     private boolean rubbleSheetLoadAttempted;
+    private SpriteAPI creepWallSheet;
+    private boolean creepWallSheetLoadAttempted;
 
     // ---- drone sprites ------------------------------------------------------
 
@@ -523,6 +527,7 @@ public class BattleSprites {
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public SpriteAPI rubbleSheet()                 { return rubbleSheet; }
+    public SpriteAPI creepWallSheet()              { return creepWallSheet; }
     public SpriteSheetFrames rubbleFrames()        { return rubbleFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
     public ShuttleSpriteCache droneSprite()        { return droneSprite; }
@@ -617,8 +622,13 @@ public class BattleSprites {
             ensureDoodadSheet();
             ensureDecalSheet();
             ensureRubbleSheet();
+            ensureCreepWallSheet();
         }));
         if (terrainSheets != null) {
+            // A ruin's lamp fixtures and its sheets' emissive overlays, with the sheets they light.
+            for (String path : RuinsLightArt.paths(terrainSheets)) {
+                steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> loadLightArt(path)));
+            }
             for (String path : terrainSheetPaths()) {
                 if (terrainSheets.contains(path)) {
                     steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> ensureTerrainSheet(path)));
@@ -869,9 +879,17 @@ public class BattleSprites {
 
     /**
      * A lamp fixture's or a sheet's emissive overlay ({@code mod/graphics/battle/lights/}), loaded the first time it
-     * is asked for; null when it cannot be, so the lamp draws without its art.
+     * is asked for; null when it cannot be, so the lamp draws without its art. A battle's load names what it will ask
+     * for ({@link RuinsLightArt#paths}), so a battle asks first only for what its set missed.
      */
     public SpriteAPI lightArt(String path) {
+        if (lightArt.containsKey(path)) return lightArt.get(path);
+        if (terrainOnDemand) unplanned("light art " + path);
+        return loadLightArt(path);
+    }
+
+    /** Loads {@link #lightArt}'s {@code path} now, as a battle's load does, unless it is already. */
+    private SpriteAPI loadLightArt(String path) {
         if (lightArt.containsKey(path)) return lightArt.get(path);
         SpriteAPI sprite = loadEngineFxSpriteOrNull(path);
         lightArt.put(path, sprite);
@@ -1843,6 +1861,19 @@ public class BattleSprites {
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load unit sheet " + path, e);
             return null;
+        }
+    }
+
+    /** Lazy-loads the creep wall sheet ({@link #SPRITE_CREEP_WALL}); failure leaves it null and walls take no creep. */
+    public void ensureCreepWallSheet() {
+        if (creepWallSheetLoadAttempted) return;
+        creepWallSheetLoadAttempted = true;
+        try {
+            ModTextures.loadTexture(SPRITE_CREEP_WALL, lease);
+            creepWallSheet = ModTextures.sprite(SPRITE_CREEP_WALL);
+        } catch (Exception e) {
+            LOG.warn("BattleSprites: could not load " + SPRITE_CREEP_WALL, e);
+            creepWallSheet = null;
         }
     }
 

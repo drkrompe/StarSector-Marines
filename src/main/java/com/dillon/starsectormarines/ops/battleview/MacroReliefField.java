@@ -128,6 +128,26 @@ public final class MacroReliefField {
     }
 
     /**
+     * The floor a wall cell stands on, metres above the datum: the lowest of the open ground beside it across a side,
+     * or its own tier where none is open. A diagonal wall's cells are lowered to it ({@link DiagonalWallShade}).
+     */
+    float floorMeters(int x, int y) {
+        float best = Float.MAX_VALUE;
+        for (int s = 0; s < 4; s++) {
+            int nx = x + (s == 0 ? 1 : s == 2 ? -1 : 0), ny = y + (s == 1 ? 1 : s == 3 ? -1 : 0);
+            if (nx < 0 || ny < 0 || nx >= topology.getWidth() || ny >= topology.getHeight()) continue;
+            if (topology.isWall(nx, ny)) continue;
+            best = Math.min(best, metersAt(nx, ny));
+        }
+        return best == Float.MAX_VALUE ? tierMeters(x, y) : best;
+    }
+
+    /** The top of a wall standing at {@code (x, y)}, metres above the datum: its tier and a wall's height. */
+    float wallTopMeters(int x, int y) {
+        return tierMeters(x, y) + wallMeters;
+    }
+
+    /**
      * How high the ground itself stands: its tier, a face at the tier it holds
      * up, a ramp by how far up it stands. Zero on a flat map.
      */

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A works' defences by the raided market's security, and a hall's parapet ({@code WorksDefences}). */
@@ -17,6 +18,25 @@ class WorksDefencesTest {
         assertEquals(WorksDefences.Layer.GUARDED, WorksDefences.layer(RaidSiteTemplate.Security.GUARDED));
         assertEquals(WorksDefences.Layer.FORTIFIED, WorksDefences.layer(RaidSiteTemplate.Security.FORTIFIED));
         assertEquals(WorksDefences.Layer.OPEN, WorksDefences.layer(null), "a plan with no security lays nothing");
+    }
+
+    @Test
+    void aBuildingFacesTheSideOfTheWorksItLiesFurthestOutPast() {
+        int[] works = {10, 10, 30, 30};
+        assertEquals(0, WorksDefences.heldSide(works, 2, 12, 6, 18), "west");
+        assertEquals(1, WorksDefences.heldSide(works, 34, 12, 38, 18), "east");
+        assertEquals(2, WorksDefences.heldSide(works, 12, 1, 18, 5), "low y");
+        assertEquals(3, WorksDefences.heldSide(works, 12, 36, 18, 40), "high y");
+        assertEquals(-1, WorksDefences.heldSide(works, 25, 25, 35, 35), "overlapping the works faces no side");
+        assertEquals(4, WorksDefences.gap(works, 2, 12, 6, 18));
+    }
+
+    @Test
+    void theOuterBeltIsKeptOffEachGatesApproachOutwardOfItsMouth() {
+        List<int[]> lanes = List.of(new int[]{10, 10, 1, 0});
+        assertTrue(WorksDefences.inLane(lanes, 20, 10 + WorksDefences.LANE_CLEAR));
+        assertFalse(WorksDefences.inLane(lanes, 20, 10 + WorksDefences.LANE_CLEAR + 1));
+        assertFalse(WorksDefences.inLane(lanes, 5, 10), "behind the mouth is the works, not its approach");
     }
 
     @Test

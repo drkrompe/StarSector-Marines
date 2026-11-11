@@ -46,14 +46,16 @@ public final class WorksProps {
     }
 
     /**
-     * A solid prop ({@code id}, with or without its {@code doodad.} prefix) with its corner at {@code (x, y)}, turned
+     * A solid prop ({@code id}, a full id such as {@code ship-engineering.generator}, or a {@code doodad.} one with or
+     * without that prefix) with its corner at {@code (x, y)}, turned
      * {@code turns} quarter turns, if its whole footprint is open; returns whether it stood. A placed prop blocks
      * movement, not sight, and is a fixture.
      */
     public static boolean place(GenContext c, int x, int y, String id, int turns) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null) return false;
-        DoodadDef def = registry.doodad(id.startsWith("doodad.") ? id : "doodad." + id);
+        DoodadDef def = registry.doodad(id);
+        if (def == null && !id.startsWith("doodad.")) def = registry.doodad("doodad." + id);
         if (def == null) return false;
         Doodad prop = new Doodad(x, y, def, turns);
         if (!open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;

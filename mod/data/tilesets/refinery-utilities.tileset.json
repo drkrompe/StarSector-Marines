@@ -5,7 +5,7 @@
     {
       "col": 0,
       "row": 0,
-      "name": "refinery.stack"
+      "name": "refinery.heater"
     },
     {
       "col": 1,
@@ -35,7 +35,7 @@
   ],
   "doodads": [
     {
-      "id": "refinery.stack",
+      "id": "refinery.heater",
       "col": 0,
       "row": 0,
       "cover": "none",

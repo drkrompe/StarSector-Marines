@@ -1,13 +1,18 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 /**
- * Hive creep up a stood-up wall's face ({@code voids.md}, buildings in depth; {@code colony-breach-nouns.md}, Creep).
- * The creep claims the wall cells beside the ground it holds and fills them slowly, so a wall cell's coverage is how
- * long the creep has stood on it ({@link com.dillon.starsectormarines.battle.creep.CreepField}). A young wall takes
- * veins reaching up from its foot; an old one a lumpy crust banded up from the foot with the veins running on above it;
- * living creep wears the palette's flesh and veins with a glow in the crust, and dying creep greys to the palette's
- * dead tone. The face is addressed as {@code t} along it and {@code z} up it as a share of its height, as
- * {@link FacePainter} addresses it. GL-free.
+ * Hive creep up a stood-up wall's face and over its top ({@code voids.md}, buildings in depth;
+ * {@code colony-breach-nouns.md}, Creep). The creep claims the wall cells beside the ground it holds and fills them
+ * slowly, so a wall cell's coverage is how long the creep has stood on it
+ * ({@link com.dillon.starsectormarines.battle.creep.CreepField}). A young wall takes veins reaching up from its foot;
+ * an old one a crust grown up from the foot with the veins running on above it, and the crust comes over the wall's
+ * top from its outer side. Dying creep greys to the palette's dead tone.
+ *
+ * <p>Both are drawn from the creep sheet ({@link BattleSprites#SPRITE_CREEP_WALL}), which {@link CreepShading}, the
+ * ground creep's own model, bakes over a creep edge along the top of each strip: the crust is the ground's crust, its
+ * beaded lip and plates and veins, and the veins are those it lays over a cliff face. A wall shows the top of a strip
+ * as tall as its creep stands, in cells, so the plates keep the ground's size. The face is addressed as {@code t}
+ * along it and {@code z} up it as a share of its height, as {@link FacePainter} addresses it. GL-free.
  */
 final class CreepClimb {
 
@@ -15,12 +20,35 @@ final class CreepClimb {
     static final float CLIMB_METERS = 4.5f;
     /** Coverage below which a wall shows no creep: the first veins of a claim. */
     static final int FIRST = 16;
-    /** Coverage at which a crust starts banding the foot; it covers the creep's reach at full coverage. UNTUNED. */
+    /** Coverage at which a crust starts growing up from the foot; it covers the creep's reach at full coverage. UNTUNED. */
     static final int CRUST_FROM = 140;
 
-    /** Where a face's creep is drawn: one flat quad, {@code t0..t1} along and {@code z0..z1} up, in a colour. */
+    // The creep sheet's layout (CreepWallBaker): four strips, living crust, dead crust, living veins, dead veins.
+    static final int SHEET_CELL_PX = 32, SHEET_CELLS_ALONG = 16, SHEET_CELLS_UP = 5;
+    /** Where each strip's edge lies under its top, cells. */
+    static final float SHEET_EDGE = 0.9f;
+    /** How far above the edge a wall's creep starts its strip, cells: the lip's lobes reach up past the edge. */
+    static final float LOBES = 0.6f;
+    static final int CRUST = 0, DEAD_CRUST = 1, VEINS = 2, DEAD_VEINS = 3;
+
+    /**
+     * Where a face's creep is drawn: {@code t0..t1} along and {@code z0..z1} up the face, from strip {@code row} of
+     * the sheet, {@code u0..u1} along it and {@code v0} (at {@code z1}) down to {@code v1} (at {@code z0}), in cells,
+     * tinted and at {@code alpha}.
+     */
     interface Sink {
-        void quad(float t0, float t1, float z0, float z1, float r, float g, float b);
+        void patch(float t0, float t1, float z0, float z1, int row, float u0, float u1, float v0, float v1,
+                   float light, float alpha);
+    }
+
+    /**
+     * Where a wall top's crust is drawn: the quad from its outer side ({@code x0,y0} to {@code x1,y1}, cells) in to
+     * ({@code x2,y2}, {@code x3,y3}), from strip {@code row}, {@code u0..u1} along it and {@code vOut} at the outer side
+     * up to {@code vIn} at the inner, in cells.
+     */
+    interface TopSink {
+        void patch(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, int row,
+                   float u0, float u1, float vOut, float vIn, float light, float alpha);
     }
 
     private CreepClimb() { }
@@ -36,54 +64,54 @@ final class CreepClimb {
         return Math.max(0f, Math.min(1f, (coverage - CRUST_FROM) / (float) (255 - CRUST_FROM)));
     }
 
-    /** The creep's colour between living ({@code vitality} 255) and dead (0). */
-    static void tone(float[] living, float[] dead, int vitality, float light, float[] out) {
-        float v = Math.max(0, Math.min(255, vitality)) / 255f;
-        for (int k = 0; k < 3; k++) out[k] = (dead[k] + (living[k] - dead[k]) * v) * light;
+    /** Where along the sheet's strips a wall cell starts, cells: walls' cells side by side run on along it. */
+    static float along(int along) {
+        return Math.floorMod(along, SHEET_CELLS_ALONG);
     }
 
-    private static final float[] FLESH = new float[3], RIM = new float[3], VEIN = new float[3], GLOW = new float[3];
-
     /**
-     * Paints one cell's face of creep: its crust in four lumps along the face, each lipped with the palette's rim, a
-     * glow in a living crust, and two or three veins reaching on above it. Nothing stands above {@code top} (how much of
-     * the wall stands: 1 whole, less where its building is cut away or broken). Veins are fine work, drawn only with
-     * {@code detail}. Called on the render thread only.
+     * Paints one cell's face of creep: its veins as high as the creep reaches and its crust over them as high as it has
+     * crusted, each the living strip with the dead one over it as the creep withers. Nothing stands above {@code top}
+     * (how much of the wall stands: 1 whole, less where its building is cut away or broken). Veins are fine work, drawn
+     * only with {@code detail}. {@code along} is the cell's place along its wall (its column or row).
      */
-    static void paint(int coverage, int vitality, float meters, float top, int cell, CreepPalette palette,
-                      float light, boolean detail, Sink sink) {
+    static void paint(int coverage, int vitality, float meters, float top, int along, float light, boolean detail,
+                      Sink sink) {
         float reach = Math.min(top, reach(coverage, meters));
         if (reach <= 0f) return;
         float crusted = reach * crust(coverage);
-        tone(palette.flesh(), palette.dead(), vitality, light, FLESH);
-        tone(palette.rim(), palette.dead(), vitality, light, RIM);
-        tone(palette.vein(), palette.dead(), vitality, light * .9f, VEIN);
-        tone(palette.glow(), palette.dead(), vitality, light, GLOW);
-        if (crusted > 0f) {
-            float lip = Math.min(.08f, crusted * .25f);
-            for (int k = 0; k < 4; k++) {
-                float t0 = k / 4f, t1 = (k + 1) / 4f;
-                float z = Math.min(reach, crusted * (.7f + .6f * BuildingFaces.hash(cell, 300 + k)));
-                sink.quad(t0, t1, 0f, z, FLESH[0], FLESH[1], FLESH[2]);
-                sink.quad(t0 + .03f, t1 - .03f, Math.max(0f, z - lip), z, RIM[0], RIM[1], RIM[2]);
-                if (vitality >= 160 && BuildingFaces.hash(cell, 310 + k) < .5f) {
-                    float g = .3f + .4f * BuildingFaces.hash(cell, 320 + k);
-                    sink.quad(t0 + .08f, t0 + .16f, z * g, Math.min(z, z * g + .06f), GLOW[0], GLOW[1], GLOW[2]);
-                }
-            }
-        }
-        if (!detail) return;
-        int veins = 2 + (BuildingFaces.hash(cell, 330) < .5f ? 1 : 0);
-        for (int k = 0; k < veins; k++) {
-            float t = .1f + .8f * BuildingFaces.hash(cell, 340 + k);
-            float z1 = Math.min(reach, Math.max(crusted, reach * (.55f + .45f * BuildingFaces.hash(cell, 350 + k))));
-            if (z1 <= 0f) continue;
-            sink.quad(t, t + .05f, 0f, z1, VEIN[0], VEIN[1], VEIN[2]);
-            // A branch off it, part-way up, offset along the face as a step.
-            float bz = z1 * (.4f + .3f * BuildingFaces.hash(cell, 360 + k));
-            float bt = t + (BuildingFaces.hash(cell, 370 + k) < .5f ? -.09f : .05f);
-            sink.quad(Math.max(0f, bt), Math.min(1f, bt + .04f), bz, Math.min(z1, bz + reach * .2f),
-                    VEIN[0], VEIN[1], VEIN[2]);
-        }
+        float u0 = along(along), u1 = u0 + 1f, dead = 1f - Math.max(0, Math.min(255, vitality)) / 255f;
+        if (detail || crusted <= 0f) strip(VEINS, DEAD_VEINS, reach, meters, u0, u1, dead, light, sink);
+        if (crusted > 0f) strip(CRUST, DEAD_CRUST, crusted, meters, u0, u1, dead, light, sink);
+    }
+
+    /** One strip from the foot to {@code z}: its top {@code z * meters} cells, stretched if taller than the strip. */
+    private static void strip(int living, int deadRow, float z, float meters, float u0, float u1, float dead,
+                              float light, Sink sink) {
+        float v0 = SHEET_EDGE - LOBES, v1 = Math.min(SHEET_CELLS_UP, v0 + z * meters);
+        if (dead < 1f) sink.patch(0f, 1f, 0f, z, living, u0, u1, v0, v1, light, 1f);
+        if (dead > 0f) sink.patch(0f, 1f, 0f, z, deadRow, u0, u1, v0, v1, light, dead);
+    }
+
+    /** How far in from a wall's outer side the crust grows over its top, cells: none until it crusts. */
+    static float overTop(int coverage) {
+        float c = crust(coverage);
+        return c <= 0f ? 0f : LOBES + .4f * c;
+    }
+
+    /**
+     * Paints an old crust over a wall's top from its outer side ({@code ax,ay} to {@code bx,by}, outward
+     * {@code nx,ny}, cells) in toward the wall's middle, its lip toward the middle: the creep that crusted the face come
+     * over the top, which is what a view from above sees of it. Nothing on a young claim.
+     */
+    static void paintTop(int coverage, int vitality, int along, float ax, float ay, float bx, float by, float nx,
+                         float ny, float light, TopSink sink) {
+        float depth = overTop(coverage);
+        if (depth <= 0f) return;
+        float u0 = along(along), u1 = u0 + 1f, dead = 1f - Math.max(0, Math.min(255, vitality)) / 255f;
+        float vIn = SHEET_EDGE - LOBES, vOut = vIn + depth;
+        float cx = bx - nx * depth, cy = by - ny * depth, dx = ax - nx * depth, dy = ay - ny * depth;
+        if (dead < 1f) sink.patch(ax, ay, bx, by, cx, cy, dx, dy, CRUST, u0, u1, vOut, vIn, light, 1f);
+        if (dead > 0f) sink.patch(ax, ay, bx, by, cx, cy, dx, dy, DEAD_CRUST, u0, u1, vOut, vIn, light, dead);
     }
 }

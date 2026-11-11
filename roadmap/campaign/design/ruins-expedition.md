@@ -459,7 +459,8 @@ partly lit, lit; `-Dsnapshot.ruinsLight.company` for the company's lights).
 
 Owner picks: `ruins-light-start` black, `ruins-light-power` the works,
 `ruins-light-escalation` the watch's lights and the Stirring floor,
-`ruins-light-sight` presentation only (darkness never shortens sight).
+`ruins-light-sight` presentation only (darkness never shortens sight),
+`ruins-light-company` the company's cone lights and the plant's lamp art as built.
 
 ### The entrance and the pull-out point
 
@@ -828,8 +829,9 @@ is the plant its architect briefed, and only then a ruin.
   5. the derelict watch stays on in the maintenance shop;
   6. centuries of breaches, collapses and spill follow.
 
-The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
-undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. Every works site is
+laid this way (owner picks `ruins-plant-plan` a, `ruins-plant-default-r2` a); a site with no works hall keeps its
+honeycomb of chambers.
 The works band is laid as a block plan, round the works hall:
 - the raw stock store under its dispatch end, and the QA lab at the outfeed;
 - the dock on the hull face behind the way in nearest the raw stock: its cargo lock is that entrance, so the way in opens
@@ -859,10 +861,21 @@ cell, footprint, goods and space, for the finds to be picked from (`plant-store-
 The hull is drawn round the plant (pick `ruins-plant-hull`, building on the redraw). Each interior band's line stands
 back from the vault only as far as its spaces need, and the outer layers spread over the ground that frees. The deeper band's
 line lets its ways cross only within 30 rows of the vault's row. Each band's spine is walled up beyond the last thing that
-joins it. The hull that then walls nothing, more than two cells from any
-floor, piece or door, and that the ruin's ground outside reaches is cut back to open ground. The plant stands as a
-building, with the ground round it, outside the facility, so a machine may be set down there. Hull that the outside
-ground cannot reach stays solid.
+joins it. The plant is one enclosed building (owner, on the first shot: "Where's the rest of the building in this preview? It
+looks like it's just outside"). The outline cuts back to open ground only hull more than ten cells from any floor,
+piece or door, so spaces near each other fuse under one continuous outer hull. The outside starts at that hull face, on
+the ruin's own ground, and a machine may be set down there. Inside, the building's mass is opened as plant floor: every
+pocket more than two cells from any floor and from the outside becomes a bay. Each bay has one door onto the floor
+beside it, so no bay carries a way round the works hall. Partition walls on a 16-cell grid cut the mass into bays of
+a room's size. Each bay takes one door, onto the plant's floor or into a bay already open, so the bays hang off the
+plant in trees of dead ends.
+
+The plant is then ruined in its brief's order (owner pick `ruins-plant-next-r2` a). The stores were eaten down and
+stripped. The safe shutdown left every bay's three-cell blast door dead part-open, or now and then torn open since. The
+crew left by the suit room, whose lock stands torn open. Then centuries: two bays against the hull were breached from
+outside, the ruin's ground running in through a rubble gap, with no door to the plant. The largest bay's roof came
+down, rubble across its floor with girders and slabs where they fell. The line's coolant spilled across the raw stock
+store's far end. The ruined places are published as spaces: `collapsed-bay`, `breached-bay-1`, `breached-bay-2`.
 
 Still to come:
 - each space dressed from its own plan;
@@ -1072,7 +1085,7 @@ tier is set by where it lies, never rolled:
   `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
   salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
 
-**Finds lie where the plant kept its goods** (the plant, `battle.ruins.plant`).
+**Finds lie where the plant kept its goods** (every works site's plant).
 On a plant site a supply find is never a bundle dropped on open floor. It is a
 load the plant left in its stores, drawn on the recovery skid
 (`doodad.ruins-store-<goods>-cache`), and it is the commodity the store held:
@@ -1087,8 +1100,10 @@ load the plant left in its stores, drawn on the recovery skid
 - The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
   `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
   rest to raw stock and maintenance.
-- A find takes one of the store's loaded bays and is drawn as its cache
-  variant, which gives no cover. The other loads stay as cover and dressing,
+- A find takes one of the store's loads (`RuinsDelve.Interior.loads`,
+  picked by `StoreFinds`) and is drawn as its cache variant, which gives no
+  cover. It is recovered from the open floor beside the load, and it settles as
+  its own goods. The other loads stay as cover and dressing,
   never taken. If there are more finds than loaded bays, a store turns empty bays
   into finds before any find goes elsewhere.
 - Each find is worth about one field cache at the base game's base price
@@ -1098,7 +1113,7 @@ load the plant left in its stores, drawn on the recovery skid
   stock and the sealed unit in finished goods, each behind its seal door; the
   guardian's room at the band's light well; and the vault store.
 
-Off the plant (the switch off, and every site with no plant), finds keep field
+Off the plant (every site with no works hall), finds keep field
 salvage's placement along the route.
 
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one

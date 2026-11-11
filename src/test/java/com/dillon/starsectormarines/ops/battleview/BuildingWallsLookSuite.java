@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Set;
+import com.dillon.starsectormarines.battle.world.gen.StreetLights;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -38,13 +42,16 @@ import java.util.Random;
  * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
  * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
  * instead of the buildings; {@code =whole} shoots each map whole ({@code -whole.png}) and its right half
- * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off.
+ * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off;
+ * {@code -Dsnapshot.walls.night=on} shoots the town at night.
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
 
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     private static final int MAP_W = 200, MAP_H = 128;
     private static final float PLAY = 60f, CLOSE = 40f;
+    /** How dark {@code -Dsnapshot.walls.night=on} lays the town. */
+    private static final float NIGHT_DARKNESS = .78f;
     /** The whole map across, cells, for {@code -Dsnapshot.walls.frame=whole}. */
     private static final float WHOLE = MAP_W * 1.1f;
 
@@ -85,6 +92,14 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     for (Doodad d : map.doodads) sim.addDoodad(d);
                     sim.setBuildings(map.buildings);
                     sim.setSurface(world.palette());
+                    if ("on".equals(System.getProperty("snapshot.walls.night"))) {
+                        // A dark town, its wall lamps lit (StreetLights) and some windows with it.
+                        NightLighting dark = new NightLighting(NIGHT_DARKNESS, List.of(), Set.of());
+                        List<NightLighting.Lamp> lamps = StreetLights.townLamps(map.topology,
+                                StreetLights.wallLamps(map.doodads));
+                        System.out.println("building-walls-look " + world.id() + ": " + lamps.size() + " street lamps");
+                        map.topology.setNightLighting(StreetLights.lit(dark, lamps));
+                    }
                     if ("whole".equals(System.getProperty("snapshot.walls.frame"))) {
                         // The whole map in one frame, as a player zoomed all the way out sees it.
                         BattleReviewFrameRenderer whole = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
@@ -253,9 +268,46 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     if (!t.inBounds(x, y) || !t.isWall(x, y)) continue;
                     float r = BuildingFaces.hash(x + y * 4096, 83);
                     int hp = grid.getWallHp(x, y);
-                    if (r < (razed ? .25f : .08f)) sim.damageCell(x, y, 100_000);
-                    else if (r < .65f) grid.setWallHp(x, y, Math.max(1, (int) (hp * (.15f + .6f * (r - .1f)))));
+                    if (r < (razed ? .25f : .08f)) {
+                        fire(sim, x, y, 1, WallScars.Mark.BLAST, 1.6f);
+                        sim.damageCell(x, y, 100_000);
+                    } else if (r < .65f) {
+                        // Rounds fired at it from the street, kept where they land as the game keeps them, and the
+                        // wall worn by as much.
+                        int rounds = 2 + (int) (7 * BuildingFaces.hash(x + y * 4096, 84));
+                        fire(sim, x, y, rounds, WallScars.Mark.CHIP, .6f);
+                        if (BuildingFaces.hash(x + y * 4096, 85) < .35f) fire(sim, x, y, 1, WallScars.Mark.GOUGE, .6f);
+                        if (BuildingFaces.hash(x + y * 4096, 86) < .12f) fire(sim, x, y, 1, WallScars.Mark.BLAST, 1.2f);
+                        grid.setWallHp(x, y, Math.max(1, (int) (hp * (.15f + .6f * (r - .1f)))));
+                    }
                 }
+            }
+        }
+    }
+
+    /**
+     * Fires {@code rounds} rounds at wall cell {@code (x, y)} from the open street beyond one of its open sides, each
+     * kept where it reaches the wall ({@link WallScars#strike}), as {@code BattleScreen} keeps a round that stops on a
+     * wall.
+     */
+    private static void fire(BattleSimulation sim, int x, int y, int rounds, WallScars.Mark mark, float size) {
+        CellTopology t = sim.getTopology();
+        int[][] sides = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+        for (int k = 0; k < rounds; k++) {
+            int start = (int) (4 * BuildingFaces.hash(x * 31 + y * 4096 + k, 87));
+            for (int s = 0; s < 4; s++) {
+                int[] side = sides[(start + s) % 4];
+                int ox = x + side[0], oy = y + side[1];
+                if (!t.inBounds(ox, oy) || t.isWall(ox, oy) || t.getBuildingId(ox, oy) != 0) continue;
+                float along = .15f + .7f * BuildingFaces.hash(x * 31 + y * 4096 + k, 88);
+                float spread = (BuildingFaces.hash(x * 31 + y * 4096 + k, 89) - .5f) * 6f;
+                // Where the round reaches the wall: on the side it came from, along it.
+                float hx = side[0] != 0 ? x + (side[0] > 0 ? 1f : 0f) : x + along;
+                float hy = side[1] != 0 ? y + (side[1] > 0 ? 1f : 0f) : y + along;
+                float fx = hx + side[0] * 8f + (side[0] == 0 ? spread : 0f);
+                float fy = hy + side[1] * 8f + (side[1] == 0 ? spread : 0f);
+                sim.effects().wallScars().strike(t.getWidth(), fx, fy, hx, hy, 0f, mark, size);
+                break;
             }
         }
     }

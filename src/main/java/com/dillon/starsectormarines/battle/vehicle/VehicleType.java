@@ -656,11 +656,12 @@ public enum VehicleType {
         /** The pair of radiator grilles flanking the spine behind the turret ring. */
         static final FluxVents VENTS = new FluxVents(164f, 110f);
         /**
-         * The coax card's gun, in the turret's own frame: on the turret's right cheek beside the main barrel, its pivot
-         * a little ahead of the ring, on the heavy machine gun's carriage (owner, 2026-11-10: it rides the turret).
+         * The coax card's gun, in the turret's own frame: on the turret's left, close in beside the main barrel and
+         * parallel to it, its pivot about at the ring so most of it lies under the head, on the heavy machine gun's
+         * carriage (owner, 2026-11-11: closer in and further back than the first, right-cheek placement).
          */
         static final VehicleMount COAX = new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-                .36f, .30f, false);
+                -.20f, .22f, false);
     }
 
     /**

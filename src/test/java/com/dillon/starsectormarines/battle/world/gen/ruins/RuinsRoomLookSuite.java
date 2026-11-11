@@ -96,8 +96,8 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
                         }
                         caption(g, RuinsWorksHallLookSuite.title(works) + "'s plant, laid from its brief");
                     }));
-                    // Each store close, stocked from its brief.
-                    for (String store : List.of("raw-stock", "finished-goods")) {
+                    // Each store close, stocked from its brief, and the ruin: the collapsed bay and a breach.
+                    for (String store : List.of("raw-stock", "finished-goods", "collapsed-bay", "breached-bay-1")) {
                         RuinsDelve.Area a = spaces.get(RuinsDelve.Interior.spaceName(store));
                         if (a == null) continue;
                         float ss = Math.max(a.width() + 10f, (a.height() + 8f) * 16f / 9f);

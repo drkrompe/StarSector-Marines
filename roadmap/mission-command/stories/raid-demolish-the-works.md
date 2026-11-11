@@ -5,7 +5,9 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
 6 (the works' machines) is built on the owner's (a) on `raid-works-machines`
-and (c) on `raid-works-vehicles`.
+and (c) on `raid-works-vehicles`; slice 7 (the approach) on the owner's
+`raid-works-approach` "(a) and (c)" with outworks guns; slice 8 (pressure over time) on the owner's `raid-pressure` (b) with
+columns from off the map.
 
 Written: 2026-11-10
 
@@ -160,6 +162,66 @@ the player over time".
 - Tests: `RaidWorksMachinesTest`, `RaidWorksGuardTest`,
   `RaidDefenderReserveTest`; `storyMapPools` counts the posts;
   `raid-demolition-look`'s `built-*` labels who stands at each.
+
+### 7. The works' approach: BUILT (owner: `raid-works-approach` "(a) and (c)")
+
+Owner: "Seems somewhat strange that we have all of this space outside of the
+works that we don't use for defensive layers", and "why don't they have
+turrets OUTSIDE of the works? Defense in depth. Consider from defenders
+perspective: If they are inside the wall it's already too late." The defence
+is laid from the defender's side as layers the raid meets from the map edge
+inward, the wall the last of them (`WorksDefences`), all held by riflemen
+security adds on top of the force (`RaidSiteTemplate.WORKS_FORWARD`,
+`RaidWorksMachines.extraRiflemen`, seated after the machines and never a
+patrol's anchor):
+
+1. **Held buildings** (c): the nearest buildings facing each side of the
+   works, 2 to 12 cells out and not already a defended place, each a forward
+   post at its interior: one a side guarded, two fortified
+   (`WorksDefences.heldBuildings`).
+2. **Forward posts and firing positions** (a): a sandbagged post on each open
+   gate's approach; fortified, also up to two firing positions on the largest
+   open ground within reach (`WorksDefences.approach`).
+3. **Outworks guns**: crewed emplacements outside the wall
+   (`WorksDefences.outworks`): a light one beside each gate's approach on the
+   glacis' outer edge; fortified, also a medium one mid-way along each side of
+   the glacis. Their guard posts are forward posts, so the riflemen crew the
+   gun (`BattleSetup.linkGuardpostSquads`).
+4. **Obstacles**: fortified, a staggered double row of hedgehogs beyond the
+   glacis, broken where the gates' approaches run; the glacis belt inside it.
+5. **The gate**: its checkpoint, the gate picket (a mech and a light hull),
+   then the wall, the yard reserve and the halls' parapets.
+
+Tests: `WorksDefencesTest`, `RaidWorksGuardTest`, `RaidWorksMachinesTest`;
+`storyMapPools`; `raid-demolition-look`'s `built-*` labels each layer.
+
+### 8. Pressure over time: BUILT (owner: `raid-pressure` (b), and columns from off the map)
+
+Owner: "Our first rule is to make it fun and to keep pressure on the player
+over time so they are not bored", and on `raid-pressure`, (b) each hall that
+falls brings a wave, "Also consider having forces coming from off map. We
+can't limit ourselves to 'keeping it even' the number of forces on the field.
+That's not how RTS with a raid works."
+
+- **The even count is gone.** A raided market defends with all it has: Raid
+  passes an unbounded attacker score as Conquest does, so no attacker-strength
+  budget trims its mechs, air or turrets (`BattleForceScore`), and the alarm
+  sends the whole mobile pool (`RaidDefenderCommand`), not three squads.
+- **Waves and columns** (`RaidPressureTrigger`, clocks by security in
+  `RaidPressureClocks`, untuned): each machine wrecked brings a wave at once
+  (small open, medium guarded, large fortified); garrison columns drive in from
+  the map's edge on a clock from the battle's start (every 240 s open, 180 s
+  guarded, 150 s fortified while quiet; 150, 90 and 60 s once the alarm is up,
+  the alarm bringing the next one forward), one size larger every second
+  column. They are prepaid `GARRISON_COLUMN` requests a convoy brings whatever
+  compounds the raid has taken (`reinforcement-nouns.md`, supply gate).
+- **Warning.** The works objective shows the countdown to the next column
+  once the company is working or leaving ("A garrison column drives in from
+  off the map in m:ss").
+- Tests: `RaidPressureTriggerTest`, `CompoundSupplyGatingTest`.
+
+Open: whether columns bring armour as well as APC-borne riflemen
+(`raid-columns-armour`), and the standard resolution (`raid-auto-resolve`).
 
 ## Not in this story
 

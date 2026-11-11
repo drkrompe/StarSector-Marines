@@ -67,6 +67,198 @@ def flag_mast(d, x, y, w, h):
 
 DRAW = {"watchtower": watchtower, "saluting-base": saluting_base, "flag-mast": flag_mast}
 
+# Round 2 (`military-base-art-2`): the structures a working base needs, on a guide of their own (`guide-2.png`).
+W2, H2 = 1696, 992
+FRAMES2 = (
+    ("satcom-dish", 64, 64, 3, 3),
+    ("radar-tower", 608, 64, 3, 3),
+    ("fuel-bladder", 1152, 64, 3, 3),
+    ("generator-set", 64, 608, 3, 2),
+    ("antenna-mast", 608, 608, 1, 1),
+)
+
+
+def satcom_dish(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.ellipse((*f(.38, .4), *f(.98, .9)), fill=SHADOW)                       # the dish's shadow, south-east
+    d.rectangle((*f(.08, .08), *f(.92, .92)), fill=LIGHT, outline=EDGE, width=6)   # concrete pad
+    d.rectangle((*f(.12, .12), *f(.88, .88)), outline=DARK, width=4)              # low railing
+    d.ellipse((*f(.42, .42), *f(.58, .58)), fill=DARK)                            # pedestal
+    d.ellipse((*f(.16, .2), *f(.7, .64)), fill=BODY, outline=EDGE, width=6)       # the dish, tilted up to the NW
+    d.ellipse((*f(.26, .3), *f(.6, .54)), outline=EDGE, width=3)
+    for a, b in ((.22, .26), (.64, .28), (.43, .6)):                              # feed struts
+        d.line((*f(a, b), *f(.4, .4)), fill=DARK, width=4)
+    d.ellipse((*f(.37, .37), *f(.45, .45)), fill=DARK)                            # feed horn
+
+
+def radar_tower(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.36, .36), f(.64, .36), f(.98, .82), f(.98, .98), f(.8, .98), f(.36, .64)], fill=SHADOW)
+    d.polygon([f(.1, .5), f(.94, .44), f(.98, .58), f(.18, .62)], fill=SHADOW)    # the antenna bar's shadow
+    for cx, cy in ((.32, .32), (.68, .32), (.32, .68), (.68, .68)):              # lattice legs, splayed
+        d.rectangle((*f(cx - .03, cy - .03), *f(cx + .03, cy + .03)), fill=DARK)
+    for a, b, c, e in ((.32, .32, .68, .68), (.68, .32, .32, .68), (.32, .32, .68, .32), (.68, .32, .68, .68),
+                       (.68, .68, .32, .68), (.32, .68, .32, .32)):
+        d.line((*f(a, b), *f(c, e)), fill=EDGE, width=5)                          # bracing
+    d.rectangle((*f(.4, .4), *f(.6, .6)), fill=BODY, outline=EDGE, width=5)       # top platform
+    d.polygon([f(.04, .42), f(.92, .36), f(.94, .46), f(.06, .52)], fill=LIGHT, outline=EDGE)  # the search antenna
+    d.ellipse((*f(.46, .4), *f(.54, .48)), fill=DARK)                             # rotator
+
+
+def fuel_bladder(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rounded_rectangle((*f(.04, .04), *f(.96, .96)), radius=.1 * w, fill=SAND, outline=EDGE, width=4)  # earth bund
+    d.rounded_rectangle((*f(.13, .13), *f(.87, .87)), radius=.06 * w, fill=(200, 196, 184))             # bund floor
+    d.rounded_rectangle((*f(.2, .32), *f(.84, .78)), radius=.12 * w, fill=SHADOW)
+    d.rounded_rectangle((*f(.17, .24), *f(.8, .72)), radius=.12 * w, fill=BODY, outline=EDGE, width=5)  # the bladder
+    d.line((*f(.8, .48), *f(.88, .82)), fill=DARK, width=8)                                             # hose
+    d.rectangle((*f(.82, .82), *f(.94, .94)), fill=DARK)                                                # pump
+
+
+def generator_set(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rectangle((*f(.1, .2), *f(.98, .98)), fill=SHADOW)
+    d.rectangle((*f(.04, .1), *f(.92, .86)), fill=EDGE)                           # skid
+    d.rectangle((*f(.08, .16), *f(.66, .8)), fill=BODY, outline=DARK, width=5)    # olive housing
+    for k in range(5):
+        yy = .26 + k * .1
+        d.line((*f(.14, yy), *f(.34, yy)), fill=DARK, width=4)                    # louvres
+    d.ellipse((*f(.5, .2), *f(.6, .35)), fill=DARK)                               # exhaust stack
+    d.rounded_rectangle((*f(.7, .22), *f(.88, .74)), radius=.04 * w, fill=LIGHT, outline=DARK, width=4)  # fuel tank
+    for yy in (.6, .68):
+        d.line((*f(.66, yy), *f(.98, yy + .2)), fill=DARK, width=5)               # cable runs
+
+
+def antenna_mast(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.line((*f(.42, .42), *f(.98, .98)), fill=SHADOW, width=5)                    # the mast's long shadow
+    for a, b in ((.08, .1), (.9, .22), (.24, .92)):
+        d.line((*f(.4, .4), *f(a, b)), fill=EDGE, width=2)                        # guy lines
+        d.rectangle((*f(a - .04, b - .04), *f(a + .04, b + .04)), fill=DARK)      # anchors
+    d.ellipse((*f(.33, .33), *f(.47, .47)), fill=BODY, outline=DARK, width=3)     # mast base and tip
+
+
+W3, H3 = 2016, 640
+FRAMES3 = (
+    ("parked-ambulance", 64, 144, 3, 2),
+    ("workshop-gantry", 608, 64, 4, 3),
+    ("tent-khaki", 1312, 64, 4, 3),
+)
+
+
+def parked_ambulance(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rounded_rectangle((*f(.1, .26), *f(.98, .94)), radius=.06 * h, fill=SHADOW)
+    d.rounded_rectangle((*f(.04, .2), *f(.32, .8)), radius=.1 * h, fill=BODY, outline=EDGE, width=5)   # cab, nose west
+    d.rectangle((*f(.06, .28), *f(.12, .72)), fill=DARK)                                                # windscreen
+    d.rectangle((*f(.3, .12), *f(.94, .86)), fill=BODY, outline=EDGE, width=6)                          # box body
+    d.rectangle((*f(.5, .24), *f(.78, .74)), fill=LIGHT, outline=EDGE, width=4)                         # roof panel
+    d.rectangle((*f(.6, .3), *f(.68, .68)), fill=(235, 235, 235))                                       # its cross
+    d.rectangle((*f(.53, .44), *f(.75, .54)), fill=(235, 235, 235))
+
+
+def workshop_gantry(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.08, .5), f(.92, .5), f(.98, .62), f(.14, .62)], fill=SHADOW)                       # beam shadow
+    d.rectangle((*f(.08, .03), *f(.5, .15)), fill=BODY, outline=EDGE, width=4)                         # tool bench
+    for ex in (.1, .9):                                                                                 # A-frame ends
+        d.line((*f(ex, .2), *f(ex, .46)), fill=EDGE, width=10)
+        d.line((*f(ex, .54), *f(ex, .8)), fill=EDGE, width=10)
+        for ey in (.2, .8):
+            d.rectangle((*f(ex - .025, ey - .03), *f(ex + .025, ey + .03)), fill=DARK)                 # feet
+    d.rectangle((*f(.39, .34), *f(.61, .7)), fill=SHADOW)                                              # its shadow
+    d.rectangle((*f(.37, .3), *f(.57, .64)), fill=BODY, outline=EDGE, width=5)    # engine block, hung under the hoist
+    d.rectangle((*f(.08, .46), *f(.92, .54)), fill=LIGHT, outline=EDGE, width=4)                       # the I-beam
+    d.rectangle((*f(.42, .43), *f(.52, .57)), fill=DARK)                                               # hoist trolley
+
+
+def tent_khaki(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.14, .3), f(.92, .3), f(.98, .9), f(.2, .9)], fill=SHADOW)
+    d.rectangle((*f(.1, .2), *f(.86, .5)), fill=LIGHT, outline=EDGE, width=4)                          # sunlit slope
+    d.rectangle((*f(.1, .5), *f(.86, .8)), fill=BODY, outline=EDGE, width=4)                           # shaded slope
+    d.line((*f(.1, .5), *f(.86, .5)), fill=DARK, width=6)                                              # ridge
+    d.polygon([f(.86, .38), f(.95, .5), f(.86, .62)], fill=DARK)                                       # door flap, east
+    for a in (.2, .4, .6, .78):                                                                        # guy ropes, pegs
+        for b0, b1 in ((.2, .05), (.8, .95)):
+            d.line((*f(a, b0), *f(a, b1)), fill=EDGE, width=2)
+            d.rectangle((*f(a - .01, b1 - .015), *f(a + .01, b1 + .015)), fill=DARK)
+
+
+DRAW3 = {"parked-ambulance": parked_ambulance, "workshop-gantry": workshop_gantry, "tent-khaki": tent_khaki}
+
+DRAW2 = {"satcom-dish": satcom_dish, "radar-tower": radar_tower, "fuel-bladder": fuel_bladder,
+         "generator-set": generator_set, "antenna-mast": antenna_mast}
+
+# Set-piece components (`military-set-pieces`): the base's large structures are built from the map's kit (pads, fence
+# and bund rings, roofed sheds); these are only the objects that stand inside them. No pad, rail, bund or ground is
+# drawn under any of them, only its own short contact shadow.
+W4, H4 = 1856, 832
+FRAMES4 = (
+    ("uplink-dish", 64, 64, 4, 4),
+    ("radar-tower-lattice", 768, 64, 3, 3),
+    ("fuel-tank-vertical", 1312, 64, 3, 3),
+    ("exhaust-stack", 768, 608, 1, 1),
+    ("radiator-skid", 1056, 608, 2, 1),
+)
+
+
+def uplink_dish(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.ellipse((*f(.3, .3), *f(.96, .9)), fill=SHADOW)                                   # contact shadow, SE
+    d.rectangle((*f(.42, .42), *f(.58, .58)), fill=DARK)                                # pedestal foot
+    d.ellipse((*f(.06, .1), *f(.84, .78)), fill=BODY, outline=EDGE, width=6)            # dish face, tilted up NW
+    d.ellipse((*f(.2, .22), *f(.7, .64)), outline=EDGE, width=3)
+    for a, b in ((.12, .2), (.78, .24), (.44, .74)):
+        d.line((*f(a, b), *f(.44, .44)), fill=DARK, width=5)                            # feed struts
+    d.ellipse((*f(.39, .39), *f(.49, .49)), fill=DARK)                                  # feed horn
+
+
+def radar_lattice(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.3, .3), f(.7, .3), f(.98, .7), f(.98, .98), f(.7, .98), f(.3, .7)], fill=SHADOW)  # tall shadow
+    d.polygon([f(.08, .52), f(.92, .46), f(.98, .6), f(.16, .66)], fill=SHADOW)
+    for cx, cy in ((.24, .24), (.76, .24), (.24, .76), (.76, .76)):
+        d.rectangle((*f(cx - .04, cy - .04), *f(cx + .04, cy + .04)), fill=DARK)        # legs' feet, splayed
+        d.line((*f(cx, cy), *f(.5, .5)), fill=EDGE, width=6)                            # legs rising to the head
+    for a, b, c, e in ((.24, .24, .76, .24), (.76, .24, .76, .76), (.76, .76, .24, .76), (.24, .76, .24, .24)):
+        d.line((*f(a, b), *f(c, e)), fill=EDGE, width=4)                                # bracing ring
+    d.rectangle((*f(.42, .42), *f(.58, .58)), fill=BODY, outline=EDGE, width=4)         # head platform
+    d.polygon([f(.02, .44), f(.94, .38), f(.96, .48), f(.04, .54)], fill=LIGHT, outline=EDGE)  # antenna bar
+    d.ellipse((*f(.46, .4), *f(.54, .48)), fill=DARK)                                   # rotator
+
+
+def fuel_tank_vertical(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.ellipse((*f(.14, .14), *f(.98, .98)), fill=SHADOW)
+    d.ellipse((*f(.06, .06), *f(.88, .88)), fill=LIGHT, outline=EDGE, width=6)         # round roof
+    d.ellipse((*f(.1, .1), *f(.84, .84)), outline=DARK, width=4)                        # walkway rail at the rim
+    d.ellipse((*f(.4, .4), *f(.54, .54)), fill=BODY, outline=DARK, width=3)             # roof vent
+    d.rectangle((*f(.6, .24), *f(.7, .32)), fill=BODY, outline=DARK, width=3)           # hatch
+    d.rectangle((*f(.78, .7), *f(.86, .84)), fill=DARK)                                 # ladder head at the rim
+
+
+def exhaust_stack(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.ellipse((*f(.38, .38), *f(.98, .98)), fill=SHADOW)                                # tall shadow, SE
+    d.ellipse((*f(.14, .14), *f(.66, .66)), fill=(90, 86, 80))                          # soot stain
+    d.ellipse((*f(.24, .24), *f(.56, .56)), fill=BODY, outline=EDGE, width=4)           # the stack
+    d.rectangle((*f(.26, .3), *f(.54, .42)), fill=LIGHT, outline=EDGE, width=3)         # rain cap flap
+
+
+def radiator_skid(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rectangle((*f(.06, .2), *f(.98, .98)), fill=SHADOW)
+    d.rectangle((*f(.03, .1), *f(.92, .86)), fill=EDGE)                                 # skid
+    d.rectangle((*f(.06, .16), *f(.58, .8)), fill=BODY, outline=DARK, width=4)          # radiator housing
+    for cx in (.19, .45):
+        d.ellipse((*f(cx - .1, .26), *f(cx + .1, .7)), fill=DARK)                       # fan grilles
+    d.rounded_rectangle((*f(.62, .2), *f(.88, .76)), radius=.05 * w, fill=LIGHT, outline=DARK, width=4)  # day tank
+
+
+DRAW4 = {"uplink-dish": uplink_dish, "radar-tower-lattice": radar_lattice, "fuel-tank-vertical": fuel_tank_vertical,
+         "exhaust-stack": exhaust_stack, "radiator-skid": radiator_skid}
+
 
 def main():
     im = Image.new("RGB", (W, H), (255, 255, 255))
@@ -74,6 +266,21 @@ def main():
     for pid, x, y, cw, ch in FRAMES:
         DRAW[pid](d, x, y, cw * CELL, ch * CELL)
     im.save(HERE / "guide.png")
+    im = Image.new("RGB", (W2, H2), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for pid, x, y, cw, ch in FRAMES2:
+        DRAW2[pid](d, x, y, cw * CELL, ch * CELL)
+    im.save(HERE / "guide-2.png")
+    im = Image.new("RGB", (W3, H3), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for pid, x, y, cw, ch in FRAMES3:
+        DRAW3[pid](d, x, y, cw * CELL, ch * CELL)
+    im.save(HERE / "guide-3.png")
+    im = Image.new("RGB", (W4, H4), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for pid, x, y, cw, ch in FRAMES4:
+        DRAW4[pid](d, x, y, cw * CELL, ch * CELL)
+    im.save(HERE / "guide-4.png")
 
 
 if __name__ == "__main__":

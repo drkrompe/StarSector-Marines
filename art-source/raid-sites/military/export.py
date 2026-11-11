@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "art-source" / "doodads"))
 sys.path.insert(0, str(HERE))
 from stitch_atlas import BuildOptions, build_atlas  # noqa: E402
 import make_guide as G  # noqa: E402
+import bund  # noqa: E402
 
 SHEET = "military-base"
 CELL_PX = 128
@@ -46,7 +47,39 @@ PIECES = {
                     4, 2, "heavy", {"ballisticHalfHeight": 0.55}),
     "parked-apc-army": ("Parked APC", "An army APC parked in the vehicle park, nose and turret forward (west).", 3, 2,
                         "heavy", {"ballisticHalfHeight": 0.55}),
+    # Round 2 (`military-base-art-2`): the structures a working base needs.
+    "antenna-mast": ("Antenna mast", "A tall guyed radio mast: base plate, three guy wires to anchors, its long thin "
+                     "shadow.", 1, 1, "none", {}),
+    "medical-marker": ("Medical marker", "A painted panel by the medical post: a plain white cross on a green square, "
+                       "worn. A floor decal; blocks nothing.", 3, 3, "none", {}),
+    # Set-piece components (`military-set-pieces`): the objects that stand inside the base's large structures, which
+    # the map builds from its own kit. They replace round 2's standalone dish, radar, bladder and generator.
+    "uplink-dish": ("Uplink dish", "A satellite uplink dish seen from above, tilted up to the north-west on its "
+                    "hidden pedestal, its feed horn on struts; stands on the dish compound's pad.", 4, 4, "heavy", {}),
+    "radar-tower-lattice": ("Radar tower", "A tall steel lattice tower: splayed feet, bracing, the head platform and "
+                            "its search-radar bar, a long shadow.", 3, 3, "heavy", {"ballisticHalfHeight": 1.5}),
+    "fuel-tank-vertical": ("Vertical fuel tank", "A vertical fuel storage tank's round roof: rim walkway rail, vent, "
+                           "hatch, the ladder's head.", 3, 3, "heavy", {"ballisticHalfHeight": 1.5}),
+    "exhaust-stack": ("Exhaust stack", "A generator exhaust stack with its rain cap, stood against the generator "
+                      "house's back wall.", 1, 1, "heavy", {"ballisticHalfHeight": 1.5}),
+    "radiator-skid": ("Radiator skid", "A radiator and day-tank skid: two fans and a small tank.", 2, 1, "med",
+                      {"ballisticHalfHeight": 0.5}),
+    **{pid: ("Earth bund", f"A knee-high bank of packed earth, {what}; pieces join into the tank farm's bund ring.", 1,
+             1, "heavy", {"ballisticHalfHeight": 0.3, "fightingPosition": "parapet"})
+       for pid, what in (("earth-bund-h", "running east-west"), ("earth-bund-v", "running north-south"),
+                         ("earth-bund-corner-nw", "the ring's north-west corner"),
+                         ("earth-bund-corner-ne", "the ring's north-east corner"),
+                         ("earth-bund-corner-sw", "the ring's south-west corner"),
+                         ("earth-bund-corner-se", "the ring's south-east corner"))},
+    "parked-ambulance": ("Parked ambulance", "An olive field ambulance parked at the medical post, nose west, a white "
+                         "cross on a green roof panel.", 3, 2, "med", {"ballisticHalfHeight": 0.5}),
+    "workshop-gantry": ("Workshop gantry", "An A-frame gantry crane over a vehicle bay: an engine block hung under its "
+                        "hoist, a tool bench along its north side.", 4, 3, "light", {}),
+    "tent-khaki": ("Khaki tent", "A khaki ridge tent, ridge east-west, door flap east, guy ropes to pegs.", 4, 3, "light",
+                   {}),
 }
+# The medical marker's paint: a plain white cross on green, never the red-on-white protective emblem.
+MEDICAL_GREEN = (46, 112, 64)
 
 # Parked armour composited from the shipped vehicle sprites (graphics/battle/vehicles, plain livery, intact frames):
 # frame 0 the hull and frame 1 the turret, 768x576 each, nose to the west (-x). The turret is drawn on its ring
@@ -73,14 +106,52 @@ def register(raw, frames):
     return sx, sy, xs.min() - gx0 * sx, ys.min() - gy0 * sy
 
 
+# Tall components whose cast shadow is their read: ImageGen painted it faint, so its translucent pixels are deepened.
+SHADOW_BOOST = {"radar-tower-lattice": 1.8, "exhaust-stack": 1.5}
+
+
+def deepen_shadow(piece, k):
+    """Strengthens the translucent (shadow) pixels of a piece by ``k``, leaving its opaque body as drawn."""
+    a = np.asarray(piece.getchannel("A"), np.float32)
+    a = np.where(a < 230, np.clip(a * k, 0, 229), a)
+    piece.putalpha(Image.fromarray(a.astype(np.uint8)))
+    return piece
+
+
+def register_on_guide(raw, guide):
+    """Scale and offset taking guide pixels to raw pixels: the guide's drawn (non-white) extent onto the raw's drawn
+    (alpha) extent. For a guide whose pieces do not reach their frames' edges."""
+    g = np.asarray(guide.convert("L")) < 250
+    gy, gx = np.nonzero(g)
+    a = np.asarray(raw.getchannel("A")) > 64
+    ys, xs = np.nonzero(a)
+    sx = (xs.max() + 1 - xs.min()) / (gx.max() + 1 - gx.min())
+    sy = (ys.max() + 1 - ys.min()) / (gy.max() + 1 - gy.min())
+    return sx, sy, xs.min() - gx.min() * sx, ys.min() - gy.min() * sy
+
+
 def painted():
-    raw = Image.open(HERE / "raw" / "military-base.raw.png").convert("RGBA")
-    sx, sy, ox, oy = register(raw, G.FRAMES)
-    for pid, x, y, cw, ch in G.FRAMES:
+    yield from cut_raw("military-base.raw.png", G.FRAMES, None)
+    yield from cut_raw("military-base-2.raw.png", G.FRAMES2, "guide-2.png")
+    yield from cut_raw("military-base-3.raw.png", G.FRAMES3, "guide-3.png")
+    yield from cut_raw("military-base-4.raw.png", G.FRAMES4, "guide-4.png")
+
+
+def cut_raw(name, frames, guide):
+    raw = Image.open(HERE / "raw" / name).convert("RGBA")
+    if guide is None:
+        sx, sy, ox, oy = register(raw, frames)
+    else:
+        sx, sy, ox, oy = register_on_guide(raw, Image.open(HERE / guide))
+    for pid, x, y, cw, ch in frames:
+        if pid not in PIECES:
+            continue  # retired: still on its raw and guide, no longer shipped
         box = (round(ox + x * sx), round(oy + y * sy), round(ox + (x + cw * G.CELL) * sx),
                round(oy + (y + ch * G.CELL) * sy))
         piece = raw.crop(box).resize((cw * CELL_PX, ch * CELL_PX), Image.LANCZOS)
         piece.putalpha(piece.getchannel("A").point(lambda v: 0 if v < 8 else v))
+        if pid in SHADOW_BOOST:
+            piece = deepen_shadow(piece, SHADOW_BOOST[pid])
         yield pid, piece
 
 
@@ -128,6 +199,25 @@ def markings():
     yield "parade-centre", worn(m, 4)
 
 
+def medical_marker():
+    """A worn painted panel: a green square with a plain white cross, the cross a fifth of the panel wide."""
+    c = CELL_PX
+    size = 3 * c
+    m = Image.new("L", (size, size))
+    ImageDraw.Draw(m).rectangle((c * 0.25, c * 0.25, size - c * 0.25, size - c * 0.25), fill=255)
+    green = worn(m, 5)
+    green = Image.merge("RGBA", (*(Image.new("L", green.size, v) for v in MEDICAL_GREEN), green.getchannel("A")))
+    arm, half = size * 0.2, size / 2
+    m = Image.new("L", (size, size))
+    d = ImageDraw.Draw(m)
+    d.rectangle((half - arm / 2, c * 0.55, half + arm / 2, size - c * 0.55), fill=255)
+    d.rectangle((c * 0.55, half - arm / 2, size - c * 0.55, half + arm / 2), fill=255)
+    out = Image.new("RGBA", (size, size))
+    out.alpha_composite(green)
+    out.alpha_composite(worn(m, 6))
+    yield "medical-marker", out
+
+
 def vehicles():
     fw, fh = VEHICLE_FRAME
     for pid, (sprite, mount, turret_scale) in VEHICLES.items():
@@ -168,7 +258,7 @@ def main():
     meta.write_text(json.dumps(metadata(), indent=2) + "\n", encoding="utf-8")
     with tempfile.TemporaryDirectory() as scratch:
         staged = Path(scratch)
-        for pid, piece in (*painted(), *markings(), *vehicles()):
+        for pid, piece in (*painted(), *markings(), *medical_marker(), *bund.pieces(), *vehicles()):
             piece.save(staged / f"{pid}.png")
         build_atlas(BuildOptions(
             input_dir=staged,

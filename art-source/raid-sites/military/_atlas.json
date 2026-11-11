@@ -128,6 +128,231 @@
       "order": 9,
       "cover": "heavy",
       "ballisticHalfHeight": 0.55
+    },
+    "antenna-mast.png": {
+      "id": "doodad.antenna-mast",
+      "name": "Antenna mast",
+      "description": "A tall guyed radio mast: base plate, three guy wires to anchors, its long thin shadow.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10,
+      "cover": "none"
+    },
+    "medical-marker.png": {
+      "id": "doodad.medical-marker",
+      "name": "Medical marker",
+      "description": "A painted panel by the medical post: a plain white cross on a green square, worn. A floor decal; blocks nothing.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11,
+      "cover": "none"
+    },
+    "uplink-dish.png": {
+      "id": "doodad.uplink-dish",
+      "name": "Uplink dish",
+      "description": "A satellite uplink dish seen from above, tilted up to the north-west on its hidden pedestal, its feed horn on struts; stands on the dish compound's pad.",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12,
+      "cover": "heavy"
+    },
+    "radar-tower-lattice.png": {
+      "id": "doodad.radar-tower-lattice",
+      "name": "Radar tower",
+      "description": "A tall steel lattice tower: splayed feet, bracing, the head platform and its search-radar bar, a long shadow.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.5
+    },
+    "fuel-tank-vertical.png": {
+      "id": "doodad.fuel-tank-vertical",
+      "name": "Vertical fuel tank",
+      "description": "A vertical fuel storage tank's round roof: rim walkway rail, vent, hatch, the ladder's head.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.5
+    },
+    "exhaust-stack.png": {
+      "id": "doodad.exhaust-stack",
+      "name": "Exhaust stack",
+      "description": "A generator exhaust stack with its rain cap, stood against the generator house's back wall.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15,
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.5
+    },
+    "radiator-skid.png": {
+      "id": "doodad.radiator-skid",
+      "name": "Radiator skid",
+      "description": "A radiator and day-tank skid: two fans and a small tank.",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "earth-bund-h.png": {
+      "id": "doodad.earth-bund-h",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, running east-west; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "earth-bund-v.png": {
+      "id": "doodad.earth-bund-v",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, running north-south; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "earth-bund-corner-nw.png": {
+      "id": "doodad.earth-bund-corner-nw",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, the ring's north-west corner; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 19,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "earth-bund-corner-ne.png": {
+      "id": "doodad.earth-bund-corner-ne",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, the ring's north-east corner; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 20,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "earth-bund-corner-sw.png": {
+      "id": "doodad.earth-bund-corner-sw",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, the ring's south-west corner; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 21,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "earth-bund-corner-se.png": {
+      "id": "doodad.earth-bund-corner-se",
+      "name": "Earth bund",
+      "description": "A knee-high bank of packed earth, the ring's south-east corner; pieces join into the tank farm's bund ring.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 22,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "fightingPosition": "parapet"
+    },
+    "parked-ambulance.png": {
+      "id": "doodad.parked-ambulance",
+      "name": "Parked ambulance",
+      "description": "An olive field ambulance parked at the medical post, nose west, a white cross on a green roof panel.",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 23,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "workshop-gantry.png": {
+      "id": "doodad.workshop-gantry",
+      "name": "Workshop gantry",
+      "description": "An A-frame gantry crane over a vehicle bay: an engine block hung under its hoist, a tool bench along its north side.",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 24,
+      "cover": "light"
+    },
+    "tent-khaki.png": {
+      "id": "doodad.tent-khaki",
+      "name": "Khaki tent",
+      "description": "A khaki ridge tent, ridge east-west, door flap east, guy ropes to pegs.",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 25,
+      "cover": "light"
     }
   }
 }

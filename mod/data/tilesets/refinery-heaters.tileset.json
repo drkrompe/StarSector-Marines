@@ -1,0 +1,88 @@
+{
+  "sheet": "graphics/doodads/refinery-heaters.png",
+  "cellPx": 480,
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "refinery.column"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "refinery.column-west"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "refinery.stripper"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "refinery.stripper-west"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "refinery.stack"
+    }
+  ],
+  "doodads": [
+    {
+      "id": "refinery.column",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.column-west",
+      "col": 0,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.stripper",
+      "col": 1,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.stripper-west",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "refinery.stack",
+      "col": 2,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}

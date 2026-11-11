@@ -34,7 +34,10 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public final class ReinforcementRequest {
 
-    /** Why the request was posted. Informational; means providers ignore it. */
+    /**
+     * Why the request was posted. Informational, but for {@link #GARRISON_COLUMN}, which a convoy brings whether or not
+     * the side still holds an armory.
+     */
     public enum Reason {
         GARRISON_DEPLETED,
         OBJECTIVE_LOST,
@@ -46,7 +49,13 @@ public final class ReinforcementRequest {
          * not branch dispatch logic. Production counterattack requests are
          * posted as {@link #prepaid}.
          */
-        COUNTERATTACK
+        COUNTERATTACK,
+        /**
+         * A Raid market's wider garrison driving in from off the map ({@link RaidPressureTrigger}): its columns come
+         * from beyond the battle, not out of the compounds the raid can take, so the convoy's supply gate does not
+         * apply.
+         */
+        GARRISON_COLUMN
     }
 
     /**

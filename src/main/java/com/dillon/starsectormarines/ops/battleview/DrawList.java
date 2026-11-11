@@ -180,6 +180,16 @@ public final class DrawList {
         DrawCommand cmd=slot(layer);cmd.setSheetQuad(sheet,sx,sy,sw,sh,cx,cy,w,h,1,1,1,alpha);cmd.setPatch(patch);
     }
 
+    /** As {@link #addSheetPatch(RenderLayer, SpriteAPI, int, int, int, int, float, float, float, float, float, float[])}, tinted. */
+    public void addSheetPatch(RenderLayer layer, SpriteAPI sheet, int sx, int sy, int sw, int sh,
+                              float cx, float cy, float w, float h, float r, float g, float b, float alpha,
+                              float[] patch) {
+        TextureUsage.sheet(sheet, sw, sh, w, h);
+        DrawCommand cmd = slot(layer);
+        cmd.setSheetQuad(sheet, sx, sy, sw, sh, cx, cy, w, h, r, g, b, alpha);
+        cmd.setPatch(patch);
+    }
+
     /** Rotated sheet-quad: {@code angleDeg} rotates the dst rect about its center. */
     public void addSheetQuad(RenderLayer layer, SpriteAPI sheet,
                              int srcX, int srcY, int srcW, int srcH,

@@ -66,6 +66,8 @@ public final class RaidSiteTemplate {
      * machines answer the alarm at the hall under attack ({@code RaidDefenderCommand}).
      */
     public static final String WORKS_RESERVE = "works-reserve";
+    /** The place a works' forward posts on its gates' approaches are named with ({@code WorksDefences}). */
+    public static final String WORKS_FORWARD = "works-forward";
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";
@@ -239,7 +241,7 @@ public final class RaidSiteTemplate {
                 industry.works(machines).fittedTo(Math.round(industry.worksFit() * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
-            briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(GARRISON_AT),
+            briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(industry.garrisonAt()),
                     PrecinctPlan.raidGarrisonGrowth(),
                     PrecinctPlan.raidGarrison(profile, security.ordinal())
                             .fittedTo(Math.round(PrecinctPlan.FIT * width * height)),

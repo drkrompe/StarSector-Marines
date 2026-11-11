@@ -208,6 +208,18 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   `hull-shower` initial-damage layer, applied when the battle is assembled.
   A strike keeps off buildings a mission anchors to, the landing's field of fire
   and the hull; a knock-down keeps its collapse off fighting positions.
+- **The impact zone** (`ImpactZone`) is the ground the hull flattened coming
+  in: within 20 cells of the hull or its trench every building is wrecked
+  (walls down, roofs fallen in or burnt out), so nothing intact stands against
+  the hull or the plough; out to 40 cells the blocks are battered and wrecked in
+  patches that grow rarer outward; beyond that only the shower's strikes fall
+  (UNTUNED). Open ground near the hull is scarred in scattered patches. It is
+  initial damage (`hull-impact-*` layers), applied when the battle is
+  assembled, as runs of cells along each row, so it never touches the hull, its
+  trench or aprons, standing debris or fixtures, the landing's field of fire, a
+  building a mission anchors to or a mission structure. It only takes walls and
+  roofs down, so the lift, the shelters, the stake points and the haul roads
+  stay as open as they were.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
@@ -242,12 +254,14 @@ the event gate are not designed yet.
 - `hull-spread-law`: (a, recommended) the hull alone spreads, through its
   autoforge and only from feedstock; site networks keep their fixed numbers.
   (b) No spread: the hull pours out what it carried and stops.
-- `hull-lineage`: (a, recommended) an Explorarium survey mothership (canon
-  autoforge). (b) a Domain-era drone carrier (no forge in canon; spread would
-  need inventing). (c) a Tri-Tachyon contingency hull (contingency security's
-  look).
-- `stripper-hauler`: (a, recommended) two units, the stripper and the hauler,
-  of the derelict line. (b) one unit that cuts and carries.
+- `stake-look`: (a, recommended) the spire, a square armoured spike that
+  opens four petals round its node mast. (b) the tripod, a round core whose
+  three legs splay and anchor. The spire is built.
+
+Answered by the owner (2026-11-11), each the recommended option and built as
+it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
+`stripper-hauler` (a), two units, the stripper and the hauler; `autoforge-look`
+(c), the ring forge.
 
 ## What is built
 
@@ -280,7 +294,7 @@ Numbers UNTUNED.
   `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
   derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
   (`worker()`). Both are drawn as the sentinel at their size until the art
-  session's looks ship (pick `stripper-hauler`, option a).
+  session's looks ship (`stripper-hauler`, answered: two units).
 
 - **The seam from the ground.** `FallenHullSite` is what the crash-site ground
   fills and the battle stands on: the hull's laid box (`Rect`) and its

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 
@@ -34,8 +35,34 @@ final class FacePainter {
 
     void reset() {
         faces.reset();
+        glow.reset();
         debrisCount = 0;
         into = faces;
+    }
+
+    /** The lit windows of a night ({@link #night}), drawn over the night shade. */
+    final PolyMesh glow = new PolyMesh(256);
+    /** Whether this frame is a night's, so some windows are lit ({@link #lit}). */
+    boolean night;
+    /** Whether the storey being painted is above the ground floor, where the lit windows are. */
+    private boolean upper;
+
+    /** The share of upper windows lit at night. UNTUNED. */
+    static final float LIT_SHARE = .3f;
+    /** A lit window's warm glass. */
+    private static final float LIT_R = 1f, LIT_G = .78f, LIT_B = .42f;
+
+    /** Whether the window of bay {@code seed} is lit at night: about {@link #LIT_SHARE} of them, by its place. */
+    static boolean lit(int seed) {
+        return BuildingFaces.hash(seed, 140) < LIT_SHARE;
+    }
+
+    /** A part of the wall that glows rather than takes the light, into {@link #glow}. */
+    private void glowQuad(float t0, float t1, float z0, float z1, float r, float g, float b) {
+        PolyMesh was = into;
+        into = glow;
+        quad(t0, t1, z0, z1, r, g, b);
+        into = was;
     }
 
     /** Draws what follows into {@code mesh} ({@link #faces} unless said otherwise). */
@@ -64,6 +91,21 @@ final class FacePainter {
         point(t1, z1, 4);
         point(t0, z1, 6);
         into.appendQuad(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], r, g, b, alpha);
+    }
+
+    /**
+     * Lays one part of the wall, {@code t0..t1} along and {@code z0..z1} up, as a patch of the creep sheet into
+     * {@code patches} ({@link CreepClimb.Sink}), at the wall's alpha times {@code alpha}.
+     */
+    void creep(CreepPatches patches, float t0, float t1, float z0, float z1, int row, float u0, float u1, float v0,
+               float v1, float light, float alpha) {
+        if (t1 <= t0 || z1 <= z0) return;
+        point(t0, z0, 0);
+        point(t1, z0, 2);
+        point(t1, z1, 4);
+        point(t0, z1, 6);
+        patches.add(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], row, u0, u1, v0, v1, light,
+                this.alpha * alpha);
     }
 
     /** One part of the wall shaded from {@code low} at its foot to {@code high} at its top. */
@@ -223,6 +265,7 @@ final class FacePainter {
             if (lo >= clip - .02f && f > 0) break;
             float limit = Math.min(hi, cut == null ? height : clip);
             int seed = cell * 7 + f;
+            upper = f > 0;
             if (f == 0 && (ground == BuildingFaces.Segment.DOOR || ground == BuildingFaces.Segment.LOADING)) {
                 door(m, look, ground == BuildingFaces.Segment.LOADING, lo, limit, story, light, seed, hurt);
             } else {
@@ -233,6 +276,7 @@ final class FacePainter {
                         shotOut, r, g, b);
             }
         }
+        upper = false;
         if (WallDress.pipe(rhythm, along)) {
             float pr = .34f * light, pg = .35f * light, pb = .36f * light;
             quad(.03f, .08f, plinth, height - .02f, pr, pg, pb);
@@ -241,7 +285,6 @@ final class FacePainter {
                 if (z < height) quad(.01f, .1f, z - .015f, z + .015f, pr * .7f, pg * .7f, pb * .7f);
             }
         }
-        holes(cell, hurt, height, light);
     }
 
     private void cornerPost(float t0, float t1, float height, float tr, float tg, float tb, float[] cut) {
@@ -367,6 +410,11 @@ final class FacePainter {
                 else quad(t0 - .04f, t1 + .04f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .9f,
                         tg * .9f, tb * .9f);
                 shaded(t0, t1, z0, z1, gr, gg, gb, hiR, hiG, hiB);
+                if (night && upper && !blown && lit(seed)) {
+                    // A room lit behind it: warm glass, its lower half the brighter, through the night's shade.
+                    glowQuad(t0, t1, z0, z1, LIT_R * .8f, LIT_G * .8f, LIT_B * .8f);
+                    glowQuad(t0 + .02f, t1 - .02f, z0, z0 + (z1 - z0) * .55f, LIT_R, LIT_G, LIT_B);
+                }
                 // Mullion and transom.
                 quad(.495f, .505f, z0, z1, tr * .8f, tg * .8f, tb * .8f);
                 if (tall) quad(t0, t1, z0 + (z1 - z0) * .7f, z0 + (z1 - z0) * .7f + story * .02f, tr * .8f,
@@ -445,16 +493,51 @@ final class FacePainter {
     }
 
     /** Holes torn through a badly hurt wall: a dark core, ragged round its edge, with the masonry showing. */
-    private void holes(int cell, float hurt, float height, float light) {
-        if (hurt <= .4f || BuildingFaces.hash(cell, 3) >= hurt) return;
-        float t = .12f + .5f * BuildingFaces.hash(cell, 4);
-        float z = height * (.18f + .45f * BuildingFaces.hash(cell, 5));
-        float w = .22f + .18f * BuildingFaces.hash(cell, 6), h = Math.min(.28f, height * .3f);
-        float zt = Math.min(height, z + h);
-        quad(t - .04f, t + w + .04f, z - .03f, Math.min(height, zt + .03f), .42f * light, .38f * light, .34f * light);
-        quad(t, t + w, z, zt, .05f, .045f, .045f);
-        quad(t + w * .2f, t + w * .8f, zt - .01f, Math.min(height, zt + .05f), .05f, .045f, .045f);
-        quad(t - .03f, t + w * .4f, z + h * .2f, z + h * .7f, .05f, .045f, .045f);
+    /**
+     * The hits that landed on the wall just painted ({@link FaceScars#lay}), each where it struck: a chipped pock with
+     * a pale rim, a deep gouge, or a burst's soot round a punched hole. Only what stands below {@code top} (a share
+     * of the wall's {@code meters}) shows.
+     */
+    void scars(float[] laid, int count, float meters, float top, float light, WallDress.Material m) {
+        float rr = Math.min(1f, m.wall()[0] * 1.12f) * light, rg = Math.min(1f, m.wall()[1] * 1.12f) * light;
+        float rb = Math.min(1f, m.wall()[2] * 1.12f) * light;
+        for (int i = 0; i < count; i++) {
+            int o = i * FaceScars.STRIDE;
+            float u = laid[o], z = laid[o + 1] / meters, size = laid[o + 2];
+            int mark = (int) laid[o + 3];
+            if (z >= top) continue;
+            if (mark == WallScars.Mark.CHIP.ordinal()) {
+                float w = .13f, h = SCAR_SCALE * .13f / meters;
+                quad(u - w * .8f, u + w * .8f, z - h * .8f, Math.min(top, z + h * .8f), rr, rg, rb);
+                quad(u - w * .45f, u + w * .45f, z - h * .45f, Math.min(top, z + h * .45f), .07f, .06f, .06f);
+            } else if (mark == WallScars.Mark.GOUGE.ordinal()) {
+                float w = .24f, h = SCAR_SCALE * .22f / meters;
+                quad(u - w * .75f, u + w * .75f, z - h * .7f, Math.min(top, z + h * .7f), rr * .9f, rg * .9f,
+                        rb * .9f);
+                quad(u - w * .45f, u + w * .45f, z - h * .45f, Math.min(top, z + h * .45f), .05f, .045f, .045f);
+                quad(u - w * .15f, u + w * .6f, z + h * .2f, Math.min(top, z + h * .55f), .05f, .045f, .045f);
+            } else {
+                float w = Math.max(.5f, Math.min(1.2f, size * .7f)), h = SCAR_SCALE * w * .9f / meters;
+                float soot = .12f * light;
+                shadedBlast(u, w, z, h, top, soot, m, light);
+                float hw = w * .32f, hh = h * .3f;
+                quad(u - hw, u + hw, z - hh, Math.min(top, z + hh), .04f, .035f, .035f);
+            }
+        }
+    }
+
+    /**
+     * Metres up a face per cell along it, for a mark's shape: a cell along a face is drawn about as wide as a storey
+     * is tall, so a round pock is that much taller in metres than it is wide in cells.
+     */
+    private static final float SCAR_SCALE = 3f;
+
+    /** A burst's soot: dark at its heart, fading out to the wall's own colour at its edge. */
+    private void shadedBlast(float u, float w, float z, float h, float top, float soot, WallDress.Material m,
+                             float light) {
+        float r = m.wall()[0] * light * .55f, g = m.wall()[1] * light * .55f, b = m.wall()[2] * light * .55f;
+        shaded(u - w / 2f, u + w / 2f, Math.max(0f, z - h / 2f), Math.min(top, z), r, g, b, soot, soot, soot);
+        shaded(u - w / 2f, u + w / 2f, Math.min(top, z), Math.min(top, z + h / 2f), soot, soot, soot, r, g, b);
     }
 
     /**
