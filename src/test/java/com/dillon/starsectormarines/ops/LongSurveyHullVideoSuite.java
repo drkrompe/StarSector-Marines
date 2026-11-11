@@ -334,15 +334,18 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
             log("the hauler never loaded: no work clips");
             return;
         }
-        int sSpeed = speedFor((full > 0 ? full : load) + Math.round(3f / DT));
-        int hSpeed = home > 0 ? speedFor(home - load + Math.round(6f / DT)) : 4;
+        // -Dsnapshot.hullVideo.workCells frames the work clips that close (cells across), and
+        // -Dsnapshot.hullVideo.workSpeed caps their speed-up, so the walkers' arms read.
+        float sCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "30"));
+        float hCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "40"));
+        int cap = Integer.parseInt(System.getProperty("snapshot.hullVideo.workSpeed", "99"));
+        int sSpeed = Math.min(cap, speedFor((full > 0 ? full : load) + Math.round(3f / DT)));
+        int hSpeed = Math.min(cap, home > 0 ? speedFor(home - load + Math.round(6f / DT)) : 4);
         boolean wantS = clips.contains("stripper"), wantH = clips.contains("hauler");
         try (Claim c = claim(walkers, idle(), 0f)) {
             BattleSimulation sim = c.sim;
             World world = sim.world();
             ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
-            List<float[]> piles = new ArrayList<>();
-            for (Salvage pile : c.hull.salvage()) piles.add(new float[]{pile.x, pile.y});
             Take st = null, ht = null;
             Camera sc = null, hc = null;
             int sEnd = -1, hEnd = -1, hStart = -1;
@@ -361,33 +364,32 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 if (wantS && stripper != 0L && (sEnd < 0 || t <= sEnd) && t % sSpeed == 0) {
                     float x = world.renderX(stripper), y = world.renderY(stripper);
                     if (st == null) {
-                        sc = new Camera(x, y, 30f);
+                        sc = new Camera(x, y, sCells);
                         st = Take.open(context, fx, "stripper-cuts" + suffix, sSpeed, sSpeed, sc.now(), true);
                     }
-                    sc.toward(x, y, 30f);
+                    sc.toward(x, y, sCells);
                     Salvage pile = nearestPile(c.hull, world.x(stripper), world.y(stripper));
                     boolean cutting = pile != null && Math.max(Math.abs(pile.x - world.x(stripper)),
                             Math.abs(pile.y - world.y(stripper))) <= StripperWork.REACH_CELLS + .5f
                             && s != null && s.load() < StripperWork.CAPACITY;
-                    st.marks = piles;
                     st.frame(sim, sc.now(), "Stripper - The Stakes ground" + speedNote(sSpeed), List.of(
                             s == null ? "" : s.load() >= StripperWork.CAPACITY ? "full: it waits for a hauler"
                                     : cutting ? "cutting the salvage, 4 metal a second" : "walking to the nearest salvage on the claim",
                             String.format("its load %.0f of %.0f metal%s", s == null ? 0f : s.load(), StripperWork.CAPACITY,
                                     pile == null ? "" : String.format("; the pile holds %.0f", pile.metal())),
-                            "ringed: stand-in salvage piles (the ground lays none yet, so none is drawn)"));
+                            "the scrap heaps are stand-in salvage (the ground lays none yet)"));
                     if (cutting && st.kept == null && s.load() > StripperWork.CAPACITY / 2f) st.keep();
                 }
-                // The hauler from its first load until the hull's store has it, and three seconds more.
+                // The hauler from its first load until the hull's store has it and its arms are tucked again.
                 if (wantH && hStart < 0 && h != null && h.load() > 0f) hStart = t;
-                if (wantH && hStart > 0 && hEnd < 0 && c.hull.hullStore().metal() > 0f) hEnd = t + Math.round(3f / DT);
+                if (wantH && hStart > 0 && hEnd < 0 && c.hull.hullStore().metal() > 0f) hEnd = t + Math.round(4.5f / DT);
                 if (wantH && hauler != 0L && hStart > 0 && (hEnd < 0 || t <= hEnd) && (t - hStart) % hSpeed == 0) {
                     float x = world.renderX(hauler), y = world.renderY(hauler);
                     if (ht == null) {
-                        hc = new Camera(x, y, 40f);
+                        hc = new Camera(x, y, hCells);
                         ht = Take.open(context, fx, "hauler-hauls" + suffix, hSpeed, hSpeed, hc.now(), true);
                     }
-                    hc.toward(x, y, 40f);
+                    hc.toward(x, y, hCells);
                     boolean atStripper = stripper != 0L && Math.hypot(world.x(stripper) - world.x(hauler),
                             world.y(stripper) - world.y(hauler)) < 4f;
                     String doing = h == null ? "" : c.hull.hullStore().metal() > 0f && h.load() == 0f
@@ -395,7 +397,6 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                             : h.load() >= HaulerWork.CAPACITY ? "full: walking the haul road home to the bay mouth"
                             : atStripper ? "loading at the stripper, until it is full"
                             : "waiting on the stripper's next load";
-                    ht.marks = piles;
                     ht.frame(sim, hc.now(), "Hauler - The Stakes ground" + speedNote(hSpeed), List.of(doing,
                             String.format("hauler load %.0f of %.0f metal; the forge's feedstock (hull store) %.0f metal",
                                     h == null ? 0f : h.load(), HaulerWork.CAPACITY, c.hull.hullStore().metal())));
