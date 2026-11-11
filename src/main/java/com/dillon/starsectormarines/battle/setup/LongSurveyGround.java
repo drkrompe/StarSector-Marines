@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
@@ -92,8 +91,8 @@ public final class LongSurveyGround {
         long seed = entry.seed();
         return switch (chapter) {
             case LONG_SURVEY_FALL -> {
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BattleSetup.COLONY_BASIN_X, BattleSetup.COLONY_BASIN_Y));
+                // Garnir has no bloom: its ground is laid as the cold moon it is, with no green basin.
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(BattleSetup.colonyPlanOn(MapScale.COLONY, seed, worldProfile));
                 MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
@@ -112,8 +111,7 @@ public final class LongSurveyGround {
                 // The district capital: Broad Front's city, the columns stepping off from the south edge, the hull down
                 // across the north edge in the heart's place.
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
@@ -121,8 +119,7 @@ public final class LongSurveyGround {
             }
             case LONG_SURVEY_SURVEYOR -> {
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);

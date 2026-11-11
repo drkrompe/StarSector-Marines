@@ -198,7 +198,7 @@ public final class LongSurveyCampaign {
      * Garnir as the chapters read it: the frozen surface with no atmosphere (vanilla's {@code no_atmosphere}), so its
      * towns are sealed and nothing is farmed in the open ({@code PlanetSkin}).
      */
-    static TargetProfile world() {
+    public static TargetProfile world() {
         return BloomHeartSetup.world(SURFACE).withClimate(new Climate(EnumSet.of(Climate.Hazard.AIRLESS)));
     }
 

@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
 import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.ops.LongSurveyCampaign;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -69,12 +70,15 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 out.addAll(boardingShots(context, chapter, home));
                 continue;
             }
-            // The world the ground is skinned for (default its home) and, with snapshot.longSurvey.airless, airless.
-            SurfacePalette skin = SurfacePalette.valueOf(System.getProperty("snapshot.longSurvey.world", home.name()));
-            TargetProfile profile = BloomHeartSetup.world(skin);
-            if (Boolean.getBoolean("snapshot.longSurvey.airless")) {
+            // Garnir as the campaign reads it (LongSurveyCampaign.world), unless snapshot.longSurvey.world names
+            // another palette (open air; airless with snapshot.longSurvey.airless).
+            String named = System.getProperty("snapshot.longSurvey.world", "").trim();
+            TargetProfile profile = named.isEmpty() ? LongSurveyCampaign.world()
+                    : BloomHeartSetup.world(SurfacePalette.valueOf(named));
+            if (!named.isEmpty() && Boolean.getBoolean("snapshot.longSurvey.airless")) {
                 profile = profile.withClimate(new Climate(EnumSet.of(Climate.Hazard.AIRLESS)));
             }
+            SurfacePalette skin = profile.surface();
             LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, profile,
                     StoryMapPools.pool(chapter).owned());
             HullSite site = ground.hull();
