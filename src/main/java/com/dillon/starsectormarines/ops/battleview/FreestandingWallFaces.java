@@ -140,7 +140,6 @@ final class FreestandingWallFaces {
             int cells = Math.max(1, Math.round((float) Math.hypot(bx - ax, by - ay)));
             face.set(camera, sx, sy, ax, ay, bx, by, meters);
             dressFace(kind, base, cells, cell * 4 + e % 4, light, alphaMult);
-            apertures(ax, ay, bx, by, ed[e + 4], ed[e + 5], cells, base, light, alphaMult, gridW, gridH);
             if (creep != null && creep.coverageAt(cell) > 0) {
                 // The ground's creep up the face, read in from the wall's outer side as it rises.
                 face.corners(0f, 1f, 0f, 1f, creepScreen);
@@ -162,18 +161,6 @@ final class FreestandingWallFaces {
                 capCreep(c, q, fog, alphaMult);
             }
         }
-        // A window read from above: its glass framed in the wall's top, across the wall, so a firing window shows.
-        if (runsOf != null) {
-            for (int cell : run.cells()) {
-                int cx = cell % gridW, cy = cell / gridW;
-                if (!runsOf.isWindow(cx, cy) || !view.contains(cx, cy)) continue;
-                float fog = fog(shown, cell, gridW, gridH, unseen);
-                boolean alongX = runsOf.isWall(cx - 1, cy) || runsOf.isWall(cx + 1, cy);
-                float hx = alongX ? .38f : .17f, hy = alongX ? .17f : .38f, mx = cx + .5f, my = cy + .5f;
-                c.rect(mx - hx, my - hy, mx + hx, my + hy, SLOT_FRAME, fog, alphaMult);
-                c.rect(mx - hx + .06f, my - hy + .06f, mx + hx - .06f, my + hy - .06f, SLOT_GLASS, fog, alphaMult);
-            }
-        }
         // The coping round the outline, so it turns every joint where strokes meet.
         for (int e = 0; e < ed.length; e += FreestandingWalls.EDGE) {
             float ax = ed[e], ay = ed[e + 1], bx = ed[e + 2], by = ed[e + 3];
@@ -190,42 +177,6 @@ final class FreestandingWallFaces {
                 c.quad(jt[j], jt[j + 1], jt[j + 2], jt[j + 3], jt[j + 4], jt[j + 5], jt[j + 6], jt[j + 7], joint, fog,
                         alphaMult);
             }
-        }
-    }
-
-    // A window through a freestanding wall. UNTUNED.
-    /** Its sill and its head, metres up the wall; its width, a share of its cell. */
-    private static final float SILL_METERS = .95f, HEAD_METERS = 1.9f, APERTURE = .64f;
-    private static final float[] OPENING_LOW = {.05f, .05f, .055f}, OPENING_HIGH = {.13f, .14f, .16f};
-    /** A window's frame and glass in the wall's top, as the ground's window pane drew it. */
-    private static final float[] SLOT_FRAME = {.16f, .17f, .19f}, SLOT_GLASS = {.22f, .55f, .66f};
-
-    /**
-     * The windows along one face of a wall ({@link #face} set), each where its cell is a window
-     * ({@code CellTopology.isWindow}): the wall stands whole to a sill, the opening above it dark into the wall's depth
-     * with a lit reveal down one side, and the wall again over its lintel. Drawn only; the cell sees and covers as the
-     * map laid it.
-     */
-    private void apertures(float ax, float ay, float bx, float by, float nx, float ny, int cells, float[] base,
-                           float light, float alpha, int gridW, int gridH) {
-        CellTopology topology = runsOf;
-        if (topology == null) return;
-        float meters = face.meters;
-        float sill = Math.min(.55f, SILL_METERS / meters), head = Math.min(.86f, HEAD_METERS / meters);
-        if (head <= sill + .05f) return;
-        for (int k = 0; k < cells; k++) {
-            float t = (k + .5f) / cells;
-            int cx = (int) Math.floor(ax + (bx - ax) * t - nx * .25f);
-            int cy = (int) Math.floor(ay + (by - ay) * t - ny * .25f);
-            if (cx < 0 || cy < 0 || cx >= gridW || cy >= gridH || !topology.isWindow(cx, cy)) continue;
-            float half = APERTURE / 2f / cells, u0 = t - half, u1 = t + half, rv = .07f / cells;
-            // The frame round it, the opening into the wall's depth, the reveal catching the light down one side.
-            face.band(u0 - rv, u1 + rv, sill - .025f, head + .025f, scale(base, .62f), light, alpha);
-            face.shaded(u0, u1, sill, head, OPENING_LOW, OPENING_HIGH, light, alpha);
-            face.band(u0, u0 + rv * 1.6f, sill, head, scale(base, .9f), light, alpha);
-            // The sill, catching the light, and the lintel's shadow on the opening under it.
-            face.band(u0 - rv * 1.5f, u1 + rv * 1.5f, sill - .03f, sill + .005f, scale(base, 1.25f), light, alpha);
-            face.band(u0, u1, head - .03f, head, scale(base, .3f), light, alpha);
         }
     }
 
@@ -284,7 +235,7 @@ final class FreestandingWallFaces {
         face.band(0f, 1f, 1f - coping - .02f, 1f - coping, scale(base, .55f), light, alpha);
         float[] joint = scale(base, .72f);
         switch (kind) {
-            case COMPOUND, UNKNOWN -> {
+            case COMPOUND, UNKNOWN, MASONRY_SILL -> {
                 // Masonry: courses every 0.3 m, a pier at every second cell.
                 for (float z = plinth + .3f / meters; z < 1f - coping; z += .3f / meters) {
                     face.band(0f, 1f, z - .01f, z + .01f, joint, light, alpha);
@@ -295,7 +246,7 @@ final class FreestandingWallFaces {
                             scale(base, 1.08f), light, alpha);
                 }
             }
-            case SEALED_PERIMETER, INSTALLATION, BLAST -> {
+            case SEALED_PERIMETER, INSTALLATION, BLAST, CONCRETE_SILL -> {
                 // Cast panels: a joint at every cell, and a seam half-way up the taller walls.
                 for (int k = 1; k < cells; k++) {
                     float u = k / (float) cells;
@@ -596,7 +547,8 @@ final class FreestandingWallFaces {
 
     /**
      * The map's runs of freestanding wall: wall cells no building owns, not out over the void. A window in such a wall
-     * stands with it, its opening cut into its face ({@link #apertures}).
+     * stands only to its sill ({@link FreestandingWalls#sill}), an embrasure the wall's fire goes over, so from above
+     * and from the side it reads as the gap it is.
      */
     static List<FreestandingWalls.Run> runs(CellTopology topology) {
         int gridW = topology.getWidth();
@@ -604,7 +556,10 @@ final class FreestandingWallFaces {
             int x = at % gridW, y = at / gridW;
             return topology.isWall(x, y) && RoofCover.owner(topology, x, y) == 0
                     && topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID;
-        }, at -> FreestandingWalls.kind(topology.getSurfaceId(at % gridW, at / gridW),
-                topology.getWorksStyle(at % gridW, at / gridW)));
+        }, at -> {
+            int x = at % gridW, y = at / gridW;
+            FreestandingWalls.Kind kind = FreestandingWalls.kind(topology.getSurfaceId(x, y), topology.getWorksStyle(x, y));
+            return topology.isWindow(x, y) ? FreestandingWalls.sill(kind) : kind;
+        });
     }
 }
