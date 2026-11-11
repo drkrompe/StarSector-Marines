@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -114,7 +115,8 @@ public final class CrashSiteStage implements GenStage {
 
     /**
      * The worked fields the hull came down on are no fields: a plot the hull, its trench or an apron touches is taken
-     * off the map's fields, so no planet skin grows a covered farm on the hull.
+     * off the map's fields, so no planet skin grows a covered farm on the hull, and what is left of it outside them goes
+     * back to the planet's own ground, not a strip of crops no skin reaches.
      */
     static void dropFields(GenContext ctx, BitSet... covers) {
         List<RuralLayout.Plot> fields = ctx.get(BspKeys.WORKED_FIELDS);
@@ -128,7 +130,26 @@ public final class CrashSiteStage implements GenStage {
                     for (BitSet cover : covers) hit |= cover.get(y * w + x);
                 }
             }
-            if (!hit) kept.add(plot);
+            if (!hit) {
+                kept.add(plot);
+                continue;
+            }
+            SurfacePalette palette = ctx.topology.groundPalette();
+            GroundKind wild = palette == null ? GroundKind.DIRT : palette.inlandGround();
+            String block = block(wild);
+            for (int y = Math.max(0, plot.y0()); y <= Math.min(ctx.height - 1, plot.y1()); y++) {
+                for (int x = Math.max(0, plot.x0()); x <= Math.min(w - 1, plot.x1()); x++) {
+                    boolean covered = false;
+                    for (BitSet cover : covers) covered |= cover.get(y * w + x);
+                    if (covered || ctx.topology.isWall(x, y) || ctx.topology.getBuildingId(x, y) != 0) continue;
+                    GroundKind kind = ctx.topology.getGroundKind(x, y);
+                    if (kind != GroundKind.GRASS && kind != GroundKind.DIRT && kind != GroundKind.SAND
+                            && kind != GroundKind.SNOW && kind != GroundKind.STONE) continue;
+                    ctx.topology.setGroundKind(x, y, wild);
+                    if (block != null) ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(block));
+                    ctx.topology.setNatureOverlayIndex(x, y, -1);
+                }
+            }
         }
         ctx.put(BspKeys.WORKED_FIELDS, kept);
     }

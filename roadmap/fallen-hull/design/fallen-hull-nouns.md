@@ -234,6 +234,37 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   dressing of whatever the hull came down on) are spared only beyond the 20
   cells. It only takes walls and roofs down, so the lift, the shelters, the
   stake points and the haul roads stay as open as they were.
+- **The port's yards** (`PortYards`): where the patch names a `yards` row, every
+  worked field wholly south of it is a port's yards instead of the skin's covered
+  farm, laid before the shower and the lattice so both see them standing. Each
+  clear piece of a field (its farm tracks, worn to trodden earth, and the
+  landing's field of fire part it) takes by turns two tank farms (`TankFarm` in
+  bunds, a loading rack over the lane's bay, the product main along the back and
+  down the far end) to one apron of landing pads (painted rings, stores, a
+  bowser's tank and pump sets down the gaps, the fuel line behind). Nothing that
+  stands is laid in the field of fire or on the hull, trench or aprons, and the
+  farm tracks across the field of fire are bare ground again, so the landing
+  reads as open ground rather than an abandoned farm (the road graph keeps them).
+  A yard's tank weeps no spill: nothing pools on airless ground.
+- **A mine's country** (`MineCountry`): the patch's `dress` names its pieces, each
+  from a cell: spoil heaps and tailings mounds on the planet's own ground, tipped ore carts,
+  a stalled ore train on its rail, a pumping station on a pit's rim with its main
+  run toward the pit, and ruined headframes (legs solid, a girder fallen off,
+  scrap and spoil round it), all the mine's own kit (the `mine-heaps` and
+  `mine-works` sheets, drawn at their size on the ground). As the shower's are, a piece with cover stands solid in a
+  ring of open ground, clearing the wild ground's formations under it; nothing in
+  the way stands on a road, the hull, trench or aprons, the landing's field of
+  fire, near a lattice grid point, or within `SIGHTLINE` of an ore line. A piece
+  that does not fit is left out. A `route` stands hard cover (a spoil heap, a
+  tipped ore car, an ore car, by turns) every `COVER_STEP` cells north from its
+  cell, either side of its line by turns, and a `cluster` four pieces about a
+  stake; a piece that does not fit its cell takes the nearest that does within
+  `SEARCH`.
+- **A grown city** (`TownBlockStage`): the patch's `blocks` are boxes where the
+  city's town lots join into bigger, denser blocks than a town's (up to 56 by 32
+  cells against 36 by 20), so a fight's destruction shows across a whole block;
+  the boxes stop short of each starting stake, and the lot nearest each starting
+  stake is left an open square so its lattice point seats however the city grew.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
@@ -271,7 +302,20 @@ it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
 (c), the ring forge; `hull-spread-law` (a), the hull alone spreads, through its
 autoforge and only from feedstock, while site networks keep their fixed
 numbers; `stake-look` (a), the spire, a square armoured spike that opens four
-petals round its node mast.
+petals round its node mast. `stake-composed` (a), a stake's parts stay separate pieces
+in their fixed slots (`StakeFootprint`), each building up visibly while its
+stage approaches (owner: "we should work on construction animation / phases
+for these"), not one composed picture per stage (`StakeConstruction`: the
+coming stage's parts build over the stake's progress, slab, frame, plating and
+lamps, with welding, builder drones and dust; the pylon drives in, the mast turns
+open; the drone pad, `stake-pad.png`, stays); `hull-painting-res` (b), the
+hull's roof painting regenerated at 48 px a cell in five sections registered to
+the accepted card (`hull_hires.py`), so it holds up at play's closest zoom.
+
+Also answered (owner, 2026-11-11), with the art session building both:
+`hull-painting-res` (b), the hull's painting regenerated at a higher
+resolution; `stake-composed` (a), the stake drawn as separate parts, with a
+construction animation to come.
 
 ## What is built
 
@@ -307,7 +351,8 @@ Numbers UNTUNED.
   zone awake while the forge stands);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
-  chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
+  chain holds; destroyed loaded, its load is lost; it stands two cells off a
+  stripper or store to take from or unload into it, `approach`, never on it); `StakeTrain` (planted on
   reaching its point, scrap if its hauler dies first, the point open again);
   `StakeFootprint` (a stake's 11-cell square, seated where every cell is
   buildable, nearest its point; a slot per part, none overlapping, and each
@@ -317,8 +362,16 @@ Numbers UNTUNED.
 - **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and
   `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
   derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
-  (`worker()`). Both are drawn as the sentinel at their size until the art
-  session's looks ship (`stripper-hauler`, answered: two units).
+  (`worker()`). Each has its own torso on the sentinel's legs
+  (`stripper-hauler`, answered: two units), and work arms drawn as parts
+  (`SalvageWalkerArms`, owner 2026-11-11) keyed off the rules' goal
+  (`StripperWork.goal()`, `HaulerWork.goal()`): they unfold to work and tuck
+  against the body to walk. The stripper's two saw booms telescope out to the
+  salvage it cuts, with glow, sparks, chips and dust; the pile it cuts shrinks
+  (`Salvage.initialMetal`). The hauler's grab arms clamp a clump off the
+  stripper and swing it into the bed, which fills a grab at a time behind the
+  rules' one-pulse hand-over, never ahead of it, and push the load out over the
+  tail at a store.
 
 - **The seam from the ground.** `FallenHullSite` is what the crash-site ground
   fills and the battle stands on: the hull's laid box (`Rect`) and its
@@ -337,8 +390,11 @@ Numbers UNTUNED.
   hull's zone (`HULL_ZONE`), keeping the ground within its perimeter of any
   section (`SecurityZone` with keeps; nearest keep first where zones overlap),
   with the autoforge as its node
-  and vault (an armoured, unarmed structure at the forge cell), its flock at the
-  mouth, its service bay and repair drone; the ground's stakes nearest first,
+  and vault (an armoured, unarmed structure at the forge cell), its flock's
+  cradle and its service bay standing clear of the mouth, where the forge
+  prints and the workers wait (`FallenHull.clearCellNear`: three cells off,
+  open ground two cells all round, room for a heavy walker to pass), and its
+  repair drone; the ground's stakes nearest first,
   each chained through the anchors before it (one the chain cannot reach is
   stranded from the start); the walkers already out, each in the zone keeping
   its post; and the network's `DerelictSecurityDirector`, which runs
@@ -374,8 +430,8 @@ hauler carries the metal into the hull's store).
 
 Not built yet: a stake's rounds walker on a round; cutting a stripped
 structure out of the map (a pile is metal at a cell); the forge's power cut
-other than its destruction; the stripper's and hauler's own looks and the
-stake's three stages drawn (stand-ins: the sentinel at size, the node's
+other than its destruction; the work's sounds (a cut whine, a grab's clank);
+the stake's three stages drawn (stand-ins: the node's
 structure for pylon and node); the briefing and rail reading the build queue
 (`BuildQueue.peek`); a seed's real hull site from the ground.
 

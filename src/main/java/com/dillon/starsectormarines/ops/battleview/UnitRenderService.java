@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
+import com.dillon.starsectormarines.battle.derelict.FallenHull;
+import com.dillon.starsectormarines.battle.derelict.HaulerWork;
+import com.dillon.starsectormarines.battle.derelict.StripperWork;
 import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -391,6 +394,8 @@ public final class UnitRenderService implements RenderSystem {
     private final Map<Long, Float> layerAngles = new HashMap<>();
     /** Each derelict walker's leg rig, and the sim tick it was last advanced on. */
     private final Map<Long, DerelictLegRig> derelictRigs = new HashMap<>();
+    /** Each salvage walker's work arms between frames: unfolded, the bed's shown load, a grab or tip under way. */
+    private final Map<Long, SalvageWalkerArms.State> salvageArms = new HashMap<>();
     /** A derelict walker's mount drawings by slot, filled per walker as it is drawn. */
     private final int[] walkerGuns = new int[MechMountSlot.values().length];
 
@@ -818,8 +823,11 @@ public final class UnitRenderService implements RenderSystem {
             FallenHullLook.Piece piece = FallenHullLook.of(ctx.sim.derelictSecurity(), u);
             ShuttleSpriteCache hullPiece = piece == null ? null : sprites.spriteByPath(piece.path());
             if (hullPiece != null) {
-                emitWholeSprite(out, hullPiece, 0f, piece.cells() * cellPx / Math.max(1f, hullPiece.aspect), cx, cy,
-                        alphaMult);
+                // A stake's pylon driving in as it is planted, its mast turning open as it is raised.
+                float[] motion = StakeConstruction.spireMotion(ctx.sim.derelictSecurity(), u);
+                float scale = motion == null ? 1f : motion[0];
+                emitWholeSprite(out, hullPiece, motion == null ? 0f : motion[1],
+                        scale * piece.cells() * cellPx / Math.max(1f, hullPiece.aspect), cx, cy, alphaMult);
                 continue;
             }
             // A derelict zone's node wears its lineage's relay structure.
@@ -1632,6 +1640,34 @@ public final class UnitRenderService implements RenderSystem {
      * </ol>
      *
      */
+    /**
+     * A stripper's or hauler's work arms and what its work throws off, keyed off the fallen hull's rules for its lance
+     * (`fallen-hull-nouns.md`); nothing for any other walker.
+     */
+    private void workArms(RenderContext ctx, DrawList out, FallenHull hull, long entityId, DerelictWalkerAssets art,
+                          DerelictLegRig rig, float renderScale, float partScale, float alpha) {
+        if (!ctx.sim.squad().hasSquad(entityId)) return;
+        int squad = ctx.sim.squad().squadId(entityId);
+        StripperWork stripper = hull.strippers().get(squad);
+        HaulerWork hauler = stripper == null ? hull.haulers().get(squad) : null;
+        if (stripper == null && hauler == null) return;
+        SalvageWalkerArms.State st = salvageArms.computeIfAbsent(entityId, id -> new SalvageWalkerArms.State());
+        int tick = ctx.sim.getSimTickIndex();
+        float dt = st.lastTick < 0 ? 0f : Math.min(0.25f, Math.max(0, tick - st.lastTick) * BattleSimulation.TICK_DT);
+        st.lastTick = tick;
+        if (stripper != null) {
+            StripperWork.Goal goal = stripper.goal();
+            st.stripper(dt, goal.kind() == StripperWork.Kind.CUT);
+            SalvageWalkerArms.stripper(out, art, rig, ctx.camera, renderScale, st, goal, sprites.engineGlowSprite(),
+                    alpha);
+        } else {
+            HaulerWork.Goal goal = hauler.goal();
+            st.hauler(dt, goal.kind(), goal.x(), goal.y(), hauler.load() / HaulerWork.CAPACITY);
+            SalvageWalkerArms.hauler(out, art, rig, ctx.camera, renderScale, partScale, st,
+                    sprites.engineGlowSprite(), alpha);
+        }
+    }
+
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
@@ -1648,6 +1684,14 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
+        DerelictSecurityDirector watch = ctx.sim.derelictSecurity();
+        if (watch != null && watch.hull() != null && sprites.stripperSprites() != null) {
+            SalvageWalkerArms.piles(out, cam, watch.hull().salvage(), sprites.stripperSprites().pile, view, alphaMult);
+        }
+        if (watch != null && watch.hull() != null) {
+            StakeConstruction.draw(out, cam, sprites, watch, view, ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT,
+                    alphaMult);
+        }
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
@@ -1776,6 +1820,10 @@ public final class UnitRenderService implements RenderSystem {
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
                             walkerArt, rig, cam, roster.renderScale(entityId), size, unitAlpha);
+                    if (watch != null && watch.hull() != null) {
+                        workArms(ctx, out, watch.hull(), entityId, walkerArt, rig, roster.renderScale(entityId), size,
+                                unitAlpha);
+                    }
                     if (ctx.sim.world().hasMechLoadout(entityId)) {
                         // Its guns on their hardpoints, riding the drawn body and turned to its aim.
                         walkerGuns[MechMountSlot.ARMS.ordinal()] = mechArms[r];

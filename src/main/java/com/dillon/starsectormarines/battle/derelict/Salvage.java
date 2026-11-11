@@ -21,6 +21,9 @@ public final class Salvage {
     /** The watch's wreck this is, or null. */
     public final Wreck wreck;
 
+    /** The metal it held when laid: the screen draws the pile shrinking toward nothing as it is cut. */
+    public final float initialMetal;
+
     private float metal;
 
     public Salvage(long id, Kind kind, float x, float y, float metal, Wreck wreck) {
@@ -30,6 +33,7 @@ public final class Salvage {
         this.x = x;
         this.y = y;
         this.metal = metal;
+        this.initialMetal = metal;
         this.wreck = wreck;
     }
 

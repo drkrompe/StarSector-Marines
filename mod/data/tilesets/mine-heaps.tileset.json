@@ -1,0 +1,72 @@
+{
+  "cellPx": 50,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.mine-spoil-large",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "doodad.mine-spoil-small",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "doodad.mine-tailings-small",
+      "row": 9
+    },
+    {
+      "col": 0,
+      "name": "doodad.mine-tailings-large",
+      "row": 15
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        9,
+        9
+      ],
+      "id": "doodad.mine-spoil-large",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.mine-spoil-small",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        9,
+        6
+      ],
+      "id": "doodad.mine-tailings-small",
+      "row": 9
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        12,
+        9
+      ],
+      "id": "doodad.mine-tailings-large",
+      "row": 15
+    }
+  ],
+  "sheet": "graphics/doodads/mine-heaps.png"
+}

@@ -1,0 +1,104 @@
+{
+  "cellPx": 50,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.mine-headframe",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "doodad.mine-headframe-ruined",
+      "row": 9
+    },
+    {
+      "col": 0,
+      "name": "doodad.mine-pump-house",
+      "row": 18
+    },
+    {
+      "col": 9,
+      "name": "doodad.mine-ore-car",
+      "row": 18
+    },
+    {
+      "col": 0,
+      "name": "doodad.mine-ore-car-tipped",
+      "row": 24
+    },
+    {
+      "col": 6,
+      "name": "doodad.mine-ore-engine",
+      "row": 24
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        9,
+        9
+      ],
+      "id": "doodad.mine-headframe",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        9,
+        9
+      ],
+      "id": "doodad.mine-headframe-ruined",
+      "row": 9
+    },
+    {
+      "ballisticHalfHeight": 1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        9,
+        6
+      ],
+      "id": "doodad.mine-pump-house",
+      "row": 18
+    },
+    {
+      "ballisticHalfHeight": 0.8,
+      "col": 9,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        6
+      ],
+      "id": "doodad.mine-ore-car",
+      "row": 18
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        6
+      ],
+      "id": "doodad.mine-ore-car-tipped",
+      "row": 24
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 6,
+      "cover": "heavy",
+      "footprintCells": [
+        3,
+        9
+      ],
+      "id": "doodad.mine-ore-engine",
+      "row": 24
+    }
+  ],
+  "sheet": "graphics/doodads/mine-works.png"
+}

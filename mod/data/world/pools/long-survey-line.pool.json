@@ -4,13 +4,14 @@
   "home": "FROZEN",
   "entry": {
     "seed": 2,
-    "note": "The Line: the district capital, Broad Front's city on its own seed (long-survey-maps.md, Chapter 3), the Surveyor down across its north edge in the heart's place, bow west, its trench run on west; the claim's chains reach south into the city, established nearest the hull, raised and planted at the heads of the three columns' lanes",
+    "note": "The Line: the district capital, Broad Front's city on its own seed (long-survey-maps.md, Chapter 3), the Surveyor down across its north edge in the heart's place, bow west, its trench run on west; the claim's chains reach south into the city, established nearest the hull, raised and planted at the heads of the three columns' lanes; Garnir's free port: a spaceport quarter east of the east lane and warehouses west of the west lane, the city's lots grown into big blocks along the three lanes and at the Cross",
     "patch": {
       "hull": {
         "x": 330,
         "y": 296,
         "heading": "west",
         "trench": 40,
+        "yards": 80,
         "stakes": [
           {
             "x": 330,
@@ -62,6 +63,32 @@
             "y": 176,
             "stage": "planted"
           }
+        ],
+        "blocks": [
+          [
+            140,
+            70,
+            262,
+            205
+          ],
+          [
+            258,
+            70,
+            302,
+            255
+          ],
+          [
+            398,
+            70,
+            482,
+            205
+          ],
+          [
+            238,
+            160,
+            424,
+            214
+          ]
         ]
       }
     }

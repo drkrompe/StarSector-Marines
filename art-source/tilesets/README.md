@@ -107,6 +107,8 @@ python -m unittest discover `
 | `doodads/street-lamps.png` | `street-lamps.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/street-lamps-guide.png`; cut at the guide's frames. Replaces the rod-and-head lamps still on `street-dressing.raw.png` |
 | `doodads/lobster-trade.png` | `lobster-trade.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/lobster-trade-guide.png`, drawn about 1.6x the guide's scale: cut at each piece's measured frame, not the guide's |
 | `doodads/industrial-street-kit.png` | `industrial-street-kit.raw.png` (1536x1024 RGBA, keyed) | Reskin of `templates/industrial-street-kit-guide.png`; exported from `industrial-street-kit.tileset-authoring.json` |
+| `doodads/mine-heaps.png` | `mine-heaps.raw.png` (1536x1024 RGBA) | Reskin of `templates/mine-heaps-guide.png` (`mine-heaps.prompt.txt`, planet-formations as material); exported from `mine-heaps.tileset-authoring.json` |
+| `doodads/mine-works.png` | `mine-works.raw.png` (1536x1024 RGBA) | Reskin of `templates/mine-works-guide.png` (`mine-works.prompt.txt`, factory-machines as material); exported from `mine-works.tileset-authoring.json` |
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |

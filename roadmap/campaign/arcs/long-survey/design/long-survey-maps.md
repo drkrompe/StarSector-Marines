@@ -15,7 +15,8 @@ west from the hull through the town (the Colony Breach's rescue, `long-survey-ar
 
 **Ground.** The Colony Breach's colony on its own seed, `long-survey-fall` seed 38,
 400 by 240: the lift, bores and holdouts as the owner placed them, the town north
-of the rail line, fields and desert south of it.
+of the rail line, the port's yards and desert south of it (`PortYards`: tank
+farms and landing pads on the old fields, the lift's field of fire left bare).
 
 - **Entry.** The lift at 164,18 on the south edge, its landing field of fire kept
   clear of the hull, the trench and every strike.
@@ -56,6 +57,15 @@ pit in the south-east (x 332 to 392, y 45 to 105), the raised ore line between
 them along y 69.
 
 - **Entry.** The company comes in from the south edge.
+- **Mine country** (`MineCountry`, the patch's `dress`): on the centre route a stalled
+  ore train standing north–south on its rail (x about 302, y 4 to 44), tipped ore
+  carts by the catch station and spoil heaps either side of the ore line; on the
+  east route a pumping station on the pit's south rim (342,34), tailings, spoil and
+  carts south of the pit and a ruined headframe at its south-east (360,4), with a
+  second headframe north of the junction (318,112). Hard cover runs up both
+  routes, a piece every 8 cells or so (centre from 322,6 and 322,80; east from
+  388,8 and up the rim from 392,48), and four pieces stand about each stake.
+  The ore line keeps its open sightline: nothing in the way within 5 cells of it.
 - **The hull.** Down in the open ground east of the works, broken in three, bow
   west (centre 314,185; x 251 to 378, y 167 to 203), its trench stopping short of
   the works' east wall; the impact band wrecks the works' east yards.
@@ -93,8 +103,17 @@ mechanics: walls and roofs break, blocks collapse and burn under the fight.
 blocks to the north edge. The city is intact at the start apart from the hull's
 impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
-- **Entry.** The garrison's columns and the company step off from the fields
-  along the south edge (y 0 to 70), the landing on the Avenue at 279,39.
+Garnir's pirate free port, airless and sealed: hab blocks, warehouses, a spaceport
+quarter and its markets. Two port districts join the city's plan
+(`LongSurveyGround`): the spaceport quarter east of the east lane
+(`PrecinctCharacter.PORT`: aprons, warehouses, trade) and a warehouse district
+west of the west lane (`DEPOT`). Along the three lanes and at the Cross the
+patch's `blocks` grow the town lots into big blocks (`fallen-hull-nouns.md`, A
+grown city), each starting stake's lot left an open square.
+
+- **Entry.** The garrison's columns and the company step off from the port's
+  yards along the south edge (y 0 to 70; tank farms and landing pads on the old
+  fields, `PortYards`), the landing on the Avenue at 279,39.
 - **The hull.** Down across the north edge in the heart's place, broken in three,
   bow west (centre 330,296; x 267 to 394, y 278 to 314), the forge in the bow, the
   bay's door facing the city. Its trench runs on west from the bow. The impact
@@ -141,29 +160,35 @@ guarded by the vault frame and a hall frame (Broad Front, the hull as its heart,
 then the interior as a delve). With chapter 3 on Broad Front too, the outer push is
 kept short and the chapter weighted on the delve (`long-survey-arc.md`, Open picks).
 
-**Ground.** Broad Front's country, `long-survey-surveyor` seed 5, 560 by 336: the
-south fields and two airbases, rural country with ponds and ridges, the hull in the
-heart's place.
+**Ground.** Broad Front's country on Garnir, `long-survey-surveyor` seed 5, 560 by
+336, laid out frozen and airless: the port's yards on the south fields (tank farms
+and landing pads, `PortYards`) and two airbases, the cordon
+line, then works country, two sealed works districts either side of the approach
+(sheds, yards, a tank farm; `LongSurveyGround`, `WORKS_WEST` and `WORKS_EAST`), the
+hull in the heart's place between them.
 
-- **Entry.** The garrison's columns and the company from the south fields and the
+- **Entry.** The pirates' columns and the company from the south fields and the
   airbases (96,8 and 483,8).
 - **The hull.** North of centre, broken in three, bow south (sections x 262 to 298,
   y 187 to 314), the forge behind the bow's torn end; its trench runs down the
   supply road the columns come up.
-- **The claim.** The full claim stands round the hull: established stakes nearest
-  it, raised beyond, planted at its edge (the outer chain, y about 150 to 200).
+- **The claim.** Established stakes round the hull and a ring of them at y 210
+  (200, 240, 320 and 360); the outer chain beyond: on the west raised at 200,170
+  and planted at 200,130, on the east raised at 320,170 and 360,130 and planted
+  at 400,170. Cutting the ring at 200,210 strands the west outer chain, at 360,210
+  most of the east: the outer phase is won by those cuts. Every stake seats on
+  every world's skin.
 
 **Routes**, south to north:
 
-- **Centre, the supply road**: straight up the trench to the bow's torn end and the
-  forge behind it.
-- **West, the ponds and hollows**: broken ground to the outer chain's west stakes
-  and the bow's port flank.
-- **East, the ridges and the works**: the berms and the derelict works north-east,
-  to the outer chain's east stakes and the midsection's rents.
+- **Centre, the supply road**: straight up the open ground between the works to
+  the bow's torn end and the forge behind it; the trench run.
+- **West, through the west works**: sheds, yards and the tank farm, close cover,
+  to the west outer chain and the ring's west cut.
+- **East, through the east works**: the denser district, to the east outer chain.
 
-**Set pieces.** 1, the outer ring, where cutting the chain strands the claim; 2, the
-trench run into the bow; 3, the delve: a breach, the spine, the forge hall.
+**Set pieces.** 1, the ring cuts, where the outer chain strands; 2, the trench run
+into the bow; 3, the delve: a breach, the spine, the forge hall.
 
-**Allies.** The columns hold the trench mouth and the outer ring while the company
-goes in.
+**Allies.** The pirates' columns hold the trench mouth and the works' edges while
+the company goes in.

@@ -50,6 +50,10 @@ public final class FallenHull {
     static final int HOLD_RADIUS = 2;
     /** A standing order whose cell moved less than this is not re-issued. */
     static final int REISSUE_CELLS = 2;
+    /** How far off the mouth the hull's cradle and service bay stand, cells (Chebyshev): clear of its doorway. */
+    static final int BAY_OFF_MOUTH_CELLS = 3;
+    /** Open ground the cradle and bay keep round them, cells (Chebyshev): room for a heavy walker to pass. */
+    static final int BAY_CLEAR_CELLS = 2;
     /** Seconds of fire the watch remembers when it looks for the loudest fight. UNTUNED. */
     static final float FIRE_SECONDS = 8f;
 
@@ -163,8 +167,11 @@ public final class FallenHull {
             span = Math.max(span, Math.max(Math.max(Math.abs(r.left() - site.mouthX()), Math.abs(r.right() - site.mouthX())),
                     Math.max(Math.abs(r.bottom() - site.mouthY()), Math.abs(r.top() - site.mouthY()))));
         }
-        hull.launchFlock(sim, HULL_ZONE, site.mouthX(), site.mouthY(), span + site.perimeterCells());
-        hull.standBay(sim, director, HULL_ZONE, site.mouthX(), site.mouthY());
+        // The mouth is the hull's door, where the forge prints and its workers wait: its cradle and bay stand clear of it.
+        int[] cradle = hull.clearOfMouth(sim);
+        hull.taken.add(DerelictSecurity.cellKey(cradle[0], cradle[1]));
+        hull.launchFlockAt(sim, HULL_ZONE, cradle[0], cradle[1], span + site.perimeterCells());
+        hull.standBay(sim, director, HULL_ZONE);
         DerelictSecurity.standRepairDrone(sim, HULL_ZONE, director, hull.livery);
 
         hull.standStartingStakes(sim, director);
@@ -542,8 +549,15 @@ public final class FallenHull {
         established.add(p.id());
     }
 
-    private int[] standBay(BattleSimulation sim, DerelictSecurityDirector director, int zoneId, int x, int y) {
-        int[] cell = freeCellNear(sim.getGrid(), x, y, 2);
+    /** A cell for one of the hull's structures by its mouth: {@link #clearCellNear} the mouth, off what is taken. */
+    private int[] clearOfMouth(BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        return clearCellNear(site.mouthX(), site.mouthY(), BAY_OFF_MOUTH_CELLS, BAY_CLEAR_CELLS,
+                (cx, cy) -> open(grid, cx, cy) && !taken.contains(DerelictSecurity.cellKey(cx, cy)));
+    }
+
+    private int[] standBay(BattleSimulation sim, DerelictSecurityDirector director, int zoneId) {
+        int[] cell = clearOfMouth(sim);
         int[] at = standBayAt(sim, director, zoneId, cell[0], cell[1]);
         if (at != null) taken.add(DerelictSecurity.cellKey(at[0], at[1]));
         return at;
@@ -564,18 +578,6 @@ public final class FallenHull {
         if (port == null || sim.flocks() == null) return;
         Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, x + 0.5f, y + 0.5f, DerelictSecurity.FLOCK_SIZE,
                 FlockWeights.WASP, perimeter + FlockTasking.LEASH_CELLS, livery);
-        if (flock != null) port.add(flock, zoneId);
-    }
-
-    private void launchFlock(BattleSimulation sim, int zoneId, int x, int y, int perimeter) {
-        if (port == null || sim.flocks() == null) return;
-        NavigationGrid grid = sim.getGrid();
-        int[] home = DerelictSecurity.nearOpen(new int[] {x, y}, 1,
-                (cx, cy) -> grid.inBounds(cx, cy) && grid.isWalkable(cx, cy),
-                (cx, cy) -> sim.getTopology() != null && sim.getTopology().isRoofIntact(cx, cy), taken);
-        if (home == null) return;
-        Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, home[0] + 0.5f, home[1] + 0.5f,
-                DerelictSecurity.FLOCK_SIZE, FlockWeights.WASP, perimeter + FlockTasking.LEASH_CELLS, livery);
         if (flock != null) port.add(flock, zoneId);
     }
 
@@ -694,6 +696,7 @@ public final class FallenHull {
 
     private void runHaulers(BattleSimulation sim, float dt) {
         World world = sim.world();
+        NavigationGrid grid = sim.getGrid();
         List<HaulerWork.Holder> holders = new ArrayList<>();
         for (Map.Entry<Integer, StripperWork> s : strippers.entrySet()) {
             if (sim.squadMemberCount(s.getKey()) <= 0 || s.getValue().load() <= 0f) continue;
@@ -728,9 +731,12 @@ public final class FallenHull {
             } else if (goal.kind() == HaulerWork.Kind.UNLOAD) {
                 rules.unload(goal.with() == ClaimLattice.HULL ? hullStore : stakes.get(goal.with()).store());
             }
-            int gx = (int) Math.floor(goal.x());
-            int gy = (int) Math.floor(goal.y());
-            int[] to = goal.kind() == HaulerWork.Kind.GO ? walkLeg(sim, squad, lead, gx, gy) : new int[] {gx, gy};
+            // To a stripper or a store it walks to a cell beside it, in reach, never onto the stripper's or bay's own.
+            int[] at = goal.kind() != HaulerWork.Kind.STAND_BY
+                    ? HaulerWork.approach(goal.x(), goal.y(), x, y, (cx, cy) -> grid.inBounds(cx, cy)
+                            && grid.isWalkable(cx, cy))
+                    : new int[] {(int) Math.floor(goal.x()), (int) Math.floor(goal.y())};
+            int[] to = goal.kind() == HaulerWork.Kind.GO ? walkLeg(sim, squad, lead, at[0], at[1]) : at;
             String why = switch (goal.kind()) {
                 case STAND_BY -> "hauler stands by: nothing to carry";
                 case GO -> "hauler walks the haul road";
@@ -900,25 +906,27 @@ public final class FallenHull {
     }
 
     /**
-     * The nearest walkable, untaken cell to {@code (x, y)} at least {@code minCells} off it whose four neighbours are
-     * walkable, so a structure stood there blocks no way; the cell itself when none is near.
+     * Where one of the hull's structures (its flock's cradle, its service bay) stands by its mouth: the nearest cell to {@code (x, y)} at least {@code minCells}
+     * off it with every cell within {@code clearCells} of it open (walkable and untaken), so the structure never plugs
+     * the mouth the forge prints at and its workers wait at, and a heavy walker passes its body on any side; the cell itself when none is near.
      */
-    private int[] freeCellNear(NavigationGrid grid, int x, int y, int minCells) {
+    static int[] clearCellNear(int x, int y, int minCells, int clearCells, BiPredicate<Integer, Integer> open) {
         for (int r = minCells; r <= minCells + 8; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
-                    int cx = x + dx;
-                    int cy = y + dy;
-                    if (taken.contains(DerelictSecurity.cellKey(cx, cy)) || !open(grid, cx, cy)) continue;
-                    if (open(grid, cx + 1, cy) && open(grid, cx - 1, cy) && open(grid, cx, cy + 1)
-                            && open(grid, cx, cy - 1)) {
-                        return new int[] {cx, cy};
-                    }
+                    if (clearRound(x + dx, y + dy, clearCells, open)) return new int[] {x + dx, y + dy};
                 }
             }
         }
         return new int[] {x, y};
+    }
+
+    private static boolean clearRound(int cx, int cy, int clearCells, BiPredicate<Integer, Integer> open) {
+        for (int oy = -clearCells; oy <= clearCells; oy++) {
+            for (int ox = -clearCells; ox <= clearCells; ox++) if (!open.test(cx + ox, cy + oy)) return false;
+        }
+        return true;
     }
 
     private static boolean open(NavigationGrid grid, int x, int y) {

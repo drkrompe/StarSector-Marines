@@ -199,6 +199,8 @@
     "data/tilesets/origin-freight-crane.tileset.json",
     "data/tilesets/ore-conveyor.tileset.json",
     "data/tilesets/ore-conveyor-motions.tileset.json",
+    "data/tilesets/mine-heaps.tileset.json",
+    "data/tilesets/mine-works.tileset.json",
     "data/tilesets/refinery-plant.tileset.json",
     "data/tilesets/refinery-utilities.tileset.json",
     "data/tilesets/refinery-heaters.tileset.json",

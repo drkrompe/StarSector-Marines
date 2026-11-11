@@ -101,6 +101,22 @@ public final class PoolEntryText {
                 }
                 hull.put("stakes", stakes);
             }
+            if (h.yards() > 0) hull.put("yards", h.yards());
+            if (!h.dress().isEmpty()) {
+                List<Object> dress = new ArrayList<>();
+                for (HullSitePlan.Dress d : h.dress()) {
+                    Map<String, Object> piece = object("kind", d.kind().name().toLowerCase(Locale.ROOT), "x", d.x(), "y", d.y());
+                    if (d.length() != 0) piece.put("length", d.length());
+                    if (d.turns() != 0) piece.put("turns", d.turns());
+                    dress.add(piece);
+                }
+                hull.put("dress", dress);
+            }
+            if (!h.blocks().isEmpty()) {
+                List<Object> blocks = new ArrayList<>();
+                for (HullSitePlan.Box b : h.blocks()) blocks.add(List.of(b.x0(), b.y0(), b.x1(), b.y1()));
+                hull.put("blocks", blocks);
+            }
             m.put("hull", hull);
         }
         return m;

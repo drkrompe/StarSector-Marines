@@ -106,6 +106,15 @@ public record PrecinctCharacter(String name, Map<MapDistrictTheme, Integer> mix,
             MapDistrictTheme.OUTSKIRTS, 80,
             MapDistrictTheme.INDUSTRIAL, 20);
 
+    /**
+     * A port's district: landing aprons and their pads, the warehouses round them and the trade that lives off them,
+     * its seed block an apron. A free port's spaceport quarter ({@code long-survey-maps.md}, Chapter 3).
+     */
+    public static final PrecinctCharacter PORT = of("port", MapDistrictTheme.HARBOR_PORT,
+            MapDistrictTheme.HARBOR_PORT, 45,
+            MapDistrictTheme.INDUSTRIAL, 35,
+            MapDistrictTheme.MIXED, 20);
+
     /** One district of a city: dense and mixed, with no core of its own. */
     public static final PrecinctCharacter QUARTER = of("quarter", null,
             MapDistrictTheme.MIXED, 30,
