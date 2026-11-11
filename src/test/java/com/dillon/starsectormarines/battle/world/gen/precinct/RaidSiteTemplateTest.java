@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
 import com.dillon.starsectormarines.battle.world.gen.raid.MiningWorks;
 import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustries;
 import com.dillon.starsectormarines.battle.world.gen.raid.RaidIndustry;
+import com.dillon.starsectormarines.battle.world.gen.raid.RefiningWorks;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
@@ -244,9 +245,15 @@ class RaidSiteTemplateTest {
             RaidSiteTemplate site = RaidSiteTemplate.forIndustry(id);
             assertNotNull(site, id);
             keys.add(site.key());
-            Precinct works = lay(site, market(5, 3), 4L).objective();
+            PrecinctPlan plan = lay(site, market(5, 3), 4L);
+            Precinct works = plan.objective();
             assertEquals(RaidSiteTemplate.WORKS, works.name(), id);
-            assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE), id);
+            if ("refining".equals(site.key())) {
+                // A refinery's machines are its units, standing in the open in its process area.
+                assertNotNull(plan.layout().find(RefiningWorks.PROCESS_WEST), id);
+            } else {
+                assertEquals(4, works.program().countOf(RoomPurpose.PARTS_CAGE), id);
+            }
             assertTrue(works.program().detached(), id);
         }
         assertEquals(7, keys.size(), "seven sites, one per kind of industry");

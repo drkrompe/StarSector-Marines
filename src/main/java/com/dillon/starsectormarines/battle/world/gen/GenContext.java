@@ -108,6 +108,8 @@ public final class GenContext {
     public final List<WallGate> wallGates = new ArrayList<>();
     /** Industrial zones districts laid, in the order they were laid ({@code set-piece-districts.md}). */
     public final List<IndustrialZone> industrialZones = new ArrayList<>();
+    /** Machines an industry's Raid site stands in the open, each a charge cell ({@link MapResult#raidMachines}). */
+    public final List<int[]> raidMachines = new ArrayList<>();
 
     /**
      * Cells a facility has engineered, which terrain passes must not repaint.

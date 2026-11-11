@@ -993,7 +993,8 @@ public final class BspCityGenerator implements MapGenerator {
                 .withRuinsDelve(ctx.get(RuinsKeys.DELVE))
                 .withHullSite(ctx.get(HullKeys.SITE))
                 .withWallGates(ctx.wallGates)
-                .withFields(ctx.get(BspKeys.WORKED_FIELDS));
+                .withFields(ctx.get(BspKeys.WORKED_FIELDS))
+                .withRaidMachines(ctx.raidMachines);
         // A fallen hull's shower struck buildings: knocked down and holed when the battle is assembled.
         List<DamagePlan.Stroke> strikes = ctx.get(HullKeys.STRIKES);
         if (strikes != null && !strikes.isEmpty()) {
