@@ -25,7 +25,7 @@ class WallMountsTest {
         for (float[] c : new float[][]{{11.5f, 5f}, {-30f, 0f}, {50f, -12f}, {11.5f, 19f}}) {
             float[] mount = {10f, 20f, 13f, 20f, 13f, 19f, 10f, 19f};
             WallMounts.standUp(mount, eaves, c[0], c[1], meters, lift, 1f,
-                    WallMounts.AWNING_RAIL_METERS, WallMounts.AWNING_VALANCE_METERS);
+                    WallMounts.AWNING_RAIL_METERS, WallMounts.AWNING_VALANCE_METERS, 1f);
             painter.reset();
             painter.wall(10f, 20.3f, 13f, 20.3f, 10f, 20f, 13f, 20f, c[0], c[1], lift, 0f, -1f, 1f);
             painter.quad(0f, 1f, z, z + .1f, 1f, 1f, 1f);
@@ -46,7 +46,7 @@ class WallMountsTest {
         float upright = BuildingFaces.standing(meters, 1f);
         float[] mount = {10f, 20f, 13f, 20f, 13f, 19f, 10f, 19f};
         WallMounts.standUp(mount, new float[]{10f, 20.3f, 13f, 20.3f}, 0f, 0f, meters, lift, upright,
-                WallMounts.AWNING_RAIL_METERS, WallMounts.AWNING_VALANCE_METERS);
+                WallMounts.AWNING_RAIL_METERS, WallMounts.AWNING_VALANCE_METERS, 1f);
         assertEquals(BuildingFaces.onFace(20f, 20.3f, 0f, lift, upright), mount[1], EPS);
         // Its valance hangs as far below the rail as ever.
         float valance = upright * meters - (WallMounts.AWNING_RAIL_METERS - WallMounts.AWNING_VALANCE_METERS);

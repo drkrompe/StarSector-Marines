@@ -50,13 +50,13 @@ public final class SecurityNetwork {
         return contingency;
     }
 
-    /** The zone keeping a cell, the nearest node first where perimeters overlap; null outside every perimeter. */
+    /** The zone keeping a cell, the nearest node (or keep) first where perimeters overlap; null outside every perimeter. */
     public SecurityZone zoneAt(int cellX, int cellY) {
         SecurityZone best = null;
         int bestDistance = Integer.MAX_VALUE;
         for (SecurityZone zone : zones.values()) {
             if (!zone.inside(cellX, cellY)) continue;
-            int distance = Math.max(Math.abs(cellX - zone.nodeCellX), Math.abs(cellY - zone.nodeCellY));
+            int distance = zone.reach(cellX, cellY);
             if (distance < bestDistance) {
                 best = zone;
                 bestDistance = distance;
@@ -88,7 +88,7 @@ public final class SecurityNetwork {
         if (zone == null) {
             int best = Integer.MAX_VALUE;
             for (SecurityZone z : zones.values()) {
-                int distance = Math.max(Math.abs(cellX - z.nodeCellX), Math.abs(cellY - z.nodeCellY));
+                int distance = z.reach(cellX, cellY);
                 if (distance < best) {
                     best = distance;
                     zone = z;

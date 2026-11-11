@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
 
 /**
  * A ruins site's light ({@code ruins-expedition.md}, Light): the plant is black under its roof when the company lands,
@@ -58,6 +59,7 @@ public final class RuinsLighting {
     static final String WATCH = "watch-";
     static final String VENT = "vent-";
     static final String BAY = "bay-";
+    static final String SERVICE = "service-";
     /** The watch's alarm strips stand this far apart: a sparse lattice over the plant's own lights. */
     static final int ALARM_SPACING = 10;
     /** How far round the works hall's stand the hall's restart lights. */
@@ -229,6 +231,22 @@ public final class RuinsLighting {
     /** The circuit of a security zone's reserve bay. */
     public static String bay(int zoneId) { return BAY + zoneId; }
 
+    /** The circuit of a security zone's service bay, where its walkers re-arm and its tender and repair drone work. */
+    public static String service(int zoneId) { return SERVICE + zoneId; }
+
+    /**
+     * The service bays lit now: a zone's bay while its zone is online and the bay stands. {@code bays} maps a zone to
+     * its bay's entity.
+     */
+    public static Set<String> serviceCircuits(SecurityNetwork network, Map<Integer, Long> bays, LongPredicate stands) {
+        Set<String> out = new TreeSet<>();
+        for (var bay : bays.entrySet()) {
+            SecurityZone zone = network.zone(bay.getKey());
+            if (zone != null && zone.online() && stands.test(bay.getValue())) out.add(service(bay.getKey()));
+        }
+        return out;
+    }
+
     /**
      * The watch's circuits lit now: each online zone's alarm strips while it is alert or awake, or in the contingency;
      * each vent's hatch while a flock may use it (the ducts are up, it stands, its zone is online); and a zone's
@@ -297,11 +315,16 @@ public final class RuinsLighting {
     }
 
     /** Adds the watch's lamps to {@code ground}'s lighting, once its network stands; no lighting, no change. */
-    public static void layWatch(CellTopology ground, RuinsDelve delve, SecurityNetwork network, ServiceDucts ducts) {
+    public static void layWatch(CellTopology ground, RuinsDelve delve, SecurityNetwork network, ServiceDucts ducts,
+                                Map<Integer, int[]> serviceBays) {
         NightLighting night = ground.nightLighting();
         if (night == null || delve.interior() == null) return;
         List<Lamp> lamps = new ArrayList<>(night.lamps());
         lamps.addAll(watchLamps(ground, network, ducts, delve.interior().footprint()));
+        for (var bay : serviceBays.entrySet()) {
+            int[] at = bay.getValue();
+            add(lamps, ground, at[0], at[1], 3, 3.5f, WORK_LIGHT, service(bay.getKey()), 0.8f, 1f);
+        }
         ground.setNightLighting(night.withLamps(lamps));
     }
 

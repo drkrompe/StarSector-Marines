@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
 import com.dillon.starsectormarines.campaign.ruins.RuinsOccupant;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultPrize;
+import com.dillon.starsectormarines.campaign.ruins.RuinsVaultTheme;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -37,7 +39,8 @@ import java.util.List;
  * {@code -Dsnapshot.ruinsLight.seed} picks the site (default 31), {@code -Dsnapshot.ruinsLight.grade} the grade
  * (default EXTENSIVE), {@code -Dsnapshot.ruinsLight.focus} where the camera stands: {@code hall} (default), {@code entrance} (the first way in), {@code court} (the first light well inside) or
  * {@code works}, {@code -Dsnapshot.ruinsLight.roofed} the darkness under the roof, for a dimmer start to compare
- * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.watch=true} with
+ * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.theme} a vault theme
+ * ({@link RuinsVaultTheme}), so the site lays its works hall for the {@code works} focus, {@code -Dsnapshot.ruinsLight.watch=true} with
  * {@code -Dsnapshot.ruinsLight.occupant=DOMAIN_SECURITY} the watch's lights at its first zone's node, asleep and
  * hunting, and {@code -Dsnapshot.ruinsLight.warm=true} renders the hall's
  * restart instead, one renderer stepping the battle, so the lamps are seen striking as they warm up. {@code -Psnapshot=ruins-light-look}.
@@ -60,7 +63,7 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         try (BattleSimulation sim = BattleSetup.createRuins(seed, BattleSetup.defaultManifest(), false,
                 OperationTier.ESTABLISHED, RiskLevel.MEDIUM, profile(), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                grade, RuinsOccupant.valueOf(System.getProperty("snapshot.ruinsLight.occupant", "NOBODY")))) {
+                grade, RuinsOccupant.valueOf(System.getProperty("snapshot.ruinsLight.occupant", "NOBODY")), prize())) {
             for (int t = 0; t < Math.round(5f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
             RuinsWorks works = sim.getRuinsWorks();
             String roofed = System.getProperty("snapshot.ruinsLight.roofed");
@@ -130,6 +133,15 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
             out.add(frame(context, sim, cx, cy, "03-lit.png"));
         }
         return out;
+    }
+
+    /** The vault's prize from {@code -Dsnapshot.ruinsLight.theme}, so the site lays that theme's works hall; null for none. */
+    private static RuinsVaultPrize prize() {
+        String name = System.getProperty("snapshot.ruinsLight.theme");
+        if (name == null) return null;
+        RuinsVaultTheme theme = RuinsVaultTheme.valueOf(name);
+        return new RuinsVaultPrize(theme.family, theme,
+                theme.family == RuinsVaultPrize.Family.AI_CORE ? RuinsVaultPrize.BETA_CORE : theme.itemId, 2);
     }
 
     /** Runs the battle on three seconds, long enough for a circuit just powered to warm up. */

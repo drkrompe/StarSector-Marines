@@ -385,8 +385,9 @@ public final class CrashSiteStage implements GenStage {
                     if (kind == HullPlan.Kind.OUTSIDE) continue;
                     int x = frame.wx(u, v), y = frame.wy(u, v);
                     switch (kind) {
+                        // A bulkhead only where it faces a deck; the solid hull behind it is plate, not a dark field.
                         case HULL -> wall(x, y, hull.sheared(u, v) && has(SHEARED) ? SHEARED
-                                : hull.shell(u, v) ? armour : BULKHEAD);
+                                : hull.shell(u, v) || !besideDeck(u, v) ? armour : BULKHEAD);
                         case FLOOR -> {
                             String room = hull.compartment(u, v);
                             deck(x, y, floor(u, v, room));
