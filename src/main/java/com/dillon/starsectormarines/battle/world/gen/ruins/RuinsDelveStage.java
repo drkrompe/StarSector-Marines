@@ -234,6 +234,17 @@ public final class RuinsDelveStage implements GenStage {
     static final String EMPTY_CRADLE = "doodad.ruins-empty-cradle";
     static final String RACK_STRIPPED = "doodad.ruins-rack-stripped";
     static final String RACK_CRATES = "doodad.ruins-rack-crates";
+    /** A plant store's empty rack bay, two pallet places north-south ({@code ruins-plant-brief}, Stores). */
+    static final String STORE_BAY = "doodad.ruins-store-rack-bay", STORE_BAY_STRIPPED = "doodad.ruins-store-rack-bay-stripped";
+    /** The raw stock store's loads: what the line ate, the base game's goods drawn top-down. */
+    static final String[] RAW_LOADS = {"doodad.ruins-store-metals", "doodad.ruins-store-transplutonics",
+            "doodad.ruins-store-volatiles", "doodad.ruins-store-organics", "doodad.ruins-store-ore",
+            "doodad.ruins-store-transplutonic-ore"};
+    /** The finished goods store's loads: what the last haulers left. */
+    static final String[] GOODS_LOADS = {"doodad.ruins-store-domestic-goods", "doodad.ruins-store-supplies",
+            "doodad.ruins-store-domestic-goods"};
+    /** An empty pallet place on a store's floor. */
+    static final String STORE_PALLET = "doodad.ruins-store-pallet";
     static final String DOCK_DOOR = "doodad.ruins-dock-door";
     static final String DOCK_STOCK = "doodad.industrial-pallet-stack";
 
@@ -2270,6 +2281,7 @@ public final class RuinsDelveStage implements GenStage {
                 }
                 case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
+                    if (storeRacks(registry, hall, centre)) break;
                     // Rack rows, two deep with a two-cell aisle, a gap between racks; most stripped, a few stocked.
                     for (int y = hall.bottom() + 2; y + 1 <= hall.top() - 2; y += 4) {
                         for (int x = hall.left() + 2; x + 5 <= hall.right() - 2; x += 8) {
@@ -2932,6 +2944,34 @@ public final class RuinsDelveStage implements GenStage {
             grid.setSeeThrough(bx + 1, by + 1, true);
             topology.setFixture(bx + 1, by + 1, true);
             kept[i(bx + 1, by + 1)] = true;
+        }
+
+        /**
+         * A plant's named store stocked from its brief ({@code ruins-plant-brief}, Stores): rack bays two wide and four
+         * long, north-south, in columns with three-cell aisles, the middle row and column kept clear as the store's
+         * freight cross. The plant ran its stores down, so most bays stand empty or stripped; one in four still holds
+         * two loads of the store's goods. Whether the hall was a named store.
+         */
+        boolean storeRacks(TileRegistry registry, Area hall, Cell centre) {
+            if (!plantMode) return false;
+            String[] loads = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("raw-stock"))) ? RAW_LOADS
+                    : hall.equals(spaces.get(RuinsDelve.Interior.spaceName("finished-goods"))) ? GOODS_LOADS : null;
+            if (loads == null) return false;
+            for (int x = hall.left() + 2; x + 1 <= hall.right() - 2; x += 5) {
+                if (x <= centre.x() + 1 && x + 1 >= centre.x() - 1) continue;
+                for (int y = hall.bottom() + 2; y + 3 <= hall.top() - 2; y += 5) {
+                    if (y <= centre.y() + 1 && y + 3 >= centre.y() - 1) continue;
+                    int roll = hash(x, y, 0x5703) % 8;
+                    if (roll < 2) {
+                        String load = loads[hash(x, y, 0x10AD) % loads.length];
+                        piece(registry, load, x, y, 2, 2, hall, centre);
+                        piece(registry, roll == 0 ? load : STORE_PALLET, x, y + 2, 2, 2, hall, centre);
+                    } else {
+                        piece(registry, roll < 5 ? STORE_BAY_STRIPPED : STORE_BAY, x, y, 2, 4, hall, centre);
+                    }
+                }
+            }
+            return true;
         }
 
         /** Stands one blocking piece of the plant kit, where the hall stays one floor; whether it stood. */

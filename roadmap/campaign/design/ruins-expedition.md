@@ -844,11 +844,14 @@ room is closed to ways with its wall; its doors are cut by hand. Where the vault
 the way on to the vault leaves through the hall's east wall. A bulkhead, a cargo leaf door that never dies, stands
 wherever a way crosses a band line inside the hull.
 
+The raw stock and finished goods stores stand rack bays two wide and four long in columns with three-cell aisles, the
+middle row and column clear. Most bays are empty or stripped; one in four still holds two loads of the base game's goods
+(`ruins-stores` sheet): the raw stock what the line ate, the finished goods what the last haulers left.
+
 Still to come:
 - a block plan for the deeper band;
 - the hull drawn round the plant;
 - each space dressed from its own plan;
-- stores holding the game's commodities.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
