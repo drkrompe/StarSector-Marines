@@ -36,7 +36,9 @@ SHARPEN = 60                     # unsharp mask, percent, on the card stretched 
 # The breakup, in plan cells (the ground's sections: stern 0..23, mid 24..45, bow 46..87; side rents as u and v ranges).
 BREAKS = (24, 46)
 RENTS = ((14, 17, 0, 1), (8, 11, 30, 31), (34, 37, 30, 31))
-TEAR = (0.35, 1.5)                # a break's tear, cells either side of it: least at the hull's edges, most mid-hull
+TEAR = (0.35, 1.5)                # a break's tear, cells either side of it: least at its span's ends, most mid-hull
+TEAR_SPAN = (6, 26)               # across, the keel's middle the ground tears open (HullPlan.TEAR_V0..TEAR_V1 + 1):
+                                  # a broken end's corners stand and are roofed, so the painting keeps them
 SCORCH = 2.2                      # cells of soot beyond a tear's edge
 OUT = ROOT / "mod" / "graphics" / "battle" / "fallen-hull" / "hull-roof.png"
 
@@ -47,7 +49,8 @@ def extend(img, mask):
     c = np.asarray(img, dtype=np.float32) * a
     out = c.copy()
     weight = a.copy()
-    for radius in (2, 4, 8, 16, 32):
+    # Out to the texture's corners: the plan's stepped taper roofs cells past the painting's smooth one.
+    for radius in (2, 4, 8, 16, 32, 64, 128, 256):
         cb = np.asarray(Image.fromarray(np.clip(c, 0, 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(radius)),
                         dtype=np.float32)
         ab = np.asarray(Image.fromarray((a[..., 0] * 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(radius)),
@@ -68,12 +71,16 @@ def tears(roof):
     inside = np.full((h, w), np.inf, dtype=np.float32)    # signed distance to the nearest tear's edge, cells
     rnd = np.random.default_rng(11)
     for k, b in enumerate(BREAKS):
-        across = np.sin(np.pi * np.clip(v / BREADTH, 0, 1))  # 0 at the hull's edges, 1 mid-hull
+        span = (v - TEAR_SPAN[0]) / (TEAR_SPAN[1] - TEAR_SPAN[0])
+        across = np.sin(np.pi * np.clip(span, 0, 1))        # 0 at the span's ends, 1 mid-hull
         ph = rnd.uniform(0, 6.3, 4)
         ragged = (0.45 * np.sin(v * 1.7 + ph[0]) + 0.3 * np.sin(v * 3.9 + ph[1]) + 0.2 * np.sin(v * 8.3 + ph[2])
                   + 0.12 * np.sin(v * 17.0 + ph[3]))
         depth = TEAR[0] + (TEAR[1] - TEAR[0]) * across + 0.6 * ragged
-        inside = np.minimum(inside, np.abs(u - b) - np.maximum(depth, 0.1))
+        torn = np.abs(u - b) - np.maximum(depth, 0.1)
+        # Past the span's ends the tear closes: the distance out of it, so the soot fades round the standing corner.
+        torn = np.maximum(torn, np.maximum(TEAR_SPAN[0] - v, v - TEAR_SPAN[1]))
+        inside = np.minimum(inside, torn)
     for u0, u1, v0, v1 in RENTS:
         cu, cv = (u0 + u1 + 1) / 2, (v0 + v1 + 1) / 2
         ru, rv = (u1 - u0 + 1) / 2 + 0.3, (v1 - v0 + 1) / 2 + 0.6

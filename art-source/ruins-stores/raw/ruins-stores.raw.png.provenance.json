@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c848-b862-77b0-a31e-c7903f494555",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c848-b862-77b0-a31e-c7903f494555\\exec-d34c19d7-84e0-4a7b-9874-19e01d6f97f3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-stores\\raw\\ruins-stores.raw.png",
+    "sha256": "aabcc30d71308a8aaed795f92ec64da5aa59c206e0aa444e54dfc098b430a317",
+    "dimensions": [
+      1410,
+      1116
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-stores\\prompts\\ruins-stores.prompt.txt",
+  "promptSha256": "885a088aad98360ad0c18e57d9590bef1718ec24964c3df0c634a58d55aec219",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every block's size, position and outline\nImage 2: Identity and colour only (the game's cargo icons, three-quarter view); not layout, not view\nImage 3: Material/style only; not layout\n\nAsset: a sheet of separate top-down tactical-game sprites: the store loads of an abandoned Domain-era megastructure plant's stores in a spacefaring civilization, the trade goods a salvage crew might find, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One block-out cell is about one soldier wide.\nGeometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent.\nIdentity: reference 2 is a strip of the game's own cargo icons, in a three-quarter view; it is colour and identity reference only, never layout or view. Each load must read at a glance as its commodity by the same colours and shapes, redrawn strictly from directly above. Left to right in reference 2: metals (grey-blue strapped ingots), transplutonics (silver-blue canisters), volatiles (blue pressure tank with round valve gauges), supplies (yellow and cream crate with a yellow band), organics (olive-green drums with bright green caps), heavy machinery (an orange industrial machine), ore (dark brown-grey rock), transplutonic ore (pale blue-white crystal chunks), fuel (red tank), domestic goods (mixed boxes and cases in assorted colours).\nStyle: crisp painterly-pixel game sprite, industrial steel pallets and racks in gunmetal, dark seams, bolts, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines. Each load must read as its own thing.\nView: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.\nBackground: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text.\n\nSubjects, top row, left to right:\n1. store-metals (2x2): grey-blue metal ingot stacks, four bundles bound with steel straps, on a steel-runnered pallet.\n2. store-transplutonics (2x2): a shielded steel rack holding nine sealed silver-blue canisters seen from above as round lids.\n3. store-volatiles (2x2): a steel rack holding four big blue pressure tanks seen from above as domed tops with a valve in the middle.\n4. store-supplies (2x2): four cream supply crates each with a yellow band, on a pallet.\n5. store-organics (2x2): five olive-green organics drums, round lids with bright green caps, on a pallet.\nSubjects, second row, left to right:\n6. store-heavy-machinery (3x3): an orange industrial machine (housings, a drive wheel, hoses) inside an open timber-and-steel crate frame on a heavy skid.\n7. store-ore (2x2): a steel ore bin heaped with dark brown-grey rock.\n8. store-transplutonic-ore (2x2): a steel ore bin heaped with pale blue-white crystalline ore chunks.\n9. store-fuel (2x2): two long red fuel tanks lying in a steel bay, a yellow-and-black hazard-striped kerb along the front edge.\n10. store-domestic-goods (2x2): mixed boxes and cases in assorted muted colours, stacked on a pallet.\nSubjects, third row, left to right:\n11. store-rack-bay (2x4): an empty store rack bay seen from above: steel uprights and beams around two levels of dusty mesh decking, nothing on it.\n12. store-rack-bay-stripped (2x4): the same kind of rack bay stripped bare: one split case left near the top, one tipped box near the bottom, loose straps.\n13. store-pallet (2x2): an empty steel-runnered pallet.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-stores-guide.png",
+      "sha256": "d4e5dffd994e1b07217f66c3ab5bf27ccd8f5ebaa8e0b79d422197240022e71c",
+      "dimensions": [
+        2144,
+        1696
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every block's size, position and outline"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\vanilla-cargo-ref.png",
+      "sha256": "df63150d8ed7089c15002797c5bdecf9979160f6e13689d74ac0d3993eadc591",
+      "dimensions": [
+        2000,
+        200
+      ],
+      "mode": "RGBA",
+      "role": "Identity and colour only (the game's cargo icons, three-quarter view); not layout, not view"
+    },
+    {
+      "path": "art-source\\ruins-themes\\raw\\ruins-works-stations.raw.png",
+      "sha256": "a8e48daf5b97642360a6f2189eec0e7996c8be1bbbaa4e4c1b70398cf46c85a0",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using the first image’s exact layout and the other references for commodity colours and materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 50575,
+    "cached_input_tokens": 38144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1082,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.2
+}

@@ -225,6 +225,14 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
     public record Collapse(String name, int layer, Way shortWay) {}
 
     /**
+     * One load of goods a plant's store still holds ({@code plant-store-finds}): the doodad standing at {@code at}
+     * (its south-west cell) over {@code footprint}, {@code goods} its doodad id (a {@code doodad.ruins-store-*} load,
+     * whose {@code -cache} variant is the same goods on the recovery skid), in the space named {@code space}
+     * ({@link Interior#spaceName}). A load not taken as a find stands as cover.
+     */
+    public record Load(Cell at, Area footprint, String goods, String space) {}
+
+    /**
      * The roofed part of the site: a megastructure filling the map's east end from the wall line of layer
      * {@code firstLayer} on, its layers' bands carved into halls, corridors and chambers, with the vault's
      * forecourt as a roofed hall; or, when {@code firstLayer} is the layer count, only the bunker round the vault.
@@ -233,18 +241,48 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * {@code worksStand} is where the works hall's zone is held from ({@code ruins-expedition.md}, Beats through the
      * facility): a floor cell by the mega forge's pour pulpit, or at the east end of a works hall's transfer aisle;
      * null on a site with no works hall. {@code spaces} are the plant's spaces by name ({@link PlantBrief}), each also a
-     * chamber, when the interior is laid as its plant's brief; empty otherwise.
+     * chamber, when the interior is laid as its plant's brief; empty otherwise. {@code standLit} is the floor the works
+     * hall's restart lights round its stand (the transfer aisle, the stand's bays or the pulpit's corner, and on a
+     * forge the breakout pool with its bridge); empty on a site with no works hall. {@code serviceDock} is the cell in
+     * the maintenance shop where the derelict watch's service bay docks: walkable, clear of doorways, with two clear
+     * cells all round it; null on a site with no maintenance shop or no such cell. {@code loads} are the goods the
+     * plant's stores still hold ({@link Load}); empty on a site not laid as a plant.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
                            List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
-                           Map<String, Area> spaces) {
+                           Map<String, Area> spaces, List<Area> standLit, Cell serviceDock, List<Load> loads) {
         public Interior {
+            loads = loads == null ? List.of() : List.copyOf(loads);
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
             chambers = List.copyOf(chambers);
             halls = halls == null ? List.of() : List.copyOf(halls);
             doors = doors == null ? List.of() : List.copyOf(doors);
             spaces = spaces == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(spaces));
+            standLit = standLit == null ? List.of() : List.copyOf(standLit);
+        }
+
+        /** An interior whose stores hold no loads. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
+                        Map<String, Area> spaces, List<Area> standLit, Cell serviceDock) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, worksStand, spaces, standLit,
+                    serviceDock, null);
+        }
+
+        /** An interior with no service bay's dock. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
+                        Map<String, Area> spaces, List<Area> standLit) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, worksStand, spaces, standLit,
+                    null);
+        }
+
+        /** An interior with no stand's floor lit. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
+                        Map<String, Area> spaces) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, worksStand, spaces, null);
         }
 
         /** An interior with no plant spaces by name. */

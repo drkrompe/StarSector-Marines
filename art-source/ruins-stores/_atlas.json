@@ -1,0 +1,325 @@
+{
+  "defaults": {
+    "cover": "med",
+    "padding": 4,
+    "scale": 1.0,
+    "offset": [
+      0,
+      0
+    ]
+  },
+  "assets": {
+    "store-metals.png": {
+      "id": "doodad.ruins-store-metals",
+      "name": "Metals",
+      "description": "Grey strapped ingot stacks on a pallet.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 1,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-metals-cache.png": {
+      "id": "doodad.ruins-store-metals-cache",
+      "name": "Metals, field cache",
+      "description": "Grey strapped ingot stacks on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 2,
+      "cover": "none"
+    },
+    "store-transplutonics.png": {
+      "id": "doodad.ruins-store-transplutonics",
+      "name": "Transplutonics",
+      "description": "A shielded rack of silver-blue canisters.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 3,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-transplutonics-cache.png": {
+      "id": "doodad.ruins-store-transplutonics-cache",
+      "name": "Transplutonics, field cache",
+      "description": "A shielded rack of silver-blue canisters. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 4,
+      "cover": "none"
+    },
+    "store-volatiles.png": {
+      "id": "doodad.ruins-store-volatiles",
+      "name": "Volatiles",
+      "description": "A rack of blue pressure tanks.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-volatiles-cache.png": {
+      "id": "doodad.ruins-store-volatiles-cache",
+      "name": "Volatiles, field cache",
+      "description": "A rack of blue pressure tanks. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 6,
+      "cover": "none"
+    },
+    "store-supplies.png": {
+      "id": "doodad.ruins-store-supplies",
+      "name": "Supplies",
+      "description": "Yellow-banded supply crates on a pallet.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-supplies-cache.png": {
+      "id": "doodad.ruins-store-supplies-cache",
+      "name": "Supplies, field cache",
+      "description": "Yellow-banded supply crates on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 8,
+      "cover": "none"
+    },
+    "store-organics.png": {
+      "id": "doodad.ruins-store-organics",
+      "name": "Organics",
+      "description": "A cluster of green organics drums on a pallet.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 9,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-organics-cache.png": {
+      "id": "doodad.ruins-store-organics-cache",
+      "name": "Organics, field cache",
+      "description": "A cluster of green organics drums on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10,
+      "cover": "none"
+    },
+    "store-heavy-machinery.png": {
+      "id": "doodad.ruins-store-heavy-machinery",
+      "name": "Heavy machinery",
+      "description": "An orange machine crated on a skid.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-heavy-machinery-cache.png": {
+      "id": "doodad.ruins-store-heavy-machinery-cache",
+      "name": "Heavy machinery, field cache",
+      "description": "An orange machine crated on a skid. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12,
+      "cover": "none"
+    },
+    "store-ore.png": {
+      "id": "doodad.ruins-store-ore",
+      "name": "Ore",
+      "description": "A steel ore bin heaped with dark rock.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-ore-cache.png": {
+      "id": "doodad.ruins-store-ore-cache",
+      "name": "Ore, field cache",
+      "description": "A steel ore bin heaped with dark rock. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14,
+      "cover": "none"
+    },
+    "store-transplutonic-ore.png": {
+      "id": "doodad.ruins-store-transplutonic-ore",
+      "name": "Transplutonic ore",
+      "description": "A steel ore bin heaped with pale blue-white crystalline ore.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-transplutonic-ore-cache.png": {
+      "id": "doodad.ruins-store-transplutonic-ore-cache",
+      "name": "Transplutonic ore, field cache",
+      "description": "A steel ore bin heaped with pale blue-white crystalline ore. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16,
+      "cover": "none"
+    },
+    "store-fuel.png": {
+      "id": "doodad.ruins-store-fuel",
+      "name": "Fuel",
+      "description": "Red fuel tanks in a hazard-marked bay.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-fuel-cache.png": {
+      "id": "doodad.ruins-store-fuel-cache",
+      "name": "Fuel, field cache",
+      "description": "Red fuel tanks in a hazard-marked bay. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18,
+      "cover": "none"
+    },
+    "store-domestic-goods.png": {
+      "id": "doodad.ruins-store-domestic-goods",
+      "name": "Domestic goods",
+      "description": "Mixed crates and cases on a pallet.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 19,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-domestic-goods-cache.png": {
+      "id": "doodad.ruins-store-domestic-goods-cache",
+      "name": "Domestic goods, field cache",
+      "description": "Mixed crates and cases on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns).",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 20,
+      "cover": "none"
+    },
+    "store-rack-bay.png": {
+      "id": "doodad.ruins-store-rack-bay",
+      "name": "Empty rack bay",
+      "description": "A store rack bay, two pallet places deep, standing empty.",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 21,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-rack-bay-stripped.png": {
+      "id": "doodad.ruins-store-rack-bay-stripped",
+      "name": "Stripped rack bay",
+      "description": "A store rack bay stripped to a few leftovers: a split case, loose straps.",
+      "footprintCells": [
+        2,
+        4
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 22,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    },
+    "store-pallet.png": {
+      "id": "doodad.ruins-store-pallet",
+      "name": "Empty pallet",
+      "description": "An empty steel-runnered pallet.",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 23,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4
+    }
+  }
+}

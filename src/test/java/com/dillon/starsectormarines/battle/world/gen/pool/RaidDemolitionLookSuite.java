@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.pool;
 
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
@@ -147,7 +150,8 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         for (String security : List.of("guarded", "fortified")) {
             out.add(shot(context, "built-" + security + ".png", (w, m) -> {
                 m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "AS BUILT: the works raided from a "
-                        + security + " market", ReviewStyle.NOTE);
+                        + security + " market that fields mechs", ReviewStyle.NOTE);
+                machinePostLabels(w, m);
                 return null;
             }));
         }
@@ -195,6 +199,20 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         }));
         out.removeIf(a -> a == null);
         return out;
+    }
+
+    /** Each of the works' machine posts with the machines posted at it. */
+    private static void machinePostLabels(Works w, ReviewAnnotations.Builder m) {
+        for (TacticalNode node : w.sim().getTacticalMap().all()) {
+            boolean reserve = RaidSiteTemplate.WORKS_RESERVE.equals(node.place());
+            if (!reserve && !RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
+            int posted = 0;
+            for (Squad squad : w.sim().getSquads()) if (squad.assignedNode == node) posted += squad.originalSize;
+            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : "GATE PICKET: ") + posted + " mech" + (posted == 1 ? "" : "s"),
+                    posted > 0 ? ReviewStyle.ALLY : ReviewStyle.KEEP);
+            System.out.printf(Locale.ROOT, "[raid-demolition-look] machine post %d,%d posted %d%n", node.anchorX,
+                    node.anchorY, posted);
+        }
     }
 
     /** A light vehicle just inside each gate of three cells or wider, beside its mouth. */
@@ -425,7 +443,11 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         // The built pictures raid the owned map from a market at that security; the rest from the reference market.
         TargetProfile raided = name.startsWith("built-fortified") ? ground.reference().withDefences(true, true, false)
                 : ground.reference();
-        try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, seed, true, List.of(), raided)) {
+        // The built pictures land a company of two loads, against which the market can afford its mechs.
+        List<ShuttleAssignment> company = name.startsWith("built")
+                ? List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 2), new ShuttleAssignment(ShuttleType.VALKYRIE, 2), new ShuttleAssignment(ShuttleType.VALKYRIE, 2)) : List.of();
+        try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, seed, true, company, raided,
+                name.startsWith("built"))) {
             Works works = works(sim);
             if (name.startsWith("defences") || name.startsWith("built") || name.startsWith("machines")) {
                 works = framedOnWall(works);

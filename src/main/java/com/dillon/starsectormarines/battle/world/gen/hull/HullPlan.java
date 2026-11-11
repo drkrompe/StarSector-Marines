@@ -131,7 +131,9 @@ public final class HullPlan {
             new Hall("hold.3", HallUse.HOLD, new Rect(6, 2, 21, 11), new Rect(12, 12, 15, 13)),
             new Hall("bay", HallUse.BAY, new Rect(26, 1, 45, 11), new Rect(33, 12, 36, 13)),
             new Hall("crew", HallUse.CREW, new Rect(47, 3, 51, 11), new Rect(48, 12, 49, 13)),
-            new Hall("forge", HallUse.FORGE, new Rect(53, 5, 72, 26), new Rect(52, 14, 52, 17)));
+            new Hall("forge", HallUse.FORGE, new Rect(53, 5, 72, 26), new Rect(52, 14, 52, 17)),
+            // The prow's hold, in the taper beyond the forge: deck where the bow would otherwise be one solid wedge.
+            new Hall("hold.prow", HallUse.HOLD, new Rect(74, 10, 83, 21), new Rect(73, 14, 73, 17)));
 
     private static final List<Entrance> ENTRANCES = List.of(
             new Entrance(STERN, new Rect(0, 14, 2, 17), -1, 0),

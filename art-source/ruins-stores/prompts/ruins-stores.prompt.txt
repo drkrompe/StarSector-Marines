@@ -1,0 +1,23 @@
+Asset: a sheet of separate top-down tactical-game sprites: the store loads of an abandoned Domain-era megastructure plant's stores in a spacefaring civilization, the trade goods a salvage crew might find, seen from directly above (orthographic, 90 degrees, no perspective), for the Starsector Marines battle map. One block-out cell is about one soldier wide.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every piece exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The transparent space between and around blocks stays fully transparent.
+Identity: reference 2 is a strip of the game's own cargo icons, in a three-quarter view; it is colour and identity reference only, never layout or view. Each load must read at a glance as its commodity by the same colours and shapes, redrawn strictly from directly above. Left to right in reference 2: metals (grey-blue strapped ingots), transplutonics (silver-blue canisters), volatiles (blue pressure tank with round valve gauges), supplies (yellow and cream crate with a yellow band), organics (olive-green drums with bright green caps), heavy machinery (an orange industrial machine), ore (dark brown-grey rock), transplutonic ore (pale blue-white crystal chunks), fuel (red tank), domestic goods (mixed boxes and cases in assorted colours).
+Style: crisp painterly-pixel game sprite, industrial steel pallets and racks in gunmetal, dark seams, bolts, long dead and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines. Each load must read as its own thing.
+View: strictly top-down. Only top surfaces are visible: never a front face or side wall in perspective. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no floor, base tile, shadow slab, border, labels or text.
+
+Subjects, top row, left to right:
+1. store-metals (2x2): grey-blue metal ingot stacks, four bundles bound with steel straps, on a steel-runnered pallet.
+2. store-transplutonics (2x2): a shielded steel rack holding nine sealed silver-blue canisters seen from above as round lids.
+3. store-volatiles (2x2): a steel rack holding four big blue pressure tanks seen from above as domed tops with a valve in the middle.
+4. store-supplies (2x2): four cream supply crates each with a yellow band, on a pallet.
+5. store-organics (2x2): five olive-green organics drums, round lids with bright green caps, on a pallet.
+Subjects, second row, left to right:
+6. store-heavy-machinery (3x3): an orange industrial machine (housings, a drive wheel, hoses) inside an open timber-and-steel crate frame on a heavy skid.
+7. store-ore (2x2): a steel ore bin heaped with dark brown-grey rock.
+8. store-transplutonic-ore (2x2): a steel ore bin heaped with pale blue-white crystalline ore chunks.
+9. store-fuel (2x2): two long red fuel tanks lying in a steel bay, a yellow-and-black hazard-striped kerb along the front edge.
+10. store-domestic-goods (2x2): mixed boxes and cases in assorted muted colours, stacked on a pallet.
+Subjects, third row, left to right:
+11. store-rack-bay (2x4): an empty store rack bay seen from above: steel uprights and beams around two levels of dusty mesh decking, nothing on it.
+12. store-rack-bay-stripped (2x4): the same kind of rack bay stripped bare: one split case left near the top, one tipped box near the bottom, loose straps.
+13. store-pallet (2x2): an empty steel-runnered pallet.

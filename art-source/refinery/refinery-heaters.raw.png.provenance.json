@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1cadb-e76f-7d01-a4d2-e352485d97ae",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1cadb-e76f-7d01-a4d2-e352485d97ae\\exec-a6577a42-27ba-4d4d-b6b5-66a273e840da.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\refinery\\refinery-heaters.raw.png",
+    "sha256": "bc8d9c23b974b8a0a0d5e6395ccbe09be9b92a5164ae94a13449bdb5a13bd28b",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\refinery\\refinery-heaters.prompt.txt",
+  "promptSha256": "bdc9ad2009df0234e50e9e103346106c2d8bc93b604b4ca7fd9cc7fe7b6a04b7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the three silhouettes, sizes, vapour lines, short shadows and smoke; paint onto them, never move them\nImage 2: Style authority only (rendering, palette, flat top-down finish); not layout\n\nUse case: style-transfer. Asset type: production transparent prop sheet: three pieces of industrial plant equipment for a top-down building game, which must sit quietly in the existing industrial tileset and not stand out from it.\n\nImage 1 is the authoritative geometry guide and edit target: paint onto these THREE exact silhouettes in one row, keeping each piece's position, size, round outline, the vapour lines leaving east, the short shadow and the short smoke. Do not move, rotate, enlarge or shrink anything.\nImage 2 is the game's existing works tileset (round hatches, fans, vessels, panels seen from above): it is the STYLE AUTHORITY. Match it exactly: flat straight-down plates with almost no perspective or dome shading, cool gunmetal and grey steel, riveted rings and panel seams, small dull copper accents, light rust and grime, the same soft painted finish, the same muted value range. Material and style only, not layout.\n\nThree pieces, left to right:\n1. A distillation column seen from directly above, drawn as the tileset draws its round vessels: a flat round head plate with a riveted rim, a central nozzle flange, a few small nozzles and bolted hatches, set inside a flat grated platform ring with a plain steel railing; a flanged steel vapour line leaving east.\n2. A smaller stripper column, the same family and finish, a smaller head plate inside the same ring, its vapour line leaving east.\n3. A furnace stack seen from directly above: a round riveted chimney rim and a dark sooty flue inside a flat grated ring, a thin short wisp of grey smoke drifting east, faint and semi-transparent.\n\nStrictly: no brass or gold, no glowing or orange lights, no glossy highlights, no bulging domes, no cranes, no long dramatic shadows, no hazard striping. Shadows only the short soft ones the guide draws.\n\nTrue orthographic zenith camera, light from the upper left. True alpha transparency around every piece; no ground, no background, no border, no labels, no text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\refinery\\refinery-heaters-guide.png",
+      "sha256": "7f976b36d1bcf77e1b1a7371c8a981c3e03336f2de307316f8cda7272e52a219",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the three silhouettes, sizes, vapour lines, short shadows and smoke; paint onto them, never move them"
+    },
+    {
+      "path": "mod\\graphics\\doodads\\ruins-works-plant.png",
+      "sha256": "a14efaa5cb530472ce43e4a1d0ace48fcdb803d30d7f1737efb68ca51073986b",
+      "dimensions": [
+        4096,
+        1664
+      ],
+      "mode": "RGBA",
+      "role": "Style authority only (rendering, palette, flat top-down finish); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent prop sheet, using Image 1 for the exact geometry and Image 2 for the painted steel finish."
+  ],
+  "usage": {
+    "input_tokens": 47434,
+    "cached_input_tokens": 27136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 717,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.2
+}

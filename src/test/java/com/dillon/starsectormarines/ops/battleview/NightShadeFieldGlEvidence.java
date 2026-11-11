@@ -58,7 +58,7 @@ class NightShadeFieldGlEvidence {
             System.out.println("[shader-evidence] context: " + gl.rendererDescription());
             int w = CELLS * 2 + 1;
             float[] pools = new float[w * w], reds = new float[w * w], greens = new float[w * w],
-                    blues = new float[w * w], fire = new float[w * w];
+                    blues = new float[w * w], fire = new float[w * w], cone = new float[w * w];
             for (int y = 0; y < w; y++) {
                 for (int x = 0; x < w; x++) {
                     int i = y * w + x;
@@ -68,6 +68,7 @@ class NightShadeFieldGlEvidence {
                     greens[i] = lamp * .8f;
                     blues[i] = lamp * .5f;
                     fire[i] = Math.max(0f, 1.2f - Math.abs(x - 6) * .35f - Math.abs(y - 6) * .25f);
+                    cone[i] = Math.max(0f, .9f - Math.abs(x - 6) * .3f - Math.abs(y - 2) * .3f);
                 }
             }
             CellTopology ground = new CellTopology(CELLS, CELLS);
@@ -86,15 +87,19 @@ class NightShadeFieldGlEvidence {
             try {
                 field.bakeLamps(pools, reds, greens, blues, w, w);
                 field.fire(fire, true, 0, 0, w - 1, w - 1);
+                field.cones(cone, true, 0, 0, w - 1, w - 1);
                 field.cells(ground, shown, shownChanges);
                 field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
-                check("whole upload", field, camera, ground, shown, pools, reds, greens, blues, fire, w);
+                check("whole upload", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w);
 
                 // Fire dims and goes out in one corner; the next frame, before any draw, a cell is hidden and
                 // another's ground goes. Only those boxes are uploaded.
                 for (int y = 3; y <= 7; y++)
                     for (int x = 4; x <= 8; x++) fire[y * w + x] = x >= 7 ? 0f : fire[y * w + x] * .5f;
                 field.fire(fire, true, 4, 3, 8, 7);
+                // The company's cones move: one goes out in its own box.
+                for (int y = 0; y <= 3; y++) for (int x = 6; x <= 8; x++) cone[y * w + x] = 0f;
+                field.cones(cone, true, 6, 0, 8, 3);
                 field.cells(ground, shown, shownChanges);
                 field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
                 shown[0] = false;
@@ -104,7 +109,7 @@ class NightShadeFieldGlEvidence {
                 field.fire(fire, true, 0, 0, -1, -1);
                 field.cells(ground, shown, shownChanges);
                 field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
-                check("changed boxes", field, camera, ground, shown, pools, reds, greens, blues, fire, w);
+                check("changed boxes", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w);
             } finally {
                 field.dispose();
             }
@@ -113,7 +118,7 @@ class NightShadeFieldGlEvidence {
 
     private static void check(String what, NightShadeField field, BattleCamera camera, CellTopology ground,
                               boolean[] shown, float[] pools, float[] reds, float[] greens, float[] blues,
-                              float[] fire, int w) {
+                              float[] fire, float[] cone, int w) {
         byte[] over = draw(field, false);
         byte[] premultiplied = draw(field, true);
 
@@ -127,9 +132,13 @@ class NightShadeFieldGlEvidence {
                 int cellX = (int) Math.floor(cx), cellY = (int) Math.floor(cy);
                 float[] expectOver = {.5f, .5f, .5f}, expectPremultiplied = {0f, 0f, 0f, 0f};
                 boolean solid = ground.getGroundKind(cellX, cellY) != CellTopology.GroundKind.VOID;
-                float pool = shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f;
+                // Fog hides the lamps' pool, never their colour; the cones (cut to what is shown as they are laid) add
+                // their pool and their cool light.
+                float lit = sample(cone, w, cx, cy);
+                float pool = (shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f) + lit;
                 if (solid && NightLightingRenderSystem.shade(DARKNESS, pool, sample(fire, w, cx, cy),
-                        sample(reds, w, cx, cy), sample(greens, w, cx, cy), sample(blues, w, cx, cy), 1f, c)) {
+                        sample(reds, w, cx, cy) + lit * UnitLights.RED, sample(greens, w, cx, cy) + lit * UnitLights.GREEN,
+                        sample(blues, w, cx, cy) + lit * UnitLights.BLUE, 1f, c)) {
                     shaded++;
                     for (int k = 0; k < 3; k++) {
                         expectOver[k] = c[k] * c[3] + .5f * (1 - c[3]);

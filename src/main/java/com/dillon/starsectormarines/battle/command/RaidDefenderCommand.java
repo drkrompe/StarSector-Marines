@@ -26,12 +26,38 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     };
 
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
+    private final Set<Integer> worksReserve = new TreeSet<>();
+    /** The works' reserve squads to take over from their setup hold after this pulse, with the issuer holding each. */
+    private Map<Integer, String> reserveTakeovers = Map.of();
     private volatile RaidCommandSnapshot raidSnapshot;
     private final MissionGarrisons garrisons = new MissionGarrisons();
     private final MissionCounterattack counter = new MissionCounterattack();
 
     public RaidDefenderCommand(Set<Integer> mobileSquadIds) {
         if (mobileSquadIds != null) initialMobileSquads.addAll(mobileSquadIds);
+    }
+
+    /**
+     * The works' yard reserve ({@code raid-demolish-the-works.md}, slice 6): squads that hold their post until the
+     * alarm, then go to the hall under attack, whatever the mobile pool's limit. A gate's picket is not one: it never
+     * leaves its gate. Call once, at setup.
+     */
+    public RaidDefenderCommand worksReserve(Set<Integer> squadIds) {
+        if (squadIds != null) worksReserve.addAll(squadIds);
+        return this;
+    }
+
+    /** What the works' reserve does this pulse. */
+    enum ReserveOrder { HOLD_POST, TAKE_OVER, DEFEND_HALL }
+
+    /**
+     * The works' reserve's order: it holds its post until the alarm ({@code alarm}: raised, or the works already
+     * down); then a squad still held by its setup garrison is taken over, and one this command owns
+     * ({@code owned}) defends the hall under attack, and keeps to it once roused.
+     */
+    static ReserveOrder reserveOrder(boolean alarm, boolean owned) {
+        if (owned) return ReserveOrder.DEFEND_HALL;
+        return alarm ? ReserveOrder.TAKE_OVER : ReserveOrder.HOLD_POST;
     }
 
     public RaidCommandSnapshot raidSnapshot() { return raidSnapshot; }
@@ -53,6 +79,10 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     @Override public String strategyId() { return "raid-defender"; }
     @Override public void afterCommit(CommandEffects effects) {
         garrisons.afterCommit(effects, faction());
+        for (Map.Entry<Integer, String> entry : reserveTakeovers.entrySet()) {
+            effects.takeOverSquad(entry.getKey(), entry.getValue(), strategyId(), "works reserve answers the alarm");
+        }
+        reserveTakeovers = Map.of();
         counter.afterCommit(effects, strategyId());
     }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
@@ -64,6 +94,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
         Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
+                .filter(squad -> !worksReserve.contains(squad.squadId()))
                 .filter(squad -> initialMobileSquads.contains(squad.squadId())
                         || squad.directive() != null
                         && strategyId().equals(squad.directive().issuer()))
@@ -83,8 +114,34 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
         Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
         List<CommandSquadState> members = new ArrayList<>();
         List<CommandSquadState> reserve = new ArrayList<>();
+        Map<Integer, String> takeovers = new TreeMap<>();
+        int reserveIndex = 0;
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
+            if (worksReserve.contains(squad.squadId())) {
+                ReserveOrder order = reserveOrder(facts.alarmActive() || facts.targetSecured(), ownedByStrategy(squad));
+                if (order == ReserveOrder.HOLD_POST) {
+                    intents.add(new SquadIntent(squad.squadId(), "WORKS_RESERVE", "WORKS_RESERVE_POSTED", null, -1, -1));
+                } else if (order == ReserveOrder.TAKE_OVER) {
+                    if (squad.directive() != null && squad.directive().issuer() != null) {
+                        takeovers.put(squad.squadId(), squad.directive().issuer());
+                    }
+                    intents.add(new SquadIntent(squad.squadId(), "WORKS_RESERVE", "WORKS_RESERVE_ROUSED", null, -1, -1));
+                } else {
+                    int[] rally = rally(squad, reserveIndex++, facts, frame);
+                    if (rally == null) {
+                        intents.add(new SquadIntent(squad.squadId(), "WORKS_RESERVE", "TARGET_UNREACHABLE", null,
+                                -1, -1));
+                        continue;
+                    }
+                    ObjectiveAssignment assignment = ObjectiveAssignment.defendSite(squad.squadId(), rally[0], rally[1]);
+                    proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND,
+                            "WORKS_RESERVE_ALARM", stabilityBreak(squad, assignment)));
+                    intents.add(new SquadIntent(squad.squadId(), "WORKS_RESERVE", "WORKS_RESERVE_ALARM",
+                            assignment.kind(), rally[0], rally[1]));
+                }
+                continue;
+            }
             if (claimed.contains(squad.squadId()) && ownedByStrategy(squad)) {
                 members.add(squad);
                 continue;
@@ -133,6 +190,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 PlaceSignals.of(frame).flag(ALARM_FLAG, facts.alarmActive())
                         .flag(TARGET_SECURED_FLAG, facts.targetSecured()))
                 : MissionCounterattack.Result.NONE;
+        reserveTakeovers = takeovers;
         proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
         offers = MissionCounterattack.offers(offers, retake);
         intents.removeIf(intent -> retake.duties().containsKey(intent.squadId()));
