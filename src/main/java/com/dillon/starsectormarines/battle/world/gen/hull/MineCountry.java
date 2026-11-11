@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -18,6 +17,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A mine's country round its pit and ore line ({@code long-survey-maps.md}, Chapter 2): spoil heaps and tailings
@@ -25,7 +25,8 @@ import java.util.List;
  * headframes, each where the hull patch's {@code dress} names it ({@link HullSitePlan.Dress}). Laid with the crash
  * site's finish, before the claim lattice seats round it.
  *
- * <p>As the debris shower's pieces do ({@link DebrisShower}), a piece worth taking cover behind stands solid with a ring
+ * <p>The heaps and mounds stand on the planet's own ground, their art's rims soft against it. As the debris
+ * shower's pieces do ({@link DebrisShower}), a piece worth taking cover behind stands solid with a ring
  * of open ground round it, and a flat one only lies on the ground. Nothing that stands is laid on a road, the hull, its
  * trench or aprons, the landing's field of fire, near a claim lattice grid point, or within {@link #SIGHTLINE} of the
  * ore line, so the line's open ground stays a field of fire along its length. A piece that does not fit is left out.
@@ -45,6 +46,23 @@ public final class MineCountry {
             ENGINE = "doodad.ruins-bed-changer-derailed", TANK = "doodad.fuel-tank-vertical",
             FLUID = "doodad.industrial-fluid-tank", PUMP = "doodad.industrial-pump-set",
             RADIATOR = "doodad.radiator-skid";
+    /**
+     * The mine's own pieces, made for it; until a sheet holds one, its stand-in above is drawn in its place
+     * ({@link #STAND_IN}). A pump house stands on the pumping station's pad in place of its kit.
+     */
+    static final String MINE_SPOIL = "doodad.mine-spoil-heap", MINE_TAILINGS = "doodad.mine-tailings-mound",
+            MINE_CAR = "doodad.mine-ore-car", MINE_HEADFRAME = "doodad.mine-headframe",
+            MINE_PUMP_HOUSE = "doodad.mine-pump-house";
+    static final Map<String, String> STAND_IN = Map.of(MINE_SPOIL, SPOIL, MINE_TAILINGS, SLIDE, MINE_CAR, CAR,
+            MINE_HEADFRAME, HEADFRAME);
+    /** A route's cover, by turns: a spoil heap, a wagon, a slag heap, each at {@link #BIG} times its sheet. */
+    static final String[] COVER = {MINE_SPOIL, MINE_CAR, SLAG};
+    /**
+     * Cells between two pieces of a route's cover, and either side of its line they stand by turns; a cluster's pieces
+     * stand this far about its stake; a piece that does not fit its cell is tried up to {@code SEARCH} cells off it.
+     * UNTUNED.
+     */
+    static final int COVER_STEP = 8, COVER_SIDE = 4, CLUSTER_REACH = 9, SEARCH = 3;
     /** The ore line's art: its pieces mark the line the sightline is kept along. */
     static final String ORE_LINE = "ore-conveyor.";
     /** What the mine's pieces are drawn at, times their sheet: a wagon, a heap, read at a map's scale. */
@@ -93,28 +111,62 @@ public final class MineCountry {
         int x = d.x(), y = d.y();
         switch (d.kind()) {
             case SPOIL -> {
-                ground(x + 4, y + 2, 7, GroundKind.DIRT);
-                big(SPOIL, x, y);
-                big(SLIDE, x + 9, y - 2);
+                big(MINE_SPOIL, x, y);
+                big(MINE_TAILINGS, x + 9, y - 2);
                 big(SLAG, x - 5, y + 2);
             }
             case TAILINGS -> {
                 int r = Math.max(6, d.length());
-                ground(x, y, r, GroundKind.DIRT);
-                big(SLIDE, x - r + 1, y - 2);
-                big(SLIDE, x + 1, y + 3);
-                big(SPOIL, x - 4, y - r + 1);
+                big(MINE_TAILINGS, x - r + 1, y - 2);
+                big(MINE_TAILINGS, x + 1, y + 3);
+                big(MINE_SPOIL, x - 4, y - r + 1);
                 big(SLAG, x + r - 5, y - 4);
             }
             case HEADFRAME -> headframe(x, y);
             case TRAIN -> train(x, y, Math.max(12, d.length()));
             case CARTS -> {
-                big(CAR, x, y);
+                big(MINE_CAR, x, y);
                 big(POD, x + 7, y + 2);
-                big(CAR, x + 2, y + 9);
+                big(MINE_CAR, x + 2, y + 9);
             }
             case PUMPS -> pumps(x, y, d.length());
+            case ROUTE -> {
+                int n = 0;
+                for (int at = 0; at <= Math.max(0, d.length()); at += COVER_STEP, n++) {
+                    cover(x + (n % 2 == 0 ? -COVER_SIDE : COVER_SIDE), y + at, n);
+                }
+            }
+            case CLUSTER -> {
+                int[][] about = {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}};
+                for (int i = 0; i < about.length; i++) {
+                    cover(x + about[i][0] * CLUSTER_REACH, y + about[i][1] * CLUSTER_REACH, i + x + y);
+                }
+            }
         }
+    }
+
+    /**
+     * The {@code n}th piece of hard cover ({@link #COVER}, by turns) at {@code (x, y)}, or the nearest cell within
+     * {@link #SEARCH} it fits; left out when none does.
+     */
+    private boolean cover(int x, int y, int n) {
+        String id = COVER[Math.floorMod(n, COVER.length)];
+        for (int r = 0; r <= SEARCH; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if (big(id, x + dx, y + dy)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** {@code id}'s art: the mine's own piece where a sheet holds it, else its stand-in ({@link #STAND_IN}). */
+    private DoodadDef art(String id) {
+        DoodadDef def = registry.doodad(id);
+        String standIn = STAND_IN.get(id);
+        return def != null || standIn == null ? def : registry.doodad(standIn);
     }
 
     /**
@@ -122,7 +174,7 @@ public final class MineCountry {
      * rubble under it and spoil beside it.
      */
     private void headframe(int x, int y) {
-        DoodadDef frame = registry.doodad(HEADFRAME);
+        DoodadDef frame = art(MINE_HEADFRAME);
         if (frame == null || !fits(x, y, FRAME, FRAME, false)) return;
         clearFormations(x, y, x + FRAME - 1, y + FRAME - 1);
         for (int yy = y; yy < y + FRAME; yy++) for (int xx = x; xx < x + FRAME; xx++) taken.set(yy * w + xx);
@@ -134,7 +186,7 @@ public final class MineCountry {
         ctx.doodads.add(new Doodad(x, y, frame));
         put(GIRDER, x + 2, y - 3, 0);
         put(SCRAP, x + FRAME + 2, y + 4, 0);
-        put(SPOIL, x + FRAME + 2, y + 7, 0);
+        put(MINE_SPOIL, x + FRAME + 2, y + 7, 0);
     }
 
     /**
@@ -147,7 +199,7 @@ public final class MineCountry {
         for (int i = 0; i + 2 <= length; i += 2) rail(x + 1, y + i, 0);
         int at = 0, car = 0;
         if (big(ENGINE, x - 1, y)) at = TRAIN_PITCH;
-        for (; at + 6 <= length; at += TRAIN_PITCH, car++) big(car % 3 == 2 ? POD : CAR, x + car % 2, y + at);
+        for (; at + 6 <= length; at += TRAIN_PITCH, car++) big(car % 3 == 2 ? POD : MINE_CAR, x + car % 2, y + at);
     }
 
     /**
@@ -165,12 +217,14 @@ public final class MineCountry {
                 ctx.markMadeGround(xx, yy);
             }
         }
-        put(TANK, x + 1, y + 2, 0, true);
-        put(FLUID, x + 6, y + 5, 0, true);
-        put(FLUID, x + 8, y + 5, 0, true);
-        put(PUMP, x + 5, y + 2, 0, true);
-        put(PUMP, x + 7, y + 2, 0, true);
-        put(RADIATOR, x + 6, y, 0, true);
+        if (!put(MINE_PUMP_HOUSE, x + 1, y + 1, 0, true)) {
+            put(TANK, x + 1, y + 2, 0, true);
+            put(FLUID, x + 6, y + 5, 0, true);
+            put(FLUID, x + 8, y + 5, 0, true);
+            put(PUMP, x + 5, y + 2, 0, true);
+            put(PUMP, x + 7, y + 2, 0, true);
+            put(RADIATOR, x + 6, y, 0, true);
+        }
         int px = x + PAD_W / 2 - 1, top = y + PAD_H;
         int end = top - 1;
         while (end + 1 < top + Math.max(0, reach) && openAt(px, end + 1, true)) end++;
@@ -180,30 +234,9 @@ public final class MineCountry {
         }
     }
 
-    /** Spoil ground: a rough disc of bare earth round {@code (cx, cy)}, on open natural ground only. */
-    private void ground(int cx, int cy, int r, GroundKind kind) {
-        String block = CrashSiteStage.block(kind);
-        CellTopology topology = ctx.topology;
-        clearFormations(cx - r, cy - r, cx + r, cy + r);
-        for (int y = cy - r; y <= cy + r; y++) {
-            for (int x = cx - r; x <= cx + r; x++) {
-                if (x < 0 || y < 0 || x >= w || y >= h) continue;
-                int dx = x - cx, dy = y - cy;
-                int edge = r * r - (CrashSiteStage.hash(ctx.seed, x, y, 0x5701) & 3) * r;
-                if (dx * dx + dy * dy > edge || !openAt(x, y, false)) continue;
-                GroundKind g = topology.getGroundKind(x, y);
-                if (g != GroundKind.SNOW && g != GroundKind.DIRT && g != GroundKind.STONE && g != GroundKind.GRASS
-                        && g != GroundKind.SAND && g != GroundKind.HARDPAN) continue;
-                topology.setGroundKind(x, y, kind);
-                if (block != null) topology.setSurface(x, y, topology.surfaceIndex(block));
-                topology.setNatureOverlayIndex(x, y, -1);
-            }
-        }
-    }
-
     /** {@code id} at {@link #BIG} times its sheet, unturned, solid with its ring if it is cover. */
     private boolean big(String id, int x, int y) {
-        DoodadDef def = registry.doodad(id);
+        DoodadDef def = art(id);
         if (def == null) return false;
         boolean blocks = def.cover == DoodadCover.MED || def.cover == DoodadCover.HEAVY;
         return place(def, x, y, 0, blocks, false, BIG);
@@ -215,7 +248,7 @@ public final class MineCountry {
 
     /** One piece from {@code (x, y)}, solid with its ring if it is cover; on {@code pad}, made ground is its ground. */
     private boolean put(String id, int x, int y, int turns, boolean pad) {
-        DoodadDef def = registry.doodad(id);
+        DoodadDef def = art(id);
         if (def == null) return false;
         boolean blocks = def.cover == DoodadCover.MED || def.cover == DoodadCover.HEAVY;
         return place(def, x, y, turns, blocks, pad, 1);

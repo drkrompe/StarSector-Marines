@@ -105,6 +105,32 @@ public final class PortYards {
             }
         }
         ctx.put(BspKeys.WORKED_FIELDS, kept);
+        if (fire != null) bareFire(ctx, southOf, fire, hull, trench, aprons);
+    }
+
+    /**
+     * The landing's field of fire south of {@code southOf}, where nothing stands, read as bare ground rather than an
+     * abandoned farm: the farm tracks across it, the yards' worn tracks among them, are the planet's own ground again.
+     * The road graph keeps them; only their drawing goes. Streets, paving and the hull's ground keep their own.
+     */
+    private static void bareFire(GenContext ctx, int southOf, FieldOfFire fire, BitSet hull, BitSet trench,
+                                 BitSet aprons) {
+        int w = ctx.width;
+        CellTopology topology = ctx.topology;
+        SurfacePalette palette = topology.groundPalette();
+        GroundKind wild = palette == null ? GroundKind.DIRT : palette.inlandGround();
+        if (wild == GroundKind.DIRT) return;
+        String block = CrashSiteStage.block(wild);
+        for (int y = 0; y < Math.min(ctx.height, southOf); y++) {
+            for (int x = 0; x < w; x++) {
+                int k = y * w + x;
+                if (!fire.contains(x, y) || hull.get(k) || trench.get(k) || aprons.get(k) || topology.isWall(x, y)
+                        || topology.getBuildingId(x, y) != 0 || topology.getGroundKind(x, y) != GroundKind.DIRT) continue;
+                topology.setGroundKind(x, y, wild);
+                topology.setSurface(x, y, block == null ? 0 : topology.surfaceIndex(block));
+                topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
     }
 
     /**
@@ -146,7 +172,7 @@ public final class PortYards {
                                  IntPredicate open, boolean townNorth) {
         TankFarm.Plan farm = TankFarm.plan(w, x0, y0, x1, y1, open, townNorth ? ctx.height : -1, w / 2, LANE);
         if (farm == null) return false;
-        stamp.farm(farm);
+        stamp.farm(farm, false);
         // The loading rack along the lane's bund side over its bay; the lane stays open apron for the bowsers.
         int[] bay = farm.bay();
         int rackY = farm.laneDy() > 0 ? bay[1] : bay[3];

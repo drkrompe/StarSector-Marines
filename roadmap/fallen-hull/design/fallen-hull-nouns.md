@@ -242,9 +242,12 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   bunds, a loading rack over the lane's bay, the product main along the back and
   down the far end) to one apron of landing pads (painted rings, stores, a
   bowser's tank and pump sets down the gaps, the fuel line behind). Nothing that
-  stands is laid in the field of fire or on the hull, trench or aprons.
+  stands is laid in the field of fire or on the hull, trench or aprons, and the
+  farm tracks across the field of fire are bare ground again, so the landing
+  reads as open ground rather than an abandoned farm (the road graph keeps them).
+  A yard's tank weeps no spill: nothing pools on airless ground.
 - **A mine's country** (`MineCountry`): the patch's `dress` names its pieces, each
-  from a cell: spoil heaps and tailings mounds on cleared earth, tipped ore carts,
+  from a cell: spoil heaps and tailings mounds on the planet's own ground, tipped ore carts,
   a stalled ore train on its rail, a pumping station on a pit's rim with its main
   run toward the pit, and ruined headframes (legs solid, a girder fallen off,
   scrap and spoil round it). Heaps and wagons are drawn at twice their sheet to
@@ -252,7 +255,13 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   ring of open ground, clearing the wild ground's formations under it; nothing in
   the way stands on a road, the hull, trench or aprons, the landing's field of
   fire, near a lattice grid point, or within `SIGHTLINE` of an ore line. A piece
-  that does not fit is left out.
+  that does not fit is left out. A `route` stands hard cover (a spoil heap, an
+  ore car, a slag heap, by turns) every `COVER_STEP` cells north from its cell,
+  either side of its line by turns, and a `cluster` four pieces about a stake; a
+  piece that does not fit its cell takes the nearest that does within `SEARCH`.
+  The mine's own pieces (`doodad.mine-spoil-heap`, `-tailings-mound`, `-ore-car`,
+  `-headframe`, `-pump-house`) are drawn wherever a sheet holds them, their
+  stand-ins until then.
 - **A grown city** (`TownBlockStage`): the patch's `blocks` are boxes where the
   city's town lots join into bigger, denser blocks than a town's (up to 56 by 32
   cells against 36 by 20), so a fight's destruction shows across a whole block;

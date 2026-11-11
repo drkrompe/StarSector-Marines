@@ -87,7 +87,9 @@ through or built on (`PlanetSkinTest`). It swaps:
   ground (`SurfacePalette.inlandGround`: grass, sand, stone, snow, hardpan);
   bare earth, stone and snow stay what they are, drawn in the world's material
   (`CellTopology.setGroundPalette`). The home's basin (the desert's green
-  middle) goes with it: the world is one surface.
+  middle) goes with it: the world is one surface. Where the world seals its
+  towns nobody keeps a lawn in the open, so a garden's or park's grass is the
+  world's wild ground even when the world is the home's own palette.
 - **Woods.** The same trees and undergrowth on the same cells in the world's
   flora (`Flora`, identical footprints): the home's own on its palette, a living
   world's species, boreal conifers on a frozen world, grey dead scrub where
@@ -291,7 +293,8 @@ Any entry may also lay a **fallen hull** over its ground
   row, makes every worked field wholly south of it a port's yards in place of
   the skin's covered farm (`fallen-hull-nouns.md`, The ground); `dress` lays a
   mine's country piece by piece (`spoil`, `tailings`, `headframe`, `train`,
-  `carts`, `pumps`; `MineCountry`); `blocks`, boxes of cells, lets the city's
+  `carts`, `pumps`, and the hard cover a route is fought along, `route` from a
+  cell north for its `length` and `cluster` about a stake; `MineCountry`); `blocks`, boxes of cells, lets the city's
   town lots inside them join into bigger blocks (`TownBlockStage`), and on such a
   map every starting stake's nearest lot is left an open square. It rides the
   plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan

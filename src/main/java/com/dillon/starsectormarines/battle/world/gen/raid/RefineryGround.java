@@ -211,6 +211,11 @@ public final class RefineryGround {
 
         /** The farm's made ground, its bunds, their tanks and walls; its loading rack is the caller's. */
         public void farm(TankFarm.Plan farm) {
+            farm(farm, true);
+        }
+
+        /** As above; {@code weeps}, one tank's spill on its bund floor (none where nothing pools, as on airless ground). */
+        public void farm(TankFarm.Plan farm, boolean weeps) {
             // Made ground: the loading lane an apron the tankers stand on, each bund's floor a sealed pad. The
             // walkways between the bunds stay the planet's gravel.
             int[] all = farm.paved(), lane0 = farm.lane();
@@ -220,7 +225,7 @@ public final class RefineryGround {
                 for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) pave(x, y, PAD);
             }
             DoodadDef stain = registry.doodad(SPILL_ART);
-            boolean leaked = false;
+            boolean leaked = !weeps;
             for (TankFarm.Bund bund : farm.bunds()) {
                 for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) keep(x, y);
                 // One tank weeps into its bund: the stain on the bund floor beside it.

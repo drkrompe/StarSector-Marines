@@ -62,8 +62,10 @@ them along y 69.
   carts by the catch station and spoil heaps either side of the ore line; on the
   east route a pumping station on the pit's south rim (342,34), tailings, spoil and
   carts south of the pit and a ruined headframe at its south-east (360,4), with a
-  second headframe north of the junction (318,112). The ore line keeps its open
-  sightline: nothing in the way within 5 cells of it.
+  second headframe north of the junction (318,112). Hard cover runs up both
+  routes, a piece every 8 cells or so (centre from 322,6 and 322,80; east from
+  388,8 and up the rim from 392,48), and four pieces stand about each stake.
+  The ore line keeps its open sightline: nothing in the way within 5 cells of it.
 - **The hull.** Down in the open ground east of the works, broken in three, bow
   west (centre 314,185; x 251 to 378, y 167 to 203), its trench stopping short of
   the works' east wall; the impact band wrecks the works' east yards.

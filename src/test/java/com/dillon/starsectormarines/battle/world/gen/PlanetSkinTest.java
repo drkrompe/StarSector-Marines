@@ -74,6 +74,13 @@ class PlanetSkinTest {
     }
 
     @Test
+    void aSealedWorldKeepsNoLawnEvenOnItsHomePalette() {
+        assertEquals(GroundKind.SNOW, PlanetSkin.ground(GroundKind.GRASS, SurfacePalette.FROZEN, SurfacePalette.FROZEN, true));
+        assertEquals(GroundKind.GRASS, PlanetSkin.ground(GroundKind.GRASS, SurfacePalette.FROZEN, SurfacePalette.FROZEN, false));
+        assertEquals(GroundKind.DIRT, PlanetSkin.ground(GroundKind.DIRT, SurfacePalette.FROZEN, SurfacePalette.FROZEN, true));
+    }
+
+    @Test
     void woodsTakeTheWorldsFloraAndDeadScrubWhereNothingLives() {
         assertSame(Flora.TEMPERATE, PlanetSkin.flora(Flora.TEMPERATE, SurfacePalette.ARID, SurfacePalette.ARID, null));
         assertSame(Flora.TAIGA, PlanetSkin.flora(Flora.TEMPERATE, SurfacePalette.ARID, SurfacePalette.FROZEN, null));

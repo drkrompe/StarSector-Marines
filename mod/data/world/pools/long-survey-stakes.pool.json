@@ -111,6 +111,60 @@
             "kind": "spoil",
             "x": 368,
             "y": 118
+          },
+          {
+            "kind": "route",
+            "x": 322,
+            "y": 6,
+            "length": 50
+          },
+          {
+            "kind": "route",
+            "x": 322,
+            "y": 80,
+            "length": 20
+          },
+          {
+            "kind": "route",
+            "x": 388,
+            "y": 8,
+            "length": 30
+          },
+          {
+            "kind": "route",
+            "x": 392,
+            "y": 48,
+            "length": 50
+          },
+          {
+            "kind": "cluster",
+            "x": 314,
+            "y": 65
+          },
+          {
+            "kind": "cluster",
+            "x": 314,
+            "y": 105
+          },
+          {
+            "kind": "cluster",
+            "x": 274,
+            "y": 105
+          },
+          {
+            "kind": "cluster",
+            "x": 394,
+            "y": 105
+          },
+          {
+            "kind": "cluster",
+            "x": 314,
+            "y": 145
+          },
+          {
+            "kind": "cluster",
+            "x": 394,
+            "y": 145
           }
         ]
       }

@@ -52,12 +52,15 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
 
     /**
      * A piece of the country round the hull the patch lays ({@link MineCountry}), from {@code (x, y)}: its kind, a
-     * length (a train's run, a tailings mound's radius, a pumping station's main) and quarter turns (a train along x
-     * when odd).
+     * length (a train's run, a tailings mound's radius, a pumping station's main, a route's run north) and quarter
+     * turns (a train along x when odd).
      */
     public record Dress(Kind kind, int x, int y, int length, int turns) {
-        /** What a piece of a mine's country is. */
-        public enum Kind { SPOIL, TAILINGS, HEADFRAME, TRAIN, CARTS, PUMPS }
+        /**
+         * What a piece of a mine's country is: a set piece, or the hard cover a route is fought along ({@code ROUTE}, a
+         * piece every few cells north from the cell) and round a stake ({@code CLUSTER}, pieces about the cell).
+         */
+        public enum Kind { SPOIL, TAILINGS, HEADFRAME, TRAIN, CARTS, PUMPS, ROUTE, CLUSTER }
 
         public Dress {
             if (kind == null) throw new IllegalArgumentException("a piece names its kind");
