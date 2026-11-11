@@ -122,6 +122,34 @@ public final class RuinsDelveStage implements GenStage {
      * the pick {@code ruins-plant-plan}; then drop the switch and the losing path.
      */
     public static final String PLANT_PROPERTY = "battle.ruins.plant";
+
+    /**
+     * The floor a works hall's restart lights round its {@code stand} ({@code ruins-light.md}): the transfer aisle from
+     * wall to wall, where the hall frame stands its post; on a forge the pulpit's corner of the head, the aisle round
+     * it to the walls, and the breakout pool's columns {@code poolLo..poolHi} bank to bank with the bridge over them
+     * (none when {@code poolLo > poolHi}); in a works hall the bays either side of the aisle at the stand's end. Each
+     * area is clipped to the hall.
+     */
+    static List<Area> standLit(Area hall, Cell centre, Cell stand, boolean forge, int poolLo, int poolHi) {
+        List<Area> out = new ArrayList<>();
+        out.add(clip(hall, hall.left(), centre.y() - 1, hall.right(), centre.y() + 2));
+        if (forge) {
+            out.add(clip(hall, stand.x() - 6, stand.y() - 4, hall.right(), stand.y() + 4));
+            if (poolLo <= poolHi) {
+                out.add(clip(hall, poolLo - 2, centre.y() - BREAKOUT_LONG - 1, poolHi + 2,
+                        centre.y() + BREAKOUT_LONG + 2));
+            }
+        } else {
+            out.add(clip(hall, centre.x() + 1, centre.y() - 1 - HallFrame.BAY, hall.right(),
+                    centre.y() + 2 + HallFrame.BAY));
+        }
+        return out;
+    }
+
+    private static Area clip(Area hall, int l, int b, int r, int t) {
+        return new Area(Math.max(l, hall.left()), Math.max(b, hall.bottom()), Math.min(r, hall.right()),
+                Math.min(t, hall.top()));
+    }
     /** The most ground a repair may wall in rather than join; more is a layout error, not a pocket. */
     static final int MAX_SEALED_POCKET = 60;
 
@@ -288,6 +316,10 @@ public final class RuinsDelveStage implements GenStage {
         Area apronKeepOff;
         /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
         Cell worksStand;
+        /** The floor the works hall's restart lights round its stand ({@link #standLit(Area, Cell, Cell, boolean, int, int)}). */
+        List<Area> standLit = List.of();
+        /** The breakout pool's columns under the transfer bridge; lo above hi when there is none. */
+        int poolLo = Integer.MAX_VALUE, poolHi = Integer.MIN_VALUE;
         /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
         boolean plantMode;
         /** The room each of the plant's infantry-only spaces is laid as. */
@@ -459,7 +491,7 @@ public final class RuinsDelveStage implements GenStage {
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces);
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces, standLit);
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
             // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
@@ -1978,6 +2010,9 @@ public final class RuinsDelveStage implements GenStage {
                 case FOUNDRY -> {
                     if (plan.dressing().foundry() && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG) {
                         megaForge(registry, hall, centre);
+                        if (hall.equals(trunkHall) && worksStand != null) {
+                            standLit = standLit(hall, centre, worksStand, true, poolLo, poolHi);
+                        }
                     } else {
                         foundry(registry, hall, centre);
                     }
@@ -1990,7 +2025,10 @@ public final class RuinsDelveStage implements GenStage {
                     if (laid != null) worksHall(registry, hall, centre, laid);
                     else lines(registry, hall, centre);
                     // The zone is held from the east end of the transfer aisle, which the hall keeps clear.
-                    if (hall.equals(trunkHall)) worksStand = new Cell(hall.right() - 2, centre.y());
+                    if (hall.equals(trunkHall)) {
+                        worksStand = new Cell(hall.right() - 2, centre.y());
+                        standLit = standLit(hall, centre, worksStand, false, 0, -1);
+                    }
                 }
                 case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
@@ -2468,6 +2506,8 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             if (lo > hi) return;
+            poolLo = lo;
+            poolHi = hi;
             DoodadDef span = registry.doodad(BRIDGE_SPAN), end = registry.doodad(BRIDGE_END);
             DoodadDef damaged = registry.doodad(BRIDGE_SPAN_DAMAGED);
             if (span == null || end == null) return;
