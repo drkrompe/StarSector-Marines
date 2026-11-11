@@ -9,12 +9,13 @@ public final class ParkedAircraft {
 
     public static final int FOOTPRINT_HALF = 1;
 
-    public final ShuttleType type;
+    /** What stands there: a transport on a town's berth, a {@link PortFreighter} on a port's pad. */
+    public final Airframe type;
     public final int centerX;
     public final int centerY;
     public final float facingDegrees;
 
-    public ParkedAircraft(ShuttleType type, int centerX, int centerY,
+    public ParkedAircraft(Airframe type, int centerX, int centerY,
                           float facingDegrees) {
         this.type = type;
         this.centerX = centerX;

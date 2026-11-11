@@ -576,7 +576,10 @@ Laws):
      tags, and their entries in the town's buildings, numbered on so no
      earlier building's id moves (`BuildingFloodFill.populate`).
    **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
-   get that partially 3d look"; kept for every building). The rise's pinhole
+   get that partially 3d look"; kept for every building; the Settings page's
+   3D walls key, `WallDepth`, on by default, lays buildings and freestanding
+   walls flat for a player who prefers it: owner, "this might be an acquired
+   taste"). The rise's pinhole
    camera turned on buildings (`BuildingFaces`): each building's roof is
    lifted to its eave at the height of what it was built as
    (`BuildingFaces.heightClass`, the one place it is decided; an author's

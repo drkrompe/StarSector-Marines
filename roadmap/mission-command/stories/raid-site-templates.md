@@ -62,7 +62,7 @@ rest of the planet's sites feed. Three things carry that.
 | Refining | the only cracking and distillation plant | pipelines in on racks from the map's edges; units with their columns; the product rack over the haul road; a bunded tank farm and loading rack before the works; a flare stack |
 | Light industry | the central fabrication works, an autoplant | feeder lines; the halls in process order; the parts line between them; the feeders' trucks at the dock; dispatch sheds by the haul road; light hulls in stages down the assembly line beside the works |
 | Farming | the central grain elevator and processing hub | farm roads in off the edges through the fields; haulers queued at the intake; the grain gallery from intake through dryer, the round bins of the silo battery and mill to cold store and loadout; spilt grain; long fields to the edges, a rare centre pivot and fish ponds among them; the grain elevators (leg house and bins) are the machines (`GrainHub`) |
-| Spaceport | the only orbital lift, and the planet's travel hub | the hub across the works' half: highway and rail in off the map, warehouse rows, container yard under gantry cranes, a pad row of lighters with the heavy pad; customs and passenger halls at the terminal's gate, haulers queued on the roads in |
+| Spaceport | the only orbital lift, and the planet's travel hub | the hub across the works' half: highway and rail in off the map, a truck gate and arterials from the highway through every band to the pads, warehouse rows on built ground with a marshalling park, container yard under gantry cranes, a few large pads with freighters at true scale; customs and passenger halls at the terminal's gate, haulers queued on the roads in |
 | Military | the base the planet's patrols are supplied from | motor pool; magazine; roads out to the patrol posts |
 
 **The pit.** A mine holds its pit's ground beside the head works: a held
@@ -104,6 +104,10 @@ sight lines before the works' wall.
   (`createSnapshots -Psnapshot=raid-mine-site-look`).
 - [x] A site for every industry a raid can name: refining, light industry,
   farming, spaceport and military too (`raid-<industry>-site-look` suites).
+- [x] Farming accepted (owner, 2026-11-10): the grain hub as its process, the
+  grain elevators as the target, long fields with a rare centre pivot; its laws
+  are in `raid-mission.md` (Site templates, Farming). Stand-in art for the
+  bins, haulers, gallery and roofs until the hub's own lands.
 - [ ] The owner's verdict on each, with fixes folded in. Light industry rebuilt
   as its process after the owner rejected the generic shops (`LightIndustryWorks`,
   `FabricationYard`; `createSnapshots -Psnapshot=raid-light-industry-site-look`),

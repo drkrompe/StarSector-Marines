@@ -58,6 +58,8 @@ public final class RaidSiteTemplate {
     /** The works compound: the raid's objective, listed first so it is the plan's {@link PrecinctPlan#objective()}. */
     public static final String WORKS = "works";
     public static final String GARRISON = "garrison";
+    /** The place a works' machine posts are named with ({@code WorksDefences}): its gates and its yard reserve. */
+    public static final String WORKS_MACHINES = "works-machines";
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";
@@ -256,7 +258,7 @@ public final class RaidSiteTemplate {
         boolean deepFeeder = industry.deepFeeder();
         pieces.addAll(lines(mirrorX, mirrorY, !deepFeeder));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, !deepFeeder, width, height));
-        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key());
+        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key()).withRaidSecurity(security);
     }
 
     /**

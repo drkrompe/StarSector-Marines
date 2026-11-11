@@ -49,13 +49,17 @@ class LongSurveyGroundTest {
         assertEquals(32, rules.mouthX(), "the mouth is the bay apron's berth");
         assertEquals(6, rules.mouthY());
         assertEquals(LongSurveyGround.LINK_CELLS, rules.linkCells());
-        assertEquals(20 + LongSurveyGround.LINK_CELLS / 2, rules.perimeterCells(), "the hull's half-extent and half a link");
+        assertEquals(LongSurveyGround.LINK_CELLS / 2, rules.perimeterCells(), "half a link off the hull's plates");
+        assertEquals(List.of(new FallenHullSite.Rect(footprint.left(), footprint.bottom(), footprint.right(),
+                footprint.top())), rules.sections(), "one plate rect per section");
         assertEquals(2, rules.lattice().size());
         assertEquals(70, rules.lattice().get(0).x());
         assertEquals(1, rules.haulRoads().size(), "a one-cell road is no road");
         assertArrayEquals(new int[] {41, 15, 60, 15, 70, 15}, rules.haulRoads().get(0), "from the hull outward");
         assertEquals(List.of(new FallenHullSite.StartingStake(0, SurveyStake.Stage.RAISED)), rules.stakes());
         assertEquals(2, rules.egress().size());
+        assertArrayEquals(new int[] {12, 15}, rules.egress().get(0), "egress stands at each apron's first berth");
+        assertArrayEquals(new int[] {32, 6}, rules.egress().get(1));
         assertEquals(25f, rules.feedstock());
     }
 

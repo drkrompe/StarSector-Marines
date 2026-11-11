@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullPlan;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
@@ -66,21 +68,61 @@ class HullRoofTest {
         assertEquals(1f, south.planV(11f, 20f));
     }
 
+    /** Plan cell {@code (u, v)} of its section laid heading west, as the ground lays the broken hull. */
+    private static int laid(HullPlan.Section section, int u, int v) {
+        int x = 180 - HullPlan.laidU(section, u), y = 60 - HullPlan.laidV(section, v);
+        return y * W + x;
+    }
+
     @Test
-    void aBrokenHullsSectionsTakeTheNextRunsOfThePlanFromTheSternSharingWhatTheBreaksTook() {
-        // Stern 20 long, a midsection 30 long slid 2 cells across, the bow 30 long with its taper: 80 of 88 cells,
-        // so each of the two breaks took 4. Laid out of order, apart along the trench.
-        BitSet bow = block(140, 20, 30, HullPlan.BREADTH, true, true);
-        BitSet stern = block(10, 20, 20, HullPlan.BREADTH, true, null);
-        BitSet mid = block(60, 22, 30, HullPlan.BREADTH - 4, true, null);
-        List<HullRoof.Section> s = HullRoof.fit(List.of(bow, stern, mid), W).sections();
-        assertEquals(3, s.size());
-        assertEquals(0f, s.get(0).planU(10f, 20f));
-        assertEquals(24f, s.get(1).planU(60f, 22f));
-        assertEquals(58f, s.get(2).planU(140f, 20f));
-        assertEquals(HullPlan.LENGTH, s.get(2).planU(170f, 20f));
-        // The narrower midsection keeps the plan's centre line on its own.
-        assertEquals(HullPlan.BREADTH / 2f, s.get(1).planV(60f, 22f + (HullPlan.BREADTH - 4) / 2f));
+    void aBrokenHullsSectionsLieWhereThePlanFitsTheirRoofsEvenWithTheBowsTipUnroofed() {
+        // Each section's deck and armour roofed, as the compartments are, but the bow's taper left out.
+        HullPlan hull = HullPlan.plan();
+        List<BitSet> patches = new ArrayList<>();
+        BitSet roofed = new BitSet();
+        for (HullPlan.Section section : HullPlan.SECTIONS) {
+            BitSet patch = new BitSet();
+            for (int u = section.u0(); u <= section.u1(); u++) {
+                for (int v = 0; v < HullPlan.BREADTH; v++) {
+                    HullPlan.Kind k = hull.at(u, v);
+                    if (k == HullPlan.Kind.FLOOR || k == HullPlan.Kind.HULL && u < 70) patch.set(laid(section, u, v));
+                }
+            }
+            roofed.or(patch);
+            patches.add(0, patch);
+        }
+        List<HullRoof.Section> s = HullRoof.fit(patches, W).sections();
+        assertEquals(HullPlan.SECTIONS.size(), s.size());
+        for (int i = 0; i < s.size(); i++) {
+            HullRoof.Section fitted = s.get(i);
+            HullPlan.Section section = HullPlan.SECTIONS.get(i);
+            assertEquals(section, fitted.plan);
+            assertEquals(180f, fitted.angleDeg());
+            for (int u : new int[]{section.u0(), (section.u0() + section.u1()) / 2, section.u1()}) {
+                for (int v : new int[]{0, 13, HullPlan.BREADTH - 1}) {
+                    int at = laid(section, u, v);
+                    float x = at % W + .5f, y = at / W + .5f;
+                    assertEquals(u + .5f, fitted.planU(x, y), section.name() + " u " + u);
+                    assertEquals(v + .5f, fitted.planV(x, y), section.name() + " v " + v);
+                }
+            }
+        }
+        // The taper no roof covers is painted as the bow's.
+        HullRoof.Section bow = s.get(s.size() - 1);
+        int[] solid = HullRoof.solid(bow, roofed, W, 200);
+        int tip = -1;
+        for (int u = HullPlan.LENGTH - 1; u >= 75 && tip < 0; u--) {
+            if (hull.at(u, HullPlan.BREADTH / 2) == HullPlan.Kind.HULL) tip = laid(bow.plan, u, HullPlan.BREADTH / 2);
+        }
+        assertTrue(tip >= 0, "a solid cell in the bow's taper");
+        final int t = tip;
+        assertTrue(Arrays.stream(solid).anyMatch(c -> c == t));
+        assertTrue(Arrays.stream(solid).noneMatch(roofed::get));
+        // A roof running across a break paints each cell as the section it lies in.
+        HullRoof ship = HullRoof.fit(patches, W);
+        int mid = laid(HullPlan.SECTIONS.get(1), 30, 0);
+        assertEquals(HullPlan.SECTIONS.get(1), ship.at(mid % W, mid / W).plan);
+        assertEquals(bow.plan, ship.at(t % W, t / W).plan);
     }
 
     @Test

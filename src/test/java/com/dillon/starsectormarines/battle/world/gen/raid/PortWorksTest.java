@@ -72,7 +72,8 @@ class PortWorksTest {
         for (Piece p : pieces) if (p instanceof Deferred d) laid.addAll(d.resolve().apply(null));
         for (Piece p : pieces) {
             if (p instanceof Site s) {
-                assertEquals(SitePurpose.GROUND, s.purpose());
+                assertEquals(s.name().equals(PortWorks.WAREHOUSES) ? SitePurpose.BUILT : SitePurpose.GROUND,
+                        s.purpose(), s.name());
                 held.add(s);
             }
         }
@@ -83,7 +84,10 @@ class PortWorksTest {
             for (Site site : held) {
                 boolean clear = s.x() + s.width() - 1 < site.x0() || s.x() > site.x1()
                         || s.y() + s.height() - 1 < site.y0() || s.y() > site.y1();
-                assertTrue(clear, s.name() + " on held ground " + site.name());
+                boolean inside = s.x() >= site.x0() && s.x() + s.width() - 1 <= site.x1()
+                        && s.y() >= site.y0() && s.y() + s.height() - 1 <= site.y1();
+                if (site.purpose() == SitePurpose.BUILT) assertTrue(inside, s.name() + " off its built ground");
+                else assertTrue(clear, s.name() + " on held ground " + site.name());
             }
         }
         assertEquals(hub.sheds().size(), warehouses);
@@ -117,6 +121,6 @@ class PortWorksTest {
         assertEquals(want.sheds(), got.sheds());
         assertEquals(want.containers(), got.containers());
         assertEquals(want.pads(), got.pads());
-        assertEquals(want.heavyPad(), got.heavyPad());
+        assertEquals(want.roads(), got.roads());
     }
 }

@@ -96,6 +96,7 @@ final class SettingsViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         List<Setting> settings = List.of(
                 new Setting("voiceOver", () -> on, value -> { }),
+                new Setting("wallDepth", () -> on, value -> { }),
                 new Setting("raidFork", () -> on, value -> { }),
                 new Setting("invasionFork", () -> on, value -> { }, () -> optional),
                 new Setting("ruinsFork", () -> on, value -> { }, () -> optional));

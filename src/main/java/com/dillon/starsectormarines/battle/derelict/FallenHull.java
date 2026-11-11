@@ -81,7 +81,7 @@ public final class FallenHull {
 
     FallenHull(FallenHullSite site, BuildQueue queue) {
         this.site = site;
-        this.lattice = new ClaimLattice(site.hull(), site.lattice(), site.linkCells());
+        this.lattice = new ClaimLattice(site.sections(), site.lattice(), site.linkCells());
         this.forge = new Autoforge(queue);
         this.hullStore = new Feedstock(site.feedstock());
         this.roads = new HaulRoads(site.haulRoads());
@@ -108,8 +108,8 @@ public final class FallenHull {
         FallenHull hull = new FallenHull(site, queue);
         hull.livery = livery == null ? FlockLivery.DOMAIN : livery;
         SecurityNetwork network = new SecurityNetwork();
-        FallenHullSite.Rect footprint = site.hull();
-        network.add(new SecurityZone(HULL_ZONE, footprint.centreX(), footprint.centreY(), site.perimeterCells()));
+        // The root zone keeps the ground off every section; its node is the forge.
+        network.add(new SecurityZone(HULL_ZONE, site.forgeX(), site.forgeY(), site.perimeterCells(), site.sections()));
         List<int[]> egress = site.egress().isEmpty() ? List.of(new int[] {site.mouthX(), site.mouthY()}) : site.egress();
         DerelictSecurityDirector director = new DerelictSecurityDirector(network, List.of(), egress, site.forgeX(),
                 site.forgeY());
@@ -125,7 +125,13 @@ public final class FallenHull {
         hull.port = new FlockSystemPort();
         hull.port.through(sim.flocks());
         director.connectFlocks(hull.port);
-        hull.launchFlock(sim, HULL_ZONE, site.mouthX(), site.mouthY(), site.perimeterCells());
+        // The hull's flock homes at the mouth and is leashed to the far end of the ground the root zone keeps.
+        int span = 0;
+        for (FallenHullSite.Rect r : site.sections()) {
+            span = Math.max(span, Math.max(Math.max(Math.abs(r.left() - site.mouthX()), Math.abs(r.right() - site.mouthX())),
+                    Math.max(Math.abs(r.bottom() - site.mouthY()), Math.abs(r.top() - site.mouthY()))));
+        }
+        hull.launchFlock(sim, HULL_ZONE, site.mouthX(), site.mouthY(), span + site.perimeterCells());
         hull.standBay(sim, director, HULL_ZONE, site.mouthX(), site.mouthY());
         DerelictSecurity.standRepairDrone(sim, HULL_ZONE, director, hull.livery);
 
@@ -144,13 +150,8 @@ public final class FallenHull {
     /** The ground's stakes, nearest the hull first, each chained through the anchors before it. */
     private void standStartingStakes(BattleSimulation sim, DerelictSecurityDirector director) {
         List<FallenHullSite.StartingStake> order = new ArrayList<>(site.stakes());
-        FallenHullSite.Rect footprint = site.hull();
-        order.sort(Comparator.comparingLong((FallenHullSite.StartingStake s) -> {
-            ClaimLattice.Point p = lattice.point(s.pointId());
-            long dx = p.x() - footprint.centreX();
-            long dy = p.y() - footprint.centreY();
-            return dx * dx + dy * dy;
-        }).thenComparingInt(FallenHullSite.StartingStake::pointId));
+        order.sort(Comparator.comparingLong((FallenHullSite.StartingStake s) -> lattice.hullDistance(
+                lattice.point(s.pointId()))).thenComparingInt(FallenHullSite.StartingStake::pointId));
         for (FallenHullSite.StartingStake start : order) {
             ClaimLattice.Point p = lattice.point(start.pointId());
             Set<Integer> anchors = new TreeSet<>();
