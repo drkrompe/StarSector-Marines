@@ -39,6 +39,11 @@ public final class DefensePost {
     public final FortTag fort;
     /** How the post is built, which decides how its structures are drawn; {@link EmplacementStyle#BRUTALIST} unless a generator says otherwise. */
     public final EmplacementStyle style;
+    /**
+     * The bearing, degrees, its guns are laid on before the fight: out over the ground the post covers. Null for a
+     * post that was given none, whose guns keep the turret's own default.
+     */
+    public final Float restFacing;
 
     public DefensePost(DefensePostKind tier, int anchorX, int anchorY, List<TurretSpec> turrets) {
         this(tier, null, anchorX, anchorY, turrets, null, null);
@@ -64,6 +69,14 @@ public final class DefensePost {
     private DefensePost(DefensePostKind tier, String layoutId,
                         int anchorX, int anchorY, List<TurretSpec> turrets,
                         Integer droneHubCellX, Integer droneHubCellY, FortTag fort, EmplacementStyle style) {
+        this(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, fort, style, null);
+    }
+
+    private DefensePost(DefensePostKind tier, String layoutId,
+                        int anchorX, int anchorY, List<TurretSpec> turrets,
+                        Integer droneHubCellX, Integer droneHubCellY, FortTag fort, EmplacementStyle style,
+                        Float restFacing) {
+        this.restFacing = restFacing;
         this.style = style;
         this.fort = fort;
         this.tier = tier;
@@ -83,7 +96,14 @@ public final class DefensePost {
         if (style == this.style) return this;
         List<TurretSpec> built = new ArrayList<>(turrets.size());
         for (TurretSpec spec : turrets) built.add(spec.builtIn(style));
-        return new DefensePost(tier, layoutId, anchorX, anchorY, built, droneHubCellX, droneHubCellY, fort, style);
+        return new DefensePost(tier, layoutId, anchorX, anchorY, built, droneHubCellX, droneHubCellY, fort, style,
+                restFacing);
+    }
+
+    /** This post with its guns laid on {@code degrees} before the fight. */
+    public DefensePost withRestFacing(float degrees) {
+        return new DefensePost(tier, layoutId, anchorX, anchorY, turrets, droneHubCellX, droneHubCellY, fort, style,
+                degrees);
     }
 
     /** Where to spawn one MapTurret + what kind. Coupled here so the generator picks the kind alongside the position rather than the setup re-rolling per cell. */

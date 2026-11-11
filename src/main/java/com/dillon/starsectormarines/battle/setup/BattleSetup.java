@@ -6850,6 +6850,10 @@ public final class BattleSetup {
                         : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
                 if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
                 sim.setStructureStyle(turret, post.style);
+                // A post sited to cover ground has its guns laid on it before the fight.
+                if (post.restFacing != null && sim.turretState().isTurret(turret)) {
+                    sim.turretState().setFacingDegrees(turret, post.restFacing);
+                }
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
