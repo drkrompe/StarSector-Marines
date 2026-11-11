@@ -1653,7 +1653,7 @@ public class BattleRenderer {
             if (shown == null || shown.currentAlpha <= 0.01f) continue;
             roofStream.ship = section;
             roofStream.begin(out, shown, shown.currentAlpha * alphaMult);
-            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, shown)],
+            roofStream.lift(roofLifts[buildingClass(topology, buildings, shown)],
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : section.solid) {
                 int cx = at % gridW;
