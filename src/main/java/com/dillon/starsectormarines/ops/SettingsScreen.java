@@ -15,7 +15,6 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.impl.campaign.rulecmd.MarineRuinsCMD;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -58,8 +57,7 @@ public final class SettingsScreen implements Screen {
     /**
      * The voice-over, the battle view's 3D walls, and whether the raid, invasion and ruins forks ask. Each fork's
      * answer is made every time it is offered; turning one off hands that action to the game (or Nexerelin)
-     * untouched. The invasion key shows only with Nexerelin, and the ruins key only where this build offers the ruins
-     * fork.
+     * untouched. The invasion key shows only with Nexerelin.
      */
     private static List<SettingsViewModel.Setting> settings() {
         return List.of(
@@ -71,8 +69,7 @@ public final class SettingsScreen implements Screen {
                         () -> InvasionForkSetting.asks(state()), on -> InvasionForkSetting.setAsks(state(), on),
                         Nexerelin::isEnabled),
                 new SettingsViewModel.Setting("ruinsFork",
-                        () -> RuinsForkSetting.asks(state()), on -> RuinsForkSetting.setAsks(state(), on),
-                        MarineRuinsCMD::offered));
+                        () -> RuinsForkSetting.asks(state()), on -> RuinsForkSetting.setAsks(state(), on)));
     }
 
     private static CampaignState state() {
