@@ -77,7 +77,7 @@ final class FreestandingWallFaces {
             float lift = BuildingFaces.lift(run.meters(), rise);
             FreestandingWalls.Kind kind = run.kind();
             if (kind == FreestandingWalls.Kind.ENVELOPE || kind == FreestandingWalls.Kind.ENVELOPE_PLINTH) {
-                envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
+                envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
                 continue;
             }
             strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
@@ -301,10 +301,11 @@ final class FreestandingWallFaces {
      * One run of a sealed town's envelope ({@code SealedTown}), as a raised habitat wall: the body's faces in panels,
      * with an ochre service pipe along the inner face; the buttresses lighter, set off half-way up; the plinth's faces
      * along the outer course; then the tops, each course's coping lighter round its edge, the body's deck dark inside it
-     * with the pipe run along its inner side, each buttress capped light.
+     * with the pipe run along its inner side, each buttress capped light. Creep climbs it as any wall
+     * ({@link CreepClimb}), and an old crust comes over its top from every side open to the ground.
      */
     private void envelope(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
-                          int gridW, int gridH, float unseen, float alphaMult) {
+                          int gridW, int gridH, float unseen, float alphaMult, CreepField creep, boolean detail) {
         float meters = run.meters(), lift = BuildingFaces.lift(meters, rise);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
@@ -333,6 +334,13 @@ final class FreestandingWallFaces {
                 f.band(.45f, .55f, PIPE_LOW - .05f, PIPE_HIGH + .03f, PIPE_SHADOW_RGB, light, alphaMult);
             }
             f.band(0f, 1f, 1f - COPING_BAND, 1f, COPING_RGB, light, alphaMult);
+            if (creep != null) {
+                cu0 = 0f;
+                cu1 = 1f;
+                calpha = alphaMult;
+                CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, 1f, cell, creepPalette, light,
+                        detail, creepOnFace);
+            }
         }
         Cap c = new Cap(camera, sx, sy, lift);
         for (int cell : run.cells()) {
@@ -362,8 +370,32 @@ final class FreestandingWallFaces {
                             alphaMult);
                 }
             }
+            if (creep != null) {
+                // The crust over the top, in from each side open to the ground.
+                topCap = c;
+                topLight = light;
+                topAlpha = alphaMult;
+                for (int s = 0; s < 4; s++) {
+                    int beyond = neighbour(cell, SX[s], SY[s], gridW, gridH);
+                    if (beyond >= 0 && partOf(beyond) != null) continue;
+                    // The cell's side s, ends ordered so the outward normal (SX, SY) has the top on its left.
+                    float ax = SX[s] > 0 ? cx + 1 : cx, ay = SY[s] > 0 ? cy + 1 : cy;
+                    float bx = SY[s] != 0 ? ax + 1 : ax, by = SX[s] != 0 ? ay + 1 : ay;
+                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), cell * 4 + s, ax, ay, bx, by,
+                            SX[s], SY[s], creepPalette, 1f, creepOnTop);
+                }
+            }
         }
     }
+
+    /** The envelope top being crusted, its light and alpha. */
+    private Cap topCap;
+    private float topLight, topAlpha;
+    private final float[] topTone = new float[3];
+    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) -> {
+        topTone[0] = r; topTone[1] = g; topTone[2] = b;
+        topCap.quad(x0, y0, x1, y1, x2, y2, x3, y3, topTone, topLight, topAlpha);
+    };
 
     private static final int[] SX = {1, 0, -1, 0}, SY = {0, 1, 0, -1};
     private final Face face = new Face();

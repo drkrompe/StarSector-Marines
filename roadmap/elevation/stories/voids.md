@@ -704,7 +704,8 @@ Laws):
      tallest, drawn over its roof's remnants, with rubble heaped round it.
    - Hive creep climbs the faces it holds, veins then crust, living to dying
      (`CreepClimb`; `colony-breach-nouns.md`, Creep). Look suite:
-     `createSnapshots -Psnapshot=building-creep-look`.
+     `createSnapshots -Psnapshot=building-creep-look`; on the colony breach's
+     real outbreak, `-Psnapshot=creep-walls-look`.
    - **Rubble** (`WallRubble`, sheet `graphics/decals/wall-rubble.png` from
      `art-source/wall-rubble`): a breached or razed wall heaps a long pile
      against its foot with blocks and scattered fragments beyond it; a wall
