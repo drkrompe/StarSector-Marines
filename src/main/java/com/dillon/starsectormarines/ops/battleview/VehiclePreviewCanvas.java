@@ -141,6 +141,8 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             if (weapon != null && !openHead && (art != null || type.hasModularTurret())) {
                 drawRing(context, turretX, turretY, cellPx, angle, alpha);
             }
+            // The coax lies under the turret head and the main gun, as in a battle.
+            drawCoax(context, turretX, turretY, cellPx, onPad, alpha);
             if (art != null) {
                 drawFittedGun(context, weapon, art, turretX, turretY, cellPx, onPad, alpha);
             } else {
@@ -149,13 +151,12 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                         CanvasSpriteRegion.frame(type.frameCount, 1, type.headFrame(weapon, type.turretFrame)),
                         CanvasBlend.NORMAL);
             }
-            drawCoax(context, turretX, turretY, cellPx, onPad, alpha);
         }
     }
 
     /**
      * The coax card's part riding the turret at {@code turretX, turretY}, on its cheek beside the main barrel and
-     * pointing down the nose, as {@link ConvoyRenderSystem} draws it; nothing with the card empty.
+     * pointing down the nose, under the head, as {@link ConvoyRenderSystem} draws it; nothing with the card empty.
      */
     private void drawCoax(CanvasContext context, float turretX, float turretY, float cellPx, boolean onPad,
                           float alpha) {
