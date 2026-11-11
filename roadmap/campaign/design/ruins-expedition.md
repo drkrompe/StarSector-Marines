@@ -425,8 +425,9 @@ daylight falls through the light wells and the broken roof. Only the residual
 the junction boxes and the hall's console, so the way through still reads.
 
 The lights are the works' power made visible. Restarting the hall lights the
-hall and the works hall's stand round its pour pulpit and bridge
-(`Interior.worksStand`), so the first thing the light shows is the stand and
+hall and the works hall's stand floor bay by bay: the transfer aisle, the bays
+at the stand's end, and on a mega forge the pulpit's corner and the breakout
+pool with its bridge (`Interior.standLit`), so the first thing the light shows is the stand and
 what holds it; each junction then lights what it feeds: its band of the plant (halls and
 corridors) on its way on, its stores on its store side, and the vault's suite
 with the vault's seal. An overloaded hall browns the plant out, all but the hall

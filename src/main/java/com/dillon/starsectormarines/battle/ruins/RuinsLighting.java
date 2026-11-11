@@ -62,8 +62,6 @@ public final class RuinsLighting {
     static final String SERVICE = "service-";
     /** The watch's alarm strips stand this far apart: a sparse lattice over the plant's own lights. */
     static final int ALARM_SPACING = 10;
-    /** How far round the works hall's stand the hall's restart lights. */
-    static final int STAND_REACH = 9;
 
     private static final float[] ALARM_LIGHT = {1f, 0.12f, 0.08f};
     private static final float[] HATCH_LIGHT = {1f, 0.62f, 0.14f};
@@ -116,7 +114,7 @@ public final class RuinsLighting {
         }
         RuinsDelve.Area hall = delve.powerHall() == null ? null : delve.powerHall().footprint();
         RuinsDelve.Area vault = delve.vault() == null ? null : delve.vault().footprint();
-        RuinsDelve.Cell stand = delve.interior().worksStand();
+        List<RuinsDelve.Area> standLit = delve.interior().standLit();
         Circuits circuitAt = (x, y) -> {
             if (vault != null && vault.contains(x, y)) return VAULT;
             for (int i = 0; i < stores.size(); i++) {
@@ -124,7 +122,7 @@ public final class RuinsLighting {
                 if (x >= k[0] && x <= k[2] && y >= k[1] && y <= k[3]) return storeCircuits.get(i);
             }
             if (hall != null && hall.contains(x, y)) return HALL;
-            if (byStand(stand, x, y)) return HALL;
+            if (byStand(standLit, x, y)) return HALL;
             return band(Math.max(0, DerelictPower.junctionOf(x, y, delve.layers())));
         };
         List<Lamp> lamps = new ArrayList<>(strips(ground, delve.interior().footprint(), circuitAt));
@@ -149,11 +147,14 @@ public final class RuinsLighting {
     }
 
     /**
-     * Whether a cell is by the works hall's stand (its pour pulpit and bridge), which lights with the hall's own restart
-     * rather than with its band: the first thing the plant's light shows is the stand and what holds it.
+     * Whether a cell is on the works hall's stand floor ({@link RuinsDelve.Interior#standLit}: the transfer aisle, the
+     * bays at the stand's end, a mega forge's pulpit corner and its breakout pool with the bridge), which lights with
+     * the hall's own restart rather than with its band: the first thing the plant's light shows is the stand and what
+     * holds it, bay by bay rather than a pool round one point.
      */
-    static boolean byStand(RuinsDelve.Cell stand, int x, int y) {
-        return stand != null && Math.max(Math.abs(x - stand.x()), Math.abs(y - stand.y())) <= STAND_REACH;
+    static boolean byStand(List<RuinsDelve.Area> standLit, int x, int y) {
+        for (RuinsDelve.Area area : standLit) if (area.contains(x, y)) return true;
+        return false;
     }
 
     /** What circuit lights a cell of the plant. */
@@ -164,20 +165,22 @@ public final class RuinsLighting {
 
     /**
      * Strip lamps over the plant's roofed floor inside {@code box}, building by building: a cell takes a lamp when no
-     * lamp of its own building stands within {@link #SPACING} of it, so a hall takes a lattice and a corridor a row,
+     * lamp of its own building and circuit stands within {@link #SPACING} of it, so a hall takes a lattice and a corridor a row,
      * and every room at least one.
      */
     static List<Lamp> strips(CellTopology ground, RuinsDelve.Area box, Circuits circuitAt) {
         List<Lamp> out = new ArrayList<>();
-        Map<Integer, List<int[]>> placed = new HashMap<>();
+        Map<String, List<int[]>> placed = new HashMap<>();
         for (int y = Math.max(0, box.bottom()); y <= Math.min(ground.getHeight() - 1, box.top()); y++) {
             for (int x = Math.max(0, box.left()); x <= Math.min(ground.getWidth() - 1, box.right()); x++) {
                 if (!floor(ground, x, y)) continue;
                 int building = ground.getBuildingId(x, y);
-                List<int[]> own = placed.computeIfAbsent(building, b -> new ArrayList<>());
+                String circuit = circuitAt.at(x, y);
+                // Each circuit's floor in a building takes its own lattice, so a region that lights apart (the works
+                // stand's bays, a store) is lit to its edges, not by whichever lamp of the hall's lattice fell in it.
+                List<int[]> own = placed.computeIfAbsent(building + "/" + circuit, b -> new ArrayList<>());
                 if (near(own, x, y)) continue;
                 own.add(new int[] {x, y});
-                String circuit = circuitAt.at(x, y);
                 boolean hall = circuit.equals(HALL);
                 float[] c = hall ? HALL_LIGHT : WORK_LIGHT;
                 out.add(new Lamp(x + 0.5f, y + 0.5f, STRIP_REACH, c[0], c[1], c[2], circuit,
