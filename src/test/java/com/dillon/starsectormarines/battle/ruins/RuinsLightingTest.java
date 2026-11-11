@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ruins;
 import com.dillon.starsectormarines.battle.derelict.FacilityWake;
 import com.dillon.starsectormarines.battle.derelict.SecurityNetwork;
 import com.dillon.starsectormarines.battle.derelict.SecurityZone;
+import com.dillon.starsectormarines.battle.derelict.ServiceDucts;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,20 +96,36 @@ class RuinsLightingTest {
         SecurityNetwork network = new SecurityNetwork()
                 .add(new SecurityZone(1, 10, 10, 5))
                 .add(new SecurityZone(2, 30, 10, 5));
-        assertEquals(Set.of(), RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET), "a sleeping watch is dark");
+        ServiceDucts ducts = new ServiceDucts(List.of(new ServiceDucts.Vent(7, 10, 12, 1),
+                new ServiceDucts.Vent(8, 30, 12, 2)));
+        IntPredicate released = zone -> zone == 2;
+        assertEquals(Set.of(), RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET, ducts, z -> false),
+                "a sleeping watch is dark");
 
         network.stir(1, 0);
-        assertEquals(Set.of(RuinsLighting.watch(1)), RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET));
+        assertEquals(Set.of(RuinsLighting.watch(1)),
+                RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET, ducts, z -> false),
+                "one zone woken alone shows red while the rest stay quiet");
 
-        assertEquals(Set.of(RuinsLighting.watch(1), RuinsLighting.vents(1), RuinsLighting.vents(2),
-                RuinsLighting.bay(1), RuinsLighting.bay(2)),
-                RuinsLighting.watchCircuits(network, FacilityWake.Stage.ROUSED), "vents and bays come up by stage");
+        ducts.open();
+        ducts.charge(10.5f, 12.5f);
+        assertEquals(Set.of(RuinsLighting.watch(1), RuinsLighting.vent(8), RuinsLighting.bay(2)),
+                RuinsLighting.watchCircuits(network, FacilityWake.Stage.ROUSED, ducts, released),
+                "only open vents glow, and only a bay whose flock came out");
 
         network.zone(2).powerDown();
-        assertFalse(RuinsLighting.watchCircuits(network, FacilityWake.Stage.CONTINGENCY).contains(RuinsLighting.bay(2)),
-                "a zone cut off at its junction is dark");
-        assertTrue(RuinsLighting.watchCircuits(network, FacilityWake.Stage.CONTINGENCY)
-                .contains(RuinsLighting.watch(1)), "the contingency lights every online zone");
+        Set<String> contingency = RuinsLighting.watchCircuits(network, FacilityWake.Stage.CONTINGENCY, ducts, released);
+        assertFalse(contingency.contains(RuinsLighting.bay(2)) || contingency.contains(RuinsLighting.vent(8))
+                || contingency.contains(RuinsLighting.watch(2)), "a dark zone stays dark through the contingency");
+        assertTrue(contingency.contains(RuinsLighting.watch(1)), "the contingency lights every online zone");
+    }
+
+    @Test
+    void theWorksStandLightsWithTheHallsRestart() {
+        RuinsDelve.Cell stand = new RuinsDelve.Cell(20, 20);
+        assertTrue(RuinsLighting.byStand(stand, 20 + RuinsLighting.STAND_REACH, 20));
+        assertFalse(RuinsLighting.byStand(stand, 21 + RuinsLighting.STAND_REACH, 20));
+        assertFalse(RuinsLighting.byStand(null, 20, 20), "a site with no works hall has no stand");
     }
 
     @Test
