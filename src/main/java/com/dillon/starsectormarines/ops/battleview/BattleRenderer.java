@@ -1271,6 +1271,7 @@ public class BattleRenderer {
         CreepField creep = sim.creepFieldIfPresent();
         if (creep != null && creep.isEmpty()) creep = null;
         paint.reset();
+        paint.night = topology.nightLighting() != null;
         ruinShells.reset();
         wallTopCreep.reset();
         topSx = sx;
@@ -1414,6 +1415,7 @@ public class BattleRenderer {
             }
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
+        if (!paint.glow.isEmpty()) out.addPoly(RenderLayer.NIGHT_WINDOWS, paint.glow);
         wallRubble.emit(out, paint.debris(), paint.debrisCount(), sprites.rubbleSheet(), sprites.rubbleFrames());
     }
 

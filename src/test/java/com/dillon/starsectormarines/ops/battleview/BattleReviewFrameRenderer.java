@@ -426,7 +426,10 @@ public final class BattleReviewFrameRenderer {
         EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
         if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
         if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
-        if (roofs) layers.add(RenderLayer.ROOFS);
+        if (roofs) {
+            layers.add(RenderLayer.ROOFS);
+            layers.add(RenderLayer.NIGHT_WINDOWS);
+        }
         if (missionMarkers) layers.add(RenderLayer.MISSION_MARKERS);
         if (selectionRings) layers.add(RenderLayer.HIGHLIGHTS);
         return layers;
