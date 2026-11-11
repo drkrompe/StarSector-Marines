@@ -51,7 +51,7 @@ public final class RaidLightIndustrySiteLookSuite extends RaidSiteLookSuite {
         float x0 = Math.min(machinesX, hall.minX), x1 = Math.max(machinesX, hall.maxX + 1);
         float y0 = Math.min(machinesY, hall.minY), y1 = Math.max(machinesY, hall.maxY + 1);
         CellTopology topology = sim.getTopology();
-        float reach = 2f * Math.max(hall.maxX - hall.minX, hall.maxY - hall.minY);
+        float reach = Math.max(hall.maxX - hall.minX, hall.maxY - hall.minY);
         for (Building b : sim.getBuildings().all()) {
             if (b.cellsX.length == 0) continue;
             RoomPurpose p = topology.getRoomPurpose(b.cellsX[0], b.cellsY[0]);
