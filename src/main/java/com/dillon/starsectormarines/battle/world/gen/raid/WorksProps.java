@@ -46,6 +46,21 @@ public final class WorksProps {
     }
 
     /**
+     * Whether a prop that is cover already stands on the footprint. A district's yard stock that a squad walks round
+     * is cover without holding its cell as a fixture, so {@link #open} does not see it; two pieces of cover may not
+     * share a cell.
+     */
+    static boolean coverUnder(GenContext c, int x, int y, int w, int h) {
+        for (Doodad d : c.doodads) {
+            if (d.cover > 0 && d.cellX < x + w && x < d.cellX + d.footprintCellsX
+                    && d.cellY < y + h && y < d.cellY + d.footprintCellsY) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * A solid prop ({@code id}, a full id such as {@code ship-engineering.generator}, or a {@code doodad.} one with or
      * without that prefix) with its corner at {@code (x, y)}, turned
      * {@code turns} quarter turns, if its whole footprint is open; returns whether it stood. A placed prop blocks
@@ -59,6 +74,9 @@ public final class WorksProps {
         if (def == null) return false;
         Doodad prop = new Doodad(x, y, def, turns);
         if (!open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
+        // A set piece's ground is its own: no other prop is stood inside its fence or bund.
+        if (MilitarySetPieces.raised(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
+        if (def.cover.level() > 0 && coverUnder(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
         for (int yy = y; yy < y + prop.footprintCellsY; yy++) {
             for (int xx = x; xx < x + prop.footprintCellsX; xx++) {
                 c.grid.setWalkable(xx, yy, false);
@@ -95,6 +113,10 @@ public final class WorksProps {
 
     /** Whether a {@code w} by {@code h} footprint with its corner at {@code (x, y)} may take a prop. */
     public static boolean open(GenContext c, int x, int y, int w, int h) {
+        // Another cover prop standing there, though nothing marks its cell (a walkable crate stack): one to a cell.
+        for (Doodad d : c.doodads) {
+            if (d.cover > 0 && d.cellX >= x && d.cellX < x + w && d.cellY >= y && d.cellY < y + h) return false;
+        }
         LayoutGround ground = new LayoutGround(c);
         // A place's own roads, inside its claim, which the layout's ways leave to the place.
         int[][] roadOwner = c.get(BspKeys.PRECINCT_ROAD);

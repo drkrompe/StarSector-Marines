@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
  * A request for "more units" posted by a {@link ReinforcementTrigger} and
@@ -34,7 +35,10 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public final class ReinforcementRequest {
 
-    /** Why the request was posted. Informational; means providers ignore it. */
+    /**
+     * Why the request was posted. Informational, but for {@link #GARRISON_COLUMN}, which a convoy brings whether or not
+     * the side still holds an armory.
+     */
     public enum Reason {
         GARRISON_DEPLETED,
         OBJECTIVE_LOST,
@@ -46,7 +50,13 @@ public final class ReinforcementRequest {
          * not branch dispatch logic. Production counterattack requests are
          * posted as {@link #prepaid}.
          */
-        COUNTERATTACK
+        COUNTERATTACK,
+        /**
+         * A Raid market's wider garrison driving in from off the map ({@link RaidPressureTrigger}): its columns come
+         * from beyond the battle, not out of the compounds the raid can take, so the convoy's supply gate does not
+         * apply.
+         */
+        GARRISON_COLUMN
     }
 
     /**
@@ -78,6 +88,12 @@ public final class ReinforcementRequest {
      * constructor — the steady per-dispatch debit is unchanged.
      */
     public final boolean prepaid;
+    /**
+     * A combat hull that drives in with the delivery and parks short of its drop, or null for none: a Raid's later
+     * garrison columns bring the market's armour ({@code raid-demolish-the-works.md}, slice 8, pick
+     * {@code raid-columns-armour} a). Only {@link ConvoyMeans} brings it; a column walked in or flown in comes without.
+     */
+    public final VehicleType escort;
     private final ReinforcementDispatchReservation dispatchReservation;
 
     public ReinforcementRequest(Faction side, Reason reason, Strength strength,
@@ -96,13 +112,14 @@ public final class ReinforcementRequest {
                                 int objectiveX, int objectiveY,
                                 boolean prepaid) {
         this(side, reason, strength, rallyX, rallyY,
-                objectiveX, objectiveY, prepaid, null);
+                objectiveX, objectiveY, prepaid, null, null);
     }
 
     private ReinforcementRequest(Faction side, Reason reason, Strength strength,
                                  int rallyX, int rallyY,
                                  int objectiveX, int objectiveY,
                                  boolean prepaid,
+                                 VehicleType escort,
                                  ReinforcementDispatchReservation reservation) {
         this.side = side;
         this.reason = reason;
@@ -112,6 +129,7 @@ public final class ReinforcementRequest {
         this.objectiveX = objectiveX;
         this.objectiveY = objectiveY;
         this.prepaid = prepaid;
+        this.escort = escort;
         this.dispatchReservation = reservation;
     }
 
@@ -119,7 +137,13 @@ public final class ReinforcementRequest {
     ReinforcementRequest withDispatchReservation(
             ReinforcementDispatchReservation reservation) {
         return new ReinforcementRequest(side, reason, strength,
-                rallyX, rallyY, objectiveX, objectiveY, prepaid, reservation);
+                rallyX, rallyY, objectiveX, objectiveY, prepaid, escort, reservation);
+    }
+
+    /** This request with {@code hull} driving in beside it ({@link #escort}). */
+    public ReinforcementRequest withEscort(VehicleType hull) {
+        return new ReinforcementRequest(side, reason, strength,
+                rallyX, rallyY, objectiveX, objectiveY, prepaid, hull, dispatchReservation);
     }
 
     /** Release provisional trigger state after every means rejects. */

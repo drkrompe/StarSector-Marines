@@ -36,7 +36,7 @@ public enum StoryMap {
      */
     LONG_SURVEY_FALL("long-survey-fall", COLONY_BREACH),
     LONG_SURVEY_STAKES("long-survey-stakes", null),
-    LONG_SURVEY_LINE("long-survey-line", CORDON_LINE),
+    LONG_SURVEY_LINE("long-survey-line", HEART_FRONT_CITY),
     LONG_SURVEY_SURVEYOR("long-survey-surveyor", HEART_FRONT);
 
     /** The pool file's name and the {@code map} it declares. */

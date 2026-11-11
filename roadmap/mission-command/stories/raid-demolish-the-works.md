@@ -6,8 +6,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
 6 (the works' machines) is built on the owner's (a) on `raid-works-machines`
 and (c) on `raid-works-vehicles`; slice 7 (the approach) on the owner's
-`raid-works-approach` "(a) and (c)" with outworks guns; slice 8 (pressure over time) waits on
-`raid-pressure`.
+`raid-works-approach` "(a) and (c)" with outworks guns; slice 8 (pressure over time) on the owner's `raid-pressure` (b) with
+columns from off the map.
 
 Written: 2026-11-10
 
@@ -195,25 +195,41 @@ patrol's anchor):
 Tests: `WorksDefencesTest`, `RaidWorksGuardTest`, `RaidWorksMachinesTest`;
 `storyMapPools`; `raid-demolition-look`'s `built-*` labels each layer.
 
-### 8. Pressure over time: PROPOSED (pick `raid-pressure`)
+### 8. Pressure over time: BUILT (owner: `raid-pressure` (b), and columns from off the map)
 
 Owner: "Our first rule is to make it fun and to keep pressure on the player
-over time so they are not bored." Today a Raid's reinforcements come only when
-a garrison is depleted or an objective lost (`GarrisonDepletedTrigger`,
-`ObjectiveLostTrigger`, through the convoy, shuttle and walk-in means and their
-supply gates), and the alarm now sends the whole mobile pool (the old limit
-of three squads, and the defence's attacker-strength budget, are gone for
-Raid: owner, "We can't limit ourselves to 'keeping it even'").
-Nothing is driven by time. Options:
+over time so they are not bored", and on `raid-pressure`, (b) each hall that
+falls brings a wave, "Also consider having forces coming from off map. We
+can't limit ourselves to 'keeping it even' the number of forces on the field.
+That's not how RTS with a raid works."
 
-- (a) An alarm clock (recommended): from the alarm, a reinforcement request on
-  a clock that runs faster with security (about 90 s guarded, 60 s fortified;
-  untuned), each wave a squad larger, armour from the third on a fortified
-  market. It arrives by the existing means, so taking the armory or command
-  post ends it. The next wave's countdown is shown to the player. A new
-  trigger beside the two above, decided and tested as a pure clock.
-- (b) Each hall that falls brings a wave, sized by security.
-- (c) One large counter-attack a fixed time after the alarm, with a countdown.
+- **The even count is gone.** A raided market defends with all it has: Raid
+  passes an unbounded attacker score as Conquest does, so no attacker-strength
+  budget trims its mechs, air or turrets (`BattleForceScore`), and the alarm
+  sends the whole mobile pool (`RaidDefenderCommand`), not three squads.
+- **Waves and columns** (`RaidPressureTrigger`, clocks by security in
+  `RaidPressureClocks`, untuned): each machine wrecked brings a wave at once
+  (small open, medium guarded, large fortified); garrison columns drive in from
+  the map's edge on a clock from the battle's start (every 240 s open, 180 s
+  guarded, 150 s fortified while quiet; 150, 90 and 60 s once the alarm is up,
+  the alarm bringing the next one forward), one size larger every second
+  column. They are prepaid `GARRISON_COLUMN` requests a convoy brings whatever
+  compounds the raid has taken (`reinforcement-nouns.md`, supply gate).
+- **Armour joins the later columns** (owner pick `raid-columns-armour` a):
+  from a fortified market's third column (a guarded one's fifth; never an
+  open one's), a hull of the market's own line drives in ahead of the APCs,
+  first its gate hull, then its yard tank (`RaidWorksMachines.columnArmour`).
+  It is the request's escort (`ReinforcementRequest.escort`): the convoy sets it
+  down at its route's first cell on the map, and it drives the truck's proved
+  route and parks a few waypoints short of the drop, uncommanded, its gun
+  fighting what it sees. A column walked or flown in comes without it.
+- **Warning.** The works objective shows the countdown to the next column
+  once the company is working or leaving ("A garrison column drives in from
+  off the map in m:ss").
+- Tests: `RaidPressureTriggerTest`, `CompoundSupplyGatingTest`.
+
+The standard resolution stays as it is (owner pick `raid-auto-resolve` a);
+the fork shows what leading faces instead (`raid-resolution.md`, law 9).
 
 ## Not in this story
 

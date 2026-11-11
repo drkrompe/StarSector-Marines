@@ -607,17 +607,6 @@ tasks.register('bakeCreepBlight', JavaExec) {
     outputs.upToDateWhen { false }
 }
 
-tasks.register('bakeCreepWall', JavaExec) {
-    group = 'build'
-    description = 'Bakes the creep a stood-up wall wears (graphics/decals/creep-wall.png) from the ground creep model.'
-    dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.dillon.starsectormarines.ops.battleview.CreepWallBaker'
-    workingDir projectDir
-    args 'mod'
-    outputs.upToDateWhen { false }
-}
-
 tasks.register('battleProbe', JavaExec) {
     group = 'verification'
     description = 'Step one battle and query entities, hits and squads between steps.'

@@ -151,6 +151,19 @@ public class CompoundSupplyGatingTest {
     }
 
     @Test
+    public void aRaidGarrisonColumnStillDrivesInOnceTheArmoryIsTaken() {
+        BattleSimulation sim = openSim();
+        ConvoyMeans means = new ConvoyMeans(singlePerimeterNodeGraph(), null);
+        CompoundService service = sim.getCompoundService();
+        service.register(compoundAt(TacticalNode.Kind.ARMORY, 5, 5));
+        captureCompound(sim, service, new CompoundCaptureSystem(), 5, 5);
+        ReinforcementRequest column = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_COLUMN, ReinforcementRequest.Strength.SMALL, 5, 5, 5, 5, true);
+        assertTrue(means.canFulfill(sim, column),
+                "the colony's wider garrison comes from beyond the battle, not out of its armory");
+    }
+
+    @Test
     public void walkInStaysFulfillableWhileAnyBarracksAlive() {
         // hasAliveCompound is an OR across records of the kind. Two
         // BARRACKS in distinct zones, capture only the left one, walk-in

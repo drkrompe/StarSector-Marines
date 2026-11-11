@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.derelict.BuildQueue;
 import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
 import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
+import com.dillon.starsectormarines.battle.derelict.TownSalvage;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -183,6 +184,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.command.reinforcement.RaidPressureTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
@@ -1772,6 +1774,12 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new RaidDefenderCommand(raidMobileSquads).worksReserve(RaidWorksGuard.reserveSquads(sim)),
                     RaidDefenderCommandDisclosure.INSTANCE);
+            // The market's wider garrison drives in from off the map: a wave for each machine wrecked, and columns on
+            // a clock its security sets (raid-demolish-the-works.md, slice 8).
+            if (!coldAccount) sim.getReinforcementService().addTrigger(new RaidPressureTrigger(
+                    RaidPressureClocks.of(profile == null ? RaidSiteTemplate.Security.OPEN
+                            : RaidSiteTemplate.Security.of(profile)),
+                    RaidWorksMachines.columnArmour(groundRoster == null ? null : groundRoster.primaryFactionId())));
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,
@@ -3672,6 +3680,8 @@ public final class BattleSetup {
             BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
     /** The hull's store when it comes down: enough for its first cycles (UNTUNED). */
     static final float FALL_FEEDSTOCK = BuildQueue.WORKER_COST * 2;
+    /** The town buildings whose metal lies on the claim for the strippers the night it came down (UNTUNED). */
+    static final int FALL_PILES = 6;
     /** The watch already out the night it came down: a line frame and a rounds walker, and two strippers (UNTUNED). */
     static final List<DerelictWalkerFrame> FALL_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.ROUNDS,
             DerelictWalkerFrame.STRIPPER, DerelictWalkerFrame.STRIPPER);
@@ -3689,7 +3699,8 @@ public final class BattleSetup {
             FallenHullSite probe = LongSurveyGround.rulesSite(map.hullSite, List.of(), List.of(), 0f);
             List<FallenHullSite.Posting> out = new ArrayList<>();
             for (DerelictWalkerFrame frame : FALL_WALKERS) out.add(new FallenHullSite.Posting(frame, probe.mouthX(), probe.mouthY()));
-            FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, List.of(), out, FALL_FEEDSTOCK),
+            List<FallenHullSite.Pile> salvage = TownSalvage.piles(townGround(sim), probe, FALL_PILES);
+            FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, salvage, out, FALL_FEEDSTOCK),
                     FALL_QUEUE, hull.livery());
             return true;
         }
@@ -3699,6 +3710,23 @@ public final class BattleSetup {
                 placement.shelterApproachX, placement.shelterApproachY);
         if (route.length < 4) return false;
         return DerelictSecurity.install(sim, hull.grade(), null, hull.livery(), route, site.x(), site.y()) != null;
+    }
+
+    /** The battle's ground as the town's salvage reads it: its buildings, and open ground a stripper stands on. */
+    private static TownSalvage.Ground townGround(BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        return new TownSalvage.Ground() {
+            @Override public int width() { return grid.getWidth(); }
+
+            @Override public int height() { return grid.getHeight(); }
+
+            @Override public int buildingAt(int x, int y) { return topology.getBuildingId(x, y); }
+
+            @Override public boolean open(int x, int y) {
+                return grid.isWalkable(x, y) && !topology.isWall(x, y) && topology.getBuildingId(x, y) == 0;
+            }
+        };
     }
 
     /** Salt for the eruption-site draw, so it is not the battle stream read again. */

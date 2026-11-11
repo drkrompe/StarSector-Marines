@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
+import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -157,7 +158,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // the v3-quirk fix the design doc calls out: ARMORY captures
         // naturally retire convoy in priority order without explicit
         // re-ordering.
-        if (!sim.getCompoundService().hasAliveCompound(
+        // A Raid's garrison column comes from beyond the battle, not out of an armory on it.
+        if (req.reason != ReinforcementRequest.Reason.GARRISON_COLUMN
+                && !sim.getCompoundService().hasAliveCompound(
                 TacticalNode.Kind.ARMORY, Faction.DEFENDER)) {
             return false;
         }
@@ -488,6 +491,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                     risk, sim.random());
         }
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
+        if (req.escort != null) escort(sim, req.escort, inboundCells);
         LOG.debug("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") drop=(" + (int) lzX + "," + (int) lzY + ") hint=("
@@ -495,6 +499,38 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 + deployment.minimumDefenderForward() + " wps="
                 + inX.length + "in/" + outX.length + "out");
         return ReinforcementDispatchResult.COMMITTED;
+    }
+
+    /** Waypoints short of the drop an escort parks, leaving the drop to the truck behind it. UNTUNED. */
+    static final int ESCORT_SHORT_OF_DROP = 4;
+
+    /**
+     * Sends {@code hull} in ahead of the truck ({@link ReinforcementRequest#escort}): set down at the route's first cell
+     * on the map, it drives the truck's proved route and parks {@link #ESCORT_SHORT_OF_DROP} waypoints short of the
+     * drop, its gun fighting whatever it sees. Not commanded.
+     */
+    private static void escort(BattleControl sim, VehicleType hull, float[][] inbound) {
+        float[] routeX = escortLeg(inbound[0]), routeY = escortLeg(inbound[1]);
+        VehicleMission mission = VehicleMission.deployed(routeX[0], routeY[0]);
+        mission.authoredRouteX = routeX;
+        mission.authoredRouteY = routeY;
+        mission.authoredLeg = VehicleLeg.MOVE_ORDER;
+        mission.authoredRoutePaused = false;
+        sim.addConvoyVehicle(hull, Faction.DEFENDER, mission);
+        LOG.debug("ConvoyMeans: escort " + hull + " in at (" + routeX[0] + "," + routeY[0] + ") to ("
+                + routeX[routeX.length - 1] + "," + routeY[routeY.length - 1] + ")");
+    }
+
+    /**
+     * An escort's leg of the truck's route {@code cells}: all but its last {@link #ESCORT_SHORT_OF_DROP} waypoints,
+     * never fewer than the first two (or the one, for a one-cell route, doubled).
+     */
+    static float[] escortLeg(float[] cells) {
+        if (cells.length < 2) return new float[]{cells[0], cells[0]};
+        int keep = Math.max(2, cells.length - ESCORT_SHORT_OF_DROP);
+        float[] leg = new float[keep];
+        System.arraycopy(cells, 0, leg, 0, keep);
+        return leg;
     }
 
     /**

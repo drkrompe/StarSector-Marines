@@ -19,7 +19,8 @@ import java.util.List;
  * cooldown, stability, reputation, loot, disruption, listeners and the post-raid rules.
  *
  * <ul>
- *   <li>A won battle commits the raid as it was set up, at the effectiveness the command already computed.</li>
+ *   <li>A won battle commits the market's full raid with its security's premium ({@link LedRaidReward}): at full
+ *       effectiveness, its marine tokens filled to that size over the objectives the player chose.</li>
  *   <li>A lost battle commits it with no objectives: the attack still happened, but it achieves nothing, takes no
  *       loot, disrupts nothing and reports no objective to the listeners.</li>
  *   <li>Either way the fleet's cargo marines did not fight, so the command's marine-loss roll is zeroed for that
@@ -46,24 +47,30 @@ public final class RaidOutcomeCommit {
         return temp instanceof TempData data ? data : null;
     }
 
-    /** Adjusts {@code temp} for the battle's outcome, before the raid command's confirm runs. */
-    public static void prepare(TempData temp, boolean won) {
-        prepare(temp, won, 1f);
-    }
-
     /**
-     * Adjusts {@code temp} for the battle's outcome. A won disrupting raid commits at the effectiveness the command
-     * computed times the share of the works wrecked, so every machine wrecked adds days down
-     * ({@code raid-mission.md}, Break); a raid for valuables commits as it was set up.
+     * Adjusts {@code temp} for the battle's outcome, before the raid command's confirm runs. A won raid is the market's
+     * full raid at {@code premium} ({@link LedRaidReward}): full effectiveness, and its marine tokens filled to the
+     * full raid's over the objectives the player chose, a disrupting raid's times the share of the works wrecked, so
+     * every hall brought down adds days down ({@code raid-mission.md}, Break). A lost raid commits no objectives.
      */
-    public static void prepare(TempData temp, boolean won, float worksShare) {
+    public static void prepare(TempData temp, boolean won, float worksShare, float premium) {
         if (temp == null) return;
         if (!won) {
             if (temp.objectives != null) temp.objectives.clear();
             return;
         }
-        if (temp.raidType == RaidType.DISRUPT && worksShare > 0f && worksShare < 1f) {
-            temp.raidMult *= worksShare;
+        temp.raidMult = 1f;
+        if (temp.objectives == null || temp.objectives.isEmpty()) return;
+        int[] assigned = new int[temp.objectives.size()];
+        for (int i = 0; i < assigned.length; i++) {
+            GroundRaidObjectivePlugin objective = temp.objectives.get(i);
+            assigned[i] = objective == null ? 0 : objective.getMarinesAssigned();
+        }
+        int[] filled = LedRaidReward.fill(assigned,
+                LedRaidReward.tokens(premium, temp.raidType == RaidType.DISRUPT, worksShare));
+        for (int i = 0; i < filled.length; i++) {
+            GroundRaidObjectivePlugin objective = temp.objectives.get(i);
+            if (objective != null && filled[i] != assigned[i]) objective.setMarinesAssigned(filled[i]);
         }
     }
 

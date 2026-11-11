@@ -15,23 +15,30 @@ import java.util.Map;
  * the placer seeded one post a short way in along each gate's own road and drew the rest uniformly from the claim. A
  * base is laid out the way a garrison would site it:
  *
+ * <p>A gun fires only where it can see: a wall blocks direct fire whole, at every height (no gun in the sim fires
+ * over one; only indirect fire, the artillery's, needs no line). So every direct-fire post stands outside its wall,
+ * {@link #STANDOFF_OUT} cells out on the glacis inside its own sandbagged ring, with a clear lane over open ground
+ * ahead of it ({@link #LANE} cells, {@link #ARC_DEGREES} either side of its bearing) that never crosses back over the
+ * place (owner, 2026-11-11: "They can't shoot over walls!").
+ *
  * <ul>
- *   <li><b>Gates.</b> Every gate gets a post on each side of its approach, set back behind the wall, so the way in is
+ *   <li><b>Gates.</b> Every gate gets a post on each side of its approach, out in front of the wall, so the way in is
  *       crossed by two fields of fire and the road itself stays open. The first round of flanks covers every gate
  *       once before any gate gets its second, so a short loadout still watches every way in.</li>
- *   <li><b>Corners.</b> Then the wall's corners, the one facing the threat first: a corner post sees down two faces
- *       of the wall and out over the approach.</li>
+ *   <li><b>Corners.</b> Then the wall's corners, the one facing the threat first: a corner post off the corner sees
+ *       along two faces of the wall and out over the approach.</li>
  *   <li><b>No inner guns.</b> A gun inside a base stands on the perimeter or has a standoff job (below); the guns
  *       once posted beside the motor pool and command covered nothing an attacker crosses (owner, 2026-11-11:
  *       "What are they guarding?"), so what a place keeps is held by its walls' guns.</li>
- *   <li><b>Wall.</b> A loadout with posts to spare lines the wall behind its face, the face toward the threat
- *       first.</li>
+ *   <li><b>Wall.</b> A loadout with posts to spare lines the wall out in front of its face, the face toward the
+ *       threat first.</li>
  *   <li><b>Depth.</b> Artillery and drone hubs stand deepest and furthest from the main gate, where an attacker has
- *       to get through the wall to reach them.</li>
+ *       to get through the wall to reach them: the artillery fires indirect, over the wall, and the hubs launch
+ *       drones, so neither needs a line.</li>
  * </ul>
  *
  * <p>Every site faces out ({@link Site#faceX}, {@link Site#faceY}): a gate post along its gate's way out, a corner
- * or wall post toward the nearest ground beyond the wall, a standoff weapon toward the threat. The guns are laid on
+ * or wall post away from the nearest ground of the place, a standoff weapon toward the threat. The guns are laid on
  * that bearing before the fight, so they cover the ground in front of the wall.
  *
  * <p>The heaviest weapons take the earliest sites, so the main gate holds the heaviest guns. Nothing stands on a
@@ -68,17 +75,25 @@ public final class DefenceDoctrine {
         }
     }
 
-    /** Whether an emplacement of a kind can stand with its anchor on a cell. */
+    /**
+     * Whether an emplacement of a kind can stand with its anchor on a cell, its guns laid along the step
+     * {@code (faceX, faceY)}: the caller checks the ground and that the lane ahead is open on the map.
+     */
     public interface Fits {
-        boolean at(int x, int y, DefensePostKind kind);
+        boolean at(int x, int y, DefensePostKind kind, int faceX, int faceY);
     }
 
-    /** Cells behind the wall a gate's flanking posts stand. UNTUNED. */
-    static final int GATE_SETBACK = 5;
+    /**
+     * Cells out from the place a direct-fire post's anchor stands: clear of the wall with a heavy post's box and its
+     * verge between them. UNTUNED.
+     */
+    public static final int STANDOFF_OUT = 5;
+    /** Cells of open ground a perimeter post's lane runs ahead of it before anything may stand in it. UNTUNED. */
+    public static final int LANE = 10;
+    /** Degrees either side of a perimeter post's bearing its lane must also be open: its laid arc. UNTUNED. */
+    public static final int ARC_DEGREES = 20;
     /** Cells beside a gate's own half-width its flanking posts stand, so the pair clears {@link #SPACING}. UNTUNED. */
     static final int FLANK_OFFSET = 6;
-    /** Cells inward from a corner, on each axis, a corner post stands. UNTUNED. */
-    static final int CORNER_SETBACK = 6;
     /** Cells a gate's approach runs into the place, past the wall, kept clear of emplacements. UNTUNED. */
     public static final int APPROACH_IN = 10;
     /** Cells a gate's approach runs out from the wall, across the glacis and onto the road beyond. UNTUNED. */
@@ -104,7 +119,7 @@ public final class DefenceDoctrine {
     /**
      * Sites every emplacement of {@code posts} it can.
      *
-     * @param inside  the place's ground behind its wall, map-sized
+     * @param inside  the place's ground, its wall line included, map-sized
      * @param gates   the open gates, the main gate first
      * @param hearts  what the place keeps (motor pool, command); no gun is sited on them, kept for the callers
      * @param threat  where an attack comes from (the landing), or {@code null} to take the main gate's outward line
@@ -119,12 +134,12 @@ public final class DefenceDoctrine {
         if (bounds(inside) == null) return sites;
         int[] centre = centroid(inside);
         int[][] depth = depth(inside);
-        // The ring a corner or wall post stands on, behind the wall's face; the deepest ring there is on a thin place.
         int deepest = 0;
         for (int[] col : depth) for (int d : col) deepest = Math.max(deepest, d);
-        int ringDepth = Math.max(1, Math.min(CORNER_SETBACK, deepest));
+        // The ring a corner or wall post stands on, out in front of the wall's face.
+        int[][] beyond = beyond(inside);
         List<int[]> ring = new ArrayList<>();
-        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) if (depth[x][y] == ringDepth) ring.add(new int[]{x, y});
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) if (beyond[x][y] == STANDOFF_OUT) ring.add(new int[]{x, y});
         int[] toward = threat != null ? threat
                 : gates.isEmpty() ? null
                 : new int[]{gates.get(0).x() + gates.get(0).outX() * w, gates.get(0).y() + gates.get(0).outY() * h};
@@ -137,8 +152,8 @@ public final class DefenceDoctrine {
                 int alongX = -gate.outY(), alongY = gate.outX();
                 int lateral = side * (gate.halfWidth() + FLANK_OFFSET);
                 wanted.add(new int[]{
-                        gate.x() - gate.outX() * GATE_SETBACK + alongX * lateral,
-                        gate.y() - gate.outY() * GATE_SETBACK + alongY * lateral,
+                        gate.x() + gate.outX() * STANDOFF_OUT + alongX * lateral,
+                        gate.y() + gate.outY() * STANDOFF_OUT + alongY * lateral,
                         Role.GATE.ordinal(), g});
             }
         }
@@ -159,12 +174,20 @@ public final class DefenceDoctrine {
         for (int[] want : wanted) {
             if (next >= perimeter.size()) break;
             DefensePostKind kind = perimeter.get(next);
-            boolean exact = want[2] == Role.WALL.ordinal();   // a wall cell is itself a candidate, not a target
-            int[] at = exact ? (fits.at(want[0], want[1], kind) && !crowded(want[0], want[1], sites) ? new int[]{
-                    want[0], want[1]} : null) : resolve(want[0], want[1], kind, inside, sites, fits);
+            boolean exact = want[2] == Role.WALL.ordinal();   // a ring cell is itself a candidate, not a target
+            Gate covered = want[3] >= 0 ? gates.get(want[3]) : null;
+            Facing facing = (x, y) -> covered != null ? new int[]{covered.outX(), covered.outY()} : away(inside, x, y);
+            int[] at;
+            if (exact) {
+                int[] f = facing.at(want[0], want[1]);
+                at = !inside[want[0]][want[1]] && lane(inside, want[0], want[1], f[0], f[1])
+                        && fits.at(want[0], want[1], kind, f[0], f[1]) && !crowded(want[0], want[1], sites)
+                        ? new int[]{want[0], want[1]} : null;
+            } else {
+                at = resolve(want[0], want[1], kind, inside, sites, fits, facing);
+            }
             if (at == null) continue;
-            int[] face = want[3] >= 0 ? new int[]{gates.get(want[3]).outX(), gates.get(want[3]).outY()}
-                    : outward(inside, at[0], at[1]);
+            int[] face = facing.at(at[0], at[1]);
             sites.add(new Site(at[0], at[1], Role.values()[want[2]], kind, want[3], face[0], face[1]));
             next++;
         }
@@ -182,9 +205,9 @@ public final class DefenceDoctrine {
             for (int[] cell : rear) {
                 if (k >= standoff.size()) break;
                 DefensePostKind kind = standoff.get(k);
-                if (!fits.at(cell[0], cell[1], kind) || crowded(cell[0], cell[1], sites)) continue;
                 int[] face = toward != null && (toward[0] != cell[0] || toward[1] != cell[1])
                         ? new int[]{toward[0] - cell[0], toward[1] - cell[1]} : outward(inside, cell[0], cell[1]);
+                if (!fits.at(cell[0], cell[1], kind, face[0], face[1]) || crowded(cell[0], cell[1], sites)) continue;
                 sites.add(new Site(cell[0], cell[1], Role.DEPTH, kind, -1, face[0], face[1]));
                 k++;
             }
@@ -241,7 +264,7 @@ public final class DefenceDoctrine {
     }
 
     /**
-     * The place's four corners: the cells of the ring {@link #CORNER_SETBACK} behind the wall furthest out along each
+     * The place's four corners: the cells of the ring {@link #STANDOFF_OUT} out from the wall furthest out along each
      * diagonal, so a grown claim's corners are its own and not its bounding box's. The one facing the threat first.
      */
     private static List<int[]> corners(List<int[]> ring, int[] centre, int[] toward) {
@@ -263,8 +286,17 @@ public final class DefenceDoctrine {
         return out;
     }
 
-    /** The nearest cell to {@code (x, y)} the ground takes, clear of sites already chosen, or null. */
-    private static int[] resolve(int x, int y, DefensePostKind kind, boolean[][] inside, List<Site> sites, Fits fits) {
+    /** The bearing a perimeter post at a cell is laid on. */
+    private interface Facing {
+        int[] at(int x, int y);
+    }
+
+    /**
+     * The nearest cell to {@code (x, y)} outside the place the ground takes with its lane open, clear of sites
+     * already chosen, or null.
+     */
+    private static int[] resolve(int x, int y, DefensePostKind kind, boolean[][] inside, List<Site> sites, Fits fits,
+                                 Facing facing) {
         int w = inside.length, h = inside[0].length;
         for (int r = 0; r <= RESOLVE_RADIUS; r++) {
             int[] best = null;
@@ -273,8 +305,10 @@ public final class DefenceDoctrine {
                 for (int dy = -r; dy <= r; dy++) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
                     int nx = x + dx, ny = y + dy;
-                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || !inside[nx][ny]) continue;
-                    if (!fits.at(nx, ny, kind) || crowded(nx, ny, sites)) continue;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || inside[nx][ny]) continue;
+                    int[] f = facing.at(nx, ny);
+                    if (!lane(inside, nx, ny, f[0], f[1])) continue;
+                    if (!fits.at(nx, ny, kind, f[0], f[1]) || crowded(nx, ny, sites)) continue;
                     long d = (long) dx * dx + (long) dy * dy;
                     if (d < bestD) {
                         bestD = d;
@@ -330,6 +364,78 @@ public final class DefenceDoctrine {
             if (best != null) return best;
         }
         return new int[]{0, 1};
+    }
+
+    /**
+     * Whether a post at {@code (x, y)} laid along the step {@code (fx, fy)} has its lane open over the place's
+     * outside: rays at its bearing and {@link #ARC_DEGREES} either side, each {@link #LANE} cells long, never cross the
+     * place (its wall line included). The map edge ends a ray without closing it.
+     */
+    public static boolean lane(boolean[][] inside, int x, int y, int fx, int fy) {
+        int w = inside.length, h = inside[0].length;
+        double bearing = Math.atan2(fy, fx);
+        for (int turn = -1; turn <= 1; turn++) {
+            double a = bearing + Math.toRadians(ARC_DEGREES * turn);
+            double ux = Math.cos(a), uy = Math.sin(a);
+            for (int t = 0; t <= LANE; t++) {
+                int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
+                if (cx < 0 || cy < 0 || cx >= w || cy >= h) break;
+                if (inside[cx][cy]) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * The step from the nearest cell of the place to {@code (x, y)}, a cell outside it: the way a post there faces,
+     * out from the wall over the ground in front of it.
+     */
+    static int[] away(boolean[][] inside, int x, int y) {
+        int w = inside.length, h = inside[0].length;
+        for (int r = 1; r <= Math.max(w, h); r++) {
+            int[] best = null;
+            long bestD = Long.MAX_VALUE;
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h || !inside[nx][ny]) continue;
+                    long d = (long) dx * dx + (long) dy * dy;
+                    if (d < bestD) {
+                        bestD = d;
+                        best = new int[]{-dx, -dy};
+                    }
+                }
+            }
+            if (best != null) return best;
+        }
+        return new int[]{0, 1};
+    }
+
+    /** Steps from the place to each cell outside it, 0 inside; a cell no step reaches keeps -1. */
+    static int[][] beyond(boolean[][] inside) {
+        int w = inside.length, h = inside[0].length;
+        int[][] out = new int[w][h];
+        int[] queue = new int[w * h];
+        int head = 0, tail = 0;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                out[x][y] = inside[x][y] ? 0 : -1;
+                if (inside[x][y]) queue[tail++] = x * h + y;
+            }
+        }
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (head < tail) {
+            int c = queue[head++];
+            int cx = c / h, cy = c % h;
+            for (int[] s : steps) {
+                int nx = cx + s[0], ny = cy + s[1];
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h || out[nx][ny] != -1) continue;
+                out[nx][ny] = out[cx][cy] + 1;
+                queue[tail++] = nx * h + ny;
+            }
+        }
+        return out;
     }
 
     /** Steps from each inside cell to the nearest cell that is not inside; 0 outside. */
