@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.door.HardenedWalls;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.setup.RuinsDefence;
@@ -28,6 +29,10 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * A ruins site's works while the battle runs ({@code ruins-expedition.md}, Works): the power hall, a junction per layer, and the
@@ -90,6 +95,8 @@ public final class RuinsWorks {
     private final PowerGraph graph;
     /** The published ground the works were wired on; null for works built without one. */
     private RuinsDelve delve;
+    /** Whether the watch's lamps are laid. */
+    private boolean watchLit;
     private RuinsDoorStates doorStates;
     private final Site hall;
     private final List<Site> junctions;
@@ -484,6 +491,10 @@ public final class RuinsWorks {
                     vaultShell[3]);
         }
         for (LockedDoor lock : locks) lock.install(sim);
+        // The plant is dark under its roof until its power comes back (RuinsLighting); a map lit already keeps its own.
+        if (delve != null && sim.getTopology().nightLighting() == null) {
+            sim.getTopology().setNightLighting(RuinsLighting.lay(sim.getTopology(), delve, this));
+        }
         wasForced = new boolean[locks.size()];
         courtLifts = new int[courts.size()];
         for (int c = 0; c < courts.size(); c++) {
@@ -540,12 +551,36 @@ public final class RuinsWorks {
             }
         }
         settle(sim);
+        light(sim);
+    }
+
+    /** The plant's lights to its power now, and the watch's to its wake once its network stands. */
+    private void light(BattleSimulation sim) {
+        DerelictSecurityDirector watch = sim.derelictSecurity();
+        float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
+        if (watch == null) {
+            RuinsLighting.apply(sim.getTopology(), graph, seconds);
+            return;
+        }
+        if (!watchLit && delve != null) {
+            Map<Integer, int[]> bays = new TreeMap<>();
+            for (var bay : watch.serviceBays().entrySet()) {
+                bays.put(bay.getKey(), new int[] {sim.world().cellX(bay.getValue()), sim.world().cellY(bay.getValue())});
+            }
+            RuinsLighting.layWatch(sim.getTopology(), delve, watch.network(), watch.ducts(), bays);
+            watchLit = true;
+        }
+        Set<String> lit = new TreeSet<>(RuinsLighting.watchCircuits(watch.network(), watch.wake().stage(),
+                watch.ducts(), watch.wake()::released));
+        lit.addAll(RuinsLighting.serviceCircuits(watch.network(), watch.serviceBays(), id -> sim.resolveUnit(id) != 0));
+        RuinsLighting.apply(sim.getTopology(), graph, lit, seconds);
     }
 
     private void finish(BattleSimulation sim) {
         if (workKey.equals(HALL)) {
             graph.restart();
             loud(sim, hall.x(), hall.y());
+            if (sim.derelictSecurity() != null) sim.derelictSecurity().wake().plantRestarted();
         } else if (workKey.equals(RECORDS)) {
             read = true;
         } else {

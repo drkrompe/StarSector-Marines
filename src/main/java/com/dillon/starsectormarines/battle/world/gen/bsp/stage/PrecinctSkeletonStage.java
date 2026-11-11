@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.StreetPlan;
 import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutRoads;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
-import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.CantonmentRoads;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
@@ -66,7 +65,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         int[] allowance =
                 PrecinctAllowance.derive(plan.precincts(), grown.owner(), ctx.width, ctx.height);
         int[][] claim = PrecinctClaim.byKind(plan.precincts(), FortReservations.held(ctx, plan),
-                        FortReservations.dropGround(ctx, plan))
+                        FortReservations.dropGround(ctx, plan), FortReservations.groundSites(ctx, plan))
                 .assign(grown.owner(), ctx.width, ctx.height, allowance);
 
         // A mission that sited its forts as barriers keeps open ground for them, before the town has grown into it.
@@ -220,7 +219,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         RuralLayout rural = RuralLayout.plan(ctx.width, ctx.height, field, town, ctx.seed);
         // Ground the mission holds for its own terrain is nobody's field and nobody's farm.
         for (Site site : plan.layout().planSites()) {
-            if (site.purpose() == SitePurpose.GROUND) rural = rural.without(site.x0(), site.y0(), site.x1(), site.y1());
+            if (site.purpose().held()) rural = rural.without(site.x0(), site.y0(), site.x1(), site.y1());
         }
         // A lane's track is cut across the fields after they are surveyed: a farm keeps off it, and off the column
         // band a layout keeps beside it, so no yard or building straddles a lane's way.

@@ -420,7 +420,10 @@ Laws):
    from them alone: an outdoor drop across the open country, at most one,
    and a drop cut indoors (`NaturalVoid.indoor`, a foundry's melt) beside it. What they
    share is the camera and the rules, not code: the pinhole eye in metres
-   above the surface, painter's order by depth, the battle's sun, and the
+   above the surface (risen with the view past play zoom's 60 cells, the
+   same factor for every eye in the view, `BuildingFaces.rise`, so zoomed
+   out a wall or a building leans as many cells as at play zoom rather than
+   growing taller), painter's order by depth, the battle's sun, and the
    ground tiles drawn after, covering everything but the void cells. Neither
    changes the other's pictures.
 
@@ -573,7 +576,10 @@ Laws):
      tags, and their entries in the town's buildings, numbered on so no
      earlier building's id moves (`BuildingFloodFill.populate`).
    **Buildings in depth** (owner, 2026-11-10: "a similar trick for walls to
-   get that partially 3d look"; kept for every building). The rise's pinhole
+   get that partially 3d look"; kept for every building; the Settings page's
+   3D walls key, `WallDepth`, on by default, lays buildings and freestanding
+   walls flat for a player who prefers it: owner, "this might be an acquired
+   taste"). The rise's pinhole
    camera turned on buildings (`BuildingFaces`): each building's roof is
    lifted to its eave at the height of what it was built as
    (`BuildingFaces.heightClass`, the one place it is decided; an author's

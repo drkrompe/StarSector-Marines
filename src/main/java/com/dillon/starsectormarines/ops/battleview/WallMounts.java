@@ -109,12 +109,13 @@ final class WallMounts {
      *                   it runs up to stands before its lift
      * @param wallMeters the wall's full height; {@code lift} is its eave's lift
      * @param upright    how much of the wall stands, as a share of its height ({@link BuildingFaces#standing})
+     * @param rise       how far the eye has risen ({@link BuildingFaces#rise})
      */
     static void standUp(float[] corners, float[] eaves, float cx, float cy, float wallMeters, float lift,
-                        float upright, float railMeters, float outerMeters) {
+                        float upright, float railMeters, float outerMeters, float rise) {
         float z = Math.max(0f, Math.min(railMeters / wallMeters, upright));
         float rail = z * wallMeters;
-        float outerLift = BuildingFaces.lift(Math.max(0f, rail - (railMeters - outerMeters)));
+        float outerLift = BuildingFaces.lift(Math.max(0f, rail - (railMeters - outerMeters)), rise);
         for (int k = 0; k < 2; k++) {
             int at = k * 2;
             corners[at] = BuildingFaces.onFace(corners[at], eaves[at], cx, lift, z);

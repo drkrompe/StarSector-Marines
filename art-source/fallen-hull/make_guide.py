@@ -27,6 +27,13 @@ every piece keeps its guide box, so the exporter cuts it at the guide's frame sc
            and a conduit run drawn three cells long (the middle cell ships, joined end to end), a conduit junction,
            survey console, instrument rack and sensor drum, the bay's launch cradle, the forge's hopper, coolant
            tanks and cable runs, breach plating and scatter, and crushed charcoal bulkheads.
+  sheared  the hull broken into sections: the armour wall cut through (sixteen masks on the armour's cell and pitch,
+           each exposed face the sheared cross-section: torn plate edge, decks in layers, cut rib ends, a cable), and
+           two edge runs three cells long with the hull at their top: a breach's torn lip, and a sheared end's spill
+           of deck tongues, rib stubs and dragged cable.
+  shower   the debris shower at 96 px a cell (SHOWER below): shards, torn plates, a pod, a hull slab, girders, an
+           engine bell and a sensor mast, all burnt; craters, a scorch splash and an impact streak on the ground; and
+           the interior's wreckage (a buckled deck patch, fallen cable, a collapsed wall panel).
 
 Usage: python art-source/fallen-hull/make_guide.py   (writes guides/<sheet>-guide.png and guides/layout.json)
 """
@@ -752,6 +759,213 @@ def fittings_sheet(d):
         fitting(d, name, col, row, cw, ch)
 
 
+# ---------------------------------------------------------------- the hull broken up: sheared ends and the shower
+
+SHEAR_WALLS = (24, 24)           # 'wall-faces-4x4' on the armour's cell and pitch: the sheared end of a section
+SHEAR_RUNS = (680, 24)           # edge runs, three cells long each, one under the other: breach edge, shear edge
+SHEAR_TEAR = 0.34                # how deep into a cell the torn line runs from an exposed face, of a cell
+
+
+def _face_box(x0, y0, c, side, depth):
+    """The strip of a cell along {@code side}, {@code depth} px deep."""
+    x1, y1 = x0 + c, y0 + c
+    return {"n": (x0, y0, x1, y0 + depth), "s": (x0, y1 - depth, x1, y1), "w": (x0, y0, x0 + depth, y1),
+            "e": (x1 - depth, y0, x1, y1)}[side]
+
+
+def sheared_wall(d, x0, y0, mask):
+    """
+    The armour cut through where the hull broke: the cap and spine as the armour's, and along each exposed face the
+    sheared cross-section instead of a lip: the torn plate's edge, then the decks in layers down to the face, cut rib
+    ends across them and a cable hanging out.
+    """
+    c = ARMOUR_CELL
+    armour_wall(d, x0, y0, mask)
+    ex = _exposed(mask)
+    depth = round(c * SHEAR_TEAR)
+    for i, s in enumerate("nesw"):
+        if not ex[s]:
+            continue
+        bx0, by0, bx1, by1 = _face_box(x0, y0, c, s, depth)
+        d.rectangle((bx0, by0, bx1 - 1, by1 - 1), fill=VOID)
+        rnd = random.Random(700 + mask * 4 + i)
+        along = s in "ns"
+        # deck layers parallel to the face
+        for layer in (0.3, 0.62):
+            if along:
+                yy = by0 + (by1 - by0) * (layer if s == "s" else 1 - layer)
+                d.line([(bx0, yy), (bx1, yy)], fill=SEAM, width=7)
+            else:
+                xx = bx0 + (bx1 - bx0) * (layer if s == "e" else 1 - layer)
+                d.line([(xx, by0), (xx, by1)], fill=SEAM, width=7)
+        # cut rib ends running out to the face
+        for k in range(3):
+            t = (k + 0.5) / 3 + rnd.uniform(-0.06, 0.06)
+            if along:
+                xx = bx0 + (bx1 - bx0) * t
+                d.rectangle((xx - 6, by0, xx + 6, by1 - 1), fill=RAISED, outline=OUTLINE, width=2)
+            else:
+                yy = by0 + (by1 - by0) * t
+                d.rectangle((bx0, yy - 6, bx1 - 1, yy + 6), fill=RAISED, outline=OUTLINE, width=2)
+        # the torn plate edge, jagged, on the inner side of the strip
+        if s == "n":
+            edge = torn(x0, by1, x0 + c, by1, 7, 9, 900 + mask * 4 + i)
+            d.polygon(edge + [(x0 + c, by1 + 12), (x0, by1 + 12)], fill=PLATE)
+            d.line(edge, fill=OUTLINE, width=4)
+        elif s == "s":
+            edge = torn(x0, by0, x0 + c, by0, 7, 9, 900 + mask * 4 + i)
+            d.polygon(edge + [(x0 + c, by0 - 12), (x0, by0 - 12)], fill=PLATE)
+            d.line(edge, fill=OUTLINE, width=4)
+        elif s == "w":
+            edge = torn(bx1, y0, bx1, y0 + c, 7, 9, 900 + mask * 4 + i)
+            d.polygon(edge + [(bx1 + 12, y0 + c), (bx1 + 12, y0)], fill=PLATE)
+            d.line(edge, fill=OUTLINE, width=4)
+        else:
+            edge = torn(bx0, y0, bx0, y0 + c, 7, 9, 900 + mask * 4 + i)
+            d.polygon(edge + [(bx0 - 12, y0 + c), (bx0 - 12, y0)], fill=PLATE)
+            d.line(edge, fill=OUTLINE, width=4)
+        # a cable hanging out of the cut
+        cx = (bx0 + bx1) / 2 + rnd.uniform(-20, 20)
+        cy = (by0 + by1) / 2 + rnd.uniform(-20, 20)
+        d.line([(cx - 14, cy - 10), (cx, cy + 4), (cx + 12, cy - 6)], fill=ACCENT, width=5)
+
+
+def edge_run(d, x0, y0, kind):
+    """
+    A three-cell run lying on the ground with the hull at its top: a breach's torn lip, or the sheared end's spill.
+    Transparent below the run, so the floor or ground shows.
+    """
+    c = ARMOUR_CELL
+    w = 3 * c
+    seed = 31 if kind == "breach" else 47
+    rnd = random.Random(seed)
+    if kind == "breach":
+        lip = torn(x0 + w, y0 + 34, x0, y0 + 34, 18, 14, seed)
+        poly(d, [(x0, y0), (x0 + w, y0)] + lip, PLATE, 3)
+        for k in range(6):
+            px = x0 + 20 + k * (w - 40) / 5
+            poly(d, lopsided(px, y0 + 70 + rnd.uniform(-10, 14), rnd.uniform(8, 15), rnd.uniform(5, 9),
+                             rnd.randint(0, 999), 6, 0.4, rnd.random() * 3), rnd.choice((PLATE, SEAM)), 2)
+    else:
+        for k in range(6):
+            px = x0 + k * w / 6
+            reach = rnd.uniform(36, 70)
+            poly(d, [(px + 4, y0), (px + w / 6 - 4, y0)] +
+                 torn(px + w / 6 - 4, y0 + reach * rnd.uniform(0.7, 1), px + 4, y0 + reach, 3, 8, seed + k),
+                 rnd.choice((PLATE, SEAM)), 3)
+        for k in range(5):
+            rx = x0 + (k + 0.5) * w / 5
+            d.rectangle((rx - 6, y0, rx + 6, y0 + rnd.uniform(60, 96)), fill=RAISED, outline=OUTLINE, width=2)
+        pts = [(x0 + 30 + t * (w - 60) / 10, y0 + 40 + t * 7 + 14 * math.sin(t * 1.1)) for t in range(11)]
+        d.line(pts, fill=OUTLINE, width=11, joint="curve")
+        d.line(pts, fill=DARK, width=7, joint="curve")
+
+
+def sheared_sheet(d):
+    p = ARMOUR_PITCH
+    for mask in range(16):
+        col, row = mask % 4, mask // 4
+        sheared_wall(d, SHEAR_WALLS[0] + col * p, SHEAR_WALLS[1] + row * p, mask)
+    edge_run(d, SHEAR_RUNS[0], SHEAR_RUNS[1], "breach")
+    edge_run(d, SHEAR_RUNS[0], SHEAR_RUNS[1] + p, "shear")
+
+
+SHOWER_CELL = 96
+# name: (col, row, cells wide, cells high) on a 16 x 10 grid of 96 px cells.
+SHOWER = {
+    "shard-a": (0, 0, 1, 1), "shard-b": (2, 0, 1, 1), "shard-c": (4, 0, 1, 1),
+    "plate-a": (6, 0, 2, 1), "plate-b": (9, 0, 2, 2), "pod": (12, 0, 2, 2),
+    "slab": (0, 2, 4, 2), "girders": (5, 2, 3, 2), "bell": (9, 3, 3, 3), "crater-small": (13, 3, 2, 2),
+    "mast": (0, 5, 5, 2), "scorch-splash": (6, 5, 3, 3), "crater-large": (12, 6, 4, 4),
+    "scorch-streak": (0, 8, 4, 2), "buckled-deck": (5, 8, 2, 2), "cable-fall": (8, 9, 1, 1),
+    "collapsed-panel": (9, 8, 2, 1),
+}
+
+
+def shower(d, name, col, row, cw, ch):
+    c = SHOWER_CELL
+    x0, y0 = col * c, row * c
+    x1, y1 = x0 + cw * c, y0 + ch * c
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    seed = sum(map(ord, name)) * 3
+    rnd = random.Random(seed)
+    if name.startswith("shard"):
+        for _ in range(3 if name != "shard-c" else 5):
+            px, py = rnd.uniform(x0 + 22, x1 - 22), rnd.uniform(y0 + 22, y1 - 22)
+            poly(d, lopsided(px, py, rnd.uniform(9, 18), rnd.uniform(5, 10), rnd.randint(0, 999), 6, 0.4,
+                             rnd.random() * 3), rnd.choice((PLATE, SEAM, RAISED)), 2)
+    elif name.startswith("plate"):
+        poly(d, lopsided(cx, cy, cw * c * 0.42, ch * c * 0.36, seed, 10, 0.32, 0.25), PLATE, 4)
+        d.line([(x0 + 24, cy + 6), (x1 - 24, cy - 8)], fill=SEAM, width=3)
+        d.polygon(lopsided(cx + 10, cy - 4, cw * c * 0.14, ch * c * 0.12, seed + 1, 8, 0.3), fill=SCORCH)
+    elif name == "pod":
+        poly(d, lopsided(cx, cy, 70, 62, seed, 8, 0.15), PLATE, 4)
+        rect(d, cx - 30, cy - 24, cx + 30, cy + 24, RAISED, 3)
+        d.polygon(lopsided(cx - 20, cy + 18, 30, 20, seed + 2, 8, 0.3), fill=SCORCH)
+    elif name == "slab":
+        pts = torn(x0 + 14, y0 + 22, x1 - 18, y0 + 14, 10, 12, seed) + \
+            torn(x1 - 18, y0 + 14, x1 - 12, y1 - 20, 4, 12, seed + 1)[1:] + \
+            torn(x1 - 12, y1 - 20, x0 + 20, y1 - 14, 10, 12, seed + 2)[1:] + \
+            torn(x0 + 20, y1 - 14, x0 + 14, y0 + 22, 4, 12, seed + 3)[1:-1]
+        poly(d, pts, PLATE, 5)
+        for k in range(1, cw):
+            d.line([(x0 + k * c, y0 + 30), (x0 + k * c, y1 - 26)], fill=SEAM, width=3)
+        d.line([(x0 + 60, cy), (x1 - 70, cy + 10)], fill=RAISED, width=SPINE * 2)
+        d.polygon(lopsided(x0 + 120, cy + 12, 70, 34, seed + 4, 12, 0.3), fill=SCORCH)
+        d.polygon(lopsided(x1 - 110, cy - 20, 30, 18, seed + 5, 10, 0.3), fill=VOID, outline=OUTLINE)
+    elif name == "girders":
+        for k, (a, b) in enumerate((((x0 + 20, y0 + 40), (x1 - 30, y1 - 50)), ((x0 + 30, y1 - 40), (x1 - 20, y0 + 50)),
+                                     ((x0 + 50, cy + 10), (x1 - 40, cy - 6)))):
+            d.line([a, b], fill=OUTLINE, width=26)
+            d.line([a, b], fill=SEAM, width=20)
+    elif name == "bell":
+        poly(d, [(x0 + 24, cy - 110), (x1 - 60, cy - 54), (x1 - 60, cy + 54), (x0 + 24, cy + 110)], PLATE, 5)
+        d.ellipse((x0 + 8, cy - 110, x0 + 52, cy + 110), fill=VOID, outline=OUTLINE, width=4)
+        rect(d, x1 - 70, cy - 40, x1 - 18, cy + 40, SEAM, 4)
+        d.polygon(lopsided(cx + 10, cy + 30, 60, 34, seed + 6, 10, 0.3), fill=SCORCH)
+        d.polygon(lopsided(cx - 20, cy - 40, 18, 12, seed + 7, 8, 0.3), fill=GLOW)
+    elif name == "mast":
+        rect(d, x0 + 130, cy - 16, x1 - 20, cy + 16, SEAM, 4)
+        for k in range(8):
+            xx = x0 + 150 + k * 38
+            d.line([(xx, cy - 12), (xx + 22, cy + 12)], fill=DARK, width=3)
+        disc(d, x0 + 70, cy, 56, RAISED, 5)
+        disc(d, x0 + 70, cy, 18, DARK)
+        d.polygon(lopsided(x0 + 90, cy + 20, 40, 20, seed + 8, 10, 0.3), fill=SCORCH)
+    elif name.startswith("crater"):
+        r = min(cw, ch) * c * 0.42
+        d.polygon(lopsided(cx, cy, r, r * 0.92, seed, 28, 0.12), fill=SCORCH)
+        d.polygon(lopsided(cx, cy, r * 0.66, r * 0.6, seed + 1, 24, 0.14), fill=EARTH, outline=OUTLINE)
+        d.polygon(lopsided(cx + r * 0.06, cy + r * 0.05, r * 0.42, r * 0.38, seed + 2, 20, 0.16), fill=DARK)
+    elif name == "scorch-splash":
+        d.polygon(lopsided(cx, cy, 120, 108, seed, 28, 0.2), fill=SCORCH)
+        d.polygon(lopsided(cx + 6, cy - 4, 56, 50, seed + 1, 20, 0.2), fill=DARK)
+    elif name == "scorch-streak":
+        pts = [(x0 + 20, cy - 10), (x0 + 120, cy - 40), (x1 - 40, cy - 30), (x1 - 16, cy),
+               (x1 - 40, cy + 30), (x0 + 120, cy + 34), (x0 + 20, cy + 12)]
+        d.polygon(pts, fill=SCORCH)
+        for k in range(3):
+            d.line([(x0 + 40, cy - 16 + k * 16), (x1 - 40, cy - 14 + k * 14)], fill=EARTH, width=6)
+    elif name == "buckled-deck":
+        poly(d, [(x0 + 16, y0 + 20), (x1 - 16, y0 + 20), (x1 - 16, y1 - 20), (x0 + 16, y1 - 20)], SEAM, 4)
+        poly(d, [(cx - 50, cy - 40), (cx + 60, cy - 50), (cx + 40, cy + 50), (cx - 60, cy + 36)], RAISED, 4)
+        d.line([(cx - 55, cy - 2), (cx + 50, cy)], fill=OUTLINE, width=5)
+    elif name == "cable-fall":
+        for k, fill in enumerate((DARK, SEAM, ACCENT)):
+            pts = [(x0 + 18 + t * 6, y0 + 14 + t * 7 + 6 * math.sin(t + k)) for t in range(11)]
+            d.line(pts, fill=OUTLINE, width=10, joint="curve")
+            d.line(pts, fill=fill, width=6, joint="curve")
+    else:  # collapsed-panel, against a wall at its top
+        poly(d, [(x0 + 10, y0 + 6), (x1 - 10, y0 + 6), (x1 - 30, y1 - 22), (x0 + 24, y1 - 14)], RAISED, 4)
+        rect(d, x0 + 40, y0 + 20, x0 + 100, y0 + 56, GLASS, 3)
+        d.line([(x0 + 44, y0 + 24), (x0 + 96, y0 + 52)], fill=OUTLINE, width=3)
+
+
+def shower_sheet(d):
+    for name, (col, row, cw, ch) in SHOWER.items():
+        shower(d, name, col, row, cw, ch)
+
+
 # ---------------------------------------------------------------- walkers
 
 def walker_torso(d, cx, cy, design, s):
@@ -894,6 +1108,14 @@ def main():
     fittings_sheet(ImageDraw.Draw(img))
     img.save(GUIDES / "fittings-guide.png")
 
+    img = sheet()
+    sheared_sheet(ImageDraw.Draw(img))
+    img.save(GUIDES / "sheared-guide.png")
+
+    img = sheet()
+    shower_sheet(ImageDraw.Draw(img))
+    img.save(GUIDES / "shower-guide.png")
+
     layout = {
         "canvas": [W, H],
         "hull": {"cellPx": HULL_CELL, "body": HULL_BOX, "stern": STERN_BOX},
@@ -916,6 +1138,14 @@ def main():
     layout["fittings"] = {"cellPx": FIT_CELL,
                           "frames": {n: [col * FIT_CELL, row * FIT_CELL, (col + cw) * FIT_CELL, (row + ch) * FIT_CELL]
                                      for n, (col, row, cw, ch) in FITTINGS.items()}}
+    layout["sheared"] = {"cellPx": ARMOUR_CELL, "pitch": ARMOUR_PITCH, "walls": SHEAR_WALLS,
+                         "runs": {"breach": [SHEAR_RUNS[0], SHEAR_RUNS[1], SHEAR_RUNS[0] + 3 * ARMOUR_CELL,
+                                             SHEAR_RUNS[1] + ARMOUR_CELL],
+                                  "shear": [SHEAR_RUNS[0], SHEAR_RUNS[1] + ARMOUR_PITCH,
+                                            SHEAR_RUNS[0] + 3 * ARMOUR_CELL, SHEAR_RUNS[1] + ARMOUR_PITCH + ARMOUR_CELL]}}
+    layout["shower"] = {"cellPx": SHOWER_CELL,
+                        "frames": {n: [col * SHOWER_CELL, row * SHOWER_CELL, (col + cw) * SHOWER_CELL,
+                                       (row + ch) * SHOWER_CELL] for n, (col, row, cw, ch) in SHOWER.items()}}
     layout["walkers"] = {dz: {"torsoCellPx": ts, "legCellPx": walker.CELL, "parts": walker.PARTS,
                               "thighCells": walker.THIGH_LEN, "shinCells": walker.SHIN_LEN}
                          for dz, (ts, _) in TORSO_FIT.items()}

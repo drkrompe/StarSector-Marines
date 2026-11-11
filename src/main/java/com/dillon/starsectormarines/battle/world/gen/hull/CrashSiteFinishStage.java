@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.Stake;
@@ -69,6 +70,10 @@ public final class CrashSiteFinishStage implements GenStage {
         BitSet hull = laid.hullCells(), trench = laid.trenchCells(), aprons = laid.aprons();
         List<String> problems = new ArrayList<>(laid.problems());
 
+        // The shower falls on the finished country: after the mission's structures and terraces are sited, before the
+        // lattice seats its stakes round it.
+        DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
+                laid.plan().trench(), hull, trench, aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         ClaimLattice.Ground stakeGround = (x, y) -> {
             if (x < 0 || y < 0 || x >= w || y >= h) return false;
             int k = y * w + x;
@@ -123,7 +128,7 @@ public final class CrashSiteFinishStage implements GenStage {
         wear(ctx, walked, roads, hull);
         problems.addAll(HullSiteCheck.problems(grid, laid));
         ctx.put(HullKeys.SITE, new HullSite(laid.footprint(), laid.plan().heading(), laid.interior(), laid.forgeHall(),
-                laid.forge(), laid.bay(), laid.trench(), laid.debris(), lattice, haul, stakes, problems, w, hull,
+                laid.forge(), laid.bay(), laid.trench(), laid.debris(), laid.sections(), lattice, haul, stakes, problems, w, hull,
                 trench));
     }
 

@@ -449,7 +449,7 @@ public final class PlanetSkin {
         all.addAll(lamps);
         Set<String> powered = new HashSet<>(night.poweredCircuits());
         powered.add(GROW_LIGHT);
-        return new NightLighting(night.darkness(), all, powered);
+        return new NightLighting(night.darkness(), night.roofedDarkness(), all, powered);
     }
 
     private static Placed at(Piece piece, boolean alongX, int x0, int y0, int along, int across, int turns) {

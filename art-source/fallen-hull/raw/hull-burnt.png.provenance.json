@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c7cf-fb34-7ff2-af04-4646a217da43",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c7cf-fb34-7ff2-af04-4646a217da43\\exec-50642c89-c83f-49e1-b689-73a0f59432f9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\hull-burnt.png",
+    "sha256": "831b15c796b709dbbc43eb425a97a41a30f0cc6b02ded6868c8722b3f0af9677",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\hull-burnt.prompt.txt",
+  "promptSha256": "00cdcc684dc46410fe57021f9412fd238f13946ab219b7461925bada248444fe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and geometry authority: keep its layout, silhouette and canvas; repaint the damage\nImage 2: Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem\n\nUse case: image edit. Image 1 is an accepted top-down game painting of a crashed survey mothership; it is the edit target and its geometry authority. Keep its canvas, silhouette, layout, every structure and its position, its camera and its transparent background exactly; keep its palette under the damage. Repaint it as the SAME ship after it broke up on impact and burned: heavy scorch blooms and soot streaks flowing aft, blistered and heat-blued paint, many buckled plates and plates torn away showing dark ribs and decks beneath, burnt-out flank bays, fire-blackened radiator fins, a few embers still glowing faint orange in the deepest tears, dust and soil drifted over the edges. It must read at a glance as a burnt broken wreck, not a clean ship, while the hull's shape stays exactly where it is. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. Strict 90-degree overhead orthographic view. True transparent background with genuine alpha outside the hull; same canvas as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\hull-survey.png",
+      "sha256": "fd927a61d2d4a1ac8277ce15971e0953911b5558e308b9317820baa73ebc31bf",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and geometry authority: keep its layout, silhouette and canvas; repaint the damage"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\build\\fallen-hull-refs\\survey_mothership_battle.png",
+      "sha256": "0ef11f134bab17e4322eca300310c54268d6b98f3ecc987057fd30798bfcb025",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem"
+    }
+  ],
+  "agentMessages": [
+    "I’ll apply the burn and impact damage to Image 1, preserving its geometry and using Image 2 only for surface style.\n"
+  ],
+  "usage": {
+    "input_tokens": 44115,
+    "cached_input_tokens": 34688,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 630,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.6
+}

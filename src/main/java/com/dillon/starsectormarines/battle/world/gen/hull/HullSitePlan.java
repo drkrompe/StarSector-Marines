@@ -19,8 +19,11 @@ import java.util.Locale;
  */
 public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes) {
 
-    /** The shortest and longest trench a hull may have ploughed, cells. */
-    public static final int MIN_TRENCH = 24, MAX_TRENCH = 160;
+    /**
+     * The shortest and longest trench a hull may have ploughed off its bow, cells. Short is allowed: the broken hull
+     * also ploughs the ground between its sections.
+     */
+    public static final int MIN_TRENCH = 12, MAX_TRENCH = 160;
 
     /** A stake standing at the chapter's start: the cell it is wanted at, and how far it has risen. */
     public record StakeAt(int x, int y, HullSite.StakeStage stage) {
