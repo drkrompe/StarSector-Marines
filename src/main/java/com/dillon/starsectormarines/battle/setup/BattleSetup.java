@@ -1680,6 +1680,11 @@ public final class BattleSetup {
                     assaultMobileMembers);
             // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
             if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
+            // Security parks the works' hulls beside its machine posts, on top of the force (RaidWorksMachines).
+            if (type == MissionType.RAID && map.tacticalMap != null && groundRoster != null) {
+                RaidWorksMachines.parkHulls(sim, map.tacticalMap.forFaction(Faction.DEFENDER),
+                        groundRoster.primaryFactionId());
+            }
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -5629,6 +5634,10 @@ public final class BattleSetup {
         // infantry fills the rest.
         UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
+        // Security adds the works' machines on top of the market's own (RaidWorksMachines): its posts take these alone.
+        Deque<MechVariant> worksMechQueue = new ArrayDeque<>(RaidWorksMachines.extraMechs(
+                RaidWorksGuard.machinePosts(defenderNodes),
+                groundRoster == null ? List.of() : groundRoster.heavySupport()));
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
         infQueue.addAll(roster.infantryOrder());
 
@@ -5640,21 +5649,21 @@ public final class BattleSetup {
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
             // A works' guard post is held by riflemen while any are left; its machine posts by machines only.
+            boolean machinePost = worksMachinePosts.contains(node);
+            Deque<MechVariant> mechs = machinePost ? worksMechQueue : mechQueue;
             RaidWorksGuard.Holder holder = RaidWorksGuard.holder(worksPosts.contains(node),
-                    worksMachinePosts.contains(node), !mechQueue.isEmpty(), !infQueue.isEmpty());
+                    machinePost, !mechs.isEmpty(), !infQueue.isEmpty());
             if (holder == RaidWorksGuard.Holder.NONE) {
                 if (!worksMachinePosts.contains(node)) patrolAnchors.add(node);
                 continue;
             }
             boolean spawningMechs = holder == RaidWorksGuard.Holder.MACHINES;
             // A works' machine post is for machines alone: never a patrol's anchor when it stands empty.
-            boolean machinePost = worksMachinePosts.contains(node);
-            int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
+            int sourceSize = spawningMechs ? mechs.size() : infQueue.size();
             if (sourceSize == 0) { if (!machinePost) patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
-            // A machine post draws below the mobile pool's floor: its few machines hold a gate, or are the works'
-            // own reserve, which answers the alarm itself (raid-demolish-the-works.md, slice 6).
-            int garrisonBudget = machinePost ? remaining : Math.max(0, remaining
+            // A machine post's machines are security's own, on top of the force: the mobile pool's floor is not theirs.
+            int garrisonBudget = machinePost ? mechs.size() : Math.max(0, remaining
                     - Math.max(0, minimumPatrolMembers));
             if (garrisonBudget == 0) {
                 patrolAnchors.add(node);
@@ -5664,7 +5673,7 @@ public final class BattleSetup {
                     Math.min(sourceSize, garrisonBudget));
             if (spawningMechs) {
                 List<int[]> candidates = mechNodeCandidates(sim, node, GARRISON_SPAWN_RADIUS);
-                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechQueue, want,
+                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechs, want,
                         roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
                 defenderIdx += spawned;
                 if (spawned == 0 && !machinePost) patrolAnchors.add(node);

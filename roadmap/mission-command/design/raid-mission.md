@@ -68,8 +68,8 @@ garrison estimate's strength, quality and readiness.
 | Security | Reads | Steal | Break |
 |---|---|---|---|
 | **Open** | `defenseLevel` 0-1, no ground defences | goods in their own stores, scattered: strip what you can reach | the works stands open: yards, fences, a few posted guards |
-| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate; the market's mechs picket the gates from inside |
-| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner, a sandbag parapet round every machine hall, and a yard reserve of the market's mechs that goes to the hall under attack on the alarm |
+| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate; a mech and a light hull picket each gate from inside, on top of the force |
+| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner, a sandbag parapet round every machine hall, and a yard reserve of two mechs and a heavy hull, on top of the force, whose mechs go to the hall under attack on the alarm |
 
 One rule covers both intents: **security sets how concentrated and how walled
 the prize is.** The works' belt, checkpoints, towers and parapets follow the
@@ -104,8 +104,11 @@ Each industry's Raid site (Site templates) lays these districts and compounds.
 An industry with no site yet keeps the derived map, where the works stands on
 the map's own industrial ground.
 
-Security never changes how many defenders there are: that is the tier's share
-of the garrison (`raid-resolution.md`, law 7). It changes where they stand.
+Security adds to the defence as well as hardening it (owner: "make it fun and
+keep pressure on the player"). The tier's share of the garrison
+(`raid-resolution.md`, law 7) is the market's own force; on top of it a guarded
+works posts mechs and a light hull at each gate, and a fortified one a yard
+reserve of mechs and a heavy hull as well (`RaidWorksMachines`).
 
 ## Tier: how big the raid is
 
