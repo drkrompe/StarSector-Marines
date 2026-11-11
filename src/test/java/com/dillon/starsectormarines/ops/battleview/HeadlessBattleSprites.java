@@ -573,6 +573,17 @@ final class HeadlessBattleSprites extends BattleSprites {
         return flameSheet;
     }
 
+    private SpriteAPI tongueSheet;
+    private boolean tongueLoaded;
+
+    @Override public synchronized SpriteAPI tongueSheet() {
+        if (!tongueLoaded) {
+            tongueLoaded = true;
+            tongueSheet = spriteOrNull(StructureFire.TONGUE_SHEET_PATH);
+        }
+        return tongueSheet;
+    }
+
     @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
     @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
     @Override public SpriteAPI shadowBlobSprite() { return shadowBlob; }
