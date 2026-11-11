@@ -303,6 +303,8 @@ public class BattleSprites {
     /** The smoke-and-fire flipbook the ground fire draws its flames from (`fire-nouns.md`, Look). */
     private SpriteAPI fireSheet;
     private SpriteAPI flameSheet;
+    /** The upright flame sheet a burning building's faces are drawn with ({@link StructureFire#TONGUE_SHEET_PATH}). */
+    private SpriteAPI tongueSheet;
     public static final String FIRE_SHEET_PATH = "graphics/particle/smokeAndFire.png";
     private boolean smokeSpritesLoadAttempted;
     private SpriteAPI satchelChargeSprite;
@@ -519,6 +521,8 @@ public class BattleSprites {
     public SpriteAPI fireSheet() { return fireSheet; }
     /** The top-down flame sheet ({@link FireRenderSystem#FLAME_SHEET_PATH}), or null where it failed to load. */
     public SpriteAPI flameSheet() { return flameSheet; }
+    /** The upright flame sheet ({@link StructureFire#TONGUE_SHEET_PATH}), or null where it failed to load. */
+    public SpriteAPI tongueSheet() { return tongueSheet; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
@@ -1254,6 +1258,8 @@ public class BattleSprites {
             fireSheet = ModTextures.sprite(FIRE_SHEET_PATH);
             ModTextures.loadTexture(FireRenderSystem.FLAME_SHEET_PATH, lease);
             flameSheet = ModTextures.sprite(FireRenderSystem.FLAME_SHEET_PATH);
+            ModTextures.loadTexture(StructureFire.TONGUE_SHEET_PATH, lease);
+            tongueSheet = ModTextures.sprite(StructureFire.TONGUE_SHEET_PATH);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
