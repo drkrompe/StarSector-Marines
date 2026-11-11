@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
@@ -7,10 +9,12 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
+import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -125,6 +129,56 @@ class PortWorksTest {
         assertEquals(180, PortWorks.clearEdge(180, true, ground, (x, y) -> x == 188 && y == 40));
     }
 
+    @Test
+    void thePortsGunsAreSpreadOverItsLinesItsFuelAndItsPadsWithShips() {
+        PortHub hub = PortHub.lay(150, 67, 277, 165, true, true, PortWorks.back(32));
+        // A Colossus on every other pad, a shuttle pod on the rest.
+        List<LandingPad> stands = new ArrayList<>();
+        for (int i = 0; i < hub.pads().size(); i++) {
+            PortHub.Rect pad = hub.pads().get(i);
+            boolean colossus = i % 2 == 0;
+            stands.add(new LandingPad(pad.centerX(), pad.centerY(), colossus ? 6 : 1, colossus ? 10 : 1,
+                    LandingPad.Approach.NORTH, LandingPad.Purpose.PORT_LIGHTER));
+        }
+        GuardedGrounds.Grounds fortified = PortWorks.grounds(hub, stands, true);
+        List<String> names = new ArrayList<>();
+        for (GuardedGrounds.Place place : fortified.places()) names.add(place.name());
+        assertEquals(PortWorks.GUARD_LINES, names.get(0));
+        assertEquals(PortWorks.GUARD_FUEL, names.get(1));
+        assertEquals(2 + Math.min(PortWorks.FORTIFIED_PADS, hub.pads().size()), names.size(),
+                "the lines, the fuel and the pads' share: " + names);
+        // The lines are watched first over the open ground an attack crosses toward them, from the map's middle (the
+        // outer edge is north: the middle is south), then where the highway comes in at the terminal's end.
+        GuardedGrounds.Place lines = fortified.places().get(0);
+        DefenceDoctrine.Gate approach = lines.gates().get(0);
+        assertEquals(hub.highway().y0(), approach.y());
+        assertEquals(-1, approach.outY());
+        DefenceDoctrine.Gate truckGate = lines.gates().get(1);
+        assertEquals(hub.terminalX(), truckGate.x());
+        assertTrue(hub.highway().contains(truckGate.x(), truckGate.y()));
+        assertEquals(-1, truckGate.outX(), "the deep edge is east: the town is west");
+        // Each pad's gun stands on its apron toward the hub.
+        for (GuardedGrounds.Place place : fortified.places().subList(2, names.size())) {
+            assertEquals(-1, place.gates().get(0).outY(), place.name());
+        }
+        for (PortHub.Rect ground : lines.ground()) assertTrue(ground.x0() >= hub.terminalX(), "the hub's own length");
+        // Each guarded pad guards the ship on it, a gun's room between it and the pad's edge; no pad twice.
+        for (GuardedGrounds.Place place : fortified.places().subList(2, names.size())) {
+            PortHub.Rect pad = hub.pads().get(Integer.parseInt(place.name().substring(PortWorks.GUARD_PAD.length())));
+            for (PortHub.Rect ship : place.ground()) {
+                assertTrue(ship.x0() > pad.x0() && ship.x1() < pad.x1() && ship.y0() > pad.y0() && ship.y1() < pad.y1(),
+                        place.name() + " " + ship + " on " + pad);
+            }
+        }
+        assertEquals(names.size(), names.stream().distinct().count());
+        // Guarded holds fewer pads' guns and lighter ones; a pad with no ship holds none.
+        GuardedGrounds.Grounds guarded = PortWorks.grounds(hub, stands.subList(0, 1), false);
+        assertEquals(3, guarded.places().size(), "one pad has a ship");
+        assertEquals(Map.of(DefensePostKind.LIGHT, 1), guarded.places().get(2).posts());
+        // No gun stands on the roads or the highway.
+        assertTrue(fortified.keepClear().containsAll(hub.roads()));
+        assertTrue(fortified.keepClear().contains(hub.highway()));
+    }
     private static void assertSameHub(PortHub want, PortHub got) {
         assertNotNull(got);
         assertEquals(want.lines(), got.lines());

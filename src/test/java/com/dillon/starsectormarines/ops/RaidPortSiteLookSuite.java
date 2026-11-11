@@ -3,9 +3,16 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The spaceport Raid site, framed as {@link RaidSiteLookSuite} frames heavy industry's, its close-up taking in the
@@ -50,6 +57,42 @@ public final class RaidPortSiteLookSuite extends RaidSiteLookSuite {
         float x = machinesX + Math.signum(pads[0] - machinesX) * TOWN_SIDE_WIDTH * .3f;
         float y = machinesY + (machinesY - pads[1]) * .5f;
         return List.of(new Shot("town-side", x, y, TOWN_SIDE_WIDTH));
+    }
+
+    /** Cells a gun's facing arrow runs: its laid lane. */
+    static final float GUN_ARROW = 10f;
+
+    /**
+     * The whole map marked with every gun ({@code <case>-guns.png}): an arrow from each emplacement along the bearing
+     * its guns are laid on, labelled with its weight, so where the port's defence stands and what it covers reads at a
+     * glance.
+     */
+    @Override
+    protected void moreShots(SnapshotContext context, BattleSimulation sim, String caseId, List<SnapshotArtifact> out)
+            throws Exception {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        for (DefensePost post : sim.getDefensePosts()) {
+            System.out.printf(Locale.ROOT, "[%s] %s gun %s %d,%d facing %s%n", id(), caseId, post.tier, post.anchorX,
+                    post.anchorY, post.restFacing == null ? "none" : String.format(Locale.ROOT, "%.0f", post.restFacing));
+            float x = post.anchorX + .5f, y = post.anchorY + .5f;
+            String label = switch (post.tier) {
+                case LIGHT -> "L";
+                case MEDIUM -> "M";
+                case LARGE -> "H";
+                case ARTILLERY -> "A";
+                default -> "D";
+            };
+            if (post.restFacing == null) {
+                marks.label(x, y, label, ReviewStyle.KEEP);
+                continue;
+            }
+            double a = Math.toRadians(post.restFacing);
+            marks.arrow(x, y, x - (float) Math.sin(a) * GUN_ARROW, y + (float) Math.cos(a) * GUN_ARROW, label,
+                    ReviewStyle.KEEP);
+        }
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        out.add(new SnapshotArtifact(caseId + "-guns.png", BattleReviewFrameRenderer.look(context.modRoot(), 1920,
+                1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f).renderMarked(sim, marks.build())));
     }
 
     /** The port's ships' mean cell, or null on a map with none. */

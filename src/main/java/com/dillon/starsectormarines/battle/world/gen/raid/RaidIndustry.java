@@ -95,4 +95,14 @@ public interface RaidIndustry {
      * interest inside its claim, their rooms' purposes the program's.
      */
     default void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) { }
+
+    /**
+     * The open ground the site's guns are spread over in place of the works' outworks guns ({@link GuardedGrounds}),
+     * at a security layer that lays any: a port's pads, fuel farm and lines in. Null for a site whose guns stand round
+     * its works, as every industry's but the port's do. Asked after {@link #dressWorks}.
+     */
+    default GuardedGrounds.Grounds guardedGrounds(GenContext c, PrecinctPlan plan, Precinct works,
+                                                  WorksDefences.Layer layer) {
+        return null;
+    }
 }
