@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.model.NightLighting.Lamp;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.IntPredicate;
 
@@ -118,6 +119,21 @@ class RuinsLightingTest {
         assertFalse(contingency.contains(RuinsLighting.bay(2)) || contingency.contains(RuinsLighting.vent(8))
                 || contingency.contains(RuinsLighting.watch(2)), "a dark zone stays dark through the contingency");
         assertTrue(contingency.contains(RuinsLighting.watch(1)), "the contingency lights every online zone");
+    }
+
+    @Test
+    void aServiceBayIsLitWhileItsZoneIsOnlineAndItStands() {
+        SecurityNetwork network = new SecurityNetwork()
+                .add(new SecurityZone(1, 10, 10, 5))
+                .add(new SecurityZone(2, 30, 10, 5));
+        Map<Integer, Long> bays = Map.of(1, 100L, 2, 200L);
+        assertEquals(Set.of(RuinsLighting.service(1), RuinsLighting.service(2)),
+                RuinsLighting.serviceCircuits(network, bays, id -> true));
+        assertEquals(Set.of(RuinsLighting.service(2)), RuinsLighting.serviceCircuits(network, bays, id -> id != 100L),
+                "a destroyed bay is dark");
+        network.zone(2).powerDown();
+        assertEquals(Set.of(), RuinsLighting.serviceCircuits(network, bays, id -> id != 100L),
+                "a zone cut at its junction darkens its bay");
     }
 
     @Test

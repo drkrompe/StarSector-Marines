@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import java.util.List;
+
 /**
  * One security zone of a derelict network (`derelict-security-network.md`, slice 1): a control node, the ground it
  * keeps and its state. It knows only what it is told: a contact its sensors or flocks report, gunfire inside its
@@ -24,8 +26,10 @@ public final class SecurityZone {
     public final int id;
     public final int nodeCellX;
     public final int nodeCellY;
-    /** Chebyshev radius, in cells, of the ground the zone keeps around its node. */
+    /** Chebyshev reach, in cells, of the ground the zone keeps round its node (or round its keeps, where it has them). */
     public final int perimeterCells;
+    /** What the zone keeps its perimeter round: its node's cell, or a broken hull's sections. */
+    private final List<FallenHullSite.Rect> keeps;
 
     private State state = State.DORMANT;
     private boolean nodeAlive = true;
@@ -33,11 +37,22 @@ public final class SecurityZone {
     private int lastStirTick = Integer.MIN_VALUE;
 
     public SecurityZone(int id, int nodeCellX, int nodeCellY, int perimeterCells) {
+        this(id, nodeCellX, nodeCellY, perimeterCells,
+                List.of(new FallenHullSite.Rect(nodeCellX, nodeCellY, nodeCellX, nodeCellY)));
+    }
+
+    /**
+     * A zone that keeps the ground within {@code perimeterCells} of any of several rectangles rather than of its node:
+     * a fallen hull's root zone over its sections (`fallen-hull-nouns.md`), whose node, the forge, lies in one of them.
+     */
+    public SecurityZone(int id, int nodeCellX, int nodeCellY, int perimeterCells, List<FallenHullSite.Rect> keeps) {
         if (perimeterCells < 1) throw new IllegalArgumentException("A zone keeps at least one cell");
+        if (keeps.isEmpty()) throw new IllegalArgumentException("A zone keeps ground round something");
         this.id = id;
         this.nodeCellX = nodeCellX;
         this.nodeCellY = nodeCellY;
         this.perimeterCells = perimeterCells;
+        this.keeps = List.copyOf(keeps);
     }
 
     public State state() {
@@ -71,7 +86,17 @@ public final class SecurityZone {
 
     /** Whether a cell is inside the ground this zone keeps. */
     public boolean inside(int cellX, int cellY) {
-        return Math.max(Math.abs(cellX - nodeCellX), Math.abs(cellY - nodeCellY)) <= perimeterCells;
+        return reach(cellX, cellY) <= perimeterCells;
+    }
+
+    /** Chebyshev distance from a cell to what the zone keeps its perimeter round: its node, or its nearest keep. */
+    public int reach(int cellX, int cellY) {
+        return FallenHullSite.Rect.nearestOf(keeps, cellX, cellY).chebyshev(cellX, cellY);
+    }
+
+    /** The cell of what the zone keeps nearest a cell: the node's cell for an ordinary zone. */
+    public int[] keptNearest(int cellX, int cellY) {
+        return FallenHullSite.Rect.nearestOf(keeps, cellX, cellY).nearest(cellX, cellY);
     }
 
     /**

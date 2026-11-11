@@ -331,14 +331,14 @@ public final class FortReservations {
     }
 
     /**
-     * The plan's {@link SitePurpose#GROUND} sites as a mask, clipped to the map: ground held for authored terrain
+     * The plan's held sites ({@link SitePurpose#held}: {@code GROUND} and {@code BUILT}) as a mask, clipped to the map: ground held for authored terrain
      * (a pit, a tank farm, a port's lines), which a cantonment's square claim keeps off ({@code PrecinctClaim}).
      * {@code null} when the plan holds none.
      */
     static boolean[][] groundSites(GenContext ctx, PrecinctPlan plan) {
         boolean[][] out = null;
         for (Site site : plan.layout().planSites()) {
-            if (site.purpose() != SitePurpose.GROUND) continue;
+            if (!site.purpose().held()) continue;
             if (out == null) out = new boolean[ctx.width][ctx.height];
             for (int x = Math.max(0, site.x0()); x <= Math.min(ctx.width - 1, site.x1()); x++) {
                 for (int y = Math.max(0, site.y0()); y <= Math.min(ctx.height - 1, site.y1()); y++) out[x][y] = true;

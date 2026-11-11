@@ -56,7 +56,7 @@ public final class FlockTasking {
         }
         Contact target = nearest(contacts, zone.nodeCellX, zone.nodeCellY);
         if (target == null) return new Order(FlockTask.PROBE, stirX, stirY, -1L);
-        int reach = WalkerPosture.chebyshev(target.cellX(), target.cellY(), zone.nodeCellX, zone.nodeCellY);
+        int reach = zone.reach(target.cellX(), target.cellY());
         if (reach <= zone.perimeterCells) {
             return new Order(FlockTask.STRIKE, target.cellX(), target.cellY(), target.unitId());
         }
@@ -71,14 +71,15 @@ public final class FlockTasking {
         return flock.docked() ? null : new Order(FlockTask.RETURN, zone.nodeCellX, zone.nodeCellY, -1L);
     }
 
-    /** The point on the zone's perimeter on the line from its node toward a cell. */
+    /** The point on the zone's perimeter on the line toward a cell from what it keeps nearest that cell (its node). */
     static int[] edgeToward(SecurityZone zone, int x, int y) {
-        int dx = x - zone.nodeCellX;
-        int dy = y - zone.nodeCellY;
+        int[] from = zone.keptNearest(x, y);
+        int dx = x - from[0];
+        int dy = y - from[1];
         int span = Math.max(Math.abs(dx), Math.abs(dy));
-        if (span == 0) return new int[] {zone.nodeCellX, zone.nodeCellY};
+        if (span == 0) return from;
         float scale = Math.min(1f, zone.perimeterCells / (float) span);
-        return new int[] {zone.nodeCellX + Math.round(dx * scale), zone.nodeCellY + Math.round(dy * scale)};
+        return new int[] {from[0] + Math.round(dx * scale), from[1] + Math.round(dy * scale)};
     }
 
     private static Contact nearest(List<Contact> contacts, int x, int y) {
