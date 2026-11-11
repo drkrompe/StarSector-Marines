@@ -192,6 +192,8 @@ that gives the company targets to deny.
   the zone's repair stock is held (`ServiceBay`). The drone carries a load,
   works it off, and flies back to the bay to take another. Destroying the bay
   leaves the drone only what it carries. A dark zone's bay issues nothing.
+  On a plant with a maintenance shop, the zone nearest the shop's dock keeps
+  its bay there instead, its perimeter reaching past it (`dockAt`).
 - **Wrecks.** A walker or a post of a zone that is destroyed leaves a **wreck**
   where it fell. A drone with a load works a wreck for `RAISE_SECONDS` and the
   unit is **raised**: it stands again at its post's zone with a share of its
@@ -323,7 +325,7 @@ of each pick, slice 3's comms lines.
   the grade's hall frames in the largest plant halls (`hallPosts`), marking a
   hall frame hall-bound when a flood over the cells it fits (`reaches`) does not
   reach the egress. `standWatchHousings` stands each zone's service bay beside
-  its node and its sealed reserve bay by its flock's home, lays a vent at each
+  its node (the shop's zone's at `serviceDock`) and its sealed reserve bay by its flock's home, lays a vent at each
   flock's home and in each open-sky court, and wires the reserve launcher and
   raised posts. The director, each pulse: walks the rounds; follows the stir
   into the wake (`tickWake`: ducts up, bays opened, their housing giving way to

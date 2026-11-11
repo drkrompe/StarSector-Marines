@@ -4,12 +4,16 @@ import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 
+import com.fs.starfarer.api.graphics.SpriteAPI;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog; a burn's
@@ -22,7 +26,12 @@ final class NightLightingRenderSystem implements RenderSystem {
     private final NightLightingPass pass = new NightLightingPass();
     private final DoodadRenderSystem doodads;
 
-    NightLightingRenderSystem(BattleSprites sprites) { doodads = new DoodadRenderSystem(sprites); }
+    private final BattleSprites sprites;
+
+    NightLightingRenderSystem(BattleSprites sprites) {
+        this.sprites = sprites;
+        doodads = new DoodadRenderSystem(sprites);
+    }
     void dispose() { pass.dispose(); field.dispose(); }
     /** The shade computed on the card, for a host that can run a custom pass owning its GL. */
     private final NightShadeField field = new NightShadeField();
@@ -151,6 +160,7 @@ final class NightLightingRenderSystem implements RenderSystem {
     /** The fixtures and their halos, over the shade. */
     private void lamps(RenderContext ctx, DrawList out, NightLighting night, VisibleCellRect visible, boolean useFog,
                        FogOfWarService fog) {
+        emissives(ctx, out, useFog, fog);
         var camera = ctx.camera;
         var all=night.lamps();
         for (int index=0;index<all.size();index++) {
@@ -161,6 +171,11 @@ final class NightLightingRenderSystem implements RenderSystem {
             float x=camera.cellToScreenX(lamp.x()), y=camera.cellToScreenY(lamp.y()), px=camera.cellPxSize();
             if (lamp.fixture() == NightLighting.Fixture.TRIPOD_FLOODLIGHT) {
                 floodlight(out, lamp, x, y, px, lampOn[index], ctx.alphaMult);
+                continue;
+            }
+            String art = fixtureArt(lamp.fixture());
+            if (art != null) {
+                fixture(out, ctx.sim.getTopology(), night, lamp, art, x, y, px, lampOn[index], ctx.alphaMult);
                 continue;
             }
             if (!lampOn[index] || lamp.fixture() == NightLighting.Fixture.GLOW) continue;
@@ -255,6 +270,83 @@ final class NightLightingRenderSystem implements RenderSystem {
      * lamp sits on its own cell whichever way the camera frames it. The plate
      * and housing stay visible during an outage.
      */
+    /**
+     * The ruins' machinery and consoles glowing where their room's light is on: each placement from a sheet with an
+     * emissive overlay ({@code lights/emissive/<sheet>-lit.png}, the sheet's layout at half its resolution) wears its
+     * cut of it, coming up with the lamps over it. A melt or a pour keeps its own glow.
+     */
+    private void emissives(RenderContext ctx, DrawList out, boolean useFog, FogOfWarService fog) {
+        if (pools == null || sprites == null) return;
+        var camera = ctx.camera;
+        var ground = ctx.sim.getTopology();
+        int gw = ground.getWidth(), gh = ground.getHeight();
+        VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS, gw, gh);
+        boolean[] shown = useFog ? fog.cellShownArray() : null;
+        for (Doodad d : ctx.sim.getDoodads()) {
+            String sheet = EMISSIVE_SHEETS.get(d.sheetPath);
+            if (sheet == null || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            String id = d.definitionId();
+            if (id != null && (id.endsWith("-melt") || id.contains("-pour"))) continue;
+            float cx = d.cellX + d.footprintCellsX * 0.5f, cy = d.cellY + d.footprintCellsY * 0.5f;
+            int cellX = Math.max(0, Math.min(gw - 1, (int) cx)), cellY = Math.max(0, Math.min(gh - 1, (int) cy));
+            if (shown != null && !shown[cellY * gw + cellX]) continue;
+            float glow = running(sample(pools, cx, cy));
+            if (glow <= 0f) continue;
+            SpriteAPI overlay = sprites.lightArt(LIGHTS + "emissive/" + sheet + "-lit.png");
+            if (overlay != null) doodads.emitOverlay(out, camera, overlay, 2, d, layer(), 1f, 1f, 1f, glow * ctx.alphaMult);
+        }
+    }
+
+    /**
+     * How hard a machine glows under a lamp pool of {@code pool}: not at all under an emergency strip's dim light,
+     * fully once its room's own lamps are on.
+     */
+    static float running(float pool) {
+        return Math.max(0f, Math.min(1f, (pool - RUNNING_FROM) / RUNNING_SPAN));
+    }
+
+    static final float RUNNING_FROM = 0.45f, RUNNING_SPAN = 0.35f;
+
+    /** The sheets that carry an emissive overlay, by the sheet path a placement names. */
+    private static final Map<String, String> EMISSIVE_SHEETS = Map.of(
+            "graphics/doodads/ruins-themes.png", "ruins-themes",
+            "graphics/doodads/ruins-forge.png", "ruins-forge",
+            "graphics/doodads/ruins-rooms.png", "ruins-rooms",
+            "graphics/doodads/ruins-works-plant.png", "ruins-works-plant");
+
+    /** The painted art a fixture draws from ({@code lights/<id>-{lit,unlit}.png}); null for one drawn otherwise. */
+    static String fixtureArt(NightLighting.Fixture fixture) {
+        return switch (fixture) {
+            case CEILING_STRIP -> "ruins-ceiling-strip";
+            case HIGH_BAY -> "ruins-ceiling-highbay";
+            case EMERGENCY_STRIP -> "ruins-emergency-strip";
+            case BEACON -> "ruins-emergency-beacon";
+            default -> null;
+        };
+    }
+
+    /**
+     * A painted fixture over its cell, lit or dark: drawn after the shade, so a dark one wears its cell's darkness
+     * itself and a lit one glows.
+     */
+    private void fixture(DrawList out, CellTopology ground, NightLighting night, NightLighting.Lamp lamp, String art,
+                         float x, float y, float px, boolean lit, float alpha) {
+        SpriteAPI sprite = sprites == null ? null : sprites.lightArt(LIGHTS + art + (lit ? "-lit.png" : "-unlit.png"));
+        if (sprite == null) return;
+        float shade = 1f;
+        if (!lit) {
+            int cx = Math.max(0, Math.min(ground.getWidth() - 1, (int) lamp.x()));
+            int cy = Math.max(0, Math.min(ground.getHeight() - 1, (int) lamp.y()));
+            shade = 1f - FIXTURE_SHADE * night.darknessAt(NightLighting.roofed(ground, cx, cy));
+        }
+        out.addSprite(layer(), sprite, x, y, px, px, lamp.bearingDegrees(), shade, shade, shade, alpha);
+    }
+
+    /** Where the lamp art and the sheets' emissive overlays live. */
+    static final String LIGHTS = "graphics/battle/lights/";
+    /** How much of its cell's darkness a dark fixture wears, drawn as it is after the shade. */
+    static final float FIXTURE_SHADE = 0.85f;
+
     private void floodlight(DrawList out, NightLighting.Lamp lamp, float x, float y,
                             float px, boolean powered, float alpha) {
         double bearing=Math.toRadians(lamp.bearingDegrees());

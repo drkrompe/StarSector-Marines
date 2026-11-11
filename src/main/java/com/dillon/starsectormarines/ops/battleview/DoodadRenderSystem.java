@@ -450,6 +450,27 @@ public final class DoodadRenderSystem implements RenderSystem {
                 r, g, b, alphaMult);
     }
 
+    /**
+     * {@code d}'s cut of {@code overlay}, an image laid out as its sheet at {@code 1 / scaleDown} of its resolution,
+     * drawn over the placement exactly where its own art is.
+     */
+    void emitOverlay(DrawList out, BattleCamera cam, SpriteAPI overlay, int scaleDown, Doodad d, RenderLayer layer,
+                     float r, float g, float b, float alpha) {
+        float cellPx = cam.cellPxSize();
+        int srcX = sourceX(d) / scaleDown, srcY = sourceY(d) / scaleDown;
+        int sourceWidth = sourceWidth(d) / scaleDown, sourceHeight = sourceHeight(d) / scaleDown;
+        float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
+        float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
+        if (d.mirrored) {
+            out.addSheetQuadFlippedV(layer, overlay, srcX, srcY, sourceWidth, sourceHeight,
+                    cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY, d.quarterTurns * 90f + 180f,
+                    r, g, b, alpha);
+            return;
+        }
+        out.addSheetQuad(layer, overlay, srcX, srcY, sourceWidth, sourceHeight,
+                cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY, d.quarterTurns * 90f, r, g, b, alpha);
+    }
+
     /** Where a placement's art starts on its sheet, read at the sheet's own cell size rather than the game's. */
     static int sourceX(Doodad d) {
         return d.tile.col * d.sourceCellPx;

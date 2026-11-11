@@ -188,7 +188,11 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   restoration replaces its presentation state; it never grants observation,
   alters targeting or changes navigation. Outdoor floodlights have grounded supports
   and oriented heads that remain visible when unpowered; interior strips retain
-  their separate fixture identity. Appearance never changes the authored light pool.
+  their separate fixture identity; a ruin's strips, high bays, emergency strips and
+  alarm beacons draw from painted art, lit or dark, and a dark one wears its cell's
+  darkness. A ruin's machinery glows through its sheet's emissive overlay as the
+  lamps over it come on, a melt or a pour keeping its own glow.
+  Appearance never changes the authored light pool.
   A night has two darknesses: one for open ground and one under an intact roof
   (a wall bounding a roofed cell counts as under it), equal on a night map and
   apart in a sealed ruin, where the plant is black while daylight falls through

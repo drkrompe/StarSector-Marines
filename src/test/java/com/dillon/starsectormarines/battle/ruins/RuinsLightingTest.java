@@ -81,6 +81,20 @@ class RuinsLightingTest {
     }
 
     @Test
+    void aStripHangsAlongItsRoomsLongerRun() {
+        // A corridor running north-south (x 0, y 0..6) off an east-west one (x 0..6, y 0).
+        CellTopology ground = new CellTopology(7, 7);
+        for (int i = 0; i < 7; i++) {
+            ground.setGroundKind(0, i, CellTopology.GroundKind.INDOOR);
+            ground.setBuildingId(0, i, 1);
+            ground.setGroundKind(i, 0, CellTopology.GroundKind.INDOOR);
+            ground.setBuildingId(i, 0, 1);
+        }
+        assertEquals(90f, RuinsLighting.alongRun(ground, 0, 4), "down a north-south corridor");
+        assertEquals(0f, RuinsLighting.alongRun(ground, 4, 0), "across an east-west one");
+    }
+
+    @Test
     void anEmergencyStripOnAWallStepsOntoTheNearestFloor() {
         CellTopology ground = new CellTopology(5, 1);
         for (int x = 0; x < 5; x++) {
@@ -134,14 +148,6 @@ class RuinsLightingTest {
         network.zone(2).powerDown();
         assertEquals(Set.of(), RuinsLighting.serviceCircuits(network, bays, id -> id != 100L),
                 "a zone cut at its junction darkens its bay");
-    }
-
-    @Test
-    void theWorksStandLightsWithTheHallsRestart() {
-        RuinsDelve.Cell stand = new RuinsDelve.Cell(20, 20);
-        assertTrue(RuinsLighting.byStand(stand, 20 + RuinsLighting.STAND_REACH, 20));
-        assertFalse(RuinsLighting.byStand(stand, 21 + RuinsLighting.STAND_REACH, 20));
-        assertFalse(RuinsLighting.byStand(null, 20, 20), "a site with no works hall has no stand");
     }
 
     @Test

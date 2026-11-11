@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 /**
  * Lays a ruins site's delve over the dead settlement ({@code mapgen-nouns.md}, Ruins ground): the cleared landing ground at the
@@ -117,11 +118,75 @@ public final class RuinsDelveStage implements GenStage {
     static final int WAY_SPACING = 9;
     static final int ROOMS_PER_LAYER = 2;
     /**
+     * Columns a plant laid from its brief keeps between its band's west edge and its works hall: the dock and the
+     * habitat on the hull face (14 across on their sides), a margin, and the spine's own.
+     */
+    static final int PLANT_WEST_STRIP = 24;
+    /** Columns or rows from one block-planned space's edge to its neighbour's: two cells of hull wall between. */
+    static final int BLOCK_GAP = 3;
+    /** The hull a plant's outline keeps round every floor, piece and door inside: its walls' thickness. */
+    static final int OUTLINE_WALL = 2;
+    /** How far from the vault's row a plant's deeper band line lets its ways cross. */
+    static final int DEEP_WAY_REACH = 30;
+    /**
      * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
      * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
      * the pick {@code ruins-plant-plan}; then drop the switch and the losing path.
      */
     public static final String PLANT_PROPERTY = "battle.ruins.plant";
+
+    /**
+     * The floor a works hall's restart lights round its {@code stand} ({@code ruins-light.md}): the transfer aisle from
+     * wall to wall, where the hall frame stands its post; on a forge the pulpit's corner of the head, the aisle round
+     * it to the walls, and the breakout pool's columns {@code poolLo..poolHi} bank to bank with the bridge over them
+     * (none when {@code poolLo > poolHi}); in a works hall the bays either side of the aisle at the stand's end. Each
+     * area is clipped to the hall.
+     */
+    static List<Area> standLit(Area hall, Cell centre, Cell stand, boolean forge, int poolLo, int poolHi) {
+        List<Area> out = new ArrayList<>();
+        out.add(clip(hall, hall.left(), centre.y() - 1, hall.right(), centre.y() + 2));
+        if (forge) {
+            out.add(clip(hall, stand.x() - 6, stand.y() - 4, hall.right(), stand.y() + 4));
+            if (poolLo <= poolHi) {
+                out.add(clip(hall, poolLo - 2, centre.y() - BREAKOUT_LONG - 1, poolHi + 2,
+                        centre.y() + BREAKOUT_LONG + 2));
+            }
+        } else {
+            out.add(clip(hall, centre.x() + 1, centre.y() - 1 - HallFrame.BAY, hall.right(),
+                    centre.y() + 2 + HallFrame.BAY));
+        }
+        return out;
+    }
+
+    /**
+     * The cell of {@code hall} nearest its middle where a service bay docks: every cell within two of it, inside the
+     * hall, is {@code clear} (walkable, no piece, no doorway). Null where the hall has none.
+     */
+    static Cell dockCell(Area hall, BiPredicate<Integer, Integer> clear) {
+        int cx = hall.centreX(), cy = hall.centreY(), reach = Math.max(hall.width(), hall.height());
+        for (int r = 0; r <= reach; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = cx + dx, y = cy + dy;
+                    if (hall.left() + 2 > x || x > hall.right() - 2 || hall.bottom() + 2 > y || y > hall.top() - 2) {
+                        continue;
+                    }
+                    boolean ok = true;
+                    for (int ny = y - 2; ny <= y + 2 && ok; ny++) {
+                        for (int nx = x - 2; nx <= x + 2 && ok; nx++) ok = clear.test(nx, ny);
+                    }
+                    if (ok) return new Cell(x, y);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Area clip(Area hall, int l, int b, int r, int t) {
+        return new Area(Math.max(l, hall.left()), Math.max(b, hall.bottom()), Math.min(r, hall.right()),
+                Math.min(t, hall.top()));
+    }
     /** The most ground a repair may wall in rather than join; more is a layout error, not a pocket. */
     static final int MAX_SEALED_POCKET = 60;
 
@@ -199,6 +264,25 @@ public final class RuinsDelveStage implements GenStage {
     static final String EMPTY_CRADLE = "doodad.ruins-empty-cradle";
     static final String RACK_STRIPPED = "doodad.ruins-rack-stripped";
     static final String RACK_CRATES = "doodad.ruins-rack-crates";
+    /** A plant store's empty rack bay, two pallet places north-south ({@code ruins-plant-brief}, Stores). */
+    static final String STORE_BAY = "doodad.ruins-store-rack-bay", STORE_BAY_STRIPPED = "doodad.ruins-store-rack-bay-stripped";
+    /** The raw stock store's loads: what the line ate, the base game's goods drawn top-down. */
+    static final String[] RAW_LOADS = {"doodad.ruins-store-metals", "doodad.ruins-store-transplutonics",
+            "doodad.ruins-store-volatiles", "doodad.ruins-store-organics", "doodad.ruins-store-ore",
+            "doodad.ruins-store-transplutonic-ore"};
+    /** The finished goods store's loads: what the last haulers left. */
+    static final String[] GOODS_LOADS = {"doodad.ruins-store-domestic-goods", "doodad.ruins-store-supplies",
+            "doodad.ruins-store-domestic-goods"};
+    /** A store's fuel bay: red tanks behind a hazard kerb. */
+    static final String STORE_FUEL = "doodad.ruins-store-fuel";
+    /** Heavy machinery on a skid, the maintenance shop's spares under its hoists. */
+    static final String STORE_MACHINERY = "doodad.ruins-store-heavy-machinery";
+    /**
+     * Loads a store keeps whatever the dice say, so the delve's finds always have goods to be
+     * ({@code plant-store-finds}): the finished goods hold the far share at its largest (a vast site's four), the raw
+     * stock the near.
+     */
+    static final int GOODS_MIN_LOADS = 4, RAW_MIN_LOADS = 3;
     static final String DOCK_DOOR = "doodad.ruins-dock-door";
     static final String DOCK_STOCK = "doodad.industrial-pallet-stack";
 
@@ -288,12 +372,38 @@ public final class RuinsDelveStage implements GenStage {
         Area apronKeepOff;
         /** Where the works hall's zone is held from, before it is settled on clear floor; null until furnished. */
         Cell worksStand;
+        /** The floor the works hall's restart lights round its stand ({@link #standLit(Area, Cell, Cell, boolean, int, int)}). */
+        List<Area> standLit = List.of();
+        /** The goods the plant's stores still hold, as they stood ({@link RuinsDelve.Load}). */
+        final List<RuinsDelve.Load> loads = new ArrayList<>();
+        /** The breakout pool's columns under the transfer bridge; lo above hi when there is none. */
+        int poolLo = Integer.MAX_VALUE, poolHi = Integer.MIN_VALUE;
         /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
         boolean plantMode;
         /** The room each of the plant's infantry-only spaces is laid as. */
         final Map<Area, RuinsRoom> roles = new HashMap<>();
         /** The plant's spaces laid, by their published names. */
         final Map<String, Area> spaces = new LinkedHashMap<>();
+        /** One of the brief's spaces laid in the works band's block plan, before the band's ways. */
+        record Placed(PlantBrief.Space space, Area room, Cell lock) {
+            Placed(PlantBrief.Space space, Area room) {
+                this(space, room, null);
+            }
+        }
+        /** The interior band the works hall stands in; -1 without one. */
+        int trunkBand = -1;
+        /** The works band's spaces laid by its block plan ({@link #blockPlan}), published with the band. */
+        final List<Placed> blockPlaced = new ArrayList<>();
+        /** The first space laid in the band being planted ({@link PlantBrief.Anchor#UNDER_FIRST}). */
+        Area bandFirst;
+        /** The rows a layer's ways may cross in, or null for the whole line ({@link #layer}). */
+        int[] wayRows;
+        /** Each interior band's spine column, in band order. */
+        final List<Integer> spines = new ArrayList<>();
+        /** Inside cells the hull's outline cut back to open ground ({@link #outline}); null until it runs. */
+        boolean[] beyond;
+        /** Cells no way may run through: the plant's infantry-only rooms, entered by their own door alone. */
+        boolean[] noWay;
         /** The brief's spaces a band had no room for, tried again in the next band. */
         final List<PlantBrief.Space> carried = new ArrayList<>();
 
@@ -313,6 +423,7 @@ public final class RuinsDelveStage implements GenStage {
             drafted = new boolean[w * h];
             lineCell = new boolean[w * h];
             hull = new boolean[w * h];
+            noWay = new boolean[w * h];
             network = new int[w * h];
             freightNet = new boolean[w * h];
         }
@@ -366,14 +477,19 @@ public final class RuinsDelveStage implements GenStage {
             int layers = plan.layers();
             int[][] lines = new int[layers][];
             int span = zoneEnd - zoneStart;
-            for (int i = 0; i < layers; i++) {
-                int centre = zoneStart + (i + 1) * span / (layers + 1) + rng.nextInt(5) - 2;
-                lines[i] = lineProfile(centre);
-            }
+            int[] centres = new int[layers];
+            for (int i = 0; i < layers; i++) centres[i] = zoneStart + (i + 1) * span / (layers + 1) + rng.nextInt(5) - 2;
+            if (plantMode) plantLines(centres, zoneStart, zoneEnd);
+            for (int i = 0; i < layers; i++) lines[i] = lineProfile(centres[i]);
             List<LayerDraft> drafts = new ArrayList<>();
             for (int i = 0; i < layers; i++) {
+                // A plant's deeper band is entered on the vault's row: its ways cross near it, so the band's spine
+                // is short and the hull draws in round the band.
+                wayRows = plantMode && i > layers - plan.interiorLayers() ? new int[]{vaultY - DEEP_WAY_REACH,
+                        vaultY + DEEP_WAY_REACH} : null;
                 drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1, i >= layers - plan.interiorLayers()));
             }
+            wayRows = null;
 
             int firstInside = layers - plan.interiorLayers();
             // The power hall stands in a layer before the last; inside, when the interior has one.
@@ -446,6 +562,7 @@ public final class RuinsDelveStage implements GenStage {
             dress(plan.dressing(), vault, dressed);
             rooms(plain, plantHalls, laid, vault);
             for (RuinsDelve.PlantHall plantHall : plantHalls) zoneFloor(plantHall.footprint());
+            if (plantMode) outline();
             finishMasks();
             repairPockets(landing.get(0).berth(0));
 
@@ -453,13 +570,21 @@ public final class RuinsDelveStage implements GenStage {
             Way shortWay = null;
             for (Way way : last.ways) if (way.kind() == WayKind.COLLAPSE) shortWay = way;
             Collapse collapse = new Collapse(RuinsDelve.COLLAPSE, layers - 1, shortWay);
-            List<RuinsDelve.LeafDoor> leafDoors = leafDoors(plantHalls, entrances);
+            // A plant's bulkheads: a cargo door wherever a way crosses a band line inside the hull.
+            List<Area> bulkheads = new ArrayList<>();
+            if (plantMode) {
+                for (int k = firstInside + 1; k < layers; k++) {
+                    for (Way way : drafts.get(k).ways) if (way.open()) bulkheads.add(way.span());
+                }
+            }
+            List<RuinsDelve.LeafDoor> leafDoors = leafDoors(plantHalls, entrances, bulkheads);
             // The vault's outer door: a hall door across its three cells, kept powered so the haul's way stays whole.
             Cell outer = vault.door();
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces);
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces, standLit,
+                    serviceDock(plantHalls), loads);
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
             // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
@@ -667,9 +792,11 @@ public final class RuinsDelveStage implements GenStage {
          * long, through the ring of hull round a hall. Each door's stance is drawn by coordinate hash: a third stand
          * dead part-open, one in six was forced long ago, the rest still answer. A dead door's leaves stand in its
          * end cells, which are shut so the way narrows to the cells between; only a hall door of three cells or more
-         * can die so. A cargo door stands in a way in, which stays open its whole width, so it never dies.
+         * can die so. A cargo door stands in a way in, which stays open its whole width, so it never dies; so does a
+         * bulkhead, a cargo door in each of {@code bulkheads}, the ways across a band line inside the hull.
          */
-        List<RuinsDelve.LeafDoor> leafDoors(List<RuinsDelve.PlantHall> halls, List<Area> entrances) {
+        List<RuinsDelve.LeafDoor> leafDoors(List<RuinsDelve.PlantHall> halls, List<Area> entrances,
+                                            List<Area> bulkheads) {
             List<RuinsDelve.LeafDoor> out = new ArrayList<>();
             Set<Long> seen = new HashSet<>();
             for (RuinsDelve.PlantHall hall : halls) {
@@ -679,7 +806,9 @@ public final class RuinsDelveStage implements GenStage {
                 joins(out, seen, false, f.bottom(), f.top(), f.left() - 1);
                 joins(out, seen, false, f.bottom(), f.top(), f.right() + 1);
             }
-            for (Area way : entrances) {
+            List<Area> cargo = new ArrayList<>(entrances);
+            cargo.addAll(bulkheads);
+            for (Area way : cargo) {
                 boolean alongX = way.width() > way.height();
                 Area span = alongX ? new Area(way.left(), way.bottom(), way.right(), way.bottom())
                         : new Area(way.left(), way.bottom(), way.left(), way.top());
@@ -847,6 +976,39 @@ public final class RuinsDelveStage implements GenStage {
         // ---- layers --------------------------------------------------------------------------
 
         /** A layer's wall column per row: it runs straight in short segments and jogs a cell between them. */
+        /**
+         * The hull drawn round the plant ({@code ruins-expedition.md}, The plant is designed intact first): each
+         * interior band's line set back from the vault only as far as its spaces need ({@link #plantBand}), and the
+         * outer layers spread over the ground that frees to the west. Where the plant needs more room than the even
+         * spread gives, the lines stay as they were.
+         */
+        void plantLines(int[] centres, int zoneStart, int zoneEnd) {
+            int layers = centres.length, bands = plan.interiorLayers(), first = layers - bands;
+            if (bands == 0) return;
+            int[] drawn = new int[layers];
+            // A line's region runs from three past its right to four short of the next line's left, its jog one cell.
+            int east = zoneEnd;
+            for (int k = layers - 1; k >= first; k--) {
+                drawn[k] = east - plantBand(k - first, bands) - 4;
+                east = drawn[k] - 5;
+            }
+            if (drawn[first] <= centres[first]) return;
+            for (int k = 0; k < first; k++) drawn[k] = zoneStart + (k + 1) * (drawn[first] - zoneStart) / (first + 1);
+            System.arraycopy(drawn, 0, centres, 0, layers);
+        }
+
+        /**
+         * The width interior band {@code band} of {@code bands} needs for its plant: the works band its dock and
+         * habitat strip, the works hall and its east wall's gallery; a deeper band line two with its finished goods
+         * beyond it and the band's spine.
+         */
+        int plantBand(int band, int bands) {
+            boolean vast = plan.layers() >= 4;
+            float s = plan.layers() <= 2 ? .7f : vast ? 1.15f : 1f;
+            if (band == 0) return PLANT_WEST_STRIP + (vast ? MEGA_WIDE_VAST : MEGA_WIDE) + 18;
+            return Math.round(30 * s) + Math.round(24 * s) + 20;
+        }
+
         int[] lineProfile(int centre) {
             int[] x = new int[h];
             int y = 0;
@@ -882,7 +1044,7 @@ public final class RuinsDelveStage implements GenStage {
             String material = d.kind == LayerKind.SEALED_GATE ? GATE_WALL : LINE_WALLS[rng.nextInt(LINE_WALLS.length)];
 
             List<Integer> centres = new ArrayList<>();
-            int lo = 6, hi = h - 7;
+            int lo = wayRows == null ? 6 : Math.max(6, wayRows[0]), hi = wayRows == null ? h - 7 : Math.min(h - 7, wayRows[1]);
             if (collapseY >= 0) collapseY = clamp(collapseY, lo, hi);
             for (int j = 0; j < open; j++) {
                 int slotLo = lo + j * (hi - lo) / open, slotHi = lo + (j + 1) * (hi - lo) / open;
@@ -1387,7 +1549,106 @@ public final class RuinsDelveStage implements GenStage {
         /** Whether a cell is inside the interior: within its footprint and east of the hull face. */
         boolean insideCell(int x, int y) {
             if (interiorBox == null || !interiorBox.contains(x, y)) return false;
+            if (beyond != null && beyond[i(x, y)]) return false;
             return faceLx == null || x > faceLx[y];
+        }
+
+        /**
+         * The hull drawn round the plant ({@code ruins-expedition.md}, The plant is designed intact first): hull that
+         * walls nothing (more than {@link #OUTLINE_WALL} cells from any floor, piece or door inside) and that open
+         * ground outside reaches is cut away to open ground, so the plant stands as a building with the ruin's ground
+         * round it instead of a block filling the band. Every floor keeps its wall, so the plant stays closed but for
+         * its ways in; hull no outside ground reaches stays solid, the mass between the plant's spaces. A cut cell is
+         * outside ({@link #beyond}): no roof, and a machine may be set down on it.
+         */
+        void outline() {
+            for (int spine : spines) trimSpine(spine);
+            boolean[] occupied = new boolean[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!insideCell(x, y)) continue;
+                    int k = i(x, y);
+                    occupied[k] = grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isFixture(x, y);
+                }
+            }
+            boolean[] walls = new boolean[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!occupied[i(x, y)]) continue;
+                    for (int dy = -OUTLINE_WALL; dy <= OUTLINE_WALL; dy++) {
+                        for (int dx = -OUTLINE_WALL; dx <= OUTLINE_WALL; dx++) {
+                            if (grid.inBounds(x + dx, y + dy)) walls[i(x + dx, y + dy)] = true;
+                        }
+                    }
+                }
+            }
+            beyond = new boolean[w * h];
+            ArrayDeque<Integer> queue = new ArrayDeque<>();
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!cuttable(x, y, walls)) continue;
+                    for (Direction side : Direction.CARDINALS) {
+                        int nx = x + side.dx, ny = y + side.dy;
+                        if (grid.inBounds(nx, ny) && !insideCell(nx, ny) && grid.isWalkable(nx, ny)) {
+                            beyond[i(x, y)] = true;
+                            queue.add(i(x, y));
+                            break;
+                        }
+                    }
+                }
+            }
+            while (!queue.isEmpty()) {
+                int k = queue.poll(), x = k % w, y = k / w;
+                for (Direction side : Direction.CARDINALS) {
+                    int nx = x + side.dx, ny = y + side.dy;
+                    if (!grid.inBounds(nx, ny) || beyond[i(nx, ny)] || !cuttable(nx, ny, walls)) continue;
+                    beyond[i(nx, ny)] = true;
+                    queue.add(i(nx, ny));
+                }
+            }
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int k = i(x, y);
+                    if (!beyond[k]) continue;
+                    free(x, y);
+                    ground(x, y, GroundKind.DIRT);
+                    topology.setBuildingKindHint(x, y, null);
+                    drafted[k] = false;
+                    lineCell[k] = false;
+                }
+            }
+        }
+
+        /**
+         * A spine cut back to the stretch anything joins: rows beyond the last way, room door, court or hall that meets
+         * it from either side are walled up as hull, so the outline can draw the hull in past them.
+         */
+        void trimSpine(int spine) {
+            int lo = -1, hi = -1;
+            for (int y = 0; y < h; y++) {
+                boolean joined = false;
+                for (int x : new int[]{spine - 2, spine + 2}) {
+                    joined |= grid.inBounds(x, y) && insideCell(x, y) && (grid.isWalkable(x, y) || grid.isDoorway(x, y));
+                }
+                if (!joined) continue;
+                if (lo < 0) lo = y;
+                hi = y;
+            }
+            if (lo < 0) return;
+            for (int y = 0; y < h; y++) {
+                if (y >= lo - 1 && y <= hi + 1) continue;
+                for (int x = spine - 1; x <= spine + 1; x++) {
+                    if (insideCell(x, y) && grid.isWalkable(x, y) && !kept[i(x, y)]) hullCell(x, y);
+                }
+            }
+        }
+
+        /** Whether outline may cut a cell: inside or on the face, hull or wall, and walling nothing. */
+        private boolean cuttable(int x, int y, boolean[] walls) {
+            int k = i(x, y);
+            if (x <= 0 || y <= 0 || x >= w - 1 || y >= h - 1 || beyond[k] || walls[k]) return false;
+            boolean onFace = interiorBox.contains(x, y) && faceLx != null && x >= faceLx[y] - 1;
+            return (insideCell(x, y) || onFace) && (hull[k] || lineCell[k] || topology.isWall(x, y));
         }
 
         /**
@@ -1446,6 +1707,8 @@ public final class RuinsDelveStage implements GenStage {
                     // from its dispatch end to its head, and the court and power hall stand clear of that column.
                     trunkHall = works;
                     spine = works.left() + 1;
+                    // The plant's own spaces before the court and power hall, so each stands where its job put it.
+                    if (plantMode) blockPlan(region, works, drafts.get(k).ways);
                     well = courtOn(k, region, spine);
                     reserve(new Area(spine - 1, region.bottom(), spine + 1, region.top()), 2);
                     if (k == hallLayer) innerHall = hall(k, region);
@@ -1458,6 +1721,7 @@ public final class RuinsDelveStage implements GenStage {
                     spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 }
                 wells.put(k, well);
+                spines.add(spine);
                 for (int y = 2; y <= h - 3; y++) {
                     for (int x = spine - 1; x <= spine + 1; x++) {
                         carve(x, y, k);
@@ -1477,14 +1741,20 @@ public final class RuinsDelveStage implements GenStage {
                 keepOff = null;
                 if (k == hallLayer) connect(outside(innerHall.footprint(), innerHall.door()), k, null);
                 connect(new Cell(well.ground().centreX(), well.ground().centreY()), k, null);
+                if (works != null) trunkBand = k;
             }
             int last = drafts.size() - 1;
             // A trunk's band that is also the last: the vault's apron is its way on, so it too meets the spine north
             // of the works hall.
-            keepOff = apronKeepOff;
-            connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron, FREIGHT_WIDTH);
-            connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron, FREIGHT_WIDTH);
+            if (!apronIntoHall(last)) {
+                keepOff = apronKeepOff;
+                connect(new Cell(apron.left() - 1, apron.bottom() + 2), last, apron, FREIGHT_WIDTH);
+                connect(new Cell(apron.left() - 1, apron.top() - 3), last, apron, FREIGHT_WIDTH);
+            }
             keepOff = null;
+            // The plant's spaces join last, each on its own side of the works hall, once every way through the band
+            // and on to the vault has met the spine: no space's way can then carry the route round the hall.
+            for (Placed p : blockPlaced) join(p, trunkBand, trunkHall);
             List<Area> entrances = new ArrayList<>();
             for (Way way : face.ways) if (way.open()) entrances.add(way.span());
             return entrances;
@@ -1790,6 +2060,16 @@ public final class RuinsDelveStage implements GenStage {
             return out;
         }
 
+        /** The maintenance shop's dock cell ({@link #dockCell}), or null with no maintenance shop. */
+        Cell serviceDock(List<RuinsDelve.PlantHall> halls) {
+            for (RuinsDelve.PlantHall hall : halls) {
+                if (hall.stage() != RuinsDelve.PlantStage.MAINTENANCE) continue;
+                return dockCell(hall.footprint(), (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                        && !topology.isFixture(x, y) && !grid.isDoorway(x, y));
+            }
+            return null;
+        }
+
         /**
          * The works hall's stand settled on floor: the nearest open cell to the planned one inside the hall, clear of
          * pieces, melt and floor kit; null without a works hall or with no such cell within six.
@@ -1822,8 +2102,16 @@ public final class RuinsDelveStage implements GenStage {
             int band = i - firstInside, bands = plan.interiorLayers();
             List<PlantBrief.Space> brief = new ArrayList<>(carried);
             carried.clear();
+            bandFirst = null;
             brief.addAll(PlantBrief.spaces(band, bands, plan.layers()));
             Area last = null;
+            if (band == 0) {
+                for (Placed p : blockPlaced) {
+                    brief.remove(p.space());
+                    publish(p.space(), p.room(), chambers, plantHalls);
+                    last = p.room();
+                }
+            }
             for (PlantBrief.Space space : brief) {
                 Area room = null;
                 for (float shrink : new float[]{1f, .8f}) {
@@ -1844,17 +2132,208 @@ public final class RuinsDelveStage implements GenStage {
                     for (int x = room.left(); x <= room.right(); x++) interiorFloor(x, y);
                 }
                 reserve(room, 2);
-                connect(new Cell(room.centreX(), room.centreY()), i, null,
+                Area t = trunkHall != null && region.contains(trunkHall.centreX(), trunkHall.centreY()) ? trunkHall : null;
+                connect(new Cell(room.centreX(), room.centreY()), i, otherSide(room, t),
                         space.freight() ? FREIGHT_WIDTH : SERVICE_WIDTH);
-                chambers.add(room);
-                spaces.put(RuinsDelve.Interior.spaceName(space.name()), room);
-                if (space.stage() != null) {
-                    plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.Interior.spaceName(space.name()),
-                            space.stage(), room));
-                } else if (space.role() != null) {
-                    roles.put(room, space.role());
-                }
+                publish(space, room, chambers, plantHalls);
                 last = room;
+                if (bandFirst == null) bandFirst = room;
+            }
+        }
+
+        /** Publishes a laid space: a chamber by name, and a plant hall when frame-wide, else a room by its role. */
+        void publish(PlantBrief.Space space, Area room, List<Area> chambers, List<RuinsDelve.PlantHall> plantHalls) {
+            chambers.add(room);
+            spaces.put(RuinsDelve.Interior.spaceName(space.name()), room);
+            if (space.stage() != null) {
+                plantHalls.add(new RuinsDelve.PlantHall(RuinsDelve.Interior.spaceName(space.name()), space.stage(),
+                        room));
+            } else if (space.role() != null) {
+                roles.put(room, space.role());
+            }
+        }
+
+        /**
+         * The works band's block plan ({@link PlantBrief}): its spaces laid in blocks round the works hall {@code t}
+         * before the band's ways, so the plant reads as one building and not islands on long corridors. The raw stock
+         * store under the hall's dispatch end beside the spine, the dock below it where the ways in arrive, the QA lab
+         * beside the raw stock at the outfeed; the control gallery and plant services down the hall's east wall;
+         * maintenance over the hall's head, consumables beside it, the habitat beyond. Each sits a wall and a margin
+         * from its neighbour ({@link #BLOCK_GAP}); a block that does not fit is left to the band's search. Infantry
+         * rooms are closed to ways ({@link #noWay}) and entered by their own door.
+         */
+        void blockPlan(Area region, Area t, List<Way> ways) {
+            // Off the hall by its kept margin and the spine's, two hull cells between neighbours.
+            int g = BLOCK_GAP, east = t.left() + 6, south = t.bottom() - 4, north = t.top() + 4, side = t.right() + 4;
+            Map<String, PlantBrief.Space> byName = new HashMap<>();
+            for (PlantBrief.Space s : PlantBrief.spaces(0, plan.interiorLayers(), plan.layers())) byName.put(s.name(), s);
+            List<Way> in = new ArrayList<>();
+            for (Way way : ways) if (way.open()) in.add(way);
+            Area raw = block(region, byName.get("raw-stock"), east, south, false);
+            // The dock on the hull face, its cargo lock the way in nearest the raw stock: the company comes in
+            // through the dock, not down a corridor to it.
+            int rawY = raw != null ? raw.centreY() : south;
+            in.sort(Comparator.comparingInt((Way way) -> Math.abs(way.far().y() - rawY)));
+            Area dock = null;
+            if (!in.isEmpty()) dock = atLock(region, t, byName.get("dock"), in.get(0));
+            if (dock == null) dock = block(region, byName.get("dock"), east, raw != null ? raw.bottom() - g : south, false);
+            // The lab at the outfeed: beside the raw stock where the strip is wide enough, else under it.
+            PlantBrief.Space lab = byName.get("lab");
+            if (raw != null && block(region, lab, raw.right() + g, south, false) == null) {
+                block(region, lab, raw.left(), raw.bottom() - g, false);
+            }
+            // The control gallery down the hall's long wall, east where there is room, else west over the spine.
+            PlantBrief.Space control = byName.get("control");
+            if (block(region, control, side, t.centreY() + 4, true) == null && control != null) {
+                block(region, control, t.left() - 4 - control.width() + 1, t.centreY() + 4, true);
+            }
+            block(region, byName.get("services"), side, t.centreY() - 3, false);
+            Area maint = block(region, byName.get("maintenance"), east, north, true);
+            PlantBrief.Space consumables = byName.get("consumables");
+            if (maint != null && block(region, consumables, maint.right() + g, north, true) == null) {
+                block(region, consumables, maint.left(), maint.top() + g, true);
+            }
+            // The habitat on the hull face behind the other way in, its personnel lock: the crew's own door, away
+            // from the dock.
+            Area habitat = null;
+            for (int k = in.size() - 1; k >= 1 && habitat == null; k--) {
+                habitat = atLock(region, t, byName.get("habitat"), in.get(k));
+            }
+            if (habitat == null) {
+                habitat = block(region, byName.get("habitat"), east, maint != null ? maint.top() + g : north, true);
+            }
+            // A lone band's finished goods wait at the head end, where the way on to the vault leaves the hall.
+            PlantBrief.Space goods = byName.get("finished-goods");
+            if (goods != null) {
+                int over = maint != null ? maint.top() + g : north;
+                if (block(region, goods, east, over, true) == null && habitat != null) {
+                    block(region, goods, habitat.right() + g, habitat.bottom(), true);
+                }
+            }
+        }
+
+        /**
+         * On a plant whose works hall stands in the last band, alongside the vault's apron: the way on to the vault
+         * leaves through the hall's east wall, a freight way wide, straight onto the apron, instead of a way of its own
+         * round the hall's head or foot (there is not always room past the vault for one, and a way round the foot
+         * would carry the route round the hall). Whether it was cut.
+         */
+        boolean apronIntoHall(int last) {
+            Area t = trunkHall;
+            if (!plantMode || t == null || trunkBand != last || apron.left() <= t.right()) return false;
+            int lo = Math.max(t.bottom() + 4, apron.bottom() + 2), hi = Math.min(t.top() - 4, apron.top() - 2);
+            if (lo > hi) return false;
+            int y0 = Math.max(lo, Math.min(hi, apron.centreY()));
+            for (int x = t.right() + 1; x < apron.left(); x++) {
+                for (int y = y0 - 1; y <= y0 + 1; y++) if (hull[i(x, y)]) interiorFloor(x, y);
+            }
+            return true;
+        }
+
+        /**
+         * Lays {@code space} on the hull face behind way {@code way}, its west wall at the band's edge, clear of the
+         * way's own ground and the wall line's jogs, and centred on the way, so the way in opens straight into it: the space's
+         * lock. It stays west of the works hall {@code t} and its spine. Null, nothing laid, where it does not fit.
+         */
+        Area atLock(Area region, Area t, PlantBrief.Space space, Way way) {
+            if (space == null) return null;
+            int x = Math.max(way.span().left() + 6, region.left() + 2), mid = way.far().y();
+            for (boolean turned : new boolean[]{false, true}) {
+                int ch = turned ? space.width() : space.height(), cw = turned ? space.height() : space.width();
+                // West of the hall's wall and the spine beside it: a space over the spine would open the way in onto
+                // the network north of the hall, and the route to the vault would go round it.
+                if (x + cw - 1 > t.left() - 1 - BLOCK_GAP) continue;
+                Area room = block(region, space, x, mid - ch / 2, true, cw, ch);
+                if (room == null) continue;
+                blockPlaced.set(blockPlaced.size() - 1, new Placed(space, room, way.far()));
+                return room;
+            }
+            return null;
+        }
+
+        /**
+         * The ground a corridor from {@code room} may not enter so that it joins the network on the room's own side of
+         * the works hall {@code t}: everything from the hall's dispatch end north for a room before it, from its head
+         * south for a room beyond it; null for a room beside the hall. No space's way runs round the hall, so the
+         * route through the band still crosses it.
+         */
+        Area otherSide(Area room, Area t) {
+            if (t == null) return null;
+            if (room.top() < t.bottom()) return new Area(0, t.bottom() - 1, w - 1, h - 1);
+            if (room.bottom() > t.top()) return new Area(0, 0, w - 1, t.top() + 1);
+            return null;
+        }
+
+        /**
+         * Lays {@code space} with its south-west corner at {@code (x, edge)} when {@code up}, else its top-left at
+         * {@code (x, edge)} hanging down; null, and nothing laid, where it leaves the region or meets anything laid.
+         */
+        Area block(Area region, PlantBrief.Space space, int x, int edge, boolean up) {
+            if (space == null) return null;
+            Area laid = block(region, space, x, edge, up, space.width(), space.height());
+            // A space too wide for its strip stands on its side.
+            return laid != null ? laid : block(region, space, x, edge, up, space.height(), space.width());
+        }
+
+        private Area block(Area region, PlantBrief.Space space, int x, int edge, boolean up, int cw, int ch) {
+            if (blockPlaced.stream().anyMatch(p -> p.space().equals(space))) return null;
+            int b = up ? edge : edge - ch + 1;
+            Area room = new Area(x, b, x + cw - 1, b + ch - 1);
+            if (room.left() < region.left() + 2 || room.bottom() < region.bottom() + 2
+                    || room.right() > region.right() - 2 || room.top() > region.top() - 2) return null;
+            if (!free(room.left() - 1, room.bottom() - 1, room.right() + 1, room.top() + 1)) return null;
+            for (int y = room.bottom(); y <= room.top(); y++) {
+                for (int cx = room.left(); cx <= room.right(); cx++) interiorFloor(cx, y);
+            }
+            // An infantry room is closed to ways with its wall: a corridor laid along it would take the wall and run
+            // the room into the network as a way round the hall. Its own doors are cut through the wall by hand.
+            if (!space.freight()) {
+                for (int y = room.bottom() - 1; y <= room.top() + 1; y++) {
+                    for (int cx = room.left() - 1; cx <= room.right() + 1; cx++) noWay[i(cx, y)] = true;
+                }
+            }
+            reserve(room, 1);
+            blockPlaced.add(new Placed(space, room));
+            return room;
+        }
+
+        /**
+         * Joins a block-planned space to band {@code band}'s network: a frame-wide space by a freight way from its
+         * middle; an infantry room off the spine's side by a service corridor from a door in its wall facing the spine;
+         * a room beside the works hall by a door straight onto the hall's floor (the control gallery's stair), never
+         * by a corridor of its own, so no way runs round the hall and the route through the band still crosses it.
+         */
+        void join(Placed p, int band, Area t) {
+            Area r = p.room();
+            if (p.lock() != null) {
+                // The lock: the way in runs straight through the wall into the space, a freight way wide. The space is
+                // on its way in already and takes no other, so no second way runs through it round the hall.
+                int lo = stampLow(FREIGHT_WIDTH);
+                for (int x = p.lock().x(); x < r.left(); x++) {
+                    for (int y = p.lock().y() + lo; y < p.lock().y() + lo + FREIGHT_WIDTH; y++) {
+                        if (grid.inBounds(x, y) && hull[i(x, y)]) interiorFloor(x, y);
+                    }
+                }
+                return;
+            }
+            if (p.space().freight()) {
+                connect(new Cell(r.centreX(), r.centreY()), band, otherSide(r, t), FREIGHT_WIDTH);
+                return;
+            }
+            boolean beside = r.bottom() <= t.top() && r.top() >= t.bottom();
+            if (beside && (r.left() > t.right() || r.right() < t.left())) {
+                int y = Math.max(t.bottom() + 2, Math.min(t.top() - 3, Math.max(r.bottom(), Math.min(r.top() - 1,
+                        r.centreY()))));
+                int from = r.left() > t.right() ? t.right() + 1 : r.right() + 1;
+                int to = r.left() > t.right() ? r.left() - 1 : t.left() - 1;
+                for (int x = from; x <= to; x++) {
+                    for (int dy = 0; dy <= 1; dy++) if (hull[i(x, y + dy)]) interiorFloor(x, y + dy);
+                }
+                return;
+            }
+            connect(new Cell(r.left() - 2, r.centreY()), band, otherSide(r, t));
+            for (int y = r.centreY(); y <= r.centreY() + 1; y++) {
+                if (hull[i(r.left() - 1, y)]) interiorFloor(r.left() - 1, y);
             }
         }
 
@@ -1883,6 +2362,9 @@ public final class RuinsDelveStage implements GenStage {
                         ? new int[]{innerHall.footprint().centreX(), innerHall.footprint().centreY()}
                         : new int[]{mx, t != null && t.centreY() > my ? region.bottom() + ch : region.top() - ch};
                 case VAULT_ROW -> new int[]{region.right() - 2 - cw / 2, vault.footprint().centreY()};
+                case ROUTE -> new int[]{region.left() + 4 + cw / 2, vault.footprint().centreY()};
+                case UNDER_FIRST -> bandFirst == null ? new int[]{mx, my}
+                        : new int[]{bandFirst.centreX(), bandFirst.bottom() - BLOCK_GAP - ch / 2};
                 case MIDDLE -> new int[]{mx, my};
                 case BESIDE_LAST -> last == null ? new int[]{mx, my}
                         : new int[]{last.right() + 3 + cw / 2, last.centreY()};
@@ -1943,11 +2425,13 @@ public final class RuinsDelveStage implements GenStage {
             // A plant laid from its brief stands its works hall in the middle of the band, room left at both ends
             // for what fed it and what served it.
             boolean centred = plantMode && mega;
-            int[] at = centred ? near(region, region.centreX(), region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
+            // West of it, past the spine, a strip wide enough for the dock and the habitat on the hull face.
+            int ax = Math.max(region.centreX(), region.left() + PLANT_WEST_STRIP + cw / 2);
+            int[] at = centred ? near(region, ax, region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
             // A mega forge that finds no room at its full length is shortened, never below the layout's least.
             while (at == null && mega && ch - 8 >= MEGA_MIN_LONG) {
                 ch -= 8;
-                at = centred ? near(region, region.centreX(), region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
+                at = centred ? near(region, ax, region.centreY(), cw, ch, 2) : spot(region, cw, ch, 2);
             }
             if (at == null) return null;
             Area room = new Area(at[0], at[1], at[0] + cw - 1, at[1] + ch - 1);
@@ -1978,6 +2462,9 @@ public final class RuinsDelveStage implements GenStage {
                 case FOUNDRY -> {
                     if (plan.dressing().foundry() && hall.width() >= MEGA_MIN_WIDE && hall.height() >= MEGA_MIN_LONG) {
                         megaForge(registry, hall, centre);
+                        if (hall.equals(trunkHall) && worksStand != null) {
+                            standLit = standLit(hall, centre, worksStand, true, poolLo, poolHi);
+                        }
                     } else {
                         foundry(registry, hall, centre);
                     }
@@ -1990,10 +2477,14 @@ public final class RuinsDelveStage implements GenStage {
                     if (laid != null) worksHall(registry, hall, centre, laid);
                     else lines(registry, hall, centre);
                     // The zone is held from the east end of the transfer aisle, which the hall keeps clear.
-                    if (hall.equals(trunkHall)) worksStand = new Cell(hall.right() - 2, centre.y());
+                    if (hall.equals(trunkHall)) {
+                        worksStand = new Cell(hall.right() - 2, centre.y());
+                        standLit = standLit(hall, centre, worksStand, false, 0, -1);
+                    }
                 }
                 case PRODUCTION -> lines(registry, hall, centre);
                 case STORAGE -> {
+                    if (storeRacks(registry, hall, centre)) break;
                     // Rack rows, two deep with a two-cell aisle, a gap between racks; most stripped, a few stocked.
                     for (int y = hall.bottom() + 2; y + 1 <= hall.top() - 2; y += 4) {
                         for (int x = hall.left() + 2; x + 5 <= hall.right() - 2; x += 8) {
@@ -2124,6 +2615,7 @@ public final class RuinsDelveStage implements GenStage {
                 Area room = hall.footprint();
                 layRoom(registry, RuinsRoom.WORKSHOP, works, room, new Cell(room.centreX(), room.centreY()),
                         RuinsRoom.facing(ax - room.centreX(), ay - room.centreY()));
+                shopSpares(registry, room);
             }
             for (Layer layer : layers) {
                 for (SideRoom side : layer.rooms()) {
@@ -2468,6 +2960,8 @@ public final class RuinsDelveStage implements GenStage {
                 }
             }
             if (lo > hi) return;
+            poolLo = lo;
+            poolHi = hi;
             DoodadDef span = registry.doodad(BRIDGE_SPAN), end = registry.doodad(BRIDGE_END);
             DoodadDef damaged = registry.doodad(BRIDGE_SPAN_DAMAGED);
             if (span == null || end == null) return;
@@ -2656,6 +3150,91 @@ public final class RuinsDelveStage implements GenStage {
             kept[i(bx + 1, by + 1)] = true;
         }
 
+        /**
+         * A plant's named store stocked from its brief ({@code ruins-plant-brief}, Stores): rack bays two wide and four
+         * long, north-south, in columns with three-cell aisles, the middle row and column kept clear as the store's
+         * freight cross. The plant ran its stores down, so most bays stand empty or stripped; one in four still holds
+         * two loads of the store's goods, and more are loaded where the store would hold fewer than its least
+         * ({@link #GOODS_MIN_LOADS}, {@link #RAW_MIN_LOADS}). The raw stock's last bay is its fuel bay. Every load is
+         * published ({@link #loads}). Whether the hall was a named store.
+         */
+        boolean storeRacks(TileRegistry registry, Area hall, Cell centre) {
+            if (!plantMode) return false;
+            boolean raw = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("raw-stock")));
+            boolean goods = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("finished-goods")));
+            if (!raw && !goods) return false;
+            String space = RuinsDelve.Interior.spaceName(raw ? "raw-stock" : "finished-goods");
+            String[] kinds = raw ? RAW_LOADS : GOODS_LOADS;
+            // Bays outward from the freight cross, five cells wide through the store's middle, a cell off the walls:
+            // north-south in columns three cells apart, a cell between bays in a column, or, in a store too short for that,
+            // east-west in rows two apart.
+            boolean across = hall.height() < 17;
+            int bw = across ? 4 : 2, bh = across ? 2 : 4;
+            List<Integer> xs = new ArrayList<>(), ys = new ArrayList<>();
+            for (int x = centre.x() - 2 - bw; x >= hall.left() + 1; x -= bw + 3) xs.add(x);
+            for (int x = centre.x() + 3; x + bw - 1 <= hall.right() - 1; x += bw + 3) xs.add(x);
+            for (int y = centre.y() - 2 - bh; y >= hall.bottom() + 1; y -= bh + (across ? 2 : 1)) ys.add(y);
+            for (int y = centre.y() + 3; y + bh - 1 <= hall.top() - 1; y += bh + (across ? 2 : 1)) ys.add(y);
+            List<Cell> bays = new ArrayList<>();
+            for (int y : ys) for (int x : xs) bays.add(new Cell(x, y));
+            int dx = across ? 2 : 0, dy = across ? 0 : 2;
+            int least = raw ? RAW_MIN_LOADS : GOODS_MIN_LOADS, held = 0;
+            int fuel = raw && !bays.isEmpty() ? bays.size() - 1 : -1;
+            boolean[] done = new boolean[bays.size()];
+            // The bays the dice left loaded, then more until the store holds its least, counting what stood.
+            for (int pass = 0; pass < 2; pass++) {
+                for (int k = 0; k < bays.size(); k++) {
+                    if (done[k] || k == fuel) continue;
+                    int x = bays.get(k).x(), y = bays.get(k).y();
+                    if (pass == 0 ? hash(x, y, 0x5703) % 8 >= 2 : held >= least) continue;
+                    String kind = kinds[hash(x, y, 0x10AD) % kinds.length];
+                    int stood = (load(registry, kind, x, y, 2, hall, centre, space) ? 1 : 0)
+                            + (load(registry, kind, x + dx, y + dy, 2, hall, centre, space) ? 1 : 0);
+                    held += stood;
+                    done[k] = stood > 0;
+                }
+            }
+            for (int k = 0; k < bays.size(); k++) {
+                if (done[k]) continue;
+                int x = bays.get(k).x(), y = bays.get(k).y();
+                if (k == fuel) {
+                    load(registry, STORE_FUEL, x, y, 2, hall, centre, space);
+                    load(registry, STORE_FUEL, x + dx, y + dy, 2, hall, centre, space);
+                } else {
+                    DoodadDef bay = registry.doodad(hash(x, y, 0x5704) % 2 == 0 ? STORE_BAY_STRIPPED : STORE_BAY);
+                    if (bay != null) dressProp(bay, x, y, bw, bh, hall, centre, across ? 1 : 0);
+                }
+            }
+            return true;
+        }
+
+        /** Stands a load of goods, {@code size} square, and publishes it with its space; whether it stood. */
+        boolean load(TileRegistry registry, String id, int x, int y, int size, Area hall, Cell keepClear, String space) {
+            if (!piece(registry, id, x, y, size, size, hall, keepClear)) return false;
+            loads.add(new RuinsDelve.Load(new Cell(x, y), new Area(x, y, x + size - 1, y + size - 1), id, space));
+            return true;
+        }
+
+        /**
+         * The maintenance shop's spares: heavy machinery crated on skids under its hoists, up to two, from the head
+         * wall down, clear of the shop's middle where the service bay docks.
+         */
+        void shopSpares(TileRegistry registry, Area shop) {
+            Cell middle = new Cell(shop.centreX(), shop.centreY());
+            String space = RuinsDelve.Interior.spaceName("maintenance");
+            int stood = 0;
+            for (int y = shop.top() - 3; y >= shop.bottom() + 1 && stood < 2; y--) {
+                for (int x = shop.left() + 1; x + 2 <= shop.right() - 1 && stood < 2; x++) {
+                    // Off the middle, where the service bay docks with two clear cells round it.
+                    if (Math.abs(x + 1 - middle.x()) < 5 && Math.abs(y + 1 - middle.y()) < 5) continue;
+                    if (load(registry, STORE_MACHINERY, x, y, 3, shop, middle, space)) {
+                        stood++;
+                        x += 4;
+                    }
+                }
+            }
+        }
+
         /** Stands one blocking piece of the plant kit, where the hall stays one floor; whether it stood. */
         boolean piece(TileRegistry registry, String id, int x, int y, int fx, int fy, Area hall, Cell keepClear) {
             DoodadDef def = registry.doodad(id);
@@ -2818,6 +3397,7 @@ public final class RuinsDelveStage implements GenStage {
         boolean corridorCell(int x, int y, Area avoid) {
             if (x < 1 || y < 1 || x > w - 2 || y > h - 2) return false;
             if (!insideCell(x, y) || lineCell[i(x, y)] || (avoid != null && avoid.contains(x, y))) return false;
+            if (noWay != null && noWay[i(x, y)]) return false;
             return hull[i(x, y)] || grid.isWalkable(x, y);
         }
 
