@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -892,6 +893,7 @@ public class BattleSprites {
         airframeSpritesLoadAttempted = true;
         for (ShuttleType type : ShuttleType.values()) loadAirframe(type);
         for (FighterProfile fighter : FighterProfile.values()) loadAirframe(fighter);
+        for (PortFreighter freighter : PortFreighter.values()) loadAirframe(freighter);
     }
 
     private final java.util.Map<String, ShuttleSpriteCache> pathSprites = new java.util.HashMap<>();

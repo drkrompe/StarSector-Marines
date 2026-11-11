@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -286,6 +287,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     void loadHulls() {
         for (ShuttleType type : ShuttleType.values()) loadHull(type);
         for (FighterProfile fighter : FighterProfile.values()) loadHull(fighter);
+        for (PortFreighter freighter : PortFreighter.values()) loadHull(freighter);
     }
 
     /**

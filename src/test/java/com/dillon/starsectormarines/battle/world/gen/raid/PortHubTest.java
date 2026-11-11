@@ -11,82 +11,103 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The port hub's geometry ({@link PortHub}): bands outward from the lines in the order cargo moves, the warehouses
- * off the held bands, the staging broken at the cross streets, the pads along the outer edge. Rectangles only.
+ * The port hub's geometry ({@link PortHub}): bands outward from the lines in the order cargo moves, roads from the
+ * highway through every band to the pads, the warehouses on their own built ground, few pads sized for freighters.
+ * Rectangles only.
  */
 class PortHubTest {
+
+    private static PortHub east() {
+        return PortHub.lay(150, 67, 277, 165, true, true, 40);
+    }
 
     @Test
     void theBandsRunOutwardFromTheLinesToThePadsInCargoOrder() {
         for (boolean north : new boolean[]{true, false}) {
             PortHub hub = PortHub.lay(150, north ? 67 : 2, 277, north ? 165 : 100, true, north, 40);
             assertNotNull(hub);
-            // Outward: the lower a band's distance from the lines' middle-side edge, the nearer the map's middle.
             int edge = north ? hub.lines().y0() : hub.lines().y1();
             int highway = out(hub.highway(), edge, north), rail = out(hub.tracks().get(0), edge, north);
             int sheds = out(hub.sheds().get(0).at(), edge, north), boxes = out(hub.containers().get(0), edge, north);
             int main = out(hub.fuelMain(), edge, north), pads = out(hub.pads().get(0), edge, north);
             assertTrue(highway < rail && rail < sheds && sheds < boxes && boxes < main && main < pads,
                     "north " + north + ": " + List.of(highway, rail, sheds, boxes, main, pads));
-            assertEquals(2, hub.sheds().stream().map(s -> s.at().y0()).distinct().count(), "two warehouse rows");
         }
     }
 
     @Test
-    void warehousesStandBetweenTheHeldBandsOnTheirOwnGround() {
-        PortHub hub = PortHub.lay(150, 67, 277, 165, true, true, 40);
+    void everyArterialRunsFromTheHighwayThroughEveryBandToThePads() {
+        PortHub hub = east();
         assertNotNull(hub);
-        for (PortHub.Shed shed : hub.sheds()) {
-            assertFalse(shed.at().overlaps(hub.lines()), "a warehouse is raised off the lines' held band");
-            assertFalse(shed.at().overlaps(hub.apron()), "and off the apron's");
-            for (PortHub.Shed other : hub.sheds()) {
-                if (other != shed) assertFalse(shed.at().overlaps(other.at()));
-            }
+        assertTrue(hub.arterials().size() >= 3, "the truck gate's road and an arterial at each bay's end");
+        assertEquals(hub.gateRoad(), hub.arterials().get(0));
+        assertEquals(hub.paved().x0(), hub.gateRoad().x0(), "the truck gate at the terminal's end");
+        for (PortHub.Rect a : hub.arterials()) {
+            assertEquals(hub.highway().y1() + 1, a.y0(), "off the highway");
+            assertEquals(hub.pads().get(0).y0() - 1, a.y1(), "to the service lane before the pads");
+            for (PortHub.Shed shed : hub.sheds()) assertFalse(a.overlaps(shed.at()), "no warehouse on a road");
+            for (PortHub.Rect box : hub.containers()) assertFalse(a.overlaps(box), "no container on a road");
+            for (PortHub.Rect track : hub.tracks()) assertTrue(a.overlaps(track), "crosses the rail line");
         }
-        // The near row's doors face the lines (south here), the far row's the yard road.
-        int nearY = hub.sheds().get(0).at().y0();
+        // The roads along the hub reach its whole length, so each arterial joins the others.
+        long along = hub.roads().stream().filter(r -> r.x0() == hub.paved().x0() && r.x1() == 277).count();
+        assertEquals(4, along, "rail road, row lane, yard road, service lane");
+    }
+
+    @Test
+    void warehousesStandOnTheirBuiltGroundWithTheMarshallingParkInTheNearRowsFirstBay() {
+        PortHub hub = east();
+        for (PortHub.Shed shed : hub.sheds()) {
+            assertFalse(shed.at().overlaps(hub.lines()), "off the lines' band");
+            assertFalse(shed.at().overlaps(hub.apron()), "off the apron");
+            assertTrue(shed.at().y0() >= hub.built().y0() && shed.at().y1() <= hub.built().y1(), "on built ground");
+            assertFalse(shed.at().overlaps(hub.marshalling()), "the park is not a warehouse's");
+            for (PortHub.Shed other : hub.sheds()) if (other != shed) assertFalse(shed.at().overlaps(other.at()));
+        }
+        assertNotNull(hub.marshalling());
+        assertEquals(hub.gateRoad().x1() + 1, hub.marshalling().x0(), "beside the truck gate's road");
+        int nearY = hub.marshalling().y0();
         for (PortHub.Shed shed : hub.sheds()) assertEquals(shed.at().y0() == nearY ? 0 : 2, shed.turns());
     }
 
     @Test
-    void stagingBreaksAtTheCrossStreetsAndKeepsOffTheHeavyPad() {
-        PortHub hub = PortHub.lay(150, 67, 277, 165, true, true, 40);
-        assertNotNull(hub);
-        assertNotNull(hub.heavyPad(), "a hub this long has its heavy pad at the deep end");
-        assertEquals(277, hub.heavyPad().x1());
-        // A cross street after every bay of two warehouses: no container stands on one.
-        int cross0 = hub.sheds().get(1).at().x1() + 1, cross1 = cross0 + PortHub.CROSS - 1;
-        for (PortHub.Rect box : hub.containers()) {
-            assertFalse(box.x1() >= cross0 && box.x0() <= cross1, "box on the cross street: " + box);
-            assertFalse(box.overlaps(hub.heavyPad()), "box on the heavy pad: " + box);
+    void fewPadsEachSizedForAFreighterWithAWallBetweenEachPair() {
+        PortHub hub = east();
+        assertTrue(hub.pads().size() >= PortHub.MIN_PADS && hub.pads().size() <= 5);
+        for (PortHub.Rect pad : hub.pads()) {
+            // An Atlas is 27 cells long and a Prometheus 17 cells across, as they draw.
+            assertTrue(pad.height() >= 29 && pad.width() >= 19, "pad " + pad);
+            assertTrue(pad.x1() <= 277);
         }
-        assertFalse(hub.cranes().isEmpty());
-        for (PortHub.Rect pad : hub.pads()) assertFalse(pad.overlaps(hub.heavyPad()));
-        assertEquals(hub.pads().size(), hub.blastWalls().size(), "a wall after each pad, the last before the heavy pad");
+        assertEquals(hub.pads().size() - 1, hub.blastWalls().size());
+        for (int i = 0; i + 1 < hub.pads().size(); i++) {
+            int wx = hub.blastWalls().get(i).x0();
+            assertTrue(wx > hub.pads().get(i).x1() && wx < hub.pads().get(i + 1).x0());
+        }
     }
 
     @Test
     void theLinesRunBackPastTheTerminalAndOutAtTheDeepEdge() {
-        PortHub east = PortHub.lay(150, 67, 277, 165, true, true, 40);
-        assertEquals(110, east.lines().x0());
-        assertEquals(277, east.lines().x1());
-        assertEquals(150, east.terminalX());
+        PortHub hub = east();
+        assertEquals(110, hub.lines().x0());
+        assertEquals(277, hub.lines().x1());
+        assertEquals(150, hub.terminalX());
         PortHub west = PortHub.lay(2, 67, 129, 165, false, true, 40);
-        assertEquals(2, west.lines().x0());
         assertEquals(169, west.lines().x1());
         assertEquals(129, west.terminalX());
-        assertTrue(west.pads().get(0).x0() > west.heavyPad().x1(), "turned, the heavy pad is at the west edge");
+        assertTrue(west.pads().get(0).x1() < 129 - PortHub.FARM, "turned, the pads run west from the farm");
     }
 
     @Test
     void shallowGroundHoldsLessAndTooShallowHoldsNoHub() {
-        PortHub deep = PortHub.lay(150, 67, 277, 165, true, true, 40);
+        PortHub deep = PortHub.lay(150, 67, 277, 200, true, true, 40);
         PortHub shallow = PortHub.lay(150, 67, 277, 67 + PortHub.linesDepth() + PortHub.apronFixed()
                 + PortHub.BLOCK + PortHub.SHED_DEEP, true, true, 40);
         assertNotNull(shallow);
         assertTrue(shallow.containers().size() < deep.containers().size());
         assertEquals(1, shallow.sheds().stream().map(s -> s.at().y0()).distinct().count(), "one warehouse row");
-        assertNull(PortHub.lay(150, 67, 277, 67 + PortHub.linesDepth() + PortHub.apronFixed(), true, true, 40));
+        assertNull(PortHub.lay(150, 67, 277, 67 + PortHub.linesDepth() + PortHub.apronFixed() + PortHub.BLOCK,
+                true, true, 40));
     }
 
     /** How far out from the lines' middle-side edge a band starts. */
