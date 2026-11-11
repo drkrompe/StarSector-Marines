@@ -26,7 +26,8 @@ import java.util.List;
  *
  * <p>It is initial damage, applied when the battle is assembled, as runs of cells along each map row, so it never
  * reaches a cell it was not meant to: never the hull, its trench, lips or aprons, a standing piece of debris or a
- * fixture other than a tree or rock, the landing's field of fire, or a piece the mission's layout needs. A named place
+ * fixture other than a tree or rock, or a piece the mission's layout needs; in the landing's field of fire it only
+ * scorches, so the band's ground runs under it and nothing there stands in the way of fire. A named place
  * or a layout's other pieces are spared only clear of {@link #FLATTEN}: nothing intact stands against the hull or
  * the plough. Damage only takes walls and roofs down and fells trees, so every way, stake point and haul road stays
  * as open as it was. The ground under it is ploughed when the map is generated ({@link #plough}): soft ground burnt
@@ -67,8 +68,8 @@ final class ImpactZone {
         source.or(trench);
         source.or(lips);
         int[] dist = distance(source, w, h);
-        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons, field);
-        List<Run> runs = runs(ctx.grid, ctx.topology, dist, kept, w, h, ctx.seed);
+        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons);
+        List<Run> runs = runs(ctx.grid, ctx.topology, dist, kept, disc(field, w, h), w, h, ctx.seed);
         return layers(runs);
     }
 
@@ -91,7 +92,8 @@ final class ImpactZone {
         source.or(trench);
         source.or(lips);
         int[] dist = distance(source, w, h);
-        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons, field);
+        // The landing's field of fire is ploughed like the rest: its ground is flat, so the scorch runs under it.
+        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons);
         CellTopology topology = ctx.topology;
         BitSet band = new BitSet(w * h);
         for (int k = 0; k < w * h; k++) if (!kept[k] && dist[k] <= far * 3) band.set(k);
@@ -171,22 +173,29 @@ final class ImpactZone {
         return d;
     }
 
+    /**
+     * The landing's field of fire and {@link #CLEAR} round it, by cell: the band scorches it like any open ground, but
+     * wrecks nothing there, so nothing that stands in the way of fire is laid in it. Null where there is none.
+     */
+    static boolean[] disc(FieldOfFire field, int w, int h) {
+        if (field == null) return null;
+        boolean[] disc = new boolean[w * h];
+        long r = field.radius() + CLEAR;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                long dx = x - field.centerX(), dy = y - field.centerY();
+                if (dx * dx + dy * dy <= r * r) disc[y * w + x] = true;
+            }
+        }
+        return disc;
+    }
+
     /** The cells the band never touches. */
-    private static boolean[] kept(GenContext ctx, int[] dist, BitSet hull, BitSet trench, BitSet lips, BitSet aprons,
-                                  FieldOfFire field) {
+    private static boolean[] kept(GenContext ctx, int[] dist, BitSet hull, BitSet trench, BitSet lips, BitSet aprons) {
         int w = ctx.width, h = ctx.height;
         boolean[] kept = new boolean[w * h];
         for (BitSet cells : new BitSet[]{hull, trench, lips, aprons}) {
             for (int k = cells.nextSetBit(0); k >= 0; k = cells.nextSetBit(k + 1)) kept[k] = true;
-        }
-        if (field != null) {
-            long r = field.radius() + CLEAR;
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    long dx = x - field.centerX(), dy = y - field.centerY();
-                    if (dx * dx + dy * dy <= r * r) kept[y * w + x] = true;
-                }
-            }
         }
         // A place the town named is kept, but not against the hull: nothing intact stands where it ploughed in.
         boolean[] places = new boolean[w * h];
@@ -266,6 +275,12 @@ final class ImpactZone {
 
     static List<Run> runs(NavigationGrid grid, CellTopology topology, int[] dist, boolean[] kept, int w, int h,
                           long seed) {
+        return runs(grid, topology, dist, kept, null, w, h, seed);
+    }
+
+    /** As above, only scorch laid on the {@code fire} cells ({@link #disc}), where nothing may stand in the way. */
+    static List<Run> runs(NavigationGrid grid, CellTopology topology, int[] dist, boolean[] kept, boolean[] fire,
+                          int w, int h, long seed) {
         List<Run> out = new ArrayList<>();
         for (int y = 0; y < h; y++) {
             DamagePlan.Mode open = null;
@@ -279,6 +294,7 @@ final class ImpactZone {
                     // wrecked ones (trees felled) growing rarer outward.
                     if (m != null && !built(topology, x, y) && dist[k] > FLATTEN * 3
                             && (m != DamagePlan.Mode.RUIN || patch(seed ^ 0x5CA2L, x, y) >= OPEN_SCAR)) m = null;
+                    if (m != null && fire != null && fire[k]) m = m == DamagePlan.Mode.ERASE ? null : DamagePlan.Mode.SCAR;
                 }
                 if (m != open) {
                     if (open != null) out.add(new Run(open, y, start, x - 1));

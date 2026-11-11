@@ -247,8 +247,10 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   (`HullSitePlan.underBand`). The wrecking is initial damage
   (`hull-impact-*` layers), applied when the battle is assembled, as runs of
   cells along each row, so it never touches the hull, its trench or aprons,
-  standing debris or other fixtures, the landing's field of fire or a piece the
-  mission's layout needs. A named place or the layout's other pieces (the
+  standing debris or other fixtures or a piece the mission's layout needs. The
+  landing's field of fire is ploughed and scorched like the rest of the band, so
+  the scorch runs under it with no clean hole, but nothing is wrecked there and
+  nothing that blocks fire is laid in it. A named place or the layout's other pieces (the
   dressing of whatever the hull came down on) are spared only beyond the 20
   cells. It only takes walls and roofs down, so the lift, the shelters, the
   stake points and the haul roads stay as open as they were.
