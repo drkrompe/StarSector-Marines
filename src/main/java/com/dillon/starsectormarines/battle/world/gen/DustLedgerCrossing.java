@@ -106,8 +106,7 @@ public final class DustLedgerCrossing {
      * @param warehouses       market warehouses a crew can staff
      * @param shops            market shops (the cantina among them) a crew can staff
      * @param homes            market buildings ambient civilians live in; the compound's bunkhouse is not one
-     * @param nests            the compound's three powered gun nests, one outside each way in: the crawler gate, the
-     *                         postern, the south gate
+     * @param nests            the compound's three powered gun nests: gate drive, tank farm, east yard
      * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
      * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
      * @param feedJunctionArea the junction's pad, outside the exclusion ring
@@ -174,15 +173,13 @@ public final class DustLedgerCrossing {
     private static final int PIPELINE_X = 184;
 
     /**
-     * The gun nests' mounts, one outside each way in and facing across it, as a walled place's posts flank its gates
-     * ({@code DefenceDoctrine}), on open ground off every road: north of the crawler gate on the sand between the
-     * ridge's foot and the roads, looking south over the ground in front of the gate where the crawler road and the
-     * ridge road meet; south-west of the postern, looking north across its front; the south gate's west flank, looking
-     * south down the track to the skimmer pad. A wall blocks direct fire whole, so a nest inside the compound had only
-     * its own yard to shoot at.
+     * The gun nests' mounts, each on a paved pad: the gate drive, by the tank farm, the east yard. They stand inside
+     * the wall by the mission's design (owner pick, card {@code mission-gun-placement}): a wall blocks direct fire, so
+     * the gate drive's cannon covers the road only through the gate and the machine guns cover the yard itself. Each
+     * is laid on its facing.
      */
-    private static final List<Cell> NEST_CELLS = List.of(new Cell(205, 85), new Cell(129, 28), new Cell(151, 26));
-    private static final List<Direction> NEST_FACING = List.of(Direction.S, Direction.N, Direction.S);
+    private static final List<Cell> NEST_CELLS = List.of(new Cell(198, 63), new Cell(153, 47), new Cell(212, 47));
+    private static final List<Direction> NEST_FACING = List.of(Direction.N, Direction.W, Direction.W);
     /** The light cannon on the drive, where a crawler would come in; machine guns where infantry does. */
     private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);

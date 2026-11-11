@@ -6,14 +6,12 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
-import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,13 +52,9 @@ class DustLedgerCrossingTest {
         for (DustLedgerCrossing.Cell stand : layout.technicalStands().subList(1, layout.technicalStands().size()))
             assertTrue(GridPathfinder.findPathOnDemand(grid, park.x(), park.y(), stand.x(), stand.y(), index -> 1f,
                     lane::isPassableAt).length >= 2, "no lane to the truck's stand " + stand);
-        // Every gun nest stands outside the compound wall with open ground across its arc: a wall blocks direct fire.
-        GenContext probe = new GenContext(grid, layout.map().topology, new Random(0), grid.getWidth(), grid.getHeight(), 0L);
+        // Every gun nest is laid on its facing; where they stand inside the wall is the mission's (owner pick).
         for (DustLedgerCrossing.Nest nest : layout.nests()) {
             DustLedgerCrossing.Cell at = nest.cell();
-            assertFalse(DustLedgerCrossing.COMPOUND.contains(at.x(), at.y()), "nest " + at + " stands inside the wall");
-            assertTrue(PrecinctDefence.openArc(probe, at.x(), at.y(), nest.facing().dx, nest.facing().dy, 2),
-                    "nest " + at + " has a wall or building across its arc " + nest.facing());
             assertEquals(LayeredAppearance.facingDegrees(nest.facing().dx, nest.facing().dy), nest.post().restFacing, 0.01f,
                     "nest " + at + " is laid on its facing");
         }
