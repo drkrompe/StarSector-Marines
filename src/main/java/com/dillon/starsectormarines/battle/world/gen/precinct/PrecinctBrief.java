@@ -66,13 +66,13 @@ public record PrecinctBrief(String name, MapPlacement placement,
         return garrison(name, placement, growth, program, Fortification.GARRISON);
     }
 
-    /** The same, fortified to whatever the mission thinks its attacker can handle. */
+    /** The same, fortified to whatever the mission thinks its attacker can handle, and laid square as every garrison is ({@link Precinct#garrison}). */
     public static PrecinctBrief garrison(String name, MapPlacement placement,
                                          GrownTrunkPlan.Profile growth,
                                          FortressProgram program,
                                          Fortification fortification) {
         return new PrecinctBrief(name, placement, growth, program,
-                Precinct.Boundary.WALLED, fortification, null);
+                Precinct.Boundary.WALLED, fortification == null ? null : fortification.laidSquare(), null);
     }
 
     /** The same place asked for somewhere else. */
