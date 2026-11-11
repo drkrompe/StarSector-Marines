@@ -653,8 +653,8 @@ Laws):
      stands in it, show through, framed by its reveals, lintel soffit and
      threshold; a loading bay's roller door is rolled up under its lintel,
      and at night the room beyond glows through. Look suite:
-     `-Dsnapshot.walls.frame=doors`. Open: whether a closed leaf should be
-     shown recessed in the opening instead.
+     `-Dsnapshot.walls.frame=doors`. Doors stay open cut-outs (owner's
+     pick); no closed leaf is drawn in the opening.
    - A doorway the map left with no door draws as a doorway; only the
      rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.
