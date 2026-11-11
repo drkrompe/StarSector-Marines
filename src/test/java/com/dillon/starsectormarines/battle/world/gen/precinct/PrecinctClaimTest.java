@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -63,9 +64,23 @@ class PrecinctClaimTest {
         return Precinct.settlement("town", 3, 3, GrownTrunkPlan.Profile.town());
     }
 
+    /**
+     * A programmed place that pools round its seed. Open, because a walled one is laid square
+     * ({@link #aWalledGarrisonIsLaidNotGrown}); a landing place is the one that pools in play.
+     */
     private static Precinct garrison(String name, int x, int y) {
-        return Precinct.garrison(name, x, y, GrownTrunkPlan.Profile.hamlet(),
-                FortressProgram.garrison());
+        return new Precinct(name, x, y, GrownTrunkPlan.Profile.hamlet(),
+                FortressProgram.garrison(), Precinct.Boundary.OPEN);
+    }
+
+    /** A garrison's wall is laid square, and a walled place pooled round its seed is refused. */
+    @Test
+    void aWalledGarrisonIsLaidNotGrown() {
+        assertTrue(Precinct.garrison("garrison", 30, 18, GrownTrunkPlan.Profile.hamlet(),
+                FortressProgram.garrison(), Fortification.CITADEL).fortification().square());
+        Precinct grown = new Precinct("garrison", 30, 18, GrownTrunkPlan.Profile.hamlet(),
+                FortressProgram.garrison(), Precinct.Boundary.WALLED, Fortification.GARRISON);
+        assertThrows(IllegalArgumentException.class, () -> PrecinctClaim.byKind(List.of(town(), grown)));
     }
 
     /** Claims the pair, town first, so list order is against the garrison. */
@@ -189,6 +204,26 @@ class PrecinctClaimTest {
         }
         assertTrue(PrecinctClaim.sizes(claim, 3)[1] > 0,
                 "the garrison past the fields claimed nothing at all");
+    }
+
+    /**
+     * A pooled place grows round held ground (a site's band, a port's highway) rather than over it, so the wall laid
+     * round its claim never crosses the band.
+     */
+    @Test
+    void aPooledPlaceGrowsRoundHeldGround() {
+        int[][] owner = streetGrid(8);
+        boolean[][] band = new boolean[W][H];
+        for (int x = 0; x < W; x++) for (int y = 24; y <= 26; y++) band[x][y] = true;
+        List<Precinct> precincts = List.of(town(), garrison("garrison", 30, 18));
+        int[][] claim = PrecinctClaim.byKind(precincts, null, null, band)
+                .assign(owner, W, H, new int[]{TOWN_BUDGET, GARRISON_BUDGET});
+        for (int x = 0; x < W; x++) {
+            for (int y = 24; y <= 26; y++) {
+                assertTrue(claim[x][y] != 1, "the garrison claimed " + x + "," + y + " on the held band");
+            }
+        }
+        assertTrue(PrecinctClaim.sizes(claim, 2)[1] > 0, "the garrison claimed nothing");
     }
 
     /** A place laid out square claims a square round its seed, whatever the streets around it. */

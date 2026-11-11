@@ -159,6 +159,59 @@ public final class PrecinctDefence {
     }
 
     /**
+     * Arms an open field a place guards without a wall round it (a refinery's process field, a tank farm, a port's
+     * pad apron) by the same doctrine as a walled place: {@code field} is the guarded ground, its edge counting as the
+     * wall line, and {@code gates} where its lanes or roads enter it, each stepping out. Direct-fire posts stand
+     * {@link DefenceDoctrine#STANDOFF_OUT} cells out round it on open ground off {@code clear} (the roads; the gates'
+     * approaches are added here), each with its lane open; a standoff weapon stands inside it. Each emplacement's
+     * guard post is named for {@code place}, so the place's guard crews it (as a walled place's are,
+     * {@code RaidWorksGuard}). These posts are the field's own, owed on top of any wall's.
+     *
+     * @param field  the guarded ground, map-sized
+     * @param gates  where its ways in cross its edge, the main one first
+     * @param posts  how many of each kind it is owed
+     * @param clear  ground no emplacement stands on (the roads), map-sized; may be null
+     * @param place  the place whose guard crews the posts (a precinct's name)
+     */
+    public static Result stampField(GenContext ctx, boolean[][] field, List<DefenceDoctrine.Gate> gates,
+                                    Map<DefensePostKind, Integer> posts, boolean[][] clear, String place) {
+        int w = ctx.width, h = ctx.height;
+        Map<DefensePostKind, Integer> placed = new EnumMap<>(DefensePostKind.class);
+        Map<DefensePostKind, Integer> unplaced = new EnumMap<>(DefensePostKind.class);
+        boolean[][] keep = DefenceDoctrine.approaches(gates, w, h);
+        boolean[][] inside = new boolean[w][h];
+        boolean[][] outer = new boolean[w][h];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (clear != null && clear[x][y]) keep[x][y] = true;
+                inside[x][y] = field[x][y] && !ctx.topology.isWall(x, y);
+                outer[x][y] = !field[x][y] && !ctx.topology.isWall(x, y);
+            }
+        }
+        DefenceDoctrine.Fits fits = (x, y, kind, fx, fy) -> DefenceDoctrine.STANDOFF.contains(kind)
+                ? fits(ctx, inside, keep, x, y, kind)
+                : fits(ctx, outer, keep, x, y, kind) && lineOfFire(ctx, x, y, fx, fy);
+        DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && (inside[x][y] || outer[x][y]);
+        int emitted = ctx.tactical.size();
+        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(field, gates, List.of(), threat(ctx), posts, fits)) {
+            int before = ctx.defensePosts.size();
+            int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, keep, ctx.doodads,
+                    ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
+            if (got > 0) placed.merge(site.kind(), got, Integer::sum);
+            float facing = LayeredAppearance.facingDegrees(site.faceX(), site.faceY());
+            for (int p = before; p < ctx.defensePosts.size(); p++) {
+                ctx.defensePosts.set(p, ctx.defensePosts.get(p).withRestFacing(facing));
+            }
+        }
+        for (int i = emitted; i < ctx.tactical.size(); i++) ctx.tactical.get(i).setPlace(place);
+        for (Map.Entry<DefensePostKind, Integer> e : posts.entrySet()) {
+            int short_ = e.getValue() - placed.getOrDefault(e.getKey(), 0);
+            if (short_ > 0) unplaced.put(e.getKey(), short_);
+        }
+        return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
+    }
+
+    /**
      * The ground {@code own}'s wall encloses: its cells that cannot be reached from beyond it without crossing a wall,
      * with the gates ({@code open}) shut, so the buildings' walls inside it count as ground and the strip outside the
      * wall does not. Null when the wall encloses less than half the place (a gap the gates do not account for), where

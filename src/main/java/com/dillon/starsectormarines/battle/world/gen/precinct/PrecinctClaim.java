@@ -128,9 +128,20 @@ public interface PrecinctClaim {
      * {@link #byKind(List, boolean[][], boolean[][])}, with a cantonment's square also kept off {@code grounds}: the
      * plan's {@code SitePurpose.GROUND} sites, ground held for authored terrain and kept clear of works. The square is
      * stood where it covers the least of them, then cut back to the rectangle clear of them ({@link #clipOff}), so
-     * its wall, laid round its claim, never crosses a site's tracks or bands. {@code null} for none.
+     * its wall, laid round its claim, never crosses a site's tracks or bands. A pooled place's claim grows round them
+     * as round {@code drop}: a garrison that is not laid square once pooled over a port's highway band and walled it
+     * across. {@code null} for none.
      */
     static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop, boolean[][] grounds) {
+        for (Precinct precinct : precincts) {
+            // A walled programmed place is laid square (Precinct.garrison); pooled and walled round what it grew to,
+            // its wall stair-stepped into diagonals, and that path is retired.
+            if (precinct.isProgrammed() && precinct.boundary() == Precinct.Boundary.WALLED
+                    && !precinct.fortification().square()) {
+                throw new IllegalArgumentException(precinct.name() + " is a walled garrison that is not laid square;"
+                        + " a garrison's wall is laid, not grown (Precinct.garrison)");
+            }
+        }
         boolean[][] avoid = union(held, grounds);
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];
@@ -213,7 +224,7 @@ public interface PrecinctClaim {
                 taken[i]++;
                 pooling.add(new long[]{0L, x, y});
             }
-            expand(pooling, claim, taken, budget, width, height, shape, drop);
+            expand(pooling, claim, taken, budget, width, height, shape, union(drop, grounds));
 
             PriorityQueue<long[]> fronting = frontier();
             for (int i = 0; i < precincts.size(); i++) {

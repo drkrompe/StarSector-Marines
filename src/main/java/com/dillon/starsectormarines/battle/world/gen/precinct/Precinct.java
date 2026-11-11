@@ -120,11 +120,19 @@ public record Precinct(String name, int seedX, int seedY,
         return garrison(name, x, y, growth, program, Fortification.GARRISON);
     }
 
-    /** The same, fortified to whatever the mission thinks its attacker can handle. */
+    /**
+     * The same, fortified to whatever the mission thinks its attacker can handle.
+     *
+     * <p><b>A garrison is laid square</b> ({@link Fortification#laidSquare}): its claim is a square taken whole round
+     * its seed with a glacis inside the wall, never a claim pooled round the seed and walled round whatever outline it
+     * grew to, which stair-stepped its wall into diagonals (owner, 2026-11-11: "ugly diagonal wall forts"). A
+     * fortification stated square keeps its own glacis.
+     */
     public static Precinct garrison(String name, int x, int y,
                                     GrownTrunkPlan.Profile growth, FortressProgram program,
                                     Fortification fortification) {
-        return new Precinct(name, x, y, growth, program, Boundary.WALLED, fortification, null);
+        return new Precinct(name, x, y, growth, program, Boundary.WALLED,
+                fortification == null ? null : fortification.laidSquare(), null);
     }
 
     /**

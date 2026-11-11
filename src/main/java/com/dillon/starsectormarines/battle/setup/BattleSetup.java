@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.TownNight;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
@@ -1497,8 +1498,14 @@ public final class BattleSetup {
                 ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers())
                         .withDressing(RuinsThemeDressing.of(ruinsPrize)))
                 : proceduralOperationMap(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl, precincts);
-        // The owned map, laid on its home, is re-dressed for the raided world; no cell moves (PlanetSkin).
+        // Some town battles are fought at night, lit by the town itself (TownNight); never a delve or the cold account.
+        boolean night = !coldAccount && type != MissionType.RUINS
+                && TownNight.falls(seed, ownedRaid != null ? ownedRaid.map() : null);
+        if (night) map.topology.setNightLighting(TownNight.dark());
+        // The owned map, laid on its home, is re-dressed for the raided world; no cell moves (PlanetSkin). It lights
+        // a night as it re-dresses.
         if (ownedRaid != null) map = PlanetSkin.apply(map, ownedRaid.home(), profile);
+        if (night && map.topology.nightLighting().lamps().isEmpty()) TownNight.fall(map);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
         if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
@@ -3673,6 +3680,13 @@ public final class BattleSetup {
             BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
     /** The hull's store when it comes down: enough for its first cycles (UNTUNED). */
     static final float FALL_FEEDSTOCK = BuildQueue.WORKER_COST * 2;
+    /**
+     * How far the hull's zone keeps the ground off its plates the night it came down, cells: the whole town and the
+     * rescue's ways through it are its ground (UNTUNED).
+     */
+    static final int FALL_REACH = 230;
+    /** The town's places the hull's flocks range over that night are at most one in a square this many cells wide. */
+    static final int FALL_RANGE_CELLS = 24;
     /** The town buildings whose metal lies on the claim for the strippers the night it came down (UNTUNED). */
     static final int FALL_PILES = 6;
     /** The watch already out the night it came down: a line frame and a rounds walker, and two strippers (UNTUNED). */
@@ -3692,9 +3706,13 @@ public final class BattleSetup {
             FallenHullSite probe = LongSurveyGround.rulesSite(map.hullSite, List.of(), List.of(), 0f);
             List<FallenHullSite.Posting> out = new ArrayList<>();
             for (DerelictWalkerFrame frame : FALL_WALKERS) out.add(new FallenHullSite.Posting(frame, probe.mouthX(), probe.mouthY()));
-            List<FallenHullSite.Pile> salvage = TownSalvage.piles(townGround(sim), probe, FALL_PILES);
-            FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, salvage, out, FALL_FEEDSTOCK),
-                    FALL_QUEUE, hull.livery());
+            // The night it came down the town is the hull's ground: its zone reaches into the streets, awake.
+            List<FallenHullSite.Pile> salvage = TownSalvage.piles(townGround(sim), probe.withPerimeter(FALL_REACH),
+                    FALL_PILES);
+            FallenHull fallen = FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, salvage, out,
+                    FALL_FEEDSTOCK).withPerimeter(FALL_REACH), FALL_QUEUE, hull.livery(), true);
+            // Its flocks range over the whole town; its walkers keep to the trench and the town's edge.
+            fallen.rangeOver(TownSalvage.places(townGround(sim), probe.withPerimeter(FALL_REACH), FALL_RANGE_CELLS));
             return true;
         }
         if (eruption == null || eruption.sites().isEmpty()) return false;

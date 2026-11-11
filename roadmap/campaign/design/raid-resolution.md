@@ -30,8 +30,13 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 - A **supported raid** is a player raid Marine Operations can fight. A station,
   a raid on something that is not a market, and a mission's custom-only raid
   are not; they always resolve the standard way.
-- The **raid fork** is the choice offered at the confirm: lead the raid with
-  Marine Operations, or launch it as usual (the **standard resolution**).
+- The **raid fork** is the choice offered at the confirm: **Lead the Raid
+  (Marines Mod)**, or **Order Raid (vanilla)**, the **standard resolution**
+  (owner's wording).
+- A **led-only raid** is a supported raid the fleet's marines are too few for:
+  its effectiveness is under the raid command's threshold for its kind (a
+  twentieth for valuables, a quarter to disrupt). Only the company can carry it
+  out.
 - The **raid fork setting** is the Settings page's "Ask before raids" key,
   saved with the game. On (a new save's default), every supported raid asks;
   off, every raid resolves the standard way untouched. The fork itself has no
@@ -43,10 +48,19 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
 
 ## Laws
 
-1. **The raid command decides whether; we decide only how.** The raid exists,
-   and its confirm is offered, only where the game allows it: defences beaten,
-   cooldown clear, the hostility confirmation accepted. The fork intercepts only
-   the confirm the command has already offered.
+1. **The raid command decides whether; the company's battle replaces only the
+   cargo marines** (owner pick `raid-led-entry` a: "WE remove the 'cargo
+   marine' requirement by having the players company do the battle"). The raid
+   exists only where the game allows it: no fleet ready to offer battle, the
+   raid cooldown clear, the hostility confirmation accepted. Its one gate on the
+   fleet's marines, effectiveness under a threshold for the kind of raid, is
+   the one thing set aside: the raid menu is the command's own, and any kind of
+   raid it refused for want of marines is offered again with a line saying the
+   company can lead it. Picking one marks the raid led-only and hands the pick
+   to the command, which sets up its objectives with the tokens its own minimum
+   allows; the fork then offers only Lead the Raid, Order Raid shown and
+   disabled. Nothing else of the command's gate changes, and the
+   effectiveness the command computed is left as it is.
 2. **One rule, both mods, slightly ahead.** The fork's row outranks Nexerelin's
    by one point and vanilla's by two, never by a margin that would bury another
    mod's row. It names no Nexerelin command. Every path back to the game
@@ -78,24 +92,31 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
    committed once when the panel closes; a replayed result commits nothing.
 9. **Leading on the ground pays more, and a harder market pays most** (owner:
    "We just need to offer more potential rewards for leading on the ground to
-   compensate"). The company goes in with up to twelve squads and four mechs or
-   vehicles; it needs no marines in the hold and no hundreds of them, yet it
-   can take a fortified works the standard raid would barely scratch. A won
-   led raid is committed as the market's full raid whatever the cargo marines
+   compensate"). The company needs no marines in the hold, yet it can take a
+   fortified works the standard raid would barely scratch. A won led raid is committed as the market's full raid whatever the cargo marines
    would have earned: at full effectiveness, its marine tokens (which the raid
    command reckons loot and disruption by) filled to the full raid's ten times
    the market's security premium (open none, guarded a quarter, fortified a
    half; untuned), spread over the objectives the player chose in proportion
    to their choice, and a disrupting raid's times the share of the works
    wrecked, so every hall brought down adds days down (`LedRaidReward`,
-   `RaidOutcomeCommit`). The fork shows both payouts side by side, and what
-   the company faces at that security. The standard raid itself is never
-   changed (law 3).
+   `RaidOutcomeCommit`). The standard raid itself is never changed (law 3).
+10. **The fork speaks the raid command's language** (owner: "I do NOT want to
+    tell the player about mechanics like effectiveness UNLESS the vanilla game
+    already conveys this"). It shows what the command's own plan shows the
+    player: the loot it projects in credits, or the days it says the target goes
+    down, ordered and led (the led figure is the command's own reckoning at the
+    won led raid's tokens, a disrupting raid's "up to" the whole works), and what
+    defends the market at its security. A led-only raid says the fleet's
+    marines are too few instead of an ordered figure. It names no tokens,
+    effectiveness, premium or company maximums.
 
 ## Flow
 
-1. The player sets up a raid (valuables, or an industry to disrupt) and selects
-   Launch raid.
+1. The player opens the raid menu, which the command builds; a kind of raid
+   the fleet's marines are too few for is offered again (law 1). The player
+   sets up a raid (valuables, or an industry to disrupt) and selects Launch
+   raid.
 2. The fork's row fires ahead of the command's. With the fork setting off, or
    for an unsupported raid, it steps aside and the command confirms the raid.
    Otherwise it shows the fork.
@@ -113,14 +134,13 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
   win; a disrupting raid earns that times the share of the works wrecked; a
   lost one earns nothing.
 - **The story-point secret raid** confirms inside the command, not through a
-  rule, so it always resolves the standard way.
-- **Cargo marines still decide whether the raid is offered.** The command
-  computes effectiveness from the fleet's marines before the fork, and below
-  its thresholds (a quarter to disrupt, a twentieth for valuables) it offers no
-  confirm, so a fleet with few marines never reaches the fork at a strong
-  market, and the player assigns only the tokens those marines allow. A won
-  led raid fills the tokens (law 9); whether the company may lead a raid the
-  cargo marines could not set up is pick `raid-led-entry` (law 1).
+  rule, so it always resolves the standard way, led-only or not: a led-only
+  raid's secret confirm commits at the effectiveness and the few tokens the
+  fleet's marines allowed.
+- **Cargo marines still decide how many objectives a led raid may name.** The
+  command hands out tokens by the fleet's marines (at least one), and the
+  player spreads only those; a won led raid fills them to its full size over
+  that choice (law 9), so a led-only raid names one objective.
 
 ## Boundaries
 

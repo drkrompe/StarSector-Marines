@@ -90,7 +90,7 @@ moves. The first attempt, retries, replays and the debug player all play it;
 | Chapter | Map | Ground | The hull |
 | --- | --- | --- | --- |
 | The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, broken in three, bow west, a short trench ploughed west off the bow along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
-| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1, its installation laid as a Raid site's cantonment in a square wall (`PrecinctPlan.withCantonments`), not the grown diamond-walled garrison | Beside the installation, broken in three, bow west, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
+| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1, its installation laid as a Raid site's cantonment in a square wall (`PrecinctPlan.withCantonments`) (`long-survey-maps.md`, Chapter 2) | In the middle of the mine country, broken in three, bow west, its trench stopping short of the cantonment; three stakes planted in a line across its south flank and one raised beyond them among the outcrops |
 | The Line | `long-survey-line` | Its own: the district capital, Broad Front's city (`heart-front-city`'s plan) on seed 2 (`long-survey-maps.md`, Chapter 3) | Down across the city's north edge in the heart's place, broken in three, bow west; two chains of stakes running south into the city and branching along the boulevard, established nearest the hull, raised and planted at the three lanes' heads |
 | The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
@@ -169,7 +169,12 @@ chapter (pick through the art session), voiced later as the Khettara is.
   claim does not spread in chapter 1) from `FALL_FEEDSTOCK`, with
   `FALL_WALKERS` (a line frame, a rounds walker, two strippers) already out at
   the bay mouth, and `FALL_PILES` of the town's buildings on the claim as
-  salvage for the strippers (`TownSalvage`). All UNTUNED. Ground with no hull site (no pool installed)
+  salvage for the strippers (`TownSalvage`). The hull is awake from the
+  start (`install(..., awake)`): its zone reaches `FALL_REACH` off the plates,
+  over the whole town, its flock ranges the town's places (one building in each
+  `FALL_RANGE_CELLS` square) and its walkers are out on the watch's tasking to
+  the trench and the town's edge, contesting the rescue's routes with no
+  special case for the shelter or lift. All UNTUNED. Ground with no hull site (no pool installed)
   falls back to a site network laid by `DerelictSecurity.install`'s route
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
   that one seed. Open: the forward-bay bonus objective.

@@ -38,23 +38,48 @@ final class FacePainter {
         glow.reset();
         debrisCount = 0;
         into = faces;
+        charred = 0f;
+        openingCount = 0;
     }
 
     /** The lit windows of a night ({@link #night}), drawn over the night shade. */
     final PolyMesh glow = new PolyMesh(256);
-    /** Whether this frame is a night's, so some windows are lit ({@link #lit}). */
+    /** Whether this frame is a night's, so windows are lit ({@link #lit}) and shopfronts glow. */
     boolean night;
-    /** Whether the storey being painted is above the ground floor, where the lit windows are. */
-    private boolean upper;
+    /**
+     * How charred the wall now being painted is, 0 clean to 1 burnt black ({@link FaceFire#charred}): its material
+     * darkens, its glass goes and soot climbs it. Set before each {@link #paint}.
+     */
+    float charred;
+    /** The openings the last {@link #paint} laid, {@code t0, t1, z0, z1} each: where fire pours out ({@link StructureFire}). */
+    private float[] openings = new float[4 * 8];
+    private int openingCount;
 
-    /** The share of upper windows lit at night. UNTUNED. */
-    static final float LIT_SHARE = .3f;
-    /** A lit window's warm glass. */
-    private static final float LIT_R = 1f, LIT_G = .78f, LIT_B = .42f;
+    /** The share of windows lit at night, on every storey. UNTUNED. */
+    static final float LIT_SHARE = .6f;
+    /**
+     * The rooms' light, by a lit window's place: mostly warm lamplight, some amber, some a screen's or a strip
+     * light's cool white.
+     */
+    private static final float[][] ROOM_LIGHT = {
+            {1f, .8f, .46f}, {1f, .8f, .46f}, {1f, .66f, .32f}, {.82f, .9f, 1f}, {1f, .9f, .7f}};
+    /** A shop sign's glow, by its place: amber, cyan, rose, green. */
+    private static final float[][] SIGN_LIGHT = {{1f, .7f, .2f}, {.3f, .95f, 1f}, {1f, .35f, .6f}, {.45f, 1f, .5f}};
 
     /** Whether the window of bay {@code seed} is lit at night: about {@link #LIT_SHARE} of them, by its place. */
     static boolean lit(int seed) {
         return BuildingFaces.hash(seed, 140) < LIT_SHARE;
+    }
+
+    /**
+     * A lit window's glass, by its place: its room's light ({@link #ROOM_LIGHT}) at its own brightness, the lower
+     * half brighter, as a lamp inside throws it.
+     */
+    private void litGlass(int seed, float t0, float t1, float z0, float z1) {
+        float[] c = ROOM_LIGHT[(int) (BuildingFaces.hash(seed, 141) * ROOM_LIGHT.length) % ROOM_LIGHT.length];
+        float k = .7f + .3f * BuildingFaces.hash(seed, 142);
+        glowQuad(t0, t1, z0, z1, c[0] * k * .75f, c[1] * k * .75f, c[2] * k * .75f);
+        glowQuad(t0 + .02f, t1 - .02f, z0, z0 + (z1 - z0) * .6f, c[0] * k, c[1] * k, c[2] * k);
     }
 
     /** A part of the wall that glows rather than takes the light, into {@link #glow}. */
@@ -63,6 +88,31 @@ final class FacePainter {
         into = glow;
         quad(t0, t1, z0, z1, r, g, b);
         into = was;
+    }
+
+    /** The openings the last {@link #paint} laid ({@link #openingCount} of them), {@code t0, t1, z0, z1} each. */
+    float[] openings() {
+        return openings;
+    }
+
+    int openingCount() {
+        return openingCount;
+    }
+
+    /** Forgets the openings laid so far, before a wall that {@link #paint} does not paint. */
+    void clearOpenings() {
+        openingCount = 0;
+    }
+
+    /** An opening in the wall now being painted, {@code t0..t1} along and {@code z0..z1} up. */
+    void opening(float t0, float t1, float z0, float z1) {
+        if (z1 <= z0) return;
+        if ((openingCount + 1) * 4 > openings.length) openings = Arrays.copyOf(openings, openings.length * 2);
+        int o = openingCount++ * 4;
+        openings[o] = t0;
+        openings[o + 1] = t1;
+        openings[o + 2] = z0;
+        openings[o + 3] = z1;
     }
 
     /** Draws what follows into {@code mesh} ({@link #faces} unless said otherwise). */
@@ -186,6 +236,10 @@ final class FacePainter {
                BuildingFaces.Segment ground, int corners, int along, int cell, float meters, int storeys,
                float top, boolean broken, float hurt, float glassHurt, boolean upperWindows, float light,
                boolean detail) {
+        openingCount = 0;
+        // Charred: the material darkened and every window gone, as a hurt wall's blown ones.
+        light *= 1f - .62f * charred;
+        hurt = Math.max(hurt, charred);
         float j = 1f + (BuildingFaces.hash(cell, 31) - .5f) * .07f;
         float r = m.wall()[0] * light * j, g = m.wall()[1] * light * j, b = m.wall()[2] * light * j;
         float soot = 1f - .55f * Math.max(0f, hurt - .2f) / .8f;
@@ -206,6 +260,16 @@ final class FacePainter {
             }
         }
         float height = cut == null ? top : Math.max(cut[0], Math.max(cut[1], cut[2]));
+        if (charred > .05f) {
+            // Soot climbing the face to its top, black there, in tongues as the flames that laid it.
+            for (int k = 0; k < 3; k++) {
+                float t0 = k / 3f, t1 = (k + 1) / 3f;
+                float h = cut == null ? top : cut[k];
+                float from = h * (1f - charred * (.55f + .35f * BuildingFaces.hash(cell * 3 + k, 43)));
+                float c = .06f + .04f * (1f - charred);
+                shaded(t0, t1, from, h, r, g, b, c, c * .92f, c * .85f);
+            }
+        }
         // Too small on screen for trim to read: the shaded material alone, at a piece a cell.
         if (!detail) return;
         course(m, r, g, b, height, storeys);
@@ -262,7 +326,6 @@ final class FacePainter {
             if (lo >= clip - .02f && f > 0) break;
             float limit = Math.min(hi, cut == null ? height : clip);
             int seed = cell * 7 + f;
-            upper = f > 0;
             if (f == 0 && (ground == BuildingFaces.Segment.DOOR || ground == BuildingFaces.Segment.LOADING)) {
                 door(m, look, ground == BuildingFaces.Segment.LOADING, lo, limit, story, light, seed, hurt);
             } else {
@@ -273,7 +336,6 @@ final class FacePainter {
                         shotOut, r, g, b);
             }
         }
-        upper = false;
         if (WallDress.pipe(rhythm, along)) {
             float pr = .34f * light, pg = .35f * light, pb = .36f * light;
             quad(.03f, .08f, plinth, height - .02f, pr, pg, pb);
@@ -327,6 +389,7 @@ final class FacePainter {
         float tr = m.trim()[0] * light, tg = m.trim()[1] * light, tb = m.trim()[2] * light;
         if (loading) {
             float top = Math.min(hi, lo + story * .8f);
+            opening(.1f, .9f, lo, top);
             quad(.04f, .96f, lo, Math.min(hi, top + story * .06f), tr * .6f, tg * .6f, tb * .6f);
             float dr = .44f * light, dg = .45f * light, db = .44f * light;
             shaded(.1f, .9f, lo, top, dr * .7f, dg * .7f, db * .7f, dr, dg, db);
@@ -347,6 +410,7 @@ final class FacePainter {
         }
         boolean lock = look == BuildingFaces.Look.SEALED || look == BuildingFaces.Look.SHIELDED;
         float top = Math.min(hi, lo + story * (lock ? .74f : .7f));
+        opening(.26f, .74f, lo, top);
         // Frame.
         quad(.18f, .82f, lo, Math.min(hi, top + story * .06f), tr * .8f, tg * .8f, tb * .8f);
         float dr = m.door()[0] * light, dg = m.door()[1] * light, db = m.door()[2] * light;
@@ -382,6 +446,7 @@ final class FacePainter {
             float z0 = lo + story * .12f, z1 = Math.min(hi, lo + story * .72f);
             quad(.14f, .86f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .55f, tg * .55f, tb * .55f);
             quad(.18f, .82f, z0, z1, .05f, .045f, .045f);
+            opening(.18f, .82f, z0, z1);
             shaded(.22f, .78f, z1, Math.min(hi + story * .35f, z1 + story * .5f), .06f, .055f, .05f, r * .9f,
                     g * .9f, b * .9f);
             return;
@@ -407,11 +472,8 @@ final class FacePainter {
                 else quad(t0 - .04f, t1 + .04f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .9f,
                         tg * .9f, tb * .9f);
                 shaded(t0, t1, z0, z1, gr, gg, gb, hiR, hiG, hiB);
-                if (night && upper && !blown && lit(seed)) {
-                    // A room lit behind it: warm glass, its lower half the brighter, through the night's shade.
-                    glowQuad(t0, t1, z0, z1, LIT_R * .8f, LIT_G * .8f, LIT_B * .8f);
-                    glowQuad(t0 + .02f, t1 - .02f, z0, z0 + (z1 - z0) * .55f, LIT_R, LIT_G, LIT_B);
-                }
+                // A room lit behind it, through the night's shade.
+                if (night && !blown && lit(seed)) litGlass(seed, t0, t1, z0, z1);
                 // Mullion and transom.
                 quad(.495f, .505f, z0, z1, tr * .8f, tg * .8f, tb * .8f);
                 if (tall) quad(t0, t1, z0 + (z1 - z0) * .7f, z0 + (z1 - z0) * .7f + story * .02f, tr * .8f,
@@ -426,6 +488,7 @@ final class FacePainter {
                     quad(t0 - .16f, t0 - .045f, z0, z1, dr, dg, db);
                     quad(t1 + .045f, t1 + .16f, z0, z1, dr, dg, db);
                 }
+                opening(t0, t1, z0, z1);
                 sootTop = z1;
                 break;
             }
@@ -433,6 +496,8 @@ final class FacePainter {
                 float z0 = lo + story * .5f, z1 = Math.min(hi, lo + story * .6f);
                 quad(.16f, .84f, Math.min(hi, z1), Math.min(hi, z1 + story * .07f), tr * .8f, tg * .8f, tb * .8f);
                 quad(.2f, .8f, z0, z1, gr * .6f, gg * .6f, gb * .6f);
+                opening(.2f, .8f, z0, z1);
+                if (night && !blown && lit(seed)) litGlass(seed, .2f, .8f, z0, z1);
                 sootTop = z1;
                 break;
             }
@@ -440,6 +505,8 @@ final class FacePainter {
                 float z0 = lo + story * .36f, z1 = Math.min(hi, lo + story * .64f);
                 quad(.34f, .66f, z0, z1, tr, tg, tb);
                 shaded(.39f, .61f, z0 + story * .04f, z1 - story * .04f, gr, gg, gb, hiR, hiG, hiB);
+                opening(.39f, .61f, z0 + story * .04f, z1 - story * .04f);
+                if (night && !blown && lit(seed)) litGlass(seed, .39f, .61f, z0 + story * .04f, z1 - story * .04f);
                 sootTop = z1;
                 break;
             }
@@ -447,7 +514,13 @@ final class FacePainter {
                 float z0 = lo + story * .08f, z1 = Math.min(hi, lo + story * .64f);
                 quad(.04f, .96f, z0 - story * .04f, z1, tr * .7f, tg * .7f, tb * .7f);
                 shaded(.07f, .93f, z0, z1 - story * .02f, gr, gg, gb, hiR, hiG, hiB);
+                // A shop keeps its window lit all night, a bright warm white.
+                if (night && !blown) {
+                    glowQuad(.07f, .93f, z0, z1 - story * .02f, .95f, .85f, .62f);
+                    glowQuad(.1f, .9f, z0, z0 + (z1 - z0) * .5f, 1f, .94f, .78f);
+                }
                 quad(.495f, .505f, z0, z1, tr * .7f, tg * .7f, tb * .7f);
+                opening(.07f, .93f, z0, z1 - story * .02f);
                 // The awning, striped in the shop's colour.
                 float az0 = Math.min(hi, z1), az1 = Math.min(hi, z1 + story * .12f);
                 float[] door = m.door();
@@ -458,6 +531,12 @@ final class FacePainter {
                 }
                 quad(0f, 1f, az0 - story * .02f, az0, door[0] * light * .6f, door[1] * light * .6f,
                         door[2] * light * .6f);
+                if (night && !blown) {
+                    // Its sign over the awning, lit in the shop's own colour.
+                    float[] c = SIGN_LIGHT[(int) (BuildingFaces.hash(seed, 143) * SIGN_LIGHT.length) % SIGN_LIGHT.length];
+                    float sz0 = Math.min(hi, az1 + story * .03f), sz1 = Math.min(hi, az1 + story * .11f);
+                    if (sz1 > sz0) glowQuad(.22f, .78f, sz0, sz1, c[0], c[1], c[2]);
+                }
                 sootTop = az1;
                 break;
             }
@@ -467,6 +546,7 @@ final class FacePainter {
                 quad(0f, 1f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .8f, tg * .8f, tb * .8f);
                 shaded(0f, 1f, z0, z1, gr, gg, gb, hiR, hiG, hiB);
                 for (int k = 0; k < 4; k++) quad(k / 4f - .012f, k / 4f + .012f, z0, z1, tr * .7f, tg * .7f, tb * .7f);
+                opening(0f, 1f, z0, z1);
                 sootTop = z1;
                 break;
             }
@@ -542,6 +622,7 @@ final class FacePainter {
      * its ragged top, its window holes dark (its rubble is laid by {@link #rubble}).
      */
     void shell(WallDress.Material m, int cell, boolean corner, float light, boolean inner) {
+        light *= 1f - .62f * charred;
         float r = m.wall()[0] * light * (inner ? .62f : 1f), g = m.wall()[1] * light * (inner ? .62f : 1f);
         float b = m.wall()[2] * light * (inner ? .62f : 1f);
         for (int k = 0; k < 3; k++) {

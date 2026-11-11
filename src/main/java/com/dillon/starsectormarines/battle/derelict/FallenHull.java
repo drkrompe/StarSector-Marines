@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.drone.Flock;
@@ -12,15 +13,20 @@ import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
+import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Contact;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 
 /**
  * A fallen hull's claim in battle (`fallen-hull-nouns.md`, In a battle): the root zone at the hull with the autoforge
@@ -44,6 +50,8 @@ public final class FallenHull {
     static final int HOLD_RADIUS = 2;
     /** A standing order whose cell moved less than this is not re-issued. */
     static final int REISSUE_CELLS = 2;
+    /** Seconds of fire the watch remembers when it looks for the loudest fight. UNTUNED. */
+    static final float FIRE_SECONDS = 8f;
 
     private final FallenHullSite site;
     private final ClaimLattice lattice;
@@ -78,6 +86,14 @@ public final class FallenHull {
     private int scrappedTrains;
     private int scrappedStakes;
     private final Set<Long> taken = new HashSet<>();
+    /** Whether the hull is awake from the start and stays so: the night it came down. */
+    private boolean awake;
+    /** The hull zone's armed walkers the watch tasks this pulse ({@link WatchTasking}). */
+    private final Set<Integer> watching = new TreeSet<>();
+    /** Fire heard on the field lately: {x, y, tick} where each round landed. */
+    private final Deque<float[]> fire = new ArrayDeque<>();
+    /** The places the hull's flock ranges over while the hull is awake: the town's salvage and the ways in. */
+    private final List<int[]> ranging = new ArrayList<>();
 
     FallenHull(FallenHullSite site, BuildQueue queue) {
         this.site = site;
@@ -89,7 +105,10 @@ public final class FallenHull {
         for (FallenHullSite.Pile pile : site.salvage()) {
             salvage.add(new Salvage(nextSalvage++, Salvage.Kind.STRUCTURE, pile.x() + 0.5f, pile.y() + 0.5f,
                     pile.metal(), null));
+            ranging.add(new int[] {pile.x(), pile.y()});
         }
+        for (int[] way : site.egress()) ranging.add(new int[] {way[0], way[1]});
+        if (ranging.isEmpty()) ranging.add(new int[] {site.mouthX(), site.mouthY()});
     }
 
     // ---- install ----
@@ -105,7 +124,18 @@ public final class FallenHull {
      * its stage; the walkers already out; and the network's director, installed on the battle, with this claim on it.
      */
     public static FallenHull install(BattleSimulation sim, FallenHullSite site, BuildQueue queue, FlockLivery livery) {
+        return install(sim, site, queue, livery, false);
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, FallenHullSite, BuildQueue, FlockLivery)}; {@code awake} keeps the hull's
+     * zone awake from the first pulse on, whatever it has heard: the night it came down, its flocks range over the
+     * town and its watch is out.
+     */
+    public static FallenHull install(BattleSimulation sim, FallenHullSite site, BuildQueue queue, FlockLivery livery,
+                                     boolean awake) {
         FallenHull hull = new FallenHull(site, queue);
+        hull.awake = awake;
         hull.livery = livery == null ? FlockLivery.DOMAIN : livery;
         SecurityNetwork network = new SecurityNetwork();
         // The root zone keeps the ground off every section; its node is the forge.
@@ -248,7 +278,47 @@ public final class FallenHull {
 
     /** Whether the hull walks this lance itself: a worker, a train's hauler, or an escort on the way or on guard. */
     public boolean commands(int squadId) {
-        return commanded.contains(squadId);
+        return commanded.contains(squadId) || watching.contains(squadId);
+    }
+
+    /** Whether the hull stays awake whatever it hears. */
+    public boolean awake() {
+        return awake;
+    }
+
+    /**
+     * Where the hull's flock ranges while its zone is awake and it has nothing to strike: the town's salvage and the
+     * ways in, each in turn ({@link WatchTasking#rangePoint}); null for another zone's flock.
+     */
+    public int[] rangePoint(int zoneId, long flockId, int tick) {
+        if (zoneId != HULL_ZONE) return null;
+        return WatchTasking.rangePoint(ranging, flockId, tick * BattleSimulation.TICK_DT);
+    }
+
+    /**
+     * The wake: an awake hull keeps its zone awake every pulse, so it never settles back to alert while its node (the
+     * forge) stands and its branch feeds it; a hull that is not awake wakes as any zone does, on what it hears.
+     */
+    static void rouse(SecurityNetwork network, boolean awake, int tick) {
+        SecurityZone root = network.zone(HULL_ZONE);
+        if (awake && root != null && root.online()) network.stir(HULL_ZONE, tick);
+    }
+
+    /**
+     * Sets where the hull's flock ranges while awake: the town's buildings on the claim ({@link TownSalvage#places})
+     * in place of the salvage and the ways in.
+     */
+    public void rangeOver(List<int[]> places) {
+        if (places.isEmpty()) return;
+        ranging.clear();
+        for (int[] p : places) ranging.add(new int[] {p[0], p[1]});
+    }
+
+    /** Every tick: where the field's rounds landed, for the watch's loudest fight. */
+    public void hear(BattleSimulation sim, int tick) {
+        for (ShotEvent shot : sim.getShotsThisFrame()) fire.addLast(new float[] {shot.toX, shot.toY, tick});
+        float keep = FIRE_SECONDS / BattleSimulation.TICK_DT;
+        while (!fire.isEmpty() && tick - fire.peekFirst()[2] > keep) fire.removeFirst();
     }
 
     /** Whether the autoforge is breached: its plate and structure below {@link Autoforge#BREACH_SHARE}, or gone. */
@@ -263,7 +333,13 @@ public final class FallenHull {
 
     /** One pulse of the claim, after the network has heard what it heard and before its walkers take their postures. */
     public void pulse(BattleSimulation sim, DerelictSecurityDirector director, int tick) {
+        pulse(sim, director, tick, List.of());
+    }
+
+    /** As {@link #pulse(BattleSimulation, DerelictSecurityDirector, int)}, with the contacts the network holds. */
+    public void pulse(BattleSimulation sim, DerelictSecurityDirector director, int tick, List<Contact> contacts) {
         float dt = DerelictSecurityDirector.PULSE_TICKS * BattleSimulation.TICK_DT;
+        rouse(director.network(), awake, tick);
         if (forge.lit() && (forgeId == 0L || sim.resolveUnit(forgeId) == 0L)) forge.putOut();
         watchPylons(sim);
         strand(director.network());
@@ -278,6 +354,60 @@ public final class FallenHull {
         runStrippers(sim, claim, dt);
         runHaulers(sim, dt);
         print(sim, director, dt);
+        watch(sim, director, contacts);
+    }
+
+    /**
+     * The hull zone's armed walkers, tasked by {@link WatchTasking}: a guard at the bay, the rest out answering contact
+     * on the claim, pushing to its loudest fight or escorting the workers. In the contingency they are the network's
+     * again, and hold the egress.
+     */
+    private void watch(BattleSimulation sim, DerelictSecurityDirector director, List<Contact> contacts) {
+        SecurityNetwork network = director.network();
+        // A lance leaving the watch forgets its standing order, so it is given afresh when it comes back.
+        Set<Integer> before = new TreeSet<>(watching);
+        watching.clear();
+        try {
+            if (!network.contingency()) task(sim, network, director, contacts);
+        } finally {
+            for (int squad : before) if (!watching.contains(squad)) ordered.remove(squad);
+        }
+    }
+
+    private void task(BattleSimulation sim, SecurityNetwork network, DerelictSecurityDirector director,
+                      List<Contact> contacts) {
+        List<WatchTasking.Watcher> watch = new ArrayList<>();
+        for (DerelictSecurityDirector.Walker w : director.walkers()) {
+            if (w.zoneId() != HULL_ZONE || !w.frame().armed() || commanded.contains(w.squadId())) continue;
+            if (sim.squadMemberCount(w.squadId()) <= 0) continue;
+            long lead = sim.squadMemberAt(w.squadId(), 0);
+            watch.add(new WatchTasking.Watcher(w.squadId(), w.frame(), sim.world().x(lead), sim.world().y(lead)));
+        }
+        if (watch.isEmpty()) return;
+        BiPredicate<Integer, Integer> onClaim = (x, y) -> {
+            SecurityZone zone = network.zoneAt(x, y);
+            return zone != null && zone.online();
+        };
+        List<Contact> onIt = new ArrayList<>();
+        for (Contact c : contacts) if (onClaim.test(c.cellX(), c.cellY())) onIt.add(c);
+        List<float[]> shots = new ArrayList<>(fire);
+        int[] loudest = WatchTasking.loudest(shots, onClaim);
+        List<WatchTasking.Worker> workers = new ArrayList<>();
+        for (int squad : strippers.keySet()) worker(sim, squad, workers);
+        for (int squad : haulers.keySet()) worker(sim, squad, workers);
+        Map<Integer, WatchTasking.Task> tasks = WatchTasking.assign(watch, site.mouthX(), site.mouthY(), onIt, loudest,
+                workers, cell -> WatchTasking.clamp(site.sections(), WatchTasking.WATCH_REACH_CELLS, cell));
+        for (Map.Entry<Integer, WatchTasking.Task> e : tasks.entrySet()) {
+            watching.add(e.getKey());
+            WatchTasking.Task t = e.getValue();
+            order(sim, e.getKey(), t.x(), t.y(), "fallen hull watch: " + t.kind().name().toLowerCase());
+        }
+    }
+
+    private static void worker(BattleSimulation sim, int squad, List<WatchTasking.Worker> out) {
+        if (sim.squadMemberCount(squad) <= 0) return;
+        long lead = sim.squadMemberAt(squad, 0);
+        out.add(new WatchTasking.Worker(squad, sim.world().x(lead), sim.world().y(lead)));
     }
 
     /** A planted stake whose pylon is gone is scrap, and its point open again. */
