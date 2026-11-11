@@ -240,7 +240,7 @@ public final class RaidSiteTemplate {
                 industry.works(machines).fittedTo(Math.round(industry.worksFit() * width * height)),
                 worksWall(security, demand)));
         if (profile.defenseLevel() > 0) {
-            briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(GARRISON_AT),
+            briefs.add(PrecinctBrief.garrison(GARRISON, at.apply(industry.garrisonAt()),
                     PrecinctPlan.raidGarrisonGrowth(),
                     PrecinctPlan.raidGarrison(profile, security.ordinal())
                             .fittedTo(Math.round(PrecinctPlan.FIT * width * height)),

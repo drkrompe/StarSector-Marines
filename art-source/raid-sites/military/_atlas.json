@@ -128,6 +128,85 @@
       "order": 9,
       "cover": "heavy",
       "ballisticHalfHeight": 0.55
+    },
+    "satcom-dish.png": {
+      "id": "doodad.satcom-dish",
+      "name": "Satellite uplink dish",
+      "description": "A ground station dish tilted up on its pedestal, a feed horn on struts, on a railed concrete pad; for the command post's dish farm.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 10,
+      "cover": "light"
+    },
+    "radar-tower.png": {
+      "id": "doodad.radar-tower",
+      "name": "Search radar tower",
+      "description": "A steel lattice tower carrying a long search-radar antenna bar, its long shadow to the south-east.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 11,
+      "cover": "light"
+    },
+    "fuel-bladder.png": {
+      "id": "doodad.fuel-bladder",
+      "name": "Fuel bladder",
+      "description": "A pillow fuel bladder in a low earth bund, a hose to its pump; a fuel depot cell.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 12,
+      "cover": "light"
+    },
+    "generator-set.png": {
+      "id": "doodad.generator-set",
+      "name": "Generator set",
+      "description": "A skid-mounted diesel generator in an olive housing: exhaust stack, fuel tank, cable runs.",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45
+    },
+    "antenna-mast.png": {
+      "id": "doodad.antenna-mast",
+      "name": "Antenna mast",
+      "description": "A tall guyed radio mast: base plate, three guy wires to anchors, its long thin shadow.",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 14,
+      "cover": "none"
+    },
+    "medical-marker.png": {
+      "id": "doodad.medical-marker",
+      "name": "Medical marker",
+      "description": "A painted panel by the medical post: a plain white cross on a green square, worn. A floor decal; blocks nothing.",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 15,
+      "cover": "none"
     }
   }
 }
