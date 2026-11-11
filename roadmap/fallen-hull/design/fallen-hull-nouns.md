@@ -271,7 +271,15 @@ it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
 (c), the ring forge; `hull-spread-law` (a), the hull alone spreads, through its
 autoforge and only from feedstock, while site networks keep their fixed
 numbers; `stake-look` (a), the spire, a square armoured spike that opens four
-petals round its node mast.
+petals round its node mast. `stake-composed` (a), a stake's parts stay separate pieces
+in their fixed slots (`StakeFootprint`), each building up visibly while its
+stage approaches (owner: "we should work on construction animation / phases
+for these"), not one composed picture per stage (`StakeConstruction`: the
+coming stage's parts build over the stake's progress, slab, frame, plating and
+lamps, with welding, builder drones and dust; the pylon drives in, the mast turns
+open; the drone pad, `stake-pad.png`, stays); `hull-painting-res` (b), the
+hull's roof painting regenerated at 48 px a cell in five sections registered to
+the accepted card (`hull_hires.py`), so it holds up at play's closest zoom.
 
 ## What is built
 
