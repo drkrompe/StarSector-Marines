@@ -110,9 +110,7 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 
-import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.PortFreighter;
-import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -6529,13 +6527,14 @@ public final class BattleSetup {
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
-        // A port's freighter stands each hold the bulk freighter standing on them (PortHubDressing), drawn from its own
-        // stream, and only where there are any, so every other map's draws are unchanged.
-        if (lighterStands.isEmpty()) return parked;
-        Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
-        PortFreighter[] freighters = PortFreighter.values();
+        // A port's stands each hold the largest ship their berth fits (PortHubDressing sizes the berth), and only where
+        // there are any, so every other map is unchanged.
         for (LandingPad pad : lighterStands) {
-            PortFreighter type = freighters[lighters.nextInt(freighters.length)];
+            boolean alongY = pad.approach.dy != 0;
+            int along = 2 * (alongY ? pad.halfHeight : pad.halfWidth) + 1;
+            int across = 2 * (alongY ? pad.halfWidth : pad.halfHeight) + 1;
+            PortFreighter type = PortFreighter.forBerth(along, across);
+            if (type == null) continue;
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
             stampFreighterFootprint(map.grid, map.topology, pad, type);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
@@ -6543,18 +6542,17 @@ public final class BattleSetup {
         return parked;
     }
 
-    /** Cells a freighter's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
+    /** Most cells a ship's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
     static final int FREIGHTER_OVERHANG = 2;
 
     /**
-     * A port freighter's footprint: its hull's length along its approach and its beam across, short of
-     * {@link #FREIGHTER_OVERHANG} cells all round, closed to movement as a parked transport's is.
+     * A port ship's footprint: its hull's drawn length along its approach and its beam across, short of an overhang
+     * all round (a quarter of the side, at most {@link #FREIGHTER_OVERHANG} cells), closed to movement as a parked
+     * transport's is. A shuttle pod closes the one cell it stands on.
      */
     static void stampFreighterFootprint(NavigationGrid grid, CellTopology topology, LandingPad pad,
                                         PortFreighter type) {
-        float length = HullFootprintResolver.visualLengthCells(type.renderHullId()) * AirAppearance.GROUND_SCALE;
-        int halfLong = Math.max(1, Math.round(length / 2f) - FREIGHTER_OVERHANG);
-        int halfBeam = Math.max(1, Math.round(type.beamCells / 2f) - FREIGHTER_OVERHANG);
+        int halfLong = half(type.lengthCells), halfBeam = half(type.beamCells);
         boolean alongY = pad.approach.dy != 0;
         int hx = alongY ? halfBeam : halfLong, hy = alongY ? halfLong : halfBeam;
         for (int y = pad.centerY - hy; y <= pad.centerY + hy; y++) {
@@ -6569,6 +6567,12 @@ public final class BattleSetup {
                 if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
             }
         }
+    }
+
+    /** Half the closed run of a hull side {@code cells} long, after its overhang. */
+    private static int half(float cells) {
+        float overhang = Math.min(FREIGHTER_OVERHANG, cells / 4f);
+        return Math.max(0, Math.round((cells - 2 * overhang) / 2f));
     }
 
     private static int distanceSq(int ax, int ay, int bx, int by) {
