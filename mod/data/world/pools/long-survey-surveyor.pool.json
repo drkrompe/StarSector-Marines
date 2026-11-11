@@ -27,6 +27,7 @@
         "y": 250,
         "heading": "south",
         "trench": 30,
+        "yards": 80,
         "stakes": [
           {
             "x": 240,

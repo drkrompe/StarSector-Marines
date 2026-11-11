@@ -15,7 +15,8 @@ west from the hull through the town (the Colony Breach's rescue, `long-survey-ar
 
 **Ground.** The Colony Breach's colony on its own seed, `long-survey-fall` seed 38,
 400 by 240: the lift, bores and holdouts as the owner placed them, the town north
-of the rail line, fields and desert south of it.
+of the rail line, the port's yards and desert south of it (`PortYards`: tank
+farms and landing pads on the old fields, the lift's field of fire left bare).
 
 - **Entry.** The lift at 164,18 on the south edge, its landing field of fire kept
   clear of the hull, the trench and every strike.
@@ -93,8 +94,9 @@ mechanics: walls and roofs break, blocks collapse and burn under the fight.
 blocks to the north edge. The city is intact at the start apart from the hull's
 impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
-- **Entry.** The garrison's columns and the company step off from the fields
-  along the south edge (y 0 to 70), the landing on the Avenue at 279,39.
+- **Entry.** The garrison's columns and the company step off from the port's
+  yards along the south edge (y 0 to 70; tank farms and landing pads on the old
+  fields, `PortYards`), the landing on the Avenue at 279,39.
 - **The hull.** Down across the north edge in the heart's place, broken in three,
   bow west (centre 330,296; x 267 to 394, y 278 to 314), the forge in the bow, the
   bay's door facing the city. Its trench runs on west from the bow. The impact
@@ -142,7 +144,8 @@ then the interior as a delve). With chapter 3 on Broad Front too, the outer push
 kept short and the chapter weighted on the delve (`long-survey-arc.md`, Open picks).
 
 **Ground.** Broad Front's country on Garnir, `long-survey-surveyor` seed 5, 560 by
-336, laid out frozen and airless: the south fields and two airbases, the cordon
+336, laid out frozen and airless: the port's yards on the south fields (tank farms
+and landing pads, `PortYards`) and two airbases, the cordon
 line, then works country, two sealed works districts either side of the approach
 (sheds, yards, a tank farm; `LongSurveyGround`, `WORKS_WEST` and `WORKS_EAST`), the
 hull in the heart's place between them.

@@ -44,6 +44,9 @@ public final class CrashSiteFinishStage implements GenStage {
         RuinsRoofStage.roofSolid(ctx, laid.footprint(), CrashSiteStage.HULL_KIND);
         splitCompartments(ctx, laid);
         CrashSiteStage.dropFields(ctx, laid.hullCells(), laid.trenchCells(), laid.aprons());
+        // The port's yards on the fields the patch names, before the shower falls and the lattice seats round them.
+        PortYards.lay(ctx, laid.plan().yards(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
+                FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         // The landscape strews its loose stones and plants over open ground after the hull is laid: none on its decks or
         // in its trench, which it ploughed bare.
         for (BitSet bare : new BitSet[]{laid.hullCells(), laid.trenchCells()}) {
