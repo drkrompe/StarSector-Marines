@@ -93,7 +93,9 @@ impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
   bow west (centre 330,296; x 267 to 394, y 278 to 314), the forge in the bow, the
   bay's door facing the city. Its trench runs on west from the bow. The impact
   band flattens the blocks round it (to about y 250); south of that the city
-  stands, and the heart's overgrown commons lie open in front of the hull.
+  stands. The commons in front of the hull is ploughed ground: burnt earth,
+  rubble and craters, its trees felled, the old workings' yard wrecked, the
+  Avenue ending in rubble short of the hull.
 - **The claim.** Two chains run south from the hull into the city and branch
   along the boulevard (y about 186): established stakes nearest the hull
   (330,256; 330,216; 330,176; 370,256; 370,216), raised ones at the lane heads
@@ -116,7 +118,7 @@ impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
 1. The Cross: the boulevard junction where the lanes meet the chains' branches;
    cutting the trunk at 330,176 strands both west stakes.
-2. The commons under the hull: open overgrown ground in front of the hull, the
+2. The commons under the hull: open ploughed ground in front of the hull, the
    established stakes standing in it under the watch's guns.
 3. The rubble band: the flattened blocks round the hull, the last push to its
    mouth. The hull and its forge stay out of reach; that is chapter 4.

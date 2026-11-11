@@ -76,7 +76,9 @@ public final class CrashSiteFinishStage implements GenStage {
         List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
                 laid.plan().trench(), hull, trench, aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         ctx.put(HullKeys.STRIKES, strikes);
-        // The ground the hull flattened, round its trench and sections: initial damage like the strikes.
+        // The ground the hull flattened, round its trench and sections: burnt and ploughed bare now, its buildings, fences
+        // and trees wrecked as initial damage like the strikes.
+        ImpactZone.plough(ctx, hull, trench, new BitSet(), aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         ctx.put(HullKeys.IMPACT, ImpactZone.layers(ctx, hull, trench, new BitSet(), aprons,
                 FieldOfFire.of(ctx.get(BspKeys.PRECINCTS))));
         ClaimLattice.Ground stakeGround = (x, y) -> {
