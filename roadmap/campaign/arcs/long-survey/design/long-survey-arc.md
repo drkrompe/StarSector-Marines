@@ -161,8 +161,11 @@ chapter (pick through the art session), voiced later as the Khettara is.
   board (`SYSTEM`, `PLANET_ID`: Corvus, `corvus_IIIa`), opening with the
   Khettara when Morrow departs at the end of A Working Ship
   (`EndGameBranches.open`, the one rule both arcs read). The chapters are fought
-  on Garnir's frozen skin (`SURFACE`), each owned map laid out on its pool's
-  home palette and skinned for it. Rows read "Survey N of 4";
+  on Garnir as `LongSurveyCampaign.world()` reads it: the frozen surface with no
+  atmosphere (vanilla's `no_atmosphere`), so towns are sealed and nothing is
+  farmed in the open; each owned map is laid out on its pool's home palette and
+  skinned for it. Whether The Fall's town is sealed (one lock on its avenue,
+  every civilian route through it) is on the picks page, built sealed meanwhile. Rows read "Survey N of 4";
   never the event gate, no clock. Briefings are unvoiced stub exchanges between
   the defence chief and Castle (`longSurvey*` in `strings.json`), with a retry
   and a replay line; the chief's name and portrait wait on the owner.
