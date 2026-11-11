@@ -23,6 +23,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -238,6 +239,20 @@ class FabricationYardTest {
                 }
             }
         }
+    }
+
+    /** A dispatch shed's loading yard runs from its face nearest a road out to the road, the face's width. */
+    @Test
+    void theLoadingYardRunsOutToTheRoad() {
+        FabricationYard.Hall dispatch = HALLS.get(6);
+        assertEquals(LightIndustryWorks.DISPATCH, dispatch.step());
+        int[] yard = FabricationYard.loadingYard(dispatch, GROUND, 16);
+        assertNotNull(yard);
+        assertEquals(dispatch.x0(), yard[0]);
+        assertEquals(dispatch.x1(), yard[2]);
+        assertEquals(dispatch.y1() + 1, yard[1], "from the face");
+        assertEquals(ROAD_Y - 1, yard[3], "to the road's edge");
+        assertNull(FabricationYard.loadingYard(dispatch, GROUND, 3), "no road within reach");
     }
 
     @Test

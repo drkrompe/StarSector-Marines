@@ -21,14 +21,18 @@ final class CreepShader {
     static final String VERTEX_SRC = ""
             + "#version 120\n"
             + "varying vec2 vCell;\n"
+            + "varying vec4 vTint;\n"
             + "void main() {\n"
             + "    vCell = gl_MultiTexCoord0.xy;\n"
+            + "    vTint = gl_Color;\n"
             + "    gl_Position = ftransform();\n"
             + "}\n";
 
     static final String FRAGMENT_SRC = ""
             + "#version 120\n"
             + "varying vec2 vCell;\n"
+            + "varying vec4 vTint;\n"
+            + "uniform float standing;\n"
             + "uniform sampler2D field;\n"
             + "uniform sampler2D noise;\n"
             + "uniform sampler2D surface;\n"
@@ -193,7 +197,7 @@ final class CreepShader {
             + "        acc = mix(flesh, rim, 0.35) * fv + acc * (1.0 - fv); outA = fv + outA * (1.0 - fv);\n"
             + "        acc = tint * sa + acc * (1.0 - sa); outA = sa + outA * (1.0 - sa);\n"
             + "        acc = col * a + acc * (1.0 - a); outA = a + outA * (1.0 - a);\n"
-            + "        gl_FragColor = vec4(clamp(acc / max(outA, 0.0001), 0.0, 1.0), outA * alpha);\n"
+            + "        gl_FragColor = vec4(clamp(acc / max(outA, 0.0001), 0.0, 1.0) * vTint.rgb, outA * alpha * vTint.a);\n"
             + "        return;\n"
             + "    }\n"
             + "    float age = own.r;\n"
@@ -209,7 +213,7 @@ final class CreepShader {
             + "    vec3 raised = mix(flesh, rim, 0.35);\n"
             + "    float va = 0.9 * wv;\n"
             + "    vec3 col = ac > 0.0 ? body(clamp(dc, 0.0, 2.0), p, u, here.g, pulseCells, cloud, patch, 0.0, 0.0, vec2(0.0), 0.0) : vec3(0.0);\n"
-            + "    if (ac > 0.0) {\n"
+            + "    if (ac > 0.0 && standing < 0.5) {\n"
             + "        vec2 gw = vec2(F(p + vec2(tap, 0.0)).a - F(p - vec2(tap, 0.0)).a,\n"
             + "                       F(p + vec2(0.0, tap)).a - F(p - vec2(0.0, tap)).a) / (2.0 * tap);\n"
             + "        float bevel = clamp(-dot(gw, sunDir), -1.0, 1.0);\n"
@@ -219,7 +223,7 @@ final class CreepShader {
             + "    }\n"
             + "    float outA = ac + va * (1.0 - ac);\n"
             + "    vec3 rgb = (col * ac + raised * va * (1.0 - ac)) / max(outA, 0.0001);\n"
-            + "    gl_FragColor = vec4(clamp(rgb, 0.0, 1.0), outA * alpha);\n"
+            + "    gl_FragColor = vec4(clamp(rgb, 0.0, 1.0) * vTint.rgb, outA * alpha * vTint.a);\n"
             + "}\n";
 
     private static String shadowStep(float t) {
@@ -254,6 +258,7 @@ final class CreepShader {
         program.set2f("fieldSize", fieldW, fieldH);
         program.set1f("time", pass.timeSeconds);
         program.set1f("alpha", pass.alpha);
+        program.set1f("standing", pass.standing ? 1f : 0f);
         program.set1f("cellPx", pass.cellPx);
         program.set2f("sunDir", pass.sun.dirX(), pass.sun.dirY());
         program.set1f("sunRise", pass.sun.rise());
