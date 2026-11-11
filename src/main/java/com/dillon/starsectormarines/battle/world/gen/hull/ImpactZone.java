@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.hull;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
@@ -24,8 +26,11 @@ import java.util.List;
  *
  * <p>It is initial damage, applied when the battle is assembled, as runs of cells along each map row, so it never
  * reaches a cell it was not meant to: never the hull, its trench, lips or aprons, a standing piece of debris or a
- * fixture, the landing's field of fire, a building a mission anchors to, or a mission structure. Damage only takes
- * walls and roofs down, so every way, stake point and haul road stays as open as it was.
+ * fixture other than a tree or rock, the landing's field of fire, or a piece the mission's layout needs. A named place
+ * or a layout's other pieces are spared only clear of {@link #FLATTEN}: nothing intact stands against the hull or
+ * the plough. Damage only takes walls and roofs down and fells trees, so every way, stake point and haul road stays
+ * as open as it was. The ground under it is ploughed when the map is generated ({@link #plough}): soft ground burnt
+ * to bare earth and rubble, and roads ending in rubble short of the hull.
  */
 final class ImpactZone {
 
@@ -33,8 +38,10 @@ final class ImpactZone {
     static final int FLATTEN = 20, BATTER = 40;
     /** Ground kept clear round a mission's buildings and structures, and off the landing's field of fire. */
     static final int CLEAR = 5;
-    /** The share of open-ground patches near the hull that are scarred. UNTUNED. */
+    /** The share of wrecked patches of open ground out in the battered ground left unscarred. UNTUNED. */
     static final float OPEN_SCAR = 0.3f;
+    /** A road is rubble this many cells from the hull or its trench, and broken in patches out to the second. */
+    static final int ROAD_BREAK = 8, ROAD_RAGGED = 14;
     /** A patch of battered ground wrecked or not together, cells on a side. */
     static final int PATCH = 5;
     /** Strokes in one damage layer, and the most layers the band may take. */
@@ -55,9 +62,54 @@ final class ImpactZone {
         source.or(trench);
         source.or(lips);
         int[] dist = distance(source, w, h);
-        boolean[] kept = kept(ctx, hull, trench, lips, aprons, field);
-        List<Run> runs = runs(ctx.topology, dist, kept, w, h, ctx.seed);
+        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons, field);
+        List<Run> runs = runs(ctx.grid, ctx.topology, dist, kept, w, h, ctx.seed);
         return layers(runs);
+    }
+
+    /**
+     * The ground itself, on the map as generated: soft open ground under the hull is burnt and ploughed to bare earth and
+     * rubble, its plants and loose stones gone, and out in the battered ground in its wrecked patches; a road ends in
+     * rubble short of the hull. Kept ground, the hull, its trench and the aprons are left as they are.
+     */
+    static void plough(GenContext ctx, BitSet hull, BitSet trench, BitSet lips, BitSet aprons, FieldOfFire field) {
+        int w = ctx.width, h = ctx.height;
+        BitSet source = new BitSet(w * h);
+        source.or(hull);
+        source.or(trench);
+        source.or(lips);
+        int[] dist = distance(source, w, h);
+        boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons, field);
+        CellTopology topology = ctx.topology;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int k = y * w + x;
+                if (kept[k] || dist[k] > BATTER * 3) continue;
+                GroundKind kind = topology.getGroundKind(x, y);
+                GroundKind to = ploughed(kind, dist[k], ctx.seed, x, y);
+                if (to == null) continue;
+                if (topology.isWall(x, y) || topology.isFixture(x, y) && !ctx.grid.hasTag(x, y, CellTag.NATURAL_SOLID)) {
+                    continue;
+                }
+                topology.setGroundKind(x, y, to);
+                String block = CrashSiteStage.block(to);
+                if (block != null) topology.setSurface(x, y, topology.surfaceIndex(block));
+                topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
+    }
+
+    /** What the hull's coming in made of a cell's ground, or {@code null} for unchanged. */
+    static GroundKind ploughed(GroundKind kind, int distanceThirds, long seed, int x, int y) {
+        float d = distanceThirds / 3f;
+        if (kind == GroundKind.STREET || kind == GroundKind.SIDEWALK) {
+            if (d <= ROAD_BREAK) return GroundKind.RUBBLE;
+            return d <= ROAD_RAGGED && patch(seed ^ 0x40ADL, x * 2, y * 2) < 0.5f ? GroundKind.RUBBLE : null;
+        }
+        if (!soft(kind)) return null;
+        if (d > FLATTEN && (mode(distanceThirds, seed, x, y) != DamagePlan.Mode.RUIN
+                || patch(seed ^ 0x5CA2L, x, y) < OPEN_SCAR)) return null;
+        return CrashSiteStage.trenchGround(seed, x, y);
     }
 
     /** Chamfer (3, 4) distance from the source cells, in thirds of a cell. */
@@ -94,7 +146,7 @@ final class ImpactZone {
     }
 
     /** The cells the band never touches. */
-    private static boolean[] kept(GenContext ctx, BitSet hull, BitSet trench, BitSet lips, BitSet aprons,
+    private static boolean[] kept(GenContext ctx, int[] dist, BitSet hull, BitSet trench, BitSet lips, BitSet aprons,
                                   FieldOfFire field) {
         int w = ctx.width, h = ctx.height;
         boolean[] kept = new boolean[w * h];
@@ -110,9 +162,11 @@ final class ImpactZone {
                 }
             }
         }
+        // A place the town named is kept, but not against the hull: nothing intact stands where it ploughed in.
+        boolean[] places = new boolean[w * h];
         for (PointOfInterest poi : ctx.pois) {
             if (poi.kind == PointOfInterest.Kind.RESIDENTIAL || poi.kind == PointOfInterest.Kind.DEPOT) continue;
-            box(kept, w, h, Math.min(poi.left, poi.right), Math.min(poi.top, poi.bottom),
+            box(places, w, h, Math.min(poi.left, poi.right), Math.min(poi.top, poi.bottom),
                     Math.max(poi.left, poi.right), Math.max(poi.top, poi.bottom));
         }
         LaidLayout laid = ctx.get(BspKeys.MISSION_LAYOUT_LAID);
@@ -128,10 +182,13 @@ final class ImpactZone {
                     y1 = Math.max(y1, c[1]);
                     if (c[0] >= 0 && c[1] >= 0 && c[0] < w && c[1] < h && hull.get(c[1] * w + c[0])) onHull = true;
                 }
-                // The crash's own piece is the hull; the band is what surrounds it.
-                if (!onHull) box(kept, w, h, x0, y0, x1, y1);
+                // The crash's own piece is the hull; the band is what surrounds it. A piece the mission needs is kept
+                // whole; any other (the dressing of a place the hull came down on) only clear of the hull.
+                if (onHull) continue;
+                box(piece.required() ? kept : places, w, h, x0, y0, x1, y1);
             }
         }
+        for (int k = 0; k < w * h; k++) if (places[k] && dist[k] > FLATTEN * 3) kept[k] = true;
         return kept;
     }
 
@@ -164,15 +221,25 @@ final class ImpactZone {
         return (hash & 0xFFFF) / 65536f;
     }
 
-    /** Whether the band may touch the cell: not kept, and no standing debris or fixture. */
-    static boolean touchable(CellTopology topology, int x, int y) {
-        if (topology.isFixture(x, y)) return false;
-        boolean built = built(topology, x, y);
-        // A wall with no building round it is a standing piece of hull debris or a field wall: left standing.
-        return built || !topology.isWall(x, y);
+    /**
+     * Whether the band may touch the cell: a building, open ground, a tree or a rock (felled), or a fence or field wall
+     * within {@link #FLATTEN}; never a standing piece of hull debris or another fixture.
+     */
+    static boolean touchable(NavigationGrid grid, CellTopology topology, int x, int y, int distanceThirds) {
+        if (topology.isFixture(x, y)) return grid.hasTag(x, y, CellTag.NATURAL_SOLID);
+        if (built(topology, x, y) || !topology.isWall(x, y)) return true;
+        String surface = topology.getSurfaceId(x, y);
+        return distanceThirds <= FLATTEN * 3 && (surface == null || !surface.contains("fallen-hull"));
     }
 
-    static List<Run> runs(CellTopology topology, int[] dist, boolean[] kept, int w, int h, long seed) {
+    /** Whether the cell is soft open ground the hull's coming in burns and ploughs to dirt. */
+    static boolean soft(GroundKind kind) {
+        return kind == GroundKind.GRASS || kind == GroundKind.DIRT || kind == GroundKind.SAND
+                || kind == GroundKind.SNOW || kind == GroundKind.STONE || kind == GroundKind.HARDPAN;
+    }
+
+    static List<Run> runs(NavigationGrid grid, CellTopology topology, int[] dist, boolean[] kept, int w, int h,
+                          long seed) {
         List<Run> out = new ArrayList<>();
         for (int y = 0; y < h; y++) {
             DamagePlan.Mode open = null;
@@ -181,10 +248,11 @@ final class ImpactZone {
                 DamagePlan.Mode m = null;
                 if (x < w) {
                     int k = y * w + x;
-                    if (!kept[k] && touchable(topology, x, y)) m = mode(dist[k], seed, x, y);
-                    // Open ground is scarred only in scattered patches near the hull, not carpeted.
-                    if (m != null && !built(topology, x, y)
-                            && (dist[k] > FLATTEN * 3 || patch(seed ^ 0x5CA2L, x, y) >= OPEN_SCAR)) m = null;
+                    if (!kept[k] && touchable(grid, topology, x, y, dist[k])) m = mode(dist[k], seed, x, y);
+                    // Open ground is burnt and cratered under the hull, and out in the battered ground in patches,
+                    // wrecked ones (trees felled) growing rarer outward.
+                    if (m != null && !built(topology, x, y) && dist[k] > FLATTEN * 3
+                            && (m != DamagePlan.Mode.RUIN || patch(seed ^ 0x5CA2L, x, y) >= OPEN_SCAR)) m = null;
                 }
                 if (m != open) {
                     if (open != null) out.add(new Run(open, y, start, x - 1));

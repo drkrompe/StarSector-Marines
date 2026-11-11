@@ -48,7 +48,7 @@ put its forge out.
   hull is not a site network: its autoforge is the one derelict thing that
   makes more, and only from feedstock it hauls home where anyone can see it.
   Every stake it plants becomes an ordinary site zone the moment its link to
-  the hull is cut. (Pick `hull-spread-law`.)
+  the hull is cut. (Pick `hull-spread-law`, answered a.)
 
 ## The hull and the Rav
 
@@ -92,6 +92,15 @@ and the Rav):
 
 A stake killed planted is scrap and leaves no wreck. A raised or established
 stake is fought as a zone: kill its node and it is stranded and blind.
+
+A stake owns its ground from the moment it is planted. It claims one square
+**footprint**, sized for its established form and seated on the clear ground
+nearest its lattice point. That ground is cleared of loose props and scatter,
+and nothing else is placed in it. Each part stands in its own **slot**: the
+spire at the centre (the pylon, then the node mast), the flock's cradle and
+the repair drone's pad at the two back corners, a folded post on each flank,
+and the store on the front edge. A stage grows by filling more of its slots
+and never sets one part on another.
 
 ## Laws
 
@@ -209,17 +218,22 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   A strike keeps off buildings a mission anchors to, the landing's field of fire
   and the hull; a knock-down keeps its collapse off fighting positions.
 - **The impact zone** (`ImpactZone`) is the ground the hull flattened coming
-  in: within 20 cells of the hull or its trench every building is wrecked
-  (walls down, roofs fallen in or burnt out), so nothing intact stands against
-  the hull or the plough; out to 40 cells the blocks are battered and wrecked in
-  patches that grow rarer outward; beyond that only the shower's strikes fall
-  (UNTUNED). Open ground near the hull is scarred in scattered patches. It is
-  initial damage (`hull-impact-*` layers), applied when the battle is
-  assembled, as runs of cells along each row, so it never touches the hull, its
-  trench or aprons, standing debris or fixtures, the landing's field of fire, a
-  building a mission anchors to or a mission structure. It only takes walls and
-  roofs down, so the lift, the shelters, the stake points and the haul roads
-  stay as open as they were.
+  in: within 20 cells of the hull or its trench every building, fence and field
+  wall is wrecked (walls down, roofs fallen in or burnt out) and every tree
+  felled, so nothing intact stands against the hull or the plough; out to 40
+  cells the blocks are battered and wrecked in patches that grow rarer outward,
+  trees felled in the wrecked ones; beyond that only the shower's strikes fall
+  (UNTUNED). The ground is **ploughed** when the map is generated: soft ground
+  within 20 cells is burnt to bare earth and rubble with its plants gone, and so
+  are the battered ground's wrecked patches, and a road ends in rubble 8 cells
+  short of the hull, ragged out to 14. The wrecking is initial damage
+  (`hull-impact-*` layers), applied when the battle is assembled, as runs of
+  cells along each row, so it never touches the hull, its trench or aprons,
+  standing debris or other fixtures, the landing's field of fire or a piece the
+  mission's layout needs. A named place or the layout's other pieces (the
+  dressing of whatever the hull came down on) are spared only beyond the 20
+  cells. It only takes walls and roofs down, so the lift, the shelters, the
+  stake points and the haul roads stay as open as they were.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
@@ -249,19 +263,15 @@ world, the hull's claim grows by stakes week to week as a market condition, and
 the world's owner calls for help. Its stages, its clock and its interaction with
 the event gate are not designed yet.
 
-## Open picks
-
-- `hull-spread-law`: (a, recommended) the hull alone spreads, through its
-  autoforge and only from feedstock; site networks keep their fixed numbers.
-  (b) No spread: the hull pours out what it carried and stops.
-- `stake-look`: (a, recommended) the spire, a square armoured spike that
-  opens four petals round its node mast. (b) the tripod, a round core whose
-  three legs splay and anchor. The spire is built.
+## Picks
 
 Answered by the owner (2026-11-11), each the recommended option and built as
 it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
 `stripper-hauler` (a), two units, the stripper and the hauler; `autoforge-look`
-(c), the ring forge.
+(c), the ring forge; `hull-spread-law` (a), the hull alone spreads, through its
+autoforge and only from feedstock, while site networks keep their fixed
+numbers; `stake-look` (a), the spire, a square armoured spike that opens four
+petals round its node mast.
 
 ## What is built
 
@@ -299,6 +309,9 @@ Numbers UNTUNED.
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
   reaching its point, scrap if its hauler dies first, the point open again);
+  `StakeFootprint` (a stake's 11-cell square, seated where every cell is
+  buildable, nearest its point; a slot per part, none overlapping, and each
+  stage's parts include the stage before's; `FallenHull.seatOf`);
   `HaulRoads` (a walk with both ends near a road follows it, waypoint by
   waypoint; any other goes straight).
 - **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and

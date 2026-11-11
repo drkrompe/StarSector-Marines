@@ -5,7 +5,9 @@ import java.util.Arrays;
 /**
  * The derelict security walker's legs and the body they carry, seen from above (`derelict-security-network.md`, The
  * walker's legs): a heavy torso slung between four legs that reach out from a ring of hips and plant their feet.
- * Presentation only, like the Rav rigs: the walker moves as any mech does and nothing in the battle reads its feet back.
+ * The walker moves as any mech does; a heavy walker's rig is stepped by the battle ({@code MechWallCrush}), whose
+ * planted feet break what they come down on, and the renderer draws that same rig. Every other rig is presentation
+ * only, like the Rav rigs.
  *
  * <p><b>Gait.</b> A gait clock runs on the distance the torso covers, a cycle each stride, so the cadence follows the
  * speed. At a walk ({@link Gait#WALK}) the legs lift one at a time in a four-beat sequence (back, front on one side,
@@ -128,7 +130,8 @@ public final class DerelictLegRig {
     static final float TURN_LEAD_DEGREES = 35f;
     /** A turn under way keeps its direction while the heading it wants stands this far round or more, degrees. */
     static final float HALF_TURN_KEEP_DEGREES = 135f;
-    private static final int LEGS = 4;
+    /** Legs on a rig. */
+    public static final int LEGS = 4;
 
     /**
      * A four-legged machine's proportions, cells and seconds: how far out its hips and feet stand, how long and high
@@ -189,6 +192,11 @@ public final class DerelictLegRig {
             DerelictLegPose.THIGH_CELLS, DerelictLegPose.SHIN_CELLS, DerelictLegPose.WALL_FOOT_HEIGHT_CELLS,
             DerelictLegPose.STEP_LIFT_CELLS, WALK_STRIDE, RUN_STRIDE, RUN_SPEED, WALK_SPEED, STEP_SECONDS, 1f, 1f,
             WALKER_TWIST_DEGREES, 0.16f, WALKER_SUSPENSION_SECONDS, WALKER_TURN_DEGREES, WALKER_RUN_SPRING);
+
+    /** The walker's build at {@code size} times the MG-40's: itself at its own size, else {@link Build#scaled}. */
+    public static Build walkerAt(float size) {
+        return Math.abs(size - 1f) < 0.01f ? WALKER : WALKER.scaled(size);
+    }
 
     /**
      * Tri-Tachyon's light crawler (`mech-lines.md`, high-tech light): a small carapace low on four short legs, quick

@@ -6,9 +6,9 @@ import java.util.Map;
  * How a fallen hull's own structures are drawn (`fallen-hull-nouns.md`; art in {@code art-source/fallen-hull}): the
  * autoforge's housing, lit or put out, and a survey stake by its stage, the planted stake's folded pylon, the raised
  * stake's opened pylon round its node mast, the established stake's feedstock store at its service bay. Each is one
- * unrotated square sprite {@link Piece#cells} across. Presentation only: no rule reads it. The looks are the picks'
- * recommended options until the owner answers (`long-survey-arc.md`, picks {@code autoforge-look},
- * {@code stake-look}). The hull's walls, roof, trench and debris are map tiles, not structures.
+ * unrotated square sprite {@link Piece#cells} across. Presentation only: no rule reads it. The looks are the owner's
+ * answers to the picks {@code autoforge-look} (the ring forge) and {@code stake-look} (the spire)
+ * (`fallen-hull-nouns.md`, Picks). The hull's walls, roof, trench and debris are map tiles, not structures.
  */
 public final class FallenHullLook {
 
@@ -17,7 +17,8 @@ public final class FallenHullLook {
     public static final Piece FORGE_OUT = new Piece(ROOT + "forge-out.png", 6f);
     public static final Piece STAKE_PLANTED = new Piece(ROOT + "stake-planted.png", 3.2f);
     public static final Piece STAKE_RAISED = new Piece(ROOT + "stake-raised.png", 4.8f);
-    public static final Piece STAKE_STORE = new Piece(ROOT + "stake-store.png", 3.2f);
+    /** Drawn to its slot in the stake's footprint ({@link StakeFootprint}): 3 cells. */
+    public static final Piece STAKE_STORE = new Piece(ROOT + "stake-store.png", 3f);
     /** The widest piece, cells, for culling. */
     public static final float MAX_CELLS = 6f;
 

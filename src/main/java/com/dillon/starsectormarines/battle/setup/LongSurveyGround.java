@@ -78,9 +78,17 @@ public final class LongSurveyGround {
      * world, as every owned map is ({@code story-map-pools.md}).
      */
     public static Ground ground(StoryMap chapter, SurfacePalette world, StoryMapPool.Entry entry) {
+        return ground(chapter, BloomHeartSetup.world(world), entry);
+    }
+
+    /**
+     * {@code entry}'s ground for the world {@code worldProfile} states, its surface and its air: a world whose towns
+     * are sealed ({@link PlanetSkin#sealsTowns}) walls every town in the ground with locks.
+     */
+    public static Ground ground(StoryMap chapter, TargetProfile worldProfile, StoryMapPool.Entry entry) {
         if (!chapter.longSurvey()) throw new IllegalArgumentException(chapter.id + " is not a Long Survey chapter");
+        SurfacePalette world = worldProfile.surface();
         SurfacePalette home = StoryMapPools.pool(chapter).layoutFor(world);
-        TargetProfile worldProfile = BloomHeartSetup.world(world);
         long seed = entry.seed();
         return switch (chapter) {
             case LONG_SURVEY_FALL -> {
