@@ -273,6 +273,11 @@ autoforge and only from feedstock, while site networks keep their fixed
 numbers; `stake-look` (a), the spire, a square armoured spike that opens four
 petals round its node mast.
 
+Also answered (owner, 2026-11-11), with the art session building both:
+`hull-painting-res` (b), the hull's painting regenerated at a higher
+resolution; `stake-composed` (a), the stake drawn as separate parts, with a
+construction animation to come.
+
 ## What is built
 
 Everything is in `battle.derelict`, on the recommended option of every pick.
