@@ -1587,7 +1587,8 @@ public class BattleRenderer {
             roofStream.ship = ship != null ? ship.of(b) : null;
             roofStream.shipOnly = false;
             roofStream.begin(out, b, roofAlpha * alphaMult);
-            roofStream.lift(roofLifts[buildingClass(topology, buildings, b)],
+            roofStream.lift(roofStream.ship != null ? shipLift(topology, buildings, ship)
+                            : roofLifts[buildingClass(topology, buildings, b)],
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;
@@ -1621,7 +1622,7 @@ public class BattleRenderer {
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
             roofStream.begin(out, b, b.currentAlpha * alphaMult);
-            roofStream.lift(roofLifts[buildingClass(topology, buildings, b)],
+            roofStream.lift(shipLift(topology, buildings, ship),
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;
@@ -1653,7 +1654,7 @@ public class BattleRenderer {
             if (shown == null || shown.currentAlpha <= 0.01f) continue;
             roofStream.ship = section;
             roofStream.begin(out, shown, shown.currentAlpha * alphaMult);
-            roofStream.lift(roofLifts[buildingClass(topology, buildings, shown)],
+            roofStream.lift(shipLift(topology, buildings, ship),
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : section.solid) {
                 int cx = at % gridW;
@@ -1664,6 +1665,19 @@ public class BattleRenderer {
                 roofStream.shipQuad(0f, 0f, 1f, 1f);
             }
         }
+    }
+
+    /**
+     * The one lift the whole ship's roof stands at: its tallest compartment's. Each compartment is its own building,
+     * and one beside a break counts as breached and stands lower, so lifted apart the painting would split along
+     * compartment lines and show the decks between.
+     */
+    private float shipLift(CellTopology topology, Buildings buildings, HullRoof ship) {
+        float lift = 1f;
+        for (HullRoof.Section section : ship.sections()) {
+            for (Building b : section.buildings) lift = Math.max(lift, roofLifts[buildingClass(topology, buildings, b)]);
+        }
+        return lift;
     }
 
     private HullRoof hullRoof;
