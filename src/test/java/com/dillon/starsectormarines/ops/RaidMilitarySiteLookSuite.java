@@ -127,7 +127,19 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
             out.add(new Shot("corner-guns", corner[0], corner[1], GUN_WIDTH));
             mark("corner-guns", 3, 3);
         }
+        // One close-up of each kind of emplacement on the map, so they can be set side by side.
+        List<String> seen = new ArrayList<>();
+        for (DefensePost post : sim.getDefensePosts()) {
+            if (post.layoutId == null || seen.contains(post.layoutId)) continue;
+            seen.add(post.layoutId);
+            String name = "post-" + post.layoutId.replace("layout.defense-post-", "");
+            out.add(new Shot(name, post.anchorX + .5f, post.anchorY + .5f, POST_WIDTH));
+            mark(name, 5, 5);
+        }
     }
+
+    /** Cells across an emplacement's own close-up. */
+    private static final float POST_WIDTH = 16f;
 
     /**
      * Whether an unbroken run of {@link #ARM} wall cells that are no building's leads from beside {@code (x, y)} along
