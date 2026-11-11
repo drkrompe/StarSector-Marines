@@ -126,7 +126,7 @@ public final class LongSurveyGround {
 
     /**
      * The ground's hull site as the hull's rules read it ({@link FallenHullSite}): the hull and its trench as the root
-     * zone's footprint, the forge, the bay's apron as the mouth, the lattice and its roads (each from the hull outward),
+     * zone's box, each section (stern to bow) as plates its zone reaches off, the forge, the bay's apron as the mouth, the lattice and its roads (each from the hull outward),
      * the starting stakes and the ways in as egress. What stands on the claim and the hull's store are the chapter's.
      */
     public static FallenHullSite rulesSite(HullSite site, List<FallenHullSite.Pile> salvage,
@@ -135,7 +135,10 @@ public final class LongSurveyGround {
         FallenHullSite.Rect hull = new FallenHullSite.Rect(Math.min(f.left(), t.left()), Math.min(f.bottom(), t.bottom()),
                 Math.max(f.right(), t.right()), Math.max(f.top(), t.top()));
         Cell mouth = mouth(site);
-        int perimeter = Math.max(hull.right() - hull.centreX(), hull.top() - hull.centreY()) + LINK_CELLS / 2;
+        // The root zone's reach off the nearest section's plates.
+        int perimeter = LINK_CELLS / 2;
+        List<FallenHullSite.Rect> sections = new ArrayList<>();
+        for (Area a : site.sections()) sections.add(new FallenHullSite.Rect(a.left(), a.bottom(), a.right(), a.top()));
         List<ClaimLattice.Point> lattice = new ArrayList<>();
         for (LatticePoint p : site.lattice()) lattice.add(new ClaimLattice.Point(p.index(), p.cell().x(), p.cell().y()));
         List<int[]> roads = new ArrayList<>();
@@ -157,7 +160,7 @@ public final class LongSurveyGround {
         List<int[]> egress = new ArrayList<>();
         for (Area door : site.interior().entrances()) egress.add(new int[] {door.centreX(), door.centreY()});
         return new FallenHullSite(hull, site.forge().x(), site.forge().y(), mouth.x(), mouth.y(), perimeter, lattice,
-                LINK_CELLS, roads, stakes, salvage, walkers, egress, feedstock);
+                LINK_CELLS, roads, stakes, salvage, walkers, egress, feedstock, sections);
     }
 
     /** The bay's mouth: the first berth of the apron nearest the launch bay, open ground outside the hull. */
