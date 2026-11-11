@@ -45,4 +45,20 @@ class CreepClimbTest {
         assertTrue(quads[0] > 0, "an old creep paints the face");
         assertTrue(highest[0] <= .2f + 1e-6f, "a cut-away stub keeps its creep under its top: " + highest[0]);
     }
+
+    @Test
+    void anOldCrustComesOverTheTopFromTheOuterSideOnly() {
+        int[] quads = {0};
+        CreepClimb.paintTop(CreepClimb.CRUST_FROM, 255, 5, 0f, 0f, 1f, 0f, 0f, -1f, CreepPalette.active(), 1f,
+                (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) -> quads[0]++);
+        assertEquals(0, quads[0], "a young claim has not come over the top");
+        // A wall's north side (outward -y) at y 0: the crust lies in from it, toward +y, never past the middle.
+        CreepClimb.paintTop(255, 255, 5, 0f, 0f, 1f, 0f, 0f, -1f, CreepPalette.active(), 1f,
+                (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) -> {
+                    quads[0]++;
+                    for (float y : new float[]{y0, y1, y2, y3}) assertTrue(y >= 0f && y <= .5f, "in from the side: " + y);
+                    for (float x : new float[]{x0, x1, x2, x3}) assertTrue(x >= 0f && x <= 1f, "along the side: " + x);
+                });
+        assertTrue(quads[0] > 0, "an old crust comes over the top");
+    }
 }

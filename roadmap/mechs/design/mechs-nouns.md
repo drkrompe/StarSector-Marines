@@ -463,7 +463,7 @@ increasing an encounter's total armored threat.
   2026-11-10): one row by two, locked ballistic, so it takes the light machine gun or another one-row ballistic part.
   It stands right of the turret card on the doll (`SocketId.RIGHT_ARM`, `MechMountSlot.RIGHT_ARM`, a socket no hull
   used before; `CampaignVehicle.weaponAt`). Its part fights as the hull's first secondary mount and rides the turret
-  (`VehicleMount.ridesTurret`; owner, 2026-11-10): a second barrel on the turret's right cheek along the main gun,
+  (`VehicleMount.ridesTurret`; owner, 2026-11-10): a second barrel close in on the turret's left, parallel to the main gun and mostly under the head (owner, 2026-11-11),
   whatever is fitted there, drawn at least 1.1 cells long (`VehicleGun.coaxLengthCells`). It points where the turret
   points and never turns on its own, takes the main gun's target first and otherwise fires whatever comes onto its
   line, on the hull's reservoir and loader, and a shot-away turret silences it. A bought hull's coax card is empty and an empty card is no
