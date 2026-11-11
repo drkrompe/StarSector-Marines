@@ -2,8 +2,9 @@
 
 Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
-`raid-demolition-effort`. Slices 1 to 4 are built; slice 5 (more works
-defences) waits on its pick, `raid-works-defences`.
+`raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
+"Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
+6 (the works' machines) is planned below.
 
 Written: 2026-11-10
 
@@ -109,27 +110,29 @@ the nearest standing outline cell of an unwrecked machine's hall within reach
 not an order: the player still commands the company. Test:
 `WorksDemolitionTest`.
 
-### 5. A works worth assaulting
+### 5. A works worth assaulting: BUILT
 
-The owner: "We likely need to add a good amount of defenses still." Today a
-works has its wall, gates, two to four emplacements and its own guard. Proposed,
-scaled by security like everything else in `raid-mission.md`:
+The owner: "We likely need to add a good amount of defenses still." Picked
+(a), layered by security. `WorksDefences` lays them after the industry dresses
+its works (`RaidWorksDressingStage`), by the raided market's security
+(`PrecinctPlan.raidSecurity`). On an owned map that is the raided market's, not
+the reference market the layout is laid against: like a sealed town, the
+defences are the raided world's dressing and move no cell of the layout.
 
-- **Open**: the wall and the works' own guard, as today.
-- **Guarded**: adds a hedgehog belt outside the wall and a sandbagged
-  checkpoint at each gate.
-- **Fortified**: adds a watchtower in each corner of the wall and sandbag
-  parapets round every hall, so a hall is fought for once the wall is passed.
+- **Open**: the wall and the works' own guard, as before.
+- **Guarded**: a hedgehog belt on the works' glacis (the cleared ground its
+  claim holds outside the wall, so the road that rings it stays clear) and a
+  sandbagged checkpoint at each gate, inside the mouth where the gate opens
+  straight onto a road.
+- **Fortified**: also a watchtower in each corner of the works and a sandbag
+  parapet round every machine hall, with a way through every few cells.
 
-The pick `raid-works-defences` (pictures under
-`review/owned-maps/2026-11-10_raid-works-defences_win/`, mock-ups with the
-game's own props): (a) layered by security as above (recommended); (b) the
-wall line only; (c) round the halls only.
-
-Placed by the works' precinct like its emplacements (`PrecinctDefence`), named
-with the works' place so the works' guard seats them first
-(`RaidWorksGuard`). `storyMapPools` counts them in the Raid acceptance. This is
-the one slice whose look goes back to the owner before it is built.
+Every piece is a prop that yields to circulation (`WorksProps.place`), so a
+corner or a parapet stretch with no room is left out. A military base lays its
+own belt, checkpoints and towers at every security
+(`RaidIndustry.laysOwnPerimeter`) and takes only the parapets. Test:
+`WorksDefencesTest`; `storyMapPools`; the as-built pictures are
+`raid-demolition-look`'s `built-*`.
 
 ## Not in this story
 
