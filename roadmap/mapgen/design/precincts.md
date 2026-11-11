@@ -1402,14 +1402,22 @@ every emplacement by role, heaviest first:
   watching is a door;
 - **corners**: then the wall's corners, the one facing the threat (the landing)
   first, each seeing down two faces and out over the approach;
-- **inner**: then beside what the place exists to keep, its motor pool and its
-  command;
 - **wall**: a loadout with posts to spare lines the ring behind the wall, the
   face toward the threat first (a grown claim's corners are the ring's own
   extremes, not its bounding box's);
 - **depth**: artillery and drone hubs on the deepest ground furthest from the
   main gate, because their whole point is reaching past the wall from
   somewhere the attacker must get through the wall to reach.
+
+No gun stands inside a place without a standoff job: the posts once sited
+beside the motor pool and command covered nothing an attacker crosses (owner:
+"What are they guarding?"). The ring behind the wall is measured from the
+place's own outline, never from the walls of the buildings inside it, which
+had run the ring round every barracks. Every site faces out (`Site.faceX`,
+`faceY`): a gate post along its gate's way out, a corner or wall post toward
+the nearest ground beyond the wall, a standoff weapon toward the threat. The
+post carries that bearing (`DefensePost.restFacing`), and its guns are laid on
+it before the fight.
 
 Nothing stands on ground kept clear (`PrecinctDefence.keepClear`): every road
 the place's growth, artery or road in laid, the road graph's reservation, the

@@ -4507,7 +4507,10 @@ public final class BattleSetup {
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
         // however much or little force the campaign player can afford to bring.
-        float attackerScore = type == MissionType.CONQUEST
+        // A Raid is the same: the market defends with what it has, never a force
+        // fitted to the company that came (owner: "We can't limit ourselves to
+        // 'keeping it even' the number of forces on the field").
+        float attackerScore = type == MissionType.CONQUEST || type == MissionType.RAID
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
@@ -6847,6 +6850,10 @@ public final class BattleSetup {
                         : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
                 if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
                 sim.setStructureStyle(turret, post.style);
+                // A post sited to cover ground has its guns laid on it before the fight.
+                if (post.restFacing != null && sim.turretState().isTurret(turret)) {
+                    sim.turretState().setFacingDegrees(turret, post.restFacing);
+                }
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);

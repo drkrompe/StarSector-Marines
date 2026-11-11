@@ -67,6 +67,21 @@ final class FacePainter {
         into.appendQuad(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], r, g, b, alpha);
     }
 
+    /**
+     * Lays one part of the wall, {@code t0..t1} along and {@code z0..z1} up, as a patch of the creep sheet into
+     * {@code patches} ({@link CreepClimb.Sink}), at the wall's alpha times {@code alpha}.
+     */
+    void creep(CreepPatches patches, float t0, float t1, float z0, float z1, int row, float u0, float u1, float v0,
+               float v1, float light, float alpha) {
+        if (t1 <= t0 || z1 <= z0) return;
+        point(t0, z0, 0);
+        point(t1, z0, 2);
+        point(t1, z1, 4);
+        point(t0, z1, 6);
+        patches.add(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], row, u0, u1, v0, v1, light,
+                this.alpha * alpha);
+    }
+
     /** One part of the wall shaded from {@code low} at its foot to {@code high} at its top. */
     void shaded(float t0, float t1, float z0, float z1, float lr, float lg, float lb, float hr, float hg, float hb) {
         if (t1 <= t0 || z1 <= z0) return;

@@ -3,11 +3,9 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -111,22 +109,6 @@ class BattleForceScoreTurretTest {
         assertEquals(3, large.turrets.size(), "map-authored candidates stay untouched");
     }
 
-    @Test
-    void genericMissionFactoryBalancesBeforeStaticTurretsSpawn() {
-        BattleSimulation unsupported = BattleSetup.createPlaceholder(
-                42L, valkyries(1), true, OperationTier.FIRST_CONTRACT,
-                RiskLevel.MEDIUM, MissionType.RAID,
-                TargetProfile.NEUTRAL);
-        BattleSimulation jointOperation = BattleSetup.createPlaceholder(
-                42L, valkyries(4), true, OperationTier.FIRST_CONTRACT,
-                RiskLevel.MEDIUM, MissionType.RAID,
-                TargetProfile.NEUTRAL);
-
-        assertEquals(0, turretCount(unsupported));
-        assertTrue(turretCount(jointOperation) > 0,
-                "combined allied lift should retain at least one authored gun");
-    }
-
     private static DefenderRoster rosterFor(List<ShuttleAssignment> attackers) {
         return DefenderRoster.forMission(
                 MissionType.RAID, OperationTier.FIRST_CONTRACT,
@@ -151,14 +133,5 @@ class BattleForceScoreTurretTest {
     private static DefensePost post(DefensePostKind tier, String structureId, int x) {
         return new DefensePost(tier, x, 1,
                 List.of(new DefensePost.TurretSpec(structureId, x, 1)));
-    }
-
-    private static int turretCount(BattleSimulation sim) {
-        int turrets = 0;
-        for (int i = 0; i < sim.getRoster().liveCount(); i++) {
-            long unit = sim.getRoster().get(i);
-            if (sim.getRoster().identity().type(unit).isTurret()) turrets++;
-        }
-        return turrets;
     }
 }

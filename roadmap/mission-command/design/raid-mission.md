@@ -68,8 +68,8 @@ garrison estimate's strength, quality and readiness.
 | Security | Reads | Steal | Break |
 |---|---|---|---|
 | **Open** | `defenseLevel` 0-1, no ground defences | goods in their own stores, scattered: strip what you can reach | the works stands open: yards, fences, a few posted guards |
-| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate; a mech and a light hull picket each gate from inside, and riflemen hold a sandbagged forward post on each gate's approach, on top of the force |
-| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner, a sandbag parapet round every machine hall, a yard reserve of two mechs and a heavy hull, whose mechs go to the hall under attack on the alarm, firing positions on the open ground outside and a double hedgehog belt beyond the glacis, all on top of the force |
+| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate; a mech and a light hull picket each gate from inside, riflemen hold a sandbagged forward post on each gate's approach and the nearest building facing each side, and a crewed light gun stands beside each gate's approach outside the wall, all on top of the force |
+| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner, a sandbag parapet round every machine hall, a yard reserve of two mechs and a heavy hull, whose mechs go to the hall under attack on the alarm, firing positions on the open ground outside, two held buildings a side, a crewed medium gun mid-way along each side of the glacis and a double hedgehog belt beyond it, all on top of the force |
 
 One rule covers both intents: **security sets how concentrated and how walled
 the prize is.** The works' belt, checkpoints, towers and parapets follow the
@@ -136,8 +136,9 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   "Yes, we should"). Riflemen hold the posts while any are left; a mech does
   not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
-  alarm. Each wave is at most three mobile squads; a bigger garrison has more
-  waves, not bigger ones, so a company that lingers meets more of them.
+  alarm, which sends the whole mobile pool at the works. The defence is the
+  market's, never fitted to the company that came: no attacker-strength budget
+  trims its mechs, air or turrets (`BattleForceScore`, as Conquest).
 - **The landing is a cadence, not a block.** With one boat the company comes
   down a squad at a time; a bought berth halves the wait. Squads recommended
   rise with the tier faster than berths can be bought, so a full-strength raid

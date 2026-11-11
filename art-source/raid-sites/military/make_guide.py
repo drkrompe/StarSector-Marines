@@ -138,6 +138,55 @@ def antenna_mast(d, x, y, w, h):
     d.ellipse((*f(.33, .33), *f(.47, .47)), fill=BODY, outline=DARK, width=3)     # mast base and tip
 
 
+W3, H3 = 2016, 640
+FRAMES3 = (
+    ("parked-ambulance", 64, 144, 3, 2),
+    ("workshop-gantry", 608, 64, 4, 3),
+    ("tent-khaki", 1312, 64, 4, 3),
+)
+
+
+def parked_ambulance(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rounded_rectangle((*f(.1, .26), *f(.98, .94)), radius=.06 * h, fill=SHADOW)
+    d.rounded_rectangle((*f(.04, .2), *f(.32, .8)), radius=.1 * h, fill=BODY, outline=EDGE, width=5)   # cab, nose west
+    d.rectangle((*f(.06, .28), *f(.12, .72)), fill=DARK)                                                # windscreen
+    d.rectangle((*f(.3, .12), *f(.94, .86)), fill=BODY, outline=EDGE, width=6)                          # box body
+    d.rectangle((*f(.5, .24), *f(.78, .74)), fill=LIGHT, outline=EDGE, width=4)                         # roof panel
+    d.rectangle((*f(.6, .3), *f(.68, .68)), fill=(235, 235, 235))                                       # its cross
+    d.rectangle((*f(.53, .44), *f(.75, .54)), fill=(235, 235, 235))
+
+
+def workshop_gantry(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.08, .5), f(.92, .5), f(.98, .62), f(.14, .62)], fill=SHADOW)                       # beam shadow
+    d.rectangle((*f(.08, .03), *f(.5, .15)), fill=BODY, outline=EDGE, width=4)                         # tool bench
+    for ex in (.1, .9):                                                                                 # A-frame ends
+        d.line((*f(ex, .2), *f(ex, .46)), fill=EDGE, width=10)
+        d.line((*f(ex, .54), *f(ex, .8)), fill=EDGE, width=10)
+        for ey in (.2, .8):
+            d.rectangle((*f(ex - .025, ey - .03), *f(ex + .025, ey + .03)), fill=DARK)                 # feet
+    d.rectangle((*f(.39, .34), *f(.61, .7)), fill=SHADOW)                                              # its shadow
+    d.rectangle((*f(.37, .3), *f(.57, .64)), fill=BODY, outline=EDGE, width=5)    # engine block, hung under the hoist
+    d.rectangle((*f(.08, .46), *f(.92, .54)), fill=LIGHT, outline=EDGE, width=4)                       # the I-beam
+    d.rectangle((*f(.42, .43), *f(.52, .57)), fill=DARK)                                               # hoist trolley
+
+
+def tent_khaki(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.14, .3), f(.92, .3), f(.98, .9), f(.2, .9)], fill=SHADOW)
+    d.rectangle((*f(.1, .2), *f(.86, .5)), fill=LIGHT, outline=EDGE, width=4)                          # sunlit slope
+    d.rectangle((*f(.1, .5), *f(.86, .8)), fill=BODY, outline=EDGE, width=4)                           # shaded slope
+    d.line((*f(.1, .5), *f(.86, .5)), fill=DARK, width=6)                                              # ridge
+    d.polygon([f(.86, .38), f(.95, .5), f(.86, .62)], fill=DARK)                                       # door flap, east
+    for a in (.2, .4, .6, .78):                                                                        # guy ropes, pegs
+        for b0, b1 in ((.2, .05), (.8, .95)):
+            d.line((*f(a, b0), *f(a, b1)), fill=EDGE, width=2)
+            d.rectangle((*f(a - .01, b1 - .015), *f(a + .01, b1 + .015)), fill=DARK)
+
+
+DRAW3 = {"parked-ambulance": parked_ambulance, "workshop-gantry": workshop_gantry, "tent-khaki": tent_khaki}
+
 DRAW2 = {"satcom-dish": satcom_dish, "radar-tower": radar_tower, "fuel-bladder": fuel_bladder,
          "generator-set": generator_set, "antenna-mast": antenna_mast}
 
@@ -153,6 +202,11 @@ def main():
     for pid, x, y, cw, ch in FRAMES2:
         DRAW2[pid](d, x, y, cw * CELL, ch * CELL)
     im.save(HERE / "guide-2.png")
+    im = Image.new("RGB", (W3, H3), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for pid, x, y, cw, ch in FRAMES3:
+        DRAW3[pid](d, x, y, cw * CELL, ch * CELL)
+    im.save(HERE / "guide-3.png")
 
 
 if __name__ == "__main__":
