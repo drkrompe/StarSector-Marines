@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -383,19 +384,9 @@ class PrecinctDefenceTest {
      */
     @Test
     void anOpenFieldIsGuardedFromOutsideItsEdgeAndCrewedByItsPlace() {
-        NavigationGrid grid = new NavigationGrid(W, H);
-        CellTopology topology = new CellTopology(W, H);
-        for (int x = 0; x < W; x++) {
-            for (int y = 0; y < H; y++) {
-                grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.GRASS);
-            }
-        }
-        boolean[][] field = new boolean[W][H];
-        for (int x = LEFT; x <= RIGHT; x++) for (int y = BOTTOM; y <= TOP; y++) field[x][y] = true;
-        GenContext ctx = new GenContext(grid, topology, new Random(7L), W, H, 7L);
-        DefenceDoctrine.Gate lane = new DefenceDoctrine.Gate((LEFT + RIGHT) / 2, BOTTOM, 0, -1, 1);
-        PrecinctDefence.Result result = PrecinctDefence.stampField(ctx, field, List.of(lane),
+        GenContext ctx = openGround();
+        boolean[][] field = field();
+        PrecinctDefence.Result result = PrecinctDefence.stampField(ctx, field, List.of(lane()),
                 Map.of(DefensePostKind.LIGHT, 4, DefensePostKind.ARTILLERY, 1), null, "works");
         assertTrue(result.placedCount() >= 4, "the field took " + result.placedCount() + " of its five posts");
         for (DefensePost post : ctx.defensePosts) {
@@ -404,5 +395,50 @@ class PrecinctDefenceTest {
                     + post.anchorY + (in ? " stands in the field it should cover" : " stands outside the field"));
         }
         for (TacticalNode node : ctx.tactical) assertEquals("works", node.place());
+    }
+
+    /**
+     * A field sited beside another place's posts moves its sites clear of them rather than losing them: the placer
+     * refuses a post nearer than its separation to one already standing.
+     */
+    @Test
+    void aFieldSitesItsPostsClearOfPostsAlreadyStanding() {
+        Map<DefensePostKind, Integer> owed = Map.of(DefensePostKind.LIGHT, 4, DefensePostKind.ARTILLERY, 1);
+        GenContext alone = openGround();
+        int whole = PrecinctDefence.stampField(alone, field(), List.of(lane()), owed, null, "works").placedCount();
+        DefensePost first = alone.defensePosts.get(0);
+        GenContext ctx = openGround();
+        DefensePost standing = new DefensePost(first.tier, first.anchorX, first.anchorY, List.of());
+        ctx.defensePosts.add(standing);
+        PrecinctDefence.Result result = PrecinctDefence.stampField(ctx, field(), List.of(lane()), owed, null, "works");
+        assertEquals(whole, result.placedCount(), "a site planned on another's post was lost, not moved");
+        for (DefensePost post : ctx.defensePosts) {
+            if (post == standing) continue;
+            int dx = post.anchorX - standing.anchorX, dy = post.anchorY - standing.anchorY;
+            assertTrue(dx * dx + dy * dy >= DefensePostStamper.POST_MIN_SEPARATION * DefensePostStamper.POST_MIN_SEPARATION,
+                    post.tier + " at " + post.anchorX + "," + post.anchorY + " stands on the post already there");
+        }
+    }
+
+    private static GenContext openGround() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        CellTopology topology = new CellTopology(W, H);
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.GRASS);
+            }
+        }
+        return new GenContext(grid, topology, new Random(7L), W, H, 7L);
+    }
+
+    private static boolean[][] field() {
+        boolean[][] field = new boolean[W][H];
+        for (int x = LEFT; x <= RIGHT; x++) for (int y = BOTTOM; y <= TOP; y++) field[x][y] = true;
+        return field;
+    }
+
+    private static DefenceDoctrine.Gate lane() {
+        return new DefenceDoctrine.Gate((LEFT + RIGHT) / 2, BOTTOM, 0, -1, 1);
     }
 }
