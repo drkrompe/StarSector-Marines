@@ -35,18 +35,32 @@ public final class ProcessArea {
     }
 
     /**
-     * One unit: its column and stripper discs, its heater's box, the pad under them all, and the cell where a charge
-     * on the unit is set (beside its heater, toward the lane).
+     * A pipe run along one axis from {@code (x0, y0)} to {@code (x1, y1)}: a support at each end (solid), pipe over
+     * the cells between (walkable under).
      */
-    public record Block(Box column, Box stripper, Box heater, Box pad, int chargeX, int chargeY) { }
+    public record Run(int x0, int y0, int x1, int y1) {
+        boolean end(int x, int y) { return (x == x0 && y == y0) || (x == x1 && y == y1); }
+    }
+
+    /**
+     * One unit: its column and stripper discs, its heater's box, the pad under them all, the cell where a charge on
+     * the unit is set (beside its heater, toward the lane), and the pipes that make it one unit: the feed spur off
+     * the rack to the heater, the transfer line from the heater into the column, and the line from the column down
+     * to the stripper. Each lies inside the block's pad, the feed spur's root on the rack.
+     */
+    public record Block(Box column, Box stripper, Box heater, Box pad, int chargeX, int chargeY, Run feed,
+                        Run transfer, Run draw) {
+        public List<Run> pipes() { return List.of(feed, transfer, draw); }
+    }
 
     /** The plan: its blocks, the rack corridor beside the spine, and its lanes. */
     public record Plan(int x0, int y0, int x1, int y1, List<Block> blocks, Box rack, List<Box> lanes) {
 
-        /** Whether a cell is solid: a disc or a heater, the only things the plan stands on its ground. */
+        /** Whether a cell is solid: a disc, a heater or a pipe's support, the only things the plan stands. */
         public boolean blocked(int x, int y) {
             for (Block b : blocks) {
                 if (disc(b.column(), x, y) || disc(b.stripper(), x, y) || b.heater().contains(x, y)) return true;
+                for (Run r : b.pipes()) if (r.end(x, y)) return true;
             }
             return false;
         }
@@ -117,10 +131,20 @@ public final class ProcessArea {
             Box pad = box(spineLeft, x0, x1, RACK, v0, BLOCK_U, BLOCK_V);
             int cu = RACK + COLUMN + 2 + HEATER_U / 2;
             int cx = spineLeft ? x0 + cu : x1 - cu;
-            blocks.add(new Block(column, stripper, heater, pad, cx, v0 + 2 + HEATER_V + 1));
+            // The feed spur along the row between column and stripper, from the rack's line to the heater's face;
+            // the transfer line from the heater's face into the column; the draw from the column to the stripper.
+            int rackU = RACK / 2, faceU = RACK + COLUMN + 1, midU = RACK + COLUMN / 2;
+            Run feed = run(spineLeft, x0, x1, rackU, v0 + COLUMN, faceU, v0 + COLUMN);
+            Run transfer = run(spineLeft, x0, x1, RACK + COLUMN, v0 + 3, faceU, v0 + 3);
+            Run draw = run(spineLeft, x0, x1, midU, v0 + COLUMN - 1, midU, v0 + COLUMN + 1);
+            blocks.add(new Block(column, stripper, heater, pad, cx, v0 + 2 + HEATER_V + 1, feed, transfer, draw));
         }
         Box rack = spineLeft ? new Box(x0, y0, RACK, h) : new Box(x1 - RACK + 1, y0, RACK, h);
         return new Plan(x0, y0, x1, y1, blocks, rack, lanes);
+    }
+
+    private static Run run(boolean spineLeft, int x0, int x1, int u0, int v0, int u1, int v1) {
+        return new Run(spineLeft ? x0 + u0 : x1 - u0, v0, spineLeft ? x0 + u1 : x1 - u1, v1);
     }
 
     /** A box {@code bu} by {@code bv} at {@code u} out from the spine edge and row {@code v}, in map cells. */
