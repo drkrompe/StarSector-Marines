@@ -117,11 +117,9 @@ and never sets one part on another.
 - **Honest knowledge.** The hull knows what its zones' sensors, flocks and relays
   tell it (`derelict-lore-guide.md`, Honest knowledge); a stranded stake knows
   only its own. The night it came down (The Fall) its flocks range over the
-  whole town, and the hull knows where the town's people are: it hunts them
-  (owner's direction, 2026-11-11). Whether it knows everyone or only what its
-  flocks see is the owner's pick `fall-hunt-knowledge`, one switch
-  (`WatchTasking.Knowledge`, `BattleSetup.FALL_HUNT_KNOWLEDGE`); everyone until
-  answered.
+  whole town and are its eyes: it hunts the town's people they see, and no
+  others (owner's pick `fall-hunt-knowledge` (a), `WatchTasking.Knowledge.SEEN`,
+  `BattleSetup.FALL_HUNT_KNOWLEDGE`). Shooting its flocks down hides the town.
 - **The claim is the perimeter.** The hull's walkers pursue to the claim's edge
   (the outermost established stake's perimeter), not past it, except in the
   contingency the autoforge's breach calls. The night it came down the claim is
@@ -131,8 +129,8 @@ and never sets one part on another.
   beyond the mouth's opens a launch hatch with its own guard, flock and
   walkers, and the forge prints at each in turn. The watch answers contact
   first, escorts the strippers cutting the town's buildings, and sends the rest
-  after the town: by turns one hunts the nearest of the town's people (a
-  civilian out, a holdout's door), the next sweeps the streets between the
+  after the town: by turns one hunts the nearest of the town's people its
+  flocks see (a civilian out, a holdout's door), the next sweeps the streets between the
   sections. Its reach is the hull zone's, the whole town. The numbers (walkers
   at the mouth and at each hatch, the forge's program and store, the piles) are
   the owner's to tune in play.

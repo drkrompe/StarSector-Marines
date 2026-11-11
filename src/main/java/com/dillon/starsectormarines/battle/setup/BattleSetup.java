@@ -3711,10 +3711,10 @@ public final class BattleSetup {
     static final List<DerelictWalkerFrame> FALL_SECTION_WALKERS = List.of(DerelictWalkerFrame.LINE,
             DerelictWalkerFrame.ROUNDS);
     /**
-     * What The Fall's hunting hull knows of where the town's people are: EVERYONE as built until the owner answers the
-     * pick {@code fall-hunt-knowledge}; SEEN (only what its flocks see) is the recommended option.
+     * What The Fall's hunting hull knows of where the town's people are: only what its flocks see (the owner's pick
+     * {@code fall-hunt-knowledge} (a): honest knowledge holds, and shooting its flocks down hides the town).
      */
-    static final WatchTasking.Knowledge FALL_HUNT_KNOWLEDGE = WatchTasking.Knowledge.EVERYONE;
+    static final WatchTasking.Knowledge FALL_HUNT_KNOWLEDGE = WatchTasking.Knowledge.SEEN;
 
     /**
      * Lays the hull's watch on a rescue. On ground carrying a fallen hull ({@link MapResult#hullSite}) it is the hull's
