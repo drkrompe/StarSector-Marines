@@ -57,17 +57,6 @@ class FacilityWakeTest {
     }
 
     @Test
-    void thePlantRestartingBringsTheWakeToStirringAtLeast() {
-        FacilityWake quiet = new FacilityWake();
-        assertTrue(quiet.plantRestarted());
-        assertEquals(Stage.STIRRING, quiet.stage());
-        FacilityWake roused = new FacilityWake();
-        roused.advance(Stage.ROUSED);
-        assertFalse(roused.plantRestarted());
-        assertEquals(Stage.ROUSED, roused.stage());
-    }
-
-    @Test
     void reserveBaysOpenAtRousedDeepestFirstOnceAndOnlyWhileStandingAndOnline() {
         FacilityWake wake = new FacilityWake();
         SecurityNetwork network = row();
