@@ -67,6 +67,80 @@ def flag_mast(d, x, y, w, h):
 
 DRAW = {"watchtower": watchtower, "saluting-base": saluting_base, "flag-mast": flag_mast}
 
+# Round 2 (`military-base-art-2`): the structures a working base needs, on a guide of their own (`guide-2.png`).
+W2, H2 = 1696, 992
+FRAMES2 = (
+    ("satcom-dish", 64, 64, 3, 3),
+    ("radar-tower", 608, 64, 3, 3),
+    ("fuel-bladder", 1152, 64, 3, 3),
+    ("generator-set", 64, 608, 3, 2),
+    ("antenna-mast", 608, 608, 1, 1),
+)
+
+
+def satcom_dish(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.ellipse((*f(.38, .4), *f(.98, .9)), fill=SHADOW)                       # the dish's shadow, south-east
+    d.rectangle((*f(.08, .08), *f(.92, .92)), fill=LIGHT, outline=EDGE, width=6)   # concrete pad
+    d.rectangle((*f(.12, .12), *f(.88, .88)), outline=DARK, width=4)              # low railing
+    d.ellipse((*f(.42, .42), *f(.58, .58)), fill=DARK)                            # pedestal
+    d.ellipse((*f(.16, .2), *f(.7, .64)), fill=BODY, outline=EDGE, width=6)       # the dish, tilted up to the NW
+    d.ellipse((*f(.26, .3), *f(.6, .54)), outline=EDGE, width=3)
+    for a, b in ((.22, .26), (.64, .28), (.43, .6)):                              # feed struts
+        d.line((*f(a, b), *f(.4, .4)), fill=DARK, width=4)
+    d.ellipse((*f(.37, .37), *f(.45, .45)), fill=DARK)                            # feed horn
+
+
+def radar_tower(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.polygon([f(.36, .36), f(.64, .36), f(.98, .82), f(.98, .98), f(.8, .98), f(.36, .64)], fill=SHADOW)
+    d.polygon([f(.1, .5), f(.94, .44), f(.98, .58), f(.18, .62)], fill=SHADOW)    # the antenna bar's shadow
+    for cx, cy in ((.32, .32), (.68, .32), (.32, .68), (.68, .68)):              # lattice legs, splayed
+        d.rectangle((*f(cx - .03, cy - .03), *f(cx + .03, cy + .03)), fill=DARK)
+    for a, b, c, e in ((.32, .32, .68, .68), (.68, .32, .32, .68), (.32, .32, .68, .32), (.68, .32, .68, .68),
+                       (.68, .68, .32, .68), (.32, .68, .32, .32)):
+        d.line((*f(a, b), *f(c, e)), fill=EDGE, width=5)                          # bracing
+    d.rectangle((*f(.4, .4), *f(.6, .6)), fill=BODY, outline=EDGE, width=5)       # top platform
+    d.polygon([f(.04, .42), f(.92, .36), f(.94, .46), f(.06, .52)], fill=LIGHT, outline=EDGE)  # the search antenna
+    d.ellipse((*f(.46, .4), *f(.54, .48)), fill=DARK)                             # rotator
+
+
+def fuel_bladder(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rounded_rectangle((*f(.04, .04), *f(.96, .96)), radius=.1 * w, fill=SAND, outline=EDGE, width=4)  # earth bund
+    d.rounded_rectangle((*f(.13, .13), *f(.87, .87)), radius=.06 * w, fill=(200, 196, 184))             # bund floor
+    d.rounded_rectangle((*f(.2, .32), *f(.84, .78)), radius=.12 * w, fill=SHADOW)
+    d.rounded_rectangle((*f(.17, .24), *f(.8, .72)), radius=.12 * w, fill=BODY, outline=EDGE, width=5)  # the bladder
+    d.line((*f(.8, .48), *f(.88, .82)), fill=DARK, width=8)                                             # hose
+    d.rectangle((*f(.82, .82), *f(.94, .94)), fill=DARK)                                                # pump
+
+
+def generator_set(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.rectangle((*f(.1, .2), *f(.98, .98)), fill=SHADOW)
+    d.rectangle((*f(.04, .1), *f(.92, .86)), fill=EDGE)                           # skid
+    d.rectangle((*f(.08, .16), *f(.66, .8)), fill=BODY, outline=DARK, width=5)    # olive housing
+    for k in range(5):
+        yy = .26 + k * .1
+        d.line((*f(.14, yy), *f(.34, yy)), fill=DARK, width=4)                    # louvres
+    d.ellipse((*f(.5, .2), *f(.6, .35)), fill=DARK)                               # exhaust stack
+    d.rounded_rectangle((*f(.7, .22), *f(.88, .74)), radius=.04 * w, fill=LIGHT, outline=DARK, width=4)  # fuel tank
+    for yy in (.6, .68):
+        d.line((*f(.66, yy), *f(.98, yy + .2)), fill=DARK, width=5)               # cable runs
+
+
+def antenna_mast(d, x, y, w, h):
+    f = lambda a, b: (x + a * w, y + b * h)  # noqa: E731
+    d.line((*f(.42, .42), *f(.98, .98)), fill=SHADOW, width=5)                    # the mast's long shadow
+    for a, b in ((.08, .1), (.9, .22), (.24, .92)):
+        d.line((*f(.4, .4), *f(a, b)), fill=EDGE, width=2)                        # guy lines
+        d.rectangle((*f(a - .04, b - .04), *f(a + .04, b + .04)), fill=DARK)      # anchors
+    d.ellipse((*f(.33, .33), *f(.47, .47)), fill=BODY, outline=DARK, width=3)     # mast base and tip
+
+
+DRAW2 = {"satcom-dish": satcom_dish, "radar-tower": radar_tower, "fuel-bladder": fuel_bladder,
+         "generator-set": generator_set, "antenna-mast": antenna_mast}
+
 
 def main():
     im = Image.new("RGB", (W, H), (255, 255, 255))
@@ -74,6 +148,11 @@ def main():
     for pid, x, y, cw, ch in FRAMES:
         DRAW[pid](d, x, y, cw * CELL, ch * CELL)
     im.save(HERE / "guide.png")
+    im = Image.new("RGB", (W2, H2), (255, 255, 255))
+    d = ImageDraw.Draw(im)
+    for pid, x, y, cw, ch in FRAMES2:
+        DRAW2[pid](d, x, y, cw * CELL, ch * CELL)
+    im.save(HERE / "guide-2.png")
 
 
 if __name__ == "__main__":
