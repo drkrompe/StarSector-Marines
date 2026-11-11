@@ -27,6 +27,8 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Emits the {@link RenderLayer#GROUND} layer — the tiled floor/wall terrain pass.
@@ -322,6 +324,9 @@ public final class GroundRenderSystem implements RenderSystem {
     private WallCorners.AsBuilt cornersAsBuilt;
     private CellTopology cornersOf;
     private CellTopology basinEdgeOf;
+    /** The smoothed outline's corner shares, built once per map ({@link GroundFeather#smoothCorners}). */
+    private CellTopology smoothOf;
+    private float[][] smoothCorners;
 
     private void emitTerrain(RenderContext ctx, NavigationGrid grid,
                              CellTopology topology, VisibleCellRect view) {
@@ -357,13 +362,20 @@ public final class GroundRenderSystem implements RenderSystem {
         // Feathered boundaries lie on the base ground, under road edges and everything raised or laid on it.
         Feather feather = GroundFeather.enabled() ? Feather.of(this, base, topology, edge) : null;
         if (feather != null) {
-            int feathers = GroundFeather.RANKS * 4;
+            int feathers = Feather.LAYERS;
             GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + feathers];
             expanded[0] = sublayers[0];
+            // The smoothed outlines first, each piece of a cell a sub-layer apiece (a sub-layer holds one quad a
+            // cell), then the feathers.
+            // The weakest material's outline first, so a stronger one's lies over it.
+            for (int layer = 0; layer < Feather.SMOOTH_LAYERS; layer++) {
+                final int m = GroundFeather.SMOOTHED.size() - 1 - layer / 2, k = layer % 2;
+                expanded[1 + layer] = (x, y, sink) -> feather.smooth(m, k, x, y, sink);
+            }
             for (int rank = 0; rank < GroundFeather.RANKS; rank++) {
                 for (int quadrant = 0; quadrant < 4; quadrant++) {
                     final int r = rank, q = quadrant;
-                    expanded[1 + rank * 4 + quadrant] = (x, y, sink) -> feather.resolve(r, q, x, y, sink);
+                    expanded[1 + Feather.SMOOTH_LAYERS + rank * 4 + quadrant] = (x, y, sink) -> feather.resolve(r, q, x, y, sink);
                 }
             }
             System.arraycopy(sublayers, 1, expanded, 1 + feathers, sublayers.length - 1);
@@ -386,7 +398,7 @@ public final class GroundRenderSystem implements RenderSystem {
         // The shore lies over the feathered ground and under everything laid on it.
         Shore shore = Shore.of(this, topology);
         if (shore != null) {
-            int at = 1 + edgeLayers + (feather != null ? GroundFeather.RANKS * 4 : 0);
+            int at = 1 + edgeLayers + (feather != null ? Feather.LAYERS : 0);
             WaterShore.Band[] bands = WaterShore.Band.values();
             // The bands, then a ford's pebble bed over its shallows.
             int pieces = (bands.length + 1) * WaterShore.TRIANGLES;
@@ -925,6 +937,10 @@ public final class GroundRenderSystem implements RenderSystem {
      * hold any other ground.
      */
     private static final class Feather {
+        /** The smoothed outlines' sub-layers: a cell's side of each contour is two pieces at most. */
+        static final int SMOOTH_LAYERS = 2 * GroundFeather.SMOOTHED.size();
+        /** Every sub-layer the feather lays: the smoothed outlines, then each rank's four quarters. */
+        static final int LAYERS = SMOOTH_LAYERS + GroundFeather.RANKS * 4;
         private final BaseTerrain base;
         private final CellTopology topology;
         /** The basin's edge, whose cells do not feather into one another; null without one. */
@@ -937,6 +953,14 @@ public final class GroundRenderSystem implements RenderSystem {
         /** Priority of a bare cell of each kind. */
         private final int[] kindPriority;
         private final int[] winners = new int[3];
+        /** Each smoothed material's own block, sheet and priority, by its place in {@link GroundFeather#SMOOTHED}; a
+         *  priority of -1 where it is not smoothed on this map. */
+        private final GridBlockDef[] smoothBlocks = new GridBlockDef[GroundFeather.SMOOTHED.size()];
+        private final SpriteAPI[] smoothSheets = new SpriteAPI[GroundFeather.SMOOTHED.size()];
+        private final int[] smoothPriorities = new int[GroundFeather.SMOOTHED.size()];
+        /** Their shares at each cell corner ({@link GroundFeather#smoothCorners}), {@code width + 1} wide. */
+        private float[][] smoothCorners;
+        private final Capture capture = new Capture();
 
         private Feather(BaseTerrain base, CellTopology topology, BasinEdge edge, SpriteAPI sheet, GridBlockDef[] blocks,
                         int[] surfacePriority, int[] kindPriority) {
@@ -978,7 +1002,47 @@ public final class GroundRenderSystem implements RenderSystem {
                         : system.genMapping == null ? null : system.genMapping.groundBlockId(kind, system.world);
                 kindPriority[kind.ordinal()] = usable(blocks, key);
             }
-            return new Feather(base, topology, edge, sheet, blocks, surfacePriority, kindPriority);
+            Feather feather = new Feather(base, topology, edge, sheet, blocks, surfacePriority, kindPriority);
+            Arrays.fill(feather.smoothPriorities, -1);
+            if (onMap(surfacePriority, GroundFeather.priority(GroundFeather.SMOOTHED.get(0)))) {
+                boolean fresh = system.smoothOf != topology;
+                if (fresh) {
+                    system.smoothOf = topology;
+                    system.smoothCorners = new float[GroundFeather.SMOOTHED.size()][];
+                }
+                for (int m = 0; m < GroundFeather.SMOOTHED.size(); m++) {
+                    String id = GroundFeather.SMOOTHED.get(m);
+                    int p = GroundFeather.priority(id);
+                    GridBlockDef own = p < 0 ? null : system.tileReg.block(id);
+                    SpriteAPI ownSheet = own == null ? null : system.sheetFor(own.sheetPath);
+                    if (ownSheet == null) continue;
+                    feather.smoothBlocks[m] = own;
+                    feather.smoothSheets[m] = ownSheet;
+                    feather.smoothPriorities[m] = p;
+                    if (fresh) system.smoothCorners[m] = feather.corners(p, GroundFeather.smoothRadius(m));
+                }
+                feather.smoothCorners = system.smoothCorners;
+            }
+            return feather;
+        }
+
+        private static boolean onMap(int[] surfacePriority, int p) {
+            for (int priority : surfacePriority) if (priority == p) return true;
+            return false;
+        }
+
+        /** The share of the ground at every cell corner of the map that is the material of priority {@code p} or stronger. */
+        private float[] corners(int p, int radius) {
+            int w = topology.getWidth(), h = topology.getHeight();
+            byte[] cells = new byte[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int own = priority(x, y);
+                    cells[y * w + x] = own < 0 || own == GroundFeather.FLOOR ? GroundFeather.NEUTRAL
+                            : own <= p ? GroundFeather.INSIDE : GroundFeather.OUTSIDE;
+                }
+            }
+            return GroundFeather.smoothCorners(cells, w, h, radius);
         }
 
         private static int usable(GridBlockDef[] blocks, String key) {
@@ -1026,6 +1090,11 @@ public final class GroundRenderSystem implements RenderSystem {
             int index = Math.max(0, n - GroundFeather.RANKS) + rank;
             if (index >= n) return;
             int winner = winners[index];
+            if (smoothCorners != null) {
+                for (int m = 0; m < smoothPriorities.length; m++) {
+                    if (smoothPriorities[m] == winner) return; // its smoothed outline is its edge
+                }
+            }
             GroundFeather.Shape shape = GroundFeather.shape(quadrant,
                     vertical == winner, horizontal == winner, diagonal == winner);
             GridBlockDef block = blocks[winner];
@@ -1033,6 +1102,72 @@ public final class GroundRenderSystem implements RenderSystem {
             // Each tile carries a one-texel border of its own edge, so filtering never reaches the next.
             sink.patch(sheet, cell[0] * block.cellPx + 1, cell[1] * block.cellPx + 1,
                     block.cellPx - 2, block.cellPx - 2, GroundFeather.QUADRANT_VERTICES[quadrant]);
+        }
+
+        /**
+         * Piece {@code piece} of smoothed material {@code m}'s outline across a cell ({@link GroundFeather#contour}):
+         * its own art over the part of a cell of weaker ground inside the contour, and that weaker ground's art (a
+         * neighbour's) over the part of one of its own cells outside it. Laid under the feathers.
+         */
+        void smooth(int m, int piece, int x, int y, GroundMesh.CellSink sink) {
+            int p = smoothPriorities[m];
+            if (smoothCorners == null || p < 0 || smoothCorners[m] == null) return;
+            int self = priority(x, y);
+            if (self < p || self == GroundFeather.FLOOR) return;
+            float[] corners = smoothCorners[m];
+            int w = topology.getWidth() + 1, at = y * w + x;
+            float sw = corners[at], se = corners[at + 1], ne = corners[at + w + 1], nw = corners[at + w];
+            boolean own = self == p;
+            // A cell wholly on its own side of the contour is already drawn so.
+            if (own && Math.min(Math.min(sw, se), Math.min(ne, nw)) >= .5f) return;
+            if (!own && Math.max(Math.max(sw, se), Math.max(ne, nw)) < .5f) return;
+            List<float[]> pieces = GroundFeather.contour(sw, se, ne, nw, !own);
+            if (piece >= pieces.size()) return;
+            if (!own) {
+                GridBlockDef block = smoothBlocks[m];
+                int[] cell = block.resolve(false, false, false, false, x, y);
+                if (cell == null) return;
+                int inset = block.cellPx >= TileManifest.TILE_SIZE ? GROUND_TILE_EDGE_INSET_PX
+                        : GROUND_SMALL_TILE_EDGE_INSET_PX;
+                sink.patch(smoothSheets[m], cell[0] * block.cellPx + inset, cell[1] * block.cellPx + inset,
+                        block.cellPx - 2 * inset, block.cellPx - 2 * inset, pieces.get(piece));
+                return;
+            }
+            // The ground the outline gives back is a weaker neighbour's: the sides first, then the corners.
+            for (int k = 0; k < 8; k++) {
+                int nx = x + NEIGHBOUR_DX[k], ny = y + NEIGHBOUR_DY[k];
+                int other = priority(nx, ny);
+                if (other <= p || other == GroundFeather.FLOOR) continue;
+                capture.sheet = null;
+                base.resolve(nx, ny, capture);
+                if (capture.sheet == null) continue;
+                sink.patch(capture.sheet, capture.sx, capture.sy, capture.sw, capture.sh, pieces.get(piece));
+                return;
+            }
+        }
+
+        private static final int[] NEIGHBOUR_DX = {0, 1, 0, -1, 1, 1, -1, -1};
+        private static final int[] NEIGHBOUR_DY = {1, 0, -1, 0, 1, -1, -1, 1};
+
+        /** The quad a cell's base ground resolves to, kept rather than drawn. */
+        private static final class Capture implements GroundMesh.CellSink {
+            SpriteAPI sheet;
+            int sx, sy, sw, sh;
+
+            @Override public void quad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH) {
+                if (this.sheet != null) return;
+                this.sheet = sheet;
+                sx = srcX;
+                sy = srcY;
+                sw = srcW;
+                sh = srcH;
+            }
+
+            @Override public void patch(SpriteAPI sheet, int sx, int sy, int sw, int sh, float[] vertices) {
+            }
+
+            @Override public void fill(int rgb) {
+            }
         }
     }
 

@@ -84,6 +84,9 @@ public class RaidSiteLookSuite implements SnapshotSuite {
     protected List<Shot> extraShots(BattleSimulation sim, float machinesX, float machinesY) {
         return List.of();
     }
+    /** Further shots a site's suite takes of each case, after its whole and works frames: none by default. */
+    protected void moreShots(SnapshotContext context, BattleSimulation sim, String caseId, List<SnapshotArtifact> out)
+            throws Exception { }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -126,6 +129,7 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                                 BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, shot.x(), shot.y(),
                                         shot.width()).render(sim, "")));
                     }
+                    moreShots(context, sim, c.id(), out);
                 }
             }
             return out;

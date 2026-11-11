@@ -9,6 +9,27 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class GroundFeatherTest {
 
+    @Test void aStraightEdgeKeepsItsLineAndAStepIsCutToASlope() {
+        // Four cells wide, two high: the material along the south row, and one step up on the east.
+        byte I = GroundFeather.INSIDE, O = GroundFeather.OUTSIDE;
+        byte[] cells = {I, I, I, I, O, O, I, I};
+        float[] c = GroundFeather.smoothCorners(cells, 4, 2, 1);
+        // Corner (1, 1) sits on the straight edge between the rows: exactly half.
+        assertEquals(.5f, c[5 + 1]);
+        // Corner (2, 1), at the foot of the step, holds more than half: the contour leaves the cell edge there.
+        assertEquals(.75f, c[5 + 2]);
+    }
+
+    @Test void aCellIsSplitAlongTheContourIntoItsTwoSides() {
+        // Only the south-west corner holds the material, cut halfway along its two sides.
+        float[] tri = GroundFeather.contour(1f, 0f, 0f, 0f, true).get(0);
+        assertArrayEquals(new float[]{0f, 0f, .5f, 0f, 0f, .5f, 0f, .5f}, tri);
+        // The rest of the cell is a pentagon: two pieces.
+        assertEquals(2, GroundFeather.contour(1f, 0f, 0f, 0f, false).size());
+        // A cell along a straight edge has nothing on the far side.
+        assertEquals(0, GroundFeather.contour(.5f, .5f, 0f, 0f, true).size());
+    }
+
     @Test void onlyStrongerGroundBleedsInWeakestFirst() {
         int[] out = new int[3];
         // Sand (5) under grass (0) and dirt (2), with sand and grass again at the diagonal.
