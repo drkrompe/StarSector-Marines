@@ -84,6 +84,7 @@ final class NightShadeField {
 
     static final String FRAGMENT_SRC = "#version 120\n"
             + "uniform sampler2D lampField; uniform sampler2D fireField; uniform sampler2D cellMask;\n"
+            + "uniform sampler2D coneField; uniform float coning; uniform vec3 coneColour;\n"
             + "uniform vec2 lampSize; uniform vec2 cellSize;\n"
             + "uniform float range; uniform float darkness; uniform float roofedDarkness; uniform float alphaMult;\n"
             + "uniform float fog; uniform float burning; uniform float premultiplied;\n"
@@ -97,7 +98,12 @@ final class NightShadeField {
             + "  vec2 g = cell * 2.0;\n"
             + "  vec4 lamp = texture2D(lampField, (g + 0.5) / lampSize) * range;\n"
             // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
-            + "  float pool = fog > 0.5 && mask.r < 0.5 ? 0.0 : lamp.a;\n"
+            + "  if (fog > 0.5 && mask.r < 0.5) lamp.a = 0.0;\n"
+            // The company's own lights are lamps that move, their pools already cut to what is shown, so the cut's
+            // edge filters soft instead of stepping cell by cell.
+            + "  float cone = coning > 0.5 ? texture2D(coneField, (g + 0.5) / lampSize).r * range : 0.0;\n"
+            + "  lamp = vec4(lamp.rgb + cone * coneColour, lamp.a + cone);\n"
+            + "  float pool = lamp.a;\n"
             + "  float firePool = burning > 0.5 ? texture2D(fireField, (g + 0.5) / lampSize).r * range : 0.0;\n"
             + "  float lit = pool + firePool;\n"
             + "  float dark = night * (1.0 - 0.92 * min(1.0, lit));\n"
@@ -112,8 +118,8 @@ final class NightShadeField {
             + "}\n";
 
     private final ShaderProgram program = new ShaderProgram("NightShadeField", VERTEX_SRC, FRAGMENT_SRC);
-    private int lampTexture, fireTexture, cellTexture;
-    private int fireTexW, fireTexH, cellTexW, cellTexH;
+    private int lampTexture, fireTexture, cellTexture, coneTexture;
+    private int fireTexW, fireTexH, cellTexW, cellTexH, coneTexW, coneTexH;
     private boolean broken;
     /** Bits per channel the driver actually stored the pools at; zero until the first upload. */
     private int storedBits;
@@ -131,6 +137,13 @@ final class NightShadeField {
     /** The box packed into {@link #fireTexels} and not yet uploaded. */
     private final int[] fireUpload = empty();
     private ShortBuffer fireTexels = BufferUtils.createShortBuffer(1);
+
+    /** The company's cone lights ({@link UnitLights}), kept as fire's are: refilled each frame, uploaded by box. */
+    private float[] conePools;
+    private boolean coning;
+    private final int[] coneDirty = empty();
+    private final int[] coneUpload = empty();
+    private ShortBuffer coneTexels = BufferUtils.createShortBuffer(1);
 
     private CellTopology maskGround;
     private boolean[] maskShown;
@@ -177,6 +190,17 @@ final class NightShadeField {
             whole(fireDirty, lampW, lampH);
         } else {
             widen(fireDirty, x0, y0, x1, y1);
+        }
+    }
+
+    /** The company's cone pools ({@code coning} false when none lights) and the half-cell box changed, as {@link #fire}. */
+    void cones(float[] pools, boolean coning, int x0, int y0, int x1, int y1) {
+        this.coning = coning;
+        if (pools != conePools) {
+            conePools = pools;
+            whole(coneDirty, lampW, lampH);
+        } else {
+            widen(coneDirty, x0, y0, x1, y1);
         }
     }
 
@@ -259,6 +283,20 @@ final class NightShadeField {
                 fireTexels.flip();
             }
         }
+        if (conePools != null) {
+            if (coneTexW != lampW || coneTexH != lampH) whole(coneDirty, lampW, lampH);
+            take(coneUpload, coneDirty, lampW, lampH);
+            if (coneUpload[2] >= coneUpload[0]) {
+                int n = (coneUpload[2] - coneUpload[0] + 1) * (coneUpload[3] - coneUpload[1] + 1);
+                if (coneTexels.capacity() < n) coneTexels = BufferUtils.createShortBuffer(n);
+                coneTexels.clear();
+                for (int y = coneUpload[1]; y <= coneUpload[3]; y++) {
+                    int row = y * lampW;
+                    for (int x = coneUpload[0]; x <= coneUpload[2]; x++) coneTexels.put(stored(conePools[row + x]));
+                }
+                coneTexels.flip();
+            }
+        }
         screenX0 = camera.cellToScreenX(minX);
         screenY0 = camera.cellToScreenY(minY);
         screenX1 = camera.cellToScreenX(maxX + 1f);
@@ -306,6 +344,21 @@ final class NightShadeField {
                 }
                 clear(fireUpload);
             }
+            glActiveTexture(GL_TEXTURE0 + 3);
+            if (coneTexture == 0) coneTexture = texture(GL_LINEAR);
+            glBindTexture(GL_TEXTURE_2D, coneTexture);
+            if (coneUpload[2] >= coneUpload[0]) {
+                if (coneTexW != lampW || coneTexH != lampH) {
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE16, lampW, lampH, 0, GL_LUMINANCE, GL_UNSIGNED_SHORT,
+                            coneTexels);
+                    coneTexW = lampW;
+                    coneTexH = lampH;
+                } else {
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, coneUpload[0], coneUpload[1], coneUpload[2] - coneUpload[0] + 1,
+                            coneUpload[3] - coneUpload[1] + 1, GL_LUMINANCE, GL_UNSIGNED_SHORT, coneTexels);
+                }
+                clear(coneUpload);
+            }
             glActiveTexture(GL_TEXTURE0 + 2);
             if (cellTexture == 0) cellTexture = texture(GL_NEAREST);
             glBindTexture(GL_TEXTURE_2D, cellTexture);
@@ -347,6 +400,9 @@ final class NightShadeField {
         program.set1i("lampField", 0);
         program.set1i("fireField", 1);
         program.set1i("cellMask", 2);
+        program.set1i("coneField", 3);
+        program.set1f("coning", coning && coneTexW > 0 ? 1f : 0f);
+        program.set3f("coneColour", UnitLights.RED, UnitLights.GREEN, UnitLights.BLUE);
         program.set2f("lampSize", lampW, lampH);
         program.set2f("cellSize", gridW, gridH);
         program.set1f("range", RANGE);
@@ -379,9 +435,10 @@ final class NightShadeField {
         program.dispose();
         if (lampTexture != 0) glDeleteTextures(lampTexture);
         if (fireTexture != 0) glDeleteTextures(fireTexture);
+        if (coneTexture != 0) glDeleteTextures(coneTexture);
         if (cellTexture != 0) glDeleteTextures(cellTexture);
-        lampTexture = fireTexture = cellTexture = 0;
-        fireTexW = fireTexH = cellTexW = cellTexH = 0;
+        lampTexture = fireTexture = cellTexture = coneTexture = 0;
+        fireTexW = fireTexH = cellTexW = cellTexH = coneTexW = coneTexH = 0;
         lampDirty = lampTexels != null;
         broken = false;
         storedBits = 0;

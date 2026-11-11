@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import java.util.Arrays;
 import java.util.List;
 
-
 /**
  * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog; a burn's
  * light shows through it ({@link FireFogClearing}).
@@ -76,6 +75,10 @@ final class NightLightingRenderSystem implements RenderSystem {
         field.fire(firePools, burning, changedX0, changedY0, changedX1, changedY1);
         var fog=ctx.sim.getFogOfWar();
         boolean useFog=ctx.hostProfile.fogClipsLighting() && fog.isInitialized();
+        // Cones are cut to what is shown as they are laid, so the field filters their fog edge soft.
+        boolean coning = fillCones(ctx, ground, night, useFog ? fog.cellShownArray() : null,
+                visible.minX(), visible.minY(), visible.maxX(), visible.maxY());
+        field.cones(conePools, coning, coneX0, coneY0, coneX1, coneY1);
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
@@ -108,7 +111,8 @@ final class NightLightingRenderSystem implements RenderSystem {
                 float darkness = night.darknessAt(night.roofedDarkness() != night.darkness() && NightLighting.roofed(ground, x, y));
                 float[] unlitColour = darkness == night.darkness() ? unlitOpen : unlitRoofed;
                 boolean hidden = shown != null && !shown[cellIndex];
-                boolean lampDark = zero9(pools, (2 * y) * width + 2 * x);
+                boolean lampDark = zero9(pools, (2 * y) * width + 2 * x)
+                        && (!coning || zero9(conePools, (2 * y) * width + 2 * x));
                 boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
                 boolean unlit = lampDark && fireDark;
                 // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
@@ -124,13 +128,17 @@ final class NightLightingRenderSystem implements RenderSystem {
                     float y0=Math.round(camera.cellToScreenY(y+(float)sy/steps));
                     float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
                     if (!dimUniform) {
-                        float pool=hidden ? 0f : sample(pools,px,py);
+                        float cone=coning ? sample(conePools,px,py) : 0f;
+                        float pool=hidden ? 0f : sample(pools,px,py)+cone;
                         float firePool=burning ? sample(firePools,px,py) : 0f;
-                        appendShade(dimMesh, darkness, pool, firePool, px, py, x0, y0, x1, y1, ctx.alphaMult);
+                        appendShade(dimMesh, darkness, pool, hidden ? 0f : cone, firePool, px, py, x0, y0, x1, y1,
+                                ctx.alphaMult);
                     }
-                    if (masked && !litUniform) appendShade(pass.litShade(), darkness, sample(pools,px,py),
-                            burning ? sample(firePools,px,py) : 0f, px, py,
-                            x0, y0, x1, y1, ctx.alphaMult);
+                    if (masked && !litUniform) {
+                        float cone=coning ? sample(conePools,px,py) : 0f;
+                        appendShade(pass.litShade(), darkness, sample(pools,px,py)+cone, cone,
+                                burning ? sample(firePools,px,py) : 0f, px, py, x0, y0, x1, y1, ctx.alphaMult);
+                    }
                 }
             }
             dimRun.flush(); litRun.flush();
@@ -162,11 +170,14 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
     }
 
-    private void appendShade(PolyMesh mesh, float darkness, float pool, float firePool, float px, float py,
+    /** {@code pool} is all the lamp light at the point, {@code cone} the company's share of it. */
+    private void appendShade(PolyMesh mesh, float darkness, float pool, float cone, float firePool, float px, float py,
                              float x0, float y0, float x1, float y1, float alphaMult) {
         boolean warmed = pool + firePool > 0f;
         float[] c = shadeColour(darkness, pool, firePool,
-                warmed ? sample(reds,px,py) : 0f, warmed ? sample(greens,px,py) : 0f, warmed ? sample(blues,px,py) : 0f,
+                warmed ? sample(reds,px,py) + cone * UnitLights.RED : 0f,
+                warmed ? sample(greens,px,py) + cone * UnitLights.GREEN : 0f,
+                warmed ? sample(blues,px,py) + cone * UnitLights.BLUE : 0f,
                 alphaMult);
         if (c != null) mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,c[0],c[1],c[2],c[3]);
     }
@@ -470,6 +481,93 @@ final class NightLightingRenderSystem implements RenderSystem {
                 pools[c]=settle(pools[c]+sign*value); reds[c]=settle(reds[c]+stain*lamp.red());
                 greens[c]=settle(greens[c]+stain*lamp.green()); blues[c]=settle(blues[c]+stain*lamp.blue());
             }
+    }
+
+    private final UnitLights units = new UnitLights();
+    /** The company's cone pools at half-cell resolution, like {@link #pools}; zero outside the boxes last filled. */
+    private float[] conePools;
+    private int[] coneFilled = new int[UnitLights.MAX_CONES * 4];
+    private int coneFilledCount;
+    /** Half-cell box the cone pools changed in this frame; empty when x1 < x0. */
+    private int coneX0, coneY0, coneX1, coneY1;
+    /** Whether each cell is dark enough for a cone to show, and the ground change count it was read at. */
+    private boolean[] coneDark;
+    private long coneDarkSeen = -1;
+    private NightLighting coneDarkNight;
+
+    /**
+     * Refills the company's cone pools for this frame ({@link UnitLights}): each lit body in view lays its cone on the
+     * cells of its own building that are shown ({@code shown} null when fog does not clip lighting), and only where
+     * the night is dark enough to show it. False, having cleared them, when
+     * no cone lit anything.
+     */
+    private boolean fillCones(RenderContext ctx, CellTopology ground, NightLighting night, boolean[] shown,
+                              int viewMinX, int viewMinY, int viewMaxX, int viewMaxY) {
+        if (conePools == null || conePools.length != pools.length) {
+            conePools = new float[pools.length];
+            coneFilledCount = 0;
+        }
+        coneX0 = coneY0 = Integer.MAX_VALUE;
+        coneX1 = coneY1 = -1;
+        for (int i = 0; i < coneFilledCount; i += 4) {
+            for (int y = coneFilled[i + 1]; y <= coneFilled[i + 3]; y++)
+                Arrays.fill(conePools, y * width + coneFilled[i], y * width + coneFilled[i + 2] + 1, 0f);
+            coneBox(coneFilled[i], coneFilled[i + 1], coneFilled[i + 2], coneFilled[i + 3]);
+        }
+        coneFilledCount = 0;
+        if (Math.max(night.darkness(), night.roofedDarkness()) < UnitLights.MIN_DARKNESS
+                || ctx.camera.cellPxSize() < UnitLights.MIN_CELL_PX) return false;
+        refreshConeDark(ground, night);
+        units.gather(ctx.sim, viewMinX, viewMinY, viewMaxX, viewMaxY);
+        int height = pools.length / width, gw = ground.getWidth(), gh = ground.getHeight();
+        boolean any = false;
+        for (int k = 0; k < units.count(); k++) {
+            UnitLights.Kind kind = units.kind(k);
+            float lx = units.x(k), ly = units.y(k), dx0 = units.dirX(k), dy0 = units.dirY(k), r = kind.reach;
+            int cx = Math.max(0, Math.min(gw - 1, (int) lx)), cy = Math.max(0, Math.min(gh - 1, (int) ly));
+            int owner = ground.getBuildingId(cx, cy);
+            int gx0 = Math.max(0, (int) ((lx - r) * 2)), gx1 = Math.min(width - 1, (int) ((lx + r) * 2) + 1);
+            int gy0 = Math.max(0, (int) ((ly - r) * 2)), gy1 = Math.min(height - 1, (int) ((ly + r) * 2) + 1);
+            for (int y = gy0; y <= gy1; y++) {
+                int cellY = Math.min(gh - 1, y / 2);
+                for (int x = gx0; x <= gx1; x++) {
+                    int cellX = Math.min(gw - 1, x / 2);
+                    int cell = cellY * gw + cellX;
+                    if (!coneDark[cell] || shown != null && !shown[cell] || !litBy(ground, cellX, cellY, owner)) continue;
+                    float value = UnitLights.pool(kind, x * .5f - lx, y * .5f - ly, dx0, dy0);
+                    if (value > 0f) conePools[y * width + x] += value;
+                }
+            }
+            coneFilled[coneFilledCount++] = gx0;
+            coneFilled[coneFilledCount++] = gy0;
+            coneFilled[coneFilledCount++] = gx1;
+            coneFilled[coneFilledCount++] = gy1;
+            coneBox(gx0, gy0, gx1, gy1);
+            any = true;
+        }
+        return any;
+    }
+
+    /** Which cells are dark enough for a cone, reread when the ground or the night changes. */
+    private void refreshConeDark(CellTopology ground, NightLighting night) {
+        int n = ground.getWidth() * ground.getHeight();
+        if (coneDark != null && coneDark.length == n && coneDarkSeen == ground.changeCount()
+                && coneDarkNight != null && coneDarkNight.darkness() == night.darkness()
+                && coneDarkNight.roofedDarkness() == night.roofedDarkness()) return;
+        if (coneDark == null || coneDark.length != n) coneDark = new boolean[n];
+        int w = ground.getWidth();
+        for (int y = 0; y < ground.getHeight(); y++)
+            for (int x = 0; x < w; x++)
+                coneDark[y * w + x] = night.darknessAt(NightLighting.roofed(ground, x, y)) >= UnitLights.MIN_DARKNESS;
+        coneDarkSeen = ground.changeCount();
+        coneDarkNight = night;
+    }
+
+    private void coneBox(int x0, int y0, int x1, int y1) {
+        coneX0 = Math.min(coneX0, x0);
+        coneY0 = Math.min(coneY0, y0);
+        coneX1 = Math.max(coneX1, x1);
+        coneY1 = Math.max(coneY1, y1);
     }
 
     /** A field value with the rounding a lamp taken out leaves behind cleared, so unlit cells stay exactly unlit. */

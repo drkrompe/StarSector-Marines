@@ -4,8 +4,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
-6 (the works' machines) waits on `raid-works-machines` and
-`raid-works-machines-source`.
+6 (the works' machines) is built on the recommended (a) of
+`raid-works-machines` and `raid-works-machines-source` while they are open.
 
 Written: 2026-11-10
 
@@ -135,7 +135,7 @@ own belt, checkpoints and towers at every security
 `WorksDefencesTest`; `storyMapPools`; the as-built pictures are
 `raid-demolition-look`'s `built-*`.
 
-### 6. The works' machines: PLANNED
+### 6. The works' machines: IN PROGRESS (step 1 built on the recommended picks)
 
 The owner's note on `raid-works-defences`: "Also consider things like vehicles
 and mechs." Today a Raid has no defender vehicles: its machines are the
@@ -158,12 +158,17 @@ Two picks (pictures under `review/owned-maps/2026-11-10_raid-works-machines_win/
 
 On the recommended options the work is:
 
-1. **Seat the market's machines at the works.** The defender allocation seats
-   the roster's mechs on the works' gate places (guarded and fortified) before
-   any other place, as `RaidWorksGuard` seats the works' guard; on fortified the
-   rest form the works' reserve in its yard. The gate places and the reserve's
-   yard are laid by `WorksDefences` with the checkpoints, named with the works'
-   place. Proven where the seating is decided, by unit test.
+1. **Seat the market's machines at the works: BUILT.** `WorksDefences` lays a
+   machine post just inside each open gate (guarded and fortified) and, on a
+   fortified works, a reserve post on the largest open yard inside, each an
+   inner position named `RaidSiteTemplate.WORKS_MACHINES` (added to the linked
+   tactical map, since the works is dressed after the link). The defender
+   allocation seats them right after the works' guard, with machines only
+   (`RaidWorksGuard.holder`): a market with no mechs leaves them empty, and an
+   empty post is never a patrol's anchor. They draw below the mobile pool's
+   floor: a gate takes one machine, and the reserve answers the alarm itself.
+   Tests: `RaidWorksGuardTest`; `storyMapPools` counts the posts (one or more
+   per works); `raid-demolition-look`'s `built-*` labels who stands at each.
 2. **Vehicles.** A market whose faction fields vehicles (`FactionVehiclePoints`)
    parks them as live hulls at the same places (`BattleSetup.parkHull`,
    `VehicleMission.deployed`), out of the same force.
