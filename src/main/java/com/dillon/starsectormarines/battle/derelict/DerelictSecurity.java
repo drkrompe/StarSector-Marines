@@ -818,8 +818,13 @@ public final class DerelictSecurity {
                                  FlockLivery livery) {
         Long node = director.nodes().get(zoneId);
         if (node == null) return 0L;
-        float hx = sim.world().x(node);
-        float hy = sim.world().y(node);
+        return standRepairDrone(sim, zoneId, director, livery, sim.world().x(node), sim.world().y(node));
+    }
+
+    /** A zone's repair drone homed at {@code (hx, hy)}: its own pad rather than its node's place. */
+    static long standRepairDrone(BattleSimulation sim, int zoneId, DerelictSecurityDirector director,
+                                 FlockLivery livery, float hx, float hy) {
+        if (director.nodes().get(zoneId) == null) return 0L;
         EntitySpec drone = Drone.create("derelict-repair-" + zoneId, Faction.DEFENDER, (int) Math.floor(hx),
                 (int) Math.floor(hy), 0L, livery.repairDrone()).role(UnitRole.STRUCTURE);
         long id = sim.spawn(drone);

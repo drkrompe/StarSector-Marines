@@ -17,7 +17,8 @@ public final class FallenHullLook {
     public static final Piece FORGE_OUT = new Piece(ROOT + "forge-out.png", 6f);
     public static final Piece STAKE_PLANTED = new Piece(ROOT + "stake-planted.png", 3.2f);
     public static final Piece STAKE_RAISED = new Piece(ROOT + "stake-raised.png", 4.8f);
-    public static final Piece STAKE_STORE = new Piece(ROOT + "stake-store.png", 3.2f);
+    /** Drawn to its slot in the stake's footprint ({@link StakeFootprint}): 3 cells. */
+    public static final Piece STAKE_STORE = new Piece(ROOT + "stake-store.png", 3f);
     /** The widest piece, cells, for culling. */
     public static final float MAX_CELLS = 6f;
 
