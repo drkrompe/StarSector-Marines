@@ -823,8 +823,11 @@ public final class UnitRenderService implements RenderSystem {
             FallenHullLook.Piece piece = FallenHullLook.of(ctx.sim.derelictSecurity(), u);
             ShuttleSpriteCache hullPiece = piece == null ? null : sprites.spriteByPath(piece.path());
             if (hullPiece != null) {
-                emitWholeSprite(out, hullPiece, 0f, piece.cells() * cellPx / Math.max(1f, hullPiece.aspect), cx, cy,
-                        alphaMult);
+                // A stake's pylon driving in as it is planted, its mast turning open as it is raised.
+                float[] motion = StakeConstruction.spireMotion(ctx.sim.derelictSecurity(), u);
+                float scale = motion == null ? 1f : motion[0];
+                emitWholeSprite(out, hullPiece, motion == null ? 0f : motion[1],
+                        scale * piece.cells() * cellPx / Math.max(1f, hullPiece.aspect), cx, cy, alphaMult);
                 continue;
             }
             // A derelict zone's node wears its lineage's relay structure.
@@ -1684,6 +1687,10 @@ public final class UnitRenderService implements RenderSystem {
         DerelictSecurityDirector watch = ctx.sim.derelictSecurity();
         if (watch != null && watch.hull() != null && sprites.stripperSprites() != null) {
             SalvageWalkerArms.piles(out, cam, watch.hull().salvage(), sprites.stripperSprites().pile, view, alphaMult);
+        }
+        if (watch != null && watch.hull() != null) {
+            StakeConstruction.draw(out, cam, sprites, watch, view, ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT,
+                    alphaMult);
         }
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
