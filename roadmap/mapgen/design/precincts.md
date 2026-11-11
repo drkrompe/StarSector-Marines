@@ -9,7 +9,10 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
+Updated: 2026-11-11 — every garrison is laid square; the grown, walled
+garrison is retired.
+
+Earlier 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
 fire round its berths and owns the open country along its edge; Colony Breach
 lands in one outside the colony.
 
@@ -272,7 +275,19 @@ The exception is a place somebody surveyed and pegged out before building: a
 frontier colony's civil-defence compound is square because it was laid out
 square, and a lobed outline would say it grew. A `Fortification` can ask for
 that (`laidSquare`): the claim then takes a square of its allowance round the
-seed whole, before anything pools, and its wall is straight runs. Its
+seed whole, before anything pools, and its wall is straight runs.
+
+**Every garrison is laid square.** A walled place with a program (a derived
+plan's garrison, a Conquest lane's post, a brief's garrison) is built square
+by `Precinct.garrison` and `PrecinctBrief.garrison`, and `PrecinctClaim`
+refuses one that is not. Pooled round its seed and walled round whatever
+outline it grew to, a garrison's wall stair-stepped into diagonals (owner,
+2026-11-11: "ugly diagonal wall forts"), so that path is retired. Its program is
+its own: a laid square holds a packed garrison as well as a cantonment's rows.
+What still pools is the landing place, which is open, and what is still walled
+round a grown outline is the sealed town, which is a town rather than a
+garrison. An authored compound (`CompoundGround`) writes its claim from its
+template and is not claimed at all. Its
 neighbours' streets meet it and become its gates the ordinary way. It keeps a
 **glacis**: the outermost `Fortification.GLACIS` cells of the square stay
 claimed but are built on by nobody, walled inside and laid as bare earth, so

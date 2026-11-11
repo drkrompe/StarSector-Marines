@@ -32,8 +32,10 @@ public final class CompoundGround {
                 .flatMap(group -> group.buildings().stream())
                 .map(b -> new FortressBuilding(b.purpose(), b.shape(), Ward.YARD, 1)).toList(), 0);
         int[] centre = site.cell(site.layout().footprint().width()/2, site.layout().footprint().height()/2);
-        var precinct = Precinct.garrison(name, centre[0], centre[1],
-                GrownTrunkPlan.Profile.of(0), program, fortification);
+        // Its claim is the template's own footprint, written below rather than claimed, so the place is not laid
+        // square with a glacis the way a claimed garrison is (Precinct.garrison).
+        var precinct = new Precinct(name, centre[0], centre[1],
+                GrownTrunkPlan.Profile.of(0), program, Precinct.Boundary.WALLED, fortification, null, null);
         c.put(BspKeys.PRECINCTS, new PrecinctPlan(List.of(precinct), attackerFrom));
         var claim = new int[c.width][c.height];
         var wild = SurfaceField.of(c);

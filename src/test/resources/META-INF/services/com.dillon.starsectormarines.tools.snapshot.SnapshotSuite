@@ -495,3 +495,4 @@ com.dillon.starsectormarines.ops.LongSurveyFallLookSuite
 com.dillon.starsectormarines.ops.LongSurveyPicksLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherLookSuite
 com.dillon.starsectormarines.battle.world.gen.pool.RaidDemolitionLookSuite
+com.dillon.starsectormarines.battle.setup.GarrisonCompoundLookSuite

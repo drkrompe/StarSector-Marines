@@ -131,6 +131,15 @@ public interface PrecinctClaim {
      * its wall, laid round its claim, never crosses a site's tracks or bands. {@code null} for none.
      */
     static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop, boolean[][] grounds) {
+        for (Precinct precinct : precincts) {
+            // A walled programmed place is laid square (Precinct.garrison); pooled and walled round what it grew to,
+            // its wall stair-stepped into diagonals, and that path is retired.
+            if (precinct.isProgrammed() && precinct.boundary() == Precinct.Boundary.WALLED
+                    && !precinct.fortification().square()) {
+                throw new IllegalArgumentException(precinct.name() + " is a walled garrison that is not laid square;"
+                        + " a garrison's wall is laid, not grown (Precinct.garrison)");
+            }
+        }
         boolean[][] avoid = union(held, grounds);
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];

@@ -118,8 +118,11 @@ class PrecinctDefenceTest {
         }
 
         GenContext ctx = new GenContext(grid, topology, new Random(seed), W, H, seed);
-        Precinct precinct = Precinct.garrison("garrison", (LEFT + RIGHT) / 2, (BOTTOM + TOP) / 2,
-                GrownTrunkPlan.Profile.hamlet(), FortressProgram.garrison(), fortification);
+        // Walled on the claim's own edge, as the fixture stamps it: built directly, because a garrison laid square
+        // (Precinct.garrison) stands its wall inside a glacis the fixture does not lay.
+        Precinct precinct = new Precinct("garrison", (LEFT + RIGHT) / 2, (BOTTOM + TOP) / 2,
+                GrownTrunkPlan.Profile.hamlet(), FortressProgram.garrison(), Precinct.Boundary.WALLED,
+                fortification, null, null);
         PrecinctDefence.Result result = PrecinctDefence.stamp(ctx, precinct, claim,
                 crossed ? road : filled(GrownTrunkPlan.UNOWNED), 0);
         return new Built(ctx, claim, road, result);
