@@ -281,9 +281,10 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 Any entry may also lay a **fallen hull** over its ground
 (`fallen-hull-nouns.md`, The ground):
 
-- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}]}`: the hull's
-  middle cell, the way its bow points (`north` is +y), the trench's length
-  behind its stern, and the stakes standing at the start, each `planted`,
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}]}`: the broken
+  hull's middle cell (its three sections and the gaps between), the way its bow
+  points (`north` is +y), the trench's length off its bow's tip (12 to 160),
+  and the stakes standing at the start, each `planted`,
   `raised` or `established` on the lattice point nearest its cell. It rides the
   plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
   lays it; a Long Survey chapter's acceptance is its base mission's own (the

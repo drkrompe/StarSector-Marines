@@ -4,7 +4,7 @@
   "home": "ARID",
   "entry": {
     "seed": 5,
-    "note": "The Surveyor: Broad Front's country (heart-front seed 5, its airbases placed) with the Surveyor in the heart's place beside the workings, bow north, its trench pointing down the supply road the garrison's columns come up; the full claim standing round it, established nearest the hull, raised beyond, planted at its edge",
+    "note": "The Surveyor: Broad Front's country (heart-front seed 5, its airbases placed) with the Surveyor in the heart's place beside the workings, bow south, broken in three, its trench pointing down the supply road the garrison's columns come up; the full claim standing round it, established nearest the hull, raised beyond, planted at its edge",
     "patch": {
       "place": [
         {
@@ -24,63 +24,63 @@
       ],
       "hull": {
         "x": 280,
-        "y": 268,
-        "heading": "north",
-        "trench": 60,
+        "y": 250,
+        "heading": "south",
+        "trench": 30,
         "stakes": [
           {
             "x": 240,
-            "y": 268,
+            "y": 250,
             "stage": "established"
           },
           {
             "x": 320,
-            "y": 268,
+            "y": 290,
             "stage": "established"
           },
           {
             "x": 240,
-            "y": 228,
+            "y": 210,
             "stage": "established"
           },
           {
             "x": 320,
-            "y": 228,
+            "y": 210,
             "stage": "established"
           },
           {
             "x": 200,
-            "y": 228,
+            "y": 210,
             "stage": "established"
           },
           {
             "x": 360,
-            "y": 228,
+            "y": 210,
             "stage": "established"
           },
           {
             "x": 240,
-            "y": 188,
+            "y": 170,
             "stage": "raised"
           },
           {
-            "x": 280,
-            "y": 188,
+            "x": 320,
+            "y": 170,
             "stage": "raised"
           },
           {
             "x": 360,
-            "y": 188,
+            "y": 130,
             "stage": "raised"
           },
           {
             "x": 160,
-            "y": 188,
+            "y": 170,
             "stage": "planted"
           },
           {
             "x": 400,
-            "y": 188,
+            "y": 170,
             "stage": "planted"
           }
         ]

@@ -438,10 +438,9 @@ from Stirring, the vent standing, its zone online), and a reserve bay's lamp
 once its flock has come out. The hunt sets every online zone alert, so the
 whole plant pulses red; the contingency lights every zone with a live node. A
 zone cut off at its junction, or whose node is down, stays dark through all of
-it, the contingency included. The restart adds no escalation of its own: its
-noise is already counted (`RuinsSleepers.loud`, `SecurityNetwork.loud`,
-`RuinsPressure.HALL_RESTART`), and the hall coming up lit is the tell that it was
-paid. Light is presentation: it draws none of the hall's capacity and changes
+it, the contingency included. The restart also brings the wake to Stirring at
+least (`FacilityWake.plantRestarted`, `derelict-watch.md`), so the vent hatches
+glow amber as the plant comes up. Light is presentation: it draws none of the hall's capacity and changes
 no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
 lit).
 

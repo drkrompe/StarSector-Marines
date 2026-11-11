@@ -130,13 +130,25 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
         HullSite site = ground.hull();
         try (BattleSimulation sim = LongSurveyGround.stand(ground, home)) {
             Area hull = site.footprint();
+            int w = sim.getTopology().getWidth(), h = sim.getTopology().getHeight();
             BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
-                    hull.centreX(), hull.centreY(), Math.max(hull.width(), hull.height() * 16f / 9f) + 24f);
+                    w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
+            out.add(new SnapshotArtifact(chapter.id + "/breakup-0-whole.png", look.render(sim, "")));
+            for (int k = 0; k < site.sections().size(); k++) {
+                Area s = site.sections().get(k);
+                look.refocus(s.centreX(), s.centreY(), Math.max(s.width(), s.height() * 16f / 9f) + 28f);
+                out.add(new SnapshotArtifact(chapter.id + "/breakup-" + (k + 1) + "-"
+                        + HullPlan.SECTIONS.get(k).name() + ".png", look.render(sim, "")));
+            }
+            look.refocus(hull.centreX(), hull.centreY(), Math.max(hull.width(), hull.height() * 16f / 9f) + 24f);
             out.add(new SnapshotArtifact(chapter.id + "/boarding-1-outside.png", look.render(sim, "")));
 
-            // The aft breach into the first hold: the last way in.
+            // The aft rent into the first hold.
             List<Area> ways = site.interior().entrances();
-            Area breach = ways.get(ways.size() - 1);
+            int aft = 0;
+            List<HullPlan.Entrance> planned = HullPlan.plan().entrances();
+            for (int k = 0; k < planned.size(); k++) if (planned.get(k).name().equals(HullPlan.BREACH + ".aft")) aft = k;
+            Area breach = ways.get(aft);
             Area hold = site.interior().chambers().get(0);
             int placed = 0;
             for (int y = breach.bottom() - 1; y <= breach.top() + 1 && placed < 5; y++) {

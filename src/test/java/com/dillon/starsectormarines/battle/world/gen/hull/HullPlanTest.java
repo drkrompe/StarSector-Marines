@@ -14,21 +14,42 @@ class HullPlanTest {
     private final HullPlan plan = HullPlan.plan();
 
     @Test
-    void everyHallTheForgeAndEveryWayInJoinOneDeck() {
-        Entrance stern = plan.entrances().get(0);
-        boolean[] reach = plan.reach(stern.door().u0(), stern.door().v0());
-        assertTrue(reach[HullPlan.FORGE_U * HullPlan.BREADTH + HullPlan.FORGE_V], "the autoforge is reached");
-        for (Hall hall : plan.halls()) {
-            int u = (hall.floor().u0() + hall.floor().u1()) / 2, v = (hall.floor().v0() + hall.floor().v1()) / 2;
-            assertTrue(reach[u * HullPlan.BREADTH + v], hall.name() + " is reached");
+    void eachSectionsHallsAndWaysInJoinItsOwnDeckAndNoOther() {
+        for (HullPlan.Section section : HullPlan.SECTIONS) {
+            Entrance first = null;
+            for (Entrance e : plan.entrances()) if (section.contains(e.door().u0()) && first == null) first = e;
+            boolean[] reach = plan.reach(first.door().u0(), first.door().v0());
+            for (Hall hall : plan.halls()) {
+                if (!section.contains(hall.floor().u0())) continue;
+                int u = (hall.floor().u0() + hall.floor().u1()) / 2, v = (hall.floor().v0() + hall.floor().v1()) / 2;
+                assertTrue(reach[u * HullPlan.BREADTH + v], hall.name() + " is reached in " + section.name());
+            }
+            for (Entrance e : plan.entrances()) {
+                boolean mine = section.contains(e.door().u0());
+                assertEquals(mine, reach[e.door().u0() * HullPlan.BREADTH + e.door().v0()],
+                        e.name() + (mine ? " joins " : " is apart from ") + section.name());
+                // A way in opens onto the outside: the step past its outer cell leaves its section.
+                int u = e.du() < 0 ? e.door().u0() : e.du() > 0 ? e.door().u1() : e.door().u0();
+                int v = e.dv() < 0 ? e.door().v0() : e.dv() > 0 ? e.door().v1() : e.door().v0();
+                assertEquals(HullPlan.Kind.OUTSIDE, plan.near(u, v, e.du(), e.dv()), e.name() + " opens outside");
+            }
+            if (section.contains(HullPlan.FORGE_U)) {
+                assertTrue(reach[HullPlan.FORGE_U * HullPlan.BREADTH + HullPlan.FORGE_V], "the autoforge is reached");
+            }
         }
-        for (Entrance e : plan.entrances()) {
-            assertTrue(reach[e.door().u0() * HullPlan.BREADTH + e.door().v0()], e.name() + " joins the deck");
-            // A way in opens onto the outside: the step past its outer cell leaves the hull.
-            int u = e.du() < 0 ? e.door().u0() - 1 : e.du() > 0 ? e.door().u1() + 1 : e.door().u0();
-            int v = e.dv() < 0 ? e.door().v0() - 1 : e.dv() > 0 ? e.door().v1() + 1 : e.door().v0();
-            assertEquals(HullPlan.Kind.OUTSIDE, plan.at(u, v), e.name() + " opens outside");
+    }
+
+    @Test
+    void sectionsAreLaidApartAlongTheLineAndALaidCellMapsBack() {
+        for (int u = 0; u < HullPlan.LENGTH; u++) {
+            assertEquals(u, HullPlan.planU(HullPlan.laidU(HullPlan.section(u), u)));
         }
+        HullPlan.Section mid = HullPlan.SECTIONS.get(1);
+        // The ground between the stern and the midsection is no hull.
+        assertEquals(-1, HullPlan.planU(HullPlan.laidU(HullPlan.section(mid.u0() - 1), mid.u0() - 1) + 1));
+        assertEquals(HullPlan.LENGTH + 18 + 22, HullPlan.LAID_LENGTH);
+        assertTrue(plan.sheared(mid.u0(), 0), "a broken end's corner is the cut face");
+        assertEquals(false, plan.sheared(0, 0), "the stern is no broken end");
     }
 
     @Test
