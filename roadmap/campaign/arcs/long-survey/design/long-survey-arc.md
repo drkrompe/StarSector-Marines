@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — authored fallen-hull arc: four story chapters on owned
 seeds, built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). The
-campaign scaffolding, The Fall, Stakes and The Line are built (What is built);
-The Surveyor is open in `stories.md`.
+campaign scaffolding and all four chapters are built and playable from the
+debug player (What is built); what remains is open in `stories.md`.
 
 Written: 2026-11-10
 
@@ -156,8 +156,7 @@ chapter (pick through the art session), voiced later as the Khettara is.
 - **The ledger.** `LongSurveyProgress` (`CampaignState.longSurvey`): the four
   chapters in order, each unlocked by the last one's victory; a loss leaves it
   on offer with its retry line and no fee; a won chapter replays at half fee
-  with no unlock; one active attempt, settled once by its own receipt. A
-  chapter not yet built (`Chapter.built`) is never matched, offered or launched.
+  with no unlock; one active attempt, settled once by its own receipt.
 - **The contact.** `LongSurveyCampaign`: Garnir's defence chief on the port's
   board (`SYSTEM`, `PLANET_ID`: Corvus, `corvus_IIIa`), opening with the
   Khettara when Morrow departs at the end of A Working Ship
@@ -217,10 +216,19 @@ chapter (pick through the art session), voiced later as the Khettara is.
     to the lanes' squads, which the lanes command themselves today (`stories.md`,
     The garrison against the watch); the lanes' vehicle park, tool shed and air
     wing; and the beats keyed `stake-N`.
+  - **The Surveyor.** Broad Front's country with the hull between the works,
+    bow south; won when the autoforge is out (`Autoforge.lit`). The same
+    lanes push on the full claim as in The Line, a short way in rather than
+    the win: cutting the outer chain strands the claim, and the hull's
+    interior is the delve, the vault frame posted in the forge hall and a hall
+    frame in the chamber nearest it (`LongSurveyBattle.hallPost`). The hull
+    prints `SURVEYOR_QUEUE` (line and siege frames, an escorted stake) with
+    `SURVEYOR_WALKERS` out at the mouth. All UNTUNED. Open as The Line's, and
+    the forge's breach contingency as the Ruins vault plays it.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Garnir, each on its chapter's seed with the challenge force (a
-  Veteran Company, seven squads, four machines); a chapter is listed once
-  built (`Chapter.built`): LS1 to LS3 show.
+  Veteran Company, seven squads, four machines): LS1 The Fall, LS2 Stakes,
+  LS3 The Line, LS4 The Surveyor.
 
 ## Open picks
 

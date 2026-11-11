@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -26,5 +27,13 @@ class LongSurveyBattleTest {
 
         assertEquals(List.of(new KnownBore("stake-2", true, 20, 30, true), new KnownBore("stake-4", false, 40, 10, true),
                 new KnownBore("stake-7", false, 70, 12, false)), targets);
+    }
+
+    @Test
+    void theHallFrameStandsInTheChamberNearestTheForgeHallElseInIt() {
+        Area forge = new Area(0, 0, 10, 10);
+        Area near = new Area(12, 0, 20, 10), far = new Area(40, 0, 50, 10);
+        assertEquals(near, LongSurveyBattle.hallPost(List.of(far, forge, near), forge));
+        assertEquals(forge, LongSurveyBattle.hallPost(List.of(forge), forge), "an interior with no other hall");
     }
 }

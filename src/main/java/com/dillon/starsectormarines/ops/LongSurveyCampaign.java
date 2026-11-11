@@ -30,8 +30,7 @@ import java.util.stream.IntStream;
  * Campaign boundary for *The Long Survey*, the authored fallen-hull arc ({@code long-survey-arc.md}). Garnir's
  * free-port defence chief offers on the port's board the current chapter and a replay of every chapter won, in the
  * Khettara's pattern ({@code wellhollow-bloom-arc.md}): a story source with its own ledger, no event gate, no clock.
- * Projection never starts an attempt; launch begins one and only its own receipt settles it. A chapter whose battle
- * is not built yet ({@link Chapter#built}) is never offered.
+ * Projection never starts an attempt; launch begins one and only its own receipt settles it.
  */
 public final class LongSurveyCampaign {
     /** The defence chief's synthetic client: the board carries only this arc's work. */
@@ -99,13 +98,13 @@ public final class LongSurveyCampaign {
         if (p == null || p.active() || !atSite(planet)) return List.of();
         return offers(p, planet.getName());
     }
-    /** The current chapter first where its battle is built, then a replay of each chapter won, latest first. */
+    /** The current chapter first, then a replay of each chapter won, latest first. */
     static List<Mission> offers(LongSurveyProgress p, String planetName) {
         List<Mission> out = new ArrayList<>();
-        if (p.current() != null && p.current().built) out.add(offer(p, p.current(), false, planetName));
+        if (p.current() != null) out.add(offer(p, p.current(), false, planetName));
         for (int i = p.won() - 1; i >= 0; i--) {
             Chapter chapter = Chapter.values()[i];
-            if (chapter.built) out.add(offer(p, chapter, true, planetName));
+            out.add(offer(p, chapter, true, planetName));
         }
         return List.copyOf(out);
     }
@@ -222,7 +221,6 @@ public final class LongSurveyCampaign {
     }
     /** A chapter's battle outside the campaign, for the debug player: the same fixture a launch builds. */
     static BattleFixture fixture(Chapter chapter, List<ShuttleAssignment> manifest) {
-        if (!chapter.built) throw new IllegalStateException(chapter + " is not built yet");
         return switch (chapter) {
             case THE_FALL -> new HullFallBattleFixture(fixedSeed(chapter), manifest, world(), THE_FALL_MAP,
                     THE_FALL_GRADE, LIVERY);

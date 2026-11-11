@@ -30,13 +30,13 @@ class LongSurveyCampaignTest {
         return p;
     }
 
-    @Test void theBoardOffersOnlyBuiltChaptersThenEveryWonChapterAsAReplay() {
+    @Test void theBoardOffersTheCurrentChapterThenEveryWonChapterAsAReplay() {
         List<Mission> fresh = LongSurveyCampaign.offers(new LongSurveyProgress(), "World");
         assertEquals(1, fresh.size());
         assertEquals(Chapter.THE_FALL.fee, fresh.get(0).payout);
         assertEquals(MissionSource.STORY, fresh.get(0).source);
 
-        // Stakes is current and built: it leads the board, The Fall's replay after it.
+        // Stakes is current: it leads the board, The Fall's replay after it.
         List<Mission> afterFall = LongSurveyCampaign.offers(settled(true), "World");
         assertEquals(2, afterFall.size());
         assertEquals(Chapter.STAKES, LongSurveyProgress.chapterOf(afterFall.get(0).id));
@@ -79,12 +79,12 @@ class LongSurveyCampaignTest {
         }
     }
 
-    @Test void theDebugPlayerListsBuiltChaptersOnTheirSeedWithTheChallengeForce() {
+    @Test void theDebugPlayerListsEveryChapterOnItsSeedWithTheChallengeForce() {
         for (var scenario : DebugMissionCatalog.Scenario.values()) {
             Chapter chapter = scenario.longSurvey();
             if (chapter == null) continue;
             assertEquals("LS" + chapter.number(), scenario.sequence());
-            assertEquals(chapter.built, scenario.offered());
+            assertTrue(scenario.offered());
             Mission m = scenario.mission();
             assertEquals(LongSurveyCampaign.fixedSeed(chapter), m.battleSeed);
             assertEquals(LongSurveyCampaign.RECOMMENDED_MACHINES, DebugMissionCatalog.preset(m).mechs());

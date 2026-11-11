@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
@@ -41,6 +43,8 @@ import java.util.function.IntFunction;
  *   <li>Stakes: the Sabotage family's three named sites are the three stakes the ground planted; kill them.</li>
  *   <li>The Line: Broad Front's allied lanes push through the port city, each lane's objective its next stake, won
  *   when every stake on the map is down.</li>
+ *   <li>The Surveyor: the same lanes' short push on the full claim, then the delve into the hull, won when the
+ *   autoforge is out in its forge hall, guarded by the vault frame and a hall frame.</li>
  * </ul>
  */
 public final class LongSurveyBattle {
@@ -56,6 +60,7 @@ public final class LongSurveyBattle {
         return switch (map) {
             case LONG_SURVEY_STAKES -> stakes(seed, manifest, profile, livery);
             case LONG_SURVEY_LINE -> line(seed, manifest, profile, livery);
+            case LONG_SURVEY_SURVEYOR -> surveyor(seed, manifest, profile, livery);
             default -> throw new IllegalArgumentException(map.id + " is not a built Long Survey battle");
         };
     }
@@ -151,6 +156,64 @@ public final class LongSurveyBattle {
                     !HullClaimObjective.down(stake)));
         }
         return out;
+    }
+
+    // ---- The Surveyor ----
+
+    /** The Surveyor's forge program: the full claim's, line and siege frames with escorted stakes between. UNTUNED. */
+    static final BuildQueue SURVEYOR_QUEUE = new BuildQueue(List.of(
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.stake(BuildQueue.STAKE_COST, DerelictWalkerFrame.LINE),
+            BuildQueue.Item.walker(DerelictWalkerFrame.SIEGE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
+    /** The hull's store at the start: two line frames' worth. UNTUNED. */
+    static final float SURVEYOR_FEEDSTOCK = BuildQueue.LINE_COST * 2;
+    /** The watch already out at the mouth: line frames, a siege frame and a rounds walker. UNTUNED. */
+    static final List<DerelictWalkerFrame> SURVEYOR_WALKERS = List.of(DerelictWalkerFrame.LINE,
+            DerelictWalkerFrame.LINE, DerelictWalkerFrame.SIEGE, DerelictWalkerFrame.ROUNDS);
+
+    /**
+     * The Surveyor (`long-survey-arc.md`, The Surveyor): the company down on the supply road with Broad Front's lanes
+     * pushing on the full claim round the hull, its stakes their targets as in The Line; the hull's interior the delve,
+     * the vault frame posted in the forge hall and a hall frame in the hall nearest it; won when the autoforge is out.
+     * The push is the way in, not the win: cutting the outer chain strands the claim, and the forge is the objective.
+     */
+    static BattleSimulation surveyor(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                     FlockLivery livery) {
+        Stood stood = stand(StoryMap.LONG_SURVEY_SURVEYOR, seed, manifest, profile, "Company lands on the supply road");
+        BattleSimulation sim = stood.sim();
+        HullSite ground = stood.ground().hull();
+        List<FallenHullSite.Posting> walkers = new ArrayList<>(atMouth(stood.ground(), SURVEYOR_WALKERS));
+        Area forgeHall = ground.forgeHall();
+        walkers.add(new FallenHullSite.Posting(DerelictWalkerFrame.VAULT, forgeHall.centreX(), forgeHall.centreY()));
+        Area hall = hallPost(ground.interior().chambers(), forgeHall);
+        walkers.add(new FallenHullSite.Posting(DerelictWalkerFrame.HALL, hall.centreX(), hall.centreY()));
+        FallenHullSite site = LongSurveyGround.rulesSite(ground, List.of(), walkers, SURVEYOR_FEEDSTOCK);
+        FallenHull hull = FallenHull.install(sim, site, SURVEYOR_QUEUE, livery);
+        sim.addObjective(HullClaimObjective.forge(hull, Strings.get("longSurveyObjectiveForge")));
+        HeartLanes lanes = BloomHeartSetup.alliedLanes(sim, Form.BROAD_FRONT, stood.ground().battleSeed())
+                .targets(s -> stakeTargets(hull.stakes(), hull::seatOf));
+        sim.installAlliedPush(lanes);
+        return sim;
+    }
+
+    /**
+     * Where the hall frame stands: the interior's chamber nearest the forge hall that is not the forge hall itself
+     * (the last hall before the vault), else the forge hall when the interior has no other.
+     */
+    static Area hallPost(List<Area> chambers, Area forgeHall) {
+        Area best = null;
+        long bestD = Long.MAX_VALUE;
+        for (Area a : chambers) {
+            if (a.contains(forgeHall.centreX(), forgeHall.centreY())) continue;
+            long dx = a.centreX() - forgeHall.centreX(), dy = a.centreY() - forgeHall.centreY(), d = dx * dx + dy * dy;
+            if (d < bestD) {
+                bestD = d;
+                best = a;
+            }
+        }
+        return best == null ? forgeHall : best;
     }
 
     // ---- common ----
