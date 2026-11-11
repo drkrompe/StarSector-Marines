@@ -686,7 +686,9 @@ public final class FallenHull {
                 case CUT -> "stripper cuts metal into feedstock";
                 case FULL -> "stripper waits full for a hauler";
             };
-            order(sim, squad, (int) Math.floor(goal.x()), (int) Math.floor(goal.y()), why);
+            // Cutting, it holds where it stands, within reach, and works the pile with its booms rather than standing on it.
+            boolean hold = goal.kind() == StripperWork.Kind.CUT;
+            order(sim, squad, (int) Math.floor(hold ? x : goal.x()), (int) Math.floor(hold ? y : goal.y()), why);
         }
     }
 
