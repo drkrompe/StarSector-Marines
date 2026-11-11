@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.HaulerWork;
 import com.dillon.starsectormarines.battle.derelict.Salvage;
+import com.dillon.starsectormarines.battle.derelict.StakeFootprint;
 import com.dillon.starsectormarines.battle.derelict.StakeTrain;
 import com.dillon.starsectormarines.battle.derelict.StripperWork;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
@@ -654,8 +655,16 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
                 plantedTick = tick;
         }
 
+        /** Where the stake stands: its seat once planted, the lattice point before. */
+        private float[] target() {
+            int[] at = hull.seatOf(train.plan.point().id());
+            return at != null ? new float[] {at[0] + .5f, at[1] + .5f}
+                    : new float[] {train.plan.point().x() + .5f, train.plan.point().y() + .5f};
+        }
+
         @Override float[] focus(BattleSimulation sim) {
-            float px = train.plan.point().x() + .5f, py = train.plan.point().y() + .5f;
+            float[] t = target();
+            float px = t[0], py = t[1];
             long id = member(sim, train.haulerSquad);
             if (id == 0L) return new float[] {px, py, 36f};
             float x = sim.world().renderX(id), y = sim.world().renderY(id);
@@ -664,7 +673,8 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
-            float px = train.plan.point().x() + .5f, py = train.plan.point().y() + .5f;
+            float[] t = target();
+            float px = t[0], py = t[1];
             boolean planted = plantedTick >= 0;
             o.title(title, planted ? "planted: it rises in " + Math.round(SurveyStake.RAISE_SECONDS) + " s if its chain holds"
                     : "en route to lattice point " + train.plan.point().id());
@@ -735,14 +745,24 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
             log("stake-rises: cut %s node at %.0f s", upstream ? "the upstream stake's" : "its own", tick * DT);
         }
 
+        /** The stake's footprint centre, its point before it seats. */
+        private float[] centre() {
+            int[] at = hull.seatOf(point);
+            if (at == null) {
+                var p = hull.lattice().point(point);
+                at = new int[] {p.x(), p.y()};
+            }
+            return new float[] {at[0] + .5f, at[1] + .5f};
+        }
+
         @Override float[] focus(BattleSimulation sim) {
-            var p = hull.lattice().point(point);
-            return new float[] {p.x() + .5f, p.y() + .5f, 30f};
+            float[] c = centre();
+            return new float[] {c[0], c[1], 30f};
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
             SurveyStake s = hull.stakes().get(point);
-            var p = hull.lattice().point(point);
+            float[] c = centre();
             String status;
             if (s == null) status = "gone";
             else if (s.stranded()) status = s.stage().name().toLowerCase() + ", STRANDED: its chain is cut and it builds "
@@ -753,7 +773,15 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
             o.title(title, status, cutTick < 0 ? null : upstream
                     ? "the relay node it hangs off, upstream, destroyed by this clip (scripted)"
                     : "its relay node destroyed by this clip (scripted)");
-            o.label("spire stake", p.x() + .5f, p.y() + .5f, 260, -130);
+            o.label("spire stake", c[0], c[1], 300, -150);
+            if (s != null && s.stage() != SurveyStake.Stage.PLANTED) {
+                int[] cradle = StakeFootprint.slot(StakeFootprint.Part.CRADLE).centre(0, 0);
+                o.label("flock cradle", c[0] + cradle[0], c[1] + cradle[1], -260, -120);
+            }
+            if (s != null && s.stage() == SurveyStake.Stage.ESTABLISHED) {
+                int[] store = StakeFootprint.slot(StakeFootprint.Part.STORE).centre(0, 0);
+                o.label("store", c[0] + store[0], c[1] + store[1], 0, 150);
+            }
         }
 
         @Override boolean done(BattleSimulation sim, int tick) {
