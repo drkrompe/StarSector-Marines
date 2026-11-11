@@ -60,11 +60,15 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
         }
         float[] hq = middleOf(sim.getTopology(), RoomPurpose.KEEP_THRONE, machinesX, machinesY);
         float hx = hq == null ? machinesX : hq[0], hy = hq == null ? machinesY : hq[1];
-        add(out, sim, "satcom", "doodad.listening-dish", hx, hy);
-        add(out, sim, "radar", "doodad.military-radar-dish", hx, hy);
-        add(out, sim, "generators", "ship-engineering.generator", hx, hy);
-        add(out, sim, "fuel-depot", "doodad.oxygen-sphere", machinesX, machinesY);
-        add(out, sim, "workshop", "doodad.ruins-workshop-hoist", hx, hy);
+        // The set pieces: each close-up rings the whole set piece, not its one prop.
+        add(out, sim, "satcom", List.of("doodad.listening-dish"), hx, hy, new int[]{13, 8});
+        add(out, sim, "radar", List.of("doodad.radar-tower-lattice", "doodad.radar-tower"), hx, hy,
+                new int[]{13, 10});
+        add(out, sim, "generators", List.of("ship-engineering.generator", "doodad.industrial-generator"), hx, hy,
+                new int[]{13, 9});
+        add(out, sim, "fuel-depot", List.of("doodad.fuel-tank-vertical", "doodad.oxygen-sphere"),
+                machinesX, machinesY, new int[]{14, 10});
+        add(out, sim, "workshop", List.of("doodad.ruins-workshop-hoist"), hx, hy, null);
         float[] armoury = middleOf(sim.getTopology(), RoomPurpose.ARMORY, hx, hy);
         if (armoury != null) {
             out.add(new Shot("armoury", armoury[0], armoury[1], STRUCTURE_WIDTH));
@@ -83,13 +87,21 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
         System.out.printf(Locale.ROOT, "[raid-military-site-look] mark %s %.0f x %.0f%n", name, w, h);
     }
 
-    /** A close-up centred on the outdoor {@code id} prop nearest {@code (x, y)}, none where no such prop stands. */
-    private static void add(List<Shot> out, BattleSimulation sim, String name, String id, float x, float y) {
+    /**
+     * A close-up centred on the {@code ids} prop nearest {@code (x, y)}, none where no such prop stands; ringed at the
+     * size of its set piece {@code piece} (cells along its gate side and deep, as {@code MilitarySetPieces} lays it),
+     * or of the prop where it is null. A set piece's props may stand indoors (the
+     * generator plant's sets in their shed); a lone prop is the outdoor one, never a furnishing.
+     */
+    private static void add(List<Shot> out, BattleSimulation sim, String name, List<String> ids, float x, float y,
+                            int[] piece) {
         Doodad best = null;
         float far = Float.MAX_VALUE;
         for (Doodad d : sim.getDoodads()) {
-            if (!id.equals(d.definitionId())) continue;
-            if (sim.getTopology().getGroundKind(d.cellX, d.cellY) == CellTopology.GroundKind.INDOOR) continue;
+            if (!ids.contains(d.definitionId())) continue;
+            if (piece == null && sim.getTopology().getGroundKind(d.cellX, d.cellY) == CellTopology.GroundKind.INDOOR) {
+                continue;
+            }
             float dx = d.cellX - x, dy = d.cellY - y;
             if (dx * dx + dy * dy < far) {
                 far = dx * dx + dy * dy;
@@ -99,7 +111,8 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
         if (best != null) {
             out.add(new Shot(name, best.cellX + best.footprintCellsX / 2f, best.cellY + best.footprintCellsY / 2f,
                     STRUCTURE_WIDTH));
-            mark(name, best.footprintCellsX, best.footprintCellsY);
+            if (piece == null) mark(name, best.footprintCellsX, best.footprintCellsY);
+            else mark(name, piece[0], piece[1]);
         }
     }
 

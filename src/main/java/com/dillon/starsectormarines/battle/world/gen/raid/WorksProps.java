@@ -59,6 +59,8 @@ public final class WorksProps {
         if (def == null) return false;
         Doodad prop = new Doodad(x, y, def, turns);
         if (!open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
+        // A set piece's ground is its own: no other prop is stood inside its fence or bund.
+        if (MilitarySetPieces.raised(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
         for (int yy = y; yy < y + prop.footprintCellsY; yy++) {
             for (int xx = x; xx < x + prop.footprintCellsX; xx++) {
                 c.grid.setWalkable(xx, yy, false);
