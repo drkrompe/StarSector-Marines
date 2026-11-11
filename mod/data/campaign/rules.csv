@@ -46,6 +46,12 @@ smRaidConfirmIntercept,DialogOptionSelected,"$option == mktRaidConfirm score:2
 MarineRaidCMD intercept",MarineRaidCMD fork,,,"The raid confirm: offers leading the raid with Marine Operations or launching it as usual every time, unless the Settings page turns the fork off. Scores 3 (score:2 plus the intercept line), one above Nexerelin's own row (2) and vanilla's (1), so it works with and without Nexerelin"
 smRaidMarineSel,DialogOptionSelected,$option == smRaidMarine,MarineRaidCMD marine,,,Leads the raid as a Marine Operations battle
 smRaidStandardSel,DialogOptionSelected,$option == smRaidStandard,MarineRaidCMD standard,,,Hands this raid back to the raid command's own row
+smRaidMenuIntercept,DialogOptionSelected,"$option == mktRaid score:2
+MarineRaidCMD menuIntercept",MarineRaidCMD menu,,,"The raid menu: the raid command builds it, then any kind of raid it refused for want of the fleet's marines is offered again, since the company can lead it. Scores 3, as the confirm intercept"
+smRaidShortValuableIntercept,DialogOptionSelected,"$option == mktRaidValuable score:2
+MarineRaidCMD shortIntercept valuable",MarineRaidCMD ledOnly mktRaidValuable,,,A raid for valuables the fleet's marines are too few for: marked as one only the company can lead and handed to the raid command
+smRaidShortDisruptIntercept,DialogOptionSelected,"$option == mktRaidDisrupt score:2
+MarineRaidCMD shortIntercept disrupt",MarineRaidCMD ledOnly mktRaidDisrupt,,,A disrupting raid the fleet's marines are too few for: marked as one only the company can lead and handed to the raid command
 smRuinsExploreIntercept,DialogOptionSelected,"$option == salExplore score:2
 $market.hasRuins
 !$market.ruinsExplored
