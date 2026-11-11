@@ -93,6 +93,15 @@ and the Rav):
 A stake killed planted is scrap and leaves no wreck. A raised or established
 stake is fought as a zone: kill its node and it is stranded and blind.
 
+A stake owns its ground from the moment it is planted. It claims one square
+**footprint**, sized for its established form and seated on the clear ground
+nearest its lattice point. That ground is cleared of loose props and scatter,
+and nothing else is placed in it. Each part stands in its own **slot**: the
+spire at the centre (the pylon, then the node mast), the flock's cradle and
+the repair drone's pad at the two back corners, a folded post on each flank,
+and the store on the front edge. A stage grows by filling more of its slots
+and never sets one part on another.
+
 ## Laws
 
 - **Every new unit is printed.** Nothing appears from nowhere. A walker or stake
@@ -299,6 +308,9 @@ Numbers UNTUNED.
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
   reaching its point, scrap if its hauler dies first, the point open again);
+  `StakeFootprint` (a stake's 11-cell square, seated where every cell is
+  buildable, nearest its point; a slot per part, none overlapping, and each
+  stage's parts include the stage before's; `FallenHull.seatOf`);
   `HaulRoads` (a walk with both ends near a road follows it, waypoint by
   waypoint; any other goes straight).
 - **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and
