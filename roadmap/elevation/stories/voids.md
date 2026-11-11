@@ -689,8 +689,12 @@ Laws):
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80
-     to 400), never a fixed scale. Its lost HP soots its top, blows its
-     windows (soot plumes over them) and tears ragged holes through it.
+     to 400), never a fixed scale. Its lost HP soots its top and blows its
+     windows (soot plumes over them). Its marks are its hits: each round
+     that stops on a wall is kept where it landed (`WallScars`, fed with the
+     impact decals from the shots that land), and the face it struck shows
+     it there (`FaceScars`): a small-arms pock, a heavy round's gouge, a
+     burst's soot round a punched hole.
    - A breached cell opens dark to the room behind, its rubble spilled on
      the ground. Faces stand on the building's outline as built, settled
      once per map (`BattleRenderer.builtOutline`); only what stands on each
