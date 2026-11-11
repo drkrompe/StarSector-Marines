@@ -73,6 +73,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.infantry.LaneRetarget;
 
+import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.HeldSpecialPose;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
@@ -2087,6 +2088,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // up under a lock.
         mechWallCrush = new MechWallCrush(entityWorld, battleComponents, rosterService, navigation, mapEditor,
                 doodadService);
+        mechWallCrush.setKnees(id -> derelictSecurity != null ? derelictSecurity.kneesOf(id) : null);
         navigation.setOwnRouteGrid(id -> {
             MechVariant variant = rosterService.identity().mechVariant(id);
             if (variant == null || !variant.crushesWalls()) return null;
@@ -2151,6 +2153,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The grid a mech plans its route over: a wall-crushing walker's breach view, else the live grid. */
     public NavigationGrid mechRouteGrid(long mech) { return navigation.routeGrid(mech); }
+
+    /**
+     * The leg rig heavy derelict walker {@code mech} stands on, stepped by the battle each tick so its planted feet
+     * break what they come down on ({@link MechWallCrush}); the renderer draws this same rig. Null for any other unit.
+     */
+    public DerelictLegRig mechLegRig(long mech) { return mechWallCrush.legRig(mech); }
 
     @Override public boolean playerSeesCell(int x, int y) { return fogOfWar.isCellRevealed(x, y); }
 

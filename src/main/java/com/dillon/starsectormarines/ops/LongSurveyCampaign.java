@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.EndGameBranches;
 import com.dillon.starsectormarines.campaign.LongSurveyProgress;
 import com.dillon.starsectormarines.campaign.LongSurveyProgress.Chapter;
 import com.dillon.starsectormarines.campaign.backend.CampaignBackend;
@@ -23,27 +24,27 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 /**
- * Campaign boundary for *The Long Survey*, the authored fallen-hull arc ({@code long-survey-arc.md}). The district's
- * garrison commander offers on the world's board the current chapter and a replay of every chapter won, in the
+ * Campaign boundary for *The Long Survey*, the authored fallen-hull arc ({@code long-survey-arc.md}). Garnir's
+ * free-port defence chief offers on the port's board the current chapter and a replay of every chapter won, in the
  * Khettara's pattern ({@code wellhollow-bloom-arc.md}): a story source with its own ledger, no event gate, no clock.
  * Projection never starts an attempt; launch begins one and only its own receipt settles it. A chapter whose battle
  * is not built yet ({@link Chapter#built}) is never offered.
  */
 public final class LongSurveyCampaign {
-    /** The garrison commander's synthetic client: the board carries only this arc's work. */
+    /** The defence chief's synthetic client: the board carries only this arc's work. */
     public static final String CLIENT_FACTION_ID = "marines_long_survey_client";
     static final String SPEAKER = "@longSurveySpeakerCommander";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     /**
-     * The arc's world (pick {@code long-survey-world}, built on the recommended option): Chicomoztoc in Aztlan. The
-     * one place the world is named, so the pick moves it in one line.
+     * The arc's world (owner, 2026-11-11): Garnir in Corvus, the pirate free port, beside Asharu's Khettara Bloom.
+     * The one place the world is named.
      */
-    static final String SYSTEM = "Aztlan", PLANET_ID = "chicomoztoc";
+    static final String SYSTEM = "Corvus", PLANET_ID = "corvus_IIIa";
     /**
-     * The palette the chapters are fought on: the owned Colony Breach map's home, so The Fall plays the vetted map
-     * unskinned until the world pick and the ground session's hull site settle the world's look.
+     * The world the chapters are fought on: Garnir, airless and cold, as A Cold Account plays it. Each owned map is
+     * laid out on its pool's home palette and skinned for this one.
      */
-    static final SurfacePalette SURFACE = SurfacePalette.ARID;
+    static final SurfacePalette SURFACE = SurfacePalette.FROZEN;
     /**
      * The Fall's map: the Colony Breach colony's seed with the Surveyor down beside the town (`long-survey-arc.md`,
      * Seeds; the {@code long-survey-fall} pool). The pool is read for its seed; this is the seed when no pool is installed.
@@ -62,12 +63,12 @@ public final class LongSurveyCampaign {
     private LongSurveyCampaign() { }
 
     /**
-     * The ledger, or null until Morrow has departed: the arc opens alongside the Khettara after A Working Ship (pick
-     * {@code long-survey-opens}, recommended).
+     * The ledger, or null until the end-game branches open beside the Khettara ({@link EndGameBranches}). Old saves
+     * enter at chapter one.
      */
     public static LongSurveyProgress current() {
         var script = CampaignStateScript.getInstance();
-        if (script == null || script.state().shepherdRecovery == null || !script.state().shepherdRecovery.departed()) return null;
+        if (script == null || !EndGameBranches.open(script.state())) return null;
         return script.state().longSurvey == null ? new LongSurveyProgress() : script.state().longSurvey;
     }
     public static boolean owns(String id) { return LongSurveyProgress.owns(id); }
@@ -83,7 +84,7 @@ public final class LongSurveyCampaign {
         var site = site();
         return planet != null && site != null && planet.getId().equals(site.getId());
     }
-    /** Whether the garrison commander is on this planet's board. */
+    /** Whether the defence chief is on this planet's board. */
     public static boolean contactAt(PlanetAPI planet) { return atSite(planet) && current() != null; }
     public static Client client() {
         return new Client(CLIENT_FACTION_ID, Strings.get("longSurveyContactName"), OpeningBroker.CREST,

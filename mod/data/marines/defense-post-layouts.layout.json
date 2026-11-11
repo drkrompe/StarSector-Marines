@@ -82,24 +82,32 @@
     },
     {
       "id": "layout.defense-post-large-triangle", "tier": "large", "variant": "triangle-formation",
-      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -2], "maxOffset": [2, 2] },
       "cells": [
-        { "offset": [-2, 1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 1] },
-        { "offset": [0, 1], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
-        { "offset": [2, 1], "kind": "barrier", "appearance": "concrete", "facing": [1, 1] },
+        { "offset": [-2, 2], "kind": "barrier", "appearance": "concrete", "facing": [-1, 1] },
+        { "offset": [-1, 2], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
+        { "offset": [0, 2], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
+        { "offset": [1, 2], "kind": "barrier", "appearance": "concrete", "facing": [0, 1] },
+        { "offset": [2, 2], "kind": "barrier", "appearance": "concrete", "facing": [1, 1] },
+        { "offset": [-2, -2], "kind": "barrier", "appearance": "concrete", "facing": [-1, -1] },
+        { "offset": [-1, -2], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
+        { "offset": [0, -2], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
+        { "offset": [1, -2], "kind": "barrier", "appearance": "concrete", "facing": [0, -1] },
+        { "offset": [2, -2], "kind": "barrier", "appearance": "concrete", "facing": [1, -1] },
+        { "offset": [-2, -1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
         { "offset": [-2, 0], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "concrete", "facing": [-1, 0] },
+        { "offset": [2, -1], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
         { "offset": [2, 0], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
-        { "offset": [-1, -1], "kind": "barrier", "appearance": "concrete", "facing": [-1, -1] },
-        { "offset": [1, -1], "kind": "barrier", "appearance": "concrete", "facing": [1, -1] },
-        { "offset": [-1, 1], "kind": "pad" }, { "offset": [1, 1], "kind": "pad" },
-        { "offset": [0, -1], "kind": "pad" }, { "offset": [-1, 0], "kind": "pad" },
-        { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" },
-        { "offset": [-2, -1], "kind": "pad" }, { "offset": [2, -1], "kind": "pad" }
+        { "offset": [2, 1], "kind": "barrier", "appearance": "concrete", "facing": [1, 0] },
+        { "offset": [-1, -1], "kind": "pad" }, { "offset": [0, -1], "kind": "pad" }, { "offset": [1, -1], "kind": "pad" },
+        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" },
+        { "offset": [-1, 1], "kind": "pad" }, { "offset": [0, 1], "kind": "pad" }, { "offset": [1, 1], "kind": "pad" }
       ],
       "turrets": [
-        { "offset": [-1, 1], "structure": "structure.turret-hephaestus" },
-        { "offset": [1, 1], "structure": "structure.turret-hephaestus" },
-        { "offset": [0, -1], "structure": "structure.turret-hephaestus" }
+        { "offset": [-1, -1], "structure": "structure.turret-hephaestus" },
+        { "offset": [1, -1], "structure": "structure.turret-hephaestus" },
+        { "offset": [0, 1], "structure": "structure.turret-hephaestus" }
       ]
     },
     {

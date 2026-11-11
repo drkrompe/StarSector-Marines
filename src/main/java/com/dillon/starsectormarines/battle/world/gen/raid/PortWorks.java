@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.air.PortFreighter;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
@@ -11,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.layout.Structure;
 import com.dillon.starsectormarines.battle.world.gen.layout.StructureKind;
+import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -24,6 +28,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -311,6 +316,131 @@ public final class PortWorks implements RaidIndustry {
         }
         PortHubDressing.intakeQueue(c, claim, index, hub.terminalX(), c.seed ^ 0x51554555L);
         terminal(c, plan, works);
+    }
+
+    @Override
+    public GuardedGrounds.Grounds guardedGrounds(GenContext c, PrecinctPlan plan, Precinct works,
+                                                 WorksDefences.Layer layer) {
+        if (!(plan.layout().find(APRON) instanceof Site apron) || !(plan.layout().find(LINES) instanceof Site lines)) {
+            return null;
+        }
+        PortHub hub = hubOf(lines, apron);
+        if (hub == null) return null;
+        List<LandingPad> stands = new ArrayList<>();
+        for (LandingPad pad : c.landingPads) if (pad.purpose == LandingPad.Purpose.PORT_LIGHTER) stands.add(pad);
+        return grounds(hub, stands, layer == WorksDefences.Layer.FORTIFIED);
+    }
+
+    /** The place the port's lines in are guarded as: the highway, the rail line and the warehouse rows. */
+    public static final String GUARD_LINES = "port-lines";
+    /** The fuel farm's guarded place. */
+    public static final String GUARD_FUEL = "port-fuel";
+    /** Each guarded pad's place is named this prefix and the pad's index along the row. */
+    public static final String GUARD_PAD = "port-pad-";
+    /** Pads that hold a gun, guarded and fortified: spread along the row among the pads with ships on them. UNTUNED. */
+    static final int GUARDED_PADS = 2, FORTIFIED_PADS = 3;
+
+    /**
+     * Where the port's guns stand (owner on {@code raid-site-port-r6}: "Where would the defenders logically be here?
+     * Likely they would be spread out"): over what the port lives by rather than round the terminal alone, each place
+     * sited by the defence doctrine ({@link GuardedGrounds}).
+     *
+     * <ul>
+     *   <li><b>The lines in</b>: the highway, the rail line and the warehouse rows. An attack comes from the map's
+     *       middle across the open ground beyond the highway, so its guns flank that approach first, out beyond the
+     *       highway facing it, then the highway where it comes in past the terminal from the town (the truck gate's
+     *       road meets it there).</li>
+     *   <li><b>The fuel farm</b>: a gun off its open end, toward the terminal; the pads and the service lane close
+     *       its other sides.</li>
+     *   <li><b>The pads</b>: the ships on them are what a gun on a pad guards; {@link #GUARDED_PADS} or
+     *       {@link #FORTIFIED_PADS} of the pads with ships, spread along the row, each with a gun on its apron at its
+     *       ship's side toward the hub, laid over the service lane.</li>
+     * </ul>
+     *
+     * <p>A Raid plan names no landing for the doctrine to face, so each place names its own way in on the side an
+     * attack comes from: {@code DefenceDoctrine} flanks every place's ways in before anything else.
+     *
+     * No gun stands on a road, the highway or the rail line. The terminal keeps the guns its own wall stands behind.
+     */
+    static GuardedGrounds.Grounds grounds(PortHub hub, List<LandingPad> stands, boolean fortified) {
+        List<GuardedGrounds.Place> places = new ArrayList<>();
+        // The lines from the terminal's end out along the hub: back past it they run under the terminal to the town.
+        int tx = hub.terminalX();
+        PortHub.Rect l = hub.lines();
+        PortHub.Rect ownLines = hub.deepEast() ? new PortHub.Rect(Math.max(l.x0(), tx), l.y0(), l.x1(), l.y1())
+                : new PortHub.Rect(l.x0(), l.y0(), Math.min(l.x1(), tx), l.y1());
+        PortHub.Rect highway = hub.highway();
+        // The way an attack comes: from the map's middle, across the lines toward the outer edge. And the way back
+        // along the hub to the terminal's end and the town.
+        int inY = hub.outerNorth() ? -1 : 1, backX = hub.deepEast() ? -1 : 1;
+        DefenceDoctrine.Gate approach = new DefenceDoctrine.Gate((ownLines.x0() + ownLines.x1()) / 2,
+                hub.outerNorth() ? highway.y0() : highway.y1(), 0, inY, APPROACH_HALF);
+        DefenceDoctrine.Gate truckGate = new DefenceDoctrine.Gate(tx, highway.centerY(), backX, 0,
+                highway.height() / 2);
+        places.add(new GuardedGrounds.Place(GUARD_LINES, List.of(ownLines, hub.built()), List.of(approach, truckGate),
+                fortified ? Map.of(DefensePostKind.LARGE, 1, DefensePostKind.MEDIUM, 1, DefensePostKind.LIGHT, 1)
+                        : Map.of(DefensePostKind.MEDIUM, 1, DefensePostKind.LIGHT, 1)));
+        // The farm's open side is its terminal end: the pads stand on one side of it, the service lane on another.
+        PortHub.Rect farm = hub.fuelFarm();
+        DefenceDoctrine.Gate farmEnd = new DefenceDoctrine.Gate(backX < 0 ? farm.x0() : farm.x1(), farm.centerY(),
+                backX, 0, APPROACH_HALF);
+        places.add(new GuardedGrounds.Place(GUARD_FUEL, List.of(farm), List.of(farmEnd),
+                Map.of(fortified ? DefensePostKind.MEDIUM : DefensePostKind.LIGHT, 1)));
+        // The pads with ships, spread: the k of n at the middle of each of k equal runs of the row.
+        List<Integer> withShips = new ArrayList<>();
+        List<List<PortHub.Rect>> ships = new ArrayList<>();
+        for (int i = 0; i < hub.pads().size(); i++) {
+            List<PortHub.Rect> on = new ArrayList<>();
+            for (LandingPad stand : stands) {
+                if (!hub.pads().get(i).contains(stand.centerX, stand.centerY)) continue;
+                PortHub.Rect ship = ship(stand);
+                if (ship != null) on.add(ship);
+            }
+            if (on.isEmpty()) continue;
+            withShips.add(i);
+            ships.add(on);
+        }
+        int k = Math.min(withShips.size(), fortified ? FORTIFIED_PADS : GUARDED_PADS);
+        for (int j = 0; j < k; j++) {
+            int pick = (int) ((j + .5f) * withShips.size() / k);
+            // Its gun on the apron at the ship's side toward the hub, laid over the service lane an attack crosses.
+            PortHub.Rect pad = hub.pads().get(withShips.get(pick));
+            DefenceDoctrine.Gate apronSide = new DefenceDoctrine.Gate(pad.centerX(),
+                    edge(ships.get(pick), inY), 0, inY, APPROACH_HALF);
+            places.add(new GuardedGrounds.Place(GUARD_PAD + withShips.get(pick), ships.get(pick), List.of(apronSide),
+                    Map.of(fortified ? DefensePostKind.MEDIUM : DefensePostKind.LIGHT, 1)));
+        }
+        List<PortHub.Rect> keepClear = new ArrayList<>(hub.roads());
+        keepClear.add(highway);
+        keepClear.addAll(hub.tracks());
+        keepClear.add(hub.fuelMain());
+        keepClear.addAll(hub.blastWalls());
+        return new GuardedGrounds.Grounds(places, keepClear);
+    }
+
+    /**
+     * Half the width of a guarded place's way in that no road marks (the highway's face, a pad's apron side, the farm's
+     * end): its guns flank it this far either side and {@code DefenceDoctrine.FLANK_OFFSET} more. UNTUNED.
+     */
+    static final int APPROACH_HALF = 2;
+
+    /** The row of {@code rects}' edge furthest along {@code dy} (-1: least y; 1: most). */
+    private static int edge(List<PortHub.Rect> rects, int dy) {
+        int at = dy < 0 ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+        for (PortHub.Rect r : rects) at = dy < 0 ? Math.min(at, r.y0()) : Math.max(at, r.y1());
+        return at;
+    }
+
+    /** The ground the ship on a stand covers: the largest its berth holds, nose along its long side; null for none. */
+    static PortHub.Rect ship(LandingPad stand) {
+        boolean longY = stand.halfHeight >= stand.halfWidth;
+        int along = 2 * Math.max(stand.halfWidth, stand.halfHeight) + 1;
+        int across = 2 * Math.min(stand.halfWidth, stand.halfHeight) + 1;
+        PortFreighter ship = PortFreighter.forBerth(along, across);
+        if (ship == null) return null;
+        int halfLong = (int) Math.ceil(ship.lengthCells / 2f), halfBeam = (int) Math.ceil(ship.beamCells / 2f);
+        int hx = longY ? halfBeam : halfLong, hy = longY ? halfLong : halfBeam;
+        return new PortHub.Rect(stand.centerX - hx, stand.centerY - hy, stand.centerX + hx, stand.centerY + hy);
     }
 
     /** Cells out from a bonded shed's wall its cargo is staged: room for a door and a loader between. */
