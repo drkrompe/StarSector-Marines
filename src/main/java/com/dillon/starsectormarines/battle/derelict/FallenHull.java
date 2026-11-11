@@ -694,6 +694,7 @@ public final class FallenHull {
 
     private void runHaulers(BattleSimulation sim, float dt) {
         World world = sim.world();
+        NavigationGrid grid = sim.getGrid();
         List<HaulerWork.Holder> holders = new ArrayList<>();
         for (Map.Entry<Integer, StripperWork> s : strippers.entrySet()) {
             if (sim.squadMemberCount(s.getKey()) <= 0 || s.getValue().load() <= 0f) continue;
@@ -728,9 +729,14 @@ public final class FallenHull {
             } else if (goal.kind() == HaulerWork.Kind.UNLOAD) {
                 rules.unload(goal.with() == ClaimLattice.HULL ? hullStore : stakes.get(goal.with()).store());
             }
-            int gx = (int) Math.floor(goal.x());
-            int gy = (int) Math.floor(goal.y());
-            int[] to = goal.kind() == HaulerWork.Kind.GO ? walkLeg(sim, squad, lead, gx, gy) : new int[] {gx, gy};
+            // To a stripper it walks to a cell beside it, in reach, never onto the stripper's own.
+            boolean toStripper = false;
+            for (HaulerWork.Holder h : holders) toStripper |= h.x() == goal.x() && h.y() == goal.y();
+            int[] at = toStripper && goal.kind() != HaulerWork.Kind.STAND_BY
+                    ? HaulerWork.approach(goal.x(), goal.y(), x, y, (cx, cy) -> grid.inBounds(cx, cy)
+                            && grid.isWalkable(cx, cy))
+                    : new int[] {(int) Math.floor(goal.x()), (int) Math.floor(goal.y())};
+            int[] to = goal.kind() == HaulerWork.Kind.GO ? walkLeg(sim, squad, lead, at[0], at[1]) : at;
             String why = switch (goal.kind()) {
                 case STAND_BY -> "hauler stands by: nothing to carry";
                 case GO -> "hauler walks the haul road";

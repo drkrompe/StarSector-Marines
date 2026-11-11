@@ -307,7 +307,8 @@ Numbers UNTUNED.
   zone awake while the forge stands);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
-  chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
+  chain holds; destroyed loaded, its load is lost; it stands two cells off a
+  stripper to take from it, `approach`, never on it); `StakeTrain` (planted on
   reaching its point, scrap if its hauler dies first, the point open again);
   `StakeFootprint` (a stake's 11-cell square, seated where every cell is
   buildable, nearest its point; a slot per part, none overlapping, and each

@@ -113,4 +113,16 @@ class HullWorkersTest {
         assertArrayEquals(new int[] {0, 0}, leg.toward(10f, 10f));
         assertArrayEquals(route.get(1), leg.toward(0.5f, 0.5f), "it moves on once there");
     }
+    @Test
+    void aHaulerStandsBesideWhatItReachesNeverOnIt() {
+        // From the east, on open ground: two cells short of the stripper on the line, within reach.
+        int[] at = HaulerWork.approach(10.5f, 10.5f, 30.5f, 10.5f, (x, y) -> true);
+        assertArrayEquals(new int[] {12, 10}, at);
+        // That cell blocked: the open cell round the target at the same distance nearest the hauler.
+        at = HaulerWork.approach(10.5f, 10.5f, 30.5f, 10.5f, (x, y) -> !(x == 12 && y == 10));
+        assertEquals(2, Math.max(Math.abs(at[0] - 10), Math.abs(at[1] - 10)));
+        assertEquals(12, at[0], "on the hauler's side");
+        // Nothing round it open: the target's own cell.
+        assertArrayEquals(new int[] {10, 10}, HaulerWork.approach(10.5f, 10.5f, 30.5f, 10.5f, (x, y) -> false));
+    }
 }
