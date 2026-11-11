@@ -1,6 +1,5 @@
 package com.fs.starfarer.api.impl.campaign.rulecmd;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.bloom.SectorBloomWorld;
@@ -55,9 +54,7 @@ import java.util.Map;
  * a lost one leaves the ruins unexplored; backing out of the briefing returns to the choice ({@link
  * RuinsExpeditionLedger}).
  *
- * <p>The battle is the Ruins family's ({@code RuinsExpeditionMissionFactory}). Until the owner's live pass
- * ({@code ruins-expedition-fork.md}, Live pass), the fork is offered only in a development build
- * ({@link DevConfig#DEV_MODE}). A player's install never sees it, so Explore the ruins is unchanged for them.
+ * <p>The battle is the Ruins family's ({@code RuinsExpeditionMissionFactory}).
  */
 public class MarineRuinsCMD extends BaseCommandPlugin {
 
@@ -70,12 +67,6 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
     static final String OPTION_BACK = "smRuinsBack";
     /** One-shot local flag that lets a re-fired selection through to vanilla's own row. */
     static final String BYPASS_FLAG = "$smRuinsBypass";
-
-    /**
-     * Whether the expedition's own battle exists. False while it is a stand-in; while false, only a development build
-     * shows the fork. The slice that adds the battle removes this and the development gate together.
-     */
-    static final boolean EXPEDITION_BUILT = false;
 
     @Override
     public boolean execute(String ruleId, InteractionDialogAPI dialog, List<Token> params,
@@ -103,16 +94,8 @@ public class MarineRuinsCMD extends BaseCommandPlugin {
         }
     }
 
-    /**
-     * Whether this build offers the fork at all: always once the expedition exists, before that only in development.
-     * The Settings page shows the fork's key only then.
-     */
-    public static boolean offered() {
-        return EXPEDITION_BUILT || DevConfig.DEV_MODE;
-    }
-
     private static RuinsRoute route(InteractionDialogAPI dialog, CampaignState state) {
-        boolean supported = state != null && offered() && supported(dialog);
+        boolean supported = state != null && supported(dialog);
         return RuinsRoute.choose(RuinsForkSetting.asks(state), supported);
     }
 

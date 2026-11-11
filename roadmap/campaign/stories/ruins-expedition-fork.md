@@ -1,6 +1,6 @@
 # Ruins expedition fork
 
-Status: IN PROGRESS — slices 1 to 5 built and unit-tested; development builds only until the live pass.
+Status: IN PROGRESS — slices 1 to 5 built and unit-tested, offered on every build; the live pass is open.
 
 Written: 2026-11-09
 
@@ -26,15 +26,12 @@ fork and commit path can ship before ruins mapgen exists.
    `salExplore` with a one-shot bypass. Unit-test the route decision the way
    the raid fork's route is tested.
 
-   *Built.* `MarineRuinsCMD` and the `smRuins*` rows. Until the expedition
-   battle exists (`MarineRuinsCMD.EXPEDITION_BUILT`), the fork is offered only
-   when `DevConfig.DEV_MODE` is on (`runStarsector` passes it), and choosing the
-   company says the battle is not built yet and returns to the choice. A
-   player's install sees Explore the ruins unchanged. Slice 3 removes the gate.
-   The fork's Back rebuilds the planet menu itself, since vanilla's salvage
-   flow has no never-mind to reuse. `playBattle`'s planet menu plays it on
-   Ossuary, a stand-in ruins world (`build-and-run.md`), with
-   `-Dmarines.dev=true`.
+   *Built.* `MarineRuinsCMD` and the `smRuins*` rows. The fork is offered on
+   every build wherever its rules apply; there is no development gate (owner:
+   "Why would we have a development flag? Remove it"). The fork's Back rebuilds
+   the planet menu itself, since vanilla's salvage flow has no never-mind to
+   reuse. `playBattle`'s planet menu plays it on Ossuary, a stand-in ruins
+   world (`build-and-run.md`).
 2. **Commit path.** Results records won or lost once. On a win, closing the
    panel re-fires `salExplore` through the bypass, so `SalvageGenFromSeed` and
    `PostSalvagePerform` run as vanilla's and the site is marked explored. A
@@ -71,8 +68,7 @@ fork and commit path can ship before ruins mapgen exists.
    judged only here). A pulled-out expedition brings its banked finds home
    and leaves the site unexplored. A second expedition to that site meets the
    same ground without the finds already taken. A won one also brings the
-   vault store home. Once this pass is played, `MarineRuinsCMD.EXPEDITION_BUILT`
-   lifts the development-only gate.
+   vault store home.
 
 ## Constraints
 

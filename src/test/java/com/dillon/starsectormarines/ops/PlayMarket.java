@@ -203,8 +203,7 @@ final class PlayMarket implements StandInMarket.State {
                 for (MarketConditionAPI condition : world.getMarket().getConditions()) {
                     market.set("$mc:" + condition.getId(), true);
                 }
-                traced("an uncolonized ruins world; the ruins fork shows only with -Dmarines.dev=true until the"
-                        + " expedition battle exists");
+                traced("an uncolonized ruins world; Explore the ruins offers the ruins fork");
             } else {
                 memoryMap.get(MemKeys.LOCAL).set("$hasMarket", true);
             }
