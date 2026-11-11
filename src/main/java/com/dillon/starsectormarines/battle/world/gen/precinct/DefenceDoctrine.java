@@ -369,7 +369,8 @@ public final class DefenceDoctrine {
     /**
      * Whether a post at {@code (x, y)} laid along the step {@code (fx, fy)} has its lane open over the place's
      * outside: rays at its bearing and {@link #ARC_DEGREES} either side, each {@link #LANE} cells long, never cross the
-     * place (its wall line included). The map edge ends a ray without closing it.
+     * place (its wall line included) and never leave the map: past the edge no attacker comes, so a gun laid that way
+     * covers nothing (a garrison backed into the map's corner once lined its edge-side walls with guns facing off it).
      */
     public static boolean lane(boolean[][] inside, int x, int y, int fx, int fy) {
         int w = inside.length, h = inside[0].length;
@@ -379,8 +380,7 @@ public final class DefenceDoctrine {
             double ux = Math.cos(a), uy = Math.sin(a);
             for (int t = 0; t <= LANE; t++) {
                 int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-                if (cx < 0 || cy < 0 || cx >= w || cy >= h) break;
-                if (inside[cx][cy]) return false;
+                if (cx < 0 || cy < 0 || cx >= w || cy >= h || inside[cx][cy]) return false;
             }
         }
         return true;
