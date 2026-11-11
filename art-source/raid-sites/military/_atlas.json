@@ -207,6 +207,46 @@
       "padding": 0,
       "order": 15,
       "cover": "none"
+    },
+    "parked-ambulance.png": {
+      "id": "doodad.parked-ambulance",
+      "name": "Parked ambulance",
+      "description": "An olive field ambulance parked at the medical post, nose west, a white cross on a green roof panel.",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 16,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5
+    },
+    "workshop-gantry.png": {
+      "id": "doodad.workshop-gantry",
+      "name": "Workshop gantry",
+      "description": "An A-frame gantry crane over a vehicle bay: an engine block hung under its hoist, a tool bench along its north side.",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 17,
+      "cover": "light"
+    },
+    "tent-khaki.png": {
+      "id": "doodad.tent-khaki",
+      "name": "Khaki tent",
+      "description": "A khaki ridge tent, ridge east-west, door flap east, guy ropes to pegs.",
+      "footprintCells": [
+        4,
+        3
+      ],
+      "preserveCanvas": true,
+      "padding": 0,
+      "order": 18,
+      "cover": "light"
     }
   }
 }
