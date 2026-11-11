@@ -88,7 +88,8 @@ public final class WorksDefences {
      * The works' machine posts ({@code raid-demolish-the-works.md}, slice 6; owner picks {@code raid-works-machines}
      * and {@code raid-works-machines-source}, (a) recommended): a post just inside each open gate, past the wall
      * ({@code glacis} cells of cleared ground and {@link #GATE_POST_IN} more), and on a fortified works a reserve on
-     * the largest open yard inside. Each is an inner position named with {@link RaidSiteTemplate#WORKS_MACHINES}, which
+     * the largest open yard inside. Each is an inner position named with {@link RaidSiteTemplate#WORKS_MACHINES} (the
+     * reserve with {@link RaidSiteTemplate#WORKS_RESERVE}, which answers the alarm), which
      * the defender allocation seats with the market's machines right after the works' own guard.
      */
     static void machinePosts(GenContext c, PrecinctPlan plan, Precinct works, int glacis, boolean reserve) {
@@ -101,7 +102,8 @@ public final class WorksDefences {
                 int[] mouth = mouth(c, claim, index, gate);
                 if (mouth == null) continue;
                 int in = glacis + GATE_POST_IN;
-                post(c, mouth[0] - mouth[2] * in, mouth[1] - mouth[3] * in, GATE_MACHINES);
+                post(c, mouth[0] - mouth[2] * in, mouth[1] - mouth[3] * in, GATE_MACHINES,
+                        RaidSiteTemplate.WORKS_MACHINES);
             }
         }
         if (!reserve) return;
@@ -114,15 +116,16 @@ public final class WorksDefences {
             }
         }
         int[] yard = MilitaryGround.largestRectangle(open);
-        if (yard != null) post(c, (yard[0] + yard[2]) / 2, (yard[1] + yard[3]) / 2, RESERVE_MACHINES);
+        if (yard != null) post(c, (yard[0] + yard[2]) / 2, (yard[1] + yard[3]) / 2, RESERVE_MACHINES,
+                RaidSiteTemplate.WORKS_RESERVE);
     }
 
-    /** A defender machine post at {@code (x, y)} holding {@code machines}. */
-    private static void post(GenContext c, int x, int y, int machines) {
+    /** A defender machine post at {@code (x, y)} holding {@code machines}, named with {@code place}. */
+    private static void post(GenContext c, int x, int y, int machines, String place) {
         if (!c.grid.inBounds(x, y)) return;
         TacticalNode node = new TacticalNode(TacticalNode.Kind.INNER_POSITION, x, y, x, y, x, y, Faction.DEFENDER,
                 MACHINE_POST_PRIORITY, machines);
-        node.setPlace(RaidSiteTemplate.WORKS_MACHINES);
+        node.setPlace(place);
         c.tactical.add(node);
         // The works is dressed after the tactical link: the linked map takes the post as a node found after it.
         TacticalMap linked = c.get(BspKeys.TACTICAL_MAP);

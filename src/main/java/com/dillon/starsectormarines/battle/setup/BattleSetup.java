@@ -1739,7 +1739,7 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(),
                     RaidCommandDisclosure.INSTANCE);
             sim.setAutonomousCommander(Faction.DEFENDER,
-                    new RaidDefenderCommand(raidMobileSquads),
+                    new RaidDefenderCommand(raidMobileSquads).worksReserve(RaidWorksGuard.reserveSquads(sim)),
                     RaidDefenderCommandDisclosure.INSTANCE);
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {

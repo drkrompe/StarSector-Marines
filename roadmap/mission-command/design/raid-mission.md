@@ -68,8 +68,8 @@ garrison estimate's strength, quality and readiness.
 | Security | Reads | Steal | Break |
 |---|---|---|---|
 | **Open** | `defenseLevel` 0-1, no ground defences | goods in their own stores, scattered: strip what you can reach | the works stands open: yards, fences, a few posted guards |
-| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate |
-| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner and a sandbag parapet round every machine hall |
+| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate; the market's mechs picket the gates from inside |
+| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner, a sandbag parapet round every machine hall, and a yard reserve of the market's mechs that goes to the hall under attack on the alarm |
 
 One rule covers both intents: **security sets how concentrated and how walled
 the prize is.** The works' belt, checkpoints, towers and parapets follow the
