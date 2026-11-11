@@ -199,7 +199,12 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   striking after its own short delay and flickering before it holds
   (`LampWarmUp`), so a frame drawn at any later moment shows them as they were
   then and a paused battle holds its flicker; a circuit cut goes dark at once,
-  and one with no time is lit as laid. Ship-compartment lighting is separate.
+  and one with no time is lit as laid. The company carries its own lights
+  (`UnitLights`): a helmet lamp on each marine, a flood on each mech and machine
+  frame and headlamps on each vehicle, each a soft cone of cool light along its
+  bearer's facing that lights only dark ground (a sealed plant, a night map),
+  stops at its bearer's building and at what is not shown, and is not drawn
+  zoomed out past a speck. Ship-compartment lighting is separate.
 - **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
   drawn once after environmental shade. It follows the admitted aircraft's pose,
   appearance offsets and smoothed thrust demand. Its localized reflection uses
@@ -322,7 +327,7 @@ Coverage grants neither observation nor an illuminated patch of unseen ground.
 
 The shade itself is one function of the light pools, sampled bilinearly at
 half-cell resolution: the lamps' pools baked once per map, fire's refilled each
-frame. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
+frame, the company's cones refilled each frame in view. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
 pools while they last, on their own side of a roof, so gunfire and blasts light
 the night as they light the ground composite by day. A host that can run a custom pass owning its own GL evaluates it on the
 card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host
