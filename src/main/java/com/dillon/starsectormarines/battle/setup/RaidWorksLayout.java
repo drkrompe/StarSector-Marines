@@ -28,6 +28,7 @@ import java.util.function.Predicate;
  * industry has a site, the map's industrial ground stands in for it. Candidates are taken in this order, the first
  * source that has any leading:
  * <ol>
+ *   <li>the machines an industry's site stands in the open ({@link MapResult#raidMachines}), a refinery's units;</li>
  *   <li>on a site, the works compound's halls;</li>
  *   <li>the industrial zone: the buildings standing on it, then its loading bays and the middle of its
  *       factory row's service lane;</li>
@@ -77,9 +78,12 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
                 && map.grid.isWalkable(cell[0], cell[1])
                 && !map.grid.isDoorway(cell[0], cell[1])
                 && GridPathfinder.findPath(map.grid, egress.centerX, egress.centerY, cell[0], cell[1]).length > 0;
-        List<int[]> chosen = worksSeed == null ? List.of()
-                : pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1],
-                        poi -> machineHouse(map.topology, poi)), count, MIN_SPACING, usable, List.of());
+        // An industry that stands its machines in the open names them on the map; they lead.
+        List<int[]> chosen = pick(map.raidMachines, count, MIN_SPACING, usable, List.of());
+        if (chosen.size() < count && worksSeed != null) {
+            chosen = pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1],
+                    poi -> machineHouse(map.topology, poi)), count, MIN_SPACING, usable, chosen);
+        }
         if (chosen.size() < count) chosen = pick(worksCandidates(map), count, MIN_SPACING, usable, chosen);
         if (chosen.size() < count) {
             chosen = pick(fallbackCandidates(map, chosen), count, MIN_SPACING, usable, chosen);

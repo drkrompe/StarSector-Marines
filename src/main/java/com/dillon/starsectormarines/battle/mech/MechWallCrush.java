@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.WallCrush;
@@ -27,7 +29,7 @@ import java.util.Map;
  * ultra-heavy's ({@link WallCrush#ULTRA_HEAVY_PER_SECOND}) for a chassis that {@link MechVariant#crushesFast()}.
  *
  * <p>What it costs the walker is time: it stands at the wall while it pushes, its guns free, until the wall falls.
- * Its plate and structure take nothing from the push.
+ * Its plate and structure take nothing from the push, unless {@link #BREACH_DAMAGE_PROPERTY} is on.
  *
  * <p>Its route is planned over the breach view ({@link WallCrush#planningGrid(int, NavigationGrid)}, installed on
  * {@link NavigationService#setOwnRouteGrid}), so a wall it can push is open ground to its planner, while its body
@@ -36,6 +38,16 @@ import java.util.Map;
  * tick's share of its rate, until it falls and the walker walks on.
  */
 public final class MechWallCrush {
+
+    /**
+     * {@code -Dbattle.mech.breachDamage=true}: each wall cell or prop a walker's push brings down costs its torso
+     * {@link #BREACH_DAMAGE_SHARE} of that piece's structure, as it stood when the push first bore on it. Off, the
+     * breach costs time only. Temporary A/B for the owner's {@code heavy-walker-breach-cost-r2} pick ("time" against
+     * "time-and-damage"): remove the switch with the losing arm once the owner picks.
+     */
+    public static final String BREACH_DAMAGE_PROPERTY = "battle.mech.breachDamage";
+    /** The share of a fallen piece's structure the walker that pushed it down pays, under the switch. */
+    public static final float BREACH_DAMAGE_SHARE = .1f;
 
     /** How far past the walker's body the strip it bears on reaches, cells. */
     static final float REACH_CELLS = .6f;
@@ -51,6 +63,9 @@ public final class MechWallCrush {
     private final Query walkers;
     /** Push not yet spent as whole structure points, per walker. */
     private final Map<Long, Float> carry = new HashMap<>();
+    private final boolean breachDamage = Boolean.getBoolean(BREACH_DAMAGE_PROPERTY);
+    /** Under {@link #BREACH_DAMAGE_PROPERTY}: each piece's structure when a push first bore on it, by cell. */
+    private final Map<Integer, Integer> pieceStructure = new HashMap<>();
 
     public MechWallCrush(EntityWorld world, BattleComponents components, UnitRosterService roster,
                          NavigationService navigation, MapEditor editor, DoodadService doodads) {
@@ -181,10 +196,32 @@ public final class MechWallCrush {
         if (amount <= 0) return;
         for (int i = 0; i < count[0]; i++) {
             int cx = cells[i * 2], cy = cells[i * 2 + 1];
-            if (WallCrush.canPush(grid, topology, doodads, cx, cy, most)) editor.damageWall(cx, cy, amount);
+            if (WallCrush.canPush(grid, topology, doodads, cx, cy, most)) {
+                int key = cy * grid.getWidth() + cx;
+                if (breachDamage) pieceStructure.putIfAbsent(key, WallCrush.structure(grid, topology, doodads, cx, cy));
+                if (editor.damageWall(cx, cy, amount) && breachDamage) {
+                    Integer structure = pieceStructure.remove(key);
+                    if (structure != null) charge(id, structure * BREACH_DAMAGE_SHARE);
+                }
+            }
             Direction edge = pushableEdge(grid, cells, count[0], cx, cy, most);
             if (edge != null) editor.damageEdgeBarrier(cx, cy, edge, amount);
         }
+    }
+
+    /**
+     * Takes {@code cost} off walker {@code id}'s torso structure for a piece it pushed down, never below one point: the
+     * push wears the walker, it never kills it. The chassis health column follows the sections.
+     */
+    private void charge(long id, float cost) {
+        World units = roster.world();
+        if (cost <= 0f || !units.hasMechLoadout(id)) return;
+        MechLoadoutComponent mech = units.mechLoadout(id);
+        boolean armored = units.hasArmor(id);
+        MechSections sections = mech.sectionsFor(units.hp(id), units.maxHp(id), armored ? units.armor(id) : 0f,
+                armored ? units.maxArmor(id) : 0f);
+        sections.wearStructure(MechSection.TORSO, cost);
+        units.setHp(id, sections.totalStructure());
     }
 
     /** A pushable window bay between ({@code x}, {@code y}) and a neighbour also in the strip, read east or north. */

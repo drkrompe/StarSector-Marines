@@ -90,6 +90,8 @@ public enum RenderLayer {
     SHUTTLES,
     /** Authored outdoor light pools over world contents, below luminous shots and impact effects. */
     NIGHT_LIGHTING,
+    /** Lit windows in the buildings' faces at night, over the night shade so they glow through it. */
+    NIGHT_WINDOWS,
     /** Interior-only light pools and fixture glow over deck contents, below exterior effects. */
     DECK_LIGHTING,
     /** Aircraft nozzle, exhaust and localized hull reflection, above environmental shade. */

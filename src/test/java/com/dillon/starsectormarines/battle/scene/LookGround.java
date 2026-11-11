@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.GroundDefences;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
@@ -40,16 +42,28 @@ public final class LookGround {
 
     private final SurfacePalette surface;
     private final long seed;
+    /** The delve to lay instead of a living colony, or null for the colony. */
+    private final RuinsGroundPlan ruins;
 
-    private LookGround(SurfacePalette surface, long seed) {
+    private LookGround(SurfacePalette surface, long seed, RuinsGroundPlan ruins) {
         this.surface = surface;
         this.seed = seed;
+        this.ruins = ruins;
     }
 
     /** Ground of the given world kind; the seed picks which map. */
     public static LookGround of(SurfacePalette surface, long seed) {
         if (surface == null) throw new IllegalArgumentException("surface is required");
-        return new LookGround(surface, seed);
+        return new LookGround(surface, seed, null);
+    }
+
+    /**
+     * Ruins ground of the given world kind: a dead settlement laid as a delve of {@code layers} layers, as a Ruins
+     * Expedition's ({@code mapgen-nouns.md}, Ruins ground), with its facility walls at fortress structure.
+     */
+    public static LookGround ruins(SurfacePalette surface, long seed, int layers) {
+        if (surface == null) throw new IllegalArgumentException("surface is required");
+        return new LookGround(surface, seed, RuinsGroundPlan.forLayers(layers));
     }
 
     /** The default: green country with a small colony, the ground most fights are pictured on. */
@@ -70,6 +84,11 @@ public final class LookGround {
      * breach) and two loops must not share one.
      */
     public MapResult generate() {
+        if (ruins != null) {
+            TargetProfile dead = new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class), surface,
+                    SettlementLink.NONE, 0f, 0f, false, false, false, GroundDefences.NONE);
+            return new BspCityGenerator().generateRuins(seed, dead, ruins);
+        }
         return new BspCityGenerator().generate(MAP_W, MAP_H, seed, null, profile());
     }
 

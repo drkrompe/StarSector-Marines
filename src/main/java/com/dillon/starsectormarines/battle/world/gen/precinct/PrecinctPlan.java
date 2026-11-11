@@ -1265,6 +1265,26 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         return wall.laidSquare().withGlacis(buffer);
     }
 
+    /**
+     * This plan with every walled garrison laid as a Raid site's cantonment ({@link #raidGarrison}): rows inside a
+     * square wall with its security's open ground round it, not a grown claim stamped round with a stepped wall. For
+     * a story map whose installation must read as built, not grown.
+     */
+    public PrecinctPlan withCantonments(TargetProfile profile, int width, int height) {
+        RaidSiteTemplate.Security security = RaidSiteTemplate.Security.of(profile);
+        List<Precinct> out = new ArrayList<>(precincts.size());
+        for (Precinct p : precincts) {
+            if (p.boundary() != Precinct.Boundary.WALLED || p.program() == null || p.fortification() == null) {
+                out.add(p);
+                continue;
+            }
+            out.add(Precinct.garrison(p.name(), p.seedX(), p.seedY(), raidGarrisonGrowth(),
+                    raidGarrison(profile, security.ordinal()).fittedTo(Math.round(FIT * width * height)),
+                    raidGarrisonWall(p.fortification(), security.buffer())));
+        }
+        return withPrecincts(out);
+    }
+
     static FortressProgram garrisonFor(TargetProfile profile) {
         return FortressProgram.garrison()
                 .withAirfields(profile.defenseLevel() >= 4 ? 2 : 1);
