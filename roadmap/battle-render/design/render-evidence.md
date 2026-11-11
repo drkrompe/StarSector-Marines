@@ -60,7 +60,9 @@ Burn's shape (crowns and walls hot enough to throw embers, burnt and smoking
 cells). It is a render-cost fixture only, with no balance meaning.
 `-PrenderMaps=stress` also profiles `400x240 stress at night`, the same scene
 on a dark night with no lamps, where the night shade covers the whole frame;
-`-PrenderMaps=stress at night` runs that one alone.
+`-PrenderMaps=stress at night` runs that one alone. `400x240 stress at night, town lit` is that night
+lit as a town lights its own (`StreetLights`: some 900 lamps), so the lamps'
+bake and pools are priced against the unlit night.
 
 ### Reading it
 

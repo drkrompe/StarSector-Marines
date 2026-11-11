@@ -15,8 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A walled place's emplacements are sited by doctrine: off every road and gate approach, flanking every gate before
- * anything else, the heaviest at the main gate, corners facing the threat, inner posts at what the place guards, and
- * standoff weapons deep and away from the main gate. Proved on a bare square with gates cut in it.
+ * anything else, the heaviest at the main gate, corners facing the threat, every direct-fire gun outside the wall with
+ * its lane open, and standoff weapons deep and away from the main gate. Proved on a bare square with gates cut in it.
  */
 class DefenceDoctrineTest {
 
@@ -43,14 +43,20 @@ class DefenceDoctrineTest {
         return clear;
     }
 
-    /** The ground takes a post whose box and a cell of verge are inside and off the kept ground. */
+    /**
+     * The ground takes a post whose box and a cell of verge are off the kept ground, a standoff weapon's inside the
+     * place and a direct-fire gun's outside it.
+     */
     private static DefenceDoctrine.Fits fits(boolean[][] inside, boolean[][] clear) {
-        return (x, y, kind) -> {
+        return (x, y, kind, fx, fy) -> {
+            boolean within = DefenceDoctrine.STANDOFF.contains(kind);
             int r = PrecinctDefence.reach(kind) + PrecinctDefence.VERGE;
             for (int dx = -r; dx <= r; dx++) {
                 for (int dy = -r; dy <= r; dy++) {
                     int nx = x + dx, ny = y + dy;
-                    if (nx < 0 || ny < 0 || nx >= W || ny >= H || !inside[nx][ny] || clear[nx][ny]) return false;
+                    if (nx < 0 || ny < 0 || nx >= W || ny >= H || inside[nx][ny] != within || clear[nx][ny]) {
+                        return false;
+                    }
                 }
             }
             return true;
@@ -102,7 +108,7 @@ class DefenceDoctrineTest {
             DefenceDoctrine.Gate g = gates.get(s.gate());
             double d = Math.hypot(s.x() - g.x(), s.y() - g.y());
             assertTrue(d <= 14, "the post covering the gate at " + g.x() + "," + g.y() + " stands " + d + " off it");
-            assertTrue((s.x() - g.x()) * g.outX() + (s.y() - g.y()) * g.outY() < 0, "and behind the wall");
+            assertTrue((s.x() - g.x()) * g.outX() + (s.y() - g.y()) * g.outY() > 0, "and out in front of the wall");
         }
         assertTrue(covered[0] && covered[1] && covered[2], "three posts left a gate unwatched");
     }
@@ -132,26 +138,28 @@ class DefenceDoctrineTest {
     }
 
     /**
-     * Every perimeter post faces out of the place: a step along its facing leaves the inside before it has gone
-     * deeper than the post stands, so its guns cover the ground in front of the wall, not the base behind it.
+     * A wall blocks direct fire whole, so every perimeter gun stands outside the place (its wall line included), and
+     * its laid arc, its bearing and {@link DefenceDoctrine#ARC_DEGREES} either side, runs {@link DefenceDoctrine#LANE}
+     * cells over open ground without crossing back over the place.
      */
     @Test
-    void everyPerimeterPostFacesOutOfThePlace() {
-        List<DefenceDoctrine.Site> sites = plan(List.of(SOUTH, NORTH), List.of(), null,
+    void everyPerimeterGunHasALineOfFireOverOpenGroundBeyondTheWall() {
+        List<DefenceDoctrine.Site> sites = plan(List.of(SOUTH, NORTH), List.of(), new int[]{W - 1, H - 1},
                 posts(DefensePostKind.LARGE, 2, DefensePostKind.LIGHT, 12));
         boolean[][] inside = inside();
-        int[][] depth = DefenceDoctrine.depth(inside);
         assertTrue(sites.size() > 6, "the loadout was sited");
         for (DefenceDoctrine.Site s : sites) {
-            double len = Math.hypot(s.faceX(), s.faceY());
-            double fx = s.faceX() / len, fy = s.faceY() / len;
-            boolean leaves = false;
-            for (int k = 1; k <= depth[s.x()][s.y()] + 2 && !leaves; k++) {
-                int x = (int) Math.round(s.x() + fx * k), y = (int) Math.round(s.y() + fy * k);
-                leaves = x < 0 || y < 0 || x >= W || y >= H || !inside[x][y];
+            assertFalse(inside[s.x()][s.y()], s.role() + " at " + s.x() + "," + s.y() + " stands behind the wall");
+            double bearing = Math.atan2(s.faceY(), s.faceX());
+            for (int turn = -1; turn <= 1; turn++) {
+                double a = bearing + Math.toRadians(DefenceDoctrine.ARC_DEGREES * turn);
+                for (int t = 1; t <= DefenceDoctrine.LANE; t++) {
+                    int x = (int) Math.round(s.x() + Math.cos(a) * t), y = (int) Math.round(s.y() + Math.sin(a) * t);
+                    if (x < 0 || y < 0 || x >= W || y >= H) break;
+                    assertFalse(inside[x][y], s.role() + " at " + s.x() + "," + s.y() + " fires into the wall at "
+                            + x + "," + y);
+                }
             }
-            assertTrue(leaves, s.role() + " at " + s.x() + "," + s.y() + " faces " + s.faceX() + "," + s.faceY()
-                    + ", into the place");
         }
     }
 
@@ -181,7 +189,7 @@ class DefenceDoctrineTest {
                 posts(DefensePostKind.MEDIUM, 2, DefensePostKind.LIGHT, 6), fits(inside, clear));
         assertEquals(8, sites.size(), "an L-shaped place left posts unsited");
         for (DefenceDoctrine.Site s : sites) {
-            assertTrue(inside[s.x()][s.y()], s.role() + " at " + s.x() + "," + s.y() + " stands off the place");
+            assertFalse(inside[s.x()][s.y()], s.role() + " at " + s.x() + "," + s.y() + " stands behind the wall");
         }
     }
 
@@ -189,7 +197,7 @@ class DefenceDoctrineTest {
     void groundThatTakesNothingGetsNothingRatherThanAScatter() {
         boolean[][] inside = inside();
         List<DefenceDoctrine.Site> sites = DefenceDoctrine.plan(inside, List.of(SOUTH), List.of(), null,
-                posts(DefensePostKind.LIGHT, 4, DefensePostKind.ARTILLERY, 1), (x, y, kind) -> false);
+                posts(DefensePostKind.LIGHT, 4, DefensePostKind.ARTILLERY, 1), (x, y, kind, fx, fy) -> false);
         assertTrue(sites.isEmpty());
     }
 

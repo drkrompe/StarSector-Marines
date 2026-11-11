@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.setup;
 
-import com.dillon.starsectormarines.battle.cordon.CordonPlan;
-import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
@@ -47,7 +45,7 @@ import java.util.Set;
  * <ul>
  *   <li>The Fall: the Colony Breach's colony ({@code colony-breach}'s generation, basin and all).</li>
  *   <li>Stakes: mine country of its own, a Sabotage plan in remote sprawl at the colony's size.</li>
- *   <li>The Line: the Cordon's line ({@link CordonSetup#map}, redoubts and base built).</li>
+ *   <li>The Line: the district capital, Broad Front's city ({@link HeartCountry#planFor}), the hull down across its north edge.</li>
  *   <li>The Surveyor: Broad Front's country ({@code heart-front}'s plan and basin), its airbases placed.</li>
  * </ul>
  */
@@ -103,8 +101,15 @@ public final class LongSurveyGround {
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_LINE -> {
-                CordonSetup.CordonMap cordon = CordonSetup.map(CordonVariant.LINE, CordonPlan.Density.RURAL, world, entry);
-                yield new Ground(chapter, cordon.map(), cordon.plan(), cordon.battleSeed());
+                // The district capital: Broad Front's city, the columns stepping off from the south edge, the hull down
+                // across the north edge in the heart's place.
+                Form form = Form.BROAD_FRONT;
+                TargetProfile profile = BloomHeartSetup.world(home)
+                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
+                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
+                plan = PlanetSkin.sealedFor(plan, worldProfile);
+                MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
+                yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_SURVEYOR -> {
                 Form form = Form.BROAD_FRONT;

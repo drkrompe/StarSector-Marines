@@ -147,6 +147,18 @@ public final class SceneBuilder {
         return builder;
     }
 
+    /**
+     * A scene over a whole generated map in map cells, built as {@code BattleSetup.buildMap} builds a battle's, with
+     * {@code surface}: for a look recording on a story map's own ground, which a {@link LookGround} window cannot
+     * stand in for.
+     */
+    public static SceneBuilder onMap(MapResult map, SurfacePalette surface) {
+        SceneBuilder builder = new SceneBuilder(map.grid, map.topology, map.grid.getWidth(), map.grid.getHeight());
+        builder.terrain = map;
+        builder.surface = surface;
+        return builder;
+    }
+
     /** An arena of walkable floor, which every scene then cuts walls into. */
     public static SceneBuilder openGround(int width, int height) {
         return new SceneBuilder(width, height);

@@ -91,7 +91,7 @@ public final class PlanetSkin {
         List<NightLighting.Lamp> grow = growLights(map.doodads);
         if (night != null && !grow.isEmpty()) topology.setNightLighting(night = lit(night, grow));
         if (night != null) {
-            List<NightLighting.Lamp> street = StreetLights.townLamps(topology, StreetLights.wallLamps(map.doodads));
+            List<NightLighting.Lamp> street = StreetLights.light(map);
             if (!street.isEmpty()) topology.setNightLighting(StreetLights.lit(night, street));
         }
         return map;

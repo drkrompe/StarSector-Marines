@@ -284,6 +284,9 @@ Numbers UNTUNED.
   its own node, any node on the way to the hull, or the forge going out);
   `Salvage` (metal on the claim; a wreck of the watch's cut to nothing is
   stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
+  `TownSalvage` (the town's own metal: one pile per building the hull zone
+  keeps, on open ground beside it nearest the hull, its metal by the
+  building's size; the hull's laid box gives none);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on

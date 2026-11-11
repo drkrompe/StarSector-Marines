@@ -58,6 +58,35 @@ class StreetLightsTest {
         assertEquals(List.of(bracket), StreetLights.townLamps(town, List.of(bracket)));
     }
 
+    /**
+     * A pavement is lit at its kerb every seventh cell by its place on the map, and on its corner where a side street
+     * meets it, whatever the spacing says.
+     */
+    @Test
+    void aKerbIsLitAlongItsLengthAndAtItsCorner() {
+        CellTopology town = new CellTopology(15, 4);
+        for (int x = 0; x < 15; x++) {
+            town.setGroundKind(x, 0, GroundKind.INDOOR);
+            town.setGroundKind(x, 1, x == 14 ? GroundKind.STREET : GroundKind.SIDEWALK);
+            town.setGroundKind(x, 2, GroundKind.STREET);
+            town.setGroundKind(x, 3, GroundKind.STREET);
+        }
+        List<NightLighting.Lamp> lamps = StreetLights.kerbLamps(town, List.of());
+        assertEquals(3, lamps.size(), "x=3, x=10, and the corner at x=13: " + lamps);
+        assertEquals(3.5f, lamps.get(0).x());
+        assertEquals(1.85f, lamps.get(0).y(), 1e-5f, "at the kerb, toward the carriageway");
+        assertEquals(13.85f, lamps.get(2).x(), 1e-5f);
+    }
+
+    /** A landing pad is washed white over its middle and marked amber at each of its four corners. */
+    @Test
+    void aPadIsLitOverItsMiddleAndAtItsCorners() {
+        List<NightLighting.Lamp> lamps = StreetLights.padLamps(List.of(LandingPad.civilian(20, 20,
+                LandingPad.Approach.NORTH)));
+        assertEquals(5, lamps.size());
+        assertEquals(20.5f, lamps.get(0).x());
+    }
+
     private static DoodadDef def(String id) {
         return new DoodadDef(id, "graphics/doodads/street-lamps.png", 0, 0, DoodadCover.NONE, 0.3f, 1, 1);
     }

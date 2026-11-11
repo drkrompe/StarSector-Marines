@@ -30,19 +30,16 @@ import java.util.function.Consumer;
 import java.util.function.IntBinaryOperator;
 
 /**
- * Video for the owner's breach-cost pick ({@code heavy-walker-breach-cost-r2}): what a heavy walker's push through a
- * wall ({@link MechWallCrush}) looks like, so the owner can decide whether a breach should cost the walker structure
- * as well as time. Every clip is a short staged move order on real generated ground, recorded at 30 frames a second
+ * Video of a heavy walker's crush ({@link MechWallCrush}) for the owner's {@code heavy-walker-crush-r3} card: a
+ * heavy walker breaks ordinary walls and props at once, as a heavy tank does, under its legs as well as its torso. Every clip is a short staged move order on real generated ground, recorded at 30 frames a second
  * through the look preset; none is a battle, and none is read for who wins.
  *
  * <ul>
- *   <li>{@code look/walker-breach-close-close.mp4}: an MG-40 grinding through a colony house wall, close.</li>
+ *   <li>{@code look/walker-breach-close-close.mp4}: an MG-40 walking through a colony house wall, close.</li>
  *   <li>{@code look/walker-crush-props-play.mp4}: a Hauler walking through a sandbag line and a fence line laid across
- *       its way, at play zoom.</li>
+ *       its way, crates beside its path under its legs, at play zoom.</li>
  *   <li>{@code look/walker-fortified-holds-close.mp4}: an MG-70 sent straight at a ruins facility wall
  *       ({@link RuinsDelveStage#FACILITY_WALL_HP}), which holds.</li>
- *   <li>{@code look/walker-breach-damage-close.mp4}: the first clip's leg under
- *       {@link MechWallCrush#BREACH_DAMAGE_PROPERTY}, each fallen piece costing a tenth of its structure.</li>
  * </ul>
  *
  * Each frame carries a readout of the walker's structure and the wall cells it has brought down.
@@ -59,7 +56,7 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
 
     @Override public String label() {
         return "Heavy walker breach video: an MG-40 through a house wall, a Hauler through props, an MG-70 held by a "
-                + "ruins facility wall, and the breach-damage A/B";
+                + "ruins facility wall";
     }
 
     @Override public boolean inAll() { return false; }
@@ -69,8 +66,7 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         // -Dsnapshot.walkerShots=<name>[,<name>] records only those shots, for a quick re-take of one.
         String only = System.getProperty("snapshot.walkerShots", "");
-        List<LookReview.Shot> shots = List.of(houseBreach("walker-breach-close", false),
-                houseBreach("walker-breach-damage", true), propCrush(), fortifiedHolds());
+        List<LookReview.Shot> shots = List.of(houseBreach(), propCrush(), fortifiedHolds());
         List<SnapshotArtifact> out = new ArrayList<>();
         List<String> failed = new ArrayList<>();
         for (LookReview.Shot shot : shots) {
@@ -97,15 +93,14 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
     private static final class Holder {
         Leg leg;
         long walker;
-        float startHp;
     }
 
-    // ------------------------------------------------------------------ clip 1 and 4: house wall, close
+    // ------------------------------------------------------------------ clip 1: house wall, close
 
-    private static LookReview.Shot houseBreach(String name, boolean damage) {
+    private static LookReview.Shot houseBreach() {
         Holder holder = new Holder();
         MechVariant variant = MechVariant.SECURITY_WALKER;
-        return new LookReview.Shot(name, LookGround.verdant(), 72, 40, placement -> {
+        return new LookReview.Shot("walker-breach-close", LookGround.verdant(), 72, 40, placement -> {
             NavigationGrid grid = placement.map().grid;
             CellTopology topology = placement.map().topology;
             NavigationGrid view = WallCrush.breachView(grid, topology, null);
@@ -123,9 +118,8 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
             // One house wall, crossed once: a cell of ordinary wall scores, the leg crossing the most of one run wins.
             Leg leg = bestLeg(view, variant.radius, pairs, (x, y) -> topology.isWall(x, y)
                     && grid.getWallHp(x, y) >= 60 && grid.getWallHp(x, y) <= WallCrush.HEAVY_CEILING ? 1 : -4);
-            return stage(placement, holder, leg, variant, damage, damage
-                    ? "A/B time + damage: each piece costs a tenth of its structure"
-                    : "Shipped: time only, no damage");
+            return stage(placement, holder, leg, variant, "MG-40 through a city wall (100): it falls at once, as to a "
+                    + "heavy tank");
         }, placement -> List.of(new LookReview.View("close", sim -> holder.leg == null
                 ? new float[] {placement.site().centreX(), placement.site().centreY(), 24f}
                 : new float[] {holder.leg.bx(), holder.leg.by(), 24f})), 330, FPS_TICKS, 0,
@@ -153,9 +147,13 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
             for (int line : new int[] {lineX, lineX + LINE_GAP}) {
                 for (int dy = -2; dy <= 2; dy++) crossed.add((y + dy) * w + line);
             }
+            for (int side : new int[] {-1, 1}) {
+                for (int cx = lineX + 2; cx <= lineX + 3; cx++) crossed.add((y + side) * w + cx);
+            }
             Leg leg = new Leg(new float[] {lineX - LINE_GAP + .5f, y + .5f},
                     new float[] {lineX + 2 * LINE_GAP + .5f, y + .5f}, new int[] {lineX, y}, crossed, 0);
-            return stage(placement, holder, leg, variant, false, "Hauler: sandbags and fences, time only", sim -> {
+            return stage(placement, holder, leg, variant, "Hauler: sandbags, fences and crates, under its legs too",
+                    sim -> {
                 TileRegistry registry = TileRegistry.installed();
                 NavigationGrid grid = sim.getGrid();
                 for (int cy = 0; cy < grid.getHeight(); cy++) {
@@ -165,6 +163,15 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
                         boolean bags = line == lineX && Math.abs(cy - y) <= 4;
                         sim.addDoodad(new Doodad(line, cy, registry.doodad(bags ? "doodad.sandbag-straight-e"
                                 : "doodad.industrial-fence-straight-v")));
+                    }
+                }
+                // Crates either side of its path between the lines: off its torso's line, under its legs.
+                for (int side : new int[] {-1, 1}) {
+                    for (int cx = lineX + 2; cx <= lineX + 3; cx++) {
+                        int cy = y + side;
+                        if (!grid.isWalkable(cx, cy)) continue;
+                        grid.setWalkable(cx, cy, false);
+                        sim.addDoodad(new Doodad(cx, cy, registry.doodad("doodad.crate")));
                     }
                 }
             });
@@ -186,9 +193,9 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
                     NavigationGrid grid = placement.map().grid;
                     CellTopology topology = placement.map().topology;
                     Leg leg = facilityLeg(grid, topology, variant.radius);
-                    return stage(placement, holder, leg, variant, false,
+                    return stage(placement, holder, leg, variant,
                             "Ruins facility wall: " + RuinsDelveStage.FACILITY_WALL_HP
-                                    + " structure; a heavy pushes " + WallCrush.HEAVY_CEILING + " at most");
+                                    + " structure; a heavy walker breaks " + WallCrush.HEAVY_CEILING + " at most");
                 }, placement -> List.of(new LookReview.View("close", sim -> holder.leg == null
                         ? new float[] {placement.site().centreX(), placement.site().centreY(), 24f}
                         : new float[] {holder.leg.bx(), holder.leg.by(), 24f})), 330, FPS_TICKS, 0,
@@ -253,40 +260,30 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
 
     /**
      * Stands {@code variant} at the leg's start, gives it the move order, plays it forward until it is a few cells
-     * off the wall, and installs the readout. Under {@code damage} the scene is built with
-     * {@link MechWallCrush#BREACH_DAMAGE_PROPERTY} on, read when the simulation is made.
+     * off the wall, and installs the readout.
      */
     private static BattleSimulation stage(LookReview.Placement placement, Holder holder, Leg leg, MechVariant variant,
-                                          boolean damage, String title) {
-        return stage(placement, holder, leg, variant, damage, title, null);
+                                          String title) {
+        return stage(placement, holder, leg, variant, title, null);
     }
 
     /**
-     * {@link #stage(LookReview.Placement, Holder, Leg, MechVariant, boolean, String)}, {@code dress} laying ground of
+     * {@link #stage(LookReview.Placement, Holder, Leg, MechVariant, String)}, {@code dress} laying ground of
      * the shot's own into the built simulation before the walker is given its order.
      */
     private static BattleSimulation stage(LookReview.Placement placement, Holder holder, Leg leg, MechVariant variant,
-                                          boolean damage, String title, Consumer<BattleSimulation> dress) {
+                                          String title, Consumer<BattleSimulation> dress) {
         holder.leg = leg;
         SceneBuilder builder = placement.builder();
         builder.squad("walker").faction(Faction.MARINE).size(1)
                 .at((int) leg.start[0] - placement.site().x0(), (int) leg.start[1] - placement.site().y0())
                 .mech(variant, MechRole.ARMORED_SUPPORT).done();
         placement.holdouts(builder);
-        SceneWorld world;
-        String prior = System.getProperty(MechWallCrush.BREACH_DAMAGE_PROPERTY);
-        System.setProperty(MechWallCrush.BREACH_DAMAGE_PROPERTY, Boolean.toString(damage));
-        try {
-            world = builder.build();
-        } finally {
-            if (prior == null) System.clearProperty(MechWallCrush.BREACH_DAMAGE_PROPERTY);
-            else System.setProperty(MechWallCrush.BREACH_DAMAGE_PROPERTY, prior);
-        }
+        SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         if (dress != null) dress.accept(sim);
         long walker = placement.subject("walker", world.members("walker")[0]);
         holder.walker = walker;
-        holder.startHp = sim.world().hp(walker);
         int gx = (int) leg.goal[0], gy = (int) leg.goal[1];
         boolean forced = leg.crossed.stream().anyMatch(c -> sim.getGrid().getWallHp(c % sim.getGrid().getWidth(),
                 c / sim.getGrid().getWidth()) > WallCrush.HEAVY_CEILING);
@@ -317,9 +314,7 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
         placement.readout(s -> title);
         placement.readout(s -> {
             float hp = s.world().isAlive(walker) ? s.world().hp(walker) : 0f;
-            float lost = holder.startHp - hp;
-            return String.format(Locale.ROOT, "%s structure %.0f / %.0f%s", chassis, hp, s.world().maxHp(walker),
-                    lost >= .5f ? String.format(Locale.ROOT, "   (-%.0f from the breach)", lost) : "");
+            return String.format(Locale.ROOT, "%s structure %.0f / %.0f", chassis, hp, s.world().maxHp(walker));
         });
         placement.readout(s -> {
             int down = 0;

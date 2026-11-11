@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import java.util.Set;
-import com.dillon.starsectormarines.battle.world.gen.StreetLights;
-import com.dillon.starsectormarines.battle.world.model.NightLighting;
+import com.dillon.starsectormarines.battle.world.gen.TownNight;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -50,8 +48,6 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     private static final int MAP_W = 200, MAP_H = 128;
     private static final float PLAY = 60f, CLOSE = 40f;
-    /** How dark {@code -Dsnapshot.walls.night=on} lays the town. */
-    private static final float NIGHT_DARKNESS = .78f;
     /** The whole map across, cells, for {@code -Dsnapshot.walls.frame=whole}. */
     private static final float WHOLE = MAP_W * 1.1f;
 
@@ -94,11 +90,9 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     sim.setSurface(world.palette());
                     if ("on".equals(System.getProperty("snapshot.walls.night"))) {
                         // A dark town, its wall lamps lit (StreetLights) and some windows with it.
-                        NightLighting dark = new NightLighting(NIGHT_DARKNESS, List.of(), Set.of());
-                        List<NightLighting.Lamp> lamps = StreetLights.townLamps(map.topology,
-                                StreetLights.wallLamps(map.doodads));
-                        System.out.println("building-walls-look " + world.id() + ": " + lamps.size() + " street lamps");
-                        map.topology.setNightLighting(StreetLights.lit(dark, lamps));
+                        TownNight.fall(map);
+                        System.out.println("building-walls-look " + world.id() + ": "
+                                + map.topology.nightLighting().lamps().size() + " lights");
                     }
                     if ("whole".equals(System.getProperty("snapshot.walls.frame"))) {
                         // The whole map in one frame, as a player zoomed all the way out sees it.
