@@ -623,7 +623,7 @@ public final class MapResult {
         wallGates = gates;
         fields = worked;
         hullSite = site;
-        raidMachines = machines;
+        raidMachines = List.copyOf(machines);
     }
 
     /** The same map, carrying the fields its colony works. */
