@@ -30,6 +30,10 @@ final class FreestandingWalls {
         BLAST(3.5f, .62f, .62f, .60f),
         COMPOUND(2.4f, .62f, .55f, .47f),
         GARDEN(1.6f, .46f, .50f, .37f),
+        /** A firing window through a masonry wall: the wall stands only to its sill, an embrasure fired over. */
+        MASONRY_SILL(1f, .62f, .55f, .47f),
+        /** A firing window or slit through a concrete wall, to its sill. */
+        CONCRETE_SILL(1f, .42f, .43f, .44f),
         UNKNOWN(2.4f, .56f, .54f, .50f),
         NONE(0f, 0f, 0f, 0f);
 
@@ -84,6 +88,18 @@ final class FreestandingWalls {
         if (surfaceId.startsWith("colony.masonry-wall") || surfaceId.startsWith("urban.wall")) return Kind.COMPOUND;
         if (surfaceId.startsWith("colony.olive-wall")) return Kind.GARDEN;
         return Kind.UNKNOWN;
+    }
+
+    /**
+     * The sill a window through a wall of {@code kind} stands to: the wall's own material, no higher than a firing
+     * window's sill, so from above the window reads as an embrasure cut down into the wall.
+     */
+    static Kind sill(Kind kind) {
+        return switch (kind) {
+            case INSTALLATION, SEALED_PERIMETER, BLAST, ENVELOPE, ENVELOPE_PLINTH, CONCRETE_SILL -> Kind.CONCRETE_SILL;
+            case NONE -> Kind.NONE;
+            default -> Kind.MASONRY_SILL;
+        };
     }
 
     /** Which part of a sealed town's envelope a wall cell is, drawn each in its own way ({@link FreestandingWallFaces}). */

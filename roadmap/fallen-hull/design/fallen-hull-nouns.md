@@ -48,7 +48,7 @@ put its forge out.
   hull is not a site network: its autoforge is the one derelict thing that
   makes more, and only from feedstock it hauls home where anyone can see it.
   Every stake it plants becomes an ordinary site zone the moment its link to
-  the hull is cut. (Pick `hull-spread-law`.)
+  the hull is cut. (Pick `hull-spread-law`, answered a.)
 
 ## The hull and the Rav
 
@@ -249,19 +249,15 @@ world, the hull's claim grows by stakes week to week as a market condition, and
 the world's owner calls for help. Its stages, its clock and its interaction with
 the event gate are not designed yet.
 
-## Open picks
-
-- `hull-spread-law`: (a, recommended) the hull alone spreads, through its
-  autoforge and only from feedstock; site networks keep their fixed numbers.
-  (b) No spread: the hull pours out what it carried and stops.
-- `stake-look`: (a, recommended) the spire, a square armoured spike that
-  opens four petals round its node mast. (b) the tripod, a round core whose
-  three legs splay and anchor. The spire is built.
+## Picks
 
 Answered by the owner (2026-11-11), each the recommended option and built as
 it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
 `stripper-hauler` (a), two units, the stripper and the hauler; `autoforge-look`
-(c), the ring forge.
+(c), the ring forge; `hull-spread-law` (a), the hull alone spreads, through its
+autoforge and only from feedstock, while site networks keep their fixed
+numbers; `stake-look` (a), the spire, a square armoured spike that opens four
+petals round its node mast.
 
 ## What is built
 
@@ -286,7 +282,15 @@ Numbers UNTUNED.
   stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
   `TownSalvage` (the town's own metal: one pile per building the hull zone
   keeps, on open ground beside it nearest the hull, its metal by the
-  building's size; the hull's laid box gives none);
+  building's size; the hull's laid box gives none; `places`, one building
+  a square, are where an awake hull's flock ranges);
+  `WatchTasking` (the hull zone's armed walkers outside the contingency: a
+  `BAY_GUARD`, siege frames first; the rest answer the nearest contact on the
+  claim, else push to its loudest fight, else escort the workers out; none
+  goes past `WATCH_REACH_CELLS` off the plates, the trench and the town's
+  edge, `clamp`; an awake hull's flock with nothing to strike ranges its
+  places in turn, `rangePoint`); `FallenHull.rouse` (an awake hull keeps its
+  zone awake while the forge stands);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
@@ -351,8 +355,7 @@ point open; stranded: an established stake's node destroyed strands it and the
 planted stake beyond, which never rises; feedstock: a stripper cuts a pile and a
 hauler carries the metal into the hull's store).
 
-Not built yet: the claim-edge pursuit law (walkers keep their zone's perimeter,
-as at a site network); a stake's rounds walker on a round; cutting a stripped
+Not built yet: a stake's rounds walker on a round; cutting a stripped
 structure out of the map (a pile is metal at a cell); the forge's power cut
 other than its destruction; the stripper's and hauler's own looks and the
 stake's three stages drawn (stand-ins: the sentinel at size, the node's

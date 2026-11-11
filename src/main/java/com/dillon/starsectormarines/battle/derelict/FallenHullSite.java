@@ -64,6 +64,12 @@ public record FallenHullSite(Rect hull, int forgeX, int forgeY, int mouthX, int 
         }
     }
 
+    /** This site with the hull zone keeping {@code reach} cells off its sections. */
+    public FallenHullSite withPerimeter(int reach) {
+        return new FallenHullSite(hull, forgeX, forgeY, mouthX, mouthY, reach, lattice, linkCells, haulRoads, stakes,
+                salvage, walkers, egress, feedstock, sections);
+    }
+
     /** A rectangle of cells, edges inclusive. */
     public record Rect(int left, int bottom, int right, int top) {
         public Rect {
