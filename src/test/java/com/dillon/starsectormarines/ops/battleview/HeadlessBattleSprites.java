@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -48,6 +49,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -286,6 +288,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     void loadHulls() {
         for (ShuttleType type : ShuttleType.values()) loadHull(type);
         for (FighterProfile fighter : FighterProfile.values()) loadHull(fighter);
+        for (PortFreighter freighter : PortFreighter.values()) loadHull(freighter);
     }
 
     /**
@@ -338,6 +341,14 @@ final class HeadlessBattleSprites extends BattleSprites {
      */
     @Override public SpriteAPI loadIconOrNull(String path) {
         return spriteOrNull(path);
+    }
+
+    /** Lamp fixtures and emissive overlays off the resource roots, as the icons are. */
+    private final Map<String, SpriteAPI> lightArt = new HashMap<>();
+
+    @Override public SpriteAPI lightArt(String path) {
+        if (!lightArt.containsKey(path)) lightArt.put(path, spriteOrNull(path));
+        return lightArt.get(path);
     }
 
     private void loadWholeSprite(Map<String, ShuttleSpriteCache> target, String id, String path) {

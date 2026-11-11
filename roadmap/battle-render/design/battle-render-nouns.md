@@ -188,7 +188,11 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   restoration replaces its presentation state; it never grants observation,
   alters targeting or changes navigation. Outdoor floodlights have grounded supports
   and oriented heads that remain visible when unpowered; interior strips retain
-  their separate fixture identity. Appearance never changes the authored light pool.
+  their separate fixture identity; a ruin's strips, high bays, emergency strips and
+  alarm beacons draw from painted art, lit or dark, and a dark one wears its cell's
+  darkness. A ruin's machinery glows through its sheet's emissive overlay as the
+  lamps over it come on, a melt or a pour keeping its own glow.
+  Appearance never changes the authored light pool.
   A night has two darknesses: one for open ground and one under an intact roof
   (a wall bounding a roofed cell counts as under it), equal on a night map and
   apart in a sealed ruin, where the plant is black while daylight falls through
@@ -199,7 +203,12 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   striking after its own short delay and flickering before it holds
   (`LampWarmUp`), so a frame drawn at any later moment shows them as they were
   then and a paused battle holds its flicker; a circuit cut goes dark at once,
-  and one with no time is lit as laid. Ship-compartment lighting is separate.
+  and one with no time is lit as laid. The company carries its own lights
+  (`UnitLights`): a helmet lamp on each marine, a flood on each mech and machine
+  frame and headlamps on each vehicle, each a soft cone of cool light along its
+  bearer's facing that lights only dark ground (a sealed plant, a night map),
+  stops at its bearer's building and at what is not shown, and is not drawn
+  zoomed out past a speck. Ship-compartment lighting is separate.
 - **Aircraft engine light** is the nozzle and exhaust's own emissive alpha mask,
   drawn once after environmental shade. It follows the admitted aircraft's pose,
   appearance offsets and smoothed thrust demand. Its localized reflection uses
@@ -322,7 +331,7 @@ Coverage grants neither observation nor an illuminated patch of unseen ground.
 
 The shade itself is one function of the light pools, sampled bilinearly at
 half-cell resolution: the lamps' pools baked once per map, fire's refilled each
-frame. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
+frame, the company's cones refilled each frame in view. The battle's event lights (muzzles, impacts, blasts, bolts) add to fire's
 pools while they last, on their own side of a roof, so gunfire and blasts light
 the night as they light the ground composite by day. A host that can run a custom pass owning its own GL evaluates it on the
 card, per pixel, with the pools as textures (`NightShadeField`); a Java2D host

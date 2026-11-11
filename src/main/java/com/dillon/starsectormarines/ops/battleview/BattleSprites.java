@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.render2d.texture.TextureLedger;
 import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -618,6 +619,10 @@ public class BattleSprites {
             ensureRubbleSheet();
         }));
         if (terrainSheets != null) {
+            // A ruin's lamp fixtures and its sheets' emissive overlays, with the sheets they light.
+            for (String path : RuinsLightArt.paths(terrainSheets)) {
+                steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> loadLightArt(path)));
+            }
             for (String path : terrainSheetPaths()) {
                 if (terrainSheets.contains(path)) {
                     steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> ensureTerrainSheet(path)));
@@ -863,6 +868,28 @@ public class BattleSprites {
         }
     }
 
+    /** Light art loaded so far: lamp fixtures and machinery glow, null where a path failed. */
+    private final Map<String, SpriteAPI> lightArt = new HashMap<>();
+
+    /**
+     * A lamp fixture's or a sheet's emissive overlay ({@code mod/graphics/battle/lights/}), loaded the first time it
+     * is asked for; null when it cannot be, so the lamp draws without its art. A battle's load names what it will ask
+     * for ({@link RuinsLightArt#paths}), so a battle asks first only for what its set missed.
+     */
+    public SpriteAPI lightArt(String path) {
+        if (lightArt.containsKey(path)) return lightArt.get(path);
+        if (terrainOnDemand) unplanned("light art " + path);
+        return loadLightArt(path);
+    }
+
+    /** Loads {@link #lightArt}'s {@code path} now, as a battle's load does, unless it is already. */
+    private SpriteAPI loadLightArt(String path) {
+        if (lightArt.containsKey(path)) return lightArt.get(path);
+        SpriteAPI sprite = loadEngineFxSpriteOrNull(path);
+        lightArt.put(path, sprite);
+        return sprite;
+    }
+
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
         try {
             ModTextures.loadTexture(path, lease);
@@ -892,6 +919,7 @@ public class BattleSprites {
         airframeSpritesLoadAttempted = true;
         for (ShuttleType type : ShuttleType.values()) loadAirframe(type);
         for (FighterProfile fighter : FighterProfile.values()) loadAirframe(fighter);
+        for (PortFreighter freighter : PortFreighter.values()) loadAirframe(freighter);
     }
 
     private final java.util.Map<String, ShuttleSpriteCache> pathSprites = new java.util.HashMap<>();

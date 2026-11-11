@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.hull;
 
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
@@ -72,8 +73,9 @@ public final class CrashSiteFinishStage implements GenStage {
 
         // The shower falls on the finished country: after the mission's structures and terraces are sited, before the
         // lattice seats its stakes round it.
-        DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
+        List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
                 laid.plan().trench(), hull, trench, aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
+        ctx.put(HullKeys.STRIKES, strikes);
         ClaimLattice.Ground stakeGround = (x, y) -> {
             if (x < 0 || y < 0 || x >= w || y >= h) return false;
             int k = y * w + x;

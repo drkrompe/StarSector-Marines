@@ -263,6 +263,17 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                 turretStateFacing, ringShade, ringShade, ringShade, alphaMult);
                     }
                 }
+                if (turret != null && !bareRing) {
+                    // The coax lies under the turret head and the main gun: only its barrel shows past the cheek.
+                    float coaxFacing = turretStateFacing
+                            + (wrecked ? Math.floorMod(id ^ TURRET_SEED, 31L) - 15f : 0f);
+                    for (MountedGun coax : turret.secondaries) {
+                        if (coax.mount().ridesTurret()) {
+                            collectCoax(type, coax, body.x + mountWorldX, body.y + mountWorldY, coaxFacing, paint,
+                                    wrecked, cam, cellPx, alphaMult, out);
+                        }
+                    }
+                }
                 if (bareRing || modular && turret == null) {
                     // No part in the gun card: the ring stands bare, and the hull has no turret and no gun; a hull
                     // with a closed head shows it with nothing in its slot.
@@ -346,16 +357,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawTurretHead(out, sprites, type, headPoint, paint, cam.cellToScreenX(body.x + mountWorldX),
                             cam.cellToScreenY(body.y + mountWorldY), cellPx, turretStateFacing + wreckSkewDeg, wrecked,
                             alphaMult, false);
-                }
-                if (turret != null && !bareRing) {
-                    float coaxFacing = turretStateFacing
-                            + (wrecked ? Math.floorMod(id ^ TURRET_SEED, 31L) - 15f : 0f);
-                    for (MountedGun coax : turret.secondaries) {
-                        if (coax.mount().ridesTurret()) {
-                            collectCoax(type, coax, body.x + mountWorldX, body.y + mountWorldY, coaxFacing, paint,
-                                    wrecked, cam, cellPx, alphaMult, out);
-                        }
-                    }
                 }
                 if (locations != null && locations.turret() != null
                         && wornPlateOnTurretFrame(modular || bareRing, bareRing, gun != null)) {
@@ -629,7 +630,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     /**
-     * A coax ({@link com.dillon.starsectormarines.battle.vehicle.VehicleMount#ridesTurret}): its part's drawing on the turret's cheek beside the main barrel,
+     * A coax ({@link com.dillon.starsectormarines.battle.vehicle.VehicleMount#ridesTurret}): its part's drawing under the turret's cheek beside the main barrel,
      * pointing along it, its pivot at the mount offset turned with the turret about the ring at {@code ringX, ringY}.
      */
     private void collectCoax(VehicleType type, MountedGun gun, float ringX, float ringY, float facing,

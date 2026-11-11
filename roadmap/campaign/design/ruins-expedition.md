@@ -425,8 +425,9 @@ daylight falls through the light wells and the broken roof. Only the residual
 the junction boxes and the hall's console, so the way through still reads.
 
 The lights are the works' power made visible. Restarting the hall lights the
-hall and the works hall's stand round its pour pulpit and bridge
-(`Interior.worksStand`), so the first thing the light shows is the stand and
+hall and the works hall's stand floor bay by bay: the transfer aisle, the bays
+at the stand's end, and on a mega forge the pulpit's corner and the breakout
+pool with its bridge (`Interior.standLit`), so the first thing the light shows is the stand and
 what holds it; each junction then lights what it feeds: its band of the plant (halls and
 corridors) on its way on, its stores on its store side, and the vault's suite
 with the vault's seal. An overloaded hall browns the plant out, all but the hall
@@ -445,13 +446,21 @@ whole plant pulses red; the contingency lights every zone with a live node. A
 zone cut off at its junction, or whose node is down, stays dark through all of
 it, the contingency included. Each zone's service bay (where its walkers re-arm
 and its tender and repair drone work) is lit while its zone is online and the
-bay stands. Whether the hall's restart also raises the wake is the watch's rule
-(`derelict-watch.md`); the hatches follow whatever stage the wake reads. Light is presentation: it draws none of the hall's capacity and changes
-no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
-lit).
+bay stands. Restarting the hall also brings the wake to Stirring at least
+(`FacilityWake.plantRestarted`, owner pick `ruins-light-escalation`), so the
+vent hatches glow amber as the plant comes up. Light is presentation: it draws none of the hall's capacity and changes
+no sight. The fixtures are the plant's own painted lamps (caged strips along each
+run, high bays over the works hall, red emergency strips, alarm beacons), dead
+but visible in the dark; the rooms' machinery glows as its lamps come on. The
+company brings its own light into the dark: helmet lamps, mech floods and
+vehicle headlamps throw cones along their facing (`battle-render-nouns.md`).
+Proof: `RuinsLightingTest`, `UnitLightsTest`; look: `ruins-light-look` (dark,
+partly lit, lit; `-Dsnapshot.ruinsLight.company` for the company's lights).
 
-Open (owner picks, raised on the parent's picks page): the company's
-own helmet and vehicle lamps, and whether darkness shortens the company's sight.
+Owner picks: `ruins-light-start` black, `ruins-light-power` the works,
+`ruins-light-escalation` the watch's lights and the Stirring floor,
+`ruins-light-sight` presentation only (darkness never shortens sight),
+`ruins-light-company` the company's cone lights and the plant's lamp art as built.
 
 ### The entrance and the pull-out point
 
@@ -822,11 +831,42 @@ is the plant its architect briefed, and only then a ruin.
 
 The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
 undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+The works band is laid as a block plan, round the works hall:
+- the raw stock store under its dispatch end, and the QA lab at the outfeed;
+- the dock on the hull face behind the way in nearest the raw stock: its cargo lock is that entrance, so the way in opens
+  straight into it;
+- the control gallery down the hall's east wall (or its west where the east has no room), with a stair onto the floor;
+- maintenance and consumables over its head;
+- the habitat on the hull face behind another way in, its personnel lock, or else beyond maintenance.
+
+A space at a lock stands west of the hall's wall and spine, and takes no way but its lock. Each other space joins the
+network on its own side of the hall, after the ways through the band, so the route still crosses the hall. An infantry
+room is closed to ways with its wall; its doors are cut by hand. Where the vault's apron stands beside the works hall,
+the way on to the vault leaves through the hall's east wall. A bulkhead, a cargo leaf door that never dies, stands
+wherever a way crosses a band line inside the hull.
+
+The deeper band is one block on the route: line two on the vault's row at the band's near end, finished goods beyond
+it toward the vault (or over it where the vault's forecourt leaves no room), and the line's bay under it. Each band
+holds a sealed store: the raw stock in the works band, the finished goods in the deeper band.
+
+The raw stock and finished goods stores stand rack bays round a five-cell freight cross through their middle: north-south
+in columns, or east-west in a store too short for that. Most bays are empty or stripped; one in four still holds two
+loads of the base game's goods (`ruins-stores` sheet), the raw stock what the line ate, the finished goods what the last
+haulers left, and more bays are loaded until each store holds its least (four in the finished goods, three in the raw
+stock), so the delve's finds always have goods to be. The raw stock's last bay is its fuel bay; the maintenance shop
+keeps up to two crates of heavy machinery under its hoists. Every load is published on `Interior.loads()` with its
+cell, footprint, goods and space, for the finds to be picked from (`plant-store-finds`).
+
+The hull is drawn round the plant (pick `ruins-plant-hull`, building on the redraw). Each interior band's line stands
+back from the vault only as far as its spaces need, and the outer layers spread over the ground that frees. The deeper band's
+line lets its ways cross only within 30 rows of the vault's row. Each band's spine is walled up beyond the last thing that
+joins it. The hull that then walls nothing, more than two cells from any
+floor, piece or door, and that the ruin's ground outside reaches is cut back to open ground. The plant stands as a
+building, with the ground round it, outside the facility, so a machine may be set down there. Hull that the outside
+ground cannot reach stays solid.
+
 Still to come:
-- a block plan per band, the spaces sharing walls along their ways;
-- the hull drawn round the plant;
 - each space dressed from its own plan;
-- stores holding the game's commodities.
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
@@ -1032,6 +1072,35 @@ tier is set by where it lies, never rolled:
   the find alone: `weapons2` (weapons and fighter wings) five times
   `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
   salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
+
+**Finds lie where the plant kept its goods** (the plant, `battle.ruins.plant`).
+On a plant site a supply find is never a bundle dropped on open floor. It is a
+load the plant left in its stores, drawn on the recovery skid
+(`doodad.ruins-store-<goods>-cache`), and it is the commodity the store held:
+
+| Where | Goods | Beat |
+| --- | --- | --- |
+| Raw stock, under the works hall's dispatch end | metals, transplutonics (`rare_metals`), volatiles, organics, ore, transplutonic ore (`rare_ore`) | 1-2: the first finds, a short walk from the entry |
+| Maintenance shop, over the hall's head | heavy machinery (spares under the hoists) | 2: beside the stand, by the derelict repair drones' dock |
+| Finished goods, in the deeper band | domestic goods, supplies | 4: the far finds, on the freight way to the vault |
+| Fuel bay, where a store has one | fuel | Anywhere a store stands; a hazard load |
+
+- The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
+  `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
+  rest to raw stock and maintenance.
+- A find takes one of the store's loaded bays and is drawn as its cache
+  variant, which gives no cover. The other loads stay as cover and dressing,
+  never taken. If there are more finds than loaded bays, a store turns empty bays
+  into finds before any find goes elsewhere.
+- Each find is worth about one field cache at the base game's base price
+  (`commodities.csv`), so a pallet of ore is many units and a case of
+  transplutonics is a few.
+- Tech caches keep their places (`RuinsFindTier.Place`): the sealed bay in raw
+  stock and the sealed unit in finished goods, each behind its seal door; the
+  guardian's room at the band's light well; and the vault store.
+
+Off the plant (the switch off, and every site with no plant), finds keep field
+salvage's placement along the route.
 
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one
 **prize**, drawn from the site alone like the occupant and never stored

@@ -229,6 +229,12 @@ public final class DerelictRepairPicksSuite implements SnapshotSuite {
                         "stand-works-hall"));
                 add(out, "stand/" + name + "-node-seed" + seed + ".png", look(context, sim, stand.x() + 0.5f, stand.y() + 0.5f,
                         CLOSE, true, "stand-node"));
+                RuinsDelve.Cell dock = delve.interior() == null ? null : delve.interior().serviceDock();
+                if (dock != null) {
+                    log("  service dock %s", dock);
+                    add(out, "stand/" + name + "-dock-seed" + seed + ".png", look(context, sim, dock.x() + 0.5f,
+                            dock.y() + 0.5f, CLOSE, true, "stand-dock"));
+                }
                 return;
             }
         }

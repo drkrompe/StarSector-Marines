@@ -220,7 +220,8 @@ Everything is in `battle.derelict`.
   posts the walkers by `interiorPosts`: the vault frame on the vault's
   approach, the siege frame in the first entrance, line frames in a
   chamber their own zone keeps, nearest its node, else the interior's chambers
-  in turn (its entrances when it has none); each walker
+  in turn (its entrances when it has none), never the maintenance shop holding
+  the service dock; each walker
   belongs to the zone whose node is nearest. A zone's flock is homed on the
   first unroofed cell of the route from its node toward the landing
   (`openSkyHome`), so a flock whose zone lies indoors waits at the doorway

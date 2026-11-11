@@ -42,7 +42,11 @@ final class PlantBrief {
         /** The middle of its band. */
         MIDDLE,
         /** Beside the space laid before it. */
-        BESIDE_LAST
+        BESIDE_LAST,
+        /** On the vault's row at the near end of its band: on the route from the works hall to the vault. */
+        ROUTE,
+        /** Under the first space of its band: a line's own bay. */
+        UNDER_FIRST
     }
 
     /**
@@ -79,10 +83,16 @@ final class PlantBrief {
         }
         if (band > 0 || bands == 1) {
             if (bands > 1) {
-                out.add(space("line-two", RuinsDelve.PlantStage.PRODUCTION, null, 30, 18, s, Anchor.MIDDLE, true));
-                out.add(space("line-two-bay", null, RuinsRoom.WORKSHOP, 16, 12, s, Anchor.BESIDE_LAST, false));
+                // The deeper band reads as a chain along the route: line two, its finished goods beyond it toward
+                // the vault, the line's bay under it.
+                out.add(space("line-two", RuinsDelve.PlantStage.PRODUCTION, null, 30, 18, s, Anchor.ROUTE, true));
+                out.add(space("finished-goods", RuinsDelve.PlantStage.STORAGE, null, 24, 18, s, Anchor.BESIDE_LAST,
+                        true));
+                out.add(space("line-two-bay", null, RuinsRoom.WORKSHOP, 16, 12, s, Anchor.UNDER_FIRST, false));
+            } else {
+                out.add(space("finished-goods", RuinsDelve.PlantStage.STORAGE, null, 24, 18, s, Anchor.VAULT_ROW,
+                        true));
             }
-            out.add(space("finished-goods", RuinsDelve.PlantStage.STORAGE, null, 24, 18, s, Anchor.VAULT_ROW, true));
         }
         return out;
     }

@@ -96,6 +96,15 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
                         }
                         caption(g, RuinsWorksHallLookSuite.title(works) + "'s plant, laid from its brief");
                     }));
+                    // Each store close, stocked from its brief.
+                    for (String store : List.of("raw-stock", "finished-goods")) {
+                        RuinsDelve.Area a = spaces.get(RuinsDelve.Interior.spaceName(store));
+                        if (a == null) continue;
+                        float ss = Math.max(a.width() + 10f, (a.height() + 8f) * 16f / 9f);
+                        out.add(new SnapshotArtifact(dir + store + ".png", BattleReviewFrameRenderer.look(
+                                context.modRoot(), W, H, a.centreX() + .5f, a.centreY() + .5f, ss).withoutRoofs()
+                                .render(sim, "")));
+                    }
                 }
                 out.add(card(dir + "rooms.png", base, g -> {
                     box(g, cam, anchor, new Color(255, 255, 255, 40), "WORKS HALL");
