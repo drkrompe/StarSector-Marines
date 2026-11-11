@@ -40,7 +40,7 @@ import java.util.Random;
  * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
  * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
  * instead of the buildings; {@code =whole} shoots each map whole ({@code -whole.png}) and its right half
- * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off;
+ * ({@code -half.png}), {@code =doors} frames street doors close; {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off;
  * {@code -Dsnapshot.walls.night=on} shoots the town at night.
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
@@ -103,8 +103,27 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                         out.add(new SnapshotArtifact(world.id() + "-half.png", whole.render(sim, "")));
                         continue;
                     }
-                    List<float[]> frames = "curtain".equals(System.getProperty("snapshot.walls.frame"))
-                            ? curtainFrames(sim, 2) : frames(sim, 2);
+                    String framing = System.getProperty("snapshot.walls.frame");
+                    if ("doors".equals(framing)) {
+                        // Street doors, framed from a few cells out so their faces lean toward the view.
+                        List<float[]> doors = doorFrames(sim, 3);
+                        BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
+                                FRAME_H, doors.get(0)[0], doors.get(0)[1], PLAY);
+                        for (int f = 0; f < doors.size(); f++) {
+                            // The door toward the frame's edge on its way out, where a face leans furthest.
+                            float[] at = doors.get(f);
+                            String tag = world.id() + "-door" + (f + 1);
+                            look.refocus(at[0] + at[2] * PLAY * .38f, at[1] + at[3] * PLAY * .2f, PLAY);
+                            out.add(new SnapshotArtifact(tag + "-play.png", look.render(sim, "")));
+                            look.refocus(at[0] + at[2] * DOOR_CLOSE * .38f, at[1] + at[3] * DOOR_CLOSE * .2f,
+                                    DOOR_CLOSE);
+                            out.add(new SnapshotArtifact(tag + "-close.png", look.render(sim, "")));
+                        }
+                        System.out.printf(Locale.ROOT, "building-walls-look %s: door frames %s%n", world.id(),
+                                describe(doors));
+                        continue;
+                    }
+                    List<float[]> frames = "curtain".equals(framing) ? curtainFrames(sim, 2) : frames(sim, 2);
                     BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,
                             FRAME_H, frames.get(0)[0], frames.get(0)[1], PLAY);
                     for (int f = 0; f < frames.size(); f++) {
@@ -187,6 +206,37 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
      * Frames on the joints where a diagonal freestanding wall runs into a straight one, each set a few cells off its
      * joint so the faces there stand toward the view's centre; falls back on {@link #frames} where there are none.
      */
+    /** How many cells across a door's close frame is. */
+    private static final float DOOR_CLOSE = 28f;
+
+    /**
+     * A building's street doors, each as {@code x, y, outX, outY}: the door's middle and its way out, at least a
+     * frame apart.
+     */
+    static List<float[]> doorFrames(BattleSimulation sim, int count) {
+        CellTopology ground = sim.getTopology();
+        NavigationGrid grid = sim.getGrid();
+        int w = ground.getWidth(), h = ground.getHeight();
+        List<float[]> picked = new ArrayList<>();
+        for (int y = 2; y < h - 2 && picked.size() < count; y++) {
+            for (int x = 2; x < w - 2 && picked.size() < count; x++) {
+                if (!grid.isDoorway(x, y)) continue;
+                for (int d = 0; d < 4; d++) {
+                    int dx = d == 0 ? 1 : d == 1 ? -1 : 0, dy = d == 2 ? 1 : d == 3 ? -1 : 0;
+                    CellTopology.GroundKind out = ground.getGroundKind(x + dx, y + dy);
+                    boolean street = out == CellTopology.GroundKind.STREET || out == CellTopology.GroundKind.SIDEWALK;
+                    if (!street || ground.getBuildingId(x - dx, y - dy) == 0) continue;
+                    float cx = x + .5f, cy = y + .5f;
+                    boolean far = true;
+                    for (float[] p : picked) far &= Math.abs(p[0] - cx) > 30 || Math.abs(p[1] - cy) > 18;
+                    if (far) picked.add(new float[]{cx, cy, dx, dy});
+                    break;
+                }
+            }
+        }
+        return picked.isEmpty() ? frames(sim, count) : picked;
+    }
+
     static List<float[]> curtainFrames(BattleSimulation sim, int count) {
         List<float[]> joints = new ArrayList<>();
         for (FreestandingWalls.Run run : FreestandingWallFaces.runs(sim.getTopology())) {
