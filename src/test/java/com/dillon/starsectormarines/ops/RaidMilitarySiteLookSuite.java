@@ -61,10 +61,10 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
         float[] hq = middleOf(sim.getTopology(), RoomPurpose.KEEP_THRONE, machinesX, machinesY);
         float hx = hq == null ? machinesX : hq[0], hy = hq == null ? machinesY : hq[1];
         // The set pieces: each close-up rings the whole set piece, not its one prop.
-        add(out, sim, "satcom", List.of("doodad.listening-dish"), hx, hy, new int[]{13, 8});
-        add(out, sim, "radar", List.of("doodad.radar-tower-lattice", "doodad.radar-tower"), hx, hy,
+        add(out, sim, "satcom", List.of("doodad.uplink-dish", "doodad.listening-dish"), hx, hy, new int[]{13, 8});
+        add(out, sim, "radar", List.of("doodad.radar-tower-lattice", "doodad.military-radar-dish"), hx, hy,
                 new int[]{13, 10});
-        add(out, sim, "generators", List.of("ship-engineering.generator", "doodad.industrial-generator"), hx, hy,
+        add(out, sim, "generators", List.of("doodad.exhaust-stack"), hx, hy,
                 new int[]{13, 9});
         add(out, sim, "fuel-depot", List.of("doodad.fuel-tank-vertical", "doodad.oxygen-sphere"),
                 machinesX, machinesY, new int[]{14, 10});

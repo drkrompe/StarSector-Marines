@@ -75,10 +75,10 @@ final class MilitarySetPieces {
         int deep() { return stamp.footprintHeight(0); }
     }
 
-    /** The radar's tower: the lattice tower, or the round-2 radar art meanwhile. */
-    static final List<String> RADAR_TOWER = List.of("doodad.radar-tower-lattice", "doodad.radar-tower");
+    /** The radar's tower: the lattice tower, or the dish mast where the art is missing. */
+    static final List<String> RADAR_TOWER = List.of("doodad.radar-tower-lattice", "doodad.military-radar-dish");
     /** A sat comms dish on its pedestal. */
-    static final List<String> DISH = List.of("doodad.listening-dish");
+    static final List<String> DISH = List.of("doodad.uplink-dish", "doodad.listening-dish");
     /** A storage tank: the vertical fuel tank, or a storage sphere meanwhile. */
     static final List<String> TANK = List.of("doodad.fuel-tank-vertical", "doodad.oxygen-sphere");
     /** An exhaust stack against the shed's back wall; a fluid tank stands for it meanwhile. */
