@@ -314,7 +314,12 @@ worked within 2.5 cells; a console in a building (the hall, the records office)
 by anyone in it or within 3 cells of its walls, since a squad sent to a building
 holds it from its tactical places. A restart is loud: it wakes the Rav's
 nearest closed bore at once (`RuinsSleepers.loud`) and stirs the derelict zone
-keeping the hall, or the nearest (`SecurityNetwork.loud`). Until the records are
+keeping the hall, or the nearest (`SecurityNetwork.loud`). At a derelict site
+it also brings the plant's wake to Stirring at least
+(`FacilityWake.plantRestarted`; owner pick, 2026-11-10: keep the floor): the
+ducts come up, no reserve bay opens. The stir counts the restart once
+(`RuinsPressure.HALL_RESTART`); the floor is the wake's step, not more stir, so
+the next push comes no sooner for it. Until the records are
 read, every sealed store is unmarked and offers no prompt, and a junction says
 what it feeds only once thrown (FEEDS ?, verb THROW); a store is still there and
 opens when its junction is thrown blind. The objectives rail carries a Site
@@ -990,7 +995,11 @@ own order, intake to works hall to stores to vault, along the trunk.
 3. **The works off the trunk.** The power hall, the records and the side
    rooms' stores are reached by service corridors, two wide: infantry go, a hall
    frame cannot follow. They are where the company works the puzzle, and
-   where it can shake off a frame.
+   where it can shake off a frame. Restarting the hall is the beat's
+   deliberate escalation: the hall and its stand light, and at a derelict site
+   the plant wakes to Stirring and its ducts come up, so the flocks can come at
+   the company through the vents from then on. The player chooses when to pay
+   it, and gets power and light for it.
 4. **The deeper band.** Storage halls on freight ways, the stores, then the
    vault and its frame: the breach.
 5. **The egress, back through the works hall.** The haul comes out the way the
