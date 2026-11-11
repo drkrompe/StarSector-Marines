@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -121,10 +122,13 @@ public final class PrecinctDefence {
 
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
         int emitted = ctx.tactical.size();
-        // Sited against the place's own outline, not every wall in it: measured against the buildings' walls too, the
-        // ring "behind the wall" ran round every barracks and the guns stood inside the base guarding nothing (owner,
-        // 2026-11-11). Where a gun can stand is still {@code inside}'s, through {@code fits}.
-        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(own, gates, hearts, threat, wanted, fits)) {
+        // Sited against the ground the wall encloses, not against every wall in it: measured against the buildings'
+        // walls too, the ring "behind the wall" ran round every barracks and the guns stood inside the base guarding
+        // nothing (owner, 2026-11-11); measured against the claim, it ran out on the glacis beyond the wall. Where a
+        // gun can stand is still {@code inside}'s, through {@code fits}.
+        boolean[][] enclosed = enclosed(ctx, own, open);
+        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(enclosed == null ? inside : enclosed, gates, hearts,
+                threat, wanted, fits)) {
             int before = ctx.defensePosts.size();
             int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, clear, ctx.doodads,
                     ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
@@ -143,6 +147,50 @@ public final class PrecinctDefence {
             if (short_ > 0) unplaced.put(e.getKey(), short_);
         }
         return new Result(Map.copyOf(placed), Map.copyOf(unplaced));
+    }
+
+    /**
+     * The ground {@code own}'s wall encloses: its cells that cannot be reached from beyond it without crossing a wall,
+     * with the gates ({@code open}) shut, so the buildings' walls inside it count as ground and the strip outside the
+     * wall does not. Null when the wall encloses less than half the place (a gap the gates do not account for), where
+     * the caller keeps to the ground behind every wall.
+     */
+    static boolean[][] enclosed(GenContext ctx, boolean[][] own, List<PrecinctBoundary.Gate> open) {
+        int w = ctx.width, h = ctx.height;
+        boolean[][] shut = new boolean[w][h];
+        for (PrecinctBoundary.Gate gate : open) for (int[] c : gate.cells()) shut[c[0]][c[1]] = true;
+        boolean[][] reached = new boolean[w][h];
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (!own[x][y]) {
+                    reached[x][y] = true;
+                    queue.add(new int[]{x, y});
+                }
+            }
+        }
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            for (int[] s : steps) {
+                int nx = c[0] + s[0], ny = c[1] + s[1];
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h || reached[nx][ny]) continue;
+                if (ctx.topology.isWall(nx, ny) || shut[nx][ny]) continue;
+                reached[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        boolean[][] out = new boolean[w][h];
+        int kept = 0, all = 0;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                if (!own[x][y]) continue;
+                all++;
+                out[x][y] = !reached[x][y];
+                if (out[x][y]) kept++;
+            }
+        }
+        return kept * 2 < all ? null : out;
     }
 
     /** Cells of a military base's wall one perimeter post holds: a post every this many along it. UNTUNED. */
