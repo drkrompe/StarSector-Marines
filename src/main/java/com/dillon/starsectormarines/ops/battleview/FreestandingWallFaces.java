@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.RoofCover;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,15 +32,17 @@ final class FreestandingWallFaces {
     private List<FreestandingWalls.Run> runs = List.of();
     /** Each cell's part of a sealed town's envelope ({@link FreestandingWalls#part}), its ordinal + 1; 0 where none. */
     private byte[] parts = new byte[0];
-    private final CreepPalette creepPalette = CreepPalette.active();
-    private final float[] capTone = new float[3];
+    /** This frame's creep on the walls' faces and over their tops ({@link CreepClimb}), drawn over the walls. */
+    private final CreepPatches faceCreep = new CreepPatches(), topCreep = new CreepPatches();
     /** The share of the face now held that the cell being painted spans, and the creep's alpha. */
     private float cu0, cu1, calpha;
-    private final float[] creepTone = new float[3];
+    private final float[] creepAt = new float[8];
     /** Creep up the stroke's side now held in {@link #face} ({@link CreepClimb}), within one cell's share of it. */
-    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, r, g, b) -> {
-        creepTone[0] = r; creepTone[1] = g; creepTone[2] = b;
-        this.face.band(cu0 + (cu1 - cu0) * t0, cu0 + (cu1 - cu0) * t1, z0, z1, creepTone, 1f, calpha);
+    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, row, u0, u1, v0, v1, light, alpha) -> {
+        if (t1 <= t0 || z1 <= z0) return;
+        this.face.corners(cu0 + (cu1 - cu0) * t0, cu0 + (cu1 - cu0) * t1, z0, z1, creepAt);
+        faceCreep.add(creepAt[0], creepAt[1], creepAt[2], creepAt[3], creepAt[4], creepAt[5], creepAt[6], creepAt[7],
+                row, u0, u1, v0, v1, light, calpha * alpha);
     };
 
     /**
@@ -47,7 +50,8 @@ final class FreestandingWallFaces {
      *
      * @param fogDrawn whether the frame draws the fog; a frame without it (a look shot) shows every wall in light
      */
-    void collect(BattleSimulation sim, DrawList out, float alphaMult, BattleCamera camera, boolean fogDrawn) {
+    void collect(BattleSimulation sim, DrawList out, float alphaMult, BattleCamera camera, boolean fogDrawn,
+                 SpriteAPI creepSheet) {
         CellTopology topology = sim.getTopology();
         if (topology == null) return;
         if (topology != runsOf || topology.changeCount() != runsAt) {
@@ -68,7 +72,9 @@ final class FreestandingWallFaces {
         VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS + 6, gridW,
                 topology.getHeight());
         mesh.reset();
-        CreepField creep = sim.creepFieldIfPresent();
+        faceCreep.reset();
+        topCreep.reset();
+        CreepField creep = creepSheet == null ? null : sim.creepFieldIfPresent();
         if (creep != null && creep.isEmpty()) creep = null;
         boolean detail = Math.abs(camera.cellToScreenX(1f) - camera.cellToScreenX(0f)) >= 10f;
         footing.reset();
@@ -83,6 +89,8 @@ final class FreestandingWallFaces {
             strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.ROOFS, mesh);
+        faceCreep.emit(out, RenderLayer.ROOFS, creepSheet);
+        topCreep.emit(out, RenderLayer.ROOFS, creepSheet);
         if (!footing.isEmpty()) out.addPoly(RenderLayer.DECALS, footing);
     }
 
@@ -154,8 +162,9 @@ final class FreestandingWallFaces {
                     if (at < 0) continue;
                     cu0 = slice / (float) cells;
                     cu1 = (slice + 1) / (float) cells;
-                    CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette, light,
-                            detail, creepOnFace);
+                    CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f,
+                            Math.abs(ed[e + 4]) > Math.abs(ed[e + 5]) ? at / gridW : at % gridW, light, detail,
+                            creepOnFace);
                 }
             }
         }
@@ -172,14 +181,21 @@ final class FreestandingWallFaces {
                 // An old creep crusts over the wall's top too, as it did the wall cell on the ground.
                 float f = cells <= 1 ? 0f : k / (float) (cells - 1);
                 int at = cellAt(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, gridW, gridH);
-                float crust = at < 0 ? 0f : CreepClimb.crust(creep.coverageAt(at));
-                if (crust <= 0f) continue;
-                CreepClimb.tone(creepPalette.flesh(), creepPalette.dead(), creep.vitalityAt(at), 1f, capTone);
+                if (at < 0) continue;
+                // From each long side in toward the middle, as far as the crust has come over.
+                float cr = CreepClimb.crust(creep.coverageAt(at));
+                if (cr <= 0f) continue;
                 float u0 = k / (float) cells, u1 = (k + 1) / (float) cells;
-                c.quad(q[0] + (q[2] - q[0]) * u0, q[1] + (q[3] - q[1]) * u0,
-                        q[0] + (q[2] - q[0]) * u1, q[1] + (q[3] - q[1]) * u1,
-                        q[6] + (q[4] - q[6]) * u1, q[7] + (q[5] - q[7]) * u1,
-                        q[6] + (q[4] - q[6]) * u0, q[7] + (q[5] - q[7]) * u0, capTone, fog, alphaMult * crust);
+                float ax = q[0] + (q[2] - q[0]) * u0, ay = q[1] + (q[3] - q[1]) * u0;
+                float bx = q[0] + (q[2] - q[0]) * u1, by = q[1] + (q[3] - q[1]) * u1;
+                float dx = q[6] + (q[4] - q[6]) * u0, dy = q[7] + (q[5] - q[7]) * u0;
+                float ex = q[6] + (q[4] - q[6]) * u1, ey = q[7] + (q[5] - q[7]) * u1;
+                float mx0 = (ax + dx) / 2f, my0 = (ay + dy) / 2f, mx1 = (bx + ex) / 2f, my1 = (by + ey) / 2f;
+                int along = Math.abs(x1 - x0) >= Math.abs(y1 - y0) ? at % gridW : at / gridW;
+                capCrust(c, ax, ay, bx, by, bx + (mx1 - bx) * cr, by + (my1 - by) * cr, ax + (mx0 - ax) * cr,
+                        ay + (my0 - ay) * cr, creep.coverageAt(at), creep.vitalityAt(at), along, fog, alphaMult);
+                capCrust(c, dx, dy, ex, ey, ex + (mx1 - ex) * cr, ey + (my1 - ey) * cr, dx + (mx0 - dx) * cr,
+                        dy + (my0 - dy) * cr, creep.coverageAt(at), creep.vitalityAt(at), along, fog, alphaMult);
             }
         }
         // The coping round the outline, so it turns every joint where strokes meet.
@@ -345,8 +361,8 @@ final class FreestandingWallFaces {
                 cu0 = 0f;
                 cu1 = 1f;
                 calpha = alphaMult;
-                CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, 1f, cell, creepPalette, light,
-                        detail, creepOnFace);
+                CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, 1f,
+                        ny != 0f ? cell % gridW : cell / gridW, light, detail, creepOnFace);
             }
         }
         Cap c = new Cap(camera, sx, sy, lift);
@@ -380,7 +396,6 @@ final class FreestandingWallFaces {
             if (creep != null) {
                 // The crust over the top, in from each side open to the ground.
                 topCap = c;
-                topLight = light;
                 topAlpha = alphaMult;
                 for (int s = 0; s < 4; s++) {
                     int beyond = neighbour(cell, SX[s], SY[s], gridW, gridH);
@@ -388,8 +403,8 @@ final class FreestandingWallFaces {
                     // The cell's side s, ends ordered so the outward normal (SX, SY) has the top on its left.
                     float ax = SX[s] > 0 ? cx + 1 : cx, ay = SY[s] > 0 ? cy + 1 : cy;
                     float bx = SY[s] != 0 ? ax + 1 : ax, by = SX[s] != 0 ? ay + 1 : ay;
-                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), cell * 4 + s, ax, ay, bx, by,
-                            SX[s], SY[s], creepPalette, 1f, creepOnTop);
+                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), SY[s] != 0 ? cx : cy, ax, ay,
+                            bx, by, SX[s], SY[s], light, creepOnTop);
                 }
             }
         }
@@ -397,12 +412,30 @@ final class FreestandingWallFaces {
 
     /** The envelope top being crusted, its light and alpha. */
     private Cap topCap;
-    private float topLight, topAlpha;
-    private final float[] topTone = new float[3];
-    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) -> {
-        topTone[0] = r; topTone[1] = g; topTone[2] = b;
-        topCap.quad(x0, y0, x1, y1, x2, y2, x3, y3, topTone, topLight, topAlpha);
-    };
+    private float topAlpha;
+    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, row, u0, u1, vOut, vIn, light,
+                                                   alpha) ->
+            topCreep.add(topCap.lx(x0), topCap.ly(y0), topCap.lx(x1), topCap.ly(y1), topCap.lx(x2), topCap.ly(y2),
+                    topCap.lx(x3), topCap.ly(y3), row, u0, u1, vIn, vOut, light, topAlpha * alpha);
+
+    /**
+     * An old crust over a stroke's cap, from its outer side ({@code a} to {@code b}) in to ({@code c}, {@code d}),
+     * living and, as it withers, dead over it.
+     */
+    private void capCrust(Cap cap, float ax, float ay, float bx, float by, float cx, float cy, float dx, float dy,
+                          int coverage, int vitality, int along, float light, float alpha) {
+        float u0 = CreepClimb.along(along), dead = 1f - Math.max(0, Math.min(255, vitality)) / 255f;
+        float vIn = CreepClimb.SHEET_EDGE - CreepClimb.LOBES, vOut = vIn + CreepClimb.overTop(coverage);
+        float x0 = cap.lx(ax), y0 = cap.ly(ay), x1 = cap.lx(bx), y1 = cap.ly(by);
+        float x2 = cap.lx(cx), y2 = cap.ly(cy), x3 = cap.lx(dx), y3 = cap.ly(dy);
+        if (dead < 1f) {
+            topCreep.add(x0, y0, x1, y1, x2, y2, x3, y3, CreepClimb.CRUST, u0, u0 + 1f, vIn, vOut, light, alpha);
+        }
+        if (dead > 0f) {
+            topCreep.add(x0, y0, x1, y1, x2, y2, x3, y3, CreepClimb.DEAD_CRUST, u0, u0 + 1f, vIn, vOut, light,
+                    alpha * dead);
+        }
+    }
 
     private static final int[] SX = {1, 0, -1, 0}, SY = {0, 1, 0, -1};
     private final Face face = new Face();
@@ -449,6 +482,17 @@ final class FreestandingWallFaces {
         }
 
         private final float[] shade = new float[12];
+
+        /** The corners on screen of the part {@code u0..u1} along and {@code h0..h1} up: foot, then top back. */
+        void corners(float u0, float u1, float h0, float h1, float[] out) {
+            float l0 = BuildingFaces.lift(meters * h0, rise), l1 = BuildingFaces.lift(meters * h1, rise);
+            float ax = camera.cellToScreenX(x0 + (x1 - x0) * u0), ay = camera.cellToScreenY(y0 + (y1 - y0) * u0);
+            float bx = camera.cellToScreenX(x0 + (x1 - x0) * u1), by = camera.cellToScreenY(y0 + (y1 - y0) * u1);
+            out[0] = sx + (ax - sx) * l0; out[1] = sy + (ay - sy) * l0;
+            out[2] = sx + (bx - sx) * l0; out[3] = sy + (by - sy) * l0;
+            out[4] = sx + (bx - sx) * l1; out[5] = sy + (by - sy) * l1;
+            out[6] = sx + (ax - sx) * l1; out[7] = sy + (ay - sy) * l1;
+        }
 
         void band(float u0, float u1, float h0, float h1, float[] rgb, float light, float alpha) {
             float l0 = BuildingFaces.lift(meters * h0, rise), l1 = BuildingFaces.lift(meters * h1, rise);

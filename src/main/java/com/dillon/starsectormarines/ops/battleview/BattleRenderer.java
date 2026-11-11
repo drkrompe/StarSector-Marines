@@ -278,20 +278,23 @@ public class BattleRenderer {
     private final FacePainter facePainter = new FacePainter();
     /** A face's hits laid on it this frame ({@link FaceScars}). */
     private final float[] laidScars = new float[WallScars.PER_CELL * FaceScars.STRIDE];
-    /** Creep up a stood-up wall's face ({@link CreepClimb}), painted onto the wall {@link #facePainter} holds. */
-    private final CreepClimb.Sink creepOnFace = facePainter::quad;
-    private final CreepPalette creepPalette = CreepPalette.active();
+    /** Creep up the stood-up walls' faces ({@link CreepClimb}), drawn over the faces once they are all laid. */
+    private final CreepPatches faceCreep = new CreepPatches();
+    /** Creep up the wall {@link #facePainter} holds, into {@link #faceCreep}. */
+    private final CreepClimb.Sink creepOnFace = (t0, t1, z0, z1, row, u0, u1, v0, v1, light, alpha) ->
+            facePainter.creep(faceCreep, t0, t1, z0, z1, row, u0, u1, v0, v1, light, alpha);
     /** Draws the rubble at damaged walls' feet ({@link WallRubble}). */
     private final WallRubble wallRubble = new WallRubble();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
     private final PolyMesh ruinShells = new PolyMesh(64);
     /** Old creep crusted over the stood-up walls' tops ({@link CreepClimb#paintTop}), drawn over the roofs' edges. */
-    private final PolyMesh wallTopCreep = new PolyMesh(64);
+    private final CreepPatches wallTopCreep = new CreepPatches();
     /** The wall top being crusted: the view's centre on screen and the lift of the wall's top now. */
     private float topSx, topSy, topLift, topAlpha;
-    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) ->
-            wallTopCreep.appendQuad(topX(x0), topY(y0), topX(x1), topY(y1), topX(x2), topY(y2), topX(x3), topY(y3),
-                    r, g, b, topAlpha);
+    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, row, u0, u1, vOut, vIn, light,
+                                                   alpha) ->
+            wallTopCreep.add(topX(x0), topY(y0), topX(x1), topY(y1), topX(x2), topY(y2), topX(x3), topY(y3), row, u0,
+                    u1, vIn, vOut, light, topAlpha * alpha);
     /** The overhead props' pass, which also draws the props hung on walls for the roof pass ({@link WallMounts}). */
     private PropMotionRenderSystem overheadProps;
     /** A wall mount's rail corners' eaves, reused. */
@@ -578,6 +581,12 @@ public class BattleRenderer {
         if (rubble != null && sprites.rubbleFrames() != null && !batchBySheet.containsKey(rubble)) {
             registerBatch(rubble, new QuadBatch(rubble, sprites.rubbleFrames().sheetWidth,
                     sprites.rubbleFrames().sheetHeight, 64));
+        }
+        sprites.ensureCreepWallSheet();
+        SpriteAPI creepWall = sprites.creepWallSheet();
+        if (creepWall != null && !batchBySheet.containsKey(creepWall)) {
+            registerBatch(creepWall, new QuadBatch(creepWall, CreepClimb.SHEET_CELLS_ALONG * CreepClimb.SHEET_CELL_PX,
+                    4 * CreepClimb.SHEET_CELLS_UP * CreepClimb.SHEET_CELL_PX, 256));
         }
         sprites.ensureSmokeSprites();
         registerSmokeFieldBatch();
@@ -1029,7 +1038,8 @@ public class BattleRenderer {
         boolean standing = standing();
         // Freestanding walls stood up first, so every building's faces and roof stand over them. Flat (the Settings
         // page's 3D walls off, WallDepth) they are the map's wall tiles alone.
-        if (standing) freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
+        if (standing) freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn,
+                sprites.creepWallSheet());
         Buildings buildings = sim.getBuildings();
         CellTopology topology = sim.getTopology();
         if (buildings == null || buildings.isEmpty()) {
@@ -1079,7 +1089,7 @@ public class BattleRenderer {
         }
         // A razed building's broken shell stands over its roof's remnants; old creep crusts over the walls' tops.
         if (!ruinShells.isEmpty()) out.addPoly(RenderLayer.ROOFS, ruinShells);
-        if (!wallTopCreep.isEmpty()) out.addPoly(RenderLayer.ROOFS, wallTopCreep);
+        wallTopCreep.emit(out, RenderLayer.ROOFS, sprites.creepWallSheet());
     }
 
     /**
@@ -1273,6 +1283,7 @@ public class BattleRenderer {
         paint.reset();
         ruinShells.reset();
         wallTopCreep.reset();
+        faceCreep.reset();
         topSx = sx;
         topSy = sy;
         for (Building b : buildings.all()) {
@@ -1356,8 +1367,8 @@ public class BattleRenderer {
                     // above, its top is what shows of it.
                     topLift = BuildingFaces.lift(meters * upright, roofRise);
                     topAlpha = roofAlpha;
-                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), cell, x0, y0, x1, y1, nx, ny,
-                            creepPalette, fog, creepOnTop);
+                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), along(cx, cy, ny), x0, y0, x1,
+                            y1, nx, ny, fog, creepOnTop);
                 }
                 if (!BuildingFaces.facing(nx, ny, (x0 + x1) / 2f, (y0 + y1) / 2f, viewX, viewY)) {
                     if (cut > .01f) {
@@ -1372,7 +1383,7 @@ public class BattleRenderer {
                         if (creep != null) {
                             // The creep climbs the room's side of the wall as well as the street's.
                             int at = (int) segs[e + 6];
-                            CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, at, creepPalette,
+                            CreepClimb.paint(creep.coverageAt(at), creep.vitalityAt(at), meters, 1f, along(cx, cy, ny),
                                     in, detail, creepOnFace);
                         }
                     }
@@ -1408,13 +1419,19 @@ public class BattleRenderer {
                 int scarred = FaceScars.lay(sim.effects().wallScars(), cell, gridW, x0, y0, x1, y1, nx, ny, laidScars);
                 if (scarred > 0 && detail) paint.scars(laidScars, scarred, meters, upright, shade, m);
                 if (creep != null) {
-                    CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, upright, cell,
-                            creepPalette, shade, detail, creepOnFace);
+                    CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, upright, along,
+                            shade, detail, creepOnFace);
                 }
             }
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
+        faceCreep.emit(out, RenderLayer.ROOFS, sprites.creepWallSheet());
         wallRubble.emit(out, paint.debris(), paint.debrisCount(), sprites.rubbleSheet(), sprites.rubbleFrames());
+    }
+
+    /** A wall cell's place along its wall ({@link CreepClimb#along}): its column on a wall running east-west. */
+    private static int along(int cx, int cy, float ny) {
+        return ny != 0f ? cx : cy;
     }
 
     private float topX(float cellX) {

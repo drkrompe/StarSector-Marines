@@ -2008,16 +2008,17 @@ against its own control in `renderEvidence`.
   roof as a gutted shell; only walls breached to rubble raze a building.
 - **Creep climbs the walls it holds** (`CreepClimb`). A wall cell's coverage is
   how long the creep has held it, and a stood-up wall shows it up its face:
-  veins reaching from the foot on a young wall, a lumpy crust banded up from
-  the foot on an old one with the veins running on above it, a storey and a
-  little more at most. Living creep wears the palette's flesh, rim and veins
-  with a glow in the crust; dying creep greys to the palette's dead tone. It
-  climbs a building's street side and, seen in a cutaway, the room's side,
-  and every freestanding wall's faces, a sealed town's envelope among them.
-  Seen from above a wall shows mostly its top, so an old crust comes over the
-  top from the wall's outer side, lipped in the rim, on buildings and
-  freestanding walls alike; a crust on a face carries dark seams and raised
-  nodes so it reads as grown against a wall of its own tone.
+  veins reaching from the foot on a young wall, a crust grown up from the foot
+  on an old one with the veins running on above it, a storey and a little more
+  at most; dying creep greys to the palette's dead tone. It climbs a
+  building's street side and, seen in a cutaway, the room's side, and every
+  freestanding wall's faces, a sealed town's envelope among them. Seen from
+  above a wall shows mostly its top, so an old crust comes over the top from
+  the wall's outer side, its lip toward the middle. The look is the ground's,
+  never a second one: walls draw the creep sheet (`creep-wall.png`, baked by
+  `bakeCreepWall` through the ground creep's own shading over a creep edge),
+  its crust the ground's beaded lip and plates and its veins those the creep
+  lays over a cliff face, at the ground's scale, a cell of sheet a metre.
 - **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
   is fuel, living or dying; creep under a fire crisps away in seconds, and
   burnt ground refuses the creep for about three minutes before the sources
