@@ -829,8 +829,16 @@ is the plant its architect briefed, and only then a ruin.
 
 The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
 undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+The works band is laid as a block plan, round the works hall:
+- the raw stock store under its dispatch end with the dock below it, and the QA lab at the outfeed;
+- the control gallery down its east wall, with a stair onto the hall's floor;
+- maintenance and consumables over its head, and the habitat beyond.
+
+Each space joins the network on its own side of the hall, after the ways through the band, so the route still crosses
+the hall.
+
 Still to come:
-- a block plan per band, the spaces sharing walls along their ways;
+- a block plan for the deeper band;
 - the hull drawn round the plant;
 - each space dressed from its own plan;
 - stores holding the game's commodities.
