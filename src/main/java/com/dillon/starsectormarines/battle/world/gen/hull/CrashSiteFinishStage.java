@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.Stake;
@@ -224,10 +226,14 @@ public final class CrashSiteFinishStage implements GenStage {
 
     /**
      * The haul roads worn into the ground: open outdoor cells along each road and {@link #ROAD_WEAR} either side become
-     * trodden earth. Paving, floors, water and the trench keep their own ground; nothing about passage changes.
+     * trodden earth. Paving, floors, water and the trench keep their own ground; nothing about passage changes. In a
+     * sealed town ({@link SealedTown}) nobody wears a track across the lots under the envelope: only ground already
+     * bare earth (the band's plough) is trodden, so a lot keeps its own ground.
      */
     private static void wear(GenContext ctx, List<HaulRoad> haul, boolean[][] roads, BitSet hull) {
         CellTopology topology = ctx.topology;
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        boolean sealed = plan != null && plan.precincts().stream().anyMatch(SealedTown::is);
         int trodden = topology.surfaceIndex(CrashSiteStage.TRODDEN);
         int w = ctx.width, h = ctx.height;
         boolean[] done = new boolean[w * h];
@@ -243,6 +249,7 @@ public final class CrashSiteFinishStage implements GenStage {
                         GroundKind g = topology.getGroundKind(x, y);
                         if (g != GroundKind.GRASS && g != GroundKind.DIRT && g != GroundKind.SAND
                                 && g != GroundKind.SNOW && g != GroundKind.STONE) continue;
+                        if (sealed && g != GroundKind.DIRT) continue;
                         topology.setGroundKind(x, y, GroundKind.DIRT);
                         topology.setSurface(x, y, trodden);
                     }

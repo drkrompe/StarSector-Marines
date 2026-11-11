@@ -212,6 +212,7 @@ public final class PortYards {
         for (int j = 0; j < deep; j++) {
             for (int i = 0; i < across; i++) {
                 int px = ox + i * (PAD + PAD_GAP), py = oy + j * (PAD + PAD_GAP);
+                padCells(ctx, px, py);
                 for (int y = py; y < py + PAD; y++) {
                     for (int x = px; x < px + PAD; x++) {
                         boolean ring = x == px || y == py || x == px + PAD - 1 || y == py + PAD - 1;
@@ -237,6 +238,16 @@ public final class PortYards {
         int backY = townNorth ? r[1] - 1 : r[3] + 1;
         pipe(ctx, open, r[0], backY, r[2], backY);
         return true;
+    }
+
+    /** Marks a pad's cells, from its corner, in the map's pads ({@link HullKeys#PADS}). */
+    private static void padCells(GenContext ctx, int px, int py) {
+        BitSet pads = ctx.get(HullKeys.PADS);
+        if (pads == null) {
+            pads = new BitSet(ctx.width * ctx.height);
+            ctx.put(HullKeys.PADS, pads);
+        }
+        for (int y = py; y < py + PAD; y++) for (int x = px; x < px + PAD; x++) pads.set(y * ctx.width + x);
     }
 
     /** One piece of kit with its corner at {@code (x, y)}, where every cell under it is open apron. */

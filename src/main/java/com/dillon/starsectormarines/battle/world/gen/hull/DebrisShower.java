@@ -129,6 +129,8 @@ final class DebrisShower {
         final FieldOfFire field;
         final boolean[][] roads;
         final boolean[] taken;
+        /** The port's landing pads, kept clear of every piece and mark. */
+        final BitSet pads;
         final Random rng;
         final List<DamagePlan.Stroke> strikes = new ArrayList<>();
         final List<int[]> struck = new ArrayList<>();
@@ -149,6 +151,7 @@ final class DebrisShower {
             this.field = field;
             this.roads = roads;
             this.taken = new boolean[w * h];
+            this.pads = ctx.get(HullKeys.PADS);
             this.rng = new Random(ctx.seed ^ SALT);
             this.nodes = new boolean[w * h];
             for (TacticalNode node : ctx.tactical) {
@@ -285,7 +288,7 @@ final class DebrisShower {
         boolean open(int x, int y, boolean blocks) {
             if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) return false;
             int k = y * w + x;
-            if (taken[k] || hull.get(k) || aprons.get(k)) return false;
+            if (taken[k] || hull.get(k) || aprons.get(k) || pads != null && pads.get(k)) return false;
             // Rubble lies on a road or a street; nothing in the way does.
             if (blocks && (roads[x][y] || trenchCells.get(k) || nodes[k])) return false;
             if (!grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isWall(x, y) || topology.isFixture(x, y)

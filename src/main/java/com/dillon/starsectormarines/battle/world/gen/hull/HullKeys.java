@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 
+import java.util.BitSet;
 import java.util.List;
 
 /** A fallen hull's facts on the generation blackboard. */
@@ -15,6 +16,8 @@ public final class HullKeys {
 
     /** What {@link CrashSiteStage} laid before finalize, read by {@link CrashSiteFinishStage}. */
     static final GenKey<CrashSiteStage.Laid> LAID = GenKey.of("hullLaid");
+    /** The landing pads the port laid ({@link PortYards#pads}), ring and all; the shower keeps off them. */
+    static final GenKey<BitSet> PADS = GenKey.of("hullPads");
 
     /** Where the debris shower struck buildings, as damage strokes; read by result assembly. */
     public static final GenKey<List<DamagePlan.Stroke>> STRIKES = GenKey.of("hullStrikes");

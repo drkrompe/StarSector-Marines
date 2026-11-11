@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
@@ -101,14 +103,21 @@ public final class WastelandRubbleFiller implements BlockFiller {
         }
     }
 
-    /** Bare earth, grown over at its edges, with weeds coming up through it. */
+    /**
+     * Bare earth, grown over at its edges, with weeds coming up through it. Under a sealed town's envelope
+     * ({@link SealedTown}) nothing is grown or trodden bare: the whole lot is the open ground the planet's skin keeps
+     * there ({@code PlanetSkin}'s sealed lawn), with no weeds.
+     */
     private static void emptyLot(BlockLeaf leaf, GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        boolean sealed = plan != null && plan.precincts().stream().anyMatch(SealedTown::is);
         int[] weeds = natureIndices(WEEDS);
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 boolean margin = x == leaf.left || x == leaf.right || y == leaf.top || y == leaf.bottom;
-                ground(ctx, x, y, margin ? GroundKind.GRASS : GroundKind.DIRT);
-                if (weeds.length > 0 && ctx.rng.nextInt(margin ? 4 : 14) == 0)
+                ground(ctx, x, y, margin || sealed ? GroundKind.GRASS : GroundKind.DIRT);
+                // The roll is made either way, so a sealed town's lots draw the same as an open one's.
+                if (weeds.length > 0 && ctx.rng.nextInt(margin ? 4 : 14) == 0 && !sealed)
                     ctx.topology.setNatureOverlayIndex(x, y, weeds[ctx.rng.nextInt(weeds.length)]);
                 ctx.markMadeGround(x, y);
             }
