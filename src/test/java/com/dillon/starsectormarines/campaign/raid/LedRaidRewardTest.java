@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** What a won led raid pays ({@code raid-resolution.md}, law 9). */
@@ -37,5 +38,20 @@ class LedRaidRewardTest {
         assertArrayEquals(new int[]{9, 9}, LedRaidReward.fill(new int[]{9, 9}, 15),
                 "a raid already past the full one keeps what it had");
         assertArrayEquals(new int[]{0, 0}, LedRaidReward.fill(new int[]{0, 0}, 15));
+    }
+
+    @Test
+    void aRaidUnderTheCommandsThresholdForItsKindIsShortOfMarines() {
+        assertTrue(LedRaidReward.shortOfMarines(0f, false), "no marines at all");
+        assertFalse(LedRaidReward.shortOfMarines(0.1f, false), "enough to take valuables");
+        assertTrue(LedRaidReward.shortOfMarines(0.1f, true), "but too few to disrupt");
+        assertFalse(LedRaidReward.shortOfMarines(0.5f, true));
+    }
+
+    @Test
+    void theLedFigureIsTheChoiceFilledToTheFullRaidAtItsPremium() {
+        assertArrayEquals(new int[]{15}, LedRaidReward.ledAssignment(new int[]{1}, 1.5f, false),
+                "one token, all the fleet's marines could put on it, carries the whole led raid");
+        assertArrayEquals(new int[]{0, 10}, LedRaidReward.ledAssignment(new int[]{0, 1}, 1f, true));
     }
 }
