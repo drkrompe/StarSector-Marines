@@ -22,6 +22,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
+import hull_hires
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 
@@ -127,22 +129,30 @@ def tears(roof):
 
 
 def main():
-    card = Image.open(HERE / "raw" / SOURCE).convert("RGB").crop(BODY).resize((OUT_W, OUT_H),
-                                                                                         Image.LANCZOS)
+    hires = all((HERE / "raw" / f"hull-hires-{k}.png").exists() for k in range(hull_hires.SECTIONS))
+    if hires:
+        # The card re-rendered at 48 px a cell (hull_hires.py), the owner's pick hull-painting-res (b).
+        hull_hires.assemble()
+        card = Image.open(hull_hires.OUT).convert("RGB").resize((OUT_W, OUT_H), Image.LANCZOS)
+    else:
+        card = Image.open(HERE / "raw" / SOURCE).convert("RGB").crop(BODY).resize((OUT_W, OUT_H), Image.LANCZOS)
     guide = Image.open(HERE / "guides" / "hull-guide.png").convert("RGBA").crop(BODY)
     mask = guide.getchannel("A").resize((OUT_W, OUT_H), Image.LANCZOS).filter(ImageFilter.GaussianBlur(1.5))
     roof = Image.composite(card, extend(card, mask), mask)
-    # The painter left letter-like marks in the forge's glow window; no text on the hull, so they melt into the glow.
-    x0, y0, x1, y1 = GLOW_MARKS
-    pad = 6
-    box = (x0 - pad, y0 - pad, x1 + pad, y1 + pad)
-    glow = roof.crop(box).filter(ImageFilter.GaussianBlur(3.5)).point(lambda c: min(255, round(c * 1.25)))
-    feather = Image.new("L", glow.size, 0)
-    feather.paste(255, (pad, pad, pad + x1 - x0, pad + y1 - y0))
-    roof.paste(glow, box[:2], feather.filter(ImageFilter.GaussianBlur(pad / 2)))
-    roof = roof.filter(ImageFilter.UnsharpMask(radius=2, percent=SHARPEN, threshold=2))
-    roof = roof.filter(ImageFilter.UnsharpMask(radius=EDGE[0], percent=EDGE[1], threshold=EDGE[2]))
-    roof = detail(roof)
+    if not hires:
+        # The first card's painter left letter-like marks in the forge's glow window (the re-render has a grille
+        # there); no text on the hull, so they melt into the glow.
+        x0, y0, x1, y1 = GLOW_MARKS
+        pad = 6
+        box = (x0 - pad, y0 - pad, x1 + pad, y1 + pad)
+        glow = roof.crop(box).filter(ImageFilter.GaussianBlur(3.5)).point(lambda c: min(255, round(c * 1.25)))
+        feather = Image.new("L", glow.size, 0)
+        feather.paste(255, (pad, pad, pad + x1 - x0, pad + y1 - y0))
+        roof.paste(glow, box[:2], feather.filter(ImageFilter.GaussianBlur(pad / 2)))
+        # The low-resolution card only: sharpened at the texture's scale and given grit it cannot hold itself.
+        roof = roof.filter(ImageFilter.UnsharpMask(radius=2, percent=SHARPEN, threshold=2))
+        roof = roof.filter(ImageFilter.UnsharpMask(radius=EDGE[0], percent=EDGE[1], threshold=EDGE[2]))
+        roof = detail(roof)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tears(roof).save(OUT)
     print("wrote", OUT, (OUT_W, OUT_H))
