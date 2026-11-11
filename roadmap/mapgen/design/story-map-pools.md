@@ -285,7 +285,7 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 Any entry may also lay a **fallen hull** over its ground
 (`fallen-hull-nouns.md`, The ground):
 
-- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}], yards, dress: [{kind, x, y, length, turns}], blocks: [[x0, y0, x1, y1]], plough}`: the broken
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}], yards, dress: [{kind, x, y, length, turns}], blocks: [[x0, y0, x1, y1]], plough, port: [{kind, box: [x0, y0, x1, y1]}]}`: the broken
   hull's middle cell (its three sections and the gaps between), the way its bow
   points (`north` is +y), the trench's length off its bow's tip (12 to 160),
   and the stakes standing at the start, each `planted`,
@@ -297,7 +297,9 @@ Any entry may also lay a **fallen hull** over its ground
   cell north for its `length` and `cluster` about a stake; `MineCountry`); `blocks`, boxes of cells, lets the city's
   town lots inside them join into bigger blocks (`TownBlockStage`), and on such a
   map every starting stake's nearest lot is left an open square; `plough`, cells,
-  carries the band's ploughed open ground out past its own 40. It rides the
+  carries the band's ploughed open ground out past its own 40; `port` gives a
+  free port's quarters their trade on a share of the town lots in each box
+  (`containers`, `pads` or `stalls`; `PortQuarter`). It rides the
   plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
   lays it; a Long Survey chapter's acceptance is its base mission's own (the
   colony's rescue, the Cordon's line, the placed airbases) and the hull's

@@ -191,14 +191,20 @@ public final class PortYards {
      * Landing pads on the field: an apron paved across it, the pads in a grid with a painted ring each, a store, a
      * bowser's tank or a pump set down each gap between them, and the fuel line along the apron's back.
      */
-    private static boolean pads(GenContext ctx, TileRegistry registry, int x0, int y0, int x1, int y1,
-                                IntPredicate open, boolean townNorth) {
+    static boolean pads(GenContext ctx, TileRegistry registry, int x0, int y0, int x1, int y1,
+                        IntPredicate open, boolean townNorth) {
+        return pads(ctx, registry, x0, y0, x1, y1, open, townNorth, 2);
+    }
+
+    /** As above, laid only where at least {@code least} pads fit: a town's pad court may be one pad. */
+    static boolean pads(GenContext ctx, TileRegistry registry, int x0, int y0, int x1, int y1,
+                        IntPredicate open, boolean townNorth, int least) {
         int w = ctx.width;
         int[] r = TankFarm.largestClear(w, x0, y0, x1, y1, open);
         if (r == null) return false;
         int across = (r[2] - r[0] + 1 + PAD_GAP) / (PAD + PAD_GAP), deep = (r[3] - r[1] + 1 + PAD_GAP) / (PAD + PAD_GAP);
-        // One pad alone is no landing field.
-        if (across * deep < 2) return false;
+        // One pad alone is no landing field, but in a town's lot it is a pad court.
+        if (across * deep < Math.max(1, least)) return false;
         int spanX = across * PAD + (across - 1) * PAD_GAP, spanY = deep * PAD + (deep - 1) * PAD_GAP;
         int ox = r[0] + (r[2] - r[0] + 1 - spanX) / 2, oy = r[1] + (r[3] - r[1] + 1 - spanY) / 2;
         for (int y = r[1]; y <= r[3]; y++) for (int x = r[0]; x <= r[2]; x++) pave(ctx, x, y, APRON);

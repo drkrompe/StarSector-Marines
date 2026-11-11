@@ -16,16 +16,17 @@ import java.util.Locale;
  *
  * <p>Read from a pool entry's patch as
  * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards",
- * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]], "plough"}};
+ * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]], "plough",
+ * "port": [{"kind", "box": [x0, y0, x1, y1]}]}};
  * {@code heading} is {@code north} (+y), {@code east}, {@code south} or {@code west}. {@code yards}, a row, makes the
  * worked fields wholly south of it the port's yards ({@link PortYards}); absent or 0, the fields are left as laid.
  * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}). {@code blocks} are boxes
  * where the city's town lots join into bigger blocks ({@code TownBlockStage}). {@code plough}, cells, is how far out
  * open ground is ploughed under the band where a commons runs on past it ({@link ImpactZone}); absent or 0, the band's
- * own reach.
+ * own reach. {@code port} dresses a free port's quarters in the town's open lots ({@link Port}, {@link PortQuarter}).
  */
 public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards,
-                           List<Dress> dress, List<Box> blocks, int plough) {
+                           List<Dress> dress, List<Box> blocks, int plough, List<Port> port) {
 
     /** A box of map cells, inclusive. */
     public record Box(int x0, int y0, int x1, int y1) {
@@ -69,12 +70,47 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
         }
     }
 
+    /**
+     * A free port's quarter the patch dresses ({@link PortQuarter}): what its open lots inside the box are given over to.
+     */
+    public record Port(Kind kind, Box box) {
+        /**
+         * A container yard under its cranes, an apron of landing pads, or a market's stall rows, each taking one in
+         * {@link #openEvery} of its quarter's lots at least {@link #leastLot} on a side: a pad takes every lot it fits.
+         */
+        public enum Kind {
+            CONTAINERS(2, 9), PADS(1, 13), STALLS(3, 8);
+
+            private final int openEvery, leastLot;
+
+            Kind(int openEvery, int leastLot) {
+                this.openEvery = openEvery;
+                this.leastLot = leastLot;
+            }
+
+            /** The shortest side of a town lot the quarter takes for its trade. UNTUNED. */
+            public int leastLot() {
+                return leastLot;
+            }
+
+            /** One lot in this many of the quarter's is left open for the trade. UNTUNED. */
+            public int openEvery() {
+                return openEvery;
+            }
+        }
+
+        public Port {
+            if (kind == null || box == null) throw new IllegalArgumentException("a quarter names its kind and box");
+        }
+    }
+
     public HullSitePlan {
         if (heading == null || heading.dx * heading.dy != 0) throw new IllegalArgumentException("a hull lies on a cardinal heading");
         if (trench < MIN_TRENCH || trench > MAX_TRENCH) throw new IllegalArgumentException("trench of " + trench + " cells");
         stakes = stakes == null ? List.of() : List.copyOf(stakes);
         dress = dress == null ? List.of() : List.copyOf(dress);
         blocks = blocks == null ? List.of() : List.copyOf(blocks);
+        port = port == null ? List.of() : List.copyOf(port);
         if (yards < 0) throw new IllegalArgumentException("yards south of row " + yards);
         if (plough < 0) throw new IllegalArgumentException("plough of " + plough + " cells");
     }
@@ -130,7 +166,17 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
                 blocks.add(new Box(b.getInt(0), b.getInt(1), b.getInt(2), b.getInt(3)));
             }
         }
+        List<Port> port = new ArrayList<>();
+        JSONArray quarters = json.optJSONArray("port");
+        if (quarters != null) {
+            for (int i = 0; i < quarters.length(); i++) {
+                JSONObject q = quarters.getJSONObject(i);
+                JSONArray b = q.getJSONArray("box");
+                port.add(new Port(Port.Kind.valueOf(q.getString("kind").toUpperCase(Locale.ROOT)),
+                        new Box(b.getInt(0), b.getInt(1), b.getInt(2), b.getInt(3))));
+            }
+        }
         return new HullSitePlan(json.getInt("x"), json.getInt("y"), heading, json.optInt("trench", 72), stakes,
-                json.optInt("yards", 0), dress, blocks, json.optInt("plough", 0));
+                json.optInt("yards", 0), dress, blocks, json.optInt("plough", 0), port);
     }
 }

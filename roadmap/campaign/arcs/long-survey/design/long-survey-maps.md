@@ -109,7 +109,14 @@ quarter and its markets. Two port districts join the city's plan
 (`PrecinctCharacter.PORT`: aprons, warehouses, trade) and a warehouse district
 west of the west lane (`DEPOT`). Along the three lanes and at the Cross the
 patch's `blocks` grow the town lots into big blocks (`fallen-hull-nouns.md`, A
-grown city), each starting stake's lot left an open square.
+grown city), each starting stake's lot left an open square. The patch's `port`
+gives the quarters their trade (`PortQuarter`), on a share of their town lots
+left open for it (`TownBlockStage`): the spaceport quarter's lots are container
+yards, each column of stacks straddled by its gantry crane, and pad courts where
+a landing pad fits; the markets south of the Cross are brick squares of stall
+rows, each an awning over its goods. "Under sealed roofs" is the envelope's: the
+whole town is under it, and the stalls stand in the open squares inside. The
+sealed wall's locks have their vestibules (`mapgen-nouns.md`, Target profile and economic identity).
 
 - **Entry.** The garrison's columns and the company step off from the port's
   yards along the south edge (y 0 to 70; tank farms and landing pads on the old

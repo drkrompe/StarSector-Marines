@@ -235,6 +235,22 @@ class SealedTownTest {
         assertFalse(kept[13][7], "and nothing beside it");
     }
 
+    @Test
+    void aVestibuleStandsOutOfEitherMouthFlankingTheWay() {
+        // A lock two cells wide through a wall facing west (out is -x): its chamber x 12..14, y 5..6.
+        SealedTown.Lock lock = new SealedTown.Lock(List.of(new int[]{12, 5}, new int[]{12, 6}), List.of(),
+                List.of(new int[]{12, 5}, new int[]{13, 5}, new int[]{14, 5}, new int[]{12, 6}, new int[]{13, 6},
+                        new int[]{14, 6}), -1, 0);
+        SealedTown.Vestibule out = SealedTown.vestibule(lock, true);
+        assertEquals(2 * SealedTown.VESTIBULE, out.floor().size());
+        assertTrue(has(out.floor(), 11, 5) && has(out.floor(), 12 - SealedTown.VESTIBULE, 6), "out past the outer door");
+        assertTrue(has(out.left(), 11, 4) && has(out.right(), 11, 7), "a flank either side, nearest the mouth first");
+        assertEquals(11, out.left().get(0)[0]);
+        SealedTown.Vestibule in = SealedTown.vestibule(lock, false);
+        assertTrue(has(in.floor(), 15, 5) && has(in.floor(), 14 + SealedTown.VESTIBULE, 6), "in past the inner door");
+        assertEquals(15, in.right().get(0)[0]);
+    }
+
     private static boolean has(List<int[]> cells, int x, int y) {
         return cells.stream().anyMatch(c -> c[0] == x && c[1] == y);
     }

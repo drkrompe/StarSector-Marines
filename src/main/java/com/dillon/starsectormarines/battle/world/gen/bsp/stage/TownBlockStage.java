@@ -59,7 +59,28 @@ public final class TownBlockStage implements GenStage {
                 || leaf.kind == BlockKind.BUILDING_RESIDENTIAL)
                 && town(districts.themeAt(leaf.centerX(), leaf.centerY())),
                 crash == null ? List.of() : grown(crash));
-        if (crash != null) openStakeLots(partition, crash);
+        if (crash != null) {
+            openStakeLots(partition, crash);
+            openPortLots(partition, crash);
+        }
+    }
+
+    /**
+     * In each of a free port's quarters ({@link HullSitePlan#port}) a share of the building lots wholly inside its box
+     * ({@link HullSitePlan.Port.Kind#openEvery}) is left open ground, of the lots at least
+     * {@link HullSitePlan.Port.Kind#leastLot} on a side, by turns in the partition's order, so the quarter's yards, pads
+     * and stalls have lots to stand on.
+     */
+    static void openPortLots(Bsp.Partition partition, HullSitePlan crash) {
+        for (HullSitePlan.Port q : crash.port()) {
+            HullSitePlan.Box b = q.box();
+            int n = 0;
+            for (BlockLeaf leaf : partition.leaves) {
+                if (!leaf.kind.name().startsWith("BUILDING_") || !b.contains(leaf.left, leaf.top, leaf.right, leaf.bottom)
+                        || Math.min(leaf.right - leaf.left, leaf.bottom - leaf.top) + 1 < q.kind().leastLot()) continue;
+                if (n++ % q.kind().openEvery() == 0) leaf.kind = BlockKind.PLAZA;
+            }
+        }
     }
 
     /**

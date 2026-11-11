@@ -551,6 +551,42 @@ public final class SealedTown {
         return kept;
     }
 
+    /** Cells a lock's vestibule stands out from the envelope, at either mouth. UNTUNED. */
+    public static final int VESTIBULE = 3;
+
+    /**
+     * A lock's vestibule at one mouth: the floor straight out of the chamber for {@link #VESTIBULE} cells, as wide as the
+     * chamber, and the line of cells flanking it either side, nearest the mouth first; a cell is {@code {x, y}}.
+     */
+    public record Vestibule(List<int[]> floor, List<int[]> left, List<int[]> right) { }
+
+    /** The vestibule at {@code lock}'s outer mouth, or at its inner one. */
+    public static Vestibule vestibule(Lock lock, boolean outward) {
+        int ox = lock.outX(), oy = lock.outY();
+        int tLo = Integer.MAX_VALUE, tHi = Integer.MIN_VALUE, sLo = Integer.MAX_VALUE, sHi = Integer.MIN_VALUE;
+        for (int[] c : lock.chamber()) {
+            int t = c[0] * ox + c[1] * oy, s = ox != 0 ? c[1] : c[0];
+            tLo = Math.min(tLo, t);
+            tHi = Math.max(tHi, t);
+            sLo = Math.min(sLo, s);
+            sHi = Math.max(sHi, s);
+        }
+        List<int[]> floor = new ArrayList<>(), left = new ArrayList<>(), right = new ArrayList<>();
+        int sign = outward ? 1 : -1, t0 = outward ? tHi : tLo;
+        for (int d = 1; d <= VESTIBULE; d++) {
+            int t = t0 + sign * d;
+            for (int s = sLo; s <= sHi; s++) floor.add(along(lock, t, s));
+            left.add(along(lock, t, sLo - 1));
+            right.add(along(lock, t, sHi + 1));
+        }
+        return new Vestibule(floor, left, right);
+    }
+
+    /** The cell {@code t} along a lock's way out and {@code s} across it. */
+    private static int[] along(Lock lock, int t, int s) {
+        return lock.outX() != 0 ? new int[]{t * lock.outX(), s} : new int[]{s, t * lock.outY()};
+    }
+
     /** The sealed wall as built: which cells stand, and its locks. */
     public record Envelope(boolean[][] wall, List<Lock> locks) { }
 

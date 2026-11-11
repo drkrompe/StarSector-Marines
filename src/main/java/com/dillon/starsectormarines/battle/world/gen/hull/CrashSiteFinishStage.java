@@ -50,6 +50,9 @@ public final class CrashSiteFinishStage implements GenStage {
         // The country the patch dresses round the hull: a mine's spoil, carts, train, pumps and headframes.
         MineCountry.lay(ctx, laid.plan().dress(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
                 FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)), laid.footprint().centreX(), laid.footprint().centreY());
+        // A free port's quarters in its town: container yards under their cranes, pad aprons, a market's stall rows.
+        PortQuarter.lay(ctx, laid.plan().port(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
+                laid.footprint().centreX(), laid.footprint().centreY());
         // The landscape strews its loose stones and plants over open ground after the hull is laid: none on its decks or
         // in its trench, which it ploughed bare.
         for (BitSet bare : new BitSet[]{laid.hullCells(), laid.trenchCells()}) {
