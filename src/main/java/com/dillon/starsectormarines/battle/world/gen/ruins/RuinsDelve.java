@@ -235,11 +235,13 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
      * null on a site with no works hall. {@code spaces} are the plant's spaces by name ({@link PlantBrief}), each also a
      * chamber, when the interior is laid as its plant's brief; empty otherwise. {@code standLit} is the floor the works
      * hall's restart lights round its stand (the transfer aisle, the stand's bays or the pulpit's corner, and on a
-     * forge the breakout pool with its bridge); empty on a site with no works hall.
+     * forge the breakout pool with its bridge); empty on a site with no works hall. {@code serviceDock} is the cell in
+     * the maintenance shop where the derelict watch's service bay docks: walkable, clear of doorways, with two clear
+     * cells all round it; null on a site with no maintenance shop or no such cell.
      */
     public record Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
                            List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
-                           Map<String, Area> spaces, List<Area> standLit) {
+                           Map<String, Area> spaces, List<Area> standLit, Cell serviceDock) {
         public Interior {
             entrances = List.copyOf(entrances);
             aprons = List.copyOf(aprons);
@@ -248,6 +250,14 @@ public record RuinsDelve(int layerCount, Area landingGround, List<LandingArea> l
             doors = doors == null ? List.of() : List.copyOf(doors);
             spaces = spaces == null ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(spaces));
             standLit = standLit == null ? List.of() : List.copyOf(standLit);
+        }
+
+        /** An interior with no service bay's dock. */
+        public Interior(String name, Area footprint, int firstLayer, List<Area> entrances, List<Apron> aprons,
+                        List<Area> chambers, List<PlantHall> halls, List<LeafDoor> doors, Cell worksStand,
+                        Map<String, Area> spaces, List<Area> standLit) {
+            this(name, footprint, firstLayer, entrances, aprons, chambers, halls, doors, worksStand, spaces, standLit,
+                    null);
         }
 
         /** An interior with no stand's floor lit. */

@@ -112,6 +112,11 @@ class RuinsGroundEvidence {
                     if ((seed & 1) == 1 && layers >= 2 && interior.worksStand() == null) {
                         failures.add(where + "the works hall publishes no stand for its zone");
                     }
+                    // A plant's maintenance shop is the derelict watch's service bay: it publishes a dock.
+                    if (interior.halls().stream().anyMatch(hall -> hall.stage() == RuinsDelve.PlantStage.MAINTENANCE)
+                            && interior.serviceDock() == null) {
+                        failures.add(where + "the maintenance shop publishes no service dock");
+                    }
                     // The route from the vault to the landing (the battle's first lift point's) crosses the works hall.
                     for (RuinsDelve.PlantHall hall : interior.halls()) {
                         if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY && hall.stage() != RuinsDelve.PlantStage.WORKS) {

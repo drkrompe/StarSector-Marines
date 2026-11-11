@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 /**
  * Lays a ruins site's delve over the dead settlement ({@code mapgen-nouns.md}, Ruins ground): the cleared landing ground at the
@@ -151,6 +152,31 @@ public final class RuinsDelveStage implements GenStage {
                     centre.y() + 2 + HallFrame.BAY));
         }
         return out;
+    }
+
+    /**
+     * The cell of {@code hall} nearest its middle where a service bay docks: every cell within two of it, inside the
+     * hall, is {@code clear} (walkable, no piece, no doorway). Null where the hall has none.
+     */
+    static Cell dockCell(Area hall, BiPredicate<Integer, Integer> clear) {
+        int cx = hall.centreX(), cy = hall.centreY(), reach = Math.max(hall.width(), hall.height());
+        for (int r = 0; r <= reach; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = cx + dx, y = cy + dy;
+                    if (hall.left() + 2 > x || x > hall.right() - 2 || hall.bottom() + 2 > y || y > hall.top() - 2) {
+                        continue;
+                    }
+                    boolean ok = true;
+                    for (int ny = y - 2; ny <= y + 2 && ok; ny++) {
+                        for (int nx = x - 2; nx <= x + 2 && ok; nx++) ok = clear.test(nx, ny);
+                    }
+                    if (ok) return new Cell(x, y);
+                }
+            }
+        }
+        return null;
     }
 
     private static Area clip(Area hall, int l, int b, int r, int t) {
@@ -531,7 +557,8 @@ public final class RuinsDelveStage implements GenStage {
             leafDoors.add(new RuinsDelve.LeafDoor(new Area(outer.x(), outer.y() - 1, outer.x(), outer.y() + 1), false,
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
-                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces, standLit);
+                    entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces, standLit,
+                    serviceDock(plantHalls));
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
             // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
@@ -1872,6 +1899,16 @@ public final class RuinsDelveStage implements GenStage {
                 for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
             }
             return out;
+        }
+
+        /** The maintenance shop's dock cell ({@link #dockCell}), or null with no maintenance shop. */
+        Cell serviceDock(List<RuinsDelve.PlantHall> halls) {
+            for (RuinsDelve.PlantHall hall : halls) {
+                if (hall.stage() != RuinsDelve.PlantStage.MAINTENANCE) continue;
+                return dockCell(hall.footprint(), (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                        && !topology.isFixture(x, y) && !grid.isDoorway(x, y));
+            }
+            return null;
         }
 
         /**
