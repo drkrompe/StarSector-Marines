@@ -79,7 +79,78 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
             out.add(new Shot("medical", medical[0], medical[1], STRUCTURE_WIDTH));
             mark("medical", medical[2], medical[3]);
         }
+        defenceShots(out, sim);
         return out;
+    }
+
+    /** Cells across a gun close-up: the wall, the posts and the ground they cover in one frame. */
+    private static final float GUN_WIDTH = 60f;
+    /** Cells of straight wall each side a gate or a corner is told by, so a building's door is neither. */
+    private static final int ARM = 5;
+
+    /**
+     * Close-ups of the guns against the wall: the gate in a place's outer wall, and the corner of it, each the one
+     * nearest a gun, centred on the wall so each gun's stand against it can be seen.
+     */
+    private static void defenceShots(List<Shot> out, BattleSimulation sim) {
+        CellTopology t = sim.getTopology();
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        float[] gate = null, corner = null;
+        float gateD = Float.MAX_VALUE, cornerD = Float.MAX_VALUE;
+        for (int x = ARM + 1; x < w - ARM - 1; x++) {
+            for (int y = ARM + 1; y < h - ARM - 1; y++) {
+                if (t.hasBuildingKindHint(x, y)) continue;
+                if (!t.isWall(x, y) && sim.getGrid().isWalkable(x, y)
+                        && (outerWall(t, x, y, 1, 0) && outerWall(t, x, y, -1, 0)
+                        || outerWall(t, x, y, 0, 1) && outerWall(t, x, y, 0, -1))) {
+                    float d = nearestGun(sim, x, y);
+                    if (d < gateD) {
+                        gateD = d;
+                        gate = new float[]{x + .5f, y + .5f};
+                    }
+                }
+                if (t.isWall(x, y) && (outerWall(t, x, y, 1, 0) != outerWall(t, x, y, -1, 0))
+                        && (outerWall(t, x, y, 0, 1) != outerWall(t, x, y, 0, -1))) {
+                    float d = nearestGun(sim, x, y);
+                    if (d < cornerD) {
+                        cornerD = d;
+                        corner = new float[]{x + .5f, y + .5f};
+                    }
+                }
+            }
+        }
+        if (gate != null) {
+            out.add(new Shot("gate-guns", gate[0], gate[1], GUN_WIDTH));
+            mark("gate-guns", 3, 3);
+        }
+        if (corner != null) {
+            out.add(new Shot("corner-guns", corner[0], corner[1], GUN_WIDTH));
+            mark("corner-guns", 3, 3);
+        }
+    }
+
+    /**
+     * Whether an unbroken run of {@link #ARM} wall cells that are no building's leads from beside {@code (x, y)} along
+     * {@code (dx, dy)}: a gate's cheek or a corner's arm, past any gate's own width.
+     */
+    private static boolean outerWall(CellTopology t, int x, int y, int dx, int dy) {
+        int start = t.isWall(x, y) ? 1 : 2;
+        for (int k = start; k < start + ARM; k++) {
+            int cx = x + dx * k, cy = y + dy * k;
+            if (!t.isWall(cx, cy) || t.hasBuildingKindHint(cx, cy)) return false;
+        }
+        return true;
+    }
+
+    /** Squared distance from {@code (x, y)} to the nearest laid gun. */
+    private static float nearestGun(BattleSimulation sim, int x, int y) {
+        float best = Float.MAX_VALUE;
+        for (DefensePost post : sim.getDefensePosts()) {
+            if (post.restFacing == null) continue;
+            float dx = post.anchorX - x, dy = post.anchorY - y;
+            best = Math.min(best, dx * dx + dy * dy);
+        }
+        return best;
     }
 
     /** States the size of what a close-up is centred on, cells, so the review sheet can ring it. */
