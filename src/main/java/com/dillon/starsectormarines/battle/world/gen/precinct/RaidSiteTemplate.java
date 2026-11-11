@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.StormWind;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OpenPit;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayout;
@@ -263,10 +264,35 @@ public final class RaidSiteTemplate {
         List<Piece> pieces = new ArrayList<>();
         industry.sitePieces(new SiteFrame(plan, mirrorX, mirrorY, width, height, security, banked ? wind : null),
                 pieces);
+        if (!industry.worksStreetsThrough()) {
+            Site kept = worksGround(plan, industry.works(machines)
+                    .fittedTo(Math.round(industry.worksFit() * width * height)), width, height);
+            if (kept != null) pieces.add(kept);
+        }
         boolean deepFeeder = industry.deepFeeder();
         pieces.addAll(lines(mirrorX, mirrorY, !deepFeeder));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, !deepFeeder, width, height));
         return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key()).withRaidSecurity(security);
+    }
+
+    /** The works' own ground, kept clear of the town's streets for an industry whose works they may not cross. */
+    public static final String WORKS_GROUND = "works-ground";
+
+    /**
+     * The works' own ground for an industry whose works the town's streets may not cross
+     * ({@link RaidIndustry#worksStreetsThrough}): the square its program claims round its seed, an open site the
+     * places' streets keep off from before they grow, so the works packs on ground no street cuts into blocks. Its
+     * roads still reach its gates from outside, as every works' do. Null without a works.
+     */
+    static Site worksGround(PrecinctPlan plan, FortressProgram program, int width, int height) {
+        Precinct works = null;
+        for (Precinct p : plan.precincts()) if (WORKS.equals(p.name())) works = p;
+        if (works == null) return null;
+        int half = (int) Math.ceil(Math.sqrt(program.envelopeArea())) / 2;
+        int x0 = Math.max(1, works.seedX() - half), y0 = Math.max(1, works.seedY() - half);
+        int x1 = Math.min(width - 2, works.seedX() + half), y1 = Math.min(height - 2, works.seedY() + half);
+        if (x1 < x0 || y1 < y0) return null;
+        return new Site(WORKS_GROUND, x0, y0, x1, y1, SitePurpose.OPEN, false);
     }
 
     /**

@@ -231,7 +231,7 @@ public final class PortWorks implements RaidIndustry {
     }
 
     // Ground held beside a works at the deep end and brought in to its claim once it is built: the port's apron
-    // before the hub, and light industry's assembly line now (LightIndustryWorks).
+    // before the hub, and light industry's assembly line before its assembly hall.
 
     /** Open ground between a works' furthest claim and the ground held beside it. UNTUNED. */
     static final int APRON_GAP = 3;
