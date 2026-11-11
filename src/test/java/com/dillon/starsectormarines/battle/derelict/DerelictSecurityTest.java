@@ -59,6 +59,20 @@ class DerelictSecurityTest {
     }
 
     @Test
+    void theZoneNearestTheServiceDockReachesPastIt() {
+        List<DerelictSecurity.ZonePlan> zones = DerelictSecurity.zonesAlong(straight(), 4);
+        DerelictSecurity.ZonePlan near = zones.get(2);
+        Cell dock = new Cell(near.nodeX() + 2, 50 + near.perimeterCells() + 3);
+        List<DerelictSecurity.ZonePlan> docked = DerelictSecurity.dockAt(zones, dock);
+        assertEquals(near.perimeterCells() + 3 + DerelictSecurity.DOCK_MARGIN_CELLS, docked.get(2).perimeterCells());
+        assertEquals(near.nodeX(), docked.get(2).nodeX(), "the node keeps its place");
+        assertEquals(zones.get(1), docked.get(1));
+        Cell inside = new Cell(near.nodeX(), 51);
+        assertEquals(zones, DerelictSecurity.dockAt(zones, inside), "a dock well inside changes nothing");
+        assertEquals(zones, DerelictSecurity.dockAt(zones, null));
+    }
+
+    @Test
     void egressCellsLieOnTheWayOutPastTheMiddle() {
         for (int[] cell : DerelictSecurity.egressAlong(straight())) {
             assertTrue(cell[0] > 50 && cell[0] < 100);
