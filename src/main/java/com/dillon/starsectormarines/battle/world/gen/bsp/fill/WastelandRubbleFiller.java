@@ -330,8 +330,10 @@ public final class WastelandRubbleFiller implements BlockFiller {
     private static void placeLoose(GenContext ctx, String id, int x, int y) {
         TileRegistry registry = TileRegistry.installed();
         DoodadDef def = registry == null ? null : registry.doodad(id);
-        if (def == null || !ctx.grid.isWalkable(x, y)) return;
+        if (def == null || !ctx.grid.isWalkable(x, y) || ctx.topology.isFixture(x, y)) return;
         ctx.doodads.add(new Doodad(x, y, def));
+        // Wreckage that is cover holds its cell, so a later prop (a works' sandbags) is not laid over it.
+        if (def.cover.level() > 0) ctx.topology.setFixture(x, y, true);
     }
 
     private static int[] natureIndices(String[] ids) {
