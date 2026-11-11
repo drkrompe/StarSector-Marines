@@ -175,7 +175,12 @@ chapter (pick through the art session), voiced later as the Khettara is.
   claim does not spread in chapter 1) from `FALL_FEEDSTOCK`, with
   `FALL_WALKERS` (a line frame, a rounds walker, two strippers) already out at
   the bay mouth, and `FALL_PILES` of the town's buildings on the claim as
-  salvage for the strippers (`TownSalvage`). All UNTUNED. Ground with no hull site (no pool installed)
+  salvage for the strippers (`TownSalvage`). The hull is awake from the
+  start (`install(..., awake)`): its zone reaches `FALL_REACH` off the plates,
+  over the whole town, its flock ranges the town's places (one building in each
+  `FALL_RANGE_CELLS` square) and its walkers are out on the watch's tasking to
+  the trench and the town's edge, contesting the rescue's routes with no
+  special case for the shelter or lift. All UNTUNED. Ground with no hull site (no pool installed)
   falls back to a site network laid by `DerelictSecurity.install`'s route
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
   that one seed. Open: the forward-bay bonus objective.
