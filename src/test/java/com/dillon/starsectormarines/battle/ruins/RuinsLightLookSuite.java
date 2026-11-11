@@ -52,7 +52,8 @@ import java.util.List;
  * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.theme} a vault theme
  * ({@link RuinsVaultTheme}), so the site lays its works hall for the {@code works} focus, {@code -Dsnapshot.ruinsLight.watch=true} with
  * {@code -Dsnapshot.ruinsLight.occupant=DOMAIN_SECURITY} the watch's lights at its first zone's node, asleep and
- * hunting, {@code -Dsnapshot.ruinsLight.company=true} stands a fire team, a Hound and an APC at
+ * hunting, {@code -Dsnapshot.ruinsLight.dy} moves the camera that many cells north (negative: south),
+ * {@code -Dsnapshot.ruinsLight.company=true} stands a fire team, a Hound and an APC at
  * the focus with their own lights, dark and lit, and {@code -Dsnapshot.ruinsLight.warm=true} renders the hall's
  * restart instead, one renderer stepping the battle, so the lamps are seen striking as they warm up. {@code -Psnapshot=ruins-light-look}.
  */
@@ -106,6 +107,7 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
                 cx = works.hall().x();
                 cy = works.hall().y();
             }
+            cy += Integer.getInteger("snapshot.ruinsLight.dy", 0);
             DerelictSecurityDirector watch = sim.derelictSecurity();
             if (Boolean.getBoolean("snapshot.ruinsLight.watch") && watch != null) {
                 // The watch's own lights by its wake: asleep, then the hunt (every online zone alert, vents and bays up).

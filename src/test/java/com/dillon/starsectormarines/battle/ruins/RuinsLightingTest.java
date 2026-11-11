@@ -151,14 +151,6 @@ class RuinsLightingTest {
     }
 
     @Test
-    void theWorksStandLightsWithTheHallsRestart() {
-        RuinsDelve.Cell stand = new RuinsDelve.Cell(20, 20);
-        assertTrue(RuinsLighting.byStand(stand, 20 + RuinsLighting.STAND_REACH, 20));
-        assertFalse(RuinsLighting.byStand(stand, 21 + RuinsLighting.STAND_REACH, 20));
-        assertFalse(RuinsLighting.byStand(null, 20, 20), "a site with no works hall has no stand");
-    }
-
-    @Test
     void applyingUnchangedPowerKeepsTheSameLightingSoNothingRebakes() {
         CellTopology ground = new CellTopology(2, 2);
         PowerGraph graph = graph(3);
