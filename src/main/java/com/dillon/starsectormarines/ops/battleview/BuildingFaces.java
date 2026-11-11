@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -276,9 +277,37 @@ final class BuildingFaces {
         return cellPx >= DETAIL_CELL_PX || storeyPx >= DETAIL_STOREY_PX;
     }
 
-    /** How much a plan {@code h} metres up is scaled about the view's centre. */
+    /** How much a plan {@code h} metres up is scaled about the view's centre, the eye at play zoom. */
     static float lift(float heightMeters) {
-        return EYE_METERS / (EYE_METERS - heightMeters);
+        return lift(heightMeters, 1f);
+    }
+
+    /** How much a plan {@code h} metres up is scaled about the view's centre, the eye risen by {@code rise}. */
+    static float lift(float heightMeters, float rise) {
+        float eye = EYE_METERS * rise;
+        return eye / (eye - heightMeters);
+    }
+
+    /** The view's width, cells, at which every eye stands at its own height: play zoom. */
+    static final float PLAY_CELLS = 60f;
+
+    /**
+     * How far the eye has risen over its play-zoom height for a view {@code cellsAcross} cells wide: not at all at
+     * play zoom or closer, and in step with the view's width past it. A camera that stays put as the view widens
+     * lifts a roof at the screen's edge the same share of its distance from the centre at every zoom, so the wider
+     * the view the more cells it leans off its footprint: twenty and more at the whole map, the buildings growing
+     * taller as the player zooms out. Risen with the view, a building leans about as many cells as at play zoom, so
+     * it stands as tall against its own footprint at every zoom. Every eye in the battle view (buildings, freestanding walls, rises, drops, a sky port's
+     * city below) rises by this one factor, so what stands beside each other keeps leaning together.
+     */
+    static float rise(float cellsAcross) {
+        return Math.max(1f, cellsAcross / PLAY_CELLS);
+    }
+
+    /** {@link #rise(float)} for a camera's view. */
+    static float rise(BattleCamera camera) {
+        float cellPx = camera.cellPxSize();
+        return cellPx <= 0f ? 1f : rise(camera.vpW() / cellPx);
     }
 
     /** Where a point {@code p} of a plan lifted by {@code lift} stands, the view's centre at {@code c}. */
