@@ -29,6 +29,10 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * A ruins site's works while the battle runs ({@code ruins-expedition.md}, Works): the power hall, a junction per layer, and the
@@ -559,11 +563,17 @@ public final class RuinsWorks {
             return;
         }
         if (!watchLit && delve != null) {
-            RuinsLighting.layWatch(sim.getTopology(), delve, watch.network(), watch.ducts());
+            Map<Integer, int[]> bays = new TreeMap<>();
+            for (var bay : watch.serviceBays().entrySet()) {
+                bays.put(bay.getKey(), new int[] {sim.world().cellX(bay.getValue()), sim.world().cellY(bay.getValue())});
+            }
+            RuinsLighting.layWatch(sim.getTopology(), delve, watch.network(), watch.ducts(), bays);
             watchLit = true;
         }
-        RuinsLighting.apply(sim.getTopology(), graph,
-                RuinsLighting.watchCircuits(watch.network(), watch.wake().stage()), seconds);
+        Set<String> lit = new TreeSet<>(RuinsLighting.watchCircuits(watch.network(), watch.wake().stage(),
+                watch.ducts(), watch.wake()::released));
+        lit.addAll(RuinsLighting.serviceCircuits(watch.network(), watch.serviceBays(), id -> sim.resolveUnit(id) != 0));
+        RuinsLighting.apply(sim.getTopology(), graph, lit, seconds);
     }
 
     private void finish(BattleSimulation sim) {

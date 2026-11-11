@@ -38,7 +38,7 @@ class LongSurveyGroundTest {
         List<HaulRoad> roads = List.of(new HaulRoad(0, List.of(new Cell(70, 15), new Cell(60, 15), new Cell(41, 15))),
                 new HaulRoad(1, List.of(new Cell(30, -20))));
         HullSite site = new HullSite(footprint, Direction.E, interior, new Area(36, 12, 40, 18), new Cell(38, 15), bay,
-                trench, List.of(), lattice, roads, List.of(new Stake(0, StakeStage.RAISED)), List.of(), 100,
+                trench, List.of(), List.of(footprint), lattice, roads, List.of(new Stake(0, StakeStage.RAISED)), List.of(), 100,
                 new BitSet(), new BitSet());
 
         FallenHullSite rules = LongSurveyGround.rulesSite(site, List.of(), List.of(), 25f);

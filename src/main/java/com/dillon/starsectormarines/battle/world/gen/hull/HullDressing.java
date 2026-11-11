@@ -53,7 +53,12 @@ final class HullDressing {
             "ship-wear.patch"};
     static final String CONDUIT = HULL + "conduit", RIB = HULL + "rib", CRADLE = HULL + "hangar-cradle",
             SENSOR_DRUM = HULL + "sensor-drum", FORGE_CABLES = HULL + "forge-cables",
-            BREACH_PLATING = HULL + "breach-plating", BREACH_SCATTER = HULL + "breach-scatter";
+            BREACH_PLATING = HULL + "breach-plating", BREACH_SCATTER = HULL + "breach-scatter",
+            BREACH_EDGE = HULL + "breach-edge", BREACH_SPILL = HULL + "breach-spill", SHEAR_EDGE = HULL + "shear-edge";
+    /** The hull art's own interior dressing goes in under this prefix; {@code -wall} pieces stand at a wall's foot. */
+    static final String INTERIOR = HULL + "interior-";
+    /** Quarter turns: image top toward +y, -x, -y, +x. */
+    private static final int[][] TURNS = {{0, 1}, {-1, 0}, {0, -1}, {1, 0}};
     /** One flat piece tried per this many deck cells. UNTUNED. */
     static final int DECK_EVERY = 45;
     /** A frame rib stands every this many cells along the spine. */
@@ -276,20 +281,48 @@ final class HullDressing {
             return true;
         }
 
-        /** Torn plating and scatter over each breach's floor and the ground just outside it. */
+        /**
+         * Every breach: torn edges against the shell it was torn through, torn plating, spill and scatter over its floor
+         * and the ground just outside; and beyond each section's broken end, the sheared deck, rib stubs and cable it
+         * dragged out over the ground, along the break.
+         */
         void breaches() {
             DoodadDef plating = registry.doodad(BREACH_PLATING), scatter = registry.doodad(BREACH_SCATTER);
+            DoodadDef edge = registry.doodad(BREACH_EDGE), spill = registry.doodad(BREACH_SPILL);
+            DoodadDef shear = registry.doodad(SHEAR_EDGE);
             if (plating == null) plating = registry.doodad("ship-dressing.debris");
             for (Entrance e : hull.entrances()) {
                 if (!e.torn()) continue;
-                Area area = frame.area(e.door());
+                HullPlan.Section section = HullPlan.section(e.door().u0());
+                Area area = frame.area(section, e.door());
                 for (int y = area.bottom() - 2; y <= area.top() + 2; y++) {
                     for (int x = area.left() - 2; x <= area.right() + 2; x++) {
                         if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
-                        int hash = Math.floorMod(CrashSiteStage.hash(ctx.seed, x, y, 0xB5), 7);
+                        if (edge != null && area.contains(x, y)) {
+                            for (int turn = 0; turn < 4; turn++) {
+                                int nx = x + TURNS[turn][0], ny = y + TURNS[turn][1];
+                                if (grid.inBounds(nx, ny) && topology.isWall(nx, ny)) {
+                                    ctx.doodads.add(0, new Doodad(x, y, edge, turn));
+                                }
+                            }
+                        }
+                        int hash = Math.floorMod(CrashSiteStage.hash(ctx.seed, x, y, 0xB5), 9);
                         if (hash == 0 && plating != null) flat(plating, x, y, false);
-                        else if (hash <= 2 && scatter != null) flat(scatter, x, y, false);
+                        else if (hash == 1 && spill != null) flat(spill, x, y, false);
+                        else if (hash <= 3 && scatter != null) flat(scatter, x, y, false);
                     }
+                }
+                if (!e.broken() || shear == null) continue;
+                // The ground one cell beyond the cut face, the whole breadth of the section, the edge's top toward it.
+                int face = e.du() > 0 ? section.u1() + 1 : section.u0() - 1;
+                int sx = frame.dx(e.du(), 0), sy = frame.dy(e.du(), 0);
+                int turn = 0;
+                for (int t = 0; t < 4; t++) if (TURNS[t][0] == -sx && TURNS[t][1] == -sy) turn = t;
+                for (int v = 0; v < HullPlan.BREADTH; v++) {
+                    int x = frame.wx(section, face, v), y = frame.wy(section, face, v);
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || taken[y * w + x]) continue;
+                    if (!topology.isWall(x - sx, y - sy) && hull.at(face - e.du(), v) == HullPlan.Kind.OUTSIDE) continue;
+                    ctx.doodads.add(0, new Doodad(x, y, shear, turn));
                 }
             }
         }
@@ -300,6 +333,9 @@ final class HullDressing {
             for (String id : DECK) {
                 DoodadDef def = registry.doodad(id);
                 if (def != null) pool.add(def);
+            }
+            for (DoodadDef def : registry.doodads()) {
+                if (def.id.startsWith(INTERIOR) && !def.id.endsWith("-wall")) pool.add(def);
             }
             if (pool.isEmpty()) return;
             for (int k = 0; k < compartments.length; k++) {

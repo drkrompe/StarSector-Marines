@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
 
 /**
  * A ruins site's light ({@code ruins-expedition.md}, Light): the plant is black under its roof when the company lands,
@@ -32,10 +34,10 @@ import java.util.TreeSet;
  *
  * <p>At a derelict site the watch has lights of its own, on the standby it never lost ({@link DerelictPower}), and
  * they show its wake ({@code derelict-watch.md}, Waking): a zone's red alarm strips burn once it is alert or awake;
- * its vent hatches glow amber from {@link FacilityWake.Stage#STIRRING}, its reserve bay from
- * {@link FacilityWake.Stage#ROUSED}; the hunt sets every online zone alert and so lights them all, and the
- * contingency lights every zone with a live node. A zone powered down through its junction, or whose node is down,
- * goes dark.
+ * a vent's hatch glows amber while a flock may use it (from {@link FacilityWake.Stage#STIRRING}, never once a charge
+ * has collapsed it), and a reserve bay's lamp once its flock has come out; the hunt sets every online zone alert and so
+ * lights them all, and the contingency lights every zone with a live node. A zone powered down through its junction,
+ * or whose node is down, stays dark through all of it.
  */
 public final class RuinsLighting {
 
@@ -55,10 +57,13 @@ public final class RuinsLighting {
     static final String BAND = "band-";
     static final String STORE = "store-";
     static final String WATCH = "watch-";
-    static final String VENTS = "vents-";
+    static final String VENT = "vent-";
     static final String BAY = "bay-";
+    static final String SERVICE = "service-";
     /** The watch's alarm strips stand this far apart: a sparse lattice over the plant's own lights. */
     static final int ALARM_SPACING = 10;
+    /** How far round the works hall's stand the hall's restart lights. */
+    static final int STAND_REACH = 9;
 
     private static final float[] ALARM_LIGHT = {1f, 0.12f, 0.08f};
     private static final float[] HATCH_LIGHT = {1f, 0.62f, 0.14f};
@@ -111,6 +116,7 @@ public final class RuinsLighting {
         }
         RuinsDelve.Area hall = delve.powerHall() == null ? null : delve.powerHall().footprint();
         RuinsDelve.Area vault = delve.vault() == null ? null : delve.vault().footprint();
+        RuinsDelve.Cell stand = delve.interior().worksStand();
         Circuits circuitAt = (x, y) -> {
             if (vault != null && vault.contains(x, y)) return VAULT;
             for (int i = 0; i < stores.size(); i++) {
@@ -118,6 +124,7 @@ public final class RuinsLighting {
                 if (x >= k[0] && x <= k[2] && y >= k[1] && y <= k[3]) return storeCircuits.get(i);
             }
             if (hall != null && hall.contains(x, y)) return HALL;
+            if (byStand(stand, x, y)) return HALL;
             return band(Math.max(0, DerelictPower.junctionOf(x, y, delve.layers())));
         };
         List<Lamp> lamps = new ArrayList<>(strips(ground, delve.interior().footprint(), circuitAt));
@@ -139,6 +146,14 @@ public final class RuinsLighting {
             emergency(ground, lamps, delve.powerHall().console().x(), delve.powerHall().console().y());
         }
         return new NightLighting(0f, ROOFED_DARKNESS, lamps, circuits(works.graph()));
+    }
+
+    /**
+     * Whether a cell is by the works hall's stand (its pour pulpit and bridge), which lights with the hall's own restart
+     * rather than with its band: the first thing the plant's light shows is the stand and what holds it.
+     */
+    static boolean byStand(RuinsDelve.Cell stand, int x, int y) {
+        return stand != null && Math.max(Math.abs(x - stand.x()), Math.abs(y - stand.y())) <= STAND_REACH;
     }
 
     /** What circuit lights a cell of the plant. */
@@ -210,25 +225,45 @@ public final class RuinsLighting {
     /** The circuit of a security zone's alarm strips. */
     public static String watch(int zoneId) { return WATCH + zoneId; }
 
-    /** The circuit of a security zone's vent hatches. */
-    public static String vents(int zoneId) { return VENTS + zoneId; }
+    /** The circuit of one vent's hatch. */
+    public static String vent(int ventId) { return VENT + ventId; }
 
     /** The circuit of a security zone's reserve bay. */
     public static String bay(int zoneId) { return BAY + zoneId; }
 
+    /** The circuit of a security zone's service bay, where its walkers re-arm and its tender and repair drone work. */
+    public static String service(int zoneId) { return SERVICE + zoneId; }
+
+    /**
+     * The service bays lit now: a zone's bay while its zone is online and the bay stands. {@code bays} maps a zone to
+     * its bay's entity.
+     */
+    public static Set<String> serviceCircuits(SecurityNetwork network, Map<Integer, Long> bays, LongPredicate stands) {
+        Set<String> out = new TreeSet<>();
+        for (var bay : bays.entrySet()) {
+            SecurityZone zone = network.zone(bay.getKey());
+            if (zone != null && zone.online() && stands.test(bay.getValue())) out.add(service(bay.getKey()));
+        }
+        return out;
+    }
+
     /**
      * The watch's circuits lit now: each online zone's alarm strips while it is alert or awake, or in the contingency;
-     * its vent hatches once the ducts are up and its bay once the bays open.
+     * each vent's hatch while a flock may use it (the ducts are up, it stands, its zone is online); and a zone's
+     * reserve bay once its flock has come out ({@code released}), while its zone is online.
      */
-    public static Set<String> watchCircuits(SecurityNetwork network, FacilityWake.Stage stage) {
+    public static Set<String> watchCircuits(SecurityNetwork network, FacilityWake.Stage stage, ServiceDucts ducts,
+                                            IntPredicate released) {
         Set<String> out = new TreeSet<>();
         for (SecurityZone zone : network.zones()) {
             if (!zone.online()) continue;
             if (zone.state() != SecurityZone.State.DORMANT || stage == FacilityWake.Stage.CONTINGENCY) {
                 out.add(watch(zone.id));
             }
-            if (stage.ventsOpen()) out.add(vents(zone.id));
-            if (stage.baysOpen()) out.add(bay(zone.id));
+            if (released.test(zone.id)) out.add(bay(zone.id));
+        }
+        if (ducts != null) {
+            for (ServiceDucts.Vent vent : ducts.vents()) if (ducts.usable(vent, network)) out.add(vent(vent.id()));
         }
         return out;
     }
@@ -255,7 +290,7 @@ public final class RuinsLighting {
         }
         if (ducts != null) {
             for (ServiceDucts.Vent vent : ducts.vents()) {
-                out.add(lamp(vent.cellX(), vent.cellY(), 2.5f, HATCH_LIGHT, vents(vent.zoneId()), 0.6f, 3f));
+                out.add(lamp(vent.cellX(), vent.cellY(), 2.5f, HATCH_LIGHT, vent(vent.id()), 0.6f, 3f));
             }
         }
         return out;
@@ -280,11 +315,16 @@ public final class RuinsLighting {
     }
 
     /** Adds the watch's lamps to {@code ground}'s lighting, once its network stands; no lighting, no change. */
-    public static void layWatch(CellTopology ground, RuinsDelve delve, SecurityNetwork network, ServiceDucts ducts) {
+    public static void layWatch(CellTopology ground, RuinsDelve delve, SecurityNetwork network, ServiceDucts ducts,
+                                Map<Integer, int[]> serviceBays) {
         NightLighting night = ground.nightLighting();
         if (night == null || delve.interior() == null) return;
         List<Lamp> lamps = new ArrayList<>(night.lamps());
         lamps.addAll(watchLamps(ground, network, ducts, delve.interior().footprint()));
+        for (var bay : serviceBays.entrySet()) {
+            int[] at = bay.getValue();
+            add(lamps, ground, at[0], at[1], 3, 3.5f, WORK_LIGHT, service(bay.getKey()), 0.8f, 1f);
+        }
         ground.setNightLighting(night.withLamps(lamps));
     }
 

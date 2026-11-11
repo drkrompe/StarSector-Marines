@@ -1015,6 +1015,7 @@ public class BattleRenderer {
      */
     private void collectRoofs(RenderContext ctx, DrawList out, float alphaMult) {
         BattleSimulation sim = ctx.sim;
+        riseEye();
         // Freestanding walls stood up first, so every building's faces and roof stand over them.
         freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
         Buildings buildings = sim.getBuildings();
@@ -1049,7 +1050,7 @@ public class BattleRenderer {
                 boolean drawable = roofMesh.sync(topology, buildings, sprites.roofSheet(),
                         sprites.roofSheetPxW(), sprites.roofSheetPxH(), resolver, alphaMult,
                         b -> buildingClass(topology, buildings, b));
-                if (drawable && serving) roofMesh.draw(rc.camera, ROOF_LIFTS);
+                if (drawable && serving) roofMesh.draw(rc.camera, roofLifts);
             });
             if (!serving) streamRoofs(sim, out, alphaMult, topology);
             else if (ship != null) streamShipRoofs(sim, out, alphaMult, topology, ship);
@@ -1085,8 +1086,8 @@ public class BattleRenderer {
         }
         float meters = BuildingFaces.HEIGHTS[heightClass];
         WallMounts.standUp(corners, mountEaves, rc.camera.panCellX(), rc.camera.panCellY(), meters,
-                ROOF_LIFTS[heightClass], BuildingFaces.standing(meters, 1f - b.currentAlpha),
-                WallMounts.railMeters(d.definitionId()), WallMounts.outerMeters(d.definitionId()));
+                roofLifts[heightClass], BuildingFaces.standing(meters, 1f - b.currentAlpha),
+                WallMounts.railMeters(d.definitionId()), WallMounts.outerMeters(d.definitionId()), roofRise);
         return true;
     }
 
@@ -1114,10 +1115,26 @@ public class BattleRenderer {
         return null;
     }
 
-    /** Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre. */
-    private static final float[] ROOF_LIFTS = new float[BuildingFaces.HEIGHTS.length];
-    static {
-        for (int c = 0; c < ROOF_LIFTS.length; c++) ROOF_LIFTS[c] = BuildingFaces.lift(BuildingFaces.HEIGHTS[c]);
+    /**
+     * Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre, for the
+     * eye risen by {@link #roofRise}; set each frame from the view's width ({@link #riseEye}).
+     */
+    private final float[] roofLifts = new float[BuildingFaces.HEIGHTS.length];
+    private float roofRise = -1f;
+
+    {
+        riseTo(1f);
+    }
+
+    /** Raises the eye for this frame's view ({@link BuildingFaces#rise}) and the roofs' lifts with it. */
+    private void riseEye() {
+        float rise = BuildingFaces.rise(rc.camera);
+        if (rise != roofRise) riseTo(rise);
+    }
+
+    private void riseTo(float rise) {
+        roofRise = rise;
+        for (int c = 0; c < roofLifts.length; c++) roofLifts[c] = BuildingFaces.lift(BuildingFaces.HEIGHTS[c], rise);
     }
 
     /** Each building's height class now, worked out again whenever the topology changes. */
@@ -1238,7 +1255,7 @@ public class BattleRenderer {
                     WallDress.rhythm(k.kind, look, BuildingFaces.hash(k.id, 24))));
             if (heightClass == BuildingFaces.RAZED) {
                 // Destroyed: a broken shell a storey high at most, its corners standing tallest, rubble at its foot.
-                float lift = BuildingFaces.lift(SHELL_METERS);
+                float lift = BuildingFaces.lift(SHELL_METERS, roofRise);
                 paint.into(ruinShells);
                 for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
                     float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
@@ -1260,7 +1277,7 @@ public class BattleRenderer {
             // fade and the far walls' inner sides come up to frame the rooms. The walls stay opaque throughout.
             float cut = 1f - b.currentAlpha;
             float meters = BuildingFaces.HEIGHTS[heightClass];
-            float lift = ROOF_LIFTS[heightClass];
+            float lift = roofLifts[heightClass];
             boolean industrial = b.kind == BuildingKind.INDUSTRIAL || b.kind == BuildingKind.FORTIFIED;
             int storeys = BuildingFaces.storeys(meters);
             float upright = BuildingFaces.standing(meters, cut);
@@ -1474,8 +1491,8 @@ public class BattleRenderer {
                     if (home == null || home.currentAlpha < .5f) continue;
                     int c = buildingClass(topology, buildings, home);
                     if (c == BuildingFaces.RAZED) continue;
-                    mx = viewX + (x - viewX) * ROOF_LIFTS[c];
-                    my = viewY + (y - viewY) * ROOF_LIFTS[c];
+                    mx = viewX + (x - viewX) * roofLifts[c];
+                    my = viewY + (y - viewY) * roofLifts[c];
                 } else if (!hiddenBehindBuilding(topology, buildings, x, y, viewX, viewY)) continue;
                 float px = rc.camera.cellToScreenX(mx), py = rc.camera.cellToScreenY(my);
                 float o = r + edge;
@@ -1496,7 +1513,7 @@ public class BattleRenderer {
         Buildings buildings = sim.getBuildings();
         if (topology == null || buildings == null || buildings.isEmpty()) return 0;
         for (int c = BuildingFaces.RAZED - 1; c >= 0; c--) {
-            float lift = ROOF_LIFTS[c];
+            float lift = roofLifts[c];
             int bx = (int) Math.floor(BuildingFaces.unlifted(x, viewX, lift));
             int by = (int) Math.floor(BuildingFaces.unlifted(y, viewY, lift));
             if (!topology.inBounds(bx, by)) continue;
@@ -1512,7 +1529,7 @@ public class BattleRenderer {
     private boolean hiddenBehindBuilding(CellTopology topology, Buildings buildings, float x, float y, float viewX,
                                          float viewY) {
         for (int c = 0; c < BuildingFaces.RAZED; c++) {
-            float lift = ROOF_LIFTS[c];
+            float lift = roofLifts[c];
             int bx = (int) Math.floor(BuildingFaces.unlifted(x, viewX, lift));
             int by = (int) Math.floor(BuildingFaces.unlifted(y, viewY, lift));
             if (!topology.inBounds(bx, by)) continue;
@@ -1551,7 +1568,7 @@ public class BattleRenderer {
             roofStream.ship = ship != null ? ship.of(b) : null;
             roofStream.shipOnly = false;
             roofStream.begin(out, b, roofAlpha * alphaMult);
-            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, b)],
+            roofStream.lift(roofLifts[buildingClass(topology, buildings, b)],
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;
@@ -1584,7 +1601,7 @@ public class BattleRenderer {
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
             roofStream.begin(out, b, b.currentAlpha * alphaMult);
-            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, b)],
+            roofStream.lift(roofLifts[buildingClass(topology, buildings, b)],
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;

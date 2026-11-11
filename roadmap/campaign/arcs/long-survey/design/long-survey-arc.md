@@ -86,10 +86,10 @@ moves. The first attempt, retries, replays and the debug player all play it;
 
 | Chapter | Map | Ground | The hull |
 | --- | --- | --- | --- |
-| The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, bow east, the trench ploughed west along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
-| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1 | Beside the installation, bow east, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
-| The Line | `long-survey-line` | `cordon-line` seed 3, the line and base built | North-east beyond the redoubts, bow west, the trench run in from the map's east edge; three established stakes in a chain toward redoubts 3 and 4 and one raised |
-| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, bow north, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
+| The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, broken in three, bow west, a short trench ploughed west off the bow along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
+| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1 | Beside the installation, broken in three, bow west, its trench stopping short of the compound; three stakes planted in a line across the mine country and one raised beyond them |
+| The Line | `long-survey-line` | `cordon-line` seed 3, the line and base built | North-east beyond the redoubts, broken in three, bow east, the trench run in from the map's east edge; three established stakes in a chain toward redoubts 3 and 4 and one raised |
+| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
 ## Unlocks and replay
 
