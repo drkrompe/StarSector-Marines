@@ -1061,6 +1061,35 @@ tier is set by where it lies, never rolled:
   `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
   salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
 
+**Finds lie where the plant kept its goods** (the plant, `battle.ruins.plant`).
+On a plant site a supply find is never a bundle dropped on open floor. It is a
+load the plant left in its stores, drawn on the recovery skid
+(`doodad.ruins-store-<goods>-cache`), and it is the commodity the store held:
+
+| Where | Goods | Beat |
+| --- | --- | --- |
+| Raw stock, under the works hall's dispatch end | metals, transplutonics (`rare_metals`), volatiles, organics, ore, transplutonic ore (`rare_ore`) | 1-2: the first finds, a short walk from the entry |
+| Maintenance shop, over the hall's head | heavy machinery (spares under the hoists) | 2: beside the stand, by the derelict repair drones' dock |
+| Finished goods, in the deeper band | domestic goods, supplies | 4: the far finds, on the freight way to the vault |
+| Fuel bay, where a store has one | fuel | Anywhere a store stands; a hazard load |
+
+- The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
+  `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
+  rest to raw stock and maintenance.
+- A find takes one of the store's loaded bays and is drawn as its cache
+  variant, which gives no cover. The other loads stay as cover and dressing,
+  never taken. If there are more finds than loaded bays, a store turns empty bays
+  into finds before any find goes elsewhere.
+- Each find is worth about one field cache at the base game's base price
+  (`commodities.csv`), so a pallet of ore is many units and a case of
+  transplutonics is a few.
+- Tech caches keep their places (`RuinsFindTier.Place`): the sealed bay in raw
+  stock and the sealed unit in finished goods, each behind its seal door; the
+  guardian's room at the band's light well; and the vault store.
+
+Off the plant (the switch off, and every site with no plant), finds keep field
+salvage's placement along the route.
+
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one
 **prize**, drawn from the site alone like the occupant and never stored
 (`RuinsVaultPrizes`). It comes out with the haul, so only a won expedition
