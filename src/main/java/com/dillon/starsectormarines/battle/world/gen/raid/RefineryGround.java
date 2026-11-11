@@ -252,6 +252,13 @@ public final class RefineryGround {
                 for (House u : spines) if (gap(b, u) < gap(b, near)) near = u;
                 link(b, near);
             }
+            // The control room's instrument and power rack to the nearest of the process area's racks: the room
+            // that runs the units.
+            if (control != null && !spines.isEmpty()) {
+                House near = spines.get(0);
+                for (House u : spines) if (gap(control, u) < gap(control, near)) near = u;
+                link(control, near);
+            }
             House out = !pump.isEmpty() ? pump.get(0) : spines.isEmpty() ? null : spines.get(spines.size() - 1);
             if (farm != null && out != null) product(out, farm);
             flare(units);
@@ -449,11 +456,22 @@ public final class RefineryGround {
             for (int y = heater.y(); y < heater.y() + heater.h(); y++) {
                 for (int x = heater.x(); x < heater.x() + heater.w(); x++) fixture(x, y, false);
             }
+            // The unit's own pipes, under the vessels' art: the feed spur off the rack to the heater, the transfer line
+            // from the heater into the column, the draw from the column to the stripper.
+            for (ProcessArea.Run r : block.pipes()) {
+                StreetDressing.pipeRun(c.grid, c.topology, c.doodads, r.x0(), r.y0(), r.x1(), r.y1(), 0);
+                int dx = Integer.signum(r.x1() - r.x0()), dy = Integer.signum(r.y1() - r.y0());
+                for (int x = r.x0(), y = r.y0(); ; x += dx, y += dy) {
+                    keep(x, y);
+                    if (x >= 0 && y >= 0 && x < w && y < h) racked[y * w + x] = true;
+                    if (x == r.x1() && y == r.y1()) break;
+                }
+            }
             // The column art's vapour line leaves east; where the rack is west of it, its mirror's leaves west.
-            float atX = spineLeft ? 1f - COLUMN_AT : COLUMN_AT;
-            drawOver(spineLeft ? COLUMN_WEST_ART : COLUMN_ART, col.w(), COLUMN_SPAN, atX, COLUMN_AT, col.x(), col.y());
-            drawOver(spineLeft ? STRIPPER_WEST_ART : STRIPPER_ART, str.w(), COLUMN_SPAN, atX, COLUMN_AT,
-                    str.x(), str.y());
+            // A frame's top row is drawn at its highest cell row, so the disc's place down the frame counts from there.
+            float atX = spineLeft ? 1f - COLUMN_AT : COLUMN_AT, atY = 1f - COLUMN_AT;
+            drawOver(spineLeft ? COLUMN_WEST_ART : COLUMN_ART, col.w(), COLUMN_SPAN, atX, atY, col.x(), col.y());
+            drawOver(spineLeft ? STRIPPER_WEST_ART : STRIPPER_ART, str.w(), COLUMN_SPAN, atX, atY, str.x(), str.y());
             DoodadDef art = registry.doodad(HEATER_ART);
             Doodad d = art == null ? null : scaled(art, HEATER_FRAME, heater.x(), heater.y() - HEATER_ROW);
             if (d != null) c.doodads.add(d);

@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * The machines of a disrupting raid's works ({@code raid-mission.md}, Break): the places a charge wrecks the
@@ -78,18 +79,27 @@ public record RaidWorksLayout(String targetId, String targetName, List<int[]> ma
                 && map.grid.isWalkable(cell[0], cell[1])
                 && !map.grid.isDoorway(cell[0], cell[1])
                 && GridPathfinder.findPath(map.grid, egress.centerX, egress.centerY, cell[0], cell[1]).length > 0;
-        // An industry that stands its machines in the open names them on the map; they lead.
-        List<int[]> chosen = pick(map.raidMachines, count, MIN_SPACING, usable, List.of());
-        if (chosen.size() < count && worksSeed != null) {
-            chosen = pick(compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1],
-                    poi -> machineHouse(map.topology, poi)), count, MIN_SPACING, usable, chosen);
-        }
+        List<int[]> chosen = industryFirst(map.raidMachines, () -> worksSeed == null ? List.of()
+                : compoundHalls(map.pointsOfInterest, worksSeed[0], worksSeed[1],
+                        poi -> machineHouse(map.topology, poi)), count, usable);
         if (chosen.size() < count) chosen = pick(worksCandidates(map), count, MIN_SPACING, usable, chosen);
         if (chosen.size() < count) {
             chosen = pick(fallbackCandidates(map, chosen), count, MIN_SPACING, usable, chosen);
         }
         if (chosen.isEmpty()) throw new IllegalStateException("Raid map has no reachable works for a machine");
         return new RaidWorksLayout("RAID-WORKS", "the works", chosen, egress.centerX, egress.centerY);
+    }
+
+    /**
+     * The machines an industry stands in the open ({@code industry}, in the map's frame) first, through the same
+     * {@code usable} and {@link #MIN_SPACING} checks as any machine; any shortfall filled from the compound's
+     * {@code halls}, asked for only when one is left.
+     */
+    static List<int[]> industryFirst(List<int[]> industry, Supplier<List<int[]>> halls, int count,
+                                     Predicate<int[]> usable) {
+        List<int[]> chosen = pick(industry, count, MIN_SPACING, usable, List.of());
+        if (chosen.size() < count) chosen = pick(halls.get(), count, MIN_SPACING, usable, chosen);
+        return chosen;
     }
 
     /**
