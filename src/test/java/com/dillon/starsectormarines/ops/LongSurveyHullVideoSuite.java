@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -341,8 +342,8 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
         }
         // -Dsnapshot.hullVideo.workCells frames the work clips that close (cells across), and
         // -Dsnapshot.hullVideo.workSpeed caps their speed-up, so the walkers' arms read.
-        float sCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "30"));
-        float hCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "40"));
+        // ("closest": play's closest zoom on the map).
+        String workCells = System.getProperty("snapshot.hullVideo.workCells", "");
         int cap = Integer.parseInt(System.getProperty("snapshot.hullVideo.workSpeed", "99"));
         int sSpeed = Math.min(cap, speedFor((full > 0 ? full : load) + Math.round(3f / DT)));
         int hSpeed = Math.min(cap, home > 0 ? speedFor(home - load + Math.round(6f / DT)) : 4);
@@ -350,6 +351,11 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
         try (Claim c = claim(walkers, idle(), 0f)) {
             BattleSimulation sim = c.sim;
             World world = sim.world();
+            float closest = W / TextureUsage.referenceCellPx(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            log("map %dx%d: play's closest zoom shows %.1f cells across", sim.getGrid().getWidth(),
+                    sim.getGrid().getHeight(), closest);
+            float sCells = workCells.isEmpty() ? 30f : workCells.equals("closest") ? closest : Float.parseFloat(workCells);
+            float hCells = workCells.isEmpty() ? 40f : workCells.equals("closest") ? closest : Float.parseFloat(workCells);
             ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
             Take st = null, ht = null;
             Camera sc = null, hc = null;

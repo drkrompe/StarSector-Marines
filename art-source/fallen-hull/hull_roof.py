@@ -20,19 +20,26 @@ painting goes in:
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 
 LENGTH, BREADTH = 88, 32          # HullPlan.LENGTH, BREADTH
-OUT_W = 2048                      # one power-of-two texture wide
+OUT_W = 4096                      # one power-of-two texture wide: 46 px a cell, for play's closest zoom
 PX = OUT_W / LENGTH               # pixels a plan cell
 OUT_H = round(BREADTH * PX)
 SOURCE = "hull-burnt.png"          # the picked lineage repainted burnt and broken, over itself (generate.py)
 BODY = (260, 296, 1480, 728)      # make_guide.hull: the body's box on the card, bow east
-GLOW_MARKS = (896, 390, 986, 419)  # output pixels: the glyph-like marks in the forge's glow window
-SHARPEN = 60                     # unsharp mask, percent, on the card stretched to 23 px a cell
+GLOW_MARKS = tuple(round(c * OUT_W / 2048) for c in (896, 390, 986, 419))  # the glyph-like marks in the forge's
+                                  # glow window, measured on the 2048-wide painting
+SHARPEN = 60                     # unsharp mask, percent, on the card stretched to the texture's scale
+# Fine detail the card is too coarse to hold (14 px a cell), for play's closest zoom: the painting's edges sharpened at
+# the new scale, and grit (pitting, flecks, scuffs) in octaves finer than a cell, no repeating geometry to fight the
+# painting's own panels. Darker paint takes less, so soot and the open deck stay dark.
+EDGE = (3, 90, 3)                 # unsharp radius px, percent, threshold, at OUT_W
+GRIT = ((1.0, 0.07), (2.5, 0.06), (6.0, 0.05))   # octave size px, strength (share of the paint's brightness)
+SCUFFS = 900                      # fine light scratches across the plating
 # The breakup, in plan cells (the ground's sections: stern 0..23, mid 24..45, bow 46..87; side rents as u and v ranges).
 BREAKS = (24, 46)
 RENTS = ((14, 17, 0, 1), (8, 11, 30, 31), (34, 37, 30, 31))
@@ -60,6 +67,29 @@ def extend(img, mask):
         out = np.where(take, fill * (1 - weight) + out, out)
         weight = np.where(take, 1.0, weight)
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
+
+
+def detail(roof):
+    """Grit and scuffs finer than a cell over the painting, by its own brightness."""
+    w, h = roof.size
+    rng = np.random.default_rng(29)
+    rgb = np.asarray(roof.convert("RGB"), dtype=np.float32)
+    lum = rgb.mean(axis=2, keepdims=True) / 255.0
+    grain = np.zeros((h, w), dtype=np.float32)
+    for size, strength in GRIT:
+        gw, gh = max(2, int(w / size)), max(2, int(h / size))
+        octave = Image.fromarray(rng.integers(0, 256, (gh, gw), dtype=np.uint8), "L").resize((w, h), Image.BICUBIC)
+        grain += (np.asarray(octave, dtype=np.float32) / 255.0 - 0.5) * 2 * strength
+    scuffs = Image.new("L", (w, h), 0)
+    draw = ImageDraw.Draw(scuffs)
+    for _ in range(SCUFFS):
+        x, y = rng.uniform(0, w), rng.uniform(0, h)
+        length, ang = rng.uniform(0.15, 0.6) * PX, rng.uniform(0, np.pi)
+        draw.line([(x, y), (x + np.cos(ang) * length, y + np.sin(ang) * length)], fill=int(rng.uniform(60, 160)),
+                  width=1)
+    scuff = np.asarray(scuffs.filter(ImageFilter.GaussianBlur(0.4)), dtype=np.float32)[..., None] / 255.0
+    out = rgb * (1 + grain[..., None] * np.clip(0.4 + lum, 0, 1)) + scuff * 70 * np.clip(lum + 0.2, 0, 1)
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGB")
 
 
 def tears(roof):
@@ -111,6 +141,8 @@ def main():
     feather.paste(255, (pad, pad, pad + x1 - x0, pad + y1 - y0))
     roof.paste(glow, box[:2], feather.filter(ImageFilter.GaussianBlur(pad / 2)))
     roof = roof.filter(ImageFilter.UnsharpMask(radius=2, percent=SHARPEN, threshold=2))
+    roof = roof.filter(ImageFilter.UnsharpMask(radius=EDGE[0], percent=EDGE[1], threshold=EDGE[2]))
+    roof = detail(roof)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     tears(roof).save(OUT)
     print("wrote", OUT, (OUT_W, OUT_H))
