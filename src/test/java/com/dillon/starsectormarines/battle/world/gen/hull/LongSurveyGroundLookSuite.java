@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
+import com.dillon.starsectormarines.battle.world.gen.Climate;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -26,6 +29,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,9 +69,16 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 out.addAll(boardingShots(context, chapter, home));
                 continue;
             }
-            LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, home);
+            // The world the ground is skinned for (default its home) and, with snapshot.longSurvey.airless, airless.
+            SurfacePalette skin = SurfacePalette.valueOf(System.getProperty("snapshot.longSurvey.world", home.name()));
+            TargetProfile profile = BloomHeartSetup.world(skin);
+            if (Boolean.getBoolean("snapshot.longSurvey.airless")) {
+                profile = profile.withClimate(new Climate(EnumSet.of(Climate.Hazard.AIRLESS)));
+            }
+            LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, profile,
+                    StoryMapPools.pool(chapter).owned());
             HullSite site = ground.hull();
-            try (BattleSimulation sim = LongSurveyGround.stand(ground, home)) {
+            try (BattleSimulation sim = LongSurveyGround.stand(ground, skin)) {
                 int w = sim.getTopology().getWidth(), h = sim.getTopology().getHeight();
                 BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
                         w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
