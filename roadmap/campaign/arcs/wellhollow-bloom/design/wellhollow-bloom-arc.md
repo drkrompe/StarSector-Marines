@@ -104,7 +104,9 @@ not alternatives.
 
 - **The arc opens** when Morrow departs at the end of A Working Ship, at
   Asharu, through Orens as a separate contact on the planet's mission
-  board (owner, 2026-10-27). These are the alpha campaign's **challenge
+  board (owner, 2026-10-27). It opens beside the Long Survey on Garnir, the
+  other end-game branch in Corvus (owner, 2026-11-11; `long-survey-arc.md`):
+  both are offered at once and neither closes the other (`EndGameBranches`). These are the alpha campaign's **challenge
   missions**: every chapter recommends seven squads and four mechs or vehicles
   (`MissionForceEnvelope.recommendedMachines`), a lieutenant colonel's company,
   and the board and briefing say so. Any ready force may still deploy.
