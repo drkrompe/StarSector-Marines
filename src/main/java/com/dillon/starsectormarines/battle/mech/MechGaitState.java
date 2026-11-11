@@ -6,7 +6,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 /**
  * Fixed-tick presentation state for one mech's planted-foot gait. Foot anchors
  * live in world-cell coordinates so a supporting foot stays on the ground while
- * the simulation-authoritative body moves or pivots over it.
+ * the simulation-authoritative body moves or pivots over it. A heavy walker's
+ * planted feet are also its crush colliders ({@link MechWallCrush}).
  */
 public final class MechGaitState {
 

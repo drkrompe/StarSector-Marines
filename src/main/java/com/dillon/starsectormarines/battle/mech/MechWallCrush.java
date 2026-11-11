@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.derelict.WalkerFootprint;
+import com.dillon.starsectormarines.battle.derelict.WalkerKnees;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -18,6 +21,9 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.Query;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.LongFunction;
 
 /**
  * A wall-crushing walker ({@link MechVariant#crushesWalls()}: every heavy-lift walker, `mechs-nouns.md`, Wall crush)
@@ -27,16 +33,23 @@ import java.util.Arrays;
  * {@link MapEditor#damageEdgeBarrier}).
  *
  * <p><b>As easily as a heavy tank</b> (owner: these walkers are large and should crush a wall as easily as a heavy
- * tank): what it bears on falls at once, its whole structure spent the tick the walker reaches it, so the walker walks
- * through at its own pace as a heavy tank drives through a city wall at speed. A walker is too slow for a hull's
+ * tank): what a collider meets falls at once, its whole structure spent the tick the walker reaches it, so the walker
+ * walks through at its own pace as a heavy tank drives through a city wall at speed. A walker is too slow for a hull's
  * momentum ({@code HullMomentum}) to carry it through a row, so it is not modelled by momentum: it never grinds and
  * never waits at the wall. Its route pays for a breach as a crushing hull's does ({@code ClearanceRoutePlanner#BREACH_COST}).
  *
- * <p><b>Its legs crush too</b> (owner: the legs of the large walker should rip through structures as well). Each tick
- * it walks its route it bears on two areas: the strip just ahead of its body toward its next waypoint, as wide as it
- * is ({@link #forEachBearingCell}), and the ground its legs stand over and stride through, every cell whose centre lies
- * within its drawn leg span of its body ({@link #legReach}, {@link #forEachLegCell}). A leg striding into a house's
- * corner or a fence beside it breaks it, not only the torso.
+ * <p><b>A body and its legs, each its own collider</b> (owner: each leg should have its own collider and break only
+ * what it hits). Each tick it walks its route it breaks what these overlap, and nothing between them:
+ * <ul>
+ *   <li>its <b>body</b>: the strip just ahead of it toward its next waypoint, as wide as it is
+ *       ({@link #forEachBearingCell});</li>
+ *   <li>each <b>planted foot</b>: a disc at the foot as the walker's legs are drawn ({@link #forEachFootCell}). A
+ *       derelict walker's four feet are its leg rig's ({@link DerelictLegRig}), which this owns and steps every tick
+ *       and the renderer draws ({@link #legRig}); a company walker's two are its gait's ({@link MechGaitState}),
+ *       which the renderer draws too. A foot in the air breaks nothing: a fence the walker straddles stands, save
+ *       where a foot comes down on it or the body walks into it. To a heavy walker's feet what it can break is floor
+ *       ({@link #footHolds}): its feet land at their stride on a fence, never reach for it to grip.</li>
+ * </ul>
  *
  * <p>Its route is planned over the breach view ({@link WallCrush#planningGrid(int, NavigationGrid)}, installed on
  * {@link NavigationService#setOwnRouteGrid}), so a wall it can push is open ground to its planner, while its body still
@@ -49,12 +62,18 @@ public final class MechWallCrush {
     /** How far back inside its body the strip starts, so a wall already touching it is still pushed. */
     static final float OVERLAP_CELLS = .2f;
     /**
-     * The drawn leg span's reach from the walker's centre, in hull widths
-     * ({@link LayeredMechAppearance#hullWidthCells}): measured off the look frames, an MG-40's splayed legs reach about
-     * 1.4 cells from its centre and an MG-70's about 2.4, against body radii of 0.7 and 1.25.
+     * A derelict walker's foot collider at the MG-40's size, cells: the drawn shin's tip where it meets the ground,
+     * narrower than the battle's blocking footprint ({@link WalkerFootprint#FOOT_RADIUS}), so a foot breaks the cell it
+     * stands in and seldom its neighbour. Scaled with the rig ({@link #rigSize}).
      */
-    static final float LEG_REACH_HULL_WIDTHS = .62f;
+    static final float RIG_FOOT_CELLS = .18f;
+    /** A company walker's foot collider, in hull widths ({@link LayeredMechAppearance#hullWidthCells}). */
+    static final float GAIT_FOOT_HULL_WIDTHS = .18f;
+    /** Most feet a walker stands on: a derelict walker's four. */
+    static final int MAX_FEET = DerelictLegRig.LEGS;
     private static final Direction[] FORWARD_EDGES = {Direction.E, Direction.N};
+    /** Ticks between sweeps of the rigs of walkers no longer alive. */
+    private static final int PRUNE_TICKS = 150;
 
     private final EntityWorld world;
     private final BattleComponents components;
@@ -64,6 +83,12 @@ public final class MechWallCrush {
     private final DoodadService doodads;
     private final Query walkers;
     private final Bearing bearing = new Bearing();
+    /** The leg rig of each heavy derelict walker, stepped here every tick and drawn by the renderer. */
+    private final Map<Long, DerelictLegRig> rigs = new HashMap<>();
+    private final DerelictLegRig.Solid solid;
+    private LongFunction<WalkerKnees> knees = id -> null;
+    private final float[] feet = new float[MAX_FEET * 2];
+    private int ticks;
 
     public MechWallCrush(EntityWorld world, BattleComponents components, UnitRosterService roster,
                          NavigationService navigation, MapEditor editor, DoodadService doodads) {
@@ -75,11 +100,70 @@ public final class MechWallCrush {
         this.doodads = doodads;
         this.walkers = world.query(new ComponentType[]{components.MECH_LOCOMOTION, components.POSITION,
                 components.MOVEMENT, components.HEALTH}, null);
+        this.solid = (x, y) -> footHolds(navigation.getGrid(), navigation.getTopology(), doodads, x, y);
     }
 
-    /** How far {@code variant}'s legs reach from its centre, cells: half its drawn leg span. */
-    static float legReach(MechVariant variant) {
-        return LayeredMechAppearance.hullWidthCells(variant.renderScale) * LEG_REACH_HULL_WIDTHS;
+    /** Where a derelict walker's knees are read from, so a lost leg drags and grips nothing ({@code WalkerKnees}). */
+    public void setKnees(LongFunction<WalkerKnees> knees) {
+        this.knees = knees != null ? knees : id -> null;
+    }
+
+    /** The leg rig heavy derelict walker {@code id} stands on, stepped every tick; null for any other unit. */
+    public DerelictLegRig legRig(long id) {
+        return rigs.get(id);
+    }
+
+    /**
+     * Whether cell ({@code x}, {@code y}) is solid to a heavy walker's foot: off the map, or closed by something it
+     * cannot break. A wall or prop it breaks is floor to its feet, so a foot comes down on it at its stride rather than
+     * reaching for its face to grip, and breaks it; a fortified wall, rock or works is still gripped as the leg rig
+     * grips any wall ({@link DerelictLegRig}).
+     */
+    static boolean footHolds(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
+        if (!grid.inBounds(x, y)) return true;
+        return !grid.isWalkable(x, y) && !WallCrush.canPush(grid, topology, doodads, x, y, WallCrush.HEAVY_CEILING);
+    }
+
+    /** Whether {@code variant}'s legs are a derelict leg rig rather than a company walker's gait. */
+    static boolean rigged(MechVariant variant) {
+        return variant.chassisAppearance == LayeredMechAppearance.CHASSIS_DERELICT;
+    }
+
+    /** {@code variant}'s size against the MG-40's, by which its leg rig is scaled. */
+    static float rigSize(MechVariant variant) {
+        return variant.renderScale / MechVariant.SECURITY_WALKER.renderScale;
+    }
+
+    /**
+     * The planted feet of {@code rig} into {@code out} as x/y pairs: every leg not lost and not in the air. Returns the
+     * count.
+     */
+    static int plantedFeet(DerelictLegRig rig, float[] out) {
+        int n = 0;
+        if (!rig.posed()) return 0;
+        for (int i = 0; i < rig.legs(); i++) {
+            if (rig.lost(i) || rig.stepping(i)) continue;
+            out[n * 2] = rig.footX(i);
+            out[n * 2 + 1] = rig.footY(i);
+            n++;
+        }
+        return n;
+    }
+
+    /** The planted feet of a company walker's gait into {@code out} as x/y pairs: those not swinging. */
+    static int plantedFeet(MechGaitState gait, float[] out) {
+        int n = 0;
+        if (gait.swingFoot() != MechGaitState.LEFT_FOOT) {
+            out[0] = gait.leftFootX();
+            out[1] = gait.leftFootY();
+            n++;
+        }
+        if (gait.swingFoot() != MechGaitState.RIGHT_FOOT) {
+            out[n * 2] = gait.rightFootX();
+            out[n * 2 + 1] = gait.rightFootY();
+            n++;
+        }
+        return n;
     }
 
     /**
@@ -101,16 +185,16 @@ public final class MechWallCrush {
                 consumer);
     }
 
-    /** Visits each in-bounds cell whose centre lies within {@code reach} of ({@code x}, {@code y}): under its legs. */
-    static void forEachLegCell(NavigationGrid grid, float x, float y, float reach,
-                               VehicleFootprint.CellConsumer consumer) {
-        int x0 = (int) Math.floor(x - reach), x1 = (int) Math.floor(x + reach);
-        int y0 = (int) Math.floor(y - reach), y1 = (int) Math.floor(y + reach);
+    /** Visits each in-bounds cell a foot's disc of {@code radius} at ({@code x}, {@code y}) overlaps. */
+    static void forEachFootCell(NavigationGrid grid, float x, float y, float radius,
+                                VehicleFootprint.CellConsumer consumer) {
+        int x0 = (int) Math.floor(x - radius), x1 = (int) Math.floor(x + radius);
+        int y0 = (int) Math.floor(y - radius), y1 = (int) Math.floor(y + radius);
         for (int cy = y0; cy <= y1; cy++) {
             for (int cx = x0; cx <= x1; cx++) {
                 if (!grid.inBounds(cx, cy)) continue;
-                float ox = cx + .5f - x, oy = cy + .5f - y;
-                if (ox * ox + oy * oy <= reach * reach) consumer.accept(cx, cy);
+                float nx = Math.max(cx, Math.min(cx + 1f, x)) - x, ny = Math.max(cy, Math.min(cy + 1f, y)) - y;
+                if (nx * nx + ny * ny < radius * radius) consumer.accept(cx, cy);
             }
         }
     }
@@ -151,16 +235,44 @@ public final class MechWallCrush {
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 long id = table.entityAt(row);
                 MechVariant variant = roster.identity().mechVariant(id);
-                if (variant == null || !variant.crushesWalls()) continue;
+                if (variant == null || !variant.crushesWalls() || hp[row] <= 0f) continue;
+                int planted;
+                float footRadius;
+                if (rigged(variant)) {
+                    DerelictLegRig rig = stepRig(id, variant, posX[row], posY[row], dt);
+                    planted = plantedFeet(rig, feet);
+                    footRadius = RIG_FOOT_CELLS * rigSize(variant);
+                } else {
+                    MechGaitState gait = world.has(id, components.MECH_GAIT_STATE)
+                            && world.getObject(id, components.MECH_GAIT_STATE,
+                            BattleComponents.MECH_GAIT_STATE_STATE) instanceof MechGaitState g ? g : null;
+                    planted = gait != null ? plantedFeet(gait, feet) : 0;
+                    footRadius = LayeredMechAppearance.hullWidthCells(variant.renderScale) * GAIT_FOOT_HULL_WIDTHS;
+                }
                 int[] path = (int[]) paths[row];
-                if (hp[row] <= 0f || path == null || pathIdx[row] >= Paths.cellCount(path)) continue;
+                if (path == null || pathIdx[row] >= Paths.cellCount(path)) continue;
                 float dx = Paths.cellX(path, pathIdx[row]) + .5f - posX[row];
                 float dy = Paths.cellY(path, pathIdx[row]) + .5f - posY[row];
                 if (dx * dx + dy * dy < 1e-4f) continue;
-                bearing.crush(grid, topology, doodads, posX[row], posY[row], dx, dy, roster.radius(id),
-                        legReach(variant), breaker);
+                bearing.crush(grid, topology, doodads, posX[row], posY[row], dx, dy, roster.radius(id), feet,
+                        planted, footRadius, breaker);
             }
         }
+        if (++ticks % PRUNE_TICKS == 0) rigs.keySet().removeIf(id -> !roster.isAliveById(id));
+    }
+
+    /** Steps heavy derelict walker {@code id}'s leg rig to where it stands this tick, making it on first sight. */
+    private DerelictLegRig stepRig(long id, MechVariant variant, float x, float y, float dt) {
+        DerelictLegRig rig = rigs.computeIfAbsent(id, key -> new DerelictLegRig(
+                DerelictLegRig.walkerAt(rigSize(variant))));
+        WalkerKnees walkerKnees = knees.apply(id);
+        if (walkerKnees != null) rig.legsLost(walkerKnees.lostMask(), walkerKnees.downed());
+        float hip = world.has(id, components.MECH_LAYERED_ANIMATION)
+                ? world.getFloat(id, components.MECH_LAYERED_ANIMATION,
+                BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES)
+                : world.getFloat(id, components.MECH_LOCOMOTION, BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+        rig.advance(x, y, hip, dt, solid);
+        return rig;
     }
 
     /** Where a crush lands: the map editor in a battle, a recorder in a test. */
@@ -178,22 +290,24 @@ public final class MechWallCrush {
         }
     };
 
-    /** One walker's bearing for one tick, with its scratch: the crush runs on the serial tick. */
+    /** One walker's colliders for one tick, with their scratch: the crush runs on the serial tick. */
     static final class Bearing {
-        /** Cells borne on, as x/y pairs. */
+        /** Cells a collider overlaps, as x/y pairs. */
         private int[] cells = new int[128];
         private int count;
 
         /**
-         * Brings down at once every pushable cell and window bay a walker of {@code radius} with legs reaching
-         * {@code legReach}, at ({@code x}, {@code y}) and walking along ({@code dx}, {@code dy}), bears on: each takes
-         * its whole structure, so it falls this tick.
+         * Brings down at once every pushable cell and window bay a walker's colliders overlap: its body, of
+         * {@code radius}, at ({@code x}, {@code y}) walking along ({@code dx}, {@code dy}), and each of the
+         * {@code footCount} planted feet in {@code feet} (x/y pairs), a disc of {@code footRadius}. Each piece takes
+         * its whole structure, so it falls this tick; what lies between them is not touched.
          */
         void crush(NavigationGrid grid, CellTopology topology, DoodadService doodads, float x, float y, float dx,
-                   float dy, float radius, float legReach, Breaker breaker) {
+                   float dy, float radius, float[] feet, int footCount, float footRadius, Breaker breaker) {
             count = 0;
             forEachBearingCell(grid, x, y, dx, dy, radius, this::collect);
-            forEachLegCell(grid, x, y, legReach, this::collect);
+            for (int f = 0; f < footCount; f++) forEachFootCell(grid, feet[f * 2], feet[f * 2 + 1], footRadius,
+                    this::collect);
             int most = WallCrush.HEAVY_CEILING;
             for (int i = 0; i < count; i++) {
                 int cx = cells[i * 2], cy = cells[i * 2 + 1];

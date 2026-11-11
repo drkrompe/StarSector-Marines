@@ -197,6 +197,6 @@ chapter 4: with The Line on Broad Front, The Surveyor would repeat the family,
 so its outer push is best kept short and the chapter weighted on the delve into
 the hull (the Ruins family's interior, the autoforge as its vault).
 `hull-fall-cause` (a), `long-survey-world` (Garnir) and `long-survey-opens`
-(the end-game branch) are answered (owner, 2026-11-11). Open: the nouns doc's `hull-spread-law` and `stake-look`, built on the recommended
-option meanwhile and stand on the arc's picks page as picture cards. The nouns
-doc's `hull-lineage`, `stripper-hauler` and `autoforge-look` are answered.
+(the end-game branch) are answered (owner, 2026-11-11), as are the nouns doc's
+`hull-lineage`, `stripper-hauler`, `autoforge-look`, `hull-spread-law` and
+`stake-look`.
