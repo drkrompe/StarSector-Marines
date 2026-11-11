@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.loot;
 
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
-import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,14 +13,15 @@ import java.util.function.Function;
 public final class FieldSalvageLoot {
     private FieldSalvageLoot() { }
 
+    /** Each secured find as a stack of the commodity it settles as ({@link SalvageCache.Recovered#commodity}). */
     public static LootManifest append(LootManifest negotiated, List<SalvageCache.Recovered> finds,
-                                       Function<SalvageResource, LootCandidate> catalog) {
+                                       Function<String, LootCandidate> catalog) {
         var stacks = new ArrayList<>(negotiated.stacks);
         var ids = new HashSet<String>();
         for (var find : finds) {
             // A tech cache is no commodity: it settles as a roll of the game's equipment (RuinsPrizeSettlement).
             if (find.tech() || !ids.add(find.id())) continue;
-            var candidate = catalog.apply(find.resource());
+            var candidate = catalog.apply(find.commodity());
             if (candidate != null) stacks.add(new LootStack(candidate, find.quantity(), true));
         }
         return new LootManifest(negotiated.seed, negotiated.entitlement, negotiated.selectionBudget, stacks);

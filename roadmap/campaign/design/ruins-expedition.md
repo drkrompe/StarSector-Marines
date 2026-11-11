@@ -1088,8 +1088,10 @@ load the plant left in its stores, drawn on the recovery skid
 - The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
   `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
   rest to raw stock and maintenance.
-- A find takes one of the store's loaded bays and is drawn as its cache
-  variant, which gives no cover. The other loads stay as cover and dressing,
+- A find takes one of the store's loads (`RuinsDelve.Interior.loads`,
+  picked by `StoreFinds`) and is drawn as its cache variant, which gives no
+  cover. It is recovered from the open floor beside the load, and it settles as
+  its own goods. The other loads stay as cover and dressing,
   never taken. If there are more finds than loaded bays, a store turns empty bays
   into finds before any find goes elsewhere.
 - Each find is worth about one field cache at the base game's base price
