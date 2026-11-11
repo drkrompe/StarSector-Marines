@@ -282,7 +282,15 @@ Numbers UNTUNED.
   stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
   `TownSalvage` (the town's own metal: one pile per building the hull zone
   keeps, on open ground beside it nearest the hull, its metal by the
-  building's size; the hull's laid box gives none);
+  building's size; the hull's laid box gives none; `places`, one building
+  a square, are where an awake hull's flock ranges);
+  `WatchTasking` (the hull zone's armed walkers outside the contingency: a
+  `BAY_GUARD`, siege frames first; the rest answer the nearest contact on the
+  claim, else push to its loudest fight, else escort the workers out; none
+  goes past `WATCH_REACH_CELLS` off the plates, the trench and the town's
+  edge, `clamp`; an awake hull's flock with nothing to strike ranges its
+  places in turn, `rangePoint`); `FallenHull.rouse` (an awake hull keeps its
+  zone awake while the forge stands);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost); `StakeTrain` (planted on
@@ -347,8 +355,7 @@ point open; stranded: an established stake's node destroyed strands it and the
 planted stake beyond, which never rises; feedstock: a stripper cuts a pile and a
 hauler carries the metal into the hull's store).
 
-Not built yet: the claim-edge pursuit law (walkers keep their zone's perimeter,
-as at a site network); a stake's rounds walker on a round; cutting a stripped
+Not built yet: a stake's rounds walker on a round; cutting a stripped
 structure out of the map (a pile is metal at a cell); the forge's power cut
 other than its destruction; the stripper's and hauler's own looks and the
 stake's three stages drawn (stand-ins: the sentinel at size, the node's
