@@ -45,6 +45,7 @@ class NightShadeFieldGlEvidence {
     private static final int CELLS = 4;
     private static final int SIZE = 64;
     private static final float DARKNESS = .7f;
+    private static final float ROOFED = .85f;
     /** Levels a channel may differ by: 16-bit pools and the filter's fixed-point weights. */
     private static final int TOLERANCE = 3;
 
@@ -90,7 +91,7 @@ class NightShadeFieldGlEvidence {
                 field.cones(cone, true, 0, 0, w - 1, w - 1);
                 field.cells(ground, shown, shownChanges);
                 field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
-                check("whole upload", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w);
+                check("whole upload", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w, null);
 
                 // Fire dims and goes out in one corner; the next frame, before any draw, a cell is hidden and
                 // another's ground goes. Only those boxes are uploaded.
@@ -109,7 +110,21 @@ class NightShadeFieldGlEvidence {
                 field.fire(fire, true, 0, 0, -1, -1);
                 field.cells(ground, shown, shownChanges);
                 field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, 1f, camera);
-                check("changed boxes", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w);
+                check("changed boxes", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w, null);
+
+                // A roof of the lowest class on cell (1, 1), lifted about the view's corner, stands over the ground
+                // from 1.6 to 3.2 cells: there the shade is the roof's, roofed dark and lit by no lamp or cone.
+                byte[] roofCells = new byte[CELLS * CELLS];
+                roofCells[CELLS + 1] = 1;
+                float[] lifts = new float[RoofsShown.CLASSES];
+                Arrays.fill(lifts, 1f);
+                lifts[0] = 1.6f;
+                RoofsShown roofs = new RoofsShown();
+                roofs.set(roofCells, CELLS, CELLS);
+                roofs.view(0f, 0f, lifts);
+                field.roofs(roofs);
+                field.frame(0, 0, CELLS - 1, CELLS - 1, DARKNESS, ROOFED, 1f, camera);
+                check("lifted roof", field, camera, ground, shown, pools, reds, greens, blues, fire, cone, w, roofs);
             } finally {
                 field.dispose();
             }
@@ -118,27 +133,31 @@ class NightShadeFieldGlEvidence {
 
     private static void check(String what, NightShadeField field, BattleCamera camera, CellTopology ground,
                               boolean[] shown, float[] pools, float[] reds, float[] greens, float[] blues,
-                              float[] fire, float[] cone, int w) {
+                              float[] fire, float[] cone, int w, RoofsShown roofs) {
         byte[] over = draw(field, false);
         byte[] premultiplied = draw(field, true);
 
         float s0x = camera.cellToScreenX(0), s1x = camera.cellToScreenX(1);
         float s0y = camera.cellToScreenY(0), s1y = camera.cellToScreenY(1);
         float[] c = new float[4];
-        int worst = 0, shaded = 0;
+        int worst = 0, shaded = 0, roofed = 0;
         for (int py = 0; py < SIZE; py++) {
             for (int px = 0; px < SIZE; px++) {
                 float cx = (px + .5f - s0x) / (s1x - s0x), cy = (py + .5f - s0y) / (s1y - s0y);
                 int cellX = (int) Math.floor(cx), cellY = (int) Math.floor(cy);
                 float[] expectOver = {.5f, .5f, .5f}, expectPremultiplied = {0f, 0f, 0f, 0f};
-                boolean solid = ground.getGroundKind(cellX, cellY) != CellTopology.GroundKind.VOID;
+                boolean underRoof = roofs != null && roofs.at(cx, cy) >= 0;
+                if (underRoof) roofed++;
+                boolean solid = underRoof || ground.getGroundKind(cellX, cellY) != CellTopology.GroundKind.VOID;
                 // Fog hides the lamps' pool, never their colour; the cones (cut to what is shown as they are laid) add
-                // their pool and their cool light.
-                float lit = sample(cone, w, cx, cy);
-                float pool = (shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f) + lit;
-                if (solid && NightLightingRenderSystem.shade(DARKNESS, pool, sample(fire, w, cx, cy),
-                        sample(reds, w, cx, cy) + lit * UnitLights.RED, sample(greens, w, cx, cy) + lit * UnitLights.GREEN,
-                        sample(blues, w, cx, cy) + lit * UnitLights.BLUE, 1f, c)) {
+                // their pool and their cool light. Under a roof neither reaches.
+                float lamps = underRoof ? 0f : 1f;
+                float lit = sample(cone, w, cx, cy) * lamps;
+                float pool = (shown[cellY * CELLS + cellX] ? sample(pools, w, cx, cy) : 0f) * lamps + lit;
+                if (solid && NightLightingRenderSystem.shade(underRoof ? ROOFED : DARKNESS, pool,
+                        sample(fire, w, cx, cy), sample(reds, w, cx, cy) * lamps + lit * UnitLights.RED,
+                        sample(greens, w, cx, cy) * lamps + lit * UnitLights.GREEN,
+                        sample(blues, w, cx, cy) * lamps + lit * UnitLights.BLUE, 1f, c)) {
                     shaded++;
                     for (int k = 0; k < 3; k++) {
                         expectOver[k] = c[k] * c[3] + .5f * (1 - c[3]);
@@ -155,7 +174,8 @@ class NightShadeFieldGlEvidence {
         }
         System.out.println("[shader-evidence] night shade field, " + what + ": " + shaded + " of " + SIZE * SIZE
                 + " pixels shaded, worst channel " + worst + " levels from the CPU shade; pools stored at "
-                + field.storedBits() + " bits");
+                + field.storedBits() + " bits" + (roofs == null ? "" : ", " + roofed + " under the lifted roof"));
+        if (roofs != null) assertTrue(roofed > 0, "the roof has to stand over some of the frame");
         assertTrue(field.storedBits() >= NightShadeField.MIN_BITS,
                 "this driver keeps the pools at " + field.storedBits() + " bits, which bands the shade");
         assertTrue(shaded > SIZE * SIZE / 2, "the frame has to be shaded to say anything");

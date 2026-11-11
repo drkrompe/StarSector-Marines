@@ -13,12 +13,11 @@ import org.lwjgl.BufferUtils;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 
+import static org.lwjgl.opengl.GL11.GL_RGBA8;
 import static org.lwjgl.opengl.GL11.GL_CLIENT_PIXEL_STORE_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_LUMINANCE;
 import static org.lwjgl.opengl.GL11.GL_LUMINANCE16;
-import static org.lwjgl.opengl.GL11.GL_LUMINANCE8_ALPHA8;
-import static org.lwjgl.opengl.GL11.GL_LUMINANCE_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
@@ -63,7 +62,8 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  * fragment shader: the picture of the CPU path at every pixel rather than at its sample points.
  *
  * <p>Textures, each over the whole map: the lamps' field, RGBA16 of {@code reds, greens, blues, pool}; fire's pool,
- * LUMINANCE16; and a cell mask, nearest-sampled, luminance for "the player sees this cell" and alpha for no ground
+ * LUMINANCE16; and a cell mask, nearest-sampled RGBA, red for "the player sees this cell", green the height class of
+ * the roof shown over it ({@link RoofsShown}, one more than the class), and alpha for no ground
  * (0), open ground (half) or ground under an intact roof (full), which takes the roofed darkness. Pools are stored over {@link #RANGE}, which no sum of lights reaches in practice; the shade saturates
  * at one well before it. Fire and the mask stay resident and take only the box that changed since their last upload:
  * the boxes fire's lights filled and cleared, the cells whose ground changed and the reveal log's rectangles. A
@@ -89,19 +89,32 @@ final class NightShadeField {
             + "uniform float range; uniform float darkness; uniform float roofedDarkness; uniform float alphaMult;\n"
             + "uniform float fog; uniform float burning; uniform float premultiplied;\n"
             + "uniform vec3 fireColour;\n"
+            + "uniform float roofing; uniform vec2 view; uniform float lifts[" + RoofsShown.CLASSES + "];\n"
             + "varying vec2 cell;\n"
+            // Whether a roof of height class c, lifted by lift about the view's centre, is drawn over this point:
+            // un-lifted, the point falls on a cell holding that class (RoofsShown.at).
+            + "float roofOf(float c, float lift){\n"
+            + "  vec2 q = floor(view + (cell - view) / lift);\n"
+            + "  if (q.x < 0.0 || q.y < 0.0 || q.x >= cellSize.x || q.y >= cellSize.y) return 0.0;\n"
+            + "  float held = texture2D(cellMask, (q + 0.5) / cellSize).g * 255.0;\n"
+            + "  return abs(held - (c + 1.0)) < 0.5 ? 1.0 : 0.0;\n"
+            + "}\n"
             + "void main(){\n"
             + "  vec4 mask = texture2D(cellMask, (floor(cell) + 0.5) / cellSize);\n"
-            // Alpha: no ground, open ground, or ground under an intact roof, which takes the roofed darkness.
-            + "  if (mask.a < 0.25) discard;\n"
-            + "  float night = mask.a > 0.75 ? roofedDarkness : darkness;\n"
+            + "  float roof = 0.0;\n"
+            + "  if (roofing > 0.5) for (int c = 0; c < " + RoofsShown.CLASSES + "; c++)"
+            + " roof = max(roof, roofOf(float(c), lifts[c]));\n"
+            // Alpha: no ground, open ground, or ground under an intact roof, which takes the roofed darkness; a roof
+            // lifted over the point takes it too.
+            + "  if (mask.a < 0.25 && roof < 0.5) discard;\n"
+            + "  float night = mask.a > 0.75 || roof > 0.5 ? roofedDarkness : darkness;\n"
             + "  vec2 g = cell * 2.0;\n"
-            + "  vec4 lamp = texture2D(lampField, (g + 0.5) / lampSize) * range;\n"
+            + "  vec4 lamp = roof > 0.5 ? vec4(0.0) : texture2D(lampField, (g + 0.5) / lampSize) * range;\n"
             // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
             + "  if (fog > 0.5 && mask.r < 0.5) lamp.a = 0.0;\n"
             // The company's own lights are lamps that move, their pools already cut to what is shown, so the cut's
             // edge filters soft instead of stepping cell by cell.
-            + "  float cone = coning > 0.5 ? texture2D(coneField, (g + 0.5) / lampSize).r * range : 0.0;\n"
+            + "  float cone = coning > 0.5 && roof < 0.5 ? texture2D(coneField, (g + 0.5) / lampSize).r * range : 0.0;\n"
             + "  lamp = vec4(lamp.rgb + cone * coneColour, lamp.a + cone);\n"
             + "  float pool = lamp.a;\n"
             + "  float firePool = burning > 0.5 ? texture2D(fireField, (g + 0.5) / lampSize).r * range : 0.0;\n"
@@ -235,6 +248,21 @@ final class NightShadeField {
         maskLogSeen = shownChanges == null ? 0 : shownChanges.changeCount();
     }
 
+    private RoofsShown maskRoofs;
+    private long maskRoofsSeen = -1;
+
+    /**
+     * The roofs this frame draws ({@link RoofsShown}), or null for none, after {@link #cells}: a point a lifted roof
+     * stands over takes the roof's shade. Their cells ride in the cell mask's green, repacked when they change.
+     */
+    void roofs(RoofsShown roofs) {
+        if (roofs != maskRoofs || roofs != null && roofs.version() != maskRoofsSeen) {
+            if (gridW > 0) whole(cellDirty, gridW, gridH);
+            maskRoofs = roofs;
+            maskRoofsSeen = roofs == null ? -1 : roofs.version();
+        }
+    }
+
     /**
      * This frame's window, the visible cells, after {@link #fire} and {@link #cells}: packs what has changed since
      * the last upload.
@@ -257,13 +285,14 @@ final class NightShadeField {
         if (cellTexW != gridW || cellTexH != gridH) whole(cellDirty, gridW, gridH);
         take(cellUpload, cellDirty, gridW, gridH);
         if (cellUpload[2] >= cellUpload[0]) {
-            cellTexels = room(cellTexels, (cellUpload[2] - cellUpload[0] + 1) * (cellUpload[3] - cellUpload[1] + 1) * 2);
+            cellTexels = room(cellTexels, (cellUpload[2] - cellUpload[0] + 1) * (cellUpload[3] - cellUpload[1] + 1) * 4);
             for (int y = cellUpload[1]; y <= cellUpload[3]; y++) {
                 for (int x = cellUpload[0]; x <= cellUpload[2]; x++) {
                     boolean seen = maskShown == null || maskShown[y * gridW + x];
                     boolean solid = maskGround.getGroundKind(x, y) != CellTopology.GroundKind.VOID;
                     byte ground = !solid ? 0 : NightLighting.roofed(maskGround, x, y) ? (byte) 255 : (byte) 128;
-                    cellTexels.put(seen ? (byte) 255 : 0).put(ground);
+                    byte roof = maskRoofs == null ? 0 : (byte) maskRoofs.classAt(x, y);
+                    cellTexels.put(seen ? (byte) 255 : 0).put(roof).put((byte) 0).put(ground);
                 }
             }
             cellTexels.flip();
@@ -364,13 +393,12 @@ final class NightShadeField {
             glBindTexture(GL_TEXTURE_2D, cellTexture);
             if (cellUpload[2] >= cellUpload[0]) {
                 if (cellTexW != gridW || cellTexH != gridH) {
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8_ALPHA8, gridW, gridH, 0, GL_LUMINANCE_ALPHA,
-                            GL_UNSIGNED_BYTE, cellTexels);
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, gridW, gridH, 0, GL_RGBA, GL_UNSIGNED_BYTE, cellTexels);
                     cellTexW = gridW;
                     cellTexH = gridH;
                 } else {
                     glTexSubImage2D(GL_TEXTURE_2D, 0, cellUpload[0], cellUpload[1], cellUpload[2] - cellUpload[0] + 1,
-                            cellUpload[3] - cellUpload[1] + 1, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, cellTexels);
+                            cellUpload[3] - cellUpload[1] + 1, GL_RGBA, GL_UNSIGNED_BYTE, cellTexels);
                 }
                 clear(cellUpload);
             }
@@ -413,6 +441,11 @@ final class NightShadeField {
         program.set1f("burning", burning ? 1f : 0f);
         program.set1f("premultiplied", premultiplied ? 1f : 0f);
         program.set3f("fireColour", FireLight.RED, FireLight.GREEN, FireLight.BLUE);
+        program.set1f("roofing", maskRoofs != null ? 1f : 0f);
+        if (maskRoofs != null) {
+            program.set2f("view", maskRoofs.viewX(), maskRoofs.viewY());
+            for (int c = 0; c < RoofsShown.CLASSES; c++) program.set1f("lifts[" + c + "]", maskRoofs.lift(c));
+        }
         glBegin(GL_QUADS);
         glTexCoord2f(cellX0, cellY0);
         glVertex2f(screenX0, screenY0);
