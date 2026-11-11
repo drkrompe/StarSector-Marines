@@ -110,6 +110,9 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 
+import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -6540,18 +6543,46 @@ public final class BattleSetup {
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
-        // A port's lighter stands each hold the freighter standing on them (PortHubDressing), drawn from its own
+        // A port's freighter stands each hold the bulk freighter standing on them (PortHubDressing), drawn from its own
         // stream, and only where there are any, so every other map's draws are unchanged.
         if (lighterStands.isEmpty()) return parked;
         Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
-        ShuttleType[] lighterTypes = {ShuttleType.BUFFALO, ShuttleType.MULE, ShuttleType.TARSUS};
+        PortFreighter[] freighters = PortFreighter.values();
         for (LandingPad pad : lighterStands) {
-            ShuttleType type = lighterTypes[lighters.nextInt(lighterTypes.length)];
+            PortFreighter type = freighters[lighters.nextInt(freighters.length)];
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
-            stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
+            stampFreighterFootprint(map.grid, map.topology, pad, type);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
         return parked;
+    }
+
+    /** Cells a freighter's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
+    static final int FREIGHTER_OVERHANG = 2;
+
+    /**
+     * A port freighter's footprint: its hull's length along its approach and its beam across, short of
+     * {@link #FREIGHTER_OVERHANG} cells all round, closed to movement as a parked transport's is.
+     */
+    static void stampFreighterFootprint(NavigationGrid grid, CellTopology topology, LandingPad pad,
+                                        PortFreighter type) {
+        float length = HullFootprintResolver.visualLengthCells(type.renderHullId()) * AirAppearance.GROUND_SCALE;
+        int halfLong = Math.max(1, Math.round(length / 2f) - FREIGHTER_OVERHANG);
+        int halfBeam = Math.max(1, Math.round(type.beamCells / 2f) - FREIGHTER_OVERHANG);
+        boolean alongY = pad.approach.dy != 0;
+        int hx = alongY ? halfBeam : halfLong, hy = alongY ? halfLong : halfBeam;
+        for (int y = pad.centerY - hy; y <= pad.centerY + hy; y++) {
+            for (int x = pad.centerX - hx; x <= pad.centerX + hx; x++) {
+                if (!grid.inBounds(x, y)) continue;
+                grid.setWalkable(x, y, false);
+                topology.setVehicle(x, y, true);
+            }
+        }
+        for (int y = pad.centerY - hy - 1; y <= pad.centerY + hy + 1; y++) {
+            for (int x = pad.centerX - hx - 1; x <= pad.centerX + hx + 1; x++) {
+                if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
+            }
+        }
     }
 
     private static int distanceSq(int ax, int ay, int bx, int by) {

@@ -56,9 +56,9 @@ public final class PortHubDressing {
     private PortHubDressing() { }
 
     /**
-     * Lays {@code hub} on {@code c}. {@code seed} draws which pads hold lighters and the scorch's breaks.
+     * Lays {@code hub} on {@code c}. {@code seed} draws which pads hold freighters, the traffic and the scorch's breaks.
      *
-     * @return the stands the lighters standing on the hub occupy, already added to {@code c.landingPads}
+     * @return the stands the freighters standing on the hub occupy, already added to {@code c.landingPads}
      */
     public static int lay(GenContext c, PortHub hub, long seed) {
         SplittableRandom rng = new SplittableRandom(seed);
@@ -66,75 +66,79 @@ public final class PortHubDressing {
         pave(c, hub.paved());
         pave(c, railBand(hub), BALLAST);
         highway(c, registry, hub);
+        roads(c, registry, hub);
         rails(c, registry, hub);
-        docks(c, registry, hub, rng);
         LandingPad.Approach out = hub.outerNorth() ? LandingPad.Approach.NORTH : LandingPad.Approach.SOUTH;
         int n = hub.pads().size();
         int turnaround = rng.nextInt(n);
         int stands = 0;
         for (int i = 0; i < n; i++) {
             PortHub.Rect pad = hub.pads().get(i);
-            // One lighter mid-turnaround, and about one pad in three holding another, loaded and waiting.
+            // One freighter mid-turnaround, and about every other pad holding another, loaded and waiting.
             boolean occupied = i == turnaround || rng.nextInt(OCCUPIED_ONE_IN) == 0;
-            padMarks(c, registry, pad, 1, occupied, rng);
+            padMarks(c, registry, pad, occupied, rng);
             if (occupied) {
                 stand(c, pad, out);
                 stands++;
             }
-        }
-        if (hub.heavyPad() != null) {
-            padMarks(c, registry, hub.heavyPad(), 2, true, rng);
-            stand(c, hub.heavyPad(), out);
-            stands++;
         }
         for (PortHub.Rect wall : hub.blastWalls()) blastWall(c, wall);
         fuel(c, registry, hub);
         turnaround(c, registry, hub, hub.pads().get(turnaround), hub.hydrants().get(turnaround));
         staging(c, registry, hub, rng);
         apronControl(c, registry, hub);
+        truckGate(c, registry, hub, rng);
+        marshalling(c, registry, hub, rng);
+        docks(c, registry, hub, rng);
+        traffic(c, registry, hub, rng);
         return stands;
     }
 
-    /** Pads in so many hold a lighter besides the one mid-turnaround. UNTUNED. */
-    static final int OCCUPIED_ONE_IN = 3;
+    /** Pads in so many hold a freighter besides the one mid-turnaround. UNTUNED. */
+    static final int OCCUPIED_ONE_IN = 2;
 
     /**
-     * A pad's markings: its edge painted as an airfield berth's is, the keep-clear hatching {@code rim} cells deep
-     * inside it, the plate in the middle; and on an empty pad the burn every lift leaves, with the lesser marks of the
-     * landings round it, some worn off. A pad with its lighter on it shows the hull, not the burn.
+     * A pad's markings: its edge painted as an airfield berth's is, a landing ring inside it in keep-clear hatching
+     * with the plate within, and on an empty pad the burns the lifts leave, some worn off. A pad with its freighter on
+     * it shows the hull, not the burn.
      */
-    static void padMarks(GenContext c, TileRegistry registry, PortHub.Rect pad, int rim, boolean occupied,
+    static void padMarks(GenContext c, TileRegistry registry, PortHub.Rect pad, boolean occupied,
                          SplittableRandom rng) {
         int plate = c.topology.surfaceIndex(PAD_PLATE), keep = c.topology.surfaceIndex(KEEP_CLEAR);
         DoodadDef line = registry == null ? null : registry.doodad(BERTH_EDGE);
+        float cx = (pad.x0() + pad.x1()) / 2f, cy = (pad.y0() + pad.y1()) / 2f;
+        float r = Math.min(pad.width(), pad.height()) / 2f - 1.5f;
         for (int y = pad.y0(); y <= pad.y1(); y++) {
             for (int x = pad.x0(); x <= pad.x1(); x++) {
                 if (!free(c, x, y)) continue;
-                int in = Math.min(Math.min(x - pad.x0(), pad.x1() - x), Math.min(y - pad.y0(), pad.y1() - y));
-                if (in == 0 && line != null) c.doodads.add(new Doodad(x, y, line));
-                else if (in <= rim) c.topology.setSurface(x, y, keep);
-                else c.topology.setSurface(x, y, plate);
+                boolean edge = x == pad.x0() || x == pad.x1() || y == pad.y0() || y == pad.y1();
+                double d = Math.hypot(x - cx, y - cy);
+                if (edge && line != null) c.doodads.add(new Doodad(x, y, line));
+                else if (d <= r && d > r - RING) c.topology.setSurface(x, y, keep);
+                else if (d <= r - RING) c.topology.setSurface(x, y, plate);
             }
         }
         if (occupied || registry == null) return;
         DoodadDef burn = registry.doodad(BURN), mark = registry.doodad(MARK);
-        int cx = pad.centerX(), cy = pad.centerY();
-        if (burn != null) c.doodads.add(new Doodad(cx - 2, cy - 2, burn, rng.nextInt(2) * 2));
+        int mx = Math.round(cx), my = Math.round(cy);
+        if (burn != null) {
+            int[][] burns = {{-2, -2}, {-5, -8}, {1, 5}};
+            for (int[] at : burns) c.doodads.add(new Doodad(mx + at[0], my + at[1], burn, rng.nextInt(2) * 2));
+        }
         if (mark != null) {
-            int[][] ring = {{-4, -4}, {2, -4}, {-4, 2}, {2, 2}, {-1, -5}, {-1, 3}};
+            int[][] ring = {{-6, -6}, {4, -6}, {-6, 4}, {4, 4}, {-1, -10}, {-1, 8}, {-8, 0}, {6, 0}};
             for (int[] at : ring) {
-                if (rng.nextDouble() < SCORCH_SHARE) c.doodads.add(new Doodad(cx + at[0], cy + at[1], mark));
+                if (rng.nextDouble() < SCORCH_SHARE) c.doodads.add(new Doodad(mx + at[0], my + at[1], mark));
             }
         }
     }
 
-    /**
-     * A lighter's stand on its pad. The freighter's hull reaches past its stand toward its tail: stood a cell in from
-     * the pad's middle, toward the map's middle, it stays on its pad.
-     */
+    /** Width of a pad's landing ring. */
+    static final float RING = 2f;
+
+    /** A freighter's stand at its pad's middle, its nose toward the outer edge it lifts over. */
     static void stand(GenContext c, PortHub.Rect pad, LandingPad.Approach out) {
-        c.landingPads.add(new LandingPad(pad.centerX() - out.dx, pad.centerY() - out.dy, 1, 1, out,
-                LandingPad.Purpose.PORT_LIGHTER));
+        c.landingPads.add(new LandingPad(pad.centerX(), pad.centerY(), 1, 1, out, LandingPad.Purpose.PORT_LIGHTER));
     }
 
     /** The rail band: the hub's lines without the highway, which the layout paves as a street. */
@@ -150,7 +154,8 @@ public final class PortHubDressing {
 
     /**
      * The tracks, from the deep edge (off the map, to the planet's other towns) back to the town end, where each
-     * ends at its stop. Stand-in art: the ruins' mag-rail, drawn along y, so turned a quarter to run along x.
+     * ends at its stop; broken where an arterial crosses them, a level crossing. Stand-in art: the ruins' mag-rail,
+     * drawn along y, so turned a quarter to run along x.
      */
     static void rails(GenContext c, TileRegistry registry, PortHub hub) {
         if (registry == null) return;
@@ -159,10 +164,133 @@ public final class PortHubDressing {
         for (PortHub.Rect track : hub.tracks()) {
             int from = hub.deepEast() ? track.x0() : track.x1() - 1, step = hub.deepEast() ? 2 : -2;
             for (int x = from; x >= track.x0() && x + 1 <= track.x1(); x += step) {
+                if (crossing(hub, x, track.y0()) || crossing(hub, x + 1, track.y1())) continue;
                 if (!free(c, x, track.y0()) || !free(c, x + 1, track.y1())) continue;
                 // The stop at the town end, its buffer toward the town.
                 boolean stop = end != null && x == from;
                 c.doodads.add(new Doodad(x, track.y0(), stop ? end : rail, hub.deepEast() ? 1 : 3));
+            }
+        }
+    }
+
+    /** Whether an arterial crosses the cell. */
+    static boolean crossing(PortHub hub, int x, int y) {
+        for (PortHub.Rect a : hub.arterials()) if (a.contains(x, y)) return true;
+        return false;
+    }
+
+    /** Cells between two dashes' starts on an arterial's centre line. */
+    static final int ARTERIAL_DASH = 4;
+
+    /**
+     * The hub's roads in asphalt, over the concrete and the rail bed: the arterials from the highway to the pads with
+     * their dashed centre lines, and the roads along the hub joining them.
+     */
+    static void roads(GenContext c, TileRegistry registry, PortHub hub) {
+        int road = c.topology.surfaceIndex(ROAD);
+        DoodadDef paint = registry == null ? null : registry.doodad(BERTH_EDGE);
+        for (PortHub.Rect r : hub.roads()) {
+            for (int y = r.y0(); y <= r.y1(); y++) {
+                for (int x = r.x0(); x <= r.x1(); x++) {
+                    if (!free(c, x, y)) continue;
+                    c.topology.setGroundKind(x, y, GroundKind.STREET);
+                    c.topology.setSurface(x, y, road);
+                    c.topology.setNatureOverlayIndex(x, y, -1);
+                    c.markMadeGround(x, y);
+                }
+            }
+        }
+        if (paint == null) return;
+        for (PortHub.Rect a : hub.arterials()) {
+            int mx = a.centerX();
+            for (int y = a.y0(); y <= a.y1(); y++) {
+                if (Math.floorMod(y, ARTERIAL_DASH) < 2 && free(c, mx, y)) c.doodads.add(new Doodad(mx, y, paint));
+            }
+        }
+    }
+
+    /** The haulers' art: parked trucks, 3 by 2 along x. */
+    static final String[] HAULER_ART = {"doodad.parked-cargo-truck", "doodad.parked-box-van",
+            "doodad.parked-flatbed-truck"};
+
+    /**
+     * The truck gate: where the gate's road leaves the rail road into the warehouse band, a boom gate across each
+     * lane, a jersey barrier down the middle between them, and the haulers off the highway queued before it.
+     */
+    static void truckGate(GenContext c, TileRegistry registry, PortHub hub, SplittableRandom rng) {
+        if (registry == null) return;
+        PortHub.Rect g = hub.gateRoad();
+        boolean north = hub.outerNorth();
+        // The gate line: inside the warehouse band, a truck's length and a gap past the rail road.
+        int railEdge = north ? hub.railRoad().y1() : hub.railRoad().y0();
+        int gy = railEdge + (north ? GATE_IN : -GATE_IN);
+        int mid = g.centerX();
+        if (free(c, g.x0(), gy)) StreetDressing.boomGate(c.grid, c.topology, c.doodads, g.x0(), gy, 1, 0);
+        if (free(c, g.x1(), gy)) StreetDressing.boomGate(c.grid, c.topology, c.doodads, g.x1(), gy, -1, 0);
+        if (free(c, mid, gy) && free(c, mid, gy + (north ? -1 : 1))) {
+            StreetDressing.jerseyBarrier(c.grid, c.topology, c.doodads, mid, north ? gy - 1 : gy, false);
+        }
+        // Inbound haulers, nose to the gate, upright on the inbound lane before it.
+        int lane = g.x0() + 1;
+        for (int k = 0, y = gy - (north ? 4 : -2); k < GATE_QUEUE; k++, y += north ? -4 : 4) {
+            if (!freeRect(c, lane, y, lane + 1, y + 2)) continue;
+            DoodadDef def = registry.doodad(HAULER_ART[rng.nextInt(HAULER_ART.length)]);
+            if (def == null) continue;
+            fixtures(c, lane, y, lane + 1, y + 2, false);
+            c.doodads.add(new Doodad(lane, y, def, north ? 1 : 3));
+        }
+    }
+
+    /** Cells the truck gate stands inside the warehouse band, and the haulers queued before it. UNTUNED. */
+    static final int GATE_IN = 7, GATE_QUEUE = 3;
+
+    /**
+     * The marshalling park: the near row's first bay given to the haulers off the highway waiting their call to a
+     * warehouse or a pad, in angled ranks of upright trucks with a drive between ranks, some bays empty.
+     */
+    static void marshalling(GenContext c, TileRegistry registry, PortHub hub, SplittableRandom rng) {
+        PortHub.Rect park = hub.marshalling();
+        if (park == null || registry == null) return;
+        int keep = c.topology.surfaceIndex(KEEP_CLEAR);
+        // Two ranks of stalls along the park, a drive between them; stall lines in keep-clear paint.
+        int[] rankY = hub.outerNorth() ? new int[]{park.y0() + 1, park.y1() - 3}
+                : new int[]{park.y1() - 3, park.y0() + 1};
+        for (int ry : rankY) {
+            for (int x = park.x0() + 1; x + 1 <= park.x1() - 1; x += STALL) {
+                for (int y = ry; y <= ry + 2; y++) if (free(c, x + 2, y)) c.topology.setSurface(x + 2, y, keep);
+                if (rng.nextInt(4) == 0 || !freeRect(c, x, ry, x + 1, ry + 2)) continue;
+                DoodadDef def = registry.doodad(HAULER_ART[rng.nextInt(HAULER_ART.length)]);
+                if (def == null) continue;
+                fixtures(c, x, ry, x + 1, ry + 2, false);
+                c.doodads.add(new Doodad(x, ry, def, rng.nextBoolean() ? 1 : 3));
+            }
+        }
+    }
+
+    /** A marshalling stall's width: a truck's breadth and its stall line. */
+    static final int STALL = 3;
+
+    /** Trucks on each arterial, between the lines and the pads. UNTUNED. */
+    static final int TRAFFIC = 2;
+
+    /**
+     * Haulers on the move along the arterials: a few to each, keeping to their lane, outbound on one side and inbound
+     * on the other, so the roads read as worked.
+     */
+    static void traffic(GenContext c, TileRegistry registry, PortHub hub, SplittableRandom rng) {
+        if (registry == null) return;
+        for (int i = 1; i < hub.arterials().size(); i++) {
+            PortHub.Rect a = hub.arterials().get(i);
+            for (int k = 0; k < TRAFFIC; k++) {
+                boolean outbound = rng.nextBoolean();
+                int x = outbound ? a.x1() - 2 : a.x0() + 1;
+                int y = a.y0() + 4 + rng.nextInt(Math.max(1, a.height() - 10));
+                if (!freeRect(c, x, y, x + 1, y + 2)) continue;
+                DoodadDef def = registry.doodad(HAULER_ART[rng.nextInt(HAULER_ART.length)]);
+                if (def == null) continue;
+                fixtures(c, x, y, x + 1, y + 2, false);
+                // Outbound toward the pads, inbound toward the lines.
+                c.doodads.add(new Doodad(x, y, def, outbound == hub.outerNorth() ? 1 : 3));
             }
         }
     }
