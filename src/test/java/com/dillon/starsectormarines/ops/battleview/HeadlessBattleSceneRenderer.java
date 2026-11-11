@@ -389,6 +389,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 else if (command.customDraw() instanceof ShieldDomePass domes) drawDomes(context, viewport, domes, bandTop, bandBottom);
                 else if (command.customDraw() instanceof CliffArtPass cliffs) drawCliffArt(context, viewport, cliffs, bandTop, bandBottom);
                 else if (command.customDraw() instanceof CreepPass creep) drawCreep(context, viewport, creep, bandTop, bandBottom);
+                else if (command.customDraw() instanceof WallCreepPass walls) drawWallCreep(context, viewport, walls, bandTop, bandBottom);
                 else if (command.customDraw() instanceof ScorchPass scorch) drawScorch(context, viewport, scorch, bandTop, bandBottom);
                 else if (command.customDraw() instanceof LavaFlowPass flows) drawLavaFlows(context, viewport, flows, bandTop, bandBottom);
                 else if (command.customDraw() instanceof NightLightingPass night) drawNightLighting(context, viewport, night, prepared, bandTop, bandBottom);
@@ -649,6 +650,61 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             }
         }
         if (any) HeadlessUiRenderer.blendImage(context, overlay, px0, row0, false);
+    }
+
+    /**
+     * The creep on stood-up walls ({@link WallCreepPass}): each quad as GL draws it, two triangles (corners 0-1-2 and
+     * 0-2-3) with the cells its corners read interpolated across them, every pixel shaded through
+     * {@link CreepShading} as a standing wall, tinted by the quad.
+     */
+    private static void drawWallCreep(CanvasContext context, CanvasHostViewport viewport, WallCreepPass walls, int top,
+                                      int bottom) {
+        float surfaceHeight = viewport.height();
+        CreepPass p = walls.params;
+        CreepLayer layer = walls.layer();
+        CreepShading.Scratch scratch = new CreepShading.Scratch();
+        float[] rgba = new float[4], q = walls.quads();
+        int[][] tris = {{0, 1, 2}, {0, 2, 3}};
+        for (int i = 0; i < walls.count(); i++) {
+            int o = i * WallCreepPass.STRIDE;
+            float tr = q[o + 16], tg = q[o + 17], tb = q[o + 18], ta = q[o + 19];
+            for (int[] t : tris) {
+                float ax = q[o + t[0] * 4], ay = q[o + t[0] * 4 + 1], bx = q[o + t[1] * 4], by = q[o + t[1] * 4 + 1];
+                float cx = q[o + t[2] * 4], cy = q[o + t[2] * 4 + 1];
+                float det = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy);
+                if (Math.abs(det) < 1e-6f) continue;
+                int px0 = Math.max(0, (int) Math.floor(Math.min(ax, Math.min(bx, cx))));
+                int px1 = Math.min((int) Math.ceil(viewport.width()), (int) Math.ceil(Math.max(ax, Math.max(bx, cx))));
+                int row0 = Math.max(Math.max(0, top), (int) Math.floor(surfaceHeight - Math.max(ay, Math.max(by, cy))));
+                int row1 = Math.min(Math.min((int) Math.ceil(surfaceHeight), bottom),
+                        (int) Math.ceil(surfaceHeight - Math.min(ay, Math.min(by, cy))));
+                for (int y = row0; y < row1; y++) {
+                    float sy = surfaceHeight - (y + 0.5f);
+                    int runStart = px0, runColor = 0;
+                    for (int x = px0; x < px1; x++) {
+                        float sx = x + 0.5f;
+                        float l0 = ((by - cy) * (sx - cx) + (cx - bx) * (sy - cy)) / det;
+                        float l1 = ((cy - ay) * (sx - cx) + (ax - cx) * (sy - cy)) / det;
+                        float l2 = 1f - l0 - l1;
+                        int color = 0;
+                        // The diagonal they share is the first triangle's alone, so no pixel on it is laid twice.
+                        if (l0 >= 0f && l1 >= 0f && (t == tris[1] ? l2 > 0f : l2 >= 0f)) {
+                            float cellX = l0 * q[o + t[0] * 4 + 2] + l1 * q[o + t[1] * 4 + 2] + l2 * q[o + t[2] * 4 + 2];
+                            float cellY = l0 * q[o + t[0] * 4 + 3] + l1 * q[o + t[1] * 4 + 3] + l2 * q[o + t[2] * 4 + 3];
+                            CreepShading.shade(layer, cellX, cellY, p.cellPx, p.timeSeconds, p.palette, p.sun, true,
+                                    scratch, rgba);
+                            rgba[0] *= tr; rgba[1] *= tg; rgba[2] *= tb;
+                            color = argb(rgba, ta);
+                        }
+                        if (color == runColor) continue;
+                        if ((runColor >>> 24) != 0) context.fillRect(runStart, y, x - runStart, 1, new Color(runColor, true));
+                        runStart = x;
+                        runColor = color;
+                    }
+                    if ((runColor >>> 24) != 0) context.fillRect(runStart, y, px1 - runStart, 1, new Color(runColor, true));
+                }
+            }
+        }
     }
 
     private static void drawCreep(CanvasContext context, CanvasHostViewport viewport, CreepPass pass, int top, int bottom) {

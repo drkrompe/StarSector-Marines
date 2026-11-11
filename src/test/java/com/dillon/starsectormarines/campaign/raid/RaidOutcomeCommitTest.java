@@ -14,15 +14,15 @@ import java.lang.reflect.Proxy;
 class RaidOutcomeCommitTest {
 
     @Test
-    void aWonRaidIsCommittedAsItWasSetUp() {
+    void aWonRaidIsCommittedAtFullEffectivenessWhateverTheCargoMarinesWouldHaveEarned() {
         TempData temp = new TempData();
         temp.objectives.add(null);
-        temp.raidMult = 0.6f;
+        temp.raidMult = 0.06f;
 
-        RaidOutcomeCommit.prepare(temp, true);
+        RaidOutcomeCommit.prepare(temp, true, 1f, 1.5f);
 
         assertEquals(1, temp.objectives.size());
-        assertEquals(0.6f, temp.raidMult);
+        assertEquals(1f, temp.raidMult);
     }
 
     @Test
@@ -31,31 +31,9 @@ class RaidOutcomeCommitTest {
         temp.objectives.add(null);
         temp.objectives.add(null);
 
-        RaidOutcomeCommit.prepare(temp, false);
+        RaidOutcomeCommit.prepare(temp, false, 1f, 1f);
 
         assertTrue(temp.objectives.isEmpty());
-    }
-
-    @Test
-    void aWonDisruptingRaidCommitsAtTheShareOfTheWorksWrecked() {
-        TempData temp = new TempData();
-        temp.raidType = RaidType.DISRUPT;
-        temp.raidMult = 0.8f;
-
-        RaidOutcomeCommit.prepare(temp, true, 0.5f);
-
-        assertEquals(0.4f, temp.raidMult, 1e-6);
-    }
-
-    @Test
-    void aRaidForValuablesIgnoresTheWorksShare() {
-        TempData temp = new TempData();
-        temp.raidType = RaidType.VALUABLE;
-        temp.raidMult = 0.8f;
-
-        RaidOutcomeCommit.prepare(temp, true, 0.5f);
-
-        assertEquals(0.8f, temp.raidMult);
     }
 
     @Test
