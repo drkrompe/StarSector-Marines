@@ -198,7 +198,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
         ensureBuilt(ctx, look);
-        this.eye = eyeMeters;
+        this.eye = eyeMeters * BuildingFaces.rise(cam);
         float time = FireLight.clock(ctx.animationTimeSeconds);
         int n = field.steps();
         if (rising) {
@@ -454,7 +454,7 @@ final class NaturalVoidRenderSystem implements RenderSystem {
         this.out = out;
         this.cam = ctx.camera;
         this.alpha = ctx.alphaMult;
-        this.eye = eyeMeters;
+        this.eye = eyeMeters * BuildingFaces.rise(cam);
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
         return true;
