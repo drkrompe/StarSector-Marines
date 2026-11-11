@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
-import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
-import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
@@ -325,23 +323,10 @@ public final class RefineryGround {
 
         /**
          * Arms a field by the shared doctrine ({@code PrecinctDefence.stampField}): its own posts, on top of the works'
-         * wall's, crewed by the works' guard; off the roads, and out of reach of the posts already standing (the
-         * placer keeps {@code DefensePostStamper.POST_MIN_SEPARATION} between anchors), so the doctrine moves a site
-         * rather than lose it.
+         * wall's, off the roads, crewed by the works' guard.
          */
         void guard(boolean[][] field, List<DefenceDoctrine.Gate> gates, DefensePostKind kind) {
-            boolean[][] clear = new boolean[w][h];
-            int far = DefensePostStamper.POST_MIN_SEPARATION;
-            for (DefensePost p : c.defensePosts) {
-                for (int x = Math.max(0, p.anchorX - far); x <= Math.min(w - 1, p.anchorX + far); x++) {
-                    for (int y = Math.max(0, p.anchorY - far); y <= Math.min(h - 1, p.anchorY + far); y++) {
-                        int dx = x - p.anchorX, dy = y - p.anchorY;
-                        if (dx * dx + dy * dy < far * far) clear[x][y] = true;
-                    }
-                }
-            }
-            if (roads != null) for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) clear[x][y] |= roads[x][y];
-            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), clear,
+            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), roads,
                     RaidSiteTemplate.WORKS);
         }
 
