@@ -1016,8 +1016,10 @@ public class BattleRenderer {
     private void collectRoofs(RenderContext ctx, DrawList out, float alphaMult) {
         BattleSimulation sim = ctx.sim;
         riseEye();
-        // Freestanding walls stood up first, so every building's faces and roof stand over them.
-        freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
+        boolean standing = standing();
+        // Freestanding walls stood up first, so every building's faces and roof stand over them. Flat (the Settings
+        // page's 3D walls off, WallDepth) they are the map's wall tiles alone.
+        if (standing) freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
         Buildings buildings = sim.getBuildings();
         CellTopology topology = sim.getTopology();
         if (buildings == null || buildings.isEmpty()) {
@@ -1030,11 +1032,18 @@ public class BattleRenderer {
             overheadProps.collectMounts(ctx, out, (d, corners) -> true);
             return;
         }
-        // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
-        buildingFaces(sim, out, alphaMult, topology);
-        occludedUnits(sim, out, alphaMult, topology);
-        // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
-        overheadProps.collectMounts(ctx, out, (d, corners) -> standMount(sim, d, corners));
+        if (standing) {
+            // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
+            buildingFaces(sim, out, alphaMult, topology);
+            occludedUnits(sim, out, alphaMult, topology);
+            // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
+            overheadProps.collectMounts(ctx, out, (d, corners) -> standMount(sim, d, corners));
+        } else {
+            // Flat: every roof over its footprint, what hangs on a wall lying where it was laid.
+            facePainter.reset();
+            ruinShells.reset();
+            overheadProps.collectMounts(ctx, out, (d, corners) -> true);
+        }
         if (rc.hostProfile.residentGroundAllowed()) {
             HullRoof ship = hullRoof(topology, buildings);
             RoofMesh.RoofResolver resolver = (building, x, y, sink) -> {
@@ -1128,13 +1137,23 @@ public class BattleRenderer {
 
     /** Raises the eye for this frame's view ({@link BuildingFaces#rise}) and the roofs' lifts with it. */
     private void riseEye() {
-        float rise = BuildingFaces.rise(rc.camera);
+        float rise = WallDepth.enabled() ? BuildingFaces.rise(rc.camera) : FLAT;
         if (rise != roofRise) riseTo(rise);
     }
 
     private void riseTo(float rise) {
         roofRise = rise;
-        for (int c = 0; c < roofLifts.length; c++) roofLifts[c] = BuildingFaces.lift(BuildingFaces.HEIGHTS[c], rise);
+        for (int c = 0; c < roofLifts.length; c++) {
+            roofLifts[c] = rise == FLAT ? 1f : BuildingFaces.lift(BuildingFaces.HEIGHTS[c], rise);
+        }
+    }
+
+    /** {@link #roofRise} for a flat view ({@link WallDepth} off): every roof lies over its footprint. */
+    private static final float FLAT = Float.POSITIVE_INFINITY;
+
+    /** Whether this frame's buildings and walls stand up ({@link WallDepth}), as {@link #riseEye} settled it. */
+    private boolean standing() {
+        return roofRise != FLAT;
     }
 
     /** Each building's height class now, worked out again whenever the topology changes. */
