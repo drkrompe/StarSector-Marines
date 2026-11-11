@@ -863,6 +863,17 @@ public final class BattleSetup {
                 works ? ground.machines() : 0);
     }
 
+    /**
+     * {@link #createPooledRaid(RaidOwnedMap.Ground, SurfacePalette, long, boolean, List)} raided from {@code raided}
+     * rather than the reference market: the owned layout, with what the raided market decides on it (its force, its
+     * sealed towns, its works' defences). For look suites.
+     */
+    public static BattleSimulation createPooledRaid(RaidOwnedMap.Ground ground, long seed, boolean works,
+                                                    List<ShuttleAssignment> manifest, TargetProfile raided) {
+        return ownedRaid(ground, seed, manifest, false, ground.tier(), RaidOwnedMap.RISK, raided, FlybyRoster.EMPTY,
+                FlybyRoster.EMPTY, null, null, works ? ground.machines() : 0);
+    }
+
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
     public static BattleSimulation createExtraction(
             long seed, List<ShuttleAssignment> manifest,
@@ -1461,6 +1472,11 @@ public final class BattleSetup {
         // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
         // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
         if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        // The raided market's security lays the works' defences, on an owned map as on a derived one: they are
+        // dressing and move no cell of the layout (raid-demolish-the-works.md).
+        if (mapSite != null && precincts != null && profile != null && profile.marketSize() > 0) {
+            precincts = precincts.withRaidSecurity(RaidSiteTemplate.Security.of(profile));
+        }
         else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount

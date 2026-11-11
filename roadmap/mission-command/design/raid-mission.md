@@ -68,11 +68,13 @@ garrison estimate's strength, quality and readiness.
 | Security | Reads | Steal | Break |
 |---|---|---|---|
 | **Open** | `defenseLevel` 0-1, no ground defences | goods in their own stores, scattered: strip what you can reach | the works stands open: yards, fences, a few posted guards |
-| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines |
-| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it |
+| **Guarded** | `defenseLevel` 2-4, or ground defences | bulk goods (commodities, weapons) in the stores; the best (AI cores, blueprints, special items) in the vault | the works is walled with gatehouses; guards posted at the machines; a hedgehog belt outside the wall and a sandbagged checkpoint at each gate |
+| **Fortified** | `defenseLevel` 5+, or heavy batteries | everything in the bonded vault: one hard score | walled, with the market's own emplacements inside, and the garrison's precinct beside it; also a watchtower in each corner and a sandbag parapet round every machine hall |
 
 One rule covers both intents: **security sets how concentrated and how walled
-the prize is.** A soft market spreads its prize out to be picked over; a hard
+the prize is.** The works' belt, checkpoints, towers and parapets follow the
+rung its wall was built to (`raid-demolish-the-works.md`, owner pick
+`raid-works-defences` a). A soft market spreads its prize out to be picked over; a hard
 one gathers it behind a wall. The owner picked this graded steal row
 (`raid-steal-scaling`, 2026-11-09); the break row follows it.
 

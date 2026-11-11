@@ -46,6 +46,12 @@ public interface RaidIndustry {
     /** Where the industrial district stands between the homes and the works, in the canonical template. */
     default MapPlacement industryAt() { return RaidSiteTemplate.INDUSTRY_AT; }
 
+    /**
+     * Whether the industry lays the works' belt, checkpoints and towers itself whatever the security (a military
+     * base), so {@link WorksDefences} lays only the hall parapets for it.
+     */
+    default boolean laysOwnPerimeter() { return false; }
+
     /** Whether the industrial district's yards stand beyond the works at the deep end. */
     default boolean yards() { return true; }
 

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.RaidOwnedMap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.BuildingStanding;
@@ -142,6 +143,14 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
                     ReviewStyle.NOTE);
             return null;
         }));
+        // The defences as built, on the owned map raided from a guarded and a fortified market (open adds nothing).
+        for (String security : List.of("guarded", "fortified")) {
+            out.add(shot(context, "built-" + security + ".png", (w, m) -> {
+                m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "AS BUILT: the works raided from a "
+                        + security + " market", ReviewStyle.NOTE);
+                return null;
+            }));
+        }
         out.removeIf(a -> a == null);
         return out;
     }
@@ -322,9 +331,12 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         if (!name.startsWith(only)) return null;
         RaidOwnedMap.Ground ground = RaidOwnedMap.Ground.of(MAP, StoryMapPools.pool(MAP).home());
         long seed = StoryMapPools.pool(MAP).owned().seed();
-        try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, ground.home(), seed, true, List.of())) {
+        // The built pictures raid the owned map from a market at that security; the rest from the reference market.
+        TargetProfile raided = name.startsWith("built-fortified") ? ground.reference().withDefences(true, true, false)
+                : ground.reference();
+        try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, seed, true, List.of(), raided)) {
             Works works = works(sim);
-            if (name.startsWith("defences")) works = framedOnWall(works);
+            if (name.startsWith("defences") || name.startsWith("built")) works = framedOnWall(works);
             ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
             stage.apply(works, marks);
             BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
