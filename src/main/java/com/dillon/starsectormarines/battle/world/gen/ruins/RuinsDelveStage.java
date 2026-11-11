@@ -124,6 +124,8 @@ public final class RuinsDelveStage implements GenStage {
     static final int PLANT_WEST_STRIP = 24;
     /** Columns or rows from one block-planned space's edge to its neighbour's: two cells of hull wall between. */
     static final int BLOCK_GAP = 3;
+    /** The hull a plant's outline keeps round every floor, piece and door inside: its walls' thickness. */
+    static final int OUTLINE_WALL = 2;
     /**
      * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
      * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
@@ -392,6 +394,10 @@ public final class RuinsDelveStage implements GenStage {
         final List<Placed> blockPlaced = new ArrayList<>();
         /** The first space laid in the band being planted ({@link PlantBrief.Anchor#UNDER_FIRST}). */
         Area bandFirst;
+        /** Each interior band's spine column, in band order. */
+        final List<Integer> spines = new ArrayList<>();
+        /** Inside cells the hull's outline cut back to open ground ({@link #outline}); null until it runs. */
+        boolean[] beyond;
         /** Cells no way may run through: the plant's infantry-only rooms, entered by their own door alone. */
         boolean[] noWay;
         /** The brief's spaces a band had no room for, tried again in the next band. */
@@ -467,10 +473,10 @@ public final class RuinsDelveStage implements GenStage {
             int layers = plan.layers();
             int[][] lines = new int[layers][];
             int span = zoneEnd - zoneStart;
-            for (int i = 0; i < layers; i++) {
-                int centre = zoneStart + (i + 1) * span / (layers + 1) + rng.nextInt(5) - 2;
-                lines[i] = lineProfile(centre);
-            }
+            int[] centres = new int[layers];
+            for (int i = 0; i < layers; i++) centres[i] = zoneStart + (i + 1) * span / (layers + 1) + rng.nextInt(5) - 2;
+            if (plantMode) plantLines(centres, zoneStart, zoneEnd);
+            for (int i = 0; i < layers; i++) lines[i] = lineProfile(centres[i]);
             List<LayerDraft> drafts = new ArrayList<>();
             for (int i = 0; i < layers; i++) {
                 drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1, i >= layers - plan.interiorLayers()));
@@ -547,6 +553,7 @@ public final class RuinsDelveStage implements GenStage {
             dress(plan.dressing(), vault, dressed);
             rooms(plain, plantHalls, laid, vault);
             for (RuinsDelve.PlantHall plantHall : plantHalls) zoneFloor(plantHall.footprint());
+            if (plantMode) outline();
             finishMasks();
             repairPockets(landing.get(0).berth(0));
 
@@ -960,6 +967,39 @@ public final class RuinsDelveStage implements GenStage {
         // ---- layers --------------------------------------------------------------------------
 
         /** A layer's wall column per row: it runs straight in short segments and jogs a cell between them. */
+        /**
+         * The hull drawn round the plant ({@code ruins-expedition.md}, The plant is designed intact first): each
+         * interior band's line set back from the vault only as far as its spaces need ({@link #plantBand}), and the
+         * outer layers spread over the ground that frees to the west. Where the plant needs more room than the even
+         * spread gives, the lines stay as they were.
+         */
+        void plantLines(int[] centres, int zoneStart, int zoneEnd) {
+            int layers = centres.length, bands = plan.interiorLayers(), first = layers - bands;
+            if (bands == 0) return;
+            int[] drawn = new int[layers];
+            // A line's region runs from three past its right to four short of the next line's left, its jog one cell.
+            int east = zoneEnd;
+            for (int k = layers - 1; k >= first; k--) {
+                drawn[k] = east - plantBand(k - first, bands) - 4;
+                east = drawn[k] - 5;
+            }
+            if (drawn[first] <= centres[first]) return;
+            for (int k = 0; k < first; k++) drawn[k] = zoneStart + (k + 1) * (drawn[first] - zoneStart) / (first + 1);
+            System.arraycopy(drawn, 0, centres, 0, layers);
+        }
+
+        /**
+         * The width interior band {@code band} of {@code bands} needs for its plant: the works band its dock and
+         * habitat strip, the works hall and its east wall's gallery; a deeper band line two with its finished goods
+         * beyond it and the band's spine.
+         */
+        int plantBand(int band, int bands) {
+            boolean vast = plan.layers() >= 4;
+            float s = plan.layers() <= 2 ? .7f : vast ? 1.15f : 1f;
+            if (band == 0) return PLANT_WEST_STRIP + (vast ? MEGA_WIDE_VAST : MEGA_WIDE) + 18;
+            return Math.round(30 * s) + Math.round(24 * s) + 20;
+        }
+
         int[] lineProfile(int centre) {
             int[] x = new int[h];
             int y = 0;
@@ -1500,7 +1540,106 @@ public final class RuinsDelveStage implements GenStage {
         /** Whether a cell is inside the interior: within its footprint and east of the hull face. */
         boolean insideCell(int x, int y) {
             if (interiorBox == null || !interiorBox.contains(x, y)) return false;
+            if (beyond != null && beyond[i(x, y)]) return false;
             return faceLx == null || x > faceLx[y];
+        }
+
+        /**
+         * The hull drawn round the plant ({@code ruins-expedition.md}, The plant is designed intact first): hull that
+         * walls nothing (more than {@link #OUTLINE_WALL} cells from any floor, piece or door inside) and that open
+         * ground outside reaches is cut away to open ground, so the plant stands as a building with the ruin's ground
+         * round it instead of a block filling the band. Every floor keeps its wall, so the plant stays closed but for
+         * its ways in; hull no outside ground reaches stays solid, the mass between the plant's spaces. A cut cell is
+         * outside ({@link #beyond}): no roof, and a machine may be set down on it.
+         */
+        void outline() {
+            for (int spine : spines) trimSpine(spine);
+            boolean[] occupied = new boolean[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!insideCell(x, y)) continue;
+                    int k = i(x, y);
+                    occupied[k] = grid.isWalkable(x, y) || grid.isDoorway(x, y) || kept[k] || topology.isFixture(x, y);
+                }
+            }
+            boolean[] walls = new boolean[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!occupied[i(x, y)]) continue;
+                    for (int dy = -OUTLINE_WALL; dy <= OUTLINE_WALL; dy++) {
+                        for (int dx = -OUTLINE_WALL; dx <= OUTLINE_WALL; dx++) {
+                            if (grid.inBounds(x + dx, y + dy)) walls[i(x + dx, y + dy)] = true;
+                        }
+                    }
+                }
+            }
+            beyond = new boolean[w * h];
+            ArrayDeque<Integer> queue = new ArrayDeque<>();
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!cuttable(x, y, walls)) continue;
+                    for (Direction side : Direction.CARDINALS) {
+                        int nx = x + side.dx, ny = y + side.dy;
+                        if (grid.inBounds(nx, ny) && !insideCell(nx, ny) && grid.isWalkable(nx, ny)) {
+                            beyond[i(x, y)] = true;
+                            queue.add(i(x, y));
+                            break;
+                        }
+                    }
+                }
+            }
+            while (!queue.isEmpty()) {
+                int k = queue.poll(), x = k % w, y = k / w;
+                for (Direction side : Direction.CARDINALS) {
+                    int nx = x + side.dx, ny = y + side.dy;
+                    if (!grid.inBounds(nx, ny) || beyond[i(nx, ny)] || !cuttable(nx, ny, walls)) continue;
+                    beyond[i(nx, ny)] = true;
+                    queue.add(i(nx, ny));
+                }
+            }
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int k = i(x, y);
+                    if (!beyond[k]) continue;
+                    free(x, y);
+                    ground(x, y, GroundKind.DIRT);
+                    topology.setBuildingKindHint(x, y, null);
+                    drafted[k] = false;
+                    lineCell[k] = false;
+                }
+            }
+        }
+
+        /**
+         * A spine cut back to the stretch anything joins: rows beyond the last way, room door, court or hall that meets
+         * it from either side are walled up as hull, so the outline can draw the hull in past them.
+         */
+        void trimSpine(int spine) {
+            int lo = -1, hi = -1;
+            for (int y = 0; y < h; y++) {
+                boolean joined = false;
+                for (int x : new int[]{spine - 2, spine + 2}) {
+                    joined |= grid.inBounds(x, y) && insideCell(x, y) && (grid.isWalkable(x, y) || grid.isDoorway(x, y));
+                }
+                if (!joined) continue;
+                if (lo < 0) lo = y;
+                hi = y;
+            }
+            if (lo < 0) return;
+            for (int y = 0; y < h; y++) {
+                if (y >= lo - 1 && y <= hi + 1) continue;
+                for (int x = spine - 1; x <= spine + 1; x++) {
+                    if (insideCell(x, y) && grid.isWalkable(x, y) && !kept[i(x, y)]) hullCell(x, y);
+                }
+            }
+        }
+
+        /** Whether outline may cut a cell: inside or on the face, hull or wall, and walling nothing. */
+        private boolean cuttable(int x, int y, boolean[] walls) {
+            int k = i(x, y);
+            if (x <= 0 || y <= 0 || x >= w - 1 || y >= h - 1 || beyond[k] || walls[k]) return false;
+            boolean onFace = interiorBox.contains(x, y) && faceLx != null && x >= faceLx[y] - 1;
+            return (insideCell(x, y) || onFace) && (hull[k] || lineCell[k] || topology.isWall(x, y));
         }
 
         /**
@@ -1573,6 +1712,7 @@ public final class RuinsDelveStage implements GenStage {
                     spine = spineColumn(well, k == hallLayer ? innerHall : null, left + 1, right - 1, k);
                 }
                 wells.put(k, well);
+                spines.add(spine);
                 for (int y = 2; y <= h - 3; y++) {
                     for (int x = spine - 1; x <= spine + 1; x++) {
                         carve(x, y, k);
