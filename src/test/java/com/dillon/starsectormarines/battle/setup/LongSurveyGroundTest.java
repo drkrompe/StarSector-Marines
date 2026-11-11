@@ -58,6 +58,8 @@ class LongSurveyGroundTest {
         assertArrayEquals(new int[] {41, 15, 60, 15, 70, 15}, rules.haulRoads().get(0), "from the hull outward");
         assertEquals(List.of(new FallenHullSite.StartingStake(0, SurveyStake.Stage.RAISED)), rules.stakes());
         assertEquals(2, rules.egress().size());
+        assertArrayEquals(new int[] {12, 15}, rules.egress().get(0), "egress stands at each apron's first berth");
+        assertArrayEquals(new int[] {32, 6}, rules.egress().get(1));
         assertEquals(25f, rules.feedstock());
     }
 
