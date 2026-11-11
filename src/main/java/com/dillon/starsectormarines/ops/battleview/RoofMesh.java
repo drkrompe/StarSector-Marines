@@ -476,6 +476,14 @@ public final class RoofMesh {
         lastResolvedCells = resolved;
     }
 
+    /** Whether the frame draws the fog; without it (a look shot) no roof carries the fog's darkening. */
+    private boolean fogDrawn = true;
+
+    /** Sets {@link #fogDrawn} for the frames that follow. */
+    void fogDrawn(boolean drawn) {
+        fogDrawn = drawn;
+    }
+
     /** Writes the fade and the fog every building's vertices carry, for the ones that moved. */
     private void shade(float frameAlpha) {
         for (Span span : spans) {
@@ -483,7 +491,7 @@ public final class RoofMesh {
             float own = b.currentAlpha;
             float effective = own <= INVISIBLE_BELOW ? 0f
                     : Math.max(0f, Math.min(1f, own * frameAlpha));
-            float fogShade = FogField.roofShade(b.currentFog);
+            float fogShade = fogDrawn ? FogField.roofShade(b.currentFog) : 1f;
             if (Math.abs(effective - span.alpha) < 1f / 512f
                     && Math.abs(fogShade - span.fogShade) < 1f / 512f) continue;
             span.alpha = effective;

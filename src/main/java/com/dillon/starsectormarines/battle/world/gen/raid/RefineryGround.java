@@ -1,14 +1,20 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
+import com.dillon.starsectormarines.battle.world.gen.precinct.DefenceDoctrine;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -190,6 +196,9 @@ public final class RefineryGround {
         final boolean[] racked;
         final Precinct works;
         final int[] claimBox;
+        /** The process area's laid sides, and whether each one's spine is its left edge. */
+        final List<ProcessArea.Plan> areas = new ArrayList<>();
+        final List<Boolean> spineLefts = new ArrayList<>();
 
         Dresser(GenContext c, PrecinctPlan plan, boolean[] reserved, IntPredicate free, TileRegistry registry) {
             this.c = c;
@@ -262,6 +271,78 @@ public final class RefineryGround {
             House out = !pump.isEmpty() ? pump.get(0) : spines.isEmpty() ? null : spines.get(spines.size() - 1);
             if (farm != null && out != null) product(out, farm);
             flare(units);
+            defend(farm);
+        }
+
+        // ---- the field's guns ----
+
+        /**
+         * The guns of the works' open field ({@link FieldDefence}), sited by the walled places' doctrine: the process
+         * area's at the works' end of its spine and the mouths of its lanes nearest the works, the tank farm's at
+         * both ends of its loading lane. Each emplacement's guard post names the works, which crews it.
+         */
+        void defend(TankFarm.Plan farm) {
+            if (works == null) return;
+            DefensePostKind kind = DefensePostKind.LIGHT;
+            Fortification fort = works.fortification();
+            if (fort != null) {
+                for (DefensePostKind k : List.of(DefensePostKind.LARGE, DefensePostKind.MEDIUM)) {
+                    if (fort.posts(k) > 0) {
+                        kind = k;
+                        break;
+                    }
+                }
+            }
+            if (!areas.isEmpty()) {
+                int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = -1, y1 = -1;
+                for (ProcessArea.Plan a : areas) {
+                    x0 = Math.min(x0, a.x0());
+                    y0 = Math.min(y0, a.y0());
+                    x1 = Math.max(x1, a.x1());
+                    y1 = Math.max(y1, a.y1());
+                }
+                int out = works.seedY() < (y0 + y1) / 2 ? -1 : 1;
+                List<DefenceDoctrine.Gate> gates = new ArrayList<>();
+                if (plan.layout().find(RefiningWorks.PROCESS_SPINE) instanceof Site spine) {
+                    gates.add(FieldDefence.spineEnd(spine.x0(), spine.x1(), out < 0 ? y0 : y1, out));
+                }
+                for (int k = 0; k < areas.size(); k++) {
+                    ProcessArea.Plan a = areas.get(k);
+                    boolean left = spineLefts.get(k);
+                    ProcessArea.Box lane = a.lanes().get(out < 0 ? 0 : a.blocks().size());
+                    gates.add(FieldDefence.laneMouth(lane.y(), lane.y() + lane.h() - 1, left ? x1 : x0,
+                            left ? 1 : -1));
+                }
+                guard(FieldDefence.mask(w, h, x0, y0, x1, y1), gates, kind);
+            }
+            if (farm != null) {
+                int[] f = farm.paved(), lane = farm.lane();
+                guard(FieldDefence.mask(w, h, f[0], f[1], f[2], f[3]),
+                        List.of(FieldDefence.laneMouth(lane[1], lane[3], f[0], -1),
+                                FieldDefence.laneMouth(lane[1], lane[3], f[2], 1)), kind);
+            }
+        }
+
+        /**
+         * Arms a field by the shared doctrine ({@code PrecinctDefence.stampField}): its own posts, on top of the works'
+         * wall's, crewed by the works' guard; off the roads, and out of reach of the posts already standing (the
+         * placer keeps {@code DefensePostStamper.POST_MIN_SEPARATION} between anchors), so the doctrine moves a site
+         * rather than lose it.
+         */
+        void guard(boolean[][] field, List<DefenceDoctrine.Gate> gates, DefensePostKind kind) {
+            boolean[][] clear = new boolean[w][h];
+            int far = DefensePostStamper.POST_MIN_SEPARATION;
+            for (DefensePost p : c.defensePosts) {
+                for (int x = Math.max(0, p.anchorX - far); x <= Math.min(w - 1, p.anchorX + far); x++) {
+                    for (int y = Math.max(0, p.anchorY - far); y <= Math.min(h - 1, p.anchorY + far); y++) {
+                        int dx = x - p.anchorX, dy = y - p.anchorY;
+                        if (dx * dx + dy * dy < far * far) clear[x][y] = true;
+                    }
+                }
+            }
+            if (roads != null) for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) clear[x][y] |= roads[x][y];
+            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), clear,
+                    RaidSiteTemplate.WORKS);
         }
 
         // ---- the tank farm ----
@@ -404,6 +485,8 @@ public final class RefineryGround {
                 ProcessArea.Plan area = ProcessArea.plan(clear[0], clear[1], clear[2], clear[3], spineLeft,
                         MOST_UNITS - laid.size());
                 if (area == null) continue;
+                areas.add(area);
+                spineLefts.add(spineLeft);
                 for (int y = area.y0(); y <= area.y1(); y++) for (int x = area.x0(); x <= area.x1(); x++) keep(x, y);
                 for (ProcessArea.Box lane : area.lanes()) paveBox(lane, LANE);
                 paveBox(area.rack(), LANE);

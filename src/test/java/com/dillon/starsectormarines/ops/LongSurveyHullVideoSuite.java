@@ -87,8 +87,6 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
     /** About how long a clip runs on screen; longer moments play faster, by a whole number. */
     private static final float CLIP_SECONDS = 18f;
     private static final float PILE_METAL = 400f;
-    /** Whether roofs fade toward what the company sees: on a launched battle, not on stood ground with no company. */
-    private static boolean fadeRoofs;
 
     @Override public String id() { return "long-survey-hull-video"; }
 
@@ -109,9 +107,7 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
         String suffix = option.isEmpty() ? "" : "-" + option;
         List<SnapshotArtifact> out = new ArrayList<>();
         try (HeadlessStrings strings = new HeadlessStrings(context.modRoot())) {
-            fadeRoofs = true;
             if (clips.contains("forge") || clips.contains("watch")) fall(context, clips, suffix, out);
-            fadeRoofs = false;
             if (clips.contains("stripper") || clips.contains("hauler")) work(context, clips, suffix, out);
             if (clips.contains("stake")) stake(context, suffix, out);
         }
@@ -608,8 +604,8 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
     private static boolean step(BattleSimulation sim, ReviewImpactFx fx) {
         int before = sim.getSimTickIndex();
         sim.advance(DT);
-        // The screen fades roofs toward what the company sees; the stood ground has no company, so its roofs stay.
-        if (fadeRoofs) BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), DT);
+        // The screen fades roofs toward what the company sees.
+        BuildingVisibilityPass.advanceAlpha(sim.getBuildings(), DT);
         if (fx != null) fx.feed(sim);
         return sim.getSimTickIndex() != before;
     }
