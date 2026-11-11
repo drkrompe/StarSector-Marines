@@ -587,6 +587,10 @@ public final class HeadlessUiRenderer {
         @Override
         public void spritePatch(String path,float cx,float cy,float width,float height,
                                 Color tint,CanvasSpriteRegion region,float[] vertices) {
+            if (vertices.length >= 17) {
+                mappedPatch(path, cx, cy, width, height, tint, region, vertices);
+                return;
+            }
             // Match the adjacent whole tiles' shared destination pixel boundaries.
             float left=(float)Math.floor(cx-width/2+.5001d),right=(float)Math.floor(cx+width/2+.5001d);
             float top=(float)Math.floor(cy-height/2+.5001d),bottom=(float)Math.floor(cy+height/2+.5001d);
@@ -601,6 +605,55 @@ public final class HeadlessUiRenderer {
             polygon.closePath();graphics.clip(polygon);
             drawSprite(path,null,cx,cy,width,height,0,tint,region,CanvasBlend.NORMAL);
             graphics.setClip(clip);
+        }
+
+        /**
+         * A patch whose UVs are mapped as GL maps them ({@code QuadBatch#appendPatch}): its two triangles (corners
+         * 0-1-2 and 0-2-3), each the region's image under the affine map that carries the triangle's UVs onto its
+         * corners. Asked for by a seventeenth float, so the clipped tiles of the ground keep their pixel-snapped draw.
+         */
+        private void mappedPatch(String path, float cx, float cy, float width, float height, Color tint,
+                                 CanvasSpriteRegion region, float[] v) {
+            BufferedImage image = resources.tintedRegion(path, tint, region);
+            int iw = image.getWidth(), ih = image.getHeight();
+            float[] px = new float[4], py = new float[4], tx = new float[4], ty = new float[4];
+            for (int i = 0; i < 4; i++) {
+                px[i] = documentX(cx + (v[i * 2] - .5f) * width);
+                py[i] = documentY(cy + (.5f - v[i * 2 + 1]) * height);
+                tx[i] = v[8 + i * 2] * iw;
+                ty[i] = (1f - v[8 + i * 2 + 1]) * ih;
+            }
+            var clip = graphics.getClip();
+            AffineTransform saved = graphics.getTransform();
+            var composite = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(tint.getAlpha() / 255f * alphaMult())));
+            int[][] tris = {{0, 1, 2}, {0, 2, 3}};
+            for (int[] t : tris) {
+                double ux1 = tx[t[1]] - tx[t[0]], uy1 = ty[t[1]] - ty[t[0]];
+                double ux2 = tx[t[2]] - tx[t[0]], uy2 = ty[t[2]] - ty[t[0]];
+                double det = ux1 * uy2 - ux2 * uy1;
+                if (Math.abs(det) < 1e-9) continue;
+                double qx1 = px[t[1]] - px[t[0]], qy1 = py[t[1]] - py[t[0]];
+                double qx2 = px[t[2]] - px[t[0]], qy2 = py[t[2]] - py[t[0]];
+                // The linear part carries the triangle's UV edges onto its screen edges.
+                double m00 = (qx1 * uy2 - qx2 * uy1) / det, m01 = (qx2 * ux1 - qx1 * ux2) / det;
+                double m10 = (qy1 * uy2 - qy2 * uy1) / det, m11 = (qy2 * ux1 - qy1 * ux2) / det;
+                double m02 = px[t[0]] - m00 * tx[t[0]] - m01 * ty[t[0]];
+                double m12 = py[t[0]] - m10 * tx[t[0]] - m11 * ty[t[0]];
+                Path2D.Float tri = new Path2D.Float();
+                tri.moveTo(px[t[0]], py[t[0]]);
+                tri.lineTo(px[t[1]], py[t[1]]);
+                tri.lineTo(px[t[2]], py[t[2]]);
+                tri.closePath();
+                graphics.setClip(clip);
+                graphics.clip(tri);
+                graphics.transform(new AffineTransform(m00, m10, m01, m11, m02, m12));
+                graphics.drawImage(image, 0, 0, null);
+                graphics.setTransform(saved);
+            }
+            graphics.setClip(clip);
+            graphics.setComposite(composite);
         }
 
         @Override

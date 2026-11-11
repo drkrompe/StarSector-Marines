@@ -43,6 +43,8 @@ class PortWorksTest {
         assertFalse(PORT.deepFeeder(), "the deep end is the hub's");
         assertFalse(PORT.yards());
         assertTrue(PORT.industryIds().contains("megaport"));
+        // The garrison seeds below the lines, which run across the map's middle, never against them.
+        assertTrue(PORT.garrisonAt().y1() < PortWorks.LINES_AT - .2f, "garrison clear of the lines");
     }
 
     @Test

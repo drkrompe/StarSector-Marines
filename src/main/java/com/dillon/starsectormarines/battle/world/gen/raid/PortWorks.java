@@ -88,6 +88,8 @@ public final class PortWorks implements RaidIndustry {
     // the town side, between it and the homes: the freight forwarders' yards the haul road runs out to.
     static final MapPlacement WORKS_AT = new MapPlacement(0.36f, 0.80f, 0.46f, 0.86f);
     static final MapPlacement INDUSTRY_AT = new MapPlacement(0.33f, 0.66f, 0.35f, 0.88f);
+    /** The garrison's seed in the far side's deep corner, clear of the lines across the map's middle. UNTUNED. */
+    static final MapPlacement GARRISON_AT = new MapPlacement(0.70f, 0.06f, 0.90f, 0.16f);
 
     @Override public String key() { return "spaceport"; }
 
@@ -99,6 +101,12 @@ public final class PortWorks implements RaidIndustry {
     @Override public MapPlacement worksAt() { return WORKS_AT; }
 
     @Override public MapPlacement industryAt() { return INDUSTRY_AT; }
+
+    /**
+     * The garrison low in the far side's corner, below the lines rather than against them, so its wall does not run
+     * across the highway and the rail line on a small map.
+     */
+    @Override public MapPlacement garrisonAt() { return GARRISON_AT; }
 
     /** The deep end is the hub's: no yards beyond the terminal. */
     @Override public boolean yards() { return false; }
