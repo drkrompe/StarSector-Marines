@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
+import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
@@ -59,6 +62,16 @@ public final class LightIndustryWorks implements RaidIndustry {
      */
     public static final int DISPATCH_SHEDS = 2;
 
+    /** The assembly line's held ground, beside the works ({@link AssemblyLine}). */
+    public static final String LINE = "assembly-line";
+    /**
+     * Cells of ground the line holds out from the works: a craft's width and its work strip, the lanes either side,
+     * and room for the line to sit back from the works' rear road. UNTUNED.
+     */
+    static final int LINE_DEPTH = 36;
+    /** Cells the line's ground keeps off the map's edge. */
+    static final int LINE_MARGIN = 2;
+
     /** Yard kept per shop: the parts line's runs, the work in progress staged between halls, the lanes. UNTUNED. */
     static final int YARD_PER_SHOP = 120;
     /** Yard kept whatever the shops: the trucks' staging at the dock and the loading apron at dispatch. UNTUNED. */
@@ -92,8 +105,49 @@ public final class LightIndustryWorks implements RaidIndustry {
                 0, shops * YARD_PER_SHOP + STAGING_YARD, true);
     }
 
-    /** The yard dressed for the work it does ({@link FabricationYard}). */
+    /**
+     * The assembly line's ground beside the works, at the deep end, as a port's apron is: from the works' reach out
+     * {@link #LINE_DEPTH} cells, across the map as the apron's ground runs, stopped short of a storm bank's ground.
+     */
+    @Override public void sitePieces(SiteFrame frame, List<Piece> out) {
+        Precinct works = frame.works();
+        if (works == null) return;
+        int reach = RaidSiteTemplate.worksReach(worksFit(), frame.security(), frame.width(), frame.height());
+        Site ground = PortWorks.apronSite(works.seedX(), works.seedY(), reach, frame.mirrorX(), frame.mirrorY(),
+                frame.width(), frame.height());
+        Site line = lineSite(ground, frame.mirrorX(), works.seedY(), reach, frame.height());
+        out.add(frame.bankWind() != null
+                ? RaidSiteTemplate.clearOfBank(line, frame.bankWind(), frame.width(), frame.height()) : line);
+    }
+
+    /**
+     * The line's ground: the {@link #LINE_DEPTH} cells of the apron's ground nearest the works, and the works' whole
+     * height ({@code reach} either side of its seed row), so the line runs the length of the halls it is fed from.
+     */
+    static Site lineSite(Site ground, boolean mirrorX, int seedY, int reach, int height) {
+        int x0 = mirrorX ? Math.max(ground.x0(), ground.x1() - LINE_DEPTH + 1) : ground.x0();
+        int x1 = mirrorX ? ground.x1() : Math.min(ground.x1(), ground.x0() + LINE_DEPTH - 1);
+        int y0 = Math.max(LINE_MARGIN, seedY - reach), y1 = Math.min(height - 1 - LINE_MARGIN, seedY + reach);
+        return new Site(LINE, x0, y0, x1, Math.max(y0, y1), ground.purpose(), true);
+    }
+
+    /**
+     * The yard dressed for the work it does, and the assembly line laid on its ground ({@link FabricationYard}),
+     * brought in against the works as a port's apron is: to the works' rear road where the works packed tighter than
+     * its reach, so the line runs along the halls it is fed from.
+     */
     @Override public void dressWorks(GenContext c, PrecinctPlan plan, Precinct works) {
-        FabricationYard.dress(c, works.name());
+        int[] line = null;
+        if (plan.layout().find(LINE) instanceof Site ground) {
+            int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
+            boolean deepEast = (ground.x0() + ground.x1()) / 2 > works.seedX();
+            int edge = PortWorks.clearEdge(PortWorks.claimEdge(claim, plan.precincts().indexOf(works), deepEast, ground),
+                    deepEast, ground, (x, y) -> c.topology.getBuildingId(x, y) != 0);
+            int near = deepEast ? Math.min(ground.x0(), edge + 1 + PortWorks.REAR_ROAD)
+                    : Math.max(ground.x1(), edge - 1 - PortWorks.REAR_ROAD);
+            line = deepEast ? new int[]{near, ground.y0(), near + LINE_DEPTH - 1, ground.y1()}
+                    : new int[]{near - LINE_DEPTH + 1, ground.y0(), near, ground.y1()};
+        }
+        FabricationYard.dress(c, works.name(), line);
     }
 }

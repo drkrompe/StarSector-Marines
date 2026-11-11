@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.PlantStage
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.WallRemnant;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -32,6 +33,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +41,11 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Lays a fallen hull over the grown country ({@code fallen-hull-nouns.md}, Fallen hull): the trench it ploughed behind
- * its stern, the debris field of hull fragments it shed along it, and the hull itself, its {@link HullPlan} carved out
- * of solid hull in the ruins megastructure's materials, with an apron of open ground before each way in. Runs before
+ * Lays a fallen hull over the grown country ({@code fallen-hull-nouns.md}, Fallen hull): the hull itself, broken into its
+ * {@link HullPlan#SECTIONS sections} with ploughed ground between them, each built as a ship from the ship kits with
+ * an apron of open ground before each way in; the trench it ploughed off its bow (it came in stern first); the hull
+ * plates it shed along it; and the shower of fragments thrown along its fall line across the map
+ * ({@link DebrisShower}). Runs before
  * the tactical link and finalize, so the hull's shells are ordinary buildings and its fragments ordinary walls, and
  * the mission layout's structures are sited round it. {@link CrashSiteFinishStage} roofs it and lays the claim on the
  * finished ground.
@@ -54,13 +58,20 @@ import java.util.Random;
 public final class CrashSiteStage implements GenStage {
 
     /**
-     * The hull's walls and deck: the installation wall in the hull's own plate ({@code art-source/fallen-hull/tileset.py}),
-     * whose id roofs the hull in hull plating ({@code RoofStyle.HULL}), over the ruins megastructure's deck.
+     * The hull's outer shell, its armour ({@code art-source/fallen-hull/tileset.py}): the installation wall in the
+     * hull's own plate, with the armour's hatch, port and torn breach roots ({@code fallen-hull.armour-*}) as its door,
+     * window and rubble, so the breaches' broken stubs draw as torn armour. A debris plate is the same armour.
      */
     static final String HULL_WALL = "installation.dark-concrete-wall@fallen-hull";
+    /** A section's broken end: the hull's cut face, its deck layers and rib ends showing; the armour where it is missing. */
+    static final String SHEARED = "fallen-hull.sheared-wall";
+    /** The bulkheads between the ship's compartments: the ship deck's own ({@code ship-bulkheads}). */
+    static final String BULKHEAD = "ship.neutral-bulkhead";
+    /** Each compartment's deck, from the ship-interior kits; the installation deck where a kit is missing. */
+    static final String SPINE_FLOOR = "ship-floor-trim.passage", HOLD_FLOOR = "ship-hold.plate-worn",
+            BAY_FLOOR = "ship-bay.deck-surface", FORGE_FLOOR = "ship-hold.plate",
+            CREW_FLOOR = "ship.crew-deck", DOOR_FLOOR = "ship-hold.plate";
     static final String HULL_FLOOR = "installation.concrete-floor";
-    /** The forge hall's deck: plate, so the vault reads apart from the holds. */
-    static final String FORGE_FLOOR = "sky-port.deck-plate";
     static final String RUBBLE_BED = "pavement.gravel.cracked";
     static final String TRODDEN = "pavement.dirt.worn";
     static final String SCRAP = "doodad.industrial-scrap-pile";
@@ -73,8 +84,8 @@ public final class CrashSiteStage implements GenStage {
     /** The interior's building kind: the ruins megastructure's, so the ruins roof joins its mass ({@code RuinsRoofStage}). */
     static final BuildingKind HULL_KIND = BuildingKind.FORTIFIED;
 
-    /** The trench's half width at the stern and at its far end, where the hull first touched down. UNTUNED. */
-    static final int TRENCH_HALF_STERN = 12, TRENCH_HALF_END = 4;
+    /** The trench's half width at the hull and at its far end, where the hull first touched down. UNTUNED. */
+    static final int TRENCH_HALF_HULL = 12, TRENCH_HALF_END = 4;
     /** Cells of thrown-up spoil either side of the trench. */
     static final int LIP = 2;
     /** An apron: this deep outward from its door, this wide across it, this far from the hull's face. */
@@ -86,7 +97,11 @@ public final class CrashSiteStage implements GenStage {
 
     /** What this stage laid, for {@link CrashSiteFinishStage}. */
     record Laid(HullSitePlan plan, Area footprint, BitSet hullCells, Area trench, BitSet trenchCells, BitSet aprons,
-                Interior interior, Area forgeHall, Cell forge, Area bay, List<Area> debris, List<String> problems) { }
+                Interior interior, Area forgeHall, Cell forge, Area bay, List<Area> debris, List<String> problems,
+                int[] compartments, List<String> compartmentNames, List<Area> sections) {
+        /** The compartment a map cell's deck is in, as an index into {@link #compartmentNames}; -1 for none. */
+        int compartment(int x, int y, int width) { return compartments[y * width + x]; }
+    }
 
     @Override
     public void run(GenContext ctx) {
@@ -148,13 +163,39 @@ public final class CrashSiteStage implements GenStage {
                 : mapping == null ? null : mapping.groundBlockId(kind);
     }
 
-    /** Where plan cell {@code (u, v)} falls on the map: the hull's middle at {@code (x, y)}, its bow along the heading. */
+    /**
+     * Where the broken hull falls on the map: the middle of its laid length and breadth ({@link HullPlan#LAID_LENGTH})
+     * at {@code (x, y)}, its bow along the heading. A laid cell {@code (l, c)} is cells from the stern along the line
+     * and across it; a plan cell is laid through its section ({@link HullPlan#laidU}).
+     */
     record Frame(int x, int y, Direction heading) {
-        int wx(int u, int v) { return x + (u - HullPlan.LENGTH / 2) * heading.dx - (v - HullPlan.BREADTH / 2) * heading.dy; }
-        int wy(int u, int v) { return y + (u - HullPlan.LENGTH / 2) * heading.dy + (v - HullPlan.BREADTH / 2) * heading.dx; }
-        /** A plan rectangle's cells on the map. */
-        Area area(Rect r) {
-            int ax = wx(r.u0(), r.v0()), ay = wy(r.u0(), r.v0()), bx = wx(r.u1(), r.v1()), by = wy(r.u1(), r.v1());
+        int lx(int l, int c) {
+            return x + (l - HullPlan.LAID_LENGTH / 2) * heading.dx - (c - HullPlan.LAID_BREADTH / 2) * heading.dy;
+        }
+        int ly(int l, int c) {
+            return y + (l - HullPlan.LAID_LENGTH / 2) * heading.dy + (c - HullPlan.LAID_BREADTH / 2) * heading.dx;
+        }
+        /** Plan cell {@code (u, v)} on the map, laid as a cell of {@code section} (off its ends too, for its aprons). */
+        int wx(HullPlan.Section section, int u, int v) {
+            return lx(HullPlan.laidU(section, u), HullPlan.laidV(section, v));
+        }
+        int wy(HullPlan.Section section, int u, int v) {
+            return ly(HullPlan.laidU(section, u), HullPlan.laidV(section, v));
+        }
+        int wx(int u, int v) { return wx(HullPlan.section(u), u, v); }
+        int wy(int u, int v) { return wy(HullPlan.section(u), u, v); }
+        /** A plan rectangle's cells on the map, laid as cells of its first cell's section. */
+        Area area(Rect r) { return area(HullPlan.section(r.u0()), r); }
+        Area area(HullPlan.Section section, Rect r) {
+            int ax = wx(section, r.u0(), r.v0()), ay = wy(section, r.u0(), r.v0());
+            int bx = wx(section, r.u1(), r.v1()), by = wy(section, r.u1(), r.v1());
+            return new Area(Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by));
+        }
+        /** The laid box's cells on the map. */
+        Area laid() {
+            int ax = lx(0, 0), ay = ly(0, 0);
+            int bx = lx(HullPlan.LAID_LENGTH - 1, HullPlan.LAID_BREADTH - 1);
+            int by = ly(HullPlan.LAID_LENGTH - 1, HullPlan.LAID_BREADTH - 1);
             return new Area(Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by));
         }
         /** The map step of a plan step. */
@@ -198,9 +239,10 @@ public final class CrashSiteStage implements GenStage {
         boolean in(int x, int y) { return x >= 0 && y >= 0 && x < w && y < h; }
 
         Laid lay() {
-            Area footprint = frame.area(new Rect(0, 0, HullPlan.LENGTH - 1, HullPlan.BREADTH - 1));
+            Area footprint = frame.laid();
             if (footprint.left() < 2 || footprint.bottom() < 2 || footprint.right() >= w - 2 || footprint.top() >= h - 2) {
-                throw new IllegalStateException("the hull at " + plan.x() + "," + plan.y() + " runs off the map");
+                throw new IllegalStateException("the hull at " + plan.x() + "," + plan.y() + " (" + footprint
+                        + ") runs off the " + w + "x" + h + " map");
             }
             for (int u = 0; u < HullPlan.LENGTH; u++) {
                 for (int v = 0; v < HullPlan.BREADTH; v++) {
@@ -208,6 +250,7 @@ public final class CrashSiteStage implements GenStage {
                 }
             }
             Area trench = trench();
+            List<Area> sections = sections();
             reportField();
             List<Apron> aprons = new ArrayList<>();
             List<Area> entrances = new ArrayList<>();
@@ -224,8 +267,10 @@ public final class CrashSiteStage implements GenStage {
             raiseHull();
             for (Apron apron : aprons) openApron(apron.ground(), roadsBefore);
             List<LeafDoor> doors = doors();
+            tearBreaches();
             finishMasks();
             List<Area> debris = debris(trench, footprint);
+            HullDressing.dress(ctx, hull, frame, compartments);
 
             List<Area> chambers = new ArrayList<>();
             List<PlantHall> halls = new ArrayList<>();
@@ -249,31 +294,53 @@ public final class CrashSiteStage implements GenStage {
             Interior interior = new Interior(HullSite.INTERIOR, footprint, 0, entrances, aprons, chambers, halls, doors);
             Cell forge = new Cell(frame.wx(HullPlan.FORGE_U, HullPlan.FORGE_V), frame.wy(HullPlan.FORGE_U, HullPlan.FORGE_V));
             return new Laid(plan, footprint, hullCells, trench, trenchCells, apronCells, interior, forgeHall, forge, bay,
-                    debris, problems);
+                    debris, problems, compartments, compartmentNames, sections);
         }
 
         // ---- the trench ------------------------------------------------------------------------
 
-        /** Marks the trench and its spoil lips behind the stern; their bounding box. */
+        /**
+         * Marks the trench and its spoil lips off the bow's tip (the hull came in stern first, so the bow lies nearest
+         * where it touched down), and the ground the sections dragged across between them; their bounding box.
+         */
         Area trench() {
             int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
-            int mid = HullPlan.BREADTH / 2;
+            HullPlan.Section bow = HullPlan.SECTIONS.get(HullPlan.SECTIONS.size() - 1);
+            int mid = HullPlan.laidV(bow, HullPlan.BREADTH / 2);
+            List<int[]> cells = new ArrayList<>();
             for (int t = 1; t <= plan.trench(); t++) {
-                int half = TRENCH_HALF_STERN + (TRENCH_HALF_END - TRENCH_HALF_STERN) * t / plan.trench();
+                int half = TRENCH_HALF_HULL + (TRENCH_HALF_END - TRENCH_HALF_HULL) * t / plan.trench();
                 half += Math.floorMod(hash(t, 0, 0x7E), 3) - 1;
                 for (int dv = -half - LIP; dv < half + LIP; dv++) {
-                    int x = frame.wx(-t, mid + dv), y = frame.wy(-t, mid + dv);
-                    if (!in(x, y) || x < 1 || y < 1 || x >= w - 1 || y >= h - 1) continue;
                     boolean lip = dv < -half || dv >= half;
-                    (lip ? lipCells : trenchCells).set(i(x, y));
-                    minX = Math.min(minX, x);
-                    minY = Math.min(minY, y);
-                    maxX = Math.max(maxX, x);
-                    maxY = Math.max(maxY, y);
+                    cells.add(new int[]{HullPlan.LAID_LENGTH - 1 + t, mid + dv, lip ? 1 : 0});
                 }
+            }
+            // The gaps between sections: ploughed as the trench is, across the hull's breadth.
+            for (int l = 0; l < HullPlan.LAID_LENGTH; l++) {
+                if (HullPlan.planU(l) >= 0) continue;
+                for (int c = 0; c < HullPlan.LAID_BREADTH; c++) cells.add(new int[]{l, c, 0});
+            }
+            for (int[] c : cells) {
+                int x = frame.lx(c[0], c[1]), y = frame.ly(c[0], c[1]);
+                if (!in(x, y) || x < 1 || y < 1 || x >= w - 1 || y >= h - 1) continue;
+                (c[2] == 1 ? lipCells : trenchCells).set(i(x, y));
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
             }
             if (minX > maxX) throw new IllegalStateException("the hull's trench runs off the map");
             return new Area(minX, minY, maxX, maxY);
+        }
+
+        /** Each section's laid cells on the map, stern to bow. */
+        List<Area> sections() {
+            List<Area> out = new ArrayList<>();
+            for (HullPlan.Section s : HullPlan.SECTIONS) {
+                out.add(frame.area(s, new Rect(s.u0(), 0, s.u1(), HullPlan.BREADTH - 1)));
+            }
+            return out;
         }
 
         void digTrench() {
@@ -302,24 +369,124 @@ public final class CrashSiteStage implements GenStage {
 
         // ---- the hull ---------------------------------------------------------------------------
 
+        /** The compartment of each map cell's deck (-1 for none), and the compartments' names. */
+        final List<String> compartmentNames = new ArrayList<>();
+        int[] compartments;
+        /** The armour's broken stubs round the breaches. */
+        final BitSet stubs = new BitSet();
+
         void raiseHull() {
-            Hall forge = hull.hall("forge");
+            compartments = new int[w * h];
+            Arrays.fill(compartments, -1);
+            String armour = HULL_WALL;
             for (int u = 0; u < HullPlan.LENGTH; u++) {
                 for (int v = 0; v < HullPlan.BREADTH; v++) {
                     HullPlan.Kind kind = hull.at(u, v);
                     if (kind == HullPlan.Kind.OUTSIDE) continue;
                     int x = frame.wx(u, v), y = frame.wy(u, v);
                     switch (kind) {
-                        case HULL -> wall(x, y);
-                        case FLOOR -> deck(x, y, forge.floor().contains(u, v) ? FORGE_FLOOR : HULL_FLOOR);
-                        case TORN -> deck(x, y, RUBBLE_BED);
+                        case HULL -> wall(x, y, hull.sheared(u, v) && has(SHEARED) ? SHEARED
+                                : hull.shell(u, v) ? armour : BULKHEAD);
+                        case FLOOR -> {
+                            String room = hull.compartment(u, v);
+                            deck(x, y, floor(u, v, room));
+                            int at = compartmentNames.indexOf(room);
+                            if (at < 0) {
+                                at = compartmentNames.size();
+                                compartmentNames.add(room);
+                            }
+                            compartments[i(x, y)] = at;
+                        }
+                        case TORN -> torn(x, y);
                         default -> { }
                     }
+                    // The whole ship is roofed as hull plating, whatever its walls are built of; a breach is open sky.
+                    if (kind != HullPlan.Kind.TORN) topology.setRoofKind(x, y, CellTopology.RoofKind.HULL);
                 }
             }
         }
 
-        void wall(int x, int y) {
+        /** The deck a plan cell is laid in: its compartment's kit, a door's threshold plate. */
+        String floor(int u, int v, String room) {
+            boolean door = false;
+            for (Hall hall : hull.halls()) door |= hall.door().contains(u, v);
+            for (Entrance e : hull.entrances()) door |= e.door().contains(u, v);
+            String kit;
+            if (door) kit = DOOR_FLOOR;
+            else if (room.startsWith(HullPlan.SPINE_NAME)) kit = SPINE_FLOOR;
+            else kit = switch (hull.hall(room).use()) {
+                case HOLD -> HOLD_FLOOR;
+                case BAY -> BAY_FLOOR;
+                case FORGE -> FORGE_FLOOR;
+                case CREW -> CREW_FLOOR;
+            };
+            return has(kit) ? kit : HULL_FLOOR;
+        }
+
+
+        boolean has(String block) {
+            TileRegistry registry = TileRegistry.installed();
+            return registry != null && registry.hasBlock(block);
+        }
+
+        void deck(int x, int y, String surface) {
+            free(x, y);
+            topology.setGroundKind(x, y, GroundKind.INDOOR);
+            topology.setBuildingKindHint(x, y, HULL_KIND);
+            topology.setSurface(x, y, topology.surfaceIndex(surface));
+            drafted.set(i(x, y));
+        }
+
+        /** A breach's floor: open ground under the sky, rubble the crash threw in. */
+        void torn(int x, int y) {
+            free(x, y);
+            ground(x, y, GroundKind.RUBBLE);
+            topology.setSurface(x, y, topology.surfaceIndex(RUBBLE_BED));
+        }
+
+        /**
+         * The shell round each breach torn ragged: a shell cell beside the breach and clear of any deck stands as the
+         * broken stub of the armour in rubble about one time in two, so no breach is a clean rectangle.
+         */
+        void tearBreaches() {
+            String armour = HULL_WALL;
+            for (int u = 0; u < HullPlan.LENGTH; u++) {
+                for (int v = 0; v < HullPlan.BREADTH; v++) {
+                    if (!hull.shell(u, v) || !besideTorn(u, v) || besideDeck(u, v)) continue;
+                    int x = frame.wx(u, v), y = frame.wy(u, v);
+                    if (Math.floorMod(hash(x, y, 0xB7), 2) != 0) continue;
+                    torn(x, y);
+                    topology.setRoofKind(x, y, null);
+                    stubs.set(i(x, y));
+                }
+            }
+            for (int k = stubs.nextSetBit(0); k >= 0; k = stubs.nextSetBit(k + 1)) {
+                int x = k % w, y = k / w, faces = 0;
+                if (exposed(x, y + 1)) faces |= CellTopology.WALL_DIR_N;
+                if (exposed(x + 1, y)) faces |= CellTopology.WALL_DIR_E;
+                if (exposed(x, y - 1)) faces |= CellTopology.WALL_DIR_S;
+                if (exposed(x - 1, y)) faces |= CellTopology.WALL_DIR_W;
+                topology.setWallRemnant(x, y, new WallRemnant(armour, GroundKind.RUBBLE, RUBBLE_BED, faces));
+            }
+        }
+
+        boolean exposed(int x, int y) {
+            return in(x, y) && grid.isWalkable(x, y) && !stubs.get(i(x, y));
+        }
+
+        boolean besideTorn(int u, int v) {
+            return hull.near(u, v, 1, 0) == HullPlan.Kind.TORN || hull.near(u, v, -1, 0) == HullPlan.Kind.TORN
+                    || hull.near(u, v, 0, 1) == HullPlan.Kind.TORN || hull.near(u, v, 0, -1) == HullPlan.Kind.TORN;
+        }
+
+        boolean besideDeck(int u, int v) {
+            for (int du = -1; du <= 1; du++) {
+                for (int dv = -1; dv <= 1; dv++) if (hull.near(u, v, du, dv) == HullPlan.Kind.FLOOR) return true;
+            }
+            return false;
+        }
+
+        void wall(int x, int y, String surface) {
             removeProps(x, y);
             grid.setWalkable(x, y, false);
             grid.setSeeThrough(x, y, false);
@@ -329,16 +496,8 @@ public final class CrashSiteStage implements GenStage {
             topology.setWallRemnant(x, y, null);
             topology.setGroundKind(x, y, GroundKind.STRIPED);
             topology.setBuildingKindHint(x, y, HULL_KIND);
-            topology.setSurface(x, y, topology.surfaceIndex(HULL_WALL));
-            ctx.markMadeGround(x, y);
-            drafted.set(i(x, y));
-        }
-
-        void deck(int x, int y, String surface) {
-            free(x, y);
-            topology.setGroundKind(x, y, GroundKind.INDOOR);
-            topology.setBuildingKindHint(x, y, HULL_KIND);
             topology.setSurface(x, y, topology.surfaceIndex(surface));
+            ctx.markMadeGround(x, y);
             drafted.set(i(x, y));
         }
 
@@ -350,7 +509,8 @@ public final class CrashSiteStage implements GenStage {
         List<LeafDoor> doors() {
             List<LeafDoor> out = new ArrayList<>();
             for (Hall hall : hull.halls()) out.add(door(hall.door(), hall.door().u0() == hall.door().u1()));
-            for (Entrance e : hull.entrances()) out.add(door(e.door(), e.du() != 0));
+            // A breach is a hole in the shell, not a door.
+            for (Entrance e : hull.entrances()) if (!e.torn()) out.add(door(e.door(), e.du() != 0));
             return out;
         }
 
@@ -409,27 +569,42 @@ public final class CrashSiteStage implements GenStage {
         /** The apron before entrance {@code k}: open ground outward from its door, with two berths for the boat. */
         Apron apron(int k, Entrance e) {
             Rect d = e.door();
+            HullPlan.Section section = HullPlan.section(d.u0());
+            int depth = apronDepth(e, section);
             int mu = (d.u0() + d.u1()) / 2, mv = (d.v0() + d.v1()) / 2;
             // The door's outer face, then out past the hull's face.
             int fu = e.du() < 0 ? d.u0() : e.du() > 0 ? d.u1() : mu;
             int fv = e.dv() < 0 ? d.v0() : e.dv() > 0 ? d.v1() : mv;
             int nu = fu + e.du() * (1 + APRON_GAP), nv = fv + e.dv() * (1 + APRON_GAP);
-            int au = nu + e.du() * (APRON_DEPTH - 1), av = nv + e.dv() * (APRON_DEPTH - 1);
+            int au = nu + e.du() * (depth - 1), av = nv + e.dv() * (depth - 1);
             Rect r = e.du() != 0
                     ? new Rect(Math.min(nu, au), mv - APRON_HALF, Math.max(nu, au), mv + APRON_HALF)
                     : new Rect(mu - APRON_HALF, Math.min(nv, av), mu + APRON_HALF, Math.max(nv, av));
-            Area ground = frame.area(r);
+            Area ground = frame.area(section, r);
             int sx = frame.dx(e.du(), e.dv()), sy = frame.dy(e.du(), e.dv());
             LandingPad.Approach approach = sx > 0 ? LandingPad.Approach.EAST : sx < 0 ? LandingPad.Approach.WEST
                     : sy > 0 ? LandingPad.Approach.NORTH : LandingPad.Approach.SOUTH;
-            int nearX = frame.wx(nu + e.du() * 2, nv + e.dv() * 2), nearY = frame.wy(nu + e.du() * 2, nv + e.dv() * 2);
-            int farX = frame.wx(au - e.du() * 2, av - e.dv() * 2), farY = frame.wy(au - e.du() * 2, av - e.dv() * 2);
+            int nearX = frame.wx(section, nu + e.du() * 2, nv + e.dv() * 2);
+            int nearY = frame.wy(section, nu + e.du() * 2, nv + e.dv() * 2);
+            int farX = frame.wx(section, au - e.du() * 2, av - e.dv() * 2);
+            int farY = frame.wy(section, au - e.du() * 2, av - e.dv() * 2);
             LandingArea lift = new LandingArea("hull-entrance-" + (k + 1),
                     LandingPad.civilian(nearX, nearY, approach), LandingPad.civilian(farX, farY, approach));
             for (int y = ground.bottom(); y <= ground.top(); y++) {
                 for (int x = ground.left(); x <= ground.right(); x++) if (in(x, y)) apronCells.set(i(x, y));
             }
-            return new Apron(Interior.apronName(k), frame.area(d), ground, lift);
+            return new Apron(Interior.apronName(k), frame.area(section, d), ground, lift);
+        }
+
+        /**
+         * How deep an entrance's apron runs: {@link #APRON_DEPTH} onto open ground, and at a broken end half the gap to
+         * the next section, so the two torn ends' aprons facing each other across it never meet.
+         */
+        static int apronDepth(Entrance e, HullPlan.Section section) {
+            if (!e.broken()) return APRON_DEPTH;
+            List<HullPlan.Section> all = HullPlan.SECTIONS;
+            int gap = e.du() > 0 ? all.get(all.indexOf(section) + 1).gap() : section.gap();
+            return Math.min(APRON_DEPTH, gap / 2 - APRON_GAP - 1);
         }
 
         /** Clears an apron to open ground; a road across it stays a road. */
@@ -457,14 +632,16 @@ public final class CrashSiteStage implements GenStage {
         List<Area> debris(Area trench, Area footprint) {
             boolean[][] roads = RoadReservation.mask(ctx.get(BspKeys.ROAD_GRAPH), w, h);
             List<Area> out = new ArrayList<>();
-            int mid = HullPlan.BREADTH / 2;
+            int mid = HullPlan.LAID_BREADTH / 2;
             for (int tries = 0; tries < DEBRIS_TRIES && out.size() < DEBRIS; tries++) {
-                int t = rng.nextInt(plan.trench() + HullPlan.LENGTH) - plan.trench();
+                // Laid along the line: the hull's length, then the trench beyond the bow.
+                int l = rng.nextInt(plan.trench() + HullPlan.LAID_LENGTH);
                 int side = rng.nextBoolean() ? 1 : -1;
-                int off = (t < 0 ? TRENCH_HALF_STERN + LIP + 2 : HullPlan.BREADTH / 2 + 3) + rng.nextInt(16);
+                int off = (l >= HullPlan.LAID_LENGTH ? TRENCH_HALF_HULL + LIP + 2 : HullPlan.LAID_BREADTH / 2 + 3)
+                        + rng.nextInt(16);
                 int length = 3 + rng.nextInt(4);
                 boolean alongU = rng.nextBoolean();
-                int x0 = frame.wx(t, mid + side * off), y0 = frame.wy(t, mid + side * off);
+                int x0 = frame.lx(l, mid + side * off), y0 = frame.ly(l, mid + side * off);
                 int sx = alongU ? frame.dx(1, 0) : frame.dx(0, 1), sy = alongU ? frame.dy(1, 0) : frame.dy(0, 1);
                 boolean fits = true;
                 for (int k = 0; k < length && fits; k++) fits = clearForDebris(x0 + sx * k, y0 + sy * k, roads);

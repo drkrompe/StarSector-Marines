@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  *
  * <p>A roof follows the building under it. A building its builder marked with a roof kind
  * ({@link CellTopology.RoofKind}) wears that kind's roof: a hangar the arched {@link #QUONSET}, a hut the ridged
- * {@link #BARRACKS}. Otherwise a fort lot's building is roofed in its works' family, so a prepared post
+ * {@link #BARRACKS}, a fallen hull's compartments its {@link #HULL} plating. Otherwise a fort lot's building is roofed in its works' family, so a prepared post
  * pours a slab, a League or high-tech one plates it, and field works throw sheet steel over it. A town building is
  * roofed for its walls: masonry carries clay tile, ceramic panel a flat slab, olive sheet a corrugated roof, and a
  * fallen hull's own walls (any surface id naming {@code fallen-hull}) its hull plating. A building with neither falls
@@ -42,7 +42,13 @@ public enum RoofStyle {
     /** The style a building's roof is drawn in. */
     public static RoofStyle of(Building building, CellTopology topology) {
         CellTopology.RoofKind marked = kindOf(building, topology);
-        if (marked != null) return marked == CellTopology.RoofKind.HANGAR ? QUONSET : BARRACKS;
+        if (marked != null) {
+            return switch (marked) {
+                case HANGAR -> QUONSET;
+                case HUT -> BARRACKS;
+                case HULL -> HULL;
+            };
+        }
         EmplacementStyle works = worksOf(building, topology);
         if (works != null) return ofWorks(works);
         RoofStyle walls = ofWalls(building, topology);

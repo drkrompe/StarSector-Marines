@@ -138,21 +138,65 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
 `MapResult.hullSite` (`HullSite`), the seam the rules read:
 
 - **The hull** is one survey mothership plan (`HullPlan`, 88 by 32 cells, its
-  bow tapering), laid on a cardinal heading in the ruins megastructure's
-  materials under one roof (`RuinsRoofStage.roofSolid`), its interior published
-  as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls, leaf doors). A
-  four-cell freight spine runs from the stern's cargo door to the **forge
-  hall** (the interior's vault, the autoforge on its keel line near the bow),
-  with four-cell cargo docks into three holds and the **launch bay** and a
-  two-cell service door to the crew deck (`derelict-watch.md`, section 3). Ways
-  in: the stern door onto the trench, the bay's door on the port flank, and a
-  breach torn through the starboard flank, each with an apron and two berths.
-- **The trench** runs behind the stern for the patch's length, 24 cells wide
-  at the stern narrowing to 8 where the hull first touched down, ploughed earth
-  and rubble with spoil on its lips and scrap on its floor. **Debris** is up to
-  14 short runs of hull plate standing beside the trench and round the hull,
-  never on a road, building or apron and never touching another wall. A road
-  the hull lies across is cut from the road graph; the trench cuts nothing.
+  bow tapering), built as a ship from the ship-interior kits, so going in reads
+  as boarding a wreck. It **broke up coming in**: it lies in three **sections**
+  (stern u 0..23, midsection 24..45, bow 46..87; `HullPlan.SECTIONS`) along one
+  line on a cardinal heading, with 18 and 22 cells of ploughed ground between
+  them and each shifted a few cells across. It came in stern first: the stern
+  lies furthest along and the trench runs off the bow's tip. Nothing joins two
+  sections but the ground; each is torn open at its broken ends, whose remaining
+  wall is the hull's cut face (`fallen-hull.sheared-wall`) with its sheared deck
+  dragged out over the ground beyond (`fallen-hull.shear-edge`). The interior
+  is published as the ruins' `RuinsDelve.Interior` (entrances, aprons, halls,
+  leaf doors) and the sections as `HullSite.sections`. A four-cell freight
+  spine runs from the stern's cargo door to the **forge hall** (the interior's
+  vault, in the bow section, the autoforge on its keel line near the bow),
+  broken where the hull broke, with four-cell cargo docks into three holds and
+  the **launch bay** (in the midsection) and a two-cell service door to the
+  crew deck (`derelict-watch.md`, section 3). Ways in: the stern door, the
+  bay's door on the port flank, the four **torn ends** (the big breaches), and
+  three smaller **rents** in the flanks into the holds, each with an apron and
+  two berths (a torn end's apron runs half the gap, so the two facing across it
+  never meet). A breach is open sky over rubble, its edge the armour's broken
+  stubs, and has no door.
+- **Shell and bulkheads.** The solid hull within two cells of the outside or a
+  breach is the **armour** (the hull-plate installation wall, whose door,
+  window and rubble are the armour's hatch, port and torn breach roots); the
+  rest is the ship deck's own bulkhead. Each **compartment** (the spine with the stern door, and each hall
+  with its dock) has its kit's deck: passage plate, worn hold plate, bay deck,
+  crew deck, bolted plate in the forge hall. `HullDressing` fits it out with the
+  hull's own pieces (`fallen-hull.*`) over the ship kits: a conduit run and
+  frame ribs down the spine; cargo, survey racks and crushed bulkheads against
+  the holds' walls; launch cradles in the bay; consoles and a sensor drum on the
+  crew deck; plant, coolant, hoppers and switchgear in the forge hall with
+  cables run toward the autoforge; torn plating in the breaches. Pieces with
+  cover stand clear of the docks, the ways in and the autoforge's ground; wear,
+  grime and debris lie flat on every deck.
+- **The roof.** Every hull cell but a breach is marked `RoofKind.HULL`, so the
+  whole ship roofs as hull plating (drawn from the ship's painting) whatever
+  its walls are. The solid mass is one building (`RuinsRoofStage.roofSolid`)
+  that never opens; the deck is split into **one building per compartment**
+  (`CrashSiteFinishStage.splitCompartments`), so a unit that boards opens the
+  compartment it stands in (`BuildingVisibilityPass`) and the rest of the ship
+  stays roofed.
+- **The trench** runs off the bow's tip for the patch's length (12 cells and
+  more: the gaps between the sections are ploughed too), 24 cells wide at the
+  hull narrowing to 8 where the hull first touched down, ploughed earth and
+  rubble with spoil on its lips and scrap on its floor. **Debris** is up to 14
+  short runs of hull plate standing beside the trench and round the hull, never
+  on a road, building or apron and never touching another wall. A road the hull
+  lies across is cut from the road graph; the trench cuts nothing.
+- **The debris shower** (`DebrisShower`) is what the hull threw as it broke up:
+  great pieces of shell, drive and engine (`basin-ship-scrap`'s), girders, pods,
+  bells and plate, shards, craters and scorch (`fallen-hull.shower-*`,
+  `crater-*`, `scorch-*` as the art ships them), strewn along the fall line from
+  uprange of the trench, past the sections, to ahead of the stern, thinning
+  along and across it and reaching into the town and the fields. It falls on the
+  finished country, after the mission's structures and terraces are sited. A
+  piece that is cover stands in the way with a ring of open ground round it, off
+  roads, buildings, water, the hull, trench and aprons, mission places, tactical
+  nodes, the landing's field of fire and the claim lattice's grid points; flat
+  pieces lie on any open ground.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
@@ -164,7 +208,8 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   open, the forge, halls and aprons reached, a hall frame walking hall to
   hall), and a story map's acceptance fails on any problem the site reports.
 - **The rules' reading.** `LongSurveyGround.rulesSite` fills `FallenHullSite`
-  from it: the hull and its trench as the root zone's footprint, the forge, the
+  from it: the hull and its trench as the root zone's footprint (all three
+  sections and the ground between), the forge, the
   bay's apron berth as the mouth, the lattice with `linkCells` a lattice step
   and a quarter (so neighbours that moved to their stake ground still link, and
   a stake's zone, half of it, meets its neighbours'), each haul road from the

@@ -26,8 +26,9 @@ import java.util.List;
  * 1920x1080: the hull roofed on its trench ({@code 1-hull.png}, closer {@code 1b-hull-close.png}), the forge hall with
  * the roof lifted ({@code 2-forge.png}), and the first stripper and hauler out on the claim, set side by side on open
  * ground clear of the hull for the frame alone ({@code 3-stripper-hauler.png}: stripper west, hauler east). The fallen
- * hull's looks in their places (`art-source/fallen-hull`). Nothing is judged; the battle is not stepped after the
- * walkers are moved.
+ * hull's looks in their places (`art-source/fallen-hull`). The hull entered, roofs off, its compartments as the ground
+ * lays them ({@code 4-entered.png}, the starboard breach closer {@code 4b-entered-close.png}); and the debris shower,
+ * until the ground lays it a stand-in ({@link HullShowerStage}) on the walkers' open ground ({@code 5-shower.png}). Nothing is judged; the battle is not stepped after the walkers are moved.
  * Opt-in; {@code -Dsnapshot.longSurveyFall.seconds} sets how long it plays first (default 150).
  */
 public final class LongSurveyFallLookSuite implements SnapshotSuite {
@@ -84,6 +85,10 @@ public final class LongSurveyFallLookSuite implements SnapshotSuite {
                             W, H, fx - 30f, fy, 48f).render(sim, "")));
                     out.add(new SnapshotArtifact("2-forge.png", BattleReviewFrameRenderer.look(context.modRoot(), W,
                             H, fx - 4f, fy, 34f).withoutRoofs().render(sim, "")));
+                    out.add(new SnapshotArtifact("4-entered.png", BattleReviewFrameRenderer.look(context.modRoot(), W,
+                            H, fx - 34f, fy, 70f).withoutRoofs().render(sim, "")));
+                    out.add(new SnapshotArtifact("4b-entered-close.png", BattleReviewFrameRenderer.look(
+                            context.modRoot(), W, H, fx - 23f, fy + 9f, 24f).withoutRoofs().render(sim, "")));
                 }
                 long stripper = first(sim, director, DerelictWalkerFrame.STRIPPER);
                 long hauler = first(sim, director, DerelictWalkerFrame.HAULER);
@@ -96,6 +101,11 @@ public final class LongSurveyFallLookSuite implements SnapshotSuite {
                             world.renderX(hauler), world.renderY(hauler));
                     out.add(new SnapshotArtifact("3-stripper-hauler.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), W, H, spot[0] + .5f, spot[1] + .5f, 16f).withoutRoofs().render(sim, "")));
+                    // The walkers off the frame again, so the shower stand-in has the ground to itself.
+                    world.setPos(stripper, spot[0] - 40f, spot[1] + .5f);
+                    world.setPos(hauler, spot[0] - 40f, spot[1] + 2.5f);
+                    out.add(new SnapshotArtifact("5-shower.png", new HullShowerStage(context.modRoot()).shower(
+                            context.modRoot(), sim, spot[0], spot[1], 34f)));
                 } else {
                     log("stripper %d, hauler %d: not both out", stripper, hauler);
                 }

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1c7cf-fb2d-73c0-83a8-c33f84fd5834",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1c7cf-fb2d-73c0-83a8-c33f84fd5834\\exec-d6425a81-a600-475a-9199-57ad5ad4d83e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\shower.png",
+    "sha256": "5c11b10fc5e6a45d069fc53d649e487ef10ab4a13f0fe2b492278d35e5e524c6",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\prompts\\shower.prompt.txt",
+  "promptSha256": "7b2a6119a0f76410ffa16ba99345d97b53f2c5f31e42b8c6b9da450c70b98651",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material\nImage 2: Identity and palette: the accepted painting of this same crashed ship from above; not layout or scale\nImage 3: The accepted debris of this ship (its plate, girders, bell and mast); material and detail scale, not layout\n\nUse case: sketch-to-render, top-down game props and ground decals. Image 1 is the authoritative geometry guide and edit target: reskin each drawing in place at exactly its size, position and outline, keep the empty space transparent, add nothing. This is the INSIDE of a crashed Explorarium survey mothership that soldiers board and fight through, seen as map tiles for a top-down tactical game at about 64 pixels a cell. Match image 2's hull palette and plate closely (the accepted painting of this very ship from above): pale teal-green and sage armour plate, khaki and bone segments, rust-brown machinery and grime in the recesses, tarnished brass, a few broad hazard-yellow diagonals, mottled weathering, crisp hard bevelled edges, lit from the upper left. Everything is crash- and fire-damaged: soot and scorch blooms, heat-blued and blistered paint, buckled and missing plates showing dark structure beneath, torn edges curled back. This is the DEBRIS SHOWER the ship threw across the land as it broke up, and the wreckage inside it. Top row: three little scatters of torn plate shards; a long torn plate; a broad torn plate; a torn-off equipment pod. Then: a large torn slab of hull armour with a burnt patch and a hole; three crossed snapped structural girders; a whole ENGINE BELL lying on its side, mouth to the left, an ember still glowing (the orange spot); a small impact crater. Then: a snapped SENSOR MAST lying flat, dish at its left end; a broad scorch splash burnt into the ground; a large impact crater. Bottom: a long impact SKID, a scorched furrow gouged along the ground; a patch of deck plating buckled up from below; a fallen tangle of cables; a wall panel collapsed off its wall, its cracked screen face up. The craters, scorch and skid are GROUND DECALS: burnt earth, ash and churned soil with soft irregular feathered edges that blend into any ground, a crater a shallow bowl with a thrown-up rim; the rest are the ship's metal, burnt and blackened, sage-green and khaki paint showing through the soot. In the guide pale grey is plate, mid grey is raised housings, near-black is voids and holes, dark brown is scorch and soot, light brown is earth, teal is glass, orange is a glowing ember, yellow is a cable. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. Strict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. True transparent background with genuine alpha outside the drawings; no ground under the metal pieces, no shadow slab, labels, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\guides\\shower-guide.png",
+      "sha256": "bd8250585674f005ec43708f93f92af7d6c1185b71b4b425514d315e482858dd",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not material"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\hull-survey.png",
+      "sha256": "fd927a61d2d4a1ac8277ce15971e0953911b5558e308b9317820baa73ebc31bf",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Identity and palette: the accepted painting of this same crashed ship from above; not layout or scale"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\hull-art-9cb97e\\art-source\\fallen-hull\\raw\\debris.png",
+      "sha256": "da7d55c38b5a8ce6a8808458e169032c6eb13afd824111823b1b34c29698cf48",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "The accepted debris of this ship (its plate, girders, bell and mast); material and detail scale, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, keeping the guide’s silhouettes and layout with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 92681,
+    "cached_input_tokens": 71168,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1037,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 77.3
+}

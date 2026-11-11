@@ -1,0 +1,50 @@
+{
+  "cellPx": 4,
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        20,
+        16
+      ],
+      "id": "autoplant.aeroshuttle-hull",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        20,
+        11
+      ],
+      "id": "autoplant.aeroshuttle-half",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        20,
+        6
+      ],
+      "id": "autoplant.aeroshuttle-aft",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        20,
+        6
+      ],
+      "id": "autoplant.aeroshuttle-nose",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/ships/aeroshuttle/aeroshuttle_base.png"
+}

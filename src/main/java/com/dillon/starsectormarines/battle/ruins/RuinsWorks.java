@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSna
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.door.HardenedWalls;
 import com.dillon.starsectormarines.battle.door.LockedDoor;
 import com.dillon.starsectormarines.battle.setup.RuinsDefence;
@@ -90,6 +91,8 @@ public final class RuinsWorks {
     private final PowerGraph graph;
     /** The published ground the works were wired on; null for works built without one. */
     private RuinsDelve delve;
+    /** Whether the watch's lamps are laid. */
+    private boolean watchLit;
     private RuinsDoorStates doorStates;
     private final Site hall;
     private final List<Site> junctions;
@@ -484,6 +487,10 @@ public final class RuinsWorks {
                     vaultShell[3]);
         }
         for (LockedDoor lock : locks) lock.install(sim);
+        // The plant is dark under its roof until its power comes back (RuinsLighting); a map lit already keeps its own.
+        if (delve != null && sim.getTopology().nightLighting() == null) {
+            sim.getTopology().setNightLighting(RuinsLighting.lay(sim.getTopology(), delve, this));
+        }
         wasForced = new boolean[locks.size()];
         courtLifts = new int[courts.size()];
         for (int c = 0; c < courts.size(); c++) {
@@ -540,6 +547,24 @@ public final class RuinsWorks {
             }
         }
         settle(sim);
+        light(sim);
+    }
+
+    /** The plant's lights to its power now, and the watch's to its wake once its network stands. */
+    private void light(BattleSimulation sim) {
+        DerelictSecurityDirector watch = sim.derelictSecurity();
+        float seconds = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
+        if (watch == null) {
+            RuinsLighting.apply(sim.getTopology(), graph, seconds);
+            return;
+        }
+        if (!watchLit && delve != null) {
+            RuinsLighting.layWatch(sim.getTopology(), delve, watch.network(), watch.ducts());
+            watchLit = true;
+        }
+        RuinsLighting.apply(sim.getTopology(), graph,
+                RuinsLighting.watchCircuits(watch.network(), watch.wake().stage(), watch.ducts(),
+                        watch.wake()::released), seconds);
     }
 
     private void finish(BattleSimulation sim) {

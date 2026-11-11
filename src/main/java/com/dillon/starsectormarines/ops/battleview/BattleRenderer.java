@@ -1040,7 +1040,7 @@ public class BattleRenderer {
             RoofMesh.RoofResolver resolver = (building, x, y, sink) -> {
                 RoofPlans.Plan plan = roofPlans.of(topology, buildings, building);
                 // The ship's field and trims are drawn from its painting each frame (streamShipRoofs), not baked.
-                RoofTiles.Sink to = ship != null && ship.holds(building) ? (column, row, turns, x0, y0, x1, y1) -> {
+                RoofTiles.Sink to = ship != null && ship.of(building) != null ? (column, row, turns, x0, y0, x1, y1) -> {
                     if (RoofStream.damage(column)) sink.quad(column, row, turns, x0, y0, x1, y1);
                 } : sink;
                 RoofTiles.resolve(topology, x, y, plan.style, plan.grainTurns, to);
@@ -1565,7 +1565,7 @@ public class BattleRenderer {
             // A roof reaches one cell past its floor, over the walls that carry it.
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
-            roofStream.ship = ship != null && ship.holds(b) ? ship : null;
+            roofStream.ship = ship != null ? ship.of(b) : null;
             roofStream.shipOnly = false;
             roofStream.begin(out, b, roofAlpha * alphaMult);
             roofStream.lift(roofLifts[buildingClass(topology, buildings, b)],
@@ -1593,10 +1593,11 @@ public class BattleRenderer {
         VisibleCellRect view = rc.camera.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 sim.getGrid().getWidth(), sim.getGrid().getHeight());
-        roofStream.ship = ship;
         roofStream.shipOnly = true;
         for (Building b : buildings.all()) {
-            if (!ship.holds(b) || b.currentAlpha <= 0.01f) continue;
+            HullRoof.Section section = ship.of(b);
+            if (section == null || b.currentAlpha <= 0.01f) continue;
+            roofStream.ship = section;
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
             roofStream.begin(out, b, b.currentAlpha * alphaMult);
@@ -1645,8 +1646,8 @@ public class BattleRenderer {
         private float a;
         int cellX;
         int cellY;
-        /** The ship the building being drawn is part of: its field comes from the ship's painting. Null otherwise. */
-        HullRoof ship;
+        /** The ship's section the building being drawn is part of: its field comes from the ship's painting. */
+        HullRoof.Section ship;
         /** Draw only the ship's field: its damage is in the resident mesh. */
         boolean shipOnly;
         /** A roof stood up ({@link BuildingFaces}): its scale about the view's centre, on screen; 1 lies flat. */
@@ -1676,7 +1677,7 @@ public class BattleRenderer {
 
         /** A field piece of the ship: the painting where the piece's rectangle falls on the hull's plan. */
         private void shipQuad(float x0, float y0, float x1, float y1) {
-            HullRoof s = ship;
+            HullRoof.Section s = ship;
             float ua = s.planU(cellX + x0, cellY + y0), ub = s.planU(cellX + x1, cellY + y1);
             float va = s.planV(cellX + x0, cellY + y0), vb = s.planV(cellX + x1, cellY + y1);
             float u0 = Math.min(ua, ub), u1 = Math.max(ua, ub);

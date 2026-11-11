@@ -1,15 +1,59 @@
 {
   "blocks": [
     {
-      "doorBlock": "installation.dark-concrete-door",
+      "doorBlock": "fallen-hull.armour-hatch",
       "id": "installation.dark-concrete-wall@fallen-hull",
       "layout": "wall-faces-4x4",
       "origin": [
         0,
         0
       ],
-      "rubbleBlock": "installation.dark-concrete-rubble",
-      "windowBlock": "installation.dark-concrete-window"
+      "rubbleBlock": "fallen-hull.armour-breach",
+      "windowBlock": "fallen-hull.armour-port"
+    },
+    {
+      "doorBlock": "fallen-hull.armour-hatch",
+      "id": "fallen-hull.armour-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        0,
+        0
+      ],
+      "rubbleBlock": "fallen-hull.armour-breach",
+      "windowBlock": "fallen-hull.armour-port"
+    },
+    {
+      "id": "fallen-hull.sheared-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        4,
+        9
+      ],
+      "rubbleBlock": "fallen-hull.armour-breach"
+    },
+    {
+      "id": "fallen-hull.armour-breach",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        12,
+        0
+      ]
+    },
+    {
+      "id": "fallen-hull.armour-hatch",
+      "layout": "cardinal-2x2",
+      "origin": [
+        12,
+        4
+      ]
+    },
+    {
+      "id": "fallen-hull.armour-port",
+      "layout": "cardinal-2x2",
+      "origin": [
+        14,
+        4
+      ]
     },
     {
       "cells": [
@@ -40,97 +84,337 @@
       "col": 0,
       "row": 0,
       "name": "installation.dark-concrete-wall@fallen-hull faces-0",
-      "description": "solid cap, no exposed faces"
+      "description": "armour cap, no exposed faces"
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "fallen-hull.armour-breach faces-0",
+      "description": "armour torn open, no exposed faces"
     },
     {
       "col": 1,
       "row": 0,
       "name": "installation.dark-concrete-wall@fallen-hull faces-1",
-      "description": "wall cap exposed on north"
+      "description": "armour cap, exposed on north"
+    },
+    {
+      "col": 13,
+      "row": 0,
+      "name": "fallen-hull.armour-breach faces-1",
+      "description": "armour torn open, exposed on north"
     },
     {
       "col": 2,
       "row": 0,
       "name": "installation.dark-concrete-wall@fallen-hull faces-2",
-      "description": "wall cap exposed on east"
+      "description": "armour cap, exposed on east"
+    },
+    {
+      "col": 14,
+      "row": 0,
+      "name": "fallen-hull.armour-breach faces-2",
+      "description": "armour torn open, exposed on east"
     },
     {
       "col": 3,
       "row": 0,
       "name": "installation.dark-concrete-wall@fallen-hull faces-3",
-      "description": "wall cap exposed on north and east"
+      "description": "armour cap, exposed on north and east"
+    },
+    {
+      "col": 15,
+      "row": 0,
+      "name": "fallen-hull.armour-breach faces-3",
+      "description": "armour torn open, exposed on north and east"
     },
     {
       "col": 0,
       "row": 1,
       "name": "installation.dark-concrete-wall@fallen-hull faces-4",
-      "description": "wall cap exposed on south"
+      "description": "armour cap, exposed on south"
+    },
+    {
+      "col": 12,
+      "row": 1,
+      "name": "fallen-hull.armour-breach faces-4",
+      "description": "armour torn open, exposed on south"
     },
     {
       "col": 1,
       "row": 1,
       "name": "installation.dark-concrete-wall@fallen-hull faces-5",
-      "description": "wall cap exposed on north and south"
+      "description": "armour cap, exposed on north and south"
+    },
+    {
+      "col": 13,
+      "row": 1,
+      "name": "fallen-hull.armour-breach faces-5",
+      "description": "armour torn open, exposed on north and south"
     },
     {
       "col": 2,
       "row": 1,
       "name": "installation.dark-concrete-wall@fallen-hull faces-6",
-      "description": "wall cap exposed on east and south"
+      "description": "armour cap, exposed on east and south"
+    },
+    {
+      "col": 14,
+      "row": 1,
+      "name": "fallen-hull.armour-breach faces-6",
+      "description": "armour torn open, exposed on east and south"
     },
     {
       "col": 3,
       "row": 1,
       "name": "installation.dark-concrete-wall@fallen-hull faces-7",
-      "description": "wall cap exposed on north and east and south"
+      "description": "armour cap, exposed on north and east and south"
+    },
+    {
+      "col": 15,
+      "row": 1,
+      "name": "fallen-hull.armour-breach faces-7",
+      "description": "armour torn open, exposed on north and east and south"
     },
     {
       "col": 0,
       "row": 2,
       "name": "installation.dark-concrete-wall@fallen-hull faces-8",
-      "description": "wall cap exposed on west"
+      "description": "armour cap, exposed on west"
+    },
+    {
+      "col": 12,
+      "row": 2,
+      "name": "fallen-hull.armour-breach faces-8",
+      "description": "armour torn open, exposed on west"
     },
     {
       "col": 1,
       "row": 2,
       "name": "installation.dark-concrete-wall@fallen-hull faces-9",
-      "description": "wall cap exposed on north and west"
+      "description": "armour cap, exposed on north and west"
+    },
+    {
+      "col": 13,
+      "row": 2,
+      "name": "fallen-hull.armour-breach faces-9",
+      "description": "armour torn open, exposed on north and west"
     },
     {
       "col": 2,
       "row": 2,
       "name": "installation.dark-concrete-wall@fallen-hull faces-10",
-      "description": "wall cap exposed on east and west"
+      "description": "armour cap, exposed on east and west"
+    },
+    {
+      "col": 14,
+      "row": 2,
+      "name": "fallen-hull.armour-breach faces-10",
+      "description": "armour torn open, exposed on east and west"
     },
     {
       "col": 3,
       "row": 2,
       "name": "installation.dark-concrete-wall@fallen-hull faces-11",
-      "description": "wall cap exposed on north and east and west"
+      "description": "armour cap, exposed on north and east and west"
+    },
+    {
+      "col": 15,
+      "row": 2,
+      "name": "fallen-hull.armour-breach faces-11",
+      "description": "armour torn open, exposed on north and east and west"
     },
     {
       "col": 0,
       "row": 3,
       "name": "installation.dark-concrete-wall@fallen-hull faces-12",
-      "description": "wall cap exposed on south and west"
+      "description": "armour cap, exposed on south and west"
+    },
+    {
+      "col": 12,
+      "row": 3,
+      "name": "fallen-hull.armour-breach faces-12",
+      "description": "armour torn open, exposed on south and west"
     },
     {
       "col": 1,
       "row": 3,
       "name": "installation.dark-concrete-wall@fallen-hull faces-13",
-      "description": "wall cap exposed on north and south and west"
+      "description": "armour cap, exposed on north and south and west"
+    },
+    {
+      "col": 13,
+      "row": 3,
+      "name": "fallen-hull.armour-breach faces-13",
+      "description": "armour torn open, exposed on north and south and west"
     },
     {
       "col": 2,
       "row": 3,
       "name": "installation.dark-concrete-wall@fallen-hull faces-14",
-      "description": "wall cap exposed on east and south and west"
+      "description": "armour cap, exposed on east and south and west"
+    },
+    {
+      "col": 14,
+      "row": 3,
+      "name": "fallen-hull.armour-breach faces-14",
+      "description": "armour torn open, exposed on east and south and west"
     },
     {
       "col": 3,
       "row": 3,
       "name": "installation.dark-concrete-wall@fallen-hull faces-15",
-      "description": "wall cap exposed on north and east and south and west"
+      "description": "armour cap, exposed on north and east and south and west"
+    },
+    {
+      "col": 15,
+      "row": 3,
+      "name": "fallen-hull.armour-breach faces-15",
+      "description": "armour torn open, exposed on north and east and south and west"
+    },
+    {
+      "col": 12,
+      "row": 4,
+      "name": "fallen-hull.armour-hatch north",
+      "description": "armour hatch facing north"
+    },
+    {
+      "col": 14,
+      "row": 4,
+      "name": "fallen-hull.armour-port north",
+      "description": "armour port facing north"
+    },
+    {
+      "col": 13,
+      "row": 4,
+      "name": "fallen-hull.armour-hatch east",
+      "description": "armour hatch facing east"
+    },
+    {
+      "col": 15,
+      "row": 4,
+      "name": "fallen-hull.armour-port east",
+      "description": "armour port facing east"
+    },
+    {
+      "col": 12,
+      "row": 5,
+      "name": "fallen-hull.armour-hatch south",
+      "description": "armour hatch facing south"
+    },
+    {
+      "col": 14,
+      "row": 5,
+      "name": "fallen-hull.armour-port south",
+      "description": "armour port facing south"
+    },
+    {
+      "col": 13,
+      "row": 5,
+      "name": "fallen-hull.armour-hatch west",
+      "description": "armour hatch facing west"
+    },
+    {
+      "col": 15,
+      "row": 5,
+      "name": "fallen-hull.armour-port west",
+      "description": "armour port facing west"
+    },
+    {
+      "col": 4,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-0",
+      "description": "armour cap"
+    },
+    {
+      "col": 5,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-1",
+      "description": "armour sheared through on north"
+    },
+    {
+      "col": 6,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-2",
+      "description": "armour sheared through on east"
+    },
+    {
+      "col": 7,
+      "row": 9,
+      "name": "fallen-hull.sheared-wall faces-3",
+      "description": "armour sheared through on north and east"
+    },
+    {
+      "col": 4,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-4",
+      "description": "armour sheared through on south"
+    },
+    {
+      "col": 5,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-5",
+      "description": "armour sheared through on north and south"
+    },
+    {
+      "col": 6,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-6",
+      "description": "armour sheared through on east and south"
+    },
+    {
+      "col": 7,
+      "row": 10,
+      "name": "fallen-hull.sheared-wall faces-7",
+      "description": "armour sheared through on north and east and south"
+    },
+    {
+      "col": 4,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-8",
+      "description": "armour sheared through on west"
+    },
+    {
+      "col": 5,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-9",
+      "description": "armour sheared through on north and west"
+    },
+    {
+      "col": 6,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-10",
+      "description": "armour sheared through on east and west"
+    },
+    {
+      "col": 7,
+      "row": 11,
+      "name": "fallen-hull.sheared-wall faces-11",
+      "description": "armour sheared through on north and east and west"
+    },
+    {
+      "col": 4,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-12",
+      "description": "armour sheared through on south and west"
+    },
+    {
+      "col": 5,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-13",
+      "description": "armour sheared through on north and south and west"
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-14",
+      "description": "armour sheared through on east and south and west"
+    },
+    {
+      "col": 7,
+      "row": 12,
+      "name": "fallen-hull.sheared-wall faces-15",
+      "description": "armour sheared through on north and east and south and west"
     }
   ],
   "doodads": [
@@ -197,6 +481,545 @@
       "ballisticHalfHeight": 0.25,
       "footprintCells": [
         6,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.rib-h",
+      "col": 0,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.rib-v",
+      "col": 1,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.conduit-h",
+      "col": 2,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.1,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.conduit-v",
+      "col": 3,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.1,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.conduit-junction",
+      "col": 4,
+      "row": 6,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.survey-console",
+      "col": 5,
+      "row": 6,
+      "cover": "light",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-scatter",
+      "col": 6,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.survey-rack-h",
+      "col": 7,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.forge-hopper",
+      "col": 9,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.forge-cables",
+      "col": 11,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.1,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.crushed-bulkhead-a",
+      "col": 13,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.survey-rack-v",
+      "col": 0,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.crushed-bulkhead-b",
+      "col": 1,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.sensor-drum",
+      "col": 4,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.forge-coolant",
+      "col": 6,
+      "row": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.7,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-plating",
+      "col": 8,
+      "row": 7,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.hangar-cradle",
+      "col": 10,
+      "row": 7,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.hangar-cradle-v",
+      "col": 0,
+      "row": 9,
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "footprintCells": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-edge",
+      "col": 8,
+      "row": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shear-edge",
+      "col": 9,
+      "row": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-a",
+      "col": 0,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-b",
+      "col": 1,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-shard-c",
+      "col": 2,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-plate-a",
+      "col": 3,
+      "row": 13,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-cable-fall",
+      "col": 5,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-collapsed-panel-wall",
+      "col": 6,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.crater-small",
+      "col": 8,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-plate-b",
+      "col": 10,
+      "row": 13,
+      "cover": "light",
+      "ballisticHalfHeight": 0.2,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-pod",
+      "col": 12,
+      "row": 13,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-buckled-deck",
+      "col": 14,
+      "row": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-slab",
+      "col": 0,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-girders",
+      "col": 4,
+      "row": 15,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-bell",
+      "col": 7,
+      "row": 15,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.scorch-splash",
+      "col": 10,
+      "row": 15,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-scorch",
+      "col": 13,
+      "row": 15,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.shower-mast",
+      "col": 0,
+      "row": 18,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        5,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.scorch-streak",
+      "col": 5,
+      "row": 18,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        4,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.crater-large",
+      "col": 9,
+      "row": 18,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        4,
+        4
+      ]
+    },
+    {
+      "id": "fallen-hull.breach-spill",
+      "col": 8,
+      "row": 7,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rib-h",
+      "col": 0,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rib-v",
+      "col": 1,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-conduit-h",
+      "col": 2,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-conduit-v",
+      "col": 3,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-cables",
+      "col": 11,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-scatter",
+      "col": 6,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-console-wall",
+      "col": 5,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-junction-wall",
+      "col": 4,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-rack-wall",
+      "col": 7,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
+        1
+      ]
+    },
+    {
+      "id": "fallen-hull.interior-crushed-bulkhead-wall",
+      "col": 13,
+      "row": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "footprintCells": [
+        2,
         1
       ]
     }

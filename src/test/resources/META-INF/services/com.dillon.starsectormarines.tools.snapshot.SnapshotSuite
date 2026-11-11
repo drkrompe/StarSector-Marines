@@ -443,6 +443,7 @@ com.dillon.starsectormarines.battle.drone.DroneHubLookSuite
 com.dillon.starsectormarines.ops.RuinsBriefingSnapshotSuite
 com.dillon.starsectormarines.battle.combat.fx.ImpactDecalsSnapshotSuite
 com.dillon.starsectormarines.battle.ruins.RuinsWorksLookSuite
+com.dillon.starsectormarines.battle.ruins.RuinsLightLookSuite
 com.dillon.starsectormarines.battle.ruins.RuinsVaultLockLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWalkerLookSuite
 com.dillon.starsectormarines.battle.derelict.DerelictWatchPicksSuite

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.vision.RevealChangeLog;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlErrors;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
@@ -62,8 +63,8 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
  * fragment shader: the picture of the CPU path at every pixel rather than at its sample points.
  *
  * <p>Textures, each over the whole map: the lamps' field, RGBA16 of {@code reds, greens, blues, pool}; fire's pool,
- * LUMINANCE16; and a cell mask, nearest-sampled, luminance for "the player sees this cell" and alpha for "there is
- * ground here". Pools are stored over {@link #RANGE}, which no sum of lights reaches in practice; the shade saturates
+ * LUMINANCE16; and a cell mask, nearest-sampled, luminance for "the player sees this cell" and alpha for no ground
+ * (0), open ground (half) or ground under an intact roof (full), which takes the roofed darkness. Pools are stored over {@link #RANGE}, which no sum of lights reaches in practice; the shade saturates
  * at one well before it. Fire and the mask stay resident and take only the box that changed since their last upload:
  * the boxes fire's lights filled and cleared, the cells whose ground changed and the reveal log's rectangles. A
  * whole-map view of a burn repacks the burn, not the map.
@@ -84,20 +85,22 @@ final class NightShadeField {
     static final String FRAGMENT_SRC = "#version 120\n"
             + "uniform sampler2D lampField; uniform sampler2D fireField; uniform sampler2D cellMask;\n"
             + "uniform vec2 lampSize; uniform vec2 cellSize;\n"
-            + "uniform float range; uniform float darkness; uniform float alphaMult;\n"
+            + "uniform float range; uniform float darkness; uniform float roofedDarkness; uniform float alphaMult;\n"
             + "uniform float fog; uniform float burning; uniform float premultiplied;\n"
             + "uniform vec3 fireColour;\n"
             + "varying vec2 cell;\n"
             + "void main(){\n"
             + "  vec4 mask = texture2D(cellMask, (floor(cell) + 0.5) / cellSize);\n"
-            + "  if (mask.a < 0.5) discard;\n"
+            // Alpha: no ground, open ground, or ground under an intact roof, which takes the roofed darkness.
+            + "  if (mask.a < 0.25) discard;\n"
+            + "  float night = mask.a > 0.75 ? roofedDarkness : darkness;\n"
             + "  vec2 g = cell * 2.0;\n"
             + "  vec4 lamp = texture2D(lampField, (g + 0.5) / lampSize) * range;\n"
             // Fog hides a lamp's light; a burn's is seen from anywhere (FireFogClearing).
             + "  float pool = fog > 0.5 && mask.r < 0.5 ? 0.0 : lamp.a;\n"
             + "  float firePool = burning > 0.5 ? texture2D(fireField, (g + 0.5) / lampSize).r * range : 0.0;\n"
             + "  float lit = pool + firePool;\n"
-            + "  float dark = darkness * (1.0 - 0.92 * min(1.0, lit));\n"
+            + "  float dark = night * (1.0 - 0.92 * min(1.0, lit));\n"
             + "  float warm = min(1.0, 0.11 * min(1.0, pool) + 0.2 * min(1.0, firePool));\n"
             + "  float alpha = dark + warm * (1.0 - dark);\n"
             + "  if (alpha <= 0.0) discard;\n"
@@ -139,7 +142,7 @@ final class NightShadeField {
     private final int[] union = new int[4];
     private ByteBuffer cellTexels = BufferUtils.createByteBuffer(2);
     private int cellX0, cellY0, cellW, cellH;
-    private float darkness, alphaMult;
+    private float darkness, roofedDarkness, alphaMult;
     private float screenX0, screenY0, screenX1, screenY1;
 
     /** Whether a draw has failed, after which the caller builds quads again. */
@@ -213,7 +216,14 @@ final class NightShadeField {
      * the last upload.
      */
     void frame(int minX, int minY, int maxX, int maxY, float darkness, float alphaMult, BattleCamera camera) {
+        frame(minX, minY, maxX, maxY, darkness, darkness, alphaMult, camera);
+    }
+
+    /** As {@link #frame(int, int, int, int, float, float, BattleCamera)}, {@code roofedDarkness} under intact roofs. */
+    void frame(int minX, int minY, int maxX, int maxY, float darkness, float roofedDarkness, float alphaMult,
+               BattleCamera camera) {
         this.darkness = darkness;
+        this.roofedDarkness = roofedDarkness;
         this.alphaMult = alphaMult;
         cellX0 = minX;
         cellY0 = minY;
@@ -228,7 +238,8 @@ final class NightShadeField {
                 for (int x = cellUpload[0]; x <= cellUpload[2]; x++) {
                     boolean seen = maskShown == null || maskShown[y * gridW + x];
                     boolean solid = maskGround.getGroundKind(x, y) != CellTopology.GroundKind.VOID;
-                    cellTexels.put(seen ? (byte) 255 : 0).put(solid ? (byte) 255 : 0);
+                    byte ground = !solid ? 0 : NightLighting.roofed(maskGround, x, y) ? (byte) 255 : (byte) 128;
+                    cellTexels.put(seen ? (byte) 255 : 0).put(ground);
                 }
             }
             cellTexels.flip();
@@ -340,6 +351,7 @@ final class NightShadeField {
         program.set2f("cellSize", gridW, gridH);
         program.set1f("range", RANGE);
         program.set1f("darkness", darkness);
+        program.set1f("roofedDarkness", roofedDarkness);
         program.set1f("alphaMult", alphaMult);
         program.set1f("fog", fog ? 1f : 0f);
         program.set1f("burning", burning ? 1f : 0f);

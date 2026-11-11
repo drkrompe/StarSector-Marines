@@ -314,7 +314,12 @@ worked within 2.5 cells; a console in a building (the hall, the records office)
 by anyone in it or within 3 cells of its walls, since a squad sent to a building
 holds it from its tactical places. A restart is loud: it wakes the Rav's
 nearest closed bore at once (`RuinsSleepers.loud`) and stirs the derelict zone
-keeping the hall, or the nearest (`SecurityNetwork.loud`). Until the records are
+keeping the hall, or the nearest (`SecurityNetwork.loud`). At a derelict site
+it also brings the plant's wake to Stirring at least
+(`FacilityWake.plantRestarted`; owner pick, 2026-11-10: keep the floor): the
+ducts come up, no reserve bay opens. The stir counts the restart once
+(`RuinsPressure.HALL_RESTART`); the floor is the wake's step, not more stir, so
+the next push comes no sooner for it. Until the records are
 read, every sealed store is unmarked and offers no prompt, and a junction says
 what it feeds only once thrown (FEEDS ?, verb THROW); a store is still there and
 opens when its junction is thrown blind. The objectives rail carries a Site
@@ -408,6 +413,44 @@ chain plays well is the owner's playtest. Look shots: `ruins-works-look` (a
 store sealed and powered open), `ruins-vault-lock-look` (the vault's door
 locked, its hardened walls tinted, powered, open), `ruins-vault-access-look`
 (one card per access variant on a site that drew it).
+
+### Light: the plant comes back online
+
+Owner: "maybe we should play with light within the ruin as a means of the
+facility coming back online as the exploration is taking place". The plant is
+black under its roof when the company lands (`RuinsLighting`, roofed darkness
+0.86 on the site's `NightLighting`); open ground keeps the world's day, and
+daylight falls through the light wells and the broken roof. Only the residual
+**emergency** strips burn, dim and red, at the section doors, the seal doors,
+the junction boxes and the hall's console, so the way through still reads.
+
+The lights are the works' power made visible. Restarting the hall lights the
+hall and the works hall's stand round its pour pulpit and bridge
+(`Interior.worksStand`), so the first thing the light shows is the stand and
+what holds it; each junction then lights what it feeds: its band of the plant (halls and
+corridors) on its way on, its stores on its store side, and the vault's suite
+with the vault's seal. An overloaded hall browns the plant out, all but the hall
+itself. A lamp's pool stops at its own building's walls, so rooms light as
+rooms. A band coming up strikes lamp by lamp over a second or two, flickering
+as its tubes catch.
+
+At a derelict site the watch has lights of its own, on the standby power it
+never lost, and they show its wake (`derelict-watch.md`, Waking): a zone's red
+alarm strips (one at its node and a sparse lattice over the floor it keeps)
+burn once it is alert or awake, so one zone woken alone shows red while the rest
+stay quiet; a vent's hatch glows amber while a flock may use it (the ducts up
+from Stirring, the vent standing, its zone online), and a reserve bay's lamp
+once its flock has come out. The hunt sets every online zone alert, so the
+whole plant pulses red; the contingency lights every zone with a live node. A
+zone cut off at its junction, or whose node is down, stays dark through all of
+it, the contingency included. The restart also brings the wake to Stirring at
+least (`FacilityWake.plantRestarted`, `derelict-watch.md`), so the vent hatches
+glow amber as the plant comes up. Light is presentation: it draws none of the hall's capacity and changes
+no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
+lit).
+
+Open (owner picks, raised on the parent's picks page): the company's
+own helmet and vehicle lamps, and whether darkness shortens the company's sight.
 
 ### The entrance and the pull-out point
 
@@ -754,6 +797,36 @@ stores, each with the theme's own pieces, its spill and its collapse. The model 
 serves the process). Look shots and plans: `createSnapshots -Psnapshot=ruins-room-look`. Picks `ruins-rooms-<kind>`
 are open, building on a (rooms laid from their role).
 
+**The plant is designed intact first** (owner, on the room cards: tiny rooms, dead space, "doodads tossed into a
+room"; "how would this vault like structure be designed in a vacuum, THEN turn it into a sealed ruin"). The interior
+is the plant its architect briefed, and only then a ruin.
+- **The brief.** A sealed works with about 120 crew in three shifts of 40. Each space it needed is sized for the people
+  and machines in it, and stands where its job put it (`PlantBrief`):
+  - the control gallery down the works hall's wall;
+  - maintenance at the hall's head;
+  - the QA lab at its outfeed;
+  - the raw stock store and freight dock at its dispatch end;
+  - the habitat by a quiet way in;
+  - plant services by the power hall;
+  - line two, finished goods and the vault deeper in.
+- **Who reaches what.** Frame-wide spaces (the stores, the dock, maintenance, line two) are joined by freight ways and
+  are plant halls. The rest are reached only by service corridors, where infantry shakes off a frame.
+- **Then it is ruined,** in order:
+  1. supply fails;
+  2. the last haulers strip finished goods;
+  3. a safe shutdown seals each section;
+  4. the crew evacuates by the suit room;
+  5. the derelict watch stays on in the maintenance shop;
+  6. centuries of breaches, collapses and spill follow.
+
+The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
+undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+Still to come:
+- a block plan per band, the spaces sharing walls along their ways;
+- the hull drawn round the plant;
+- each space dressed from its own plan;
+- stores holding the game's commodities.
+
 **Themed halls are environments** (owner: "for things like ice etc we have a
 lot of environmental tools that allow us to make much more compelling
 environments than a concrete block"; pick `ruins-themed-environments` open,
@@ -922,7 +995,11 @@ own order, intake to works hall to stores to vault, along the trunk.
 3. **The works off the trunk.** The power hall, the records and the side
    rooms' stores are reached by service corridors, two wide: infantry go, a hall
    frame cannot follow. They are where the company works the puzzle, and
-   where it can shake off a frame.
+   where it can shake off a frame. Restarting the hall is the beat's
+   deliberate escalation: the hall and its stand light, and at a derelict site
+   the plant wakes to Stirring and its ducts come up, so the flocks can come at
+   the company through the vents from then on. The player chooses when to pay
+   it, and gets power and light for it.
 4. **The deeper band.** Storage halls on freight ways, the stores, then the
    vault and its frame: the breach.
 5. **The egress, back through the works hall.** The haul comes out the way the
