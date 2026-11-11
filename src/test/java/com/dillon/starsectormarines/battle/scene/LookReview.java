@@ -18,6 +18,10 @@ import com.dillon.starsectormarines.tools.snapshot.FfmpegVideo;
 import com.dillon.starsectormarines.tools.snapshot.RawFrameDump;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,10 +73,19 @@ public final class LookReview {
      */
     public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects,
                             List<Consumer<BattleSimulation>> beforeTicks, List<Integer> selectedSquads,
-                            HighlightOverlay highlights) {
+                            HighlightOverlay highlights, List<Function<BattleSimulation, String>> readouts) {
 
         public Placement(LookGround ground, MapResult map, LookGround.Site site) {
-            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>(), new ArrayList<>(), new HighlightOverlay());
+            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>(), new ArrayList<>(), new HighlightOverlay(),
+                    new ArrayList<>());
+        }
+
+        /**
+         * Prints the line {@code line} answers in the frame's lower left corner, read fresh every recorded frame: a
+         * number the owner must see move (a walker's structure through a breach), never a caption band.
+         */
+        public void readout(Function<BattleSimulation, String> line) {
+            readouts.add(line);
         }
 
         /** Draws the shot as though the player had this squad selected, for a mark shown only on a selection. */
@@ -364,6 +377,7 @@ public final class LookReview {
                     float[] f = views.get(v).focus().apply(sim);
                     BattleReviewFrameRenderer renderer = renderers.get(v).refocus(f[0], f[1], f[2]);
                     BufferedImage frame = renderer.render(sim, "", ReviewAnnotations.NONE, fx);
+                    if (!placement.readouts().isEmpty()) paintReadouts(frame, placement.readouts(), sim);
                     // Launch smoke, trails, blasts and dust laid in this view: its busiest moments are its stills.
                     int index = activity.get(v).size();
                     activity.get(v).add(fx.lastPainted());
@@ -417,6 +431,36 @@ public final class LookReview {
         } finally {
             for (FfmpegVideo encoder : encoders) encoder.close();
             sim.close();
+        }
+    }
+
+    /** The readout lines, white on a dark plate, in the frame's lower left corner. */
+    private static void paintReadouts(BufferedImage frame, List<Function<BattleSimulation, String>> readouts,
+                                      BattleSimulation sim) {
+        List<String> lines = new ArrayList<>(readouts.size());
+        for (Function<BattleSimulation, String> readout : readouts) {
+            String line = readout.apply(sim);
+            if (!blank(line)) lines.add(line);
+        }
+        if (lines.isEmpty()) return;
+        Graphics2D g = frame.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 26));
+            int lineHeight = g.getFontMetrics().getHeight();
+            int width = 0;
+            for (String line : lines) width = Math.max(width, g.getFontMetrics().stringWidth(line));
+            int pad = 14;
+            int boxH = lineHeight * lines.size() + 2 * pad;
+            int x = 32, y = frame.getHeight() - 32 - boxH;
+            g.setColor(new Color(0, 0, 0, 170));
+            g.fillRoundRect(x, y, width + 2 * pad, boxH, 10, 10);
+            g.setColor(Color.WHITE);
+            for (int i = 0; i < lines.size(); i++) {
+                g.drawString(lines.get(i), x + pad, y + pad + g.getFontMetrics().getAscent() + i * lineHeight);
+            }
+        } finally {
+            g.dispose();
         }
     }
 

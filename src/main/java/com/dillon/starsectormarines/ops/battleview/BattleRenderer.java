@@ -1270,6 +1270,7 @@ public class BattleRenderer {
         CreepField creep = sim.creepFieldIfPresent();
         if (creep != null && creep.isEmpty()) creep = null;
         paint.reset();
+        paint.night = topology.nightLighting() != null;
         ruinShells.reset();
         // The creep on the faces, laid over them once they are all drawn, and over the walls' tops, over the roofs.
         WallCreepPass faceCreep = creep == null ? null : this.creep.walls();
@@ -1424,6 +1425,7 @@ public class BattleRenderer {
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
         if (faceCreep != null && !faceCreep.isEmpty()) out.addCustom(RenderLayer.ROOFS, faceCreep);
+        if (!paint.glow.isEmpty()) out.addPoly(RenderLayer.NIGHT_WINDOWS, paint.glow);
         wallRubble.emit(out, paint.debris(), paint.debrisCount(), sprites.rubbleSheet(), sprites.rubbleFrames());
     }
 

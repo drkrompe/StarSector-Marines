@@ -245,7 +245,10 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
             if (!reserve && !forward && !RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
             int posted = 0;
             for (Squad squad : w.sim().getSquads()) if (squad.assignedNode == node) posted += squad.originalSize;
-            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : forward ? "FORWARD POST: " : "GATE PICKET: ") + posted + (forward ? " rifle" : " mech") + (posted == 1 ? "" : "s"),
+            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : !forward ? "GATE PICKET: "
+                    : node.kind == TacticalNode.Kind.GUARDPOST ? "OUTWORKS GUN: "
+                    : w.sim().getTopology().getBuildingId(node.anchorX, node.anchorY) != 0 ? "HELD BUILDING: "
+                    : "FORWARD POST: ") + posted + (forward ? " rifle" : " mech") + (posted == 1 ? "" : "s"),
                     posted > 0 ? ReviewStyle.ALLY : ReviewStyle.KEEP);
             System.out.printf(Locale.ROOT, "[raid-demolition-look] machine post %d,%d posted %d%n", node.anchorX,
                     node.anchorY, posted);

@@ -687,6 +687,14 @@ Laws):
      roof in front of it hides it. Look suite: `createSnapshots
      -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
+   A town at night reads by its lights: on a night map, about a third of
+   the upper-storey windows glow warm through the dark
+   (`FacePainter.lit`, its own layer over the night shade), and a lamp
+   pools on the pavement in front of each building's street wall every
+   sixth cell (`StreetLights`; a main street's shopfronts also hang lamp
+   brackets between the awnings). No town map lays a night yet; the look
+   suite shows one with `-Dsnapshot.walls.night=on`.
+
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80
      to 400), never a fixed scale. Its lost HP soots its top and blows its
