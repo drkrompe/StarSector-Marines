@@ -51,8 +51,11 @@ final class SalvageWalkerArms {
     static final float HUB_PX = 103f;
     /** The furthest the booms telescope past their own length, cells. */
     static final float MAX_EXTENSION_CELLS = 2.4f;
-    /** How far either side of its facing a working boom turns, and where a folded one lies, degrees. */
-    static final float WORK_SWING = 60f;
+    /**
+     * How far a working boom turns across the body's front from its own side, degrees; to its own side it turns all the
+     * way round, so a stripper cutting what lies behind it reaches back. And where a folded one lies.
+     */
+    static final float WORK_SWING = 45f;
     static final float FOLD_SWING = 160f;
     static final float SAW_DEGREES_PER_SECOND = 900f;
     /** The booms and saws drawn larger than the torso's own cut of them, so they read off the body. */
@@ -89,6 +92,8 @@ final class SalvageWalkerArms {
         float dumpFrom;
         float spin;
         float time;
+        /** The battle tick it was last drawn at, or -1. */
+        int lastTick = -1;
         /** Where the arms reach for a grab, cells: the stripper the rules last had it take from. */
         float grabX;
         float grabY;
@@ -193,7 +198,10 @@ final class SalvageWalkerArms {
             float ext = 0f;
             if (cutting) {
                 float rel = wrap(bearing(goal.x() - sx, goal.y() - sy) - f);
-                work = Math.max(-WORK_SWING, Math.min(WORK_SWING, rel));
+                // The left boom (side -1) turns counter-clockwise, to its own side, as far as straight back.
+                work = side < 0 ? Math.max(-WORK_SWING, rel < -WORK_SWING ? rel + 360f : rel)
+                        : Math.min(WORK_SWING, rel > WORK_SWING ? rel - 360f : rel);
+                work = side < 0 ? Math.min(work, 180f + WORK_SWING) : Math.max(work, -180f - WORK_SWING);
                 float d = (float) Math.hypot(goal.x() - sx, goal.y() - sy);
                 ext = Math.max(0f, Math.min(MAX_EXTENSION_CELLS, d - base - 0.5f * art.saw.pxWidth * ka));
             }

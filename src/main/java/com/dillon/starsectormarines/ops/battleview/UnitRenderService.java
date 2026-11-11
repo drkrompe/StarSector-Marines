@@ -1642,13 +1642,16 @@ public final class UnitRenderService implements RenderSystem {
      * (`fallen-hull-nouns.md`); nothing for any other walker.
      */
     private void workArms(RenderContext ctx, DrawList out, FallenHull hull, long entityId, DerelictWalkerAssets art,
-                          DerelictLegRig rig, float renderScale, float partScale, float dt, float alpha) {
+                          DerelictLegRig rig, float renderScale, float partScale, float alpha) {
         if (!ctx.sim.squad().hasSquad(entityId)) return;
         int squad = ctx.sim.squad().squadId(entityId);
         StripperWork stripper = hull.strippers().get(squad);
         HaulerWork hauler = stripper == null ? hull.haulers().get(squad) : null;
         if (stripper == null && hauler == null) return;
         SalvageWalkerArms.State st = salvageArms.computeIfAbsent(entityId, id -> new SalvageWalkerArms.State());
+        int tick = ctx.sim.getSimTickIndex();
+        float dt = st.lastTick < 0 ? 0f : Math.min(0.25f, Math.max(0, tick - st.lastTick) * BattleSimulation.TICK_DT);
+        st.lastTick = tick;
         if (stripper != null) {
             StripperWork.Goal goal = stripper.goal();
             st.stripper(dt, goal.kind() == StripperWork.Kind.CUT);
@@ -1810,9 +1813,9 @@ public final class UnitRenderService implements RenderSystem {
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
                             walkerArt, rig, cam, roster.renderScale(entityId), size, unitAlpha);
-                    if (derelict != null && derelict.hull() != null) {
-                        workArms(ctx, out, derelict.hull(), entityId, walkerArt, rig, roster.renderScale(entityId),
-                                size, dt, unitAlpha);
+                    if (watch != null && watch.hull() != null) {
+                        workArms(ctx, out, watch.hull(), entityId, walkerArt, rig, roster.renderScale(entityId), size,
+                                unitAlpha);
                     }
                     if (ctx.sim.world().hasMechLoadout(entityId)) {
                         // Its guns on their hardpoints, riding the drawn body and turned to its aim.

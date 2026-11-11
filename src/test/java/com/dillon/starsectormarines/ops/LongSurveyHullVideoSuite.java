@@ -327,11 +327,16 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 if (s != null && full < 0 && s.load() >= StripperWork.CAPACITY) full = t;
                 if (h != null && load < 0 && h.load() > 0f) load = t;
                 if (load >= 0 && c.hull.hullStore().metal() > 0f) home = t;
+                if (h != null && t % Math.round(30f / DT) == 0) {
+                    HaulerWork.Goal g = h.goal();
+                    log("%.0f s: hauler %s with %d at (%.1f, %.1f), load %.0f; forge lit %s", t * DT, g.kind(),
+                            g.with(), g.x(), g.y(), h.load(), c.hull.forge().lit());
+                }
             }
             log("stripper full %.1f s; hauler loads %.1f s, home %.1f s", full * DT, load * DT, home * DT);
         }
-        if (load < 0) {
-            log("the hauler never loaded: no work clips");
+        if (load < 0 && full < 0) {
+            log("the stripper never filled and the hauler never loaded: no work clips");
             return;
         }
         // -Dsnapshot.hullVideo.workCells frames the work clips that close (cells across), and
@@ -363,6 +368,11 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 if (s != null) lastLoad = s.load();
                 if (wantS && stripper != 0L && (sEnd < 0 || t <= sEnd) && t % sSpeed == 0) {
                     float x = world.renderX(stripper), y = world.renderY(stripper);
+                    if (s != null && s.goal().kind() == StripperWork.Kind.CUT) {
+                        // Cutting: the walker and the salvage its arms reach to, both in frame.
+                        x = (x + s.goal().x()) / 2f;
+                        y = (y + s.goal().y()) / 2f;
+                    }
                     if (st == null) {
                         sc = new Camera(x, y, sCells);
                         st = Take.open(context, fx, "stripper-cuts" + suffix, sSpeed, sSpeed, sc.now(), true);
