@@ -47,6 +47,12 @@ public interface RaidIndustry {
     default MapPlacement industryAt() { return RaidSiteTemplate.INDUSTRY_AT; }
 
     /**
+     * Where the garrison's seed stands, in the canonical template. Every industry keeps the template's; an industry
+     * whose site runs held ground across the garrison's usual ground (a port's lines) sets it clear of that.
+     */
+    default MapPlacement garrisonAt() { return RaidSiteTemplate.GARRISON_AT; }
+
+    /**
      * Whether the industry lays the works' belt, checkpoints and towers itself whatever the security (a military
      * base), so {@link WorksDefences} lays only the hall parapets for it.
      */
