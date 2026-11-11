@@ -267,6 +267,24 @@ public final class FallenHull {
         return Collections.unmodifiableMap(pylons);
     }
 
+    /**
+     * Every standing stake as the garrison and its allies fight it ({@link StakeTargets}): the pylon or node to kill,
+     * the kill that strands the most first.
+     */
+    public List<StakeTargets.Target> stakeTargets(DerelictSecurityDirector director) {
+        Map<Integer, Long> nodes = new TreeMap<>();
+        for (int point : stakes.keySet()) {
+            Long node = director.nodes().get(zoneOf(point));
+            if (node != null) nodes.put(point, node);
+        }
+        return StakeTargets.of(stakes, pylons, nodes, seats);
+    }
+
+    /** Whether the claim is down: every stake on it scrapped or stranded (The Line's win, {@link StakeTargets#down}). */
+    public boolean claimDown() {
+        return StakeTargets.down(stakes);
+    }
+
     public List<StakeTrain> trains() {
         return Collections.unmodifiableList(trains);
     }
