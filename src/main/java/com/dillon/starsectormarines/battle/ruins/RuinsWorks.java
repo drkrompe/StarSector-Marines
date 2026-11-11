@@ -563,7 +563,8 @@ public final class RuinsWorks {
             watchLit = true;
         }
         RuinsLighting.apply(sim.getTopology(), graph,
-                RuinsLighting.watchCircuits(watch.network(), watch.wake().stage()), seconds);
+                RuinsLighting.watchCircuits(watch.network(), watch.wake().stage(), watch.ducts(),
+                        watch.wake()::released), seconds);
     }
 
     private void finish(BattleSimulation sim) {

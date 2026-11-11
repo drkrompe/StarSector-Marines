@@ -420,7 +420,9 @@ daylight falls through the light wells and the broken roof. Only the residual
 the junction boxes and the hall's console, so the way through still reads.
 
 The lights are the works' power made visible. Restarting the hall lights the
-hall; each junction then lights what it feeds: its band of the plant (halls and
+hall and the works hall's stand round its pour pulpit and bridge
+(`Interior.worksStand`), so the first thing the light shows is the stand and
+what holds it; each junction then lights what it feeds: its band of the plant (halls and
 corridors) on its way on, its stores on its store side, and the vault's suite
 with the vault's seal. An overloaded hall browns the plant out, all but the hall
 itself. A lamp's pool stops at its own building's walls, so rooms light as
@@ -430,15 +432,20 @@ as its tubes catch.
 At a derelict site the watch has lights of its own, on the standby power it
 never lost, and they show its wake (`derelict-watch.md`, Waking): a zone's red
 alarm strips (one at its node and a sparse lattice over the floor it keeps)
-burn once it is alert or awake; its vent hatches glow amber from Stirring and
-its reserve bay from Roused. The hunt sets every online zone alert, so the
+burn once it is alert or awake, so one zone woken alone shows red while the rest
+stay quiet; a vent's hatch glows amber while a flock may use it (the ducts up
+from Stirring, the vent standing, its zone online), and a reserve bay's lamp
+once its flock has come out. The hunt sets every online zone alert, so the
 whole plant pulses red; the contingency lights every zone with a live node. A
-zone cut off at its junction, or whose node is down, goes dark with it. Light is presentation: it draws none of the hall's capacity and changes
+zone cut off at its junction, or whose node is down, stays dark through all of
+it, the contingency included. The restart adds no escalation of its own: its
+noise is already counted (`RuinsSleepers.loud`, `SecurityNetwork.loud`,
+`RuinsPressure.HALL_RESTART`), and the hall coming up lit is the tell that it was
+paid. Light is presentation: it draws none of the hall's capacity and changes
 no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
 lit).
 
-Open (owner picks, raised on the parent's picks page): whether the hall's
-restart also raises the wake to Stirring, the company's
+Open (owner picks, raised on the parent's picks page): the company's
 own helmet and vehicle lamps, and whether darkness shortens the company's sight.
 
 ### The entrance and the pull-out point
