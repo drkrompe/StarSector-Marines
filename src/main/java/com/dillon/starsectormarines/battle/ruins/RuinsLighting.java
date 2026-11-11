@@ -178,11 +178,37 @@ public final class RuinsLighting {
                 if (near(own, x, y)) continue;
                 own.add(new int[] {x, y});
                 String circuit = circuitAt.at(x, y);
-                float[] c = circuit.equals(HALL) ? HALL_LIGHT : WORK_LIGHT;
-                out.add(new Lamp(x + 0.5f, y + 0.5f, STRIP_REACH, c[0], c[1], c[2], circuit));
+                boolean hall = circuit.equals(HALL);
+                float[] c = hall ? HALL_LIGHT : WORK_LIGHT;
+                out.add(new Lamp(x + 0.5f, y + 0.5f, STRIP_REACH, c[0], c[1], c[2], circuit,
+                        hall ? NightLighting.Fixture.HIGH_BAY : NightLighting.Fixture.CEILING_STRIP,
+                        alongRun(ground, x, y), 1f, 1f));
             }
         }
         return out;
+    }
+
+    /**
+     * The bearing a strip at {@code (x, y)} hangs along: 0 (east-west) where its building's floor runs farther east and
+     * west of it than north and south, else 90, so a corridor's strips run down it.
+     */
+    static float alongRun(CellTopology ground, int x, int y) {
+        int building = ground.getBuildingId(x, y);
+        return run(ground, building, x, y, 1, 0) >= run(ground, building, x, y, 0, 1) ? 0f : 90f;
+    }
+
+    /** How many cells of {@code building}'s floor run either way from {@code (x, y)} along {@code (dx, dy)}, to four. */
+    private static int run(CellTopology ground, int building, int x, int y, int dx, int dy) {
+        int n = 0;
+        for (int sign = -1; sign <= 1; sign += 2) {
+            for (int k = 1; k <= 4; k++) {
+                int cx = x + sign * k * dx, cy = y + sign * k * dy;
+                if (cx < 0 || cy < 0 || cx >= ground.getWidth() || cy >= ground.getHeight()
+                        || ground.getBuildingId(cx, cy) != building || !floor(ground, cx, cy)) break;
+                n++;
+            }
+        }
+        return n;
     }
 
     /** Whether a cell is the plant's floor under its roof, where a ceiling strip hangs. */
@@ -206,7 +232,8 @@ public final class RuinsLighting {
         int[] at = nearestFloor(ground, x, y, 2);
         if (at == null) return;
         lamps.add(new Lamp(at[0] + 0.5f, at[1] + 0.5f, EMERGENCY_REACH, EMERGENCY_LIGHT[0], EMERGENCY_LIGHT[1],
-                EMERGENCY_LIGHT[2], EMERGENCY, NightLighting.Fixture.STRIP, 0f, EMERGENCY_STRENGTH, EMERGENCY_TINT));
+                EMERGENCY_LIGHT[2], EMERGENCY, NightLighting.Fixture.EMERGENCY_STRIP, alongRun(ground, at[0], at[1]),
+                EMERGENCY_STRENGTH, EMERGENCY_TINT));
     }
 
     /** The roofed floor cell nearest {@code (x, y)} within {@code reach} cells, or null. */
@@ -303,7 +330,7 @@ public final class RuinsLighting {
     }
 
     private static Lamp lamp(int x, int y, float radius, float[] c, String circuit, float strength, float tint) {
-        return new Lamp(x + 0.5f, y + 0.5f, radius, c[0], c[1], c[2], circuit, NightLighting.Fixture.STRIP, 0f,
+        return new Lamp(x + 0.5f, y + 0.5f, radius, c[0], c[1], c[2], circuit, NightLighting.Fixture.BEACON, 0f,
                 strength, tint);
     }
 

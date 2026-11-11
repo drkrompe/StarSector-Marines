@@ -22,7 +22,15 @@ public record NightLighting(float darkness, float roofedDarkness, List<Lamp> lam
     public enum Fixture {
         STRIP, TRIPOD_FLOODLIGHT,
         /** No fixture drawn: the light belongs to its own art, as a hydroponic shed's lit roof does; only its pool. */
-        GLOW
+        GLOW,
+        /** A ruin's caged ceiling strip, drawn from its painted art lit or dark; its bearing lays its long axis. */
+        CEILING_STRIP,
+        /** A ruin's round high-bay lamp over a hall. */
+        HIGH_BAY,
+        /** A ruin's emergency strip, on its own circuit when all else is dark. */
+        EMERGENCY_STRIP,
+        /** A ruin's alarm beacon: the watch's lamps and its bays'. */
+        BEACON
     }
 
     /**

@@ -81,6 +81,20 @@ class RuinsLightingTest {
     }
 
     @Test
+    void aStripHangsAlongItsRoomsLongerRun() {
+        // A corridor running north-south (x 0, y 0..6) off an east-west one (x 0..6, y 0).
+        CellTopology ground = new CellTopology(7, 7);
+        for (int i = 0; i < 7; i++) {
+            ground.setGroundKind(0, i, CellTopology.GroundKind.INDOOR);
+            ground.setBuildingId(0, i, 1);
+            ground.setGroundKind(i, 0, CellTopology.GroundKind.INDOOR);
+            ground.setBuildingId(i, 0, 1);
+        }
+        assertEquals(90f, RuinsLighting.alongRun(ground, 0, 4), "down a north-south corridor");
+        assertEquals(0f, RuinsLighting.alongRun(ground, 4, 0), "across an east-west one");
+    }
+
+    @Test
     void anEmergencyStripOnAWallStepsOntoTheNearestFloor() {
         CellTopology ground = new CellTopology(5, 1);
         for (int x = 0; x < 5; x++) {

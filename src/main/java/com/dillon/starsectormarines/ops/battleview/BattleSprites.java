@@ -864,6 +864,20 @@ public class BattleSprites {
         }
     }
 
+    /** Light art loaded so far: lamp fixtures and machinery glow, null where a path failed. */
+    private final Map<String, SpriteAPI> lightArt = new HashMap<>();
+
+    /**
+     * A lamp fixture's or a sheet's emissive overlay ({@code mod/graphics/battle/lights/}), loaded the first time it
+     * is asked for; null when it cannot be, so the lamp draws without its art.
+     */
+    public SpriteAPI lightArt(String path) {
+        if (lightArt.containsKey(path)) return lightArt.get(path);
+        SpriteAPI sprite = loadEngineFxSpriteOrNull(path);
+        lightArt.put(path, sprite);
+        return sprite;
+    }
+
     public SpriteAPI loadEngineFxSpriteOrNull(String path) {
         try {
             ModTextures.loadTexture(path, lease);

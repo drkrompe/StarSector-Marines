@@ -448,8 +448,13 @@ and its tender and repair drone work) is lit while its zone is online and the
 bay stands. Restarting the hall also brings the wake to Stirring at least
 (`FacilityWake.plantRestarted`, owner pick `ruins-light-escalation`), so the
 vent hatches glow amber as the plant comes up. Light is presentation: it draws none of the hall's capacity and changes
-no sight. Proof: `RuinsLightingTest`; look: `ruins-light-look` (dark, partly lit,
-lit).
+no sight. The fixtures are the plant's own painted lamps (caged strips along each
+run, high bays over the works hall, red emergency strips, alarm beacons), dead
+but visible in the dark; the rooms' machinery glows as its lamps come on. The
+company brings its own light into the dark: helmet lamps, mech floods and
+vehicle headlamps throw cones along their facing (`battle-render-nouns.md`).
+Proof: `RuinsLightingTest`, `UnitLightsTest`; look: `ruins-light-look` (dark,
+partly lit, lit; `-Dsnapshot.ruinsLight.company` for the company's lights).
 
 Owner picks: `ruins-light-start` black, `ruins-light-power` the works,
 `ruins-light-escalation` the watch's lights and the Stirring floor,

@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -340,6 +341,14 @@ final class HeadlessBattleSprites extends BattleSprites {
      */
     @Override public SpriteAPI loadIconOrNull(String path) {
         return spriteOrNull(path);
+    }
+
+    /** Lamp fixtures and emissive overlays off the resource roots, as the icons are. */
+    private final Map<String, SpriteAPI> lightArt = new HashMap<>();
+
+    @Override public SpriteAPI lightArt(String path) {
+        if (!lightArt.containsKey(path)) lightArt.put(path, spriteOrNull(path));
+        return lightArt.get(path);
     }
 
     private void loadWholeSprite(Map<String, ShuttleSpriteCache> target, String id, String path) {
