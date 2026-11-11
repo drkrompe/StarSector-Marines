@@ -318,8 +318,16 @@ Numbers UNTUNED.
 - **The workers.** `MechVariant.SECURITY_STRIPPER` (MG-18, medium, unarmed) and
   `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
   derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
-  (`worker()`). Both are drawn as the sentinel at their size until the art
-  session's looks ship (`stripper-hauler`, answered: two units).
+  (`worker()`). Each has its own torso on the sentinel's legs
+  (`stripper-hauler`, answered: two units), and work arms drawn as parts
+  (`SalvageWalkerArms`, owner 2026-11-11) keyed off the rules' goal
+  (`StripperWork.goal()`, `HaulerWork.goal()`): they unfold to work and tuck
+  against the body to walk. The stripper's two saw booms telescope out to the
+  salvage it cuts, with glow, sparks, chips and dust; the pile it cuts shrinks
+  (`Salvage.initialMetal`). The hauler's grab arms clamp a clump off the
+  stripper and swing it into the bed, which fills a grab at a time behind the
+  rules' one-pulse hand-over, never ahead of it, and push the load out over the
+  tail at a store.
 
 - **The seam from the ground.** `FallenHullSite` is what the crash-site ground
   fills and the battle stands on: the hull's laid box (`Rect`) and its
@@ -375,8 +383,8 @@ hauler carries the metal into the hull's store).
 
 Not built yet: a stake's rounds walker on a round; cutting a stripped
 structure out of the map (a pile is metal at a cell); the forge's power cut
-other than its destruction; the stripper's and hauler's own looks and the
-stake's three stages drawn (stand-ins: the sentinel at size, the node's
+other than its destruction; the work's sounds (a cut whine, a grab's clank);
+the stake's three stages drawn (stand-ins: the node's
 structure for pylon and node); the briefing and rail reading the build queue
 (`BuildQueue.peek`); a seed's real hull site from the ground.
 

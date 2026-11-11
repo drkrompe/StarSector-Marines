@@ -44,6 +44,9 @@ WALKER_PX = 128
 _spec = importlib.util.spec_from_file_location("walker_export", ROOT / "art-source" / "derelict-walker" / "export.py")
 walker = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(walker)
+_spec = importlib.util.spec_from_file_location("work_parts", Path(__file__).with_name("work_parts.py"))
+work_parts = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(work_parts)
 sys.path.insert(0, str(ROOT / "art-source" / "roofs"))
 _spec = importlib.util.spec_from_file_location("roof_export", ROOT / "art-source" / "roofs" / "export.py")
 roof_export = importlib.util.module_from_spec(_spec)
@@ -173,6 +176,9 @@ def ship():
             out / f"stake-{stage}.png")
     for design in SHIP_WALKERS:
         export_walker(design, out, ship=True)
+        # Their work arms and load bed are parts of their own, cut from the torso just shipped (work_parts.py).
+        folder = out.parent / f"derelict-{design}"
+        work_parts.cut_into(design, folder, folder)
     print("shipped", out)
 
 

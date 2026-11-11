@@ -4,7 +4,7 @@
   "home": "FROZEN",
   "entry": {
     "seed": 5,
-    "note": "The Surveyor: Broad Front's country (heart-front seed 5, its airbases placed) with the Surveyor in the heart's place beside the workings, bow south, broken in three, its trench pointing down the supply road the garrison's columns come up; the full claim standing round it, established nearest the hull, raised beyond, planted at its edge",
+    "note": "The Surveyor on Garnir: Broad Front's country (heart-front seed 5, its airbases placed) with two sealed works districts either side of the approach and the Surveyor in the heart's place, bow south, its trench down the supply road; the claim round it, an established ring at y 210 whose west and east cuts strand the outer chain (long-survey-maps.md, Chapter 4)",
     "patch": {
       "place": [
         {
@@ -59,7 +59,7 @@
             "stage": "established"
           },
           {
-            "x": 240,
+            "x": 200,
             "y": 170,
             "stage": "raised"
           },
@@ -74,8 +74,8 @@
             "stage": "raised"
           },
           {
-            "x": 160,
-            "y": 170,
+            "x": 200,
+            "y": 130,
             "stage": "planted"
           },
           {

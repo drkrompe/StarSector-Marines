@@ -141,29 +141,34 @@ guarded by the vault frame and a hall frame (Broad Front, the hull as its heart,
 then the interior as a delve). With chapter 3 on Broad Front too, the outer push is
 kept short and the chapter weighted on the delve (`long-survey-arc.md`, Open picks).
 
-**Ground.** Broad Front's country, `long-survey-surveyor` seed 5, 560 by 336: the
-south fields and two airbases, rural country with ponds and ridges, the hull in the
-heart's place.
+**Ground.** Broad Front's country on Garnir, `long-survey-surveyor` seed 5, 560 by
+336, laid out frozen and airless: the south fields and two airbases, the cordon
+line, then works country, two sealed works districts either side of the approach
+(sheds, yards, a tank farm; `LongSurveyGround`, `WORKS_WEST` and `WORKS_EAST`), the
+hull in the heart's place between them.
 
-- **Entry.** The garrison's columns and the company from the south fields and the
+- **Entry.** The pirates' columns and the company from the south fields and the
   airbases (96,8 and 483,8).
 - **The hull.** North of centre, broken in three, bow south (sections x 262 to 298,
   y 187 to 314), the forge behind the bow's torn end; its trench runs down the
   supply road the columns come up.
-- **The claim.** The full claim stands round the hull: established stakes nearest
-  it, raised beyond, planted at its edge (the outer chain, y about 150 to 200).
+- **The claim.** Established stakes round the hull and a ring of them at y 210
+  (200, 240, 320 and 360); the outer chain beyond: on the west raised at 200,170
+  and planted at 200,130, on the east raised at 320,170 and 360,130 and planted
+  at 400,170. Cutting the ring at 200,210 strands the west outer chain, at 360,210
+  most of the east: the outer phase is won by those cuts. Every stake seats on
+  every world's skin.
 
 **Routes**, south to north:
 
-- **Centre, the supply road**: straight up the trench to the bow's torn end and the
-  forge behind it.
-- **West, the ponds and hollows**: broken ground to the outer chain's west stakes
-  and the bow's port flank.
-- **East, the ridges and the works**: the berms and the derelict works north-east,
-  to the outer chain's east stakes and the midsection's rents.
+- **Centre, the supply road**: straight up the open ground between the works to
+  the bow's torn end and the forge behind it; the trench run.
+- **West, through the west works**: sheds, yards and the tank farm, close cover,
+  to the west outer chain and the ring's west cut.
+- **East, through the east works**: the denser district, to the east outer chain.
 
-**Set pieces.** 1, the outer ring, where cutting the chain strands the claim; 2, the
-trench run into the bow; 3, the delve: a breach, the spine, the forge hall.
+**Set pieces.** 1, the ring cuts, where the outer chain strands; 2, the trench run
+into the bow; 3, the delve: a breach, the spine, the forge hall.
 
-**Allies.** The columns hold the trench mouth and the outer ring while the company
-goes in.
+**Allies.** The pirates' columns hold the trench mouth and the works' edges while
+the company goes in.

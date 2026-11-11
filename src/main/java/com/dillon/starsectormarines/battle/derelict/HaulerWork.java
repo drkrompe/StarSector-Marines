@@ -34,6 +34,12 @@ public final class HaulerWork {
 
     private float load;
     private float lost;
+    private Goal goal = new Goal(Kind.STAND_BY, 0f, 0f, 0);
+
+    /** The goal it last decided ({@link #decide}): what the screen shows its arms doing. */
+    public Goal goal() {
+        return goal;
+    }
 
     public float load() {
         return load;
@@ -51,6 +57,11 @@ public final class HaulerWork {
      * @param stores  the stores whose chain holds
      */
     public Goal decide(float x, float y, float postX, float postY, List<Holder> holders, List<Store> stores) {
+        goal = choose(x, y, postX, postY, holders, stores);
+        return goal;
+    }
+
+    private Goal choose(float x, float y, float postX, float postY, List<Holder> holders, List<Store> stores) {
         Holder fullest = null;
         for (Holder h : holders) {
             if (h.load() <= 0f) continue;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.function.Function;
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -59,6 +60,17 @@ final class NightLightingRenderSystem implements RenderSystem {
         events = lights;
     }
 
+    private Function<RenderContext, RoofsShown> roofs;
+
+    /**
+     * Reads the roofs the frame draws from {@code roofs} ({@link RoofsShown}): where a lifted roof stands over the
+     * street the shade there is the roof's, roofed dark and lit by no lamp in the street below, so a roof's edge no
+     * longer takes the light of the pavement under it.
+     */
+    void useRoofs(Function<RenderContext, RoofsShown> roofs) {
+        this.roofs = roofs;
+    }
+
     public void collect(RenderContext ctx, DrawList out) {
         var ground = ctx.sim.getTopology();
         var night = ground.nightLighting();
@@ -87,11 +99,13 @@ final class NightLightingRenderSystem implements RenderSystem {
         boolean coning = fillCones(ctx, ground, night, useFog ? fog.cellShownArray() : null,
                 visible.minX(), visible.minY(), visible.maxX(), visible.maxY());
         field.cones(conePools, coning, coneX0, coneY0, coneX1, coneY1);
+        RoofsShown shownRoofs = roofs == null ? null : roofs.apply(ctx);
         pass.reset(camera);
         if (useFog) doodads.collectLightingSurfaces(ctx, pass.surfaces());
         boolean masked = pass.surfaces().count(RenderLayer.FOG) > 0;
         if (ctx.hostProfile.residentGroundAllowed() && !field.broken()) {
             field.cells(ground, useFog ? fog.cellShownArray() : null, useFog ? fog.revealChanges() : null);
+            field.roofs(shownRoofs);
             field.frame(visible.minX(), visible.minY(), visible.maxX(), visible.maxY(), night.darkness(),
                     night.roofedDarkness(), ctx.alphaMult, camera);
             pass.useField(field, masked, useFog);
@@ -116,10 +130,13 @@ final class NightLightingRenderSystem implements RenderSystem {
             for (int x = visible.minX(); x <= visible.maxX(); x++) {
                 if (ground.getGroundKind(x,y) == CellTopology.GroundKind.VOID) { dimRun.flush(); litRun.flush(); continue; }
                 int cellIndex = y * gridW + x;
-                float darkness = night.darknessAt(night.roofedDarkness() != night.darkness() && NightLighting.roofed(ground, x, y));
+                // A roof lifted over the cell (RoofsShown) is what shows there: roofed dark, and no lamp below lights it.
+                boolean underRoof = shownRoofs != null && shownRoofs.at(x + .5f, y + .5f) >= 0;
+                float darkness = night.darknessAt(night.roofedDarkness() != night.darkness()
+                        && (underRoof || NightLighting.roofed(ground, x, y)));
                 float[] unlitColour = darkness == night.darkness() ? unlitOpen : unlitRoofed;
                 boolean hidden = shown != null && !shown[cellIndex];
-                boolean lampDark = zero9(pools, (2 * y) * width + 2 * x)
+                boolean lampDark = underRoof || zero9(pools, (2 * y) * width + 2 * x)
                         && (!coning || zero9(conePools, (2 * y) * width + 2 * x));
                 boolean fireDark = !burning || zero9(firePools, (2 * y) * width + 2 * x);
                 boolean unlit = lampDark && fireDark;
@@ -137,14 +154,14 @@ final class NightLightingRenderSystem implements RenderSystem {
                     float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
                     if (!dimUniform) {
                         float cone=coning ? sample(conePools,px,py) : 0f;
-                        float pool=hidden ? 0f : sample(pools,px,py)+cone;
+                        float pool=hidden || underRoof ? 0f : sample(pools,px,py)+cone;
                         float firePool=burning ? sample(firePools,px,py) : 0f;
                         appendShade(dimMesh, darkness, pool, hidden ? 0f : cone, firePool, px, py, x0, y0, x1, y1,
                                 ctx.alphaMult);
                     }
                     if (masked && !litUniform) {
-                        float cone=coning ? sample(conePools,px,py) : 0f;
-                        appendShade(pass.litShade(), darkness, sample(pools,px,py)+cone, cone,
+                        float cone=coning && !underRoof ? sample(conePools,px,py) : 0f;
+                        appendShade(pass.litShade(), darkness, underRoof ? 0f : sample(pools,px,py)+cone, cone,
                                 burning ? sample(firePools,px,py) : 0f, px, py, x0, y0, x1, y1, ctx.alphaMult);
                     }
                 }

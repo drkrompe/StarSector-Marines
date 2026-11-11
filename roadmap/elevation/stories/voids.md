@@ -710,8 +710,10 @@ Laws):
    every storey glow, warm and varied (`FacePainter.lit`, their own layer
    over the night shade); a shop's window stays lit under a lit sign. A
    street lamp never lights a roofed wall (`NightLightingRenderSystem.litBy`).
-   Open: a roof is drawn lifted toward the camera while the night shade lies
-   in ground space, so a roof's edge still takes the lit street below it.
+   A roof is drawn lifted toward the camera while the night shade lies in
+   ground space, so the shade reads the roofs where they are drawn
+   (`RoofsShown`): where a closed roof stands over the street, the shade there
+   is the roof's, roofed dark and lit by no lamp below.
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80
