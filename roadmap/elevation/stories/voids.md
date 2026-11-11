@@ -647,7 +647,14 @@ Laws):
      battle now has it. The cells that held a window are remembered for the
      map, so a shot-out one never reads as a door.
    - A door is drawn only at an outside doorway; works' and warehouses'
-     doors are loading doors.
+     doors are loading doors. A door is cut through its face, open as the
+     battle has every doorway (`FacePainter.cut`): nothing of the wall is
+     painted across it, so the doorway and the room behind it, and whoever
+     stands in it, show through, framed by its reveals, lintel soffit and
+     threshold; a loading bay's roller door is rolled up under its lintel,
+     and at night the room beyond glows through. Look suite:
+     `-Dsnapshot.walls.frame=doors`. Open: whether a closed leaf should be
+     shown recessed in the opening instead.
    - A doorway the map left with no door draws as a doorway; only the
      rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.
