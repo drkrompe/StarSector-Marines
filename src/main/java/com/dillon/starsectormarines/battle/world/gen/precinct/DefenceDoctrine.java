@@ -369,7 +369,8 @@ public final class DefenceDoctrine {
     /**
      * Whether a post at {@code (x, y)} laid along the step {@code (fx, fy)} has its lane open over the place's
      * outside: rays at its bearing and {@link #ARC_DEGREES} either side, each {@link #LANE} cells long, never cross the
-     * place (its wall line included). The map edge ends a ray without closing it.
+     * place (its wall line included) and never leave the map: past the edge no attacker comes, so a gun laid that way
+     * covers nothing (a garrison backed into the map's corner once lined its edge-side walls with guns facing off it).
      */
     public static boolean lane(boolean[][] inside, int x, int y, int fx, int fy) {
         return lane((cx, cy) -> inside[cx][cy], inside.length, inside[0].length, x, y, fx, fy, 0);
@@ -384,8 +385,8 @@ public final class DefenceDoctrine {
     /**
      * Whether a post at {@code (x, y)} laid along the step {@code (fx, fy)} has its lane open: rays at its bearing and
      * {@link #ARC_DEGREES} either side, each from {@code from} cells out (past the post's own footprint) to
-     * {@link #LANE}, meet no cell that {@code blocked} names. The map ({@code w} by {@code h}) edge ends a ray without
-     * closing it.
+     * {@link #LANE}, meet no cell that {@code blocked} names and stay on the map ({@code w} by {@code h}): past the
+     * edge no attacker comes.
      */
     public static boolean lane(Blocks blocked, int w, int h, int x, int y, int fx, int fy, int from) {
         double bearing = Math.atan2(fy, fx);
@@ -394,8 +395,7 @@ public final class DefenceDoctrine {
             double ux = Math.cos(a), uy = Math.sin(a);
             for (int t = from; t <= LANE; t++) {
                 int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-                if (cx < 0 || cy < 0 || cx >= w || cy >= h) break;
-                if (blocked.at(cx, cy)) return false;
+                if (cx < 0 || cy < 0 || cx >= w || cy >= h || blocked.at(cx, cy)) return false;
             }
         }
         return true;

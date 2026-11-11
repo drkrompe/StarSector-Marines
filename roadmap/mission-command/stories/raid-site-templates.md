@@ -75,7 +75,9 @@ cuts the pit runs. It runs from just past the works' claim
 road.
 
 **Held and built ground.** A site held from growth (`SitePurpose.held`) also keeps off a garrison: its square
-claim, and so its wall, is cut back clear of it (`PrecinctClaim.clipOff`). `SitePurpose.BUILT` ground is held
+claim, and so its wall, is cut back clear of it (`PrecinctClaim.clipOff`) and squared again nearest its seed, so
+the wall encloses only the square its rows are laid on; a square moved off its seed claims nothing at the seed.
+`SitePurpose.BUILT` ground is held
 the same way, but the layout's own structures are raised on it (a port's warehouse rows between its lines).
 
 **The tank farm.** A refinery holds its tank farm's ground before the works

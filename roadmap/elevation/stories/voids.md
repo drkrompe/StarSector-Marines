@@ -607,7 +607,13 @@ Laws):
    2.4 m, an olive garden wall 1.6 m; a ruin's stub, or a sealed shell too short
    to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
    the view's centre run to a cap of its cells at that lift, drawn before the
-   buildings' faces and re-formed when a breach changes the topology. Fences,
+   buildings' faces and re-formed when a breach changes the topology. A
+   window in such a wall (a compound's firing windows) stands only to its
+   sill (`FreestandingWalls.sill`), an embrasure cut down into the wall that
+   its defenders fire over, so it reads as a gap from above and from the
+   side; glass on a wall's top read as a skylight (owner). It sees and covers
+   as the map laid it. Look suite: `createSnapshots
+   -Psnapshot=compound-windows-look` (Asharu's compound). Fences,
    sandbags and barriers are doodads and still lie flat. A run stands as the
    straight strokes it was built along (`FreestandingWalls.strokes`): a
    diagonal is one slanted wall exactly as thick as a straight one: an end
@@ -641,7 +647,14 @@ Laws):
      battle now has it. The cells that held a window are remembered for the
      map, so a shot-out one never reads as a door.
    - A door is drawn only at an outside doorway; works' and warehouses'
-     doors are loading doors.
+     doors are loading doors. A door is cut through its face, open as the
+     battle has every doorway (`FacePainter.cut`): nothing of the wall is
+     painted across it, so the doorway and the room behind it, and whoever
+     stands in it, show through, framed by its reveals, lintel soffit and
+     threshold; a loading bay's roller door is rolled up under its lintel,
+     and at night the room beyond glows through. Look suite:
+     `-Dsnapshot.walls.frame=doors`. Open: whether a closed leaf should be
+     shown recessed in the opening instead.
    - A doorway the map left with no door draws as a doorway; only the
      rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.

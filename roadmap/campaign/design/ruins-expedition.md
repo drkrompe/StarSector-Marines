@@ -870,6 +870,20 @@ beside it, so no bay carries a way round the works hall. Partition walls on a 16
 a room's size. Each bay takes one door, onto the plant's floor or into a bay already open, so the bays hang off the
 plant in trees of dead ends.
 
+The bays have jobs (owner pick `ruins-plant-next-r3` a: "Also consider merging bays or areas if it makes the overall
+structure more cohesive and make logical sense for how the "factory" or "facility" might have worked"). Each cell of
+the bay grid does the secondary work of where it stands along the material flow (`BayJob`). A bay beside the dock or a
+store is that space's marshalling floor: it opens onto it whole, with no door between, so the store and its floor are one
+space. A bay against the outer hull carries the plant's pipe and cable galleries. The rest serve the space they stand
+nearest. Beside line two they are more of its line, so the line runs on as one hall. By the works hall, the maintenance shop, the control gallery or the lab they are line workshops. By the raw
+stock and the dock they are spares and overflow stores. Round the habitat they hold the shift lockers and crew stores.
+By plant services they are the tank farm and its pumps. By finished goods they are packing and crating for dispatch.
+Neighbouring grid cells of one job are one bay, with no partition between: a line bay, gallery, tank farm or crating floor takes
+up to six cells of the grid, lockers and a marshalling floor four, a workshop or spares store three. Each bay still has
+one way in, so the route law holds. Bays are published by job (`gallery-1`, `tank-farm-1`...), dressed from the
+room kit and the works kit over each bay's largest rectangle. The collapse takes the largest bay that is not a
+marshalling floor.
+
 The plant is then ruined in its brief's order (owner pick `ruins-plant-next-r2` a). The stores were eaten down and
 stripped. The safe shutdown left every bay's three-cell blast door dead part-open, or now and then torn open since. The
 crew left by the suit room, whose lock stands torn open. Then centuries: two bays against the hull were breached from

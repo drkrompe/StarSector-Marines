@@ -127,8 +127,12 @@ public interface PrecinctClaim {
     /**
      * {@link #byKind(List, boolean[][], boolean[][])}, with a cantonment's square also kept off {@code grounds}: the
      * plan's {@code SitePurpose.GROUND} sites, ground held for authored terrain and kept clear of works. The square is
-     * stood where it covers the least of them, then cut back to the rectangle clear of them ({@link #clipOff}), so
-     * its wall, laid round its claim, never crosses a site's tracks or bands. {@code null} for none.
+     * stood where it covers the least of them, then cut back to the rectangle clear of them ({@link #clipOff}) and
+     * squared on its short side nearest the seed ({@link #squared}), so its wall, laid round its claim, never crosses
+     * a site's tracks or bands and never encloses ground its rows leave empty. A pooled place's claim grows round them
+     * as round {@code drop}: a garrison that is not laid square once pooled over a port's highway band and walled it
+     * across. A square place takes only its square, never pooling from a seed the square was moved off.
+     * {@code null} for none.
      */
     static PrecinctClaim byKind(List<Precinct> precincts, boolean[][] held, boolean[][] drop, boolean[][] grounds) {
         for (Precinct precinct : precincts) {
@@ -184,8 +188,7 @@ public interface PrecinctClaim {
             // reason, and is not pooled: noise would bulge it off the square.
             for (int i = 0; i < precincts.size(); i++) {
                 Precinct precinct = precincts.get(i);
-                if (budget == null || !precinct.isProgrammed() || precinct.fortification() == null
-                        || !precinct.fortification().square()) continue;
+                if (!laidSquare(precinct, budget)) continue;
                 int side = (int) Math.ceil(Math.sqrt(budget[i])) + 2 * precinct.fortification().glacis();
                 int x0 = Math.max(0, precinct.seedX() - side / 2);
                 int y0 = Math.max(0, precinct.seedY() - side / 2);
@@ -201,6 +204,9 @@ public interface PrecinctClaim {
                 if (precinct.program().cantonment()) {
                     int[] clear = clipOff(grounds, x0, y0, x1, y1);
                     if (clear != null) {
+                        // Squared again: its rows are laid on a square, and the rest of a long cut-back strip
+                        // stood walled round and empty.
+                        clear = squared(clear, precinct.seedX(), precinct.seedY());
                         x0 = clear[0]; y0 = clear[1]; x1 = clear[2]; y1 = clear[3];
                     }
                 }
@@ -215,6 +221,10 @@ public interface PrecinctClaim {
             for (int i = 0; i < precincts.size(); i++) {
                 if (!precincts.get(i).isProgrammed()) continue;
                 Precinct precinct = precincts.get(i);
+                // A square place already holds its square, which a cantonment's may have been moved off its seed to
+                // take: pooled from the seed as well, it grew a second, detached claim there that the wall went round
+                // and the rows, laid on the square, never reached (an empty walled ring on every port map).
+                if (laidSquare(precinct, budget)) continue;
                 int x = Math.max(0, Math.min(width - 1, precinct.seedX()));
                 int y = Math.max(0, Math.min(height - 1, precinct.seedY()));
                 if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
@@ -222,7 +232,7 @@ public interface PrecinctClaim {
                 taken[i]++;
                 pooling.add(new long[]{0L, x, y});
             }
-            expand(pooling, claim, taken, budget, width, height, shape, drop);
+            expand(pooling, claim, taken, budget, width, height, shape, union(drop, grounds));
 
             PriorityQueue<long[]> fronting = frontier();
             for (int i = 0; i < precincts.size(); i++) {
@@ -295,6 +305,17 @@ public interface PrecinctClaim {
             }
         }
         return best;
+    }
+
+    /**
+     * The square on the shorter side of an inclusive rectangle {x0, y0, x1, y1}, slid along the longer side as near
+     * centred on the seed as it fits. A square rectangle comes back unchanged.
+     */
+    static int[] squared(int[] r, int seedX, int seedY) {
+        int side = Math.min(r[2] - r[0], r[3] - r[1]) + 1;
+        int x0 = Math.max(r[0], Math.min(r[2] - side + 1, seedX - side / 2));
+        int y0 = Math.max(r[1], Math.min(r[3] - side + 1, seedY - side / 2));
+        return new int[]{x0, y0, x0 + side - 1, y0 + side - 1};
     }
 
     static int[] clearSquare(int[][] claim, boolean[][] held, int side, int x0, int y0, int width, int height) {
@@ -383,6 +404,12 @@ public interface PrecinctClaim {
                 queue.add(new long[]{cost, nx, ny});
             }
         }
+    }
+
+    /** Whether the place takes its square whole rather than pooling: programmed, laid square, and given a budget. */
+    private static boolean laidSquare(Precinct precinct, int[] budget) {
+        return budget != null && precinct.isProgrammed() && precinct.fortification() != null
+                && precinct.fortification().square();
     }
 
     /** One shape field per precinct, so two places do not bulge alike. */

@@ -47,8 +47,10 @@ generation, acceptance and patch coordinates are the home's. A palette feeds
 generation in many places that move the layout (rock chance and its draws,
 formations, woods, sludge pools, the desert's green basin), so a world never
 generates its own map: it plays the home's layout, skinned. Every pool's home
-is ARID today, the ground the Wellhollow campaign plays and its maps were tuned
-on.
+is ARID, the ground the Wellhollow campaign plays and its maps were tuned on,
+except the Long Survey's four, which are laid out FROZEN with no green basin:
+Garnir is an airless, cold mining moon, so nothing grows there and the ground
+is laid that way, not skinned into it.
 
 **The owned seed.** The battle seed itself: the map it names on its home
 passes the mission's acceptance on the first generation, with no re-roll. The

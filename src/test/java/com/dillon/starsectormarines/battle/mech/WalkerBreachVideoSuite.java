@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.appearance.DerelictLegRig;
 import com.dillon.starsectormarines.battle.nav.ClearanceRoutePlanner;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.LookGround;
@@ -30,9 +31,10 @@ import java.util.function.Consumer;
 import java.util.function.IntBinaryOperator;
 
 /**
- * Video of a heavy walker's crush ({@link MechWallCrush}) for the owner's {@code heavy-walker-crush-r3} card: a
- * heavy walker breaks ordinary walls and props at once, as a heavy tank does, under its legs as well as its torso. Every clip is a short staged move order on real generated ground, recorded at 30 frames a second
- * through the look preset; none is a battle, and none is read for who wins.
+ * Video of a heavy walker's crush ({@link MechWallCrush}) for the owner's {@code heavy-walker-crush-r4} card: a
+ * heavy walker breaks ordinary walls and props at once, as a heavy tank does, its body and each planted foot breaking
+ * only what it overlaps. Every clip is a short staged move order on real generated ground, recorded at 30 frames a
+ * second through the look preset; none is a battle, and none is read for who wins.
  *
  * <ul>
  *   <li>{@code look/walker-breach-close-close.mp4}: an MG-40 walking through a colony house wall, close.</li>
@@ -40,6 +42,8 @@ import java.util.function.IntBinaryOperator;
  *       its way, crates beside its path under its legs, at play zoom.</li>
  *   <li>{@code look/walker-fortified-holds-close.mp4}: an MG-70 sent straight at a ruins facility wall
  *       ({@link RuinsDelveStage#FACILITY_WALL_HP}), which holds.</li>
+ *   <li>{@code look/walker-legs-straddle-close.mp4}: an MG-70 walking beside a fence that runs under its left legs,
+ *       broken only where a foot comes down.</li>
  * </ul>
  *
  * Each frame carries a readout of the walker's structure and the wall cells it has brought down.
@@ -66,7 +70,7 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
         SceneRegistries.installArmoury(context.projectRoot());
         // -Dsnapshot.walkerShots=<name>[,<name>] records only those shots, for a quick re-take of one.
         String only = System.getProperty("snapshot.walkerShots", "");
-        List<LookReview.Shot> shots = List.of(houseBreach(), propCrush(), fortifiedHolds());
+        List<LookReview.Shot> shots = List.of(houseBreach(), propCrush(), fortifiedHolds(), straddle());
         List<SnapshotArtifact> out = new ArrayList<>();
         List<String> failed = new ArrayList<>();
         for (LookReview.Shot shot : shots) {
@@ -152,7 +156,7 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
             }
             Leg leg = new Leg(new float[] {lineX - LINE_GAP + .5f, y + .5f},
                     new float[] {lineX + 2 * LINE_GAP + .5f, y + .5f}, new int[] {lineX, y}, crossed, 0);
-            return stage(placement, holder, leg, variant, "Hauler: sandbags, fences and crates, under its legs too",
+            return stage(placement, holder, leg, variant, "Hauler: sandbags and fences; crates beside its path",
                     sim -> {
                 TileRegistry registry = TileRegistry.installed();
                 NavigationGrid grid = sim.getGrid();
@@ -181,6 +185,53 @@ public final class WalkerBreachVideoSuite implements SnapshotSuite {
                 : new float[] {sim.world().renderX(holder.walker), sim.world().renderY(holder.walker),
                         BattleReviewFrameRenderer.PLAY_ZOOM_CELLS})), 420, FPS_TICKS, 0,
                 new int[] {30, 150, 270, 390});
+    }
+
+    // ------------------------------------------------------------------ clip 4: a fence between the legs
+
+    /** How far the MG-70 walks along the fence, cells. */
+    private static final int STRADDLE_RUN = 22;
+
+    /**
+     * An MG-70 at close range, standing astride a fence that runs along its path under its left legs, laid where its
+     * rig's left feet stand off its line, then walking east along it: its body never meets the fence, so the fence
+     * breaks only where a left foot comes down on it and stands between the footfalls.
+     */
+    private static LookReview.Shot straddle() {
+        Holder holder = new Holder();
+        MechVariant variant = MechVariant.SECURITY_HALL;
+        return new LookReview.Shot("walker-legs-straddle", LookGround.verdant(), 72, 40, placement -> {
+            float[] mid = placement.openNear(36f, 20f);
+            int x0 = (int) mid[0] - STRADDLE_RUN / 2, y = (int) mid[1];
+            // Where the rig's left feet stand off its line, walking east: the fence row under them.
+            DerelictLegRig probe = new DerelictLegRig(DerelictLegRig.walkerAt(MechWallCrush.rigSize(variant)));
+            probe.advance(x0 + .5f, y + .5f, MechWallCrush.facingToward(1f, 0f), 0f, (cx, cy) -> false);
+            float north = 0f;
+            for (int i = 0; i < probe.legs(); i++) north = Math.max(north, probe.footY(i) - (y + .5f));
+            int fenceY = (int) Math.floor(y + .5f + north);
+            System.out.printf(Locale.ROOT, "    [look/walker-legs-straddle] left feet %.2f cells off the line, fence row"
+                    + " %d (walker row %d)%n", north, fenceY, y);
+            int w = placement.map().grid.getWidth();
+            Set<Integer> crossed = new LinkedHashSet<>();
+            // From behind its rear feet to well ahead: it starts astride the fence and walks along it.
+            for (int cx = x0 - 6; cx <= x0 + STRADDLE_RUN; cx++) crossed.add(fenceY * w + cx);
+            Leg leg = new Leg(new float[] {x0 + .5f, y + .5f}, new float[] {x0 + STRADDLE_RUN + 4.5f, y + .5f},
+                    new int[] {x0 + 2, y}, crossed, 0);
+            return stage(placement, holder, leg, variant, "MG-70 beside a fence under its legs: it breaks only where a "
+                    + "foot comes down", sim -> {
+                TileRegistry registry = TileRegistry.installed();
+                NavigationGrid grid = sim.getGrid();
+                for (int cell : crossed) {
+                    int cx = cell % w;
+                    if (!grid.isWalkable(cx, fenceY)) continue;
+                    grid.setWalkable(cx, fenceY, false);
+                    sim.addDoodad(new Doodad(cx, fenceY, registry.doodad("doodad.industrial-fence-straight-h")));
+                }
+            });
+        }, placement -> List.of(new LookReview.View("close", sim -> holder.walker == 0L
+                ? new float[] {placement.site().centreX(), placement.site().centreY(), 28f}
+                : new float[] {sim.world().renderX(holder.walker), sim.world().renderY(holder.walker), 28f})),
+                540, FPS_TICKS, 0, new int[] {60, 200, 340, 520});
     }
 
     // ------------------------------------------------------------------ clip 3: a ruins facility wall holds

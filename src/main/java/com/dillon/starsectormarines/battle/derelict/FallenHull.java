@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.derelict;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.drone.Flock;
@@ -12,15 +13,20 @@ import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
+import com.dillon.starsectormarines.battle.derelict.FlockCommandPort.Contact;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiPredicate;
 
 /**
  * A fallen hull's claim in battle (`fallen-hull-nouns.md`, In a battle): the root zone at the hull with the autoforge
@@ -44,6 +50,8 @@ public final class FallenHull {
     static final int HOLD_RADIUS = 2;
     /** A standing order whose cell moved less than this is not re-issued. */
     static final int REISSUE_CELLS = 2;
+    /** Seconds of fire the watch remembers when it looks for the loudest fight. UNTUNED. */
+    static final float FIRE_SECONDS = 8f;
 
     private final FallenHullSite site;
     private final ClaimLattice lattice;
@@ -58,6 +66,8 @@ public final class FallenHull {
 
     private final Map<Integer, SurveyStake> stakes = new TreeMap<>();
     private final Map<Integer, Long> pylons = new TreeMap<>();
+    /** Each stake's footprint centre, by its lattice point ({@link StakeFootprint}). */
+    private final Map<Integer, int[]> seats = new TreeMap<>();
     /** Each established stake's store place: its service bay, else its point. */
     private final Map<Integer, int[]> storeAt = new TreeMap<>();
     /** Anchors in the order they established: the newest is the frontier printed walkers are posted to. */
@@ -78,6 +88,14 @@ public final class FallenHull {
     private int scrappedTrains;
     private int scrappedStakes;
     private final Set<Long> taken = new HashSet<>();
+    /** Whether the hull is awake from the start and stays so: the night it came down. */
+    private boolean awake;
+    /** The hull zone's armed walkers the watch tasks this pulse ({@link WatchTasking}). */
+    private final Set<Integer> watching = new TreeSet<>();
+    /** Fire heard on the field lately: {x, y, tick} where each round landed. */
+    private final Deque<float[]> fire = new ArrayDeque<>();
+    /** The places the hull's flock ranges over while the hull is awake: the town's salvage and the ways in. */
+    private final List<int[]> ranging = new ArrayList<>();
 
     FallenHull(FallenHullSite site, BuildQueue queue) {
         this.site = site;
@@ -89,7 +107,10 @@ public final class FallenHull {
         for (FallenHullSite.Pile pile : site.salvage()) {
             salvage.add(new Salvage(nextSalvage++, Salvage.Kind.STRUCTURE, pile.x() + 0.5f, pile.y() + 0.5f,
                     pile.metal(), null));
+            ranging.add(new int[] {pile.x(), pile.y()});
         }
+        for (int[] way : site.egress()) ranging.add(new int[] {way[0], way[1]});
+        if (ranging.isEmpty()) ranging.add(new int[] {site.mouthX(), site.mouthY()});
     }
 
     // ---- install ----
@@ -105,7 +126,18 @@ public final class FallenHull {
      * its stage; the walkers already out; and the network's director, installed on the battle, with this claim on it.
      */
     public static FallenHull install(BattleSimulation sim, FallenHullSite site, BuildQueue queue, FlockLivery livery) {
+        return install(sim, site, queue, livery, false);
+    }
+
+    /**
+     * As {@link #install(BattleSimulation, FallenHullSite, BuildQueue, FlockLivery)}; {@code awake} keeps the hull's
+     * zone awake from the first pulse on, whatever it has heard: the night it came down, its flocks range over the
+     * town and its watch is out.
+     */
+    public static FallenHull install(BattleSimulation sim, FallenHullSite site, BuildQueue queue, FlockLivery livery,
+                                     boolean awake) {
         FallenHull hull = new FallenHull(site, queue);
+        hull.awake = awake;
         hull.livery = livery == null ? FlockLivery.DOMAIN : livery;
         SecurityNetwork network = new SecurityNetwork();
         // The root zone keeps the ground off every section; its node is the forge.
@@ -248,7 +280,47 @@ public final class FallenHull {
 
     /** Whether the hull walks this lance itself: a worker, a train's hauler, or an escort on the way or on guard. */
     public boolean commands(int squadId) {
-        return commanded.contains(squadId);
+        return commanded.contains(squadId) || watching.contains(squadId);
+    }
+
+    /** Whether the hull stays awake whatever it hears. */
+    public boolean awake() {
+        return awake;
+    }
+
+    /**
+     * Where the hull's flock ranges while its zone is awake and it has nothing to strike: the town's salvage and the
+     * ways in, each in turn ({@link WatchTasking#rangePoint}); null for another zone's flock.
+     */
+    public int[] rangePoint(int zoneId, long flockId, int tick) {
+        if (zoneId != HULL_ZONE) return null;
+        return WatchTasking.rangePoint(ranging, flockId, tick * BattleSimulation.TICK_DT);
+    }
+
+    /**
+     * The wake: an awake hull keeps its zone awake every pulse, so it never settles back to alert while its node (the
+     * forge) stands and its branch feeds it; a hull that is not awake wakes as any zone does, on what it hears.
+     */
+    static void rouse(SecurityNetwork network, boolean awake, int tick) {
+        SecurityZone root = network.zone(HULL_ZONE);
+        if (awake && root != null && root.online()) network.stir(HULL_ZONE, tick);
+    }
+
+    /**
+     * Sets where the hull's flock ranges while awake: the town's buildings on the claim ({@link TownSalvage#places})
+     * in place of the salvage and the ways in.
+     */
+    public void rangeOver(List<int[]> places) {
+        if (places.isEmpty()) return;
+        ranging.clear();
+        for (int[] p : places) ranging.add(new int[] {p[0], p[1]});
+    }
+
+    /** Every tick: where the field's rounds landed, for the watch's loudest fight. */
+    public void hear(BattleSimulation sim, int tick) {
+        for (ShotEvent shot : sim.getShotsThisFrame()) fire.addLast(new float[] {shot.toX, shot.toY, tick});
+        float keep = FIRE_SECONDS / BattleSimulation.TICK_DT;
+        while (!fire.isEmpty() && tick - fire.peekFirst()[2] > keep) fire.removeFirst();
     }
 
     /** Whether the autoforge is breached: its plate and structure below {@link Autoforge#BREACH_SHARE}, or gone. */
@@ -263,7 +335,13 @@ public final class FallenHull {
 
     /** One pulse of the claim, after the network has heard what it heard and before its walkers take their postures. */
     public void pulse(BattleSimulation sim, DerelictSecurityDirector director, int tick) {
+        pulse(sim, director, tick, List.of());
+    }
+
+    /** As {@link #pulse(BattleSimulation, DerelictSecurityDirector, int)}, with the contacts the network holds. */
+    public void pulse(BattleSimulation sim, DerelictSecurityDirector director, int tick, List<Contact> contacts) {
         float dt = DerelictSecurityDirector.PULSE_TICKS * BattleSimulation.TICK_DT;
+        rouse(director.network(), awake, tick);
         if (forge.lit() && (forgeId == 0L || sim.resolveUnit(forgeId) == 0L)) forge.putOut();
         watchPylons(sim);
         strand(director.network());
@@ -278,6 +356,60 @@ public final class FallenHull {
         runStrippers(sim, claim, dt);
         runHaulers(sim, dt);
         print(sim, director, dt);
+        watch(sim, director, contacts);
+    }
+
+    /**
+     * The hull zone's armed walkers, tasked by {@link WatchTasking}: a guard at the bay, the rest out answering contact
+     * on the claim, pushing to its loudest fight or escorting the workers. In the contingency they are the network's
+     * again, and hold the egress.
+     */
+    private void watch(BattleSimulation sim, DerelictSecurityDirector director, List<Contact> contacts) {
+        SecurityNetwork network = director.network();
+        // A lance leaving the watch forgets its standing order, so it is given afresh when it comes back.
+        Set<Integer> before = new TreeSet<>(watching);
+        watching.clear();
+        try {
+            if (!network.contingency()) task(sim, network, director, contacts);
+        } finally {
+            for (int squad : before) if (!watching.contains(squad)) ordered.remove(squad);
+        }
+    }
+
+    private void task(BattleSimulation sim, SecurityNetwork network, DerelictSecurityDirector director,
+                      List<Contact> contacts) {
+        List<WatchTasking.Watcher> watch = new ArrayList<>();
+        for (DerelictSecurityDirector.Walker w : director.walkers()) {
+            if (w.zoneId() != HULL_ZONE || !w.frame().armed() || commanded.contains(w.squadId())) continue;
+            if (sim.squadMemberCount(w.squadId()) <= 0) continue;
+            long lead = sim.squadMemberAt(w.squadId(), 0);
+            watch.add(new WatchTasking.Watcher(w.squadId(), w.frame(), sim.world().x(lead), sim.world().y(lead)));
+        }
+        if (watch.isEmpty()) return;
+        BiPredicate<Integer, Integer> onClaim = (x, y) -> {
+            SecurityZone zone = network.zoneAt(x, y);
+            return zone != null && zone.online();
+        };
+        List<Contact> onIt = new ArrayList<>();
+        for (Contact c : contacts) if (onClaim.test(c.cellX(), c.cellY())) onIt.add(c);
+        List<float[]> shots = new ArrayList<>(fire);
+        int[] loudest = WatchTasking.loudest(shots, onClaim);
+        List<WatchTasking.Worker> workers = new ArrayList<>();
+        for (int squad : strippers.keySet()) worker(sim, squad, workers);
+        for (int squad : haulers.keySet()) worker(sim, squad, workers);
+        Map<Integer, WatchTasking.Task> tasks = WatchTasking.assign(watch, site.mouthX(), site.mouthY(), onIt, loudest,
+                workers, cell -> WatchTasking.clamp(site.sections(), WatchTasking.WATCH_REACH_CELLS, cell));
+        for (Map.Entry<Integer, WatchTasking.Task> e : tasks.entrySet()) {
+            watching.add(e.getKey());
+            WatchTasking.Task t = e.getValue();
+            order(sim, e.getKey(), t.x(), t.y(), "fallen hull watch: " + t.kind().name().toLowerCase());
+        }
+    }
+
+    private static void worker(BattleSimulation sim, int squad, List<WatchTasking.Worker> out) {
+        if (sim.squadMemberCount(squad) <= 0) return;
+        long lead = sim.squadMemberAt(squad, 0);
+        out.add(new WatchTasking.Worker(squad, sim.world().x(lead), sim.world().y(lead)));
     }
 
     /** A planted stake whose pylon is gone is scrap, and its point open again. */
@@ -313,13 +445,52 @@ public final class FallenHull {
         for (int point : cut) stakes.get(point).strand();
     }
 
-    /** The planted stake's pylon at its point. */
+    /** How far from its lattice point, cells, a stake may seat its footprint. */
+    static final int SEAT_SEARCH_CELLS = 8;
+
+    /**
+     * Where a stake stands: its footprint's centre, seated at planting nearest its point on ground it may clear
+     * ({@link StakeFootprint#seat}), and that ground cleared of loose props and scatter and kept for it, so nothing
+     * else is placed there. A point with no such ground keeps the stake on the point itself.
+     */
+    private int[] seat(BattleSimulation sim, ClaimLattice.Point p) {
+        int[] at = seats.get(p.id());
+        if (at != null) return at;
+        NavigationGrid grid = sim.getGrid();
+        at = StakeFootprint.seat(p.x(), p.y(), SEAT_SEARCH_CELLS, (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                && !sim.getTopology().isWall(x, y) && sim.getTopology().getBuildingId(x, y) == 0
+                && !sim.plotKeepsProp(x, y) && !taken.contains(DerelictSecurity.cellKey(x, y)));
+        if (at == null) {
+            at = new int[] {p.x(), p.y()};
+        } else {
+            for (int[] c : StakeFootprint.cells(at[0], at[1])) {
+                sim.clearLooseProps(c[0], c[1]);
+                sim.clearNatureOverlay(c[0], c[1]);
+            }
+        }
+        for (int[] c : StakeFootprint.cells(at[0], at[1])) taken.add(DerelictSecurity.cellKey(c[0], c[1]));
+        seats.put(p.id(), at);
+        return at;
+    }
+
+    /** The centre cell of a part's slot in a stake's footprint. */
+    private int[] slot(BattleSimulation sim, ClaimLattice.Point p, StakeFootprint.Part part) {
+        int[] at = seat(sim, p);
+        return StakeFootprint.slot(part).centre(at[0], at[1]);
+    }
+
+    /** A stake's footprint centre, by its lattice point; null before it is planted. */
+    public int[] seatOf(int pointId) {
+        int[] at = seats.get(pointId);
+        return at == null ? null : at.clone();
+    }
+
+    /** The planted stake's folded pylon, in the spire's slot. */
     private void standPylon(BattleSimulation sim, ClaimLattice.Point p) {
-        int[] cell = freeCellNear(sim.getGrid(), p.x(), p.y(), 0);
+        int[] cell = slot(sim, p, StakeFootprint.Part.SPIRE);
         long id = sim.spawn(DerelictNode.create("survey-stake-" + p.id(), Faction.DEFENDER, cell[0], cell[1])
                 .health(PYLON_STRUCTURE).armor(PYLON_ARMOR, DerelictNode.ARMOR_RATING));
         if (id == 0L) return;
-        taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
         pylons.put(p.id(), id);
     }
 
@@ -329,32 +500,28 @@ public final class FallenHull {
      */
     private void raise(BattleSimulation sim, DerelictSecurityDirector director, SurveyStake stake) {
         ClaimLattice.Point p = lattice.point(stake.pointId);
+        int[] at = seat(sim, p);
+        // The pylon unfolds into the node mast in the same slot: the spire, the stake's centre.
         Long pylon = pylons.remove(p.id());
-        int nodeX = p.x();
-        int nodeY = p.y();
-        if (pylon != null && sim.resolveUnit(pylon) != 0L) {
-            nodeX = sim.world().cellX(pylon);
-            nodeY = sim.world().cellY(pylon);
-            sim.takeOffTheField(pylon);
-            taken.remove(DerelictSecurity.cellKey(nodeX, nodeY));
-        }
+        if (pylon != null && sim.resolveUnit(pylon) != 0L) sim.takeOffTheField(pylon);
         SecurityNetwork network = director.network();
         int zoneId = zoneOf(p.id());
-        if (network.zone(zoneId) == null) network.add(new SecurityZone(zoneId, p.x(), p.y(), stakePerimeter));
+        if (network.zone(zoneId) == null) network.add(new SecurityZone(zoneId, at[0], at[1], stakePerimeter));
         int parentZone = stake.parent == ClaimLattice.HULL ? HULL_ZONE : zoneOf(stake.parent);
         if (stake.parent != Integer.MIN_VALUE && network.zone(parentZone) != null) network.link(parentZone, zoneId);
-        int[] cell = pylon != null ? new int[] {nodeX, nodeY} : freeCellNear(sim.getGrid(), p.x(), p.y(), 0);
+        int[] cell = slot(sim, p, StakeFootprint.Part.SPIRE);
         long node = sim.spawn(DerelictNode.create("survey-node-" + p.id(), Faction.DEFENDER, cell[0], cell[1]));
         if (node != 0L) {
-            taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
             director.standNode(zoneId, node);
-            DerelictSecurity.standRepairDrone(sim, zoneId, director, livery);
+            int[] pad = slot(sim, p, StakeFootprint.Part.DRONE);
+            DerelictSecurity.standRepairDrone(sim, zoneId, director, livery, pad[0] + 0.5f, pad[1] + 0.5f);
         }
-        launchFlock(sim, zoneId, p.x(), p.y(), stakePerimeter);
+        int[] cradle = slot(sim, p, StakeFootprint.Part.CRADLE);
+        launchFlockAt(sim, zoneId, cradle[0], cradle[1], stakePerimeter);
         int n = 0;
         for (Map.Entry<Integer, Integer> guard : new ArrayList<>(guarding.entrySet())) {
             if (guard.getValue() != p.id()) continue;
-            int[] post = ring(p.x(), p.y(), 3, n++);
+            int[] post = ring(at[0], at[1], StakeFootprint.HALF + 2, n++);
             director.repost(guard.getKey(), zoneId, post[0], post[1]);
             release(guard.getKey());
         }
@@ -364,27 +531,40 @@ public final class FallenHull {
     private void establish(BattleSimulation sim, DerelictSecurityDirector director, SurveyStake stake) {
         ClaimLattice.Point p = lattice.point(stake.pointId);
         int zoneId = zoneOf(p.id());
-        int[] bay = standBay(sim, director, zoneId, p.x(), p.y());
-        storeAt.put(p.id(), bay != null ? bay : new int[] {p.x(), p.y()});
-        for (int i = 0; i < DerelictPost.PER_ZONE; i++) {
-            int[] at = ring(p.x(), p.y(), 4, i * 2 + 1);
-            int[] cell = freeCellNear(sim.getGrid(), at[0], at[1], 0);
-            if (DerelictSecurity.standPost(sim, "survey-post-" + p.id() + "-" + i, zoneId, cell[0], cell[1],
-                    director) != 0L) {
-                taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
-            }
+        int[] store = slot(sim, p, StakeFootprint.Part.STORE);
+        int[] bay = standBayAt(sim, director, zoneId, store[0], store[1]);
+        storeAt.put(p.id(), bay != null ? bay : store);
+        StakeFootprint.Part[] posts = {StakeFootprint.Part.POST_WEST, StakeFootprint.Part.POST_EAST};
+        for (int i = 0; i < Math.min(DerelictPost.PER_ZONE, posts.length); i++) {
+            int[] cell = slot(sim, p, posts[i]);
+            DerelictSecurity.standPost(sim, "survey-post-" + p.id() + "-" + i, zoneId, cell[0], cell[1], director);
         }
         established.add(p.id());
     }
 
     private int[] standBay(BattleSimulation sim, DerelictSecurityDirector director, int zoneId, int x, int y) {
         int[] cell = freeCellNear(sim.getGrid(), x, y, 2);
+        int[] at = standBayAt(sim, director, zoneId, cell[0], cell[1]);
+        if (at != null) taken.add(DerelictSecurity.cellKey(at[0], at[1]));
+        return at;
+    }
+
+    /** A zone's service bay at exactly {@code (x, y)}; null when it cannot stand. */
+    private int[] standBayAt(BattleSimulation sim, DerelictSecurityDirector director, int zoneId, int x, int y) {
+        int[] cell = {x, y};
         long id = sim.spawn(DerelictNode.create("derelict-service-bay-" + zoneId, Faction.DEFENDER, cell[0], cell[1])
                 .health(ServiceBay.MAX_STRUCTURE).armor(ServiceBay.ARMOR_CAPACITY, DerelictNode.ARMOR_RATING));
         if (id == 0L) return null;
-        taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
         director.standServiceBay(zoneId, id);
         return cell;
+    }
+
+    /** A zone's flock docked at exactly {@code (x, y)}: a stake's cradle slot. */
+    private void launchFlockAt(BattleSimulation sim, int zoneId, int x, int y, int perimeter) {
+        if (port == null || sim.flocks() == null) return;
+        Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, x + 0.5f, y + 0.5f, DerelictSecurity.FLOCK_SIZE,
+                FlockWeights.WASP, perimeter + FlockTasking.LEASH_CELLS, livery);
+        if (flock != null) port.add(flock, zoneId);
     }
 
     private void launchFlock(BattleSimulation sim, int zoneId, int x, int y, int perimeter) {
@@ -653,7 +833,8 @@ public final class FallenHull {
             SurveyStake stake = stakes.get(established.get(i));
             if (stake == null || !stake.anchors()) continue;
             ClaimLattice.Point p = lattice.point(stake.pointId);
-            int[] at = ring(p.x(), p.y(), 4, n);
+            int[] seat = seats.getOrDefault(p.id(), new int[] {p.x(), p.y()});
+            int[] at = ring(seat[0], seat[1], StakeFootprint.HALF + 2, n);
             return new int[] {at[0], at[1], zoneOf(p.id())};
         }
         int[] at = ring(site.mouthX(), site.mouthY(), 3, n);

@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
+import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
+import com.dillon.starsectormarines.battle.world.gen.Climate;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -16,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
 import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.ops.LongSurveyCampaign;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -26,6 +30,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,9 +70,19 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 out.addAll(boardingShots(context, chapter, home));
                 continue;
             }
-            LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, home);
+            // Garnir as the campaign reads it (LongSurveyCampaign.world), unless snapshot.longSurvey.world names
+            // another palette (open air; airless with snapshot.longSurvey.airless).
+            String named = System.getProperty("snapshot.longSurvey.world", "").trim();
+            TargetProfile profile = named.isEmpty() ? LongSurveyCampaign.world()
+                    : BloomHeartSetup.world(SurfacePalette.valueOf(named));
+            if (!named.isEmpty() && Boolean.getBoolean("snapshot.longSurvey.airless")) {
+                profile = profile.withClimate(new Climate(EnumSet.of(Climate.Hazard.AIRLESS)));
+            }
+            SurfacePalette skin = profile.surface();
+            LongSurveyGround.Ground ground = LongSurveyGround.ground(chapter, profile,
+                    StoryMapPools.pool(chapter).owned());
             HullSite site = ground.hull();
-            try (BattleSimulation sim = LongSurveyGround.stand(ground, home)) {
+            try (BattleSimulation sim = LongSurveyGround.stand(ground, skin)) {
                 int w = sim.getTopology().getWidth(), h = sim.getTopology().getHeight();
                 BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,
                         w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
@@ -84,6 +99,15 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 // The claim marked over the look frame: no caption band, no unit markers.
                 look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
                 out.add(new SnapshotArtifact(chapter.id + "/4-claim.png", look.renderMarked(sim, claim(site))));
+                // Places from the chapter's map plan: -Dsnapshot.longSurvey.at=commons:330:262:110,cross:330:186:110
+                String at = System.getProperty("snapshot.longSurvey.at", "").trim();
+                if (!at.isEmpty()) {
+                    for (String place : at.split(",")) {
+                        String[] p = place.split(":");
+                        look.refocus(Float.parseFloat(p[1]), Float.parseFloat(p[2]), Float.parseFloat(p[3]));
+                        out.add(new SnapshotArtifact(chapter.id + "/at-" + p[0] + ".png", look.render(sim, "")));
+                    }
+                }
             }
             long sites = ground.map().pointsOfInterest.stream()
                     .filter(p -> p.kind != PointOfInterest.Kind.RESIDENTIAL).count();

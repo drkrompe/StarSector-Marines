@@ -38,12 +38,22 @@ final class FacePainter {
         glow.reset();
         debrisCount = 0;
         into = faces;
+        charred = 0f;
+        openingCount = 0;
     }
 
     /** The lit windows of a night ({@link #night}), drawn over the night shade. */
     final PolyMesh glow = new PolyMesh(256);
     /** Whether this frame is a night's, so windows are lit ({@link #lit}) and shopfronts glow. */
     boolean night;
+    /**
+     * How charred the wall now being painted is, 0 clean to 1 burnt black ({@link FaceFire#charred}): its material
+     * darkens, its glass goes and soot climbs it. Set before each {@link #paint}.
+     */
+    float charred;
+    /** The openings the last {@link #paint} laid, {@code t0, t1, z0, z1} each: where fire pours out ({@link StructureFire}). */
+    private float[] openings = new float[4 * 8];
+    private int openingCount;
 
     /** The share of windows lit at night, on every storey. UNTUNED. */
     static final float LIT_SHARE = .6f;
@@ -80,6 +90,31 @@ final class FacePainter {
         into = was;
     }
 
+    /** The openings the last {@link #paint} laid ({@link #openingCount} of them), {@code t0, t1, z0, z1} each. */
+    float[] openings() {
+        return openings;
+    }
+
+    int openingCount() {
+        return openingCount;
+    }
+
+    /** Forgets the openings laid so far, before a wall that {@link #paint} does not paint. */
+    void clearOpenings() {
+        openingCount = 0;
+    }
+
+    /** An opening in the wall now being painted, {@code t0..t1} along and {@code z0..z1} up. */
+    void opening(float t0, float t1, float z0, float z1) {
+        if (z1 <= z0) return;
+        if ((openingCount + 1) * 4 > openings.length) openings = Arrays.copyOf(openings, openings.length * 2);
+        int o = openingCount++ * 4;
+        openings[o] = t0;
+        openings[o + 1] = t1;
+        openings[o + 2] = z0;
+        openings[o + 3] = z1;
+    }
+
     /** Draws what follows into {@code mesh} ({@link #faces} unless said otherwise). */
     void into(PolyMesh mesh) {
         into = mesh;
@@ -98,9 +133,34 @@ final class FacePainter {
         this.sx = sx; this.sy = sy; this.lift = lift; this.nxPx = nxPx; this.nyPx = nyPx; this.alpha = alpha;
     }
 
-    /** One flat part of the wall, {@code t0..t1} along and {@code z0..z1} up. */
+    /**
+     * The door cut through the wall now being painted, {@code t0..t1} along and {@code z0..z1} up, while
+     * {@link #holed}: nothing of the wall is drawn across it, so the doorway and the room behind it show through.
+     */
+    private boolean holed;
+    private float holeT0, holeT1, holeZ0, holeZ1;
+
+    /** Cuts a door's hole {@code t0..t1} along and {@code z0..z1} up through the wall now being painted. */
+    void cut(float t0, float t1, float z0, float z1) {
+        holeT0 = t0;
+        holeT1 = t1;
+        holeZ0 = z0;
+        holeZ1 = z1;
+        holed = z1 > z0 + .01f && t1 > t0;
+    }
+
+    /** Whether {@code t0..t1, z0..z1} crosses the door's hole. */
+    private boolean crossesHole(float t0, float t1, float z0, float z1) {
+        return holed && t0 < holeT1 && t1 > holeT0 && z0 < holeZ1 && z1 > holeZ0;
+    }
+
+    /** One flat part of the wall, {@code t0..t1} along and {@code z0..z1} up, never across the door's hole. */
     void quad(float t0, float t1, float z0, float z1, float r, float g, float b) {
         if (t1 <= t0 || z1 <= z0) return;
+        if (crossesHole(t0, t1, z0, z1)) {
+            shaded(t0, t1, z0, z1, r, g, b, r, g, b);
+            return;
+        }
         point(t0, z0, 0);
         point(t1, z0, 2);
         point(t1, z1, 4);
@@ -120,9 +180,24 @@ final class FacePainter {
         System.arraycopy(xy, 0, out, 0, 8);
     }
 
-    /** One part of the wall shaded from {@code low} at its foot to {@code high} at its top. */
+    /** One part of the wall shaded from {@code low} at its foot to {@code high} at its top, never across the hole. */
     void shaded(float t0, float t1, float z0, float z1, float lr, float lg, float lb, float hr, float hg, float hb) {
         if (t1 <= t0 || z1 <= z0) return;
+        if (crossesHole(t0, t1, z0, z1)) {
+            // Round the hole: the part under it, the part over it, and either side of it between.
+            boolean was = holed;
+            holed = false;
+            float m0 = Math.max(z0, holeZ0), m1 = Math.min(z1, holeZ1), span = z1 - z0;
+            float k0 = (m0 - z0) / span, k1 = (m1 - z0) / span;
+            float ar = lr + (hr - lr) * k0, ag = lg + (hg - lg) * k0, ab = lb + (hb - lb) * k0;
+            float br = lr + (hr - lr) * k1, bg = lg + (hg - lg) * k1, bb = lb + (hb - lb) * k1;
+            shaded(t0, t1, z0, m0, lr, lg, lb, ar, ag, ab);
+            shaded(t0, t1, m1, z1, br, bg, bb, hr, hg, hb);
+            shaded(t0, Math.min(t1, holeT0), m0, m1, ar, ag, ab, br, bg, bb);
+            shaded(Math.max(t0, holeT1), t1, m0, m1, ar, ag, ab, br, bg, bb);
+            holed = was;
+            return;
+        }
         point(t0, z0, 0);
         point(t1, z0, 2);
         point(t1, z1, 4);
@@ -201,6 +276,18 @@ final class FacePainter {
                BuildingFaces.Segment ground, int corners, int along, int cell, float meters, int storeys,
                float top, boolean broken, float hurt, float glassHurt, boolean upperWindows, float light,
                boolean detail) {
+        openingCount = 0;
+        float story0 = 1f / storeys;
+        holed = false;
+        if (ground == BuildingFaces.Segment.DOOR || ground == BuildingFaces.Segment.LOADING) {
+            // The door's hole is cut before anything is painted, so no part of the wall crosses it.
+            boolean loading = ground == BuildingFaces.Segment.LOADING;
+            float t0 = loading ? LOADING_T0 : DOOR_T0;
+            cut(t0, 1f - t0, 0f, Math.min(top, story0 * doorHeight(look, loading)));
+        }
+        // Charred: the material darkened and every window gone, as a hurt wall's blown ones.
+        light *= 1f - .62f * charred;
+        hurt = Math.max(hurt, charred);
         float j = 1f + (BuildingFaces.hash(cell, 31) - .5f) * .07f;
         float r = m.wall()[0] * light * j, g = m.wall()[1] * light * j, b = m.wall()[2] * light * j;
         float soot = 1f - .55f * Math.max(0f, hurt - .2f) / .8f;
@@ -221,8 +308,21 @@ final class FacePainter {
             }
         }
         float height = cut == null ? top : Math.max(cut[0], Math.max(cut[1], cut[2]));
+        if (charred > .05f) {
+            // Soot climbing the face to its top, black there, in tongues as the flames that laid it.
+            for (int k = 0; k < 3; k++) {
+                float t0 = k / 3f, t1 = (k + 1) / 3f;
+                float h = cut == null ? top : cut[k];
+                float from = h * (1f - charred * (.55f + .35f * BuildingFaces.hash(cell * 3 + k, 43)));
+                float c = .06f + .04f * (1f - charred);
+                shaded(t0, t1, from, h, r, g, b, c, c * .92f, c * .85f);
+            }
+        }
         // Too small on screen for trim to read: the shaded material alone, at a piece a cell.
-        if (!detail) return;
+        if (!detail) {
+            holed = false;
+            return;
+        }
         course(m, r, g, b, height, storeys);
         // The world's weather at the foot, blending up into the wall.
         WallDress.Weather weather = m.weather();
@@ -295,6 +395,17 @@ final class FacePainter {
                 if (z < height) quad(.01f, .1f, z - .015f, z + .015f, pr * .7f, pg * .7f, pb * .7f);
             }
         }
+        holed = false;
+    }
+
+    // A door cut through the wall. UNTUNED.
+    /** Where a door's and a loading bay's hole starts along its cell; it ends as far from the cell's other end. */
+    static final float DOOR_T0 = .26f, LOADING_T0 = .1f;
+
+    /** How tall a door's hole stands, a share of its storey: a lock's hatch a little taller, a loading bay's tallest. */
+    static float doorHeight(BuildingFaces.Look look, boolean loading) {
+        if (loading) return .8f;
+        return look == BuildingFaces.Look.SEALED || look == BuildingFaces.Look.SHIELDED ? .74f : .7f;
     }
 
     private void cornerPost(float t0, float t1, float height, float tr, float tg, float tb, float[] cut) {
@@ -334,54 +445,65 @@ final class FacePainter {
         }
     }
 
-    /** A door at the foot of the wall: a framed leaf, an airlock, or a works' roller door with hazard jambs. */
+    /**
+     * A door at the foot of the wall, cut through it ({@link #holed}): open, as the battle has every doorway, so the
+     * doorway and the room behind it show through. The wall's depth shows round it: a reveal down each side, the
+     * lintel's soffit over it and the threshold at its foot, framed in the trim; a lock's hatch keeps its hazard jambs
+     * and amber head, a works' loading bay its hazard jambs and its roller door rolled up under the lintel. At night the
+     * room beyond is lit.
+     */
     private void door(WallDress.Material m, BuildingFaces.Look look, boolean loading, float lo, float hi,
                       float story, float light, int seed, float hurt) {
+        boolean was = holed;
+        holed = false;
         float tr = m.trim()[0] * light, tg = m.trim()[1] * light, tb = m.trim()[2] * light;
+        float wr = m.wall()[0] * light, wg = m.wall()[1] * light, wb = m.wall()[2] * light;
+        float t0 = loading ? LOADING_T0 : DOOR_T0, t1 = 1f - t0;
+        float top = Math.min(hi, lo + story * doorHeight(look, loading));
+        opening(t0, t1, lo, top);
+        boolean lock = !loading && (look == BuildingFaces.Look.SEALED || look == BuildingFaces.Look.SHIELDED);
+        float frame = loading ? .06f : .08f, reveal = loading ? .035f : .06f;
+        // The frame round the hole, in the trim.
+        quad(t0 - frame, t0, lo, Math.min(hi, top + story * .05f), tr * .8f, tg * .8f, tb * .8f);
+        quad(t1, t1 + frame, lo, Math.min(hi, top + story * .05f), tr * .8f, tg * .8f, tb * .8f);
+        quad(t0 - frame, t1 + frame, top, Math.min(hi, top + story * .05f), tr * .8f, tg * .8f, tb * .8f);
+        // The wall's depth: a reveal down each side, one in the light and one out of it, and the lintel's soffit.
+        shaded(t0, t0 + reveal, lo, top, wr * .32f, wg * .32f, wb * .32f, wr * .42f, wg * .42f, wb * .42f);
+        shaded(t1 - reveal, t1, lo, top, wr * .55f, wg * .55f, wb * .55f, wr * .66f, wg * .66f, wb * .66f);
+        quad(t0, t1, top - story * .05f, top, wr * .22f, wg * .22f, wb * .22f);
+        // The threshold, worn lighter.
+        quad(t0, t1, lo, lo + story * .025f, tr * .95f, tg * .95f, tb * .95f);
         if (loading) {
-            float top = Math.min(hi, lo + story * .8f);
-            quad(.04f, .96f, lo, Math.min(hi, top + story * .06f), tr * .6f, tg * .6f, tb * .6f);
-            float dr = .44f * light, dg = .45f * light, db = .44f * light;
-            shaded(.1f, .9f, lo, top, dr * .7f, dg * .7f, db * .7f, dr, dg, db);
-            for (int k = 1; k < 6; k++) {
-                float z = lo + (top - lo) * k / 6f;
-                quad(.1f, .9f, z - .01f, z + .01f, dr * .6f, dg * .6f, db * .6f);
+            // The roller door rolled up into its drum under the lintel, ribbed.
+            float drum = top - story * .14f;
+            quad(t0, t1, drum, top - story * .05f, .4f * light, .41f * light, .4f * light);
+            for (int k = 1; k < 3; k++) {
+                float z = drum + (top - story * .05f - drum) * k / 3f;
+                quad(t0, t1, z - .006f, z + .006f, .26f * light, .27f * light, .26f * light);
             }
-            if (m.hazard()) {
-                for (int k = 0; k < 6; k++) {
-                    float z0 = lo + (top - lo) * k / 6f, z1 = lo + (top - lo) * (k + 1) / 6f;
-                    boolean yellow = k % 2 == 0;
-                    float yr = yellow ? .86f : .12f, yg = yellow ? .68f : .11f, yb = yellow ? .12f : .1f;
-                    quad(.04f, .1f, z0, z1, yr * light, yg * light, yb * light);
-                    quad(.9f, .96f, z0, z1, yr * light, yg * light, yb * light);
-                }
-            }
-            return;
         }
-        boolean lock = look == BuildingFaces.Look.SEALED || look == BuildingFaces.Look.SHIELDED;
-        float top = Math.min(hi, lo + story * (lock ? .74f : .7f));
-        // Frame.
-        quad(.18f, .82f, lo, Math.min(hi, top + story * .06f), tr * .8f, tg * .8f, tb * .8f);
-        float dr = m.door()[0] * light, dg = m.door()[1] * light, db = m.door()[2] * light;
-        if (hurt > .5f && BuildingFaces.hash(seed, 12) < hurt) { dr = .05f; dg = .045f; db = .045f; }
-        shaded(.26f, .74f, lo, top, dr * .75f, dg * .75f, db * .75f, dr, dg, db);
-        if (lock) {
-            quad(.49f, .51f, lo, top, dr * .5f, dg * .5f, db * .5f);
-            quad(.26f, .74f, top - story * .05f, top - story * .02f, .86f * light, .66f * light, .14f * light);
-        } else {
-            // A lintel shadow and a step.
-            quad(.22f, .78f, top + story * .06f, Math.min(hi, top + story * .11f), tr * .45f, tg * .45f, tb * .45f);
-        }
-        if (m.hazard() && lock) {
+        if (lock) quad(t0, t1, top - story * .09f, top - story * .05f, .86f * light, .66f * light, .14f * light);
+        if (m.hazard() && (lock || loading)) {
             for (int k = 0; k < 5; k++) {
                 float z0 = lo + (top - lo) * k / 5f, z1 = lo + (top - lo) * (k + 1) / 5f;
                 boolean yellow = k % 2 == 0;
                 float yr = yellow ? .86f : .12f, yg = yellow ? .68f : .11f, yb = yellow ? .12f : .1f;
-                quad(.18f, .25f, z0, z1, yr * light, yg * light, yb * light);
-                quad(.75f, .82f, z0, z1, yr * light, yg * light, yb * light);
+                quad(t0 - frame, t0, z0, z1, yr * light, yg * light, yb * light);
+                quad(t1, t1 + frame, z0, z1, yr * light, yg * light, yb * light);
             }
         }
+        if (night) {
+            // The room beyond lit: its light falls warm through the doorway.
+            float keep = alpha;
+            alpha = keep * DOOR_GLOW;
+            glowQuad(t0 + reveal, t1 - reveal, lo, top - story * .05f, 1f, .78f, .46f);
+            alpha = keep;
+        }
+        holed = was;
     }
+
+    /** How strongly a lit room shows through an open door at night. UNTUNED. */
+    private static final float DOOR_GLOW = .32f;
 
     /** One storey's bay: windows framed and silled, slits, ports, a shopfront, a glazed band or a vent. */
     private void bay(WallDress.Material m, WallDress.Rhythm rhythm, BuildingFaces.Look look, WallDress.Bay bay,
@@ -395,6 +517,7 @@ final class FacePainter {
             float z0 = lo + story * .12f, z1 = Math.min(hi, lo + story * .72f);
             quad(.14f, .86f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .55f, tg * .55f, tb * .55f);
             quad(.18f, .82f, z0, z1, .05f, .045f, .045f);
+            opening(.18f, .82f, z0, z1);
             shaded(.22f, .78f, z1, Math.min(hi + story * .35f, z1 + story * .5f), .06f, .055f, .05f, r * .9f,
                     g * .9f, b * .9f);
             return;
@@ -436,6 +559,7 @@ final class FacePainter {
                     quad(t0 - .16f, t0 - .045f, z0, z1, dr, dg, db);
                     quad(t1 + .045f, t1 + .16f, z0, z1, dr, dg, db);
                 }
+                opening(t0, t1, z0, z1);
                 sootTop = z1;
                 break;
             }
@@ -443,6 +567,7 @@ final class FacePainter {
                 float z0 = lo + story * .5f, z1 = Math.min(hi, lo + story * .6f);
                 quad(.16f, .84f, Math.min(hi, z1), Math.min(hi, z1 + story * .07f), tr * .8f, tg * .8f, tb * .8f);
                 quad(.2f, .8f, z0, z1, gr * .6f, gg * .6f, gb * .6f);
+                opening(.2f, .8f, z0, z1);
                 if (night && !blown && lit(seed)) litGlass(seed, .2f, .8f, z0, z1);
                 sootTop = z1;
                 break;
@@ -451,6 +576,7 @@ final class FacePainter {
                 float z0 = lo + story * .36f, z1 = Math.min(hi, lo + story * .64f);
                 quad(.34f, .66f, z0, z1, tr, tg, tb);
                 shaded(.39f, .61f, z0 + story * .04f, z1 - story * .04f, gr, gg, gb, hiR, hiG, hiB);
+                opening(.39f, .61f, z0 + story * .04f, z1 - story * .04f);
                 if (night && !blown && lit(seed)) litGlass(seed, .39f, .61f, z0 + story * .04f, z1 - story * .04f);
                 sootTop = z1;
                 break;
@@ -465,6 +591,7 @@ final class FacePainter {
                     glowQuad(.1f, .9f, z0, z0 + (z1 - z0) * .5f, 1f, .94f, .78f);
                 }
                 quad(.495f, .505f, z0, z1, tr * .7f, tg * .7f, tb * .7f);
+                opening(.07f, .93f, z0, z1 - story * .02f);
                 // The awning, striped in the shop's colour.
                 float az0 = Math.min(hi, z1), az1 = Math.min(hi, z1 + story * .12f);
                 float[] door = m.door();
@@ -490,6 +617,7 @@ final class FacePainter {
                 quad(0f, 1f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .8f, tg * .8f, tb * .8f);
                 shaded(0f, 1f, z0, z1, gr, gg, gb, hiR, hiG, hiB);
                 for (int k = 0; k < 4; k++) quad(k / 4f - .012f, k / 4f + .012f, z0, z1, tr * .7f, tg * .7f, tb * .7f);
+                opening(0f, 1f, z0, z1);
                 sootTop = z1;
                 break;
             }
@@ -565,6 +693,7 @@ final class FacePainter {
      * its ragged top, its window holes dark (its rubble is laid by {@link #rubble}).
      */
     void shell(WallDress.Material m, int cell, boolean corner, float light, boolean inner) {
+        light *= 1f - .62f * charred;
         float r = m.wall()[0] * light * (inner ? .62f : 1f), g = m.wall()[1] * light * (inner ? .62f : 1f);
         float b = m.wall()[2] * light * (inner ? .62f : 1f);
         for (int k = 0; k < 3; k++) {
