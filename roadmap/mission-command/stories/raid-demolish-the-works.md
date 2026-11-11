@@ -190,7 +190,9 @@ Owner: "Our first rule is to make it fun and to keep pressure on the player
 over time so they are not bored." Today a Raid's reinforcements come only when
 a garrison is depleted or an objective lost (`GarrisonDepletedTrigger`,
 `ObjectiveLostTrigger`, through the convoy, shuttle and walk-in means and their
-supply gates), and the alarm sends at most three mobile squads at a time.
+supply gates), and the alarm now sends the whole mobile pool (the old limit
+of three squads, and the defence's attacker-strength budget, are gone for
+Raid: owner, "We can't limit ourselves to 'keeping it even'").
 Nothing is driven by time. Options:
 
 - (a) An alarm clock (recommended): from the alarm, a reinforcement request on

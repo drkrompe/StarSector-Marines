@@ -136,8 +136,9 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   "Yes, we should"). Riflemen hold the posts while any are left; a mech does
   not stand in a guard room. The routine guard still walks to the machine.
 - **Alarm waves.** The first charge or the first store broken raises the
-  alarm. Each wave is at most three mobile squads; a bigger garrison has more
-  waves, not bigger ones, so a company that lingers meets more of them.
+  alarm, which sends the whole mobile pool at the works. The defence is the
+  market's, never fitted to the company that came: no attacker-strength budget
+  trims its mechs, air or turrets (`BattleForceScore`, as Conquest).
 - **The landing is a cadence, not a block.** With one boat the company comes
   down a squad at a time; a bought berth halves the wait. Squads recommended
   rise with the tier faster than berths can be bought, so a full-strength raid
