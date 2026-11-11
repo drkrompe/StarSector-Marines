@@ -5,8 +5,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
 6 (the works' machines) is built on the owner's (a) on `raid-works-machines`
-and (c) on `raid-works-vehicles`; slice 7 (the approach) on the recommended
-`raid-works-approach` (a); slice 8 (pressure over time) waits on
+and (c) on `raid-works-vehicles`; slice 7 (the approach) on the owner's
+`raid-works-approach` "(a) and (c)" with outworks guns; slice 8 (pressure over time) waits on
 `raid-pressure`.
 
 Written: 2026-11-10
@@ -163,26 +163,37 @@ the player over time".
   `RaidDefenderReserveTest`; `storyMapPools` counts the posts;
   `raid-demolition-look`'s `built-*` labels who stands at each.
 
-### 7. The works' approach: BUILT on the recommended `raid-works-approach` (a)
+### 7. The works' approach: BUILT (owner: `raid-works-approach` "(a) and (c)")
 
 Owner: "Seems somewhat strange that we have all of this space outside of the
-works that we don't use for defensive layers." The raid now fights through
-depth before it reaches the wall (`WorksDefences.approach`), all of it held by
-riflemen security adds on top of the force (`RaidSiteTemplate.WORKS_FORWARD`,
+works that we don't use for defensive layers", and "why don't they have
+turrets OUTSIDE of the works? Defense in depth. Consider from defenders
+perspective: If they are inside the wall it's already too late." The defence
+is laid from the defender's side as layers the raid meets from the map edge
+inward, the wall the last of them (`WorksDefences`), all held by riflemen
+security adds on top of the force (`RaidSiteTemplate.WORKS_FORWARD`,
 `RaidWorksMachines.extraRiflemen`, seated after the machines and never a
 patrol's anchor):
 
-- Guarded: a sandbagged forward post on each open gate's approach, past the
-  works' ground, slid aside off the road onto open ground.
-- Fortified: also up to two firing positions on the largest open ground within
-  reach of the works, facing out, and a staggered double row of hedgehogs
-  beyond the glacis, broken where the gates' approaches run.
+1. **Held buildings** (c): the nearest buildings facing each side of the
+   works, 2 to 12 cells out and not already a defended place, each a forward
+   post at its interior: one a side guarded, two fortified
+   (`WorksDefences.heldBuildings`).
+2. **Forward posts and firing positions** (a): a sandbagged post on each open
+   gate's approach; fortified, also up to two firing positions on the largest
+   open ground within reach (`WorksDefences.approach`).
+3. **Outworks guns**: crewed emplacements outside the wall
+   (`WorksDefences.outworks`): a light one beside each gate's approach on the
+   glacis' outer edge; fortified, also a medium one mid-way along each side of
+   the glacis. Their guard posts are forward posts, so the riflemen crew the
+   gun (`BattleSetup.linkGuardpostSquads`).
+4. **Obstacles**: fortified, a staggered double row of hedgehogs beyond the
+   glacis, broken where the gates' approaches run; the glacis belt inside it.
+5. **The gate**: its checkpoint, the gate picket (a mech and a light hull),
+   then the wall, the yard reserve and the halls' parapets.
 
-Pick `raid-works-approach` (pictures under
-`review/owned-maps/2026-11-11_raid-works-depth_win/`): (a) posts, positions and
-a belt (built); (b) a continuous trench line; (c) the facing buildings held as
-strongpoints. Tests: `WorksDefencesTest`, `RaidWorksGuardTest`,
-`RaidWorksMachinesTest`; `storyMapPools`.
+Tests: `WorksDefencesTest`, `RaidWorksGuardTest`, `RaidWorksMachinesTest`;
+`storyMapPools`; `raid-demolition-look`'s `built-*` labels each layer.
 
 ### 8. Pressure over time: PROPOSED (pick `raid-pressure`)
 
@@ -190,7 +201,9 @@ Owner: "Our first rule is to make it fun and to keep pressure on the player
 over time so they are not bored." Today a Raid's reinforcements come only when
 a garrison is depleted or an objective lost (`GarrisonDepletedTrigger`,
 `ObjectiveLostTrigger`, through the convoy, shuttle and walk-in means and their
-supply gates), and the alarm sends at most three mobile squads at a time.
+supply gates), and the alarm now sends the whole mobile pool (the old limit
+of three squads, and the defence's attacker-strength budget, are gone for
+Raid: owner, "We can't limit ourselves to 'keeping it even'").
 Nothing is driven by time. Options:
 
 - (a) An alarm clock (recommended): from the alarm, a reinforcement request on

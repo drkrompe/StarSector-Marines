@@ -90,6 +90,94 @@
         3,
         2
       ]
+    },
+    {
+      "id": "doodad.satcom-dish",
+      "col": 5,
+      "row": 3,
+      "cover": "light",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.radar-tower",
+      "col": 8,
+      "row": 4,
+      "cover": "light",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.fuel-bladder",
+      "col": 0,
+      "row": 5,
+      "cover": "light",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.generator-set",
+      "col": 3,
+      "row": 6,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.antenna-mast",
+      "col": 11,
+      "row": 0,
+      "cover": "none"
+    },
+    {
+      "id": "doodad.medical-marker",
+      "col": 6,
+      "row": 7,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.parked-ambulance",
+      "col": 9,
+      "row": 7,
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "footprintCells": [
+        3,
+        2
+      ]
+    },
+    {
+      "id": "doodad.workshop-gantry",
+      "col": 0,
+      "row": 8,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ]
+    },
+    {
+      "id": "doodad.tent-khaki",
+      "col": 4,
+      "row": 10,
+      "cover": "light",
+      "footprintCells": [
+        4,
+        3
+      ]
     }
   ],
   "cells": [
@@ -146,6 +234,60 @@
       "row": 3,
       "name": "Parked APC",
       "description": "An army APC parked in the vehicle park, nose and turret forward (west)."
+    },
+    {
+      "col": 5,
+      "row": 3,
+      "name": "Satellite uplink dish",
+      "description": "A ground station dish tilted up on its pedestal, a feed horn on struts, on a railed concrete pad; for the command post's dish farm."
+    },
+    {
+      "col": 8,
+      "row": 4,
+      "name": "Search radar tower",
+      "description": "A steel lattice tower carrying a long search-radar antenna bar, its long shadow to the south-east."
+    },
+    {
+      "col": 0,
+      "row": 5,
+      "name": "Fuel bladder",
+      "description": "A pillow fuel bladder in a low earth bund, a hose to its pump; a fuel depot cell."
+    },
+    {
+      "col": 3,
+      "row": 6,
+      "name": "Generator set",
+      "description": "A skid-mounted diesel generator in an olive housing: exhaust stack, fuel tank, cable runs."
+    },
+    {
+      "col": 11,
+      "row": 0,
+      "name": "Antenna mast",
+      "description": "A tall guyed radio mast: base plate, three guy wires to anchors, its long thin shadow."
+    },
+    {
+      "col": 6,
+      "row": 7,
+      "name": "Medical marker",
+      "description": "A painted panel by the medical post: a plain white cross on a green square, worn. A floor decal; blocks nothing."
+    },
+    {
+      "col": 9,
+      "row": 7,
+      "name": "Parked ambulance",
+      "description": "An olive field ambulance parked at the medical post, nose west, a white cross on a green roof panel."
+    },
+    {
+      "col": 0,
+      "row": 8,
+      "name": "Workshop gantry",
+      "description": "An A-frame gantry crane over a vehicle bay: an engine block hung under its hoist, a tool bench along its north side."
+    },
+    {
+      "col": 4,
+      "row": 10,
+      "name": "Khaki tent",
+      "description": "A khaki ridge tent, ridge east-west, door flap east, guy ropes to pegs."
     }
   ]
 }

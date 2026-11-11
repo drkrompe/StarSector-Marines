@@ -29,8 +29,8 @@ import java.util.Locale;
 
 /**
  * The refining Raid site ({@code RefiningWorks}): a break Raid on a refining market across two seeds and both market
- * sizes, as {@link RaidSiteLookSuite} lays heavy industry's. Each case is framed whole ({@code <case>-whole.png}), at
- * play zoom on the works' units ({@code <case>-works.png}), and on the plant from the units to the tank farm
+ * sizes, as {@link RaidSiteLookSuite} lays heavy industry's. Each case is framed whole ({@code <case>-whole.png}), on
+ * the process area's units ({@code <case>-works.png}), and on the plant from the units to the tank farm
  * ({@code <case>-plant.png}): the receiving manifold, the units' columns, the product rack over the haul road, the
  * bunded tanks and the loading rack. Last, the owned map a campaign raid on a refinery plays ({@code owned-seed<n>}).
  * Look preset, with the battle's mission markers. Nothing is played.
@@ -115,8 +115,23 @@ public final class RaidRefinerySiteLookSuite implements SnapshotSuite {
         out.add(new SnapshotArtifact(id + "-whole.png", BattleReviewFrameRenderer.look(
                 context.modRoot(), 1920, 1080, w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f)
                 .withMissionMarkers().render(sim, "")));
+        // The process area: the units' fired heaters, framed whole; the raid's sites where no heater stands.
+        float hx0 = Float.MAX_VALUE, hy0 = Float.MAX_VALUE, hx1 = -Float.MAX_VALUE, hy1 = -Float.MAX_VALUE;
+        for (Doodad d : sim.getDoodads()) {
+            if (!d.sheetPath.contains("refinery-utilities") || d.tile.col != 0 || d.tile.row != 0) continue;
+            hx0 = Math.min(hx0, d.cellX);
+            hy0 = Math.min(hy0, d.cellY);
+            hx1 = Math.max(hx1, d.cellX + d.footprintCellsX);
+            hy1 = Math.max(hy1, d.cellY + d.footprintCellsY);
+        }
+        float cx = ux, cy = uy, close = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f;
+        if (hx1 > hx0) {
+            cx = (hx0 + hx1) / 2f;
+            cy = (hy0 + hy1) / 2f;
+            close = Math.max(close, Math.max(hx1 - hx0, (hy1 - hy0) * 16f / 9f) + 30f);
+        }
         out.add(new SnapshotArtifact(id + "-works.png", BattleReviewFrameRenderer.look(
-                context.modRoot(), 1920, 1080, ux, uy, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f)
+                context.modRoot(), 1920, 1080, cx, cy, close)
                 .withMissionMarkers().render(sim, "")));
         if (tanks > 0) {
             float fx = tx / tanks, fy = ty / tanks;

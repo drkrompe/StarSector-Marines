@@ -829,8 +829,9 @@ is the plant its architect briefed, and only then a ruin.
   5. the derelict watch stays on in the maintenance shop;
   6. centuries of breaches, collapses and spill follow.
 
-The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. The layout is behind the
-undecided switch `battle.ruins.plant` until the owner decides the pick `ruins-plant-plan`. It is open, building on a.
+The spaces are published by name (`ruins.interior.<space>`) and are the interior's chambers. Every works site is
+laid this way (owner picks `ruins-plant-plan` a, `ruins-plant-default-r2` a); a site with no works hall keeps its
+honeycomb of chambers.
 The works band is laid as a block plan, round the works hall:
 - the raw stock store under its dispatch end, and the QA lab at the outfeed;
 - the dock on the hull face behind the way in nearest the raw stock: its cargo lock is that entrance, so the way in opens
@@ -1075,7 +1076,7 @@ tier is set by where it lies, never rolled:
   `any_hullmod_low` and `blueprints_low`, vanilla's own share in every ruins
   salvage spec. It rolls without vanilla's `nothing` entry, so it is never empty.
 
-**Finds lie where the plant kept its goods** (the plant, `battle.ruins.plant`).
+**Finds lie where the plant kept its goods** (every works site's plant).
 On a plant site a supply find is never a bundle dropped on open floor. It is a
 load the plant left in its stores, drawn on the recovery skid
 (`doodad.ruins-store-<goods>-cache`), and it is the commodity the store held:
@@ -1090,8 +1091,10 @@ load the plant left in its stores, drawn on the recovery skid
 - The delve keeps its count and its far share (`RuinsDelve.fieldCaches`,
   `SalvagePlacement.Delve.farQuota`). The far share goes to finished goods, the
   rest to raw stock and maintenance.
-- A find takes one of the store's loaded bays and is drawn as its cache
-  variant, which gives no cover. The other loads stay as cover and dressing,
+- A find takes one of the store's loads (`RuinsDelve.Interior.loads`,
+  picked by `StoreFinds`) and is drawn as its cache variant, which gives no
+  cover. It is recovered from the open floor beside the load, and it settles as
+  its own goods. The other loads stay as cover and dressing,
   never taken. If there are more finds than loaded bays, a store turns empty bays
   into finds before any find goes elsewhere.
 - Each find is worth about one field cache at the base game's base price
@@ -1101,7 +1104,7 @@ load the plant left in its stores, drawn on the recovery skid
   stock and the sealed unit in finished goods, each behind its seal door; the
   guardian's room at the band's light well; and the vault store.
 
-Off the plant (the switch off, and every site with no plant), finds keep field
+Off the plant (every site with no works hall), finds keep field
 salvage's placement along the route.
 
 **One prize a vault.** Beside vanilla's haul (Law 4), the vault holds one

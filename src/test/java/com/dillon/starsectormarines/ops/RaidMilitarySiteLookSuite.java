@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -53,6 +54,10 @@ public final class RaidMilitarySiteLookSuite extends RaidSiteLookSuite {
     protected List<Shot> extraShots(BattleSimulation sim, float machinesX, float machinesY) {
         List<Shot> out = new ArrayList<>();
         System.out.printf(Locale.ROOT, "[raid-military-site-look] map %d x %d%n", sim.getGrid().getWidth(), sim.getGrid().getHeight());
+        for (DefensePost post : sim.getDefensePosts()) {
+            System.out.printf(Locale.ROOT, "[raid-military-site-look] post %s %d,%d facing %s%n", post.tier,
+                    post.anchorX, post.anchorY, post.restFacing == null ? "none" : String.format(Locale.ROOT, "%.0f", post.restFacing));
+        }
         float[] hq = middleOf(sim.getTopology(), RoomPurpose.KEEP_THRONE, machinesX, machinesY);
         float hx = hq == null ? machinesX : hq[0], hy = hq == null ? machinesY : hq[1];
         add(out, sim, "satcom", "doodad.listening-dish", hx, hy);
