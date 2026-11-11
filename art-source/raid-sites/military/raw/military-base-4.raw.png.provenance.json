@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1cb09-90de-7642-833f-fa9f81cf0bcf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1cb09-90de-7642-833f-fa9f81cf0bcf\\exec-e338ceb1-8854-49e2-89d3-d5a268738f46.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\raid-sites\\military\\raw\\military-base-4.raw.png",
+    "sha256": "3c0bb6969e5cf2c163b0d7b23588b2b7453b9697bf52f829c2c937c3f8c094bd",
+    "dimensions": [
+      1873,
+      840
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\raid-sites\\military\\prompts\\military-base-4.prompt.txt",
+  "promptSha256": "7d62c9fb5dc128362337e3efcc27d47bcfafe030ae4bf7e4730f422e48dc59b2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every piece's size, position, silhouette and shadow\nImage 2: Rendering, palette and finish of the game map these pieces sit in; not layout, do not copy its props\n\nUse case: sketch-to-render, game doodad sheet. Image 1 is the authoritative geometry guide: keep every piece exactly where it is, at its size and silhouette, on the same 1856x832 canvas; do not move, rescale, rotate, merge or add pieces. Output on a TRUE TRANSPARENT background, including every negative space; no ground, floor, pad, base plate, border, frame or text. Each piece's cast shadow (the grey shape in the guide, falling to the lower right) is painted as a soft translucent cool blue-grey shadow, kept inside the guide's grey shape.\nThese are components that stand INSIDE larger structures the game already draws (concrete pads, fence rings, sheds), on a top-down battle map of a dusty frontier colony outpost in a science-fiction strategy game. They must not look like stickers: no dark outline around the silhouette, no bevelled border, no plate or slab under them; the object meets the ground directly with only its soft shadow, like a photo of real equipment from straight above.\nReference 2 is a crop of the actual game map these pieces sit in: match its rendering exactly — its matte, slightly soft, desaturated finish, its pale pinkish-tan sand, grey concrete and cool blue-grey shadows, its scale and level of detail. Do not copy its layout or its existing props.\nPIECE 1 (top left, 4x4 cells), SATELLITE UPLINK DISH: a large white-grey parabolic dish seen from straight above, tilted up toward the upper left so it shows as a broad oval bowl with faint panel seams, three thin struts holding a small feed horn over its middle; its pedestal is hidden under it. Soft shadow lower right.\nPIECE 2 (top middle, 3x3 cells), SEARCH RADAR TOWER, very tall: a steel lattice tower seen from straight above: four splayed dark feet at the corners, its legs and cross bracing converging to a small grated head platform in the middle, and across the top a long slatted search-radar antenna bar on a rotator. Its long cool shadow (tower and bar) falls far to the lower right; the shadow is what makes it read as tall.\nPIECE 3 (top right, 3x3 cells), VERTICAL FUEL STORAGE TANK seen from straight above: a big round shallow-domed steel roof in faded pale olive-grey paint with weathering streaks, a thin walkway handrail running round the roof's rim, a roof vent in the middle, a small hatch, and the top of a caged ladder at the rim on the lower right. Soft shadow lower right. Transparent outside the circle.\nPIECE 4 (bottom, small, 1x1 cell), EXHAUST STACK seen from straight above: one round steel exhaust pipe with a hinged rain-cap flap over its mouth, a dark soot stain around it on the transparent background (soot only, no ground), its tall thin shadow lower right.\nPIECE 5 (bottom, 2x1 cells), RADIATOR SKID seen from straight above: a low steel skid carrying an olive radiator housing with two round fan grilles on top, and a small pale day tank at its right end, pipe stubs; soft shadow lower right.\nPalette: olive drab, faded grey steel, white-grey dish, dust. No insignia, emblems, flags, text, numbers or markings.\nStraight 90-degree overhead orthographic camera, no perspective: every object shows only its top. Sun from the upper left. No text, letters, numbers, labels, watermark, UI, people or extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\raid-sites\\military\\guide-4.png",
+      "sha256": "4418a454cd7f3362bed0755c138806a6cc56c94a5e49e073dd6b09fb3200e1f7",
+      "dimensions": [
+        1856,
+        832
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: every piece's size, position, silhouette and shadow"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\1eebce703f1f7566\\43e3d369-2d3f-47ce-b232-c52774bba928\\scratchpad\\map-context-ref.png",
+      "sha256": "9e0a9a4c97c44e0acbaf2c400721657d6cfc58a57cb2cdb91cf9e9a52a3eff93",
+      "dimensions": [
+        1600,
+        700
+      ],
+      "mode": "RGB",
+      "role": "Rendering, palette and finish of the game map these pieces sit in; not layout, do not copy its props"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent doodad sheet, preserving Image 1’s geometry and matching Image 2’s finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 67924,
+    "cached_input_tokens": 57728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 923,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.1
+}
