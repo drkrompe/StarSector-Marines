@@ -40,7 +40,10 @@ public final class SalvagePlacement {
         }
 
         /** The finds the far half must hold first: two in three, rounded up. */
-        int farQuota() { return (caches * 2 + 2) / 3; }
+        int farQuota() { return farQuota(caches); }
+
+        /** The finds of {@code caches} the far half holds first: two in three, rounded up. */
+        public static int farQuota(int caches) { return (caches * 2 + 2) / 3; }
 
         /** Whether a cell lies nearer the vault than the landing along the route, by its nearest route point. */
         boolean farHalf(Cell c) {

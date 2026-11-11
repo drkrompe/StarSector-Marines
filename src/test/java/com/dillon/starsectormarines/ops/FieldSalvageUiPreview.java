@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
+import com.dillon.starsectormarines.battle.salvage.SalvageResource;
 import com.dillon.starsectormarines.ops.loot.FieldSalvageLoot;
 import com.dillon.starsectormarines.ops.loot.LootCandidate;
 import com.dillon.starsectormarines.ops.loot.LootKind;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.List;
 
 /** Exact live row projection and capacity planner for the scene's secured finds. */
@@ -19,15 +21,18 @@ public final class FieldSalvageUiPreview {
     private FieldSalvageUiPreview() { }
     public static BufferedImage render(SnapshotContext context, List<SalvageCache.Recovered> finds) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());
-        var manifest = FieldSalvageLoot.append(LootManifest.EMPTY, finds, r -> new LootCandidate(
-                LootKind.COMMODITY, r.commodityId, r.displayName,
-                "graphics/icons/cargo/" + switch (r) {
-                    case METALS -> "materials";
-                    case MACHINERY -> "heavymachinery";
-                    case SUPPLIES -> "supplies";
-                } + ".png",
-                switch (r) { case METALS -> 30; case MACHINERY -> 150; case SUPPLIES -> 100; },
-                1, 1, 1, 1));
+        var manifest = FieldSalvageLoot.append(LootManifest.EMPTY, finds, id -> {
+            var r = Arrays.stream(SalvageResource.values()).filter(v -> v.commodityId.equals(id)).findFirst()
+                    .orElseThrow();
+            return new LootCandidate(LootKind.COMMODITY, r.commodityId, r.displayName,
+                    "graphics/icons/cargo/" + switch (r) {
+                        case METALS -> "materials";
+                        case MACHINERY -> "heavymachinery";
+                        case SUPPLIES -> "supplies";
+                    } + ".png",
+                    switch (r) { case METALS -> 30; case MACHINERY -> 150; case SUPPLIES -> 100; },
+                    1, 1, 1, 1);
+        });
         var selection = new LootSelection(manifest);
         var plan = LootSettlementPlanner.plan(selection,new LootCapacitySnapshot(100,0,0));
         var props = LootScreen.previewProps();

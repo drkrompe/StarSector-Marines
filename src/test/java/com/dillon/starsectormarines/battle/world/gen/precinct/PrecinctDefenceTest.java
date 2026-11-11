@@ -339,14 +339,14 @@ class PrecinctDefenceTest {
         assertEquals(0, turrets(built.ctx()));
     }
 
-    /** A military base is owed a post every so many cells of wall, in its heaviest kind, and one per thing it guards. */
+    /** A military base is owed a post every so many cells of wall, in its heaviest kind, and none inside. */
     @Test
     void aBaseIsOwedItsWallsAndApproachesInItsHeaviestKind() {
         int wall = 4 * 100;
-        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.STRONGHOLD, true, 3, 2, wall);
+        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.STRONGHOLD, true, 3, wall);
         int perimeter = owed.getOrDefault(DefensePostKind.LIGHT, 0) + owed.getOrDefault(DefensePostKind.MEDIUM, 0)
                 + owed.getOrDefault(DefensePostKind.LARGE, 0);
-        assertEquals(wall / PrecinctDefence.WALL_EVERY + 2, perimeter, "a post every stretch of wall, and the hearts");
+        assertEquals(wall / PrecinctDefence.WALL_EVERY, perimeter, "a post every stretch of wall, none inside");
         assertEquals(2, owed.get(DefensePostKind.MEDIUM), "the grade's own mediums are kept");
         assertEquals(perimeter - 2, owed.get(DefensePostKind.LARGE), "the rest are its heaviest kind");
         assertEquals(1, owed.get(DefensePostKind.ARTILLERY));
@@ -355,13 +355,13 @@ class PrecinctDefenceTest {
 
     @Test
     void aSmallBaseStillMansEveryGateAndCorner() {
-        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.PICKET, true, 4, 0, 40);
+        Map<DefensePostKind, Integer> owed = PrecinctDefence.owed(Fortification.PICKET, true, 4, 40);
         assertEquals(2 * 4 + PrecinctDefence.CORNERS, owed.get(DefensePostKind.LIGHT));
     }
 
     @Test
     void aPlaceThatIsNotABaseKeepsItsGradesLoadout() {
-        assertEquals(Fortification.CITADEL.posts(), PrecinctDefence.owed(Fortification.CITADEL, false, 1, 2, 400));
+        assertEquals(Fortification.CITADEL.posts(), PrecinctDefence.owed(Fortification.CITADEL, false, 1, 400));
     }
 
     @Test

@@ -95,7 +95,9 @@ public final class LongSurveyGround {
             case LONG_SURVEY_STAKES -> {
                 TargetProfile market = stakesMarket(home);
                 PrecinctPlan plan = BattleSetup.precinctPlanFor(MissionType.SABOTAGE, OperationTier.REINFORCED,
-                        RiskLevel.HIGH, market, MapScale.COLONY, seed, PrecinctPlan.Sprawl.REMOTE);
+                        RiskLevel.HIGH, market, MapScale.COLONY, seed, PrecinctPlan.Sprawl.REMOTE)
+                        // The installation laid as a cantonment in a square wall, not a grown diamond-walled fort.
+                        .withCantonments(market, MapScale.COLONY.width, MapScale.COLONY.height);
                 plan = PlanetSkin.sealedFor(entry.patch().pinned(plan), worldProfile);
                 MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, market, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);

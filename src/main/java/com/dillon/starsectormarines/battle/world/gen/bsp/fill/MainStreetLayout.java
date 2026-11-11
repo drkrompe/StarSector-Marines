@@ -213,13 +213,34 @@ final class MainStreetLayout {
     private static void awnings(GenContext c, SpineClaim.Spine s, int aLo, int aHi, int wall, int step) {
         int half = StreetDressing.AWNING_SPAN / 2, row = wall - step;
         int clearFrom = aLo + half;
+        boolean[] under = new boolean[Math.max(0, aHi - aLo + 1)];
         for (int a = aLo + half; a <= aHi - half; a++) {
             if (a < clearFrom || !c.grid.isDoorway(s.x(a, wall), s.y(a, wall))) continue;
             String id = StreetDressing.AWNINGS.get(Math.floorMod(a * 31 + wall, StreetDressing.AWNINGS.size()));
             StreetDressing.awning(c.doodads, id, s.x(a, row), s.y(a, row),
                     s.horizontal ? 0 : step, s.horizontal ? step : 0);
+            for (int k = a - half; k <= a + half; k++) if (k >= aLo && k <= aHi) under[k - aLo] = true;
             clearFrom = a + StreetDressing.AWNING_SPAN;
         }
+        // A lamp bracket on the shopfronts between the awnings, so the street reads at night (StreetLights).
+        for (int a = aLo; a <= aHi; a++) {
+            if (!wallLampAt(a - aLo) || under[a - aLo]) continue;
+            int wx = s.x(a, wall), wy = s.y(a, wall);
+            if (!c.topology.isWall(wx, wy) || c.topology.isWindow(wx, wy) || c.grid.isDoorway(wx, wy)) continue;
+            StreetDressing.wallLamp(c.doodads, StreetDressing.WALL_LAMP, s.x(a, row), s.y(a, row),
+                    s.horizontal ? 0 : step, s.horizontal ? step : 0);
+        }
+    }
+
+    /** Cells between a shopfront's lamp brackets. UNTUNED. */
+    static final int WALL_LAMP_EVERY = 6;
+
+    /**
+     * Whether a lamp bracket hangs on the shopfront {@code along} cells from its start: one every
+     * {@link #WALL_LAMP_EVERY}, the first half a spacing in, so a frontage's lamps stand clear of its ends.
+     */
+    static boolean wallLampAt(int along) {
+        return along >= 0 && along % WALL_LAMP_EVERY == WALL_LAMP_EVERY / 2;
     }
 
     /**

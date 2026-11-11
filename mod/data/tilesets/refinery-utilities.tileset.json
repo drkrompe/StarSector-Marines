@@ -3,6 +3,11 @@
   "cellPx": 480,
   "cells": [
     {
+      "col": 0,
+      "row": 0,
+      "name": "refinery.heater"
+    },
+    {
       "col": 1,
       "row": 0,
       "name": "refinery.cooling-tower"
@@ -29,6 +34,17 @@
     }
   ],
   "doodads": [
+    {
+      "id": "refinery.heater",
+      "col": 0,
+      "row": 0,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
     {
       "id": "refinery.cooling-tower",
       "col": 1,

@@ -74,8 +74,9 @@ and opportunity fire remains available during the return.
 The defender preserves authored garrisons outside mission-command ownership.
 Its mobile pool keeps one routine target guard and holds the remainder in
 reserve. The first legal uncontested service tick raises a latched,
-identity-free target alarm; alarm or target loss mobilizes at most three mobile
-squads around the known installation. Under believed pressure the held
+identity-free target alarm; alarm or target loss mobilizes the whole mobile
+pool around the known installation (owner: "We can't limit ourselves to
+'keeping it even'"). Under believed pressure the held
 reserve, and the guard and responders for a building beside their rallies, man
 the map's garrisonables as the other mission defenders do (`garrisonables.md`,
 mission defenders); the alarm still takes whoever it mobilizes. Defender disclosure includes target
