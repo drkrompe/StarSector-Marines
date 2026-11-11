@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WatchTaskingTest {
 
@@ -133,5 +134,16 @@ class WatchTaskingTest {
         assertFalse(first == WatchTasking.sweepPoint(streets, 1, WatchTasking.SWEEP_SECONDS), "then the next");
         assertFalse(first == WatchTasking.sweepPoint(streets, 2, 0f), "two walkers start apart");
         assertNull(WatchTasking.sweepPoint(List.of(), 1, 0f));
+    }
+
+    @Test
+    void aHullThatHuntsOnlyWhatItSeesKnowsOnlyThoseNearItsFlocks() {
+        List<int[]> quarry = List.of(new int[] {0, 0}, new int[] {100, 0});
+        List<int[]> eyes = List.of(new int[] {10, 0});
+        assertEquals(2, WatchTasking.known(quarry, WatchTasking.Knowledge.EVERYONE, eyes, 30f).size());
+        List<int[]> seen = WatchTasking.known(quarry, WatchTasking.Knowledge.SEEN, eyes, 30f);
+        assertEquals(1, seen.size(), "only the one within its flock's sight");
+        assertArrayEquals(new int[] {0, 0}, seen.get(0));
+        assertTrue(WatchTasking.known(quarry, WatchTasking.Knowledge.SEEN, List.of(), 30f).isEmpty(), "no flocks up");
     }
 }

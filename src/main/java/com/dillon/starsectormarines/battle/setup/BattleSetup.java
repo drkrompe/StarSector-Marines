@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
 import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.TownSalvage;
+import com.dillon.starsectormarines.battle.derelict.WatchTasking;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -3709,6 +3710,11 @@ public final class BattleSetup {
      */
     static final List<DerelictWalkerFrame> FALL_SECTION_WALKERS = List.of(DerelictWalkerFrame.LINE,
             DerelictWalkerFrame.ROUNDS);
+    /**
+     * What The Fall's hunting hull knows of where the town's people are: EVERYONE as built until the owner answers the
+     * pick {@code fall-hunt-knowledge}; SEEN (only what its flocks see) is the recommended option.
+     */
+    static final WatchTasking.Knowledge FALL_HUNT_KNOWLEDGE = WatchTasking.Knowledge.EVERYONE;
 
     /**
      * Lays the hull's watch on a rescue. On ground carrying a fallen hull ({@link MapResult#hullSite}) it is the hull's
@@ -3732,7 +3738,8 @@ public final class BattleSetup {
             // streets from every section (owner's direction).
             List<int[]> places = TownSalvage.places(townGround(sim), probe.withPerimeter(FALL_REACH), FALL_RANGE_CELLS);
             fallen.rangeOver(places);
-            fallen.huntTown(sim, places, () -> townsPeople(sim), FALL_REACH, FALL_SECTION_WALKERS);
+            fallen.huntTown(sim, places, () -> townsPeople(sim), FALL_HUNT_KNOWLEDGE, FALL_REACH,
+                    FALL_SECTION_WALKERS);
             return true;
         }
         if (eruption == null || eruption.sites().isEmpty()) return false;

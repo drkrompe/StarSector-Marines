@@ -118,7 +118,10 @@ and never sets one part on another.
   tell it (`derelict-lore-guide.md`, Honest knowledge); a stranded stake knows
   only its own. The night it came down (The Fall) its flocks range over the
   whole town, and the hull knows where the town's people are: it hunts them
-  (owner's direction, 2026-11-11).
+  (owner's direction, 2026-11-11). Whether it knows everyone or only what its
+  flocks see is the owner's pick `fall-hunt-knowledge`, one switch
+  (`WatchTasking.Knowledge`, `BattleSetup.FALL_HUNT_KNOWLEDGE`); everyone until
+  answered.
 - **The claim is the perimeter.** The hull's walkers pursue to the claim's edge
   (the outermost established stake's perimeter), not past it, except in the
   contingency the autoforge's breach calls. The night it came down the claim is

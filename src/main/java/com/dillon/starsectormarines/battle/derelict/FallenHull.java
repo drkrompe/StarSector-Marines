@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.drone.Flock;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
+import com.dillon.starsectormarines.battle.drone.FlockSystem;
 import com.dillon.starsectormarines.battle.drone.FlockWeights;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -108,6 +109,8 @@ public final class FallenHull {
     private List<int[]> streets;
     /** Where the town's people are now, read each pulse while hunting: civilians out, holdouts' doors. */
     private Supplier<List<int[]>> quarry = List::of;
+    /** What the hunt knows of them ({@link WatchTasking#known}). */
+    private WatchTasking.Knowledge knowledge = WatchTasking.Knowledge.EVERYONE;
     /** Each section's launch hatch beyond the mouth's: {x, y} by its structure's id ({@link #huntTown}). */
     private final Map<Long, int[]> hatches = new TreeMap<>();
     /** The next launch point the forge prints at, in turn over the mouth and the standing hatches. */
@@ -343,12 +346,14 @@ public final class FallenHull {
      *
      * @param streets    the street places its walkers sweep between
      * @param quarry     where the town's people are now, read each pulse
+     * @param knowledge  what the hunt knows of where the town's people are
      * @param perSection the walkers standing at each hatch from the start
      */
-    public void huntTown(BattleSimulation sim, List<int[]> streets, Supplier<List<int[]>> quarry, int reach,
-                         List<DerelictWalkerFrame> perSection) {
+    public void huntTown(BattleSimulation sim, List<int[]> streets, Supplier<List<int[]>> quarry,
+                         WatchTasking.Knowledge knowledge, int reach, List<DerelictWalkerFrame> perSection) {
         this.streets = new ArrayList<>(streets);
         this.quarry = quarry;
+        this.knowledge = knowledge;
         this.watchReach = reach;
         DerelictSecurityDirector director = sim.derelictSecurity();
         NavigationGrid grid = sim.getGrid();
@@ -395,6 +400,17 @@ public final class FallenHull {
             if (clear.test(at[0], at[1])) out.add(at);
         }
         return out;
+    }
+
+    /** The town's people the hunt knows of now: all, or those its flocks see ({@link WatchTasking#known}). */
+    private List<int[]> knownQuarry() {
+        List<int[]> eyes = new ArrayList<>();
+        if (port != null) {
+            for (FlockCommandPort.Report r : port.reports()) {
+                if (r.strength() > 0f) eyes.add(new int[] {r.cellX(), r.cellY()});
+            }
+        }
+        return WatchTasking.known(quarry.get(), knowledge, eyes, FlockSystem.SWARM_SIGHT_CELLS);
     }
 
     /** Each section's launch hatch, {x, y} by its structure's id. */
@@ -495,7 +511,7 @@ public final class FallenHull {
         for (int squad : haulers.keySet()) worker(sim, squad, workers);
         UnaryOperator<int[]> reach = cell -> WatchTasking.clamp(site.sections(), watchReach, cell);
         Map<Integer, WatchTasking.Task> tasks = streets != null
-                ? WatchTasking.hunt(watch, new WatchTasking.Town(bays(sim), quarry.get(), streets,
+                ? WatchTasking.hunt(watch, new WatchTasking.Town(bays(sim), knownQuarry(), streets,
                         sim.getSimTickIndex() * BattleSimulation.TICK_DT), onIt, loudest, workers, reach)
                 : WatchTasking.assign(watch, site.mouthX(), site.mouthY(), onIt, loudest, workers, reach);
         for (Map.Entry<Integer, WatchTasking.Task> e : tasks.entrySet()) {

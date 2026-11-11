@@ -50,6 +50,13 @@ public final class WatchTasking {
     public enum Kind { GUARD, ANSWER, PUSH, ESCORT, HUNT, SWEEP }
 
     /**
+     * What a hull hunting its town knows of where the town's people are (the owner's pick {@code fall-hunt-knowledge}):
+     * {@link #EVERYONE}, as built until the owner answers, or only those its flocks see ({@link #SEEN}), which keeps the
+     * honest-knowledge law and makes shooting its flocks down a counter.
+     */
+    public enum Knowledge { EVERYONE, SEEN }
+
+    /**
      * The town an awake hull hunts: its bays (each keeps a guard), where the town's people are now (civilians out,
      * holdouts' doors), the street places its walkers sweep between, and the battle's time, seconds.
      */
@@ -159,6 +166,24 @@ public final class WatchTasking {
             }
         }
         return reached(out, reach);
+    }
+
+    /**
+     * The town's people a hull hunting it goes after: all of {@code quarry} when it knows {@link Knowledge#EVERYONE};
+     * with {@link Knowledge#SEEN}, only those within {@code sightCells} of one of its flocks ({@code eyes}, {x, y}).
+     */
+    public static List<int[]> known(List<int[]> quarry, Knowledge knowledge, List<int[]> eyes, float sightCells) {
+        if (knowledge == Knowledge.EVERYONE) return quarry;
+        List<int[]> out = new ArrayList<>();
+        for (int[] q : quarry) {
+            for (int[] eye : eyes) {
+                if (distance(q[0], q[1], eye[0], eye[1]) <= sightCells) {
+                    out.add(q);
+                    break;
+                }
+            }
+        }
+        return out;
     }
 
     /**
