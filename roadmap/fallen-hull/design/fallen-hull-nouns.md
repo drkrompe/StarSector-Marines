@@ -151,7 +151,8 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   leaf doors) and the sections as `HullSite.sections`. A four-cell freight
   spine runs from the stern's cargo door to the **forge hall** (the interior's
   vault, in the bow section, the autoforge on its keel line near the bow),
-  broken where the hull broke, with four-cell cargo docks into three holds and
+  broken where the hull broke, with four-cell cargo docks into three holds (and
+  a fourth, the **prow hold**, through the forge hall's far wall into the taper) and
   the **launch bay** (in the midsection) and a two-cell service door to the
   crew deck (`derelict-watch.md`, section 3). Ways in: the stern door, the
   bay's door on the port flank, the four **torn ends** (the big breaches), and
@@ -181,9 +182,12 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   compartment it stands in (`BuildingVisibilityPass`) and the rest of the ship
   stays roofed.
 - **The trench** runs off the bow's tip for the patch's length (12 cells and
-  more: the gaps between the sections are ploughed too), 24 cells wide at the
-  hull narrowing to 8 where the hull first touched down, ploughed earth and
-  rubble with spoil on its lips and scrap on its floor. **Debris** is up to 14
+  more: the gaps between the sections are ploughed too), a furrow 24 cells wide
+  at the hull easing to 8 where the hull first touched down and closing in a
+  rounded nose, each side wandering on its own slow wave so it never reads as a
+  staircase. It wraps the bow's tip where the taper leaves ground open. Ploughed
+  earth and rubble, with a lip of trodden thrown-up earth of wandering width and
+  scrap on its floor. **Debris** is up to 14
   short runs of hull plate standing beside the trench and round the hull, never
   on a road, building or apron and never touching another wall. A road the hull
   lies across is cut from the road graph; the trench cuts nothing.
@@ -197,7 +201,13 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   piece that is cover stands in the way with a ring of open ground round it, off
   roads, buildings, water, the hull, trench and aprons, mission places, tactical
   nodes, the landing's field of fire and the claim lattice's grid points; flat
-  pieces lie on any open ground.
+  pieces lie on any open ground, streets and roads included (rubble, not a
+  barrier). A few lone great pieces fly well out across the line. Where a great
+  or middling piece comes down on a home or a store it **strikes** it instead:
+  up to three are knocked down and more roofs holed or burnt, as the map's
+  `hull-shower` initial-damage layer, applied when the battle is assembled.
+  A strike keeps off buildings a mission anchors to, the landing's field of fire
+  and the hull; a knock-down keeps its collapse off fighting positions.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground

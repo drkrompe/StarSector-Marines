@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -993,6 +994,12 @@ public final class BspCityGenerator implements MapGenerator {
                 .withHullSite(ctx.get(HullKeys.SITE))
                 .withWallGates(ctx.wallGates)
                 .withFields(ctx.get(BspKeys.WORKED_FIELDS));
+        // A fallen hull's shower struck buildings: knocked down and holed when the battle is assembled.
+        List<DamagePlan.Stroke> strikes = ctx.get(HullKeys.STRIKES);
+        if (strikes != null && !strikes.isEmpty()) {
+            result = result.withInitialDamage(new DamagePlan(ctx.width, ctx.height, ctx.seed,
+                    List.of(new DamagePlan.Layer(HullKeys.STRIKE_LAYER, true, strikes))));
+        }
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

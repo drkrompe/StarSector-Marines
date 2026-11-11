@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.hull;
 
+import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.setup.LongSurveyGround;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -140,6 +141,25 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 out.add(new SnapshotArtifact(chapter.id + "/breakup-" + (k + 1) + "-"
                         + HullPlan.SECTIONS.get(k).name() + ".png", look.render(sim, "")));
             }
+            // The shower in the town: centred on where its pieces struck buildings, if any did.
+            DamagePlan damage = ground.map().initialDamage;
+            double sx = 0, sy = 0;
+            int strikes = 0;
+            if (damage != null) {
+                for (DamagePlan.Layer layer : damage.layers()) {
+                    if (!layer.name().equals(HullKeys.STRIKE_LAYER)) continue;
+                    for (DamagePlan.Stroke stroke : layer.strokes()) {
+                        sx += stroke.points().get(0).x();
+                        sy += stroke.points().get(0).y();
+                        strikes++;
+                    }
+                }
+            }
+            if (strikes > 0) {
+                look.refocus((float) (sx / strikes), (float) (sy / strikes), 110f);
+                out.add(new SnapshotArtifact(chapter.id + "/breakup-4-town.png", look.render(sim, "")));
+            }
+            System.out.printf(Locale.ROOT, "[long-survey-ground-look] %s shower: %d strike strokes%n", chapter.id, strikes);
             look.refocus(hull.centreX(), hull.centreY(), Math.max(hull.width(), hull.height() * 16f / 9f) + 24f);
             out.add(new SnapshotArtifact(chapter.id + "/boarding-1-outside.png", look.render(sim, "")));
 
@@ -169,6 +189,17 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
             if (vault != null) vault.currentAlpha = vault.targetAlpha = 0f;
             look.refocus(forge.centreX(), forge.centreY(), 56f);
             out.add(new SnapshotArtifact(chapter.id + "/boarding-3-forge.png", look.render(sim, "")));
+            // Into the prow beyond the forge, both roofs lifted: the taper is deck and plate.
+            Area bow = site.sections().get(site.sections().size() - 1);
+            Building prow = null;
+            for (Area chamber : site.interior().chambers()) {
+                Building b = buildingAt(sim, chamber.centreX(), chamber.centreY());
+                if (b != null && b != vault && bow.contains(chamber.centreX(), chamber.centreY())
+                        && !forge.contains(chamber.centreX(), chamber.centreY())) prow = b;
+            }
+            if (prow != null) prow.currentAlpha = prow.targetAlpha = 0f;
+            look.refocus(bow.centreX(), bow.centreY(), Math.max(bow.width(), bow.height() * 16f / 9f) + 12f);
+            out.add(new SnapshotArtifact(chapter.id + "/boarding-4-bow.png", look.render(sim, "")));
             System.out.printf(Locale.ROOT, "[long-survey-ground-look] %s boarding: %d boarders, hold %s, forge %s%n",
                     chapter.id, placed, inside == null ? "-" : inside.id, vault == null ? "-" : vault.id);
         }
