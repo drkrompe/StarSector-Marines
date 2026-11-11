@@ -235,7 +235,7 @@ final class FreestandingWallFaces {
         face.band(0f, 1f, 1f - coping - .02f, 1f - coping, scale(base, .55f), light, alpha);
         float[] joint = scale(base, .72f);
         switch (kind) {
-            case COMPOUND, UNKNOWN -> {
+            case COMPOUND, UNKNOWN, MASONRY_SILL -> {
                 // Masonry: courses every 0.3 m, a pier at every second cell.
                 for (float z = plinth + .3f / meters; z < 1f - coping; z += .3f / meters) {
                     face.band(0f, 1f, z - .01f, z + .01f, joint, light, alpha);
@@ -246,7 +246,7 @@ final class FreestandingWallFaces {
                             scale(base, 1.08f), light, alpha);
                 }
             }
-            case SEALED_PERIMETER, INSTALLATION, BLAST -> {
+            case SEALED_PERIMETER, INSTALLATION, BLAST, CONCRETE_SILL -> {
                 // Cast panels: a joint at every cell, and a seam half-way up the taller walls.
                 for (int k = 1; k < cells; k++) {
                     float u = k / (float) cells;
@@ -545,14 +545,21 @@ final class FreestandingWallFaces {
                 || y > 0 && shown[cell - gridW] || y < gridH - 1 && shown[cell + gridW];
     }
 
-    /** The map's runs of freestanding wall: wall cells no building owns, not out over the void. */
+    /**
+     * The map's runs of freestanding wall: wall cells no building owns, not out over the void. A window in such a wall
+     * stands only to its sill ({@link FreestandingWalls#sill}), an embrasure the wall's fire goes over, so from above
+     * and from the side it reads as the gap it is.
+     */
     static List<FreestandingWalls.Run> runs(CellTopology topology) {
         int gridW = topology.getWidth();
         return FreestandingWalls.runs(gridW, topology.getHeight(), at -> {
             int x = at % gridW, y = at / gridW;
-            return topology.isWall(x, y) && !topology.isWindow(x, y) && RoofCover.owner(topology, x, y) == 0
+            return topology.isWall(x, y) && RoofCover.owner(topology, x, y) == 0
                     && topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID;
-        }, at -> FreestandingWalls.kind(topology.getSurfaceId(at % gridW, at / gridW),
-                topology.getWorksStyle(at % gridW, at / gridW)));
+        }, at -> {
+            int x = at % gridW, y = at / gridW;
+            FreestandingWalls.Kind kind = FreestandingWalls.kind(topology.getSurfaceId(x, y), topology.getWorksStyle(x, y));
+            return topology.isWindow(x, y) ? FreestandingWalls.sill(kind) : kind;
+        });
     }
 }
