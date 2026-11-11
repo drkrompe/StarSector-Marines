@@ -70,34 +70,12 @@ public final class SealedTown {
 
     private SealedTown() { }
 
-    /**
-     * How a sealed town's ground is laid before its envelope is raised on it: the envelope stands on the town's
-     * outermost cells ({@link #band}), so a claim grown along streets gave it a stair-stepped, diagonal outline (owner,
-     * 2026-11-11: the fort with that wall was bad). Laid, its outline is straight runs.
-     */
-    public enum Laying {
-        /** The town's whole bounding rectangle: four straight sides, square corners. */
-        RECTANGLE,
-        /**
-         * The town snapped to {@link #BLOCK}-cell blocks: a block is the town's where half its free ground is, so the
-         * wall keeps to the town's shape in long straight steps.
-         */
-        BLOCKS
-    }
-
-    /**
-     * Which {@link Laying} sealed towns take. Temporary A/B switch ({@code switches.md}): remove it, with the losing
-     * arm, once the owner picks the sealed town's wall ({@code sealed-town-wall} on the picks page).
-     */
-    static final String LAYING_PROPERTY = "battle.sealedTown.laying";
-
-    /** Cells along a side of one {@link Laying#BLOCKS} block. UNTUNED. */
+    /** Cells along a side of one block a sealed town is laid in ({@link #lay}). UNTUNED. */
     public static final int BLOCK = 12;
 
     /**
-     * Cells of free ground a laid town leaves open beside another place's claim, measured square so the notch it
-     * leaves is straight too: what a neighbour builds round its own edge (a redoubt's crest and its apron) stays clear.
-     * UNTUNED.
+     * Cells of free ground a laid town leaves open beside an open place's claim, measured square so the notch it
+     * leaves is straight too: what a neighbour builds round its own edge stays clear. UNTUNED.
      */
     public static final int SETBACK = 6;
 
@@ -110,22 +88,21 @@ public final class SealedTown {
      */
     public static final int WALLED_SETBACK = 24;
 
-    /** The laying in force: {@link Laying#RECTANGLE} unless {@link #LAYING_PROPERTY} says otherwise. */
-    public static Laying laying() {
-        String asked = System.getProperty(LAYING_PROPERTY, "rectangle");
-        return "blocks".equalsIgnoreCase(asked) ? Laying.BLOCKS : Laying.RECTANGLE;
-    }
-
     /**
-     * Lays each sealed town's claim straight ({@link Laying}), in place: ground nobody claimed inside its laid shape
-     * becomes the town's, and under {@link Laying#BLOCKS} the town gives up its cells in a block mostly not its own.
-     * Ground another place claimed stays that place's, and ground {@code kept} (may be {@code null}) is never taken.
-     * Runs after the claim and before anything is built, so the town's streets and parcels fill the laid ground.
+     * Lays each sealed town's claim straight, in place, so its envelope stands on long straight runs: the envelope
+     * stands on the town's outermost cells ({@link #band}), and a claim grown along streets gave it a stair-stepped,
+     * diagonal outline (owner, 2026-11-11: the fort with that wall was bad). The town is snapped to {@link #BLOCK}-cell
+     * blocks from its bounding box: a block where the town holds at least as much as is free is the town's whole
+     * (its free ground taken), and in any other block the town gives its cells up, so it keeps its shape in long axis
+     * steps (owner pick {@code sealed-town-wall} b). Ground another place claimed stays that place's; ground {@code
+     * kept} (may be {@code null}) and ground within a setback of a neighbour ({@link #SETBACK},
+     * {@link #WALLED_SETBACK}) is never taken. Runs after the claim and before anything is built, so the town's
+     * streets and parcels fill the laid ground.
      *
      * @param sealed which places are sealed towns, by index
      * @param walled which places are walled, by index ({@link #sealedSide})
      */
-    public static void lay(int[][] claim, boolean[] sealed, boolean[] walled, boolean[][] kept, Laying laying) {
+    public static void lay(int[][] claim, boolean[] sealed, boolean[] walled, boolean[][] kept) {
         int width = claim.length, height = claim[0].length;
         for (int who = 0; who < sealed.length; who++) {
             if (!sealed[who]) continue;
@@ -142,10 +119,9 @@ public final class SealedTown {
                 }
             }
             if (r < 0) continue;
-            int step = laying == Laying.BLOCKS ? BLOCK : Math.max(r - l + 1, t - b + 1);
-            for (int x0 = l; x0 <= r; x0 += step) {
-                for (int y0 = b; y0 <= t; y0 += step) {
-                    int x1 = Math.min(r, x0 + step - 1), y1 = Math.min(t, y0 + step - 1);
+            for (int x0 = l; x0 <= r; x0 += BLOCK) {
+                for (int y0 = b; y0 <= t; y0 += BLOCK) {
+                    int x1 = Math.min(r, x0 + BLOCK - 1), y1 = Math.min(t, y0 + BLOCK - 1);
                     int mine = 0, free = 0;
                     for (int x = x0; x <= x1; x++) {
                         for (int y = y0; y <= y1; y++) {
@@ -153,7 +129,7 @@ public final class SealedTown {
                             else if (claim[x][y] == GrownTrunkPlan.UNOWNED && !held[x][y]) free++;
                         }
                     }
-                    boolean town = laying == Laying.RECTANGLE || 2 * mine >= mine + free;
+                    boolean town = mine >= free;
                     for (int x = x0; x <= x1; x++) {
                         for (int y = y0; y <= y1; y++) {
                             if (town && claim[x][y] == GrownTrunkPlan.UNOWNED && !held[x][y]) {
