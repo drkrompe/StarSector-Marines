@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.derelict.BuildQueue;
 import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
 import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
@@ -80,8 +79,6 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     /** The longest The Fall and the Stakes ground are played waiting for their clips, seconds. */
     private static final float FALL_SECONDS = 900f, STAKES_SECONDS = 600f;
     public static final String ONLY_PROPERTY = "snapshot.hullSim.only";
-    /** How far out on the claim the fight clip's marines start, cells from the bay mouth. */
-    private static final int RAID_CELLS = 40;
 
     @Override public String id() { return "fallen-hull-sim-look"; }
 
@@ -102,9 +99,8 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         if (!o.isEmpty()) only.addAll(List.of(o.split(",")));
         List<SnapshotArtifact> out = new ArrayList<>();
         try (HeadlessStrings strings = new HeadlessStrings(context.modRoot())) {
-            if (wants(only, "forge-cycle", "stripper", "hauler")) fall(context, only, out);
+            if (wants(only, "forge-cycle", "stripper", "hauler", "watch-fights")) fall(context, only, out);
             if (wants(only, "stake-planted", "stake-rises")) stakes(context, only, out);
-            if (wants(only, "watch-fights")) fight(context, only, out);
         }
         return out;
     }
@@ -143,6 +139,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
             add(clips, only, new StripperClip(hull, director));
             add(clips, only, new ForgeClip(hull, director));
             add(clips, only, new HaulerClip(hull, director));
+            add(clips, only, new FightClip(hull, director));
             play(context, sim, clips, FALL_SECONDS, out);
         }
     }
@@ -151,7 +148,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
     private void stakes(SnapshotContext context, Set<String> only, List<SnapshotArtifact> out) throws Exception {
         LongSurveyGround.Ground ground = stakesGround(context);
-        BattleSimulation sim = stand(ground, null);
+        BattleSimulation sim = stand(ground);
         try {
             // One spire stake, then a walker the forge can never pay for, so one train goes out and nothing else.
             BuildQueue queue = new BuildQueue(List.of(
@@ -170,71 +167,22 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         }
     }
 
-    /**
-     * 5. The watch fighting, on the Stakes ground: the hull's watch posted at its bay mouth as The Fall posts it, and
-     * two marine squads sent from a haul road's far end to the bay mouth (staged: in The Fall as played the rescue
-     * keeps away from the hull's ground, and the watch never wakes). Everything after the order is the battle's own.
-     */
-    private void fight(SnapshotContext context, Set<String> only, List<SnapshotArtifact> out) throws Exception {
-        LongSurveyGround.Ground ground = stakesGround(context);
-        FallenHullSite probe = LongSurveyGround.rulesSite(ground.hull(), List.of(), List.of(), 0f);
-        BattleSimulation sim = stand(ground, probe);
-        try {
-            List<FallenHullSite.Posting> watch = new ArrayList<>();
-            for (DerelictWalkerFrame f : List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.ROUNDS,
-                    DerelictWalkerFrame.LINE, DerelictWalkerFrame.SIEGE)) {
-                watch.add(new FallenHullSite.Posting(f, probe.mouthX(), probe.mouthY()));
-            }
-            FallenHull hull = FallenHull.install(sim, LongSurveyGround.rulesSite(ground.hull(), List.of(), watch,
-                    BuildQueue.LINE_COST), BuildQueue.survey(), null);
-            DerelictSecurityDirector director = sim.derelictSecurity();
-            List<Clip> clips = new ArrayList<>();
-            add(clips, only, new FightClip(hull, director));
-            play(context, sim, clips, 300f, out);
-        } finally {
-            sim.close();
-        }
-    }
-
     private static LongSurveyGround.Ground stakesGround(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
         StoryMap chapter = StoryMap.LONG_SURVEY_STAKES;
         return LongSurveyGround.ground(chapter, StoryMapPools.pool(chapter).home());
     }
 
-    /**
-     * The Stakes ground as a battle: a still body a side in the map's far corners (the simulation ticks no side that
-     * has none) and, given a site, two marine squads at the far end of its longest haul road ordered to its bay mouth.
-     */
-    private static BattleSimulation stand(LongSurveyGround.Ground ground, FallenHullSite raided) {
+    /** The Stakes ground as a battle, with a still body a side in the map's far corners: the simulation ticks no
+     * side that has none. */
+    private static BattleSimulation stand(LongSurveyGround.Ground ground) {
         SurfacePalette home = StoryMapPools.pool(ground.chapter()).home();
         int w = ground.map().grid.getWidth(), h = ground.map().grid.getHeight();
         int[] a = openCorner(ground, 3, 3, 1), b = openCorner(ground, w - 4, h - 4, -1);
-        SceneBuilder builder = SceneBuilder.onMap(ground.map(), home).seed(ground.battleSeed()).missionCompletion(false)
+        return SceneBuilder.onMap(ground.map(), home).seed(ground.battleSeed()).missionCompletion(false)
                 .unit("marine-holdout", Faction.MARINE, UnitType.MARINE, a[0], a[1], spec -> spec.moveSpeed(0f))
-                .unit("defender-holdout", Faction.DEFENDER, UnitType.MARINE, b[0], b[1], spec -> spec.moveSpeed(0f));
-        if (raided != null) {
-            // The haul-road cell nearest RAID_CELLS from the bay mouth: on the claim, a short walk out.
-            int mx = raided.mouthX(), my = raided.mouthY();
-            int[] start = {mx, my};
-            int best = Integer.MAX_VALUE;
-            for (int[] road : raided.haulRoads()) {
-                for (int j = 0; j + 1 < road.length; j += 2) {
-                    int d = Math.abs(Math.max(Math.abs(road[j] - mx), Math.abs(road[j + 1] - my)) - RAID_CELLS);
-                    if (d < best && !raided.hull().contains(road[j], road[j + 1])) {
-                        best = d;
-                        start = new int[] {road[j], road[j + 1]};
-                    }
-                }
-            }
-            for (int k = 0; k < 2; k++) {
-                int[] at = openCorner(ground, start[0] + 3 * k, start[1], 1);
-                builder.squad("raiders-" + k).faction(Faction.MARINE).size(6).at(at[0], at[1])
-                        .assigned(id -> ObjectiveAssignment.attackMove(id, mx, my)).done();
-            }
-            log("raiders from (%d, %d) toward the bay mouth (%d, %d)", start[0], start[1], mx, my);
-        }
-        return builder.build().sim();
+                .unit("defender-holdout", Faction.DEFENDER, UnitType.MARINE, b[0], b[1], spec -> spec.moveSpeed(0f))
+                .build().sim();
     }
 
     private static int[] openCorner(LongSurveyGround.Ground ground, int x0, int y0, int step) {
@@ -588,11 +536,11 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     private static final class FightClip extends Clip {
         private final FallenHull hull;
         private final DerelictSecurityDirector director;
-        /** Recent fire by the watch: {x, y, tick}. */
+        /** Recent fire, the watch's and the rescue's: {x, y, tick, 1 for the watch}. */
         private final Deque<float[]> fire = new ArrayDeque<>();
 
         FightClip(FallenHull hull, DerelictSecurityDirector director) {
-            super("watch-fights", "5  The hull's watch answers marines on the claim: its flock strikes, its walkers hold the bay", 1, 15f, 15f,
+            super("watch-fights", "5  The hull's watch against the rescue in the town", 1, 10f, 20f,
                     true);
             this.hull = hull;
             this.director = director;
@@ -600,24 +548,44 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override void observe(BattleSimulation sim, int tick) {
             for (ShotEvent shot : sim.getShotsThisFrame()) {
-                if (shot.shooterFaction != Faction.DEFENDER) continue;
-                fire.add(new float[] {(shot.fromX + shot.toX) / 2f, (shot.fromY + shot.toY) / 2f, tick});
+                if (shot.shooterFaction != Faction.DEFENDER && shot.shooterFaction != Faction.MARINE) continue;
+                fire.add(new float[] {(shot.fromX + shot.toX) / 2f, (shot.fromY + shot.toY) / 2f, tick,
+                        shot.shooterFaction == Faction.DEFENDER ? 1 : 0});
             }
             while (!fire.isEmpty() && tick - fire.peekFirst()[2] > 3f / DT) fire.removeFirst();
         }
 
         @Override boolean ready(BattleSimulation sim, int tick) {
-            return fire.size() >= 1;
+            // Both sides firing: the rescue in contact with the watch.
+            int watch = 0, rescue = 0;
+            for (float[] f : fire) {
+                if (f[3] > 0) watch++;
+                else rescue++;
+            }
+            return watch >= 3 && rescue >= 3;
         }
 
+        /** Where the fight last was: the camera holds there when the shooting stops. */
+        private float[] last;
+        private int quietSince = -1;
+
         @Override float[] focus(BattleSimulation sim) {
-            if (fire.isEmpty()) return new float[] {hull.site().mouthX(), hull.site().mouthY(), 64f};
+            if (fire.isEmpty()) {
+                return last != null ? last.clone() : new float[] {hull.site().mouthX(), hull.site().mouthY(), 64f};
+            }
             float x = 0, y = 0;
             for (float[] f : fire) {
                 x += f[0];
                 y += f[1];
             }
-            return new float[] {x / fire.size(), y / fire.size(), 64f};
+            last = new float[] {x / fire.size(), y / fire.size(), 64f};
+            return last.clone();
+        }
+
+        @Override boolean done(BattleSimulation sim, int tick) {
+            if (!fire.isEmpty()) quietSince = -1;
+            else if (quietSince < 0) quietSince = tick;
+            return quietSince >= 0 && (tick - quietSince) * DT >= 3f;
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
@@ -652,7 +620,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
                 }
             }
             o.title(title, "hull walkers out " + out + "   flocks up " + up,
-                    "staged: two marine squads sent onto the claim toward the bay mouth");
+                    "The Fall as played: the hull awake, the company escorting the rescue");
         }
     }
 
@@ -663,7 +631,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         private int plantedTick = -1;
 
         StakePlantClip(FallenHull hull) {
-            super("stake-planted", "4  Survey stake: the stake train plants a spire stake on the lattice", 2, 10f, 20f,
+            super("stake-planted", "4  Survey stake: the stake train plants a spire stake on the lattice", 3, 10f, 20f,
                     true);
             this.hull = hull;
         }
@@ -673,7 +641,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
                 long id = member(sim, t.haulerSquad);
                 if (id == 0L) continue;
                 double d = Math.hypot(t.plan.point().x() - sim.world().x(id), t.plan.point().y() - sim.world().y(id));
-                if (d <= 24) {
+                if (d <= 18) {
                     train = t;
                     return true;
                 }
