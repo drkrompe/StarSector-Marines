@@ -89,8 +89,8 @@ final class RaidWorksGuard {
     /**
      * Who holds {@code node} ({@code worksPost}: a works guard post; {@code machinePost}: a works machine post) with
      * machines and infantry still to seat: a guard post is held by riflemen while any are left (a mech does not stand
-     * in a guard room); a machine post only by machines, out of the market's force (owner pick
-     * {@code raid-works-machines-source} a, recommended), and stays empty when none are left; any other place by
+     * in a guard room); a machine post only by the machines security adds for it ({@link RaidWorksMachines}), and
+     * stays empty when none are left; any other place by
      * machines first, then infantry.
      */
     static Holder holder(boolean worksPost, boolean machinePost, boolean machinesLeft, boolean infantryLeft) {

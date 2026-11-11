@@ -100,7 +100,8 @@ public final class RaidSiteTemplate {
 
     /**
      * How hard a market keeps what it is worth ({@code raid-mission.md}, Security): the wall round its compounds and
-     * the open ground before it. It never changes how many defenders there are, only what they stand behind.
+     * the open ground before it, and the machines and hulls posted at its works on top of the market's own force
+     * ({@code RaidWorksMachines}): a harder market has more to fight, and more to fight through.
      */
     public enum Security {
         /** A fence and wide gates, a narrow strip of cleared ground. */
