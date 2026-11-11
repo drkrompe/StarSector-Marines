@@ -3107,6 +3107,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         compoundService.initFrom(null);
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
+    /** The stamped defense posts, as {@link #setDefensePosts} was given them; empty when there are none. */
+    public List<DefensePost> getDefensePosts() {
+        List<DefensePost> posts = tactical.getDefensePosts();
+        return posts == null ? List.of() : posts;
+    }
+
     public void setDefensePosts(List<DefensePost> posts) {
         FortWorks.settle(topology, posts);
         tactical.setDefensePosts(posts);

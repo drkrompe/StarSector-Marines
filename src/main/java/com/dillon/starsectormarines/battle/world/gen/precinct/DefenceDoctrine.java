@@ -21,12 +21,18 @@ import java.util.Map;
  *       once before any gate gets its second, so a short loadout still watches every way in.</li>
  *   <li><b>Corners.</b> Then the wall's corners, the one facing the threat first: a corner post sees down two faces
  *       of the wall and out over the approach.</li>
- *   <li><b>Inner.</b> Then a post beside what the place exists to keep: its motor pool and its command.</li>
+ *   <li><b>No inner guns.</b> A gun inside a base stands on the perimeter or has a standoff job (below); the guns
+ *       once posted beside the motor pool and command covered nothing an attacker crosses (owner, 2026-11-11:
+ *       "What are they guarding?"), so what a place keeps is held by its walls' guns.</li>
  *   <li><b>Wall.</b> A loadout with posts to spare lines the wall behind its face, the face toward the threat
  *       first.</li>
  *   <li><b>Depth.</b> Artillery and drone hubs stand deepest and furthest from the main gate, where an attacker has
  *       to get through the wall to reach them.</li>
  * </ul>
+ *
+ * <p>Every site faces out ({@link Site#faceX}, {@link Site#faceY}): a gate post along its gate's way out, a corner
+ * or wall post toward the nearest ground beyond the wall, a standoff weapon toward the threat. The guns are laid on
+ * that bearing before the fight, so they cover the ground in front of the wall.
  *
  * <p>The heaviest weapons take the earliest sites, so the main gate holds the heaviest guns. Nothing stands on a
  * cell the caller marks to keep clear: the roads, the place's own streets and yards, and every gate's approach
@@ -40,7 +46,7 @@ public final class DefenceDoctrine {
     private DefenceDoctrine() {}
 
     /** Why a site is where it is. */
-    public enum Role { GATE, CORNER, INNER, WALL, DEPTH }
+    public enum Role { GATE, CORNER, WALL, DEPTH }
 
     /**
      * A gate in the wall: its centre on the wall line, the unit step that leads out of the place through it, and half
@@ -52,8 +58,15 @@ public final class DefenceDoctrine {
         }
     }
 
-    /** An emplacement's site: its anchor, why it is there, what stands there, and the gate it covers or -1. */
-    public record Site(int x, int y, Role role, DefensePostKind kind, int gate) { }
+    /**
+     * An emplacement's site: its anchor, why it is there, what stands there, the gate it covers or -1, and the
+     * outward step it faces ({@code faceX}, {@code faceY}; never both zero).
+     */
+    public record Site(int x, int y, Role role, DefensePostKind kind, int gate, int faceX, int faceY) {
+        public Site {
+            if (faceX == 0 && faceY == 0) throw new IllegalArgumentException("a site faces somewhere");
+        }
+    }
 
     /** Whether an emplacement of a kind can stand with its anchor on a cell. */
     public interface Fits {
@@ -93,7 +106,7 @@ public final class DefenceDoctrine {
      *
      * @param inside  the place's ground behind its wall, map-sized
      * @param gates   the open gates, the main gate first
-     * @param hearts  what inner posts cover (motor pool, command), most important first; may be empty
+     * @param hearts  what the place keeps (motor pool, command); no gun is sited on them, kept for the callers
      * @param threat  where an attack comes from (the landing), or {@code null} to take the main gate's outward line
      * @param posts   how many of each kind the fortification holds
      * @param fits    whether the ground takes an emplacement; the caller folds the keep-clear mask into it
@@ -132,7 +145,6 @@ public final class DefenceDoctrine {
         for (int[] corner : corners(ring, centre, toward)) {
             wanted.add(new int[]{corner[0], corner[1], Role.CORNER.ordinal(), -1});
         }
-        for (int[] heart : hearts) wanted.add(new int[]{heart[0], heart[1], Role.INNER.ordinal(), -1});
         // Then along the wall, the face toward the threat first.
         List<int[]> along = new ArrayList<>(ring);
         if (toward != null) {
@@ -151,7 +163,9 @@ public final class DefenceDoctrine {
             int[] at = exact ? (fits.at(want[0], want[1], kind) && !crowded(want[0], want[1], sites) ? new int[]{
                     want[0], want[1]} : null) : resolve(want[0], want[1], kind, inside, sites, fits);
             if (at == null) continue;
-            sites.add(new Site(at[0], at[1], Role.values()[want[2]], kind, want[3]));
+            int[] face = want[3] >= 0 ? new int[]{gates.get(want[3]).outX(), gates.get(want[3]).outY()}
+                    : outward(inside, at[0], at[1]);
+            sites.add(new Site(at[0], at[1], Role.values()[want[2]], kind, want[3], face[0], face[1]));
             next++;
         }
 
@@ -169,7 +183,9 @@ public final class DefenceDoctrine {
                 if (k >= standoff.size()) break;
                 DefensePostKind kind = standoff.get(k);
                 if (!fits.at(cell[0], cell[1], kind) || crowded(cell[0], cell[1], sites)) continue;
-                sites.add(new Site(cell[0], cell[1], Role.DEPTH, kind, -1));
+                int[] face = toward != null && (toward[0] != cell[0] || toward[1] != cell[1])
+                        ? new int[]{toward[0] - cell[0], toward[1] - cell[1]} : outward(inside, cell[0], cell[1]);
+                sites.add(new Site(cell[0], cell[1], Role.DEPTH, kind, -1, face[0], face[1]));
                 k++;
             }
         }
@@ -286,6 +302,34 @@ public final class DefenceDoctrine {
             for (int i = 0; i < posts.getOrDefault(kind, 0); i++) out.add(kind);
         }
         return out;
+    }
+
+    /**
+     * The step from {@code (x, y)} to the nearest cell that is not inside (off the map counts as outside): the way
+     * out over the wall a post there faces. Straight up when nothing outside is found, which a place with ground
+     * never gives.
+     */
+    static int[] outward(boolean[][] inside, int x, int y) {
+        int w = inside.length, h = inside[0].length;
+        int reach = Math.max(w, h);
+        for (int r = 1; r <= reach; r++) {
+            int[] best = null;
+            long bestD = Long.MAX_VALUE;
+            for (int dx = -r; dx <= r; dx++) {
+                for (int dy = -r; dy <= r; dy++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int nx = x + dx, ny = y + dy;
+                    boolean out = nx < 0 || ny < 0 || nx >= w || ny >= h || !inside[nx][ny];
+                    long d = (long) dx * dx + (long) dy * dy;
+                    if (out && d < bestD) {
+                        bestD = d;
+                        best = new int[]{dx, dy};
+                    }
+                }
+            }
+            if (best != null) return best;
+        }
+        return new int[]{0, 1};
     }
 
     /** Steps from each inside cell to the nearest cell that is not inside; 0 outside. */

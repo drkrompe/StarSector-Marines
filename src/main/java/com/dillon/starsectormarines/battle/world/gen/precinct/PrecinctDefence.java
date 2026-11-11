@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
@@ -23,8 +24,8 @@ import java.util.Map;
  * where it lands.
  *
  * <p>Where each one stands is {@link DefenceDoctrine}'s: flanking every gate,
- * at the wall's corners facing the threat, beside the motor pool and command,
- * and the standoff weapons deepest. This class gathers what the doctrine is
+ * at the wall's corners facing the threat, along the wall, and the standoff
+ * weapons deepest; each faces out, and its guns are laid on that bearing. This class gathers what the doctrine is
  * sited against — the gates the wall left open, the ground behind the wall, and
  * the ground nothing defensive may stand on — and stamps the sites. That ground
  * is every road (the town's, the place's own road in, its streets, parade and
@@ -116,15 +117,23 @@ public final class PrecinctDefence {
         int[] threat = threat(ctx);
         List<int[]> hearts = works == null ? List.of() : works.hearts();
         boolean cantonment = precinct.isProgrammed() && precinct.program().cantonment();
-        Map<DefensePostKind, Integer> wanted = owed(fortification, cantonment, gates.size(), hearts.size(),
-                wallLength(own, w, h));
+        Map<DefensePostKind, Integer> wanted = owed(fortification, cantonment, gates.size(), wallLength(own, w, h));
 
         DefensePostStamper.Ground ground = (x, y) -> x >= 0 && x < w && y >= 0 && y < h && inside[x][y];
         int emitted = ctx.tactical.size();
-        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(inside, gates, hearts, threat, wanted, fits)) {
+        // Sited against the place's own outline, not every wall in it: measured against the buildings' walls too, the
+        // ring "behind the wall" ran round every barracks and the guns stood inside the base guarding nothing (owner,
+        // 2026-11-11). Where a gun can stand is still {@code inside}'s, through {@code fits}.
+        for (DefenceDoctrine.Site site : DefenceDoctrine.plan(own, gates, hearts, threat, wanted, fits)) {
+            int before = ctx.defensePosts.size();
             int got = DefensePostStamper.stampAtSites(ctx.grid, ctx.topology, ground, clear, ctx.doodads,
                     ctx.tactical, ctx.defensePosts, ctx.rng, site.kind(), List.of(new int[]{site.x(), site.y()}));
             if (got > 0) placed.merge(site.kind(), got, Integer::sum);
+            // The post's guns are laid out over the ground in front of the wall.
+            float facing = LayeredAppearance.facingDegrees(site.faceX(), site.faceY());
+            for (int p = before; p < ctx.defensePosts.size(); p++) {
+                ctx.defensePosts.set(p, ctx.defensePosts.get(p).withRestFacing(facing));
+            }
         }
         // Each emplacement's guard post names the place it defends, as the place's rooms do, so a setup can crew a
         // place's own guns (RaidWorksGuard).
@@ -145,13 +154,13 @@ public final class PrecinctDefence {
     /**
      * The posts a place is owed: its fortification's. A military base (a cantonment) is defended on its approaches and
      * its walls, not only as far as its grade's loadout reaches: two posts flanking each gate, a tower at each corner,
-     * a post every {@link #WALL_EVERY} cells of wall, whichever asks more, and one at each thing it guards inside.
+     * or a post every {@link #WALL_EVERY} cells of wall, whichever asks more; none inside but its standoff weapons.
      * What its loadout lacks is made up in its heaviest perimeter kind, so a fortified base's wall is lined with
      * heavy guns and an open one's with light. These are static: the attack picks which to meet
      * ({@code BattleForceScore#standingDefensePosts}).
      */
     static Map<DefensePostKind, Integer> owed(Fortification fortification, boolean cantonment, int gates,
-                                              int hearts, int wallLength) {
+                                              int wallLength) {
         Map<DefensePostKind, Integer> posts = new EnumMap<>(DefensePostKind.class);
         for (DefensePostKind kind : Fortification.PRECEDENCE) {
             if (fortification.posts(kind) > 0) posts.put(kind, fortification.posts(kind));
@@ -165,7 +174,7 @@ public final class PrecinctDefence {
             if (heaviest == null && n > 0) heaviest = kind;
         }
         int wall = Math.max(2 * gates + CORNERS, wallLength / WALL_EVERY);
-        int short_ = wall + hearts - perimeter;
+        int short_ = wall - perimeter;
         if (short_ > 0) posts.merge(heaviest == null ? DefensePostKind.LIGHT : heaviest, short_, Integer::sum);
         return posts;
     }
