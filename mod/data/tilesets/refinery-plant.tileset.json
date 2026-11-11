@@ -3,16 +3,6 @@
   "cellPx": 480,
   "cells": [
     {
-      "col": 0,
-      "row": 0,
-      "name": "refinery.column"
-    },
-    {
-      "col": 1,
-      "row": 0,
-      "name": "refinery.stripper"
-    },
-    {
       "col": 2,
       "row": 0,
       "name": "refinery.flare"
@@ -34,28 +24,6 @@
     }
   ],
   "doodads": [
-    {
-      "id": "refinery.column",
-      "col": 0,
-      "row": 0,
-      "cover": "none",
-      "ballisticHalfHeight": 0,
-      "footprintCells": [
-        1,
-        1
-      ]
-    },
-    {
-      "id": "refinery.stripper",
-      "col": 1,
-      "row": 0,
-      "cover": "none",
-      "ballisticHalfHeight": 0,
-      "footprintCells": [
-        1,
-        1
-      ]
-    },
     {
       "id": "refinery.flare",
       "col": 2,

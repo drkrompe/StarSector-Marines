@@ -17,11 +17,12 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A port's lighter stands ({@link LandingPad.Purpose#PORT_LIGHTER}): the planet's traffic stands on them, so no
- * company lands there, and setup parks a freighter on each.
+ * company lands there, and setup parks on each the largest ship its berth fits.
  */
 class PortLighterStandTest {
 
@@ -37,20 +38,37 @@ class PortLighterStandTest {
     }
 
     @Test
-    void aFreighterStandsOnEveryLighterStand() {
-        LandingPad a = new LandingPad(20, 5, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
-        LandingPad b = new LandingPad(20, 19, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
-        MapResult map = map(List.of(a, b));
+    void aStandHoldsTheLargestShipItsBerthFits() {
+        assertEquals(PortFreighter.COLOSSUS, PortFreighter.forBerth(25, 17));
+        assertEquals(PortFreighter.HOUND, PortFreighter.forBerth(7, 7));
+        assertEquals(PortFreighter.SHUTTLE, PortFreighter.forBerth(3, 3));
+        assertNull(PortFreighter.forBerth(1, 1));
+        // A berth as long as a Colossus but not as broad holds the courier.
+        assertEquals(PortFreighter.HOUND, PortFreighter.forBerth(25, 7));
+    }
+
+    @Test
+    void eachStandParksItsShipClosingTheHullItDraws() {
+        // Approach east: a berth's long side runs along x.
+        LandingPad heavy = new LandingPad(12, 6, 9, 7, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        LandingPad courier = new LandingPad(30, 6, 3, 3, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        LandingPad pod = new LandingPad(30, 18, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        LandingPad tooSmall = new LandingPad(10, 18, 0, 0, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        MapResult map = map(List.of(heavy, courier, pod, tooSmall));
         List<ParkedAircraft> parked = BattleSetup.stampParkedAircraft(map, List.of(), new Random(3L));
-        assertEquals(2, parked.size());
-        for (ParkedAircraft craft : parked) {
-            assertTrue(craft.type instanceof PortFreighter, "a port's traffic is a bulk freighter: " + craft.type);
-            assertFalse(map.grid.isWalkable(craft.centerX, craft.centerY), "its hull stands on its stand");
-            // Its hull closes more than a boat's three cells: its length along the approach, short of the overhang.
-            assertFalse(map.grid.isWalkable(craft.centerX + 4, craft.centerY), "the hull's length is closed");
-            assertTrue(map.grid.isWalkable(craft.centerX, craft.centerY < 12 ? craft.centerY + 7 : craft.centerY - 7),
-                    "the wings overhang open ground");
-        }
+        assertEquals(List.of(PortFreighter.COLOSSUS, PortFreighter.HOUND, PortFreighter.SHUTTLE),
+                parked.stream().map(p -> p.type).toList());
+        // A Colossus closes most of its length and beam, its wings and nose overhanging open ground.
+        assertFalse(map.grid.isWalkable(12 + 6, 6));
+        assertTrue(map.grid.isWalkable(12 + 8, 6));
+        assertFalse(map.grid.isWalkable(12, 6 + 4));
+        assertTrue(map.grid.isWalkable(12, 6 + 6));
+        // A courier closes three cells along; a pod only the cell it stands on.
+        assertFalse(map.grid.isWalkable(31, 6));
+        assertTrue(map.grid.isWalkable(33, 6));
+        assertFalse(map.grid.isWalkable(30, 18));
+        assertTrue(map.grid.isWalkable(31, 18));
+        assertTrue(map.grid.isWalkable(10, 18), "nothing stands on a berth too small for any ship");
     }
 
     private static MapResult map(List<LandingPad> pads) {

@@ -27,6 +27,9 @@ SRC = ROOT / "art-source/refinery/refinery-plant.raw.png"
 SHEET = ROOT / "mod/graphics/doodads/refinery-plant.png"
 TILESET = ROOT / "mod/data/tilesets/refinery-plant.tileset.json"
 FRAME = 480
+# Redrawn in the works tileset's flat style on refinery-heaters.png (refinery-heaters-export.py): left blank here,
+# so each id is defined once.
+SUPERSEDED = {"refinery.column", "refinery.stripper"}
 
 # Measured on the master (px): centre and the radius that is the footprint disc.
 PIECES = [
@@ -77,6 +80,8 @@ def main():
     sheet = Image.new("RGBA", (3 * FRAME, 2 * FRAME), (0, 0, 0, 0))
     doodads, cells = [], []
     for pid, col, row, centre, radius, fraction, at in PIECES:
+        if pid in SUPERSEDED:
+            continue
         img = crop(src, centre, radius, fraction, at)
         if pid == "refinery.flare":
             img = soften_glow(circle_mask(img, 0.5, 0.5, 0.40, 0.44))

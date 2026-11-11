@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1caeb-f3e3-73c0-9203-9ae07c7189b1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1caeb-f3e3-73c0-9203-9ae07c7189b1\\exec-ef36b100-3d31-42fa-abf0-ecb52d22ae9e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ruins-stores\\raw\\ruins-stores-machinery.raw.png",
+    "sha256": "7b2fed8c2f57541b76ded73e73e5620a43516f7b50d328a548501a5595264f88",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ruins-stores\\prompts\\ruins-stores-machinery.prompt.txt",
+  "promptSha256": "f43471ee0fe98cf823707596dff40416cc159cad5f1a0ee7653ebf65e92a1b3f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: every part's size, position and outline, seen from directly above\nImage 2: Material/style only (the other store loads); not layout, and its heavy-machinery piece is the wrong view, do not copy it\n\nAsset: one top-down tactical-game sprite: a crate of heavy machinery in an abandoned Domain-era megastructure plant's store, in a spacefaring civilization, for the Starsector Marines battle map, which is drawn strictly from directly overhead. The block-out is three cells square; one cell is about one soldier wide.\nView, the most important rule: a camera pointing straight down at the floor (orthographic plan view, 90 degrees). We see only the TOPS of things, as on an architect's plan or a satellite photo. Never a side elevation, never a front view, never three-quarter perspective, never a machine lying on its side. A flywheel seen from above is a narrow band (its rim edge-on), not a disc with spokes; a horizontal cylinder or shaft seen from above is a long rectangle; a motor seen from above is the flat lid of its housing with vent slots and lifting eyes. Nothing shows its side wall.\nGeometry: reference 1 is the layout authority. Reskin the grey block-out in place, every part exactly where it is drawn: the skid (outer dark plate), the open crate frame around it (timber-and-steel rails seen from above), the big light block is the orange motor housing's lid with its vent slots, the smaller block beside it the gearbox's top, the dark vertical band at the right the flywheel's rim edge-on inside a guard, the dark bar joining them the drive shaft seen from above, the block at the lower left a control box's top, the light lines pipe runs lying on the skid.\nIdentity: the game's heavy machinery commodity is a bright safety-orange industrial machine with grey steel and chrome parts; paint the motor housing, gearbox and guard in that worn safety orange, with grey steel, chrome pipes and black rubber hoses.\nStyle: match reference 2 for material: crisp painterly-pixel game sprite, gunmetal skid and frame, dark seams, bolts, worn and dusty, adult military sci-fi; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines. Soft upper-left object-local light, no cast shadow beyond the piece.\nBackground: true transparent background with clean alpha around the skid; no floor, shadow slab, border, labels or text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ruins-stores-machinery-guide.png",
+      "sha256": "874f25c76d0b554f5028d52456a4ae0dca521453103bb9abbd0d699dfacef7d3",
+      "dimensions": [
+        608,
+        608
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: every part's size, position and outline, seen from directly above"
+    },
+    {
+      "path": "art-source\\ruins-stores\\raw\\ruins-stores.raw.png",
+      "sha256": "aabcc30d71308a8aaed795f92ec64da5aa59c206e0aa444e54dfc098b430a317",
+      "dimensions": [
+        1410,
+        1116
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only (the other store loads); not layout, and its heavy-machinery piece is the wrong view, do not copy it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite using Image 1’s exact overhead layout and Image 2’s worn industrial materials."
+  ],
+  "usage": {
+    "input_tokens": 43271,
+    "cached_input_tokens": 27136,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 710,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 82.1
+}

@@ -96,20 +96,39 @@ class FreestandingWallsTest {
     }
 
     /**
-     * A diagonal wall is one slanted stroke from its first cell's centre to its last's, with a square pier standing
-     * free on each end cell.
+     * A diagonal wall standing free is one slanted stroke, both ends free and cut square across, each reaching only
+     * to the middles of its end cell's far sides: no pier's square corner.
      */
     @Test
-    void aDiagonalWallStandsAsOneSlantedStrokeBetweenTwoPiers() {
+    void aFreeDiagonalEndsCutSquareInsideItsCell() {
         int w = 12, h = 12;
         int[] cells = {2 + 2 * w, 3 + 3 * w, 4 + 4 * w, 5 + 5 * w, 6 + 6 * w};
         Set<Integer> in = set(cells);
         float[] s = FreestandingWalls.strokes(cells, w, h, in::contains);
-        assertEquals(3 * FreestandingWalls.STROKE, s.length, "a stroke and two piers");
-        assertArrayEquals(new float[]{2.5f, 2.5f, 6.5f, 6.5f, 0f, 0f}, Arrays.copyOf(s, 6));
-        int p = FreestandingWalls.STROKE;
-        assertArrayEquals(new float[]{2.5f, 2.5f, 2.5f, 2.5f}, Arrays.copyOfRange(s, p, p + 4), "first pier");
-        assertArrayEquals(new float[]{6.5f, 6.5f, 6.5f, 6.5f}, Arrays.copyOfRange(s, 2 * p, 2 * p + 4), "last pier");
+        assertArrayEquals(new float[]{2.5f, 2.5f, 6.5f, 6.5f, 1f, 1f}, s, "one stroke, no piers");
+        float[] q = new float[8];
+        FreestandingWalls.corners(s, 0, FreestandingWalls.HALF, q);
+        // The far end's cut has its corners on cell (6, 6)'s right and top sides, inside the cell.
+        for (int c = 2; c <= 4; c += 2) {
+            assertTrue(q[c] <= 7f + 1e-4f && q[c + 1] <= 7f + 1e-4f, "inside the cell");
+            assertEquals(7f, Math.max(q[c], q[c + 1]), 1e-4f, "on its far side");
+        }
+    }
+
+    /** A diagonal joined to a straight wall stops inside that wall's cell; two diagonals meeting stand on a pier. */
+    @Test
+    void aJoinedDiagonalEndsInTheWallItMeetsOrOnAPier() {
+        int w = 12, h = 12;
+        int[] into = {0, 1, 2, 3 + w, 4 + 2 * w};
+        Arrays.sort(into);
+        Set<Integer> a = set(into);
+        float[] s = FreestandingWalls.strokes(into, w, h, a::contains);
+        assertEquals(2 * FreestandingWalls.STROKE, s.length, "a straight wall and a diagonal, no pier");
+        int[] vee = {0, 1 + w, 2 + 2 * w, 3 + w, 4};
+        Arrays.sort(vee);
+        Set<Integer> v = set(vee);
+        float[] t = FreestandingWalls.strokes(vee, w, h, v::contains);
+        assertEquals(3 * FreestandingWalls.STROKE, t.length, "two diagonals and the pier where they meet");
     }
 
     /**
@@ -218,8 +237,7 @@ class FreestandingWallsTest {
     private static boolean wall(float[] strokes, float x, float y) {
         float[] q = new float[8];
         for (int o = 0; o < strokes.length; o += FreestandingWalls.STROKE) {
-            FreestandingWalls.corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3],
-                    FreestandingWalls.HALF, q);
+            FreestandingWalls.corners(strokes, o, FreestandingWalls.HALF, q);
             if (FreestandingWalls.contains(q, x, y)) return true;
         }
         return false;

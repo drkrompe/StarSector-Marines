@@ -111,6 +111,32 @@ def draw_piece(d, pid, x, y, w, h):
                       fill=BODY, outline=DARK)
 
 
+MACHINE_FRAME = (GUTTER, GUTTER, 3 * CELL, 3 * CELL)
+
+
+def machinery_guide():
+    """The heavy machinery redrawn on a guide of its own: the first drawing was the machine's side elevation laid on
+    the ground. Here every part is its top: the motor housing's lid and vents, the gearbox, the flywheel edge-on as a
+    narrow band in its guard, a control box, pipe runs, inside an open crate frame on a skid."""
+    x, y, w, h = MACHINE_FRAME
+    im = Image.new("RGBA", (w + 2 * GUTTER, h + 2 * GUTTER), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle((x + 14, y + 14, x + w - 14, y + h - 14), fill=EDGE)                    # the skid
+    d.rectangle((x + 34, y + 34, x + w - 34, y + h - 34), outline=DARK, width=16)       # open crate frame
+    d.rectangle((x + 0.17 * w, y + 0.2 * h, x + 0.6 * w, y + 0.62 * h), fill=LIGHT, outline=DARK, width=5)  # motor
+    for k in range(6):                                                                # its lid's vent slots
+        vy = y + (0.26 + k * 0.05) * h
+        d.line((x + 0.24 * w, vy, x + 0.42 * w, vy), fill=EDGE, width=6)
+    d.rectangle((x + 0.62 * w, y + 0.26 * h, x + 0.77 * w, y + 0.56 * h), fill=BODY, outline=DARK, width=5)  # gearbox
+    d.rectangle((x + 0.79 * w, y + 0.18 * h, x + 0.85 * w, y + 0.66 * h), fill=DARK)   # flywheel, edge-on, in its guard
+    d.line((x + 0.6 * w, y + 0.41 * h, x + 0.79 * w, y + 0.41 * h), fill=DARK, width=10)  # the drive shaft
+    d.rectangle((x + 0.2 * w, y + 0.67 * h, x + 0.42 * w, y + 0.8 * h), fill=BODY, outline=DARK, width=5)  # control box
+    for px in (0.48, 0.54):                                                           # pipe runs
+        d.line((x + px * w, y + 0.62 * h, x + px * w, y + 0.74 * h, ), fill=LIGHT, width=10)
+        d.line((x + px * w, y + 0.74 * h, x + 0.76 * w, y + 0.74 * h), fill=LIGHT, width=10)
+    return im
+
+
 def draw():
     fr = frames()
     width = max(x + w for _, x, _, w, _ in fr) + GUTTER
