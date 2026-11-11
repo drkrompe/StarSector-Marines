@@ -176,12 +176,68 @@ public final class HullPlan {
 
     /** Where plan {@code u} lies along the broken hull, cells from the stern, as laid with {@code section}'s gaps. */
     public static int laidU(Section section, int u) {
-        int gaps = 0;
-        for (Section s : SECTIONS) {
-            gaps += s.gap();
-            if (s == section) break;
+        return Laying.CLOSE.laidU(section, u);
+    }
+
+    /**
+     * How far apart the broken hull's sections came down: the ground before each section, stern to bow ({@link
+     * Section#gap}). {@link #CLOSE} is the sections' own gaps; a story map's patch may spread them through a town
+     * ({@link HullSitePlan#gaps}). No gap is narrower than the section's own, which holds both torn ends' aprons.
+     */
+    public record Laying(List<Integer> gaps) {
+        /** The sections' own gaps. */
+        public static final Laying CLOSE = new Laying(SECTIONS.stream().map(Section::gap).toList());
+
+        public Laying {
+            if (gaps == null || gaps.size() != SECTIONS.size()) throw new IllegalArgumentException("a gap for each section");
+            gaps = List.copyOf(gaps);
+            for (int k = 0; k < gaps.size(); k++) {
+                if (gaps.get(k) < SECTIONS.get(k).gap()) {
+                    throw new IllegalArgumentException("section " + SECTIONS.get(k).name() + "'s gap under its own");
+                }
+            }
         }
-        return u + gaps;
+
+        /** The gaps between sections only, stern side first ({@code gaps} without the stern's leading 0). */
+        public static Laying between(List<Integer> between) {
+            List<Integer> all = new ArrayList<>();
+            all.add(SECTIONS.get(0).gap());
+            all.addAll(between);
+            return new Laying(all);
+        }
+
+        /** The ground before {@code section}. */
+        public int gap(Section section) {
+            return gaps.get(SECTIONS.indexOf(section));
+        }
+
+        /** The laid length: the sections and the ground between them. */
+        public int length() {
+            int sum = LENGTH;
+            for (int g : gaps) sum += g;
+            return sum;
+        }
+
+        /** Where plan {@code u} lies along the broken hull, cells from the stern, as laid in {@code section}. */
+        public int laidU(Section section, int u) {
+            int sum = 0;
+            for (int k = 0; k < SECTIONS.size(); k++) {
+                sum += gaps.get(k);
+                if (SECTIONS.get(k) == section) break;
+            }
+            return u + sum;
+        }
+
+        /** The plan {@code u} at laid {@code s} (cells from the stern), or -1 in a gap between sections. */
+        public int planU(int s) {
+            int sum = 0;
+            for (int k = 0; k < SECTIONS.size(); k++) {
+                sum += gaps.get(k);
+                int u = s - sum;
+                if (SECTIONS.get(k).contains(u)) return u;
+            }
+            return -1;
+        }
     }
 
     /** Where plan {@code v} lies across the broken hull, in {@code section}: 0 to {@link #LAID_BREADTH} - 1. */
@@ -191,13 +247,7 @@ public final class HullPlan {
 
     /** The plan {@code u} at laid {@code s} (cells from the stern), or -1 in a gap between sections. */
     public static int planU(int s) {
-        int gaps = 0;
-        for (Section sec : SECTIONS) {
-            gaps += sec.gap();
-            int u = s - gaps;
-            if (sec.contains(u)) return u;
-        }
-        return -1;
+        return Laying.CLOSE.planU(s);
     }
 
     /** The section {@code (u, v)}'s neighbour {@code (u + du, v + dv)} is in, as a cell of {@code (u, v)}'s section. */

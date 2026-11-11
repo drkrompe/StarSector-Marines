@@ -9,35 +9,60 @@ Coordinates are map cells, `x` east, `y` north.
 
 ## Chapter 1: The Fall, the colony
 
-**Objective.** The hull has come down beside a colony. The company lands at the
-lift and brings the civilians of three holdouts out to it while the watch spreads
-west from the hull through the town (the Colony Breach's rescue, `long-survey-arc.md`).
+**Objective.** The hull's breakup has come down through a colony. The company
+lands at the lift and brings the civilians of three holdouts out to it, each
+route running past a hull section, while the watch hunts the town from the
+wreck in its streets (the Colony Breach's rescue, `long-survey-arc.md`).
 
 **Ground.** The Colony Breach's colony on its own seed, `long-survey-fall` seed 38,
-400 by 240: the lift, bores and holdouts as the owner placed them, the town north
-of the rail line, the port's yards and desert south of it (`PortYards`: tank
-farms and landing pads on the old fields, the lift's field of fire left bare).
+400 by 240, sealed with its single lock on the Avenue: the lift and bores as the
+owner placed them, the holdouts moved north of the wreck line, the town north of the rail line (x 32 to 362, y 86 to 221),
+the port's yards and desert south of it (`PortYards`: tank farms and landing pads
+on the old fields, the lift's field of fire left bare).
+
+```
+ y 221 +----------------------------------------------------------+ town's north edge
+       |  H3 65,196          H2 192,196              H1 310,202   |
+       |    .                   .                       .         |
+ y 168 | ~[BOW + forge]=====drag=====[MID]=====drag=====[STERN]   |  the wreck line,
+ y 150 |  x 45-86          furrow     x 182-203  furrow  x 319-342 |  heading west,
+ y 132 |   (west streets)            (town middle)  (east edge)   |  band 40 either side
+       |    .                   .                       .         |
+ y  86 +=========================[LOCK 200,86]=====================+ sealed wall
+       |  yards                  | Avenue                 yards     |
+       |                     (landing 200,53)                       |
+ y   0 +--------------------[LIFT 164,18]-------------------------+
+```
 
 - **Entry.** The lift at 164,18 on the south edge, its landing field of fire kept
-  clear of the hull, the trench and every strike.
-- **The hull.** Down in the desert south-east of the town, broken in three, bow west
-  (sections x 255 to 382, y 36 to 72), its trench run west toward the lift's field
-  and stopping short of it. The impact band flattens the blocks along the town's
-  south-east edge; the rest of the town stands.
-- **The holdouts.** 79,86 at the town's south-west edge, 18,200 in the far
-  north-west and 145,199 in the north wards.
+  clear of the hull, the trench and every strike, and the whole town between it
+  and the wreck: the nearest section is the midsection, about 80 cells north.
+- **The hull.** Broken in three and strung out along y 132 to 168 through the
+  middle of the town, bow west (the patch's `gaps` 115 and 95, `HullPlan.Laying`):
+  the stern at the town's east edge (x 319 to 342), the midsection in its middle
+  (x 182 to 203), the bow with the forge out in the west streets (x 45 to 86), its
+  short trench run on west toward the town's edge. Between the sections lies the
+  furrow they dragged through the blocks (`CrashSiteStage.DRAG_HALF`), and each
+  section and the furrow have their own impact band, so the town stands round and
+  between the wreck, flattened along the line and battered out to 40 either side.
+- **The holdouts.** North of the line, one over each section, near but clear of
+  the flattened ground: 310,202 over the stern, 192,196 over the midsection and
+  65,196 over the bow.
 
-**Routes**, from the lift:
+**Routes**, from the lift through the lock:
 
-- **West, the fields and wards**: across the fields to the first holdout, then north
-  through the west wards to the second; the longest walk, furthest from the hull.
-- **Centre, the avenue**: north through the town's middle to the third holdout,
-  crossing the town square.
-- **The watch's road**: from the hull west along the impact band's edge into the
-  town's south-east, the side the company must hold while the civilians pass.
+- **East**: north-east through the town's south wards, across the furrow by the
+  stern, to the east holdout.
+- **Centre, the Avenue**: north up the Avenue and past the midsection to the
+  middle holdout.
+- **West**: north-west through the south wards, across the furrow by the bow and
+  its forge, to the west holdout; the watch's home is in these streets.
 
-**Set pieces.** 1, holding the lift as the civilians come in; 2, the town square on
-the avenue; 3, the band's edge, where the watch breaks into the town.
+Every way back to the lock crosses the wreck line, so each extraction runs past a
+section and its watch.
+
+**Set pieces.** 1, holding the lock as the civilians come in; 2, the crossing of
+the wreck line by each section; 3, the forge in the west streets.
 
 **Allies.** The colony's militia in the holdouts; the company is the rescue.
 

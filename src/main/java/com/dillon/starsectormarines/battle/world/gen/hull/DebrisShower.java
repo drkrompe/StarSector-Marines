@@ -161,8 +161,8 @@ final class DebrisShower {
         void lay(List<DoodadDef> large, List<DoodadDef> medium, List<DoodadDef> small, List<DoodadDef> marks) {
             int nLarge = 0, nMedium = 0, nSmall = 0, nMarks = 0;
             // The fall line runs from uprange of the trench's far end, through the bow, the sections and the stern, on.
-            int from = -AHEAD, to = HullPlan.LAID_LENGTH + trench + UPRANGE;
-            int wreckEnd = HullPlan.LAID_LENGTH + trench;
+            int from = -AHEAD, to = frame.laying().length() + trench + UPRANGE;
+            int wreckEnd = frame.laying().length() + trench;
             int mid = HullPlan.LAID_BREADTH / 2;
             for (int k = 0; k < TRIES; k++) {
                 int l = from + rng.nextInt(to - from);
@@ -196,7 +196,7 @@ final class DebrisShower {
         /** A few great pieces thrown far: anywhere along the line, well out across it. */
         void lone(List<DoodadDef> large) {
             if (large.isEmpty()) return;
-            int from = -AHEAD, to = HullPlan.LAID_LENGTH + trench + UPRANGE, mid = HullPlan.LAID_BREADTH / 2;
+            int from = -AHEAD, to = frame.laying().length() + trench + UPRANGE, mid = HullPlan.LAID_BREADTH / 2;
             int laid = 0;
             for (int k = 0; k < LONE * 60 && laid < LONE; k++) {
                 int l = from + rng.nextInt(to - from);

@@ -82,7 +82,8 @@ public final class CrashSiteFinishStage implements GenStage {
 
         // The shower falls on the finished country: after the mission's structures and terraces are sited, before the
         // lattice seats its stakes round it.
-        List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
+        List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading(),
+                        laid.plan().laying()),
                 laid.plan().trench(), hull, trench, aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         ctx.put(HullKeys.STRIKES, strikes);
         // The ground the hull flattened, round its trench and sections: burnt and ploughed bare now, its buildings, fences

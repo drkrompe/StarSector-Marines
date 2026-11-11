@@ -111,8 +111,9 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
             }
             long sites = ground.map().pointsOfInterest.stream()
                     .filter(p -> p.kind != PointOfInterest.Kind.RESIDENTIAL).count();
-            System.out.printf(Locale.ROOT, "[%s] %s: hull %s, %d lattice points, %d roads, %d stakes, %d site buildings,"
-                    + " problems %s%n", id(), chapter.id, site.footprint(), site.lattice().size(), site.roads().size(),
+            System.out.printf(Locale.ROOT, "[%s] %s: %dx%d, hull %s, sections %s, %d lattice points, %d roads, %d stakes,"
+                    + " %d site buildings, problems %s%n", id(), chapter.id, ground.map().grid.getWidth(),
+                    ground.map().grid.getHeight(), site.footprint(), site.sections(), site.lattice().size(), site.roads().size(),
                     site.stakes().size(), sites, site.problems());
         }
         return out;

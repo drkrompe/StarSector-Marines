@@ -5,7 +5,10 @@ import com.dillon.starsectormarines.battle.world.gen.hull.HullPlan.Hall;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullPlan.HallUse;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The fallen hull's interior laws, proved on its plan before it meets a map ({@code fallen-hull-nouns.md}). */
@@ -50,6 +53,19 @@ class HullPlanTest {
         assertEquals(HullPlan.LENGTH + 18 + 22, HullPlan.LAID_LENGTH);
         assertTrue(plan.sheared(mid.u0(), 0), "a broken end's corner is the cut face");
         assertEquals(false, plan.sheared(0, 0), "the stern is no broken end");
+    }
+
+    @Test
+    void aSpreadLayingStringsTheSectionsApartAndNeverCloserThanTheyBroke() {
+        HullPlan.Laying spread = HullPlan.Laying.between(List.of(115, 95));
+        assertEquals(HullPlan.LENGTH + 115 + 95, spread.length());
+        HullPlan.Section mid = HullPlan.SECTIONS.get(1), bow = HullPlan.SECTIONS.get(2);
+        assertEquals(mid.u0() + 115, spread.laidU(mid, mid.u0()));
+        assertEquals(bow.u0() + 115 + 95, spread.laidU(bow, bow.u0()));
+        for (int u = 0; u < HullPlan.LENGTH; u++) assertEquals(u, spread.planU(spread.laidU(HullPlan.section(u), u)));
+        assertEquals(-1, spread.planU(mid.u0() + 60), "the furrow between is no hull");
+        assertThrows(IllegalArgumentException.class, () -> HullPlan.Laying.between(List.of(10, 95)));
+        assertEquals(HullPlan.LAID_LENGTH, HullPlan.Laying.CLOSE.length());
     }
 
     @Test

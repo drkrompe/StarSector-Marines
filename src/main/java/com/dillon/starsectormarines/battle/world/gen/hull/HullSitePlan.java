@@ -17,16 +17,17 @@ import java.util.Locale;
  * <p>Read from a pool entry's patch as
  * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards",
  * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]], "plough",
- * "port": [{"kind", "box": [x0, y0, x1, y1]}]}};
+ * "port": [{"kind", "box": [x0, y0, x1, y1]}], "gaps": [stern to mid, mid to bow]}};
  * {@code heading} is {@code north} (+y), {@code east}, {@code south} or {@code west}. {@code yards}, a row, makes the
  * worked fields wholly south of it the port's yards ({@link PortYards}); absent or 0, the fields are left as laid.
  * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}). {@code blocks} are boxes
  * where the city's town lots join into bigger blocks ({@code TownBlockStage}). {@code plough}, cells, is how far out
  * open ground is ploughed under the band where a commons runs on past it ({@link ImpactZone}); absent or 0, the band's
- * own reach. {@code port} dresses a free port's quarters in the town's open lots ({@link Port}, {@link PortQuarter}).
+ * own reach. {@code gaps}, cells, spread the broken hull's sections apart along its line ({@link HullPlan.Laying}),
+ * {@code x, y} then the middle of the whole spread; absent, they lie as close as they broke. {@code port} dresses a free port's quarters in the town's open lots ({@link Port}, {@link PortQuarter}).
  */
 public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards,
-                           List<Dress> dress, List<Box> blocks, int plough, List<Port> port) {
+                           List<Dress> dress, List<Box> blocks, int plough, List<Port> port, List<Integer> gaps) {
 
     /** A box of map cells, inclusive. */
     public record Box(int x0, int y0, int x1, int y1) {
@@ -111,8 +112,15 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
         dress = dress == null ? List.of() : List.copyOf(dress);
         blocks = blocks == null ? List.of() : List.copyOf(blocks);
         port = port == null ? List.of() : List.copyOf(port);
+        gaps = gaps == null ? List.of() : List.copyOf(gaps);
+        if (!gaps.isEmpty()) HullPlan.Laying.between(gaps);
         if (yards < 0) throw new IllegalArgumentException("yards south of row " + yards);
         if (plough < 0) throw new IllegalArgumentException("plough of " + plough + " cells");
+    }
+
+    /** How far apart the sections lie: the patch's {@code gaps}, or as close as they broke. */
+    public HullPlan.Laying laying() {
+        return gaps.isEmpty() ? HullPlan.Laying.CLOSE : HullPlan.Laying.between(gaps);
     }
 
     /**
@@ -121,13 +129,19 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
      * ground is not grown there, since the band would bury it.
      */
     public boolean underBand(int cx, int cy) {
-        double half = HullPlan.LAID_LENGTH / 2.0, reach = HullPlan.LAID_BREADTH / 2.0 + Math.max(ImpactZone.BATTER, plough);
+        double half = laying().length() / 2.0, reach = HullPlan.LAID_BREADTH / 2.0 + Math.max(ImpactZone.BATTER, plough);
         double ax = x - heading.dx * half, ay = y - heading.dy * half;
         double bx = x + heading.dx * (half + trench), by = y + heading.dy * (half + trench);
         double vx = bx - ax, vy = by - ay, t = ((cx - ax) * vx + (cy - ay) * vy) / (vx * vx + vy * vy);
         t = Math.max(0, Math.min(1, t));
         double dx = cx - (ax + t * vx), dy = cy - (ay + t * vy);
         return dx * dx + dy * dy <= reach * reach;
+    }
+
+    private static List<Integer> ints(JSONArray array) throws JSONException {
+        List<Integer> out = new ArrayList<>();
+        if (array != null) for (int i = 0; i < array.length(); i++) out.add(array.getInt(i));
+        return out;
     }
 
     /** The patch op's form; null for an absent one. */
@@ -177,6 +191,6 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
             }
         }
         return new HullSitePlan(json.getInt("x"), json.getInt("y"), heading, json.optInt("trench", 72), stakes,
-                json.optInt("yards", 0), dress, blocks, json.optInt("plough", 0), port);
+                json.optInt("yards", 0), dress, blocks, json.optInt("plough", 0), port, ints(json.optJSONArray("gaps")));
     }
 }

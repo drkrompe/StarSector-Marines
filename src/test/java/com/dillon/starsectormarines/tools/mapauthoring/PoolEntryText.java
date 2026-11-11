@@ -118,6 +118,7 @@ public final class PoolEntryText {
                 hull.put("blocks", blocks);
             }
             if (h.plough() > 0) hull.put("plough", h.plough());
+            if (!h.gaps().isEmpty()) hull.put("gaps", h.gaps());
             if (!h.port().isEmpty()) {
                 List<Object> port = new ArrayList<>();
                 for (HullSitePlan.Port q : h.port()) {

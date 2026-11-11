@@ -204,6 +204,14 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   (`CrashSiteFinishStage.splitCompartments`), so a unit that boards opens the
   compartment it stands in (`BuildingVisibilityPass`) and the rest of the ship
   stays roofed.
+- **The spread.** The sections lie as close as they broke (gaps of 18 and 22
+  cells), unless a story map's patch spreads them along the line (`gaps`,
+  `HullPlan.Laying`, never closer than their own): the Fall strings them through
+  its town, stern at the edge, midsection in the middle, bow beyond. A gap up to
+  30 cells is ploughed across the hull's whole breadth; a wider one is the
+  **drag furrow** the sections dragged through whatever stood there, 12 cells
+  wide with its wandering sides and lips (`CrashSiteStage.DRAG_HALF`). The
+  furrow is trench ground, so the impact band runs along it too.
 - **The trench** runs off the bow's tip for the patch's length (12 cells and
   more: the gaps between the sections are ploughed too), a furrow 24 cells wide
   at the hull easing to 8 where the hull first touched down and closing in a

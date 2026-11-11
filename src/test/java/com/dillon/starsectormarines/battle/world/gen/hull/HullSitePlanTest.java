@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class HullSitePlanTest {
 
     private static HullSitePlan west(int plough) {
-        return new HullSitePlan(200, 100, Direction.W, 40, List.of(), 0, List.of(), List.of(), plough, List.of());
+        return new HullSitePlan(200, 100, Direction.W, 40, List.of(), 0, List.of(), List.of(), plough, List.of(), List.of());
     }
 
     @Test

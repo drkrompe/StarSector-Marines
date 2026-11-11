@@ -4,7 +4,7 @@
   "home": "FROZEN",
   "entry": {
     "seed": 38,
-    "note": "The Fall: the Colony Breach's colony (seed 38, its lift, bores and holdouts as the owner placed them) with the Surveyor down in the desert south-east of the town, broken in three, bow west, its trench ploughed west from the bow along the town's southern edge and stopping short of the landing's field of fire; no stakes yet",
+    "note": "The Fall: the Colony Breach's colony (seed 38, its lift and bores as the owner placed them) with the Surveyor's breakup strung through the middle of the town, bow west along y 150 (gaps 115 and 95): the stern at the town's east edge, the midsection in its middle, the bow and its forge out in the west streets, the drag furrow between; the three holdouts north of the line, one over each section, so every way back to the lock crosses the wreck; no stakes yet",
     "patch": {
       "lift": [
         164,
@@ -35,23 +35,27 @@
       ],
       "holdouts": [
         [
-          79,
-          86
+          310,
+          202
         ],
         [
-          18,
-          200
+          192,
+          196
         ],
         [
-          145,
-          199
+          65,
+          196
         ]
       ],
       "hull": {
-        "x": 318,
-        "y": 54,
+        "x": 193,
+        "y": 150,
         "heading": "west",
         "trench": 12,
+        "gaps": [
+          115,
+          95
+        ],
         "yards": 80
       }
     }
