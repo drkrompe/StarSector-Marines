@@ -1771,7 +1771,8 @@ public final class BattleSetup {
             // a clock its security sets (raid-demolish-the-works.md, slice 8).
             if (!coldAccount) sim.getReinforcementService().addTrigger(new RaidPressureTrigger(
                     RaidPressureClocks.of(profile == null ? RaidSiteTemplate.Security.OPEN
-                            : RaidSiteTemplate.Security.of(profile))));
+                            : RaidSiteTemplate.Security.of(profile)),
+                    RaidWorksMachines.columnArmour(groundRoster == null ? null : groundRoster.primaryFactionId())));
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,

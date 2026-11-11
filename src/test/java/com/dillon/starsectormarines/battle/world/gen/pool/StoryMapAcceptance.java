@@ -188,13 +188,12 @@ public final class StoryMapAcceptance {
     /**
      * A Long Survey chapter's acceptance ({@code long-survey-arc.md}, Seeds): its base mission's ground still carries
      * what the chapter fights over (The Fall: the colony's rescue stands up, shelter, lift and holdouts; The Line: the
-     * Cordon's line; The Surveyor: its airbases where they were placed), and its fallen hull keeps every law
+     * district capital, a city; The Surveyor: its airbases where they were placed), and its fallen hull keeps every law
      * ({@code HullSiteCheck}) with each starting stake on a lattice point with a haul road home.
      */
     static String longSurvey(StoryMap map, SurfacePalette biome, StoryMapPool.Entry entry) throws Exception {
         String base = switch (map) {
             case LONG_SURVEY_FALL -> "colony " + colony(biome, entry);
-            case LONG_SURVEY_LINE -> "cordon " + cordon(StoryMap.CORDON_LINE, biome, entry).split("; layout")[0];
             default -> "";
         };
         LongSurveyGround.Ground ground = LongSurveyGround.ground(map, biome, entry);
