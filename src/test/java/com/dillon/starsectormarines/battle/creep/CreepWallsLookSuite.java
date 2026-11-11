@@ -23,13 +23,16 @@ import java.util.Locale;
  * {@code colony-breach-nouns.md}, Creep): the canonical colony fixture, its eruption sites opened on the breach
  * schedule and the field ticked with the roofs caving in under it, as {@link HiveCreepSnapshotSuite} replays it. The
  * look preset at play zoom on the building the creep holds most of the walls of by six minutes, before the tremor
- * ({@code walls-m0.png}) and at two, four and six minutes ({@code walls-mN.png}). Opt-in.
+ * ({@code walls-m0.png}) and at two, four and six minutes ({@code walls-mN.png}), with a close view on the building's
+ * corner ({@code walls-close-mN.png}). Opt-in.
  */
 public final class CreepWallsLookSuite implements SnapshotSuite {
 
     private static final String FIXTURE = "/battle-fixtures/colony-breach-v1.json";
     private static final int TICKS_PER_MINUTE = 1800;
     private static final long ROOF_SEED = 20261021L;
+    /** The close view's width, cells. */
+    private static final float CLOSE_CELLS = 26f;
 
     @Override public String id() { return "creep-walls-look"; }
 
@@ -64,6 +67,12 @@ public final class CreepWallsLookSuite implements SnapshotSuite {
             out.add(new SnapshotArtifact(String.format(Locale.ROOT, "walls-m%d.png", m),
                     BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, vx, vy,
                             BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).render(sim, "")));
+            if (m > 0) {
+                // Close on the building's corner toward the view's edge, where its faces lean out most.
+                out.add(new SnapshotArtifact(String.format(Locale.ROOT, "walls-close-m%d.png", m),
+                        BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, pick.minX + 1f, pick.minY - 2f,
+                                CLOSE_CELLS).render(sim, "")));
+            }
         }
         sim.close();
         return out;

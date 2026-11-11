@@ -168,11 +168,11 @@ chapter (pick through the art session), voiced later as the Khettara is.
   printing `BattleSetup.FALL_QUEUE` (workers and walkers, never a stake, so the
   claim does not spread in chapter 1) from `FALL_FEEDSTOCK`, with
   `FALL_WALKERS` (a line frame, a rounds walker, two strippers) already out at
-  the bay mouth. All UNTUNED. Ground with no hull site (no pool installed)
+  the bay mouth, and `FALL_PILES` of the town's buildings on the claim as
+  salvage for the strippers (`TownSalvage`). All UNTUNED. Ground with no hull site (no pool installed)
   falls back to a site network laid by `DerelictSecurity.install`'s route
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
-  that one seed. Open: the forward-bay bonus objective, and salvage piles on
-  the town's headframes for the strippers.
+  that one seed. Open: the forward-bay bonus objective.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Chicomoztoc, each on its chapter's seed with the challenge force (a
   Veteran Company, seven squads, four machines); a chapter is listed once

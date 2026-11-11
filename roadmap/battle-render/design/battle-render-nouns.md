@@ -114,6 +114,15 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   and banks indoors (sand, snow, basalt, ash, sulphur, crust;
   `mapgen-nouns.md`, The world takes the ruin back) is a covering too, so a
   world's drift also frays a quarter-cell across any doorway it meets.
+  A **smoothed outline** replaces the feather where a ground is laid cell by
+  cell along a curve: a fallen hull's trench and its trodden lip, on a map the
+  trench lies on (`GroundFeather.SMOOTHED`). Each cell corner takes the share
+  of the ground within a few cells that is that material or stronger, and the
+  cells along the edge are cut on the contour through one half, so whole-cell
+  steps and the square corners of a run read as a curve while a straight edge
+  stays on its cell line. Inside the contour a weaker cell takes the material's
+  art; outside it the material's own cell takes a weaker neighbour's. The trench
+  rounds over three cells, the lip over one so a trodden path a cell wide keeps.
 - A **floor trim** is the step where a built floor panel (a ruins hall's raised
   floor or stage) meets any other open floor: the panel keeps a clean cell edge
   and lays its trim strip inside it, half a cell deep and turned to the side it
