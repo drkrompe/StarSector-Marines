@@ -223,10 +223,14 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   felled, so nothing intact stands against the hull or the plough; out to 40
   cells the blocks are battered and wrecked in patches that grow rarer outward,
   trees felled in the wrecked ones; beyond that only the shower's strikes fall
-  (UNTUNED). The ground is **ploughed** when the map is generated: soft ground
-  within 20 cells is burnt to bare earth and rubble with its plants gone, and so
-  are the battered ground's wrecked patches, and a road ends in rubble 8 cells
-  short of the hull, ragged out to 14. The wrecking is initial damage
+  (UNTUNED). The ground is **ploughed** when the map is generated: open ground
+  (soft ground and frozen ponds) out to 40 cells, its last 8 ragged, is burnt to
+  bare earth and rubble with its plants and the wild ground's formations gone,
+  so nothing under the band is clean, and a road ends in rubble 8 cells short of
+  the hull, ragged out to 14. The patch's `plough` carries the open ground's
+  reach further where a commons runs on past the band. No relief is raised under
+  it: the landscape grows no ridge, plateau, hill or signature rim there
+  (`HullSitePlan.underBand`). The wrecking is initial damage
   (`hull-impact-*` layers), applied when the battle is assembled, as runs of
   cells along each row, so it never touches the hull, its trench or aprons,
   standing debris or other fixtures, the landing's field of fire or a piece the

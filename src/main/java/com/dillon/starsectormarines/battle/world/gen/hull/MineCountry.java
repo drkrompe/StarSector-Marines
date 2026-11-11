@@ -280,17 +280,31 @@ public final class MineCountry {
      * again, as the mine cleared its country: a formation is whole or gone.
      */
     private void clearFormations(int x0, int y0, int x1, int y1) {
+        clearFormations(ctx, (x, y) -> x >= x0 && x <= x1 && y >= y0 && y <= y1);
+    }
+
+    /** As above, for the formations reaching into {@code area}'s cells (row-major, {@code y * width + x}). */
+    static void clearFormations(GenContext ctx, BitSet area) {
+        int w = ctx.width, h = ctx.height;
+        clearFormations(ctx, (x, y) -> x >= 0 && y >= 0 && x < w && y < h && area.get(y * w + x));
+    }
+
+    /** Which cells a clearing reaches. */
+    private interface Cells {
+        boolean in(int x, int y);
+    }
+
+    private static void clearFormations(GenContext ctx, Cells area) {
+        int w = ctx.width, h = ctx.height;
         for (Iterator<Doodad> it = ctx.doodads.iterator(); it.hasNext(); ) {
             Doodad d = it.next();
             MineralFormation shape = formation(d.definitionId());
             if (shape == null) continue;
             int span = Math.max(d.footprintCellsX, d.footprintCellsY);
-            if (d.cellX > x1 || d.cellY > y1 || d.cellX + span - 1 < x0 || d.cellY + span - 1 < y0) continue;
             boolean reaches = false;
             for (int y = d.cellY; y < d.cellY + span && !reaches; y++) {
                 for (int x = d.cellX; x < d.cellX + span && !reaches; x++) {
-                    reaches = x >= x0 && x <= x1 && y >= y0 && y <= y1
-                            && shape.blocks(x - d.cellX, y - d.cellY, d.quarterTurns);
+                    reaches = area.in(x, y) && shape.blocks(x - d.cellX, y - d.cellY, d.quarterTurns);
                 }
             }
             if (!reaches) continue;

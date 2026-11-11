@@ -35,8 +35,16 @@ class ImpactZoneTest {
     }
 
     @Test
-    void waterAndFloorsAreNotPloughed() {
-        assertNull(ImpactZone.ploughed(GroundKind.WATER, 0, 7L, 5, 5));
+    void floorsAreNotPloughed() {
         assertNull(ImpactZone.ploughed(GroundKind.INDOOR, 0, 7L, 5, 5));
+    }
+
+    @Test
+    void openGroundAndPondsAreBuriedAcrossTheBand() {
+        int inside = ImpactZone.BATTER - ImpactZone.OPEN_RAGGED;
+        for (int x = 0; x < 40; x++) {
+            assertNotNull(ImpactZone.ploughed(GroundKind.SNOW, thirds(inside), 7L, x, 3));
+            assertNotNull(ImpactZone.ploughed(GroundKind.WATER, thirds(inside), 7L, x, 3));
+        }
     }
 }

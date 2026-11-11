@@ -38,7 +38,12 @@ final class ImpactZone {
     static final int FLATTEN = 20, BATTER = 40;
     /** Ground kept clear round a mission's buildings and structures, and off the landing's field of fire. */
     static final int CLEAR = 5;
-    /** The share of wrecked patches of open ground out in the battered ground left unscarred. UNTUNED. */
+    /**
+     * Open ground (soft ground and frozen water) is ploughed out to {@link #BATTER}, its outermost cells this deep in
+     * patches, so nothing under the band is clean and its edge is ragged. UNTUNED.
+     */
+    static final int OPEN_RAGGED = 8;
+    /** The share of wrecked patches of open ground out in the battered ground left uncratered. UNTUNED. */
     static final float OPEN_SCAR = 0.3f;
     /** A road is rubble this many cells from the hull or its trench, and broken in patches out to the second. */
     static final int ROAD_BREAK = 8, ROAD_RAGGED = 14;
@@ -68,12 +73,19 @@ final class ImpactZone {
     }
 
     /**
-     * The ground itself, on the map as generated: soft open ground under the hull is burnt and ploughed to bare earth and
-     * rubble, its plants and loose stones gone, and out in the battered ground in its wrecked patches; a road ends in
-     * rubble short of the hull. Kept ground, the hull, its trench and the aprons are left as they are.
+     * The ground itself, on the map as generated: open ground under the band is burnt and ploughed to bare earth and
+     * rubble out to {@link #BATTER}, its plants, loose stones and the wild ground's formations gone and a frozen pond
+     * buried under it; a road ends in rubble short of the hull. Kept ground, the hull, its trench and the aprons are left
+     * as they are.
      */
     static void plough(GenContext ctx, BitSet hull, BitSet trench, BitSet lips, BitSet aprons, FieldOfFire field) {
-        int w = ctx.width, h = ctx.height;
+        plough(ctx, hull, trench, lips, aprons, field, BATTER);
+    }
+
+    /** As above, open ground ploughed out to {@code reach} cells ({@link HullSitePlan#plough}), at least the band's. */
+    static void plough(GenContext ctx, BitSet hull, BitSet trench, BitSet lips, BitSet aprons, FieldOfFire field,
+                       int reach) {
+        int w = ctx.width, h = ctx.height, far = Math.max(BATTER, reach);
         BitSet source = new BitSet(w * h);
         source.or(hull);
         source.or(trench);
@@ -81,15 +93,25 @@ final class ImpactZone {
         int[] dist = distance(source, w, h);
         boolean[] kept = kept(ctx, dist, hull, trench, lips, aprons, field);
         CellTopology topology = ctx.topology;
+        BitSet band = new BitSet(w * h);
+        for (int k = 0; k < w * h; k++) if (!kept[k] && dist[k] <= far * 3) band.set(k);
+        MineCountry.clearFormations(ctx, band);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int k = y * w + x;
-                if (kept[k] || dist[k] > BATTER * 3) continue;
+                if (!band.get(k)) continue;
                 GroundKind kind = topology.getGroundKind(x, y);
-                GroundKind to = ploughed(kind, dist[k], ctx.seed, x, y);
+                GroundKind to = ploughed(kind, dist[k], ctx.seed, x, y, far);
                 if (to == null) continue;
                 if (topology.isWall(x, y) || topology.isFixture(x, y) && !ctx.grid.hasTag(x, y, CellTag.NATURAL_SOLID)) {
                     continue;
+                }
+                if (kind == GroundKind.WATER) {
+                    // The pond is filled: ground a figure stands on, no longer water to shoot across.
+                    ctx.grid.setWalkableFloor(x, y);
+                    ctx.grid.setTag(x, y, CellTag.SEE_THROUGH, false);
+                    ctx.grid.setTag(x, y, CellTag.NO_EDGE_COVER, false);
+                    topology.setTag(x, y, CellTopology.Tag.SHALLOW_WATER, false);
                 }
                 topology.setGroundKind(x, y, to);
                 String block = CrashSiteStage.block(to);
@@ -101,14 +123,18 @@ final class ImpactZone {
 
     /** What the hull's coming in made of a cell's ground, or {@code null} for unchanged. */
     static GroundKind ploughed(GroundKind kind, int distanceThirds, long seed, int x, int y) {
+        return ploughed(kind, distanceThirds, seed, x, y, BATTER);
+    }
+
+    /** As above, open ground ploughed out to {@code reach} cells. */
+    static GroundKind ploughed(GroundKind kind, int distanceThirds, long seed, int x, int y, int reach) {
         float d = distanceThirds / 3f;
         if (kind == GroundKind.STREET || kind == GroundKind.SIDEWALK) {
             if (d <= ROAD_BREAK) return GroundKind.RUBBLE;
             return d <= ROAD_RAGGED && patch(seed ^ 0x40ADL, x * 2, y * 2) < 0.5f ? GroundKind.RUBBLE : null;
         }
-        if (!soft(kind)) return null;
-        if (d > FLATTEN && (mode(distanceThirds, seed, x, y) != DamagePlan.Mode.RUIN
-                || patch(seed ^ 0x5CA2L, x, y) < OPEN_SCAR)) return null;
+        if (!soft(kind) && kind != GroundKind.WATER) return null;
+        if (d > reach - OPEN_RAGGED * patch(seed ^ 0x5CA2L, x, y)) return null;
         return CrashSiteStage.trenchGround(seed, x, y);
     }
 

@@ -84,7 +84,8 @@ public final class CrashSiteFinishStage implements GenStage {
         ctx.put(HullKeys.STRIKES, strikes);
         // The ground the hull flattened, round its trench and sections: burnt and ploughed bare now, its buildings, fences
         // and trees wrecked as initial damage like the strikes.
-        ImpactZone.plough(ctx, hull, trench, new BitSet(), aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
+        ImpactZone.plough(ctx, hull, trench, new BitSet(), aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)),
+                laid.plan().plough());
         ctx.put(HullKeys.IMPACT, ImpactZone.layers(ctx, hull, trench, new BitSet(), aprons,
                 FieldOfFire.of(ctx.get(BspKeys.PRECINCTS))));
         ClaimLattice.Ground stakeGround = (x, y) -> {

@@ -117,6 +117,7 @@ public final class PoolEntryText {
                 for (HullSitePlan.Box b : h.blocks()) blocks.add(List.of(b.x0(), b.y0(), b.x1(), b.y1()));
                 hull.put("blocks", blocks);
             }
+            if (h.plough() > 0) hull.put("plough", h.plough());
             m.put("hull", hull);
         }
         return m;

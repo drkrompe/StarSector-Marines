@@ -38,6 +38,8 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.elevation.OreLine;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullKeys;
+import com.dillon.starsectormarines.battle.world.gen.hull.HullSitePlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.PlateauPlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
@@ -904,8 +906,10 @@ public final class OutdoorLandscapeStage implements GenStage {
     /** Cells a ridge, its faces and its apron may cover: open natural ground nothing reserves. */
     private static IntPredicate ridgeFree(GenContext c, boolean[] reserved, boolean overLawns) {
         int w = c.width;
+        // A fallen hull's band ploughs its ground flat: no ridge rises where it would be buried.
+        HullSitePlan crash = c.get(HullKeys.PLAN);
         return i -> !reserved[i] && (openGround(c, i % w, i / w) || overLawns && lawn(c, i % w, i / w))
-                && !terrainVisible(c, i % w, i / w);
+                && !terrainVisible(c, i % w, i / w) && (crash == null || !crash.underBand(i % w, i / w));
     }
 
     /** Ramps already on the map (a layout's ridges, raised before this pass) stay clear: they are the only ways up. */
@@ -1127,6 +1131,8 @@ public final class OutdoorLandscapeStage implements GenStage {
                 1.8, .55, c.seed ^ 0x48494c4cL, List.of());
         boolean[] occupied = new boolean[reserved.length], closed = new boolean[reserved.length];
         int desired = Math.max(1, Math.min(10, c.width * c.height / 6000));
+        // A fallen hull's band ploughs its ground flat: no hill rises where it would be buried.
+        HullSitePlan crash = c.get(HullKeys.PLAN);
         for (int attempt = 0; attempt < desired * 12 && plan.strokes().size() < desired; attempt++) {
             int radius = 7 + random.nextInt(6);
             int x = 10 + random.nextInt(c.width - 20), y = 10 + random.nextInt(c.height - 20);
@@ -1141,7 +1147,7 @@ public final class OutdoorLandscapeStage implements GenStage {
             for (int yy = b; yy <= t && fits; yy++) for (int xx = l; xx <= r; xx++) {
                 if (field.maximum(xx, yy) < -.65) continue;
                 if (reserved[yy * c.width + xx] || occupied[yy * c.width + xx] || !openGround(c, xx, yy)
-                        || (ridgeGround != null && ridgeGround[xx][yy])) {
+                        || (ridgeGround != null && ridgeGround[xx][yy]) || (crash != null && crash.underBand(xx, yy))) {
                     fits = false; break;
                 }
             }
@@ -1173,6 +1179,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         TerrainField field = TerrainField.build(new TerrainPlan(c.width, c.height, plan.finish(),
                 plan.faceDepth(), plan.ruggedness(), plan.seed(), List.of(stroke)));
         double pad = stroke.radius() + 4;
+        HullSitePlan crash = c.get(HullKeys.PLAN);
         int l = Math.max(0, (int) Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).min().orElseThrow() - pad));
         int b = Math.max(0, (int) Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::y).min().orElseThrow() - pad));
         int r = Math.min(c.width - 1, (int) Math.ceil(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).max().orElseThrow() + pad));
@@ -1180,7 +1187,8 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int yy = b; yy <= t; yy++) for (int xx = l; xx <= r; xx++) {
             if (Math.max(field.maximum(xx, yy), field.excavationMaximum(xx, yy)) < -.65) continue;
             int i = yy * c.width + xx;
-            if (reserved[i] || occupied[i] || !openGround(c, xx, yy) || (ridgeGround != null && ridgeGround[xx][yy]))
+            if (reserved[i] || occupied[i] || !openGround(c, xx, yy) || (ridgeGround != null && ridgeGround[xx][yy])
+                    || (crash != null && crash.underBand(xx, yy)))
                 return false;
         }
         if (!LandscapeAccess.canClose(c.grid, closed, l, b, r, t, field::blocked)) return false;
@@ -1206,8 +1214,11 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     private static void plateaus(GenContext c, boolean[] reserved, int count, Random random) {
         int w = c.width;
+        // A fallen hull's band ploughs its ground flat: no plateau rises where it would be buried.
+        HullSitePlan crash = c.get(HullKeys.PLAN);
         ElevationPlan plan = PlateauPlanner.plan(c.width, c.height, c.seed ^ 0x504c4154L, count, random,
-                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w),
+                i -> !reserved[i] && openGround(c, i % w, i / w) && !terrainVisible(c, i % w, i / w)
+                        && (crash == null || !crash.underBand(i % w, i / w)),
                 i -> reserved[i],
                 layout -> keepsAccess(c, layout));
         if (plan != null) ElevationBrush.stamp(plan, c.grid, c.topology, reserved);

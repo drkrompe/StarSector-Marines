@@ -16,14 +16,16 @@ import java.util.Locale;
  *
  * <p>Read from a pool entry's patch as
  * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards",
- * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]]}};
+ * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]], "plough"}};
  * {@code heading} is {@code north} (+y), {@code east}, {@code south} or {@code west}. {@code yards}, a row, makes the
  * worked fields wholly south of it the port's yards ({@link PortYards}); absent or 0, the fields are left as laid.
  * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}). {@code blocks} are boxes
- * where the city's town lots join into bigger blocks ({@code TownBlockStage}).
+ * where the city's town lots join into bigger blocks ({@code TownBlockStage}). {@code plough}, cells, is how far out
+ * open ground is ploughed under the band where a commons runs on past it ({@link ImpactZone}); absent or 0, the band's
+ * own reach.
  */
 public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards,
-                           List<Dress> dress, List<Box> blocks) {
+                           List<Dress> dress, List<Box> blocks, int plough) {
 
     /** A box of map cells, inclusive. */
     public record Box(int x0, int y0, int x1, int y1) {
@@ -74,6 +76,22 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
         dress = dress == null ? List.of() : List.copyOf(dress);
         blocks = blocks == null ? List.of() : List.copyOf(blocks);
         if (yards < 0) throw new IllegalArgumentException("yards south of row " + yards);
+        if (plough < 0) throw new IllegalArgumentException("plough of " + plough + " cells");
+    }
+
+    /**
+     * Whether the cell lies under the ground the hull's band ploughs: within the band's reach ({@link #plough}, at
+     * least {@link ImpactZone#BATTER}) of the laid hull or its trench, read from the plan before the hull is laid. Raised
+     * ground is not grown there, since the band would bury it.
+     */
+    public boolean underBand(int cx, int cy) {
+        double half = HullPlan.LAID_LENGTH / 2.0, reach = HullPlan.LAID_BREADTH / 2.0 + Math.max(ImpactZone.BATTER, plough);
+        double ax = x - heading.dx * half, ay = y - heading.dy * half;
+        double bx = x + heading.dx * (half + trench), by = y + heading.dy * (half + trench);
+        double vx = bx - ax, vy = by - ay, t = ((cx - ax) * vx + (cy - ay) * vy) / (vx * vx + vy * vy);
+        t = Math.max(0, Math.min(1, t));
+        double dx = cx - (ax + t * vx), dy = cy - (ay + t * vy);
+        return dx * dx + dy * dy <= reach * reach;
     }
 
     /** The patch op's form; null for an absent one. */
@@ -113,6 +131,6 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
             }
         }
         return new HullSitePlan(json.getInt("x"), json.getInt("y"), heading, json.optInt("trench", 72), stakes,
-                json.optInt("yards", 0), dress, blocks);
+                json.optInt("yards", 0), dress, blocks, json.optInt("plough", 0));
     }
 }
