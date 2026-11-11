@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
@@ -171,7 +172,12 @@ public final class DustLedgerCrossing {
     /** The terraforming pipeline's line, from the canal bank north through the south wall to the pump gear. */
     private static final int PIPELINE_X = 184;
 
-    /** The gun nests' mounts, each on a paved pad: the gate drive, by the tank farm, the east yard. */
+    /**
+     * The gun nests' mounts, each on a paved pad: the gate drive, by the tank farm, the east yard. They stand inside
+     * the wall by the mission's design (owner pick, card {@code mission-gun-placement}): a wall blocks direct fire, so
+     * the gate drive's cannon covers the road only through the gate and the machine guns cover the yard itself. Each
+     * is laid on its facing.
+     */
     private static final List<Cell> NEST_CELLS = List.of(new Cell(198, 63), new Cell(153, 47), new Cell(212, 47));
     private static final List<Direction> NEST_FACING = List.of(Direction.N, Direction.W, Direction.W);
     /** The light cannon on the drive, where a crawler would come in; machine guns where infantry does. */
@@ -885,9 +891,11 @@ public final class DustLedgerCrossing {
     private static void nests(GenContext c, Sites s) {
         for (int i = 0; i < NEST_CELLS.size(); i++) {
             Cell at = NEST_CELLS.get(i);
-            DefensePost post = DefensePostStamper.stampNest(c.grid, c.topology, c.doodads, at.x(), at.y(), NEST_GUNS.get(i));
+            Direction facing = NEST_FACING.get(i);
+            DefensePost post = DefensePostStamper.stampNest(c.grid, c.topology, c.doodads, at.x(), at.y(), NEST_GUNS.get(i))
+                    .withRestFacing(LayeredAppearance.facingDegrees(facing.dx, facing.dy));
             c.defensePosts.add(post);
-            s.nests.add(new Nest(at, NEST_FACING.get(i), post));
+            s.nests.add(new Nest(at, facing, post));
         }
     }
 

@@ -653,8 +653,8 @@ Laws):
      stands in it, show through, framed by its reveals, lintel soffit and
      threshold; a loading bay's roller door is rolled up under its lintel,
      and at night the room beyond glows through. Look suite:
-     `-Dsnapshot.walls.frame=doors`. Open: whether a closed leaf should be
-     shown recessed in the opening instead.
+     `-Dsnapshot.walls.frame=doors`. Doors stay open cut-outs (owner's
+     pick); no closed leaf is drawn in the opening.
    - A doorway the map left with no door draws as a doorway; only the
      rubble a breach leaves (`CellTopology.isRubble`) reads as a breach.
    - The habitat comes from the wall's surface and the world's ground.
@@ -710,8 +710,10 @@ Laws):
    every storey glow, warm and varied (`FacePainter.lit`, their own layer
    over the night shade); a shop's window stays lit under a lit sign. A
    street lamp never lights a roofed wall (`NightLightingRenderSystem.litBy`).
-   Open: a roof is drawn lifted toward the camera while the night shade lies
-   in ground space, so a roof's edge still takes the lit street below it.
+   A roof is drawn lifted toward the camera while the night shade lies in
+   ground space, so the shade reads the roofs where they are drawn
+   (`RoofsShown`): where a closed roof stands over the street, the shade there
+   is the roof's, roofed dark and lit by no lamp below.
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80

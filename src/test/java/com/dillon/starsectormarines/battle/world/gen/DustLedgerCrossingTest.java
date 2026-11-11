@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -51,6 +52,12 @@ class DustLedgerCrossingTest {
         for (DustLedgerCrossing.Cell stand : layout.technicalStands().subList(1, layout.technicalStands().size()))
             assertTrue(GridPathfinder.findPathOnDemand(grid, park.x(), park.y(), stand.x(), stand.y(), index -> 1f,
                     lane::isPassableAt).length >= 2, "no lane to the truck's stand " + stand);
+        // Every gun nest is laid on its facing; where they stand inside the wall is the mission's (owner pick).
+        for (DustLedgerCrossing.Nest nest : layout.nests()) {
+            DustLedgerCrossing.Cell at = nest.cell();
+            assertEquals(LayeredAppearance.facingDegrees(nest.facing().dx, nest.facing().dy), nest.post().restFacing, 0.01f,
+                    "nest " + at + " is laid on its facing");
+        }
         // Buildings are held places only; the map brings no capture point of its own.
         for (TacticalNode node : layout.map().tacticalMap.all())
             assertEquals(TacticalNode.Kind.INNER_POSITION, node.kind);

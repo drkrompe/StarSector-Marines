@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1cb98-6d13-7cf2-9407-d0798b0ebdb9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1cb98-6d13-7cf2-9407-d0798b0ebdb9\\exec-84abbe00-8c73-43d0-9a00-f3fe30922fb2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\fallen-hull\\raw\\hull-hires-2.png",
+    "sha256": "331e0ba28b4678c418e9f0de14a21cff74ff59bb5afad80c72e8d15915c6bb22",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\fallen-hull\\prompts\\hull-hires.prompt.txt",
+  "promptSha256": "afe11de63869627621d4e5a1469335958d7c5172f2fd138cdfb4baf80288d2f0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and exact geometry authority: keep every structure, edge, colour and position; re-render it crisp at full detail on the same canvas\nImage 2: Hull material and greeble style only (vanilla survey mothership); not layout, shape or emblem\n\nUse case: image edit, detail re-render at higher resolution. Image 1 is one vertical section cut out of an accepted top-down game painting of a crashed, burnt and broken survey mothership, enlarged from a low-resolution original so it looks soft. It is the edit target and the exact geometry authority. Re-render it as the same painting at full, crisp detail on the same 1024x1536 canvas: keep every structure, panel, rib, tear, scorch mark, bay, pipe, edge and colour exactly where it is and the same size, shape and tone; keep the hull's outline and the flat grey ground round it exactly as they are. Add only the fine detail a sharp high-resolution painting would have at this scale: crisp panel seams and plate edges, rivet rows, bolts, small greebles consistent with the shapes already there, pitting, scratches, blistered and heat-blued paint, soot and grime texture, torn metal edges. Do not add, remove, move or redesign any structure; do not change the layout, the lighting or the palette; do not straighten, tidy or repair damage. The section is cut through a larger ship: the hull runs on past its left and right edges, so do not close it off, add ends, borders or frames there. Absolutely no text, letters, numbers, serial numbers, stencils, logos, emblems, insignia or symbols anywhere. Strict 90-degree overhead orthographic view.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\fallen-hull-hires\\section-2.png",
+      "sha256": "0d2917213e7cc87e88d29d12eb189aa8aae278b1410563a5b7d1f5ff1310ddc2",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Edit target and exact geometry authority: keep every structure, edge, colour and position; re-render it crisp at full detail on the same canvas"
+    },
+    {
+      "path": "build\\fallen-hull-refs\\survey_mothership_battle.png",
+      "sha256": "0ef11f134bab17e4322eca300310c54268d6b98f3ecc987057fd30798bfcb025",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Hull material and greeble style only (vanilla survey mothership); not layout, shape or emblem"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one crisp, detailed version, preserving Image 1’s geometry and palette.\n"
+  ],
+  "usage": {
+    "input_tokens": 66454,
+    "cached_input_tokens": 56192,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 634,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 63.6
+}

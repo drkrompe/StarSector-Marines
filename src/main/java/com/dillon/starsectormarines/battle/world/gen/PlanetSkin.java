@@ -68,11 +68,12 @@ public final class PlanetSkin {
         TileRegistry tiles = TileRegistry.installed();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         boolean[] field = fieldMask(map);
+        Habitat habitat = new BiomeSkin(to, living, world.signature(), climateOf(world)).habitat();
         if (to != home) {
             topology.setGroundPalette(to);
             topology.setSurfaceField(new SurfaceField(to, Basin.NONE, topology.getWidth(), topology.getHeight(),
                     map.topology.surfaceField() == null ? 0 : map.topology.surfaceField().seed(), living));
-            ground(topology, home, to, field, mapping);
+            ground(topology, home, to, field, mapping, habitat.enclosed());
             if (tiles != null) {
                 overlays(topology, tiles, home, to, field);
                 doodads(map, tiles, home, to, living);
@@ -85,7 +86,7 @@ public final class PlanetSkin {
             fields(map, field, use, to);
             if (tiles != null) farm(map, field, tiles);
         }
-        Habitat habitat = new BiomeSkin(to, living, world.signature(), climateOf(world)).habitat();
+        if (to == home && habitat.enclosed()) ground(topology, home, to, field, mapping, true);
         if (habitat != Habitat.OPEN) HabitatStage.rebuild(topology, habitat);
         NightLighting night = topology.nightLighting();
         List<NightLighting.Lamp> grow = growLights(map.doodads);
@@ -154,6 +155,15 @@ public final class PlanetSkin {
     }
 
     /**
+     * As above, on a world whose towns are sealed when {@code sealed}: nobody keeps a lawn in the open there, so grass
+     * is the world's wild ground even where the world is the home's own palette.
+     */
+    public static GroundKind ground(GroundKind kind, SurfacePalette home, SurfacePalette world, boolean sealed) {
+        if (sealed && kind == GroundKind.GRASS) return world.inlandGround();
+        return ground(kind, home, world);
+    }
+
+    /**
      * Which woods a world grows where the home map grew {@code home}: the home's own where the world is the home's
      * palette; a living world's own species; boreal conifers on a frozen world; and grey, dead scrub on a world where
      * nothing lives, the same silhouettes standing where the trees stood.
@@ -203,10 +213,12 @@ public final class PlanetSkin {
 
     /**
      * The world's wild ground on every natural cell: wild ground, and a lot's lawn or sand laid as the plain floor of
-     * its kind, which then draws in the world's material. Paving, worn earth and fields keep their own.
+     * its kind, which then draws in the world's material. Paving, worn earth and fields keep their own. Where the
+     * world's towns are sealed ({@code bare}) nobody keeps a lawn in the open, so a garden or park's grass is the
+     * world's wild ground even on the home's own palette.
      */
     private static void ground(CellTopology topology, SurfacePalette home, SurfacePalette world, boolean[] field,
-                               GenMappingRegistry mapping) {
+                               GenMappingRegistry mapping, boolean bare) {
         int w = topology.getWidth();
         String lawn = mapping == null ? null : mapping.groundBlockId(GroundKind.GRASS);
         String sand = mapping == null ? null : mapping.groundBlockId(GroundKind.SAND);
@@ -220,7 +232,7 @@ public final class PlanetSkin {
                     String id = topology.getSurfaceId(x, y);
                     if (id == null || !(id.equals(lawn) || id.equals(sand))) continue;
                 }
-                GroundKind skinned = ground(kind, home, world);
+                GroundKind skinned = ground(kind, home, world, bare);
                 if (skinned == kind) continue;
                 topology.setGroundKind(x, y, skinned);
                 if (!plain) topology.setSurface(x, y, 0);

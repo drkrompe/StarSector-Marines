@@ -169,6 +169,14 @@ public final class HeartCountry {
 
     /** The places of a heart country of this form and density, laid out on its map. */
     public static PrecinctPlan planFor(Form form, Density density, long seed) {
+        return planFor(form, density, seed, List.of());
+    }
+
+    /**
+     * The places of a heart country of this form and density with {@code extra} places laid out among them (a
+     * mission's own districts, such as works on the approach); with none, exactly the plain plan.
+     */
+    public static PrecinctPlan planFor(Form form, Density density, long seed, List<PrecinctBrief> extra) {
         Random rng = new Random(seed ^ PLAN_SALT);
         boolean broad = form == Form.BROAD_FRONT;
         GrownTrunkPlan.Profile settlementGrowth = switch (density) {
@@ -188,6 +196,7 @@ public final class HeartCountry {
             places.add(PrecinctBrief.settlement(SUBURBS, placement(form, 0.35f, 0.62f, 0.05f, 0.95f),
                     GrownTrunkPlan.Profile.of(0.9f), PrecinctCharacter.SUBURB));
         }
+        places.addAll(extra);
         PrecinctPlan plan = PrecinctPlan.laidOut(places, form.startEdge, LandingKind.OPEN_FIELD,
                 form.scale.width, form.scale.height, rng);
         Precinct workings = place(plan, WORKINGS);
@@ -231,7 +240,7 @@ public final class HeartCountry {
     }
 
     /** A placement given as depth and across shares, whichever way the form advances. */
-    static MapPlacement placement(Form form, float depth0, float depth1, float across0, float across1) {
+    public static MapPlacement placement(Form form, float depth0, float depth1, float across0, float across1) {
         return form.advancesAlongY() ? new MapPlacement(across0, depth0, across1, depth1)
                 : new MapPlacement(depth0, across0, depth1, across1);
     }

@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.Stake;
@@ -44,6 +46,15 @@ public final class CrashSiteFinishStage implements GenStage {
         RuinsRoofStage.roofSolid(ctx, laid.footprint(), CrashSiteStage.HULL_KIND);
         splitCompartments(ctx, laid);
         CrashSiteStage.dropFields(ctx, laid.hullCells(), laid.trenchCells(), laid.aprons());
+        // The port's yards on the fields the patch names, before the shower falls and the lattice seats round them.
+        PortYards.lay(ctx, laid.plan().yards(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
+                FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
+        // The country the patch dresses round the hull: a mine's spoil, carts, train, pumps and headframes.
+        MineCountry.lay(ctx, laid.plan().dress(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
+                FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)), laid.footprint().centreX(), laid.footprint().centreY());
+        // A free port's quarters in its town: container yards under their cranes, pad aprons, a market's stall rows.
+        PortQuarter.lay(ctx, laid.plan().port(), laid.hullCells(), laid.trenchCells(), laid.aprons(),
+                laid.footprint().centreX(), laid.footprint().centreY());
         // The landscape strews its loose stones and plants over open ground after the hull is laid: none on its decks or
         // in its trench, which it ploughed bare.
         for (BitSet bare : new BitSet[]{laid.hullCells(), laid.trenchCells()}) {
@@ -73,12 +84,14 @@ public final class CrashSiteFinishStage implements GenStage {
 
         // The shower falls on the finished country: after the mission's structures and terraces are sited, before the
         // lattice seats its stakes round it.
-        List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading()),
+        List<DamagePlan.Stroke> strikes = DebrisShower.fall(ctx, new CrashSiteStage.Frame(laid.plan().x(), laid.plan().y(), laid.plan().heading(),
+                        laid.plan().laying()),
                 laid.plan().trench(), hull, trench, aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
         ctx.put(HullKeys.STRIKES, strikes);
         // The ground the hull flattened, round its trench and sections: burnt and ploughed bare now, its buildings, fences
         // and trees wrecked as initial damage like the strikes.
-        ImpactZone.plough(ctx, hull, trench, new BitSet(), aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
+        ImpactZone.plough(ctx, hull, trench, new BitSet(), aprons, FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)),
+                laid.plan().plough());
         ctx.put(HullKeys.IMPACT, ImpactZone.layers(ctx, hull, trench, new BitSet(), aprons,
                 FieldOfFire.of(ctx.get(BspKeys.PRECINCTS))));
         ClaimLattice.Ground stakeGround = (x, y) -> {
@@ -213,10 +226,14 @@ public final class CrashSiteFinishStage implements GenStage {
 
     /**
      * The haul roads worn into the ground: open outdoor cells along each road and {@link #ROAD_WEAR} either side become
-     * trodden earth. Paving, floors, water and the trench keep their own ground; nothing about passage changes.
+     * trodden earth. Paving, floors, water and the trench keep their own ground; nothing about passage changes. In a
+     * sealed town ({@link SealedTown}) nobody wears a track across the lots under the envelope: only ground already
+     * bare earth (the band's plough) is trodden, so a lot keeps its own ground.
      */
     private static void wear(GenContext ctx, List<HaulRoad> haul, boolean[][] roads, BitSet hull) {
         CellTopology topology = ctx.topology;
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        boolean sealed = plan != null && plan.precincts().stream().anyMatch(SealedTown::is);
         int trodden = topology.surfaceIndex(CrashSiteStage.TRODDEN);
         int w = ctx.width, h = ctx.height;
         boolean[] done = new boolean[w * h];
@@ -232,6 +249,7 @@ public final class CrashSiteFinishStage implements GenStage {
                         GroundKind g = topology.getGroundKind(x, y);
                         if (g != GroundKind.GRASS && g != GroundKind.DIRT && g != GroundKind.SAND
                                 && g != GroundKind.SNOW && g != GroundKind.STONE) continue;
+                        if (sealed && g != GroundKind.DIRT) continue;
                         topology.setGroundKind(x, y, GroundKind.DIRT);
                         topology.setSurface(x, y, trodden);
                     }

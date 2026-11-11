@@ -12,5 +12,5 @@ option of every open pick.
 | Arc and The Fall | the arc's campaign ledger, contact, board, unlocks, replay, debug entries LS1 to LS4; chapter 1 on Civilian Rescue with the derelict director | built (`long-survey-arc.md`, What is built); on the hull ground with the hull's claim; open: the forward-bay bonus |
 | Stakes, The Surveyor | chapters 2 and 4 on their families, each adapter fitting the derelict director | after the first wave |
 | The Line, the city push | chapter 3 on Broad Front at city density: the hull patch on the city map, `FallenHull` in place of the bores, lanes to the stakes, win on every stake down or stranded (`long-survey-arc.md`, The Line as a city push) | waiting on the ground's map plan and pick `line-family` |
-| The garrison against the watch | allied commanders (Broad Front first, for The Line) fighting flocks and walkers: anti-air, anti-armour, targeting stakes | after the first wave; needed by The Line |
+| The garrison against the watch | allied commanders (Broad Front first, for The Line) fighting flocks and walkers: anti-air, anti-armour, targeting stakes | rules built (`fallen-hull-nouns.md`, The garrison against the watch: `GarrisonTasking`, `StakeTargets`, `FallenHull.claimDown`); open: each chapter's adapter issuing the orders |
 | Briefings and voice | the cast's lines, portrait, banners, narration | after the picks |

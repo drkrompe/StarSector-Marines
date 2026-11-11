@@ -9,69 +9,110 @@ Coordinates are map cells, `x` east, `y` north.
 
 ## Chapter 1: The Fall, the colony
 
-**Objective.** The hull has come down beside a colony. The company lands at the
-lift and brings the civilians of three holdouts out to it while the watch spreads
-west from the hull through the town (the Colony Breach's rescue, `long-survey-arc.md`).
+**Objective.** The hull's breakup has come down through a colony. The company
+lands at the lift and brings the civilians of three holdouts out to it, each
+route running past a hull section, while the watch hunts the town from the
+wreck in its streets (the Colony Breach's rescue, `long-survey-arc.md`).
 
 **Ground.** The Colony Breach's colony on its own seed, `long-survey-fall` seed 38,
-400 by 240: the lift, bores and holdouts as the owner placed them, the town north
-of the rail line, fields and desert south of it.
+400 by 240, sealed with its single lock on the Avenue: the lift and bores as the
+owner placed them, the holdouts moved north of the wreck line, the town north of the rail line (x 32 to 362, y 86 to 221),
+the port's yards and desert south of it (`PortYards`: tank farms and landing pads
+on the old fields, the lift's field of fire left bare).
+
+```
+ y 221 +----------------------------------------------------------+ town's north edge
+       |  H3 65,196          H2 192,196              H1 310,202   |
+       |    .                   .                       .         |
+ y 168 | ~[BOW + forge]=====drag=====[MID]=====drag=====[STERN]   |  the wreck line,
+ y 150 |  x 45-86          furrow     x 182-203  furrow  x 319-342 |  heading west,
+ y 132 |   (west streets)            (town middle)  (east edge)   |  band 40 either side
+       |    .                   .                       .         |
+ y  86 +=========================[LOCK 200,86]=====================+ sealed wall
+       |  yards                  | Avenue                 yards     |
+       |                     (landing 200,53)                       |
+ y   0 +--------------------[LIFT 164,18]-------------------------+
+```
 
 - **Entry.** The lift at 164,18 on the south edge, its landing field of fire kept
-  clear of the hull, the trench and every strike.
-- **The hull.** Down in the desert south-east of the town, broken in three, bow west
-  (sections x 255 to 382, y 36 to 72), its trench run west toward the lift's field
-  and stopping short of it. The impact band flattens the blocks along the town's
-  south-east edge; the rest of the town stands.
-- **The holdouts.** 79,86 at the town's south-west edge, 18,200 in the far
-  north-west and 145,199 in the north wards.
+  clear of the hull, the trench and every strike, and the whole town between it
+  and the wreck: the nearest section is the midsection, about 80 cells north.
+- **The hull.** Broken in three and strung out along y 132 to 168 through the
+  middle of the town, bow west (the patch's `gaps` 115 and 95, `HullPlan.Laying`):
+  the stern at the town's east edge (x 319 to 342), the midsection in its middle
+  (x 182 to 203), the bow with the forge out in the west streets (x 45 to 86), its
+  short trench run on west toward the town's edge. Between the sections lies the
+  furrow they dragged through the blocks (`CrashSiteStage.DRAG_HALF`), and each
+  section and the furrow have their own impact band, so the town stands round and
+  between the wreck, flattened along the line and battered out to 40 either side.
+- **The holdouts.** North of the line, one over each section, near but clear of
+  the flattened ground: 310,202 over the stern, 192,196 over the midsection and
+  65,196 over the bow.
 
-**Routes**, from the lift:
+**Routes**, from the lift through the lock:
 
-- **West, the fields and wards**: across the fields to the first holdout, then north
-  through the west wards to the second; the longest walk, furthest from the hull.
-- **Centre, the avenue**: north through the town's middle to the third holdout,
-  crossing the town square.
-- **The watch's road**: from the hull west along the impact band's edge into the
-  town's south-east, the side the company must hold while the civilians pass.
+- **East**: north-east through the town's south wards, across the furrow by the
+  stern, to the east holdout.
+- **Centre, the Avenue**: north up the Avenue and past the midsection to the
+  middle holdout.
+- **West**: north-west through the south wards, across the furrow by the bow and
+  its forge, to the west holdout; the watch's home is in these streets.
 
-**Set pieces.** 1, holding the lift as the civilians come in; 2, the town square on
-the avenue; 3, the band's edge, where the watch breaks into the town.
+Every way back to the lock crosses the wreck line, so each extraction runs past a
+section and its watch.
+
+**Set pieces.** 1, holding the lock as the civilians come in; 2, the crossing of
+the wreck line by each section; 3, the forge in the west streets.
 
 **Allies.** The colony's militia in the holdouts; the company is the rescue.
 
-## Chapter 2: Stakes, the mine country
+## Chapter 2: Stakes, the mine
 
-**Objective.** The forge has printed its first stakes. Three are planted in a line
-across the hull's south flank, counting down; a fourth has risen beyond them among
-the rocks. Kill the planted three before they rise; the raised one is a zone to
-fight through (Sabotage, exactly three named sites).
+**Objective.** The forge has printed its first stakes and walked them out into the
+mine beside it. Three are planted and counting down, each in a different kind of
+ground; kill them before they rise. A raised stake is the junction of their chain,
+a zone to fight through (Sabotage, exactly three named sites).
 
-**Ground.** Mine country of its own, a Sabotage plan in remote sprawl for a mining
-district, `long-survey-stakes` seed 1, 400 by 240. The installation is the
-garrison's cantonment in a square wall at the west (x 20 to 140, y 102 to 224);
-outcrops of the mine country's rock cover the south (y 30 to 120).
+**Ground.** Garnir's mine: the owned Raid mine's works (`RaidOwnedMap`, the
+mining site against the same reference market), `long-survey-stakes` seed 2, 400
+by 240, laid out frozen and airless. The pirates' walled works fill the
+north-west (x 86 to 229, y 92 to 235), the port's mining town the west and south,
+the head works where the ore line lands (x 237 to 292, y 47 to 97) and the open
+pit in the south-east (x 332 to 392, y 45 to 105), the raised ore line between
+them along y 69.
 
 - **Entry.** The company comes in from the south edge.
-- **The hull.** In the middle of the map, broken in three, bow west (sections x 237
-  to 364, y 142 to 178), its trench run west toward the cantonment.
-- **The stakes.** Planted at 220,120, 300,120 and 340,120, each linked straight to
-  the hull, so its chain holds until it is killed; raised at 300,80 among the
-  outcrops, chained through the centre stake. Each seats on every world's skin.
+- **Mine country** (`MineCountry`, the patch's `dress`): on the centre route a stalled
+  ore train standing north–south on its rail (x about 302, y 4 to 44), tipped ore
+  carts by the catch station and spoil heaps either side of the ore line; on the
+  east route a pumping station on the pit's south rim (342,34), tailings, spoil and
+  carts south of the pit and a ruined headframe at its south-east (360,4), with a
+  second headframe north of the junction (318,112). Hard cover runs up both
+  routes, a piece every 8 cells or so (centre from 322,6 and 322,80; east from
+  388,8 and up the rim from 392,48), and four pieces stand about each stake.
+  The ore line keeps its open sightline: nothing in the way within 5 cells of it.
+- **The hull.** Down in the open ground east of the works, broken in three, bow
+  west (centre 314,185; x 251 to 378, y 167 to 203), its trench stopping short of
+  the works' east wall; the impact band wrecks the works' east yards.
+- **The claim.** A trunk south from the hull's middle: established at 314,145,
+  raised at 314,105 (the junction, in the snow between the iced pools); planted
+  at 274,105 by the head works and 314,65 on the ore line. A second chain down the
+  east side: established at 394,145, planted at 394,105 on the pit's north-east
+  rim. Every stake seats on every world's skin.
 
 **Routes**, from the south edge:
 
-- **West, along the cantonment's wall** to the stake at the trench's mouth, under
-  the garrison's guns.
-- **Centre, through the outcrops**: rock cover, through the raised stake's zone to
-  the centre stake.
-- **East, the open flats**: long sightlines and the haul roads' trains, to the
-  stake under the hull's midsection.
+- **West, the town and the head works**: through the mining town's streets and the
+  head works' yards to the planted stake at its north gate.
+- **Centre, the ore line**: up the open snow along the ore line to the planted
+  stake on it, then north to the junction.
+- **East, round the pit**: along the pit's east rim to its planted stake.
 
-**Set pieces.** 1, the raised stake in the rocks; 2, the trench mouth, the west
-stake beside the trench where trains come out; 3, trains across the flats.
+**Set pieces.** 1, the ore line, open ground under the line's trestles; 2, the
+junction: cutting the raised stake at 314,105 strands the head works' and the ore
+line's stakes; 3, the pit's rim, the east stake on its lip.
 
-**Allies.** The garrison holds its cantonment and covers the west stake.
+**Allies.** The pirates hold their works behind its walls and cover the west.
 
 ## Chapter 3: The Line, the district capital
 
@@ -87,15 +128,32 @@ mechanics: walls and roofs break, blocks collapse and burn under the fight.
 blocks to the north edge. The city is intact at the start apart from the hull's
 impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
-- **Entry.** The garrison's columns and the company step off from the fields
-  along the south edge (y 0 to 70), the landing on the Avenue at 279,39.
+Garnir's pirate free port, airless and sealed: hab blocks, warehouses, a spaceport
+quarter and its markets. Two port districts join the city's plan
+(`LongSurveyGround`): the spaceport quarter east of the east lane
+(`PrecinctCharacter.PORT`: aprons, warehouses, trade) and a warehouse district
+west of the west lane (`DEPOT`). Along the three lanes and at the Cross the
+patch's `blocks` grow the town lots into big blocks (`fallen-hull-nouns.md`, A
+grown city), each starting stake's lot left an open square. The patch's `port`
+gives the quarters their trade (`PortQuarter`), on a share of their town lots
+left open for it (`TownBlockStage`): the spaceport quarter's lots are container
+yards, each column of stacks straddled by its gantry crane, and pad courts where
+a landing pad fits; the markets south of the Cross are brick squares of stall
+rows, each an awning over its goods. "Under sealed roofs" is the envelope's: the
+whole town is under it, and the stalls stand in the open squares inside. The
+sealed wall's locks have their vestibules (`mapgen-nouns.md`, Target profile and economic identity).
+
+- **Entry.** The garrison's columns and the company step off from the port's
+  yards along the south edge (y 0 to 70; tank farms and landing pads on the old
+  fields, `PortYards`), the landing on the Avenue at 279,39.
 - **The hull.** Down across the north edge in the heart's place, broken in three,
   bow west (centre 330,296; x 267 to 394, y 278 to 314), the forge in the bow, the
   bay's door facing the city. Its trench runs on west from the bow. The impact
   band flattens the blocks round it (to about y 250); south of that the city
-  stands. The commons in front of the hull is ploughed ground: burnt earth,
-  rubble and craters, its trees felled, the old workings' yard wrecked, the
-  Avenue ending in rubble short of the hull.
+  stands. The commons in front of the hull is ploughed ground to its far edge
+  (the patch's `plough` 64): burnt earth, rubble and craters, no pond and no
+  clean snow, its trees felled, the old workings' yard wrecked, the Avenue
+  ending in rubble short of the hull.
 - **The claim.** Two chains run south from the hull into the city and branch
   along the boulevard (y about 186): established stakes nearest the hull
   (330,256; 330,216; 330,176; 370,256; 370,216), raised ones at the lane heads
@@ -135,29 +193,35 @@ guarded by the vault frame and a hall frame (Broad Front, the hull as its heart,
 then the interior as a delve). With chapter 3 on Broad Front too, the outer push is
 kept short and the chapter weighted on the delve (`long-survey-arc.md`, Open picks).
 
-**Ground.** Broad Front's country, `long-survey-surveyor` seed 5, 560 by 336: the
-south fields and two airbases, rural country with ponds and ridges, the hull in the
-heart's place.
+**Ground.** Broad Front's country on Garnir, `long-survey-surveyor` seed 5, 560 by
+336, laid out frozen and airless: the port's yards on the south fields (tank farms
+and landing pads, `PortYards`) and two airbases, the cordon
+line, then works country, two sealed works districts either side of the approach
+(sheds, yards, a tank farm; `LongSurveyGround`, `WORKS_WEST` and `WORKS_EAST`), the
+hull in the heart's place between them.
 
-- **Entry.** The garrison's columns and the company from the south fields and the
+- **Entry.** The pirates' columns and the company from the south fields and the
   airbases (96,8 and 483,8).
 - **The hull.** North of centre, broken in three, bow south (sections x 262 to 298,
   y 187 to 314), the forge behind the bow's torn end; its trench runs down the
   supply road the columns come up.
-- **The claim.** The full claim stands round the hull: established stakes nearest
-  it, raised beyond, planted at its edge (the outer chain, y about 150 to 200).
+- **The claim.** Established stakes round the hull and a ring of them at y 210
+  (200, 240, 320 and 360); the outer chain beyond: on the west raised at 200,170
+  and planted at 200,130, on the east raised at 320,170 and 360,130 and planted
+  at 400,170. Cutting the ring at 200,210 strands the west outer chain, at 360,210
+  most of the east: the outer phase is won by those cuts. Every stake seats on
+  every world's skin.
 
 **Routes**, south to north:
 
-- **Centre, the supply road**: straight up the trench to the bow's torn end and the
-  forge behind it.
-- **West, the ponds and hollows**: broken ground to the outer chain's west stakes
-  and the bow's port flank.
-- **East, the ridges and the works**: the berms and the derelict works north-east,
-  to the outer chain's east stakes and the midsection's rents.
+- **Centre, the supply road**: straight up the open ground between the works to
+  the bow's torn end and the forge behind it; the trench run.
+- **West, through the west works**: sheds, yards and the tank farm, close cover,
+  to the west outer chain and the ring's west cut.
+- **East, through the east works**: the denser district, to the east outer chain.
 
-**Set pieces.** 1, the outer ring, where cutting the chain strands the claim; 2, the
-trench run into the bow; 3, the delve: a breach, the spine, the forge hall.
+**Set pieces.** 1, the ring cuts, where the outer chain strands; 2, the trench run
+into the bow; 3, the delve: a breach, the spine, the forge hall.
 
-**Allies.** The columns hold the trench mouth and the outer ring while the company
-goes in.
+**Allies.** The pirates' columns hold the trench mouth and the works' edges while
+the company goes in.

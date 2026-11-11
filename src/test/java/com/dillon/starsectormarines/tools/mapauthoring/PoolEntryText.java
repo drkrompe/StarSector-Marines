@@ -101,6 +101,35 @@ public final class PoolEntryText {
                 }
                 hull.put("stakes", stakes);
             }
+            if (h.yards() > 0) hull.put("yards", h.yards());
+            if (!h.dress().isEmpty()) {
+                List<Object> dress = new ArrayList<>();
+                for (HullSitePlan.Dress d : h.dress()) {
+                    Map<String, Object> piece = object("kind", d.kind().name().toLowerCase(Locale.ROOT), "x", d.x(), "y", d.y());
+                    if (d.length() != 0) piece.put("length", d.length());
+                    if (d.turns() != 0) piece.put("turns", d.turns());
+                    dress.add(piece);
+                }
+                hull.put("dress", dress);
+            }
+            if (!h.blocks().isEmpty()) {
+                List<Object> blocks = new ArrayList<>();
+                for (HullSitePlan.Box b : h.blocks()) blocks.add(List.of(b.x0(), b.y0(), b.x1(), b.y1()));
+                hull.put("blocks", blocks);
+            }
+            if (h.plough() > 0) hull.put("plough", h.plough());
+            if (!h.gaps().isEmpty()) hull.put("gaps", h.gaps());
+            if (!h.port().isEmpty()) {
+                List<Object> port = new ArrayList<>();
+                for (HullSitePlan.Port q : h.port()) {
+                    Map<String, Object> quarter = new LinkedHashMap<>();
+                    quarter.put("kind", q.kind().name().toLowerCase(Locale.ROOT));
+                    HullSitePlan.Box b = q.box();
+                    quarter.put("box", List.of(b.x0(), b.y0(), b.x1(), b.y1()));
+                    port.add(quarter);
+                }
+                hull.put("port", port);
+            }
             m.put("hull", hull);
         }
         return m;

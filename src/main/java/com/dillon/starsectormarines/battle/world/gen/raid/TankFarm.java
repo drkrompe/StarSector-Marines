@@ -78,13 +78,19 @@ public final class TankFarm {
      * @param nearX the column the town lies toward along the lane; the bay is laid at that end
      */
     public static Plan plan(int w, int x0, int y0, int x1, int y1, IntPredicate free, int roadY, int nearX) {
+        return plan(w, x0, y0, x1, y1, free, roadY, nearX, LANE);
+    }
+
+    /** As {@link #plan(int, int, int, int, int, IntPredicate, int, int)}, its loading lane {@code laneWidth} wide. */
+    public static Plan plan(int w, int x0, int y0, int x1, int y1, IntPredicate free, int roadY, int nearX,
+                            int laneWidth) {
         int[] r = largestClear(w, x0, y0, x1, y1, free);
         if (r == null) return null;
         int laneDy = Math.abs(roadY - r[1]) <= Math.abs(roadY - r[3]) ? -1 : 1;
-        int[] lane = laneDy < 0 ? new int[]{r[0], r[1], r[2], r[1] + LANE - 1}
-                : new int[]{r[0], r[3] - LANE + 1, r[2], r[3]};
-        int[] bundsAt = laneDy < 0 ? new int[]{r[0], r[1] + LANE, r[2], r[3]}
-                : new int[]{r[0], r[1], r[2], r[3] - LANE};
+        int[] lane = laneDy < 0 ? new int[]{r[0], r[1], r[2], r[1] + laneWidth - 1}
+                : new int[]{r[0], r[3] - laneWidth + 1, r[2], r[3]};
+        int[] bundsAt = laneDy < 0 ? new int[]{r[0], r[1] + laneWidth, r[2], r[3]}
+                : new int[]{r[0], r[1], r[2], r[3] - laneWidth};
         if (bundsAt[3] < bundsAt[1]) return null;
         List<Bund> bunds = filled(bundsAt);
         // The big bunds stand against the lane, the leftover ground and the small bunds beyond them.

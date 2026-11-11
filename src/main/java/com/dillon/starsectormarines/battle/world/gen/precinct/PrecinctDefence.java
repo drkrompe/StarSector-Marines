@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayDeque;
@@ -367,12 +368,39 @@ public final class PrecinctDefence {
         double ux = fx / len, uy = fy / len;
         for (int t = 3; t <= DefenceDoctrine.LANE; t++) {
             int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height) break;
-            if (ctx.topology.isWall(cx, cy) || !ctx.grid.isWalkable(cx, cy) && !ctx.grid.isSeeThrough(cx, cy)) {
-                return false;
-            }
+            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height || blocksFire(ctx, cx, cy)) return false;
         }
         return true;
+    }
+
+    /**
+     * Whether a cell masks direct fire: a wall, or solid ground nothing sees through (a building, a rock). Low cover a
+     * gun sees over (sandbags, wire, a hedgehog) does not.
+     */
+    public static boolean blocksFire(GenContext ctx, int x, int y) {
+        return ctx.topology.isWall(x, y) || !ctx.grid.isWalkable(x, y) && !ctx.grid.isSeeThrough(x, y);
+    }
+
+    /**
+     * Whether a cell stands in a gun's arc as something other than open ground: what masks fire ({@link #blocksFire}),
+     * or a building's floor. A gun can see a window through, so a house's rooms are not always opaque to it, but they
+     * are not the ground it was sited to cover.
+     */
+    public static boolean masksArc(GenContext ctx, int x, int y) {
+        return blocksFire(ctx, x, y) || ctx.topology.getBuildingId(x, y) != 0
+                || ctx.topology.getGroundKind(x, y) == CellTopology.GroundKind.INDOOR;
+    }
+
+    /**
+     * Whether a direct-fire gun at {@code (x, y)} laid along {@code (fx, fy)} has open ground in front of it: its whole
+     * arc ({@link DefenceDoctrine#lane}, the bearing and {@link DefenceDoctrine#ARC_DEGREES} either side,
+     * {@link DefenceDoctrine#LANE} cells long) crosses no wall or building ({@link #masksArc}), counted from
+     * {@code clearOf} cells out so the post's own ring does not mask it. A wall blocks direct fire whole in the sim
+     * (there is no wall height; a plinth raises only the gun's eye), so a placer siting a gun that fires on a line
+     * asks this of every candidate, whatever kind of place it guards.
+     */
+    public static boolean openArc(GenContext ctx, int x, int y, int fx, int fy, int clearOf) {
+        return DefenceDoctrine.lane((cx, cy) -> masksArc(ctx, cx, cy), ctx.width, ctx.height, x, y, fx, fy, clearOf);
     }
 
     /** Half the widest footprint a kind stamps: a heavy post's five cells, three for the rest. */

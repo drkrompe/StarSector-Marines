@@ -55,7 +55,7 @@ MarineRaidCMD shortIntercept disrupt",MarineRaidCMD ledOnly mktRaidDisrupt,,,A d
 smRuinsExploreIntercept,DialogOptionSelected,"$option == salExplore score:2
 $market.hasRuins
 !$market.ruinsExplored
-MarineRuinsCMD intercept",MarineRuinsCMD fork,,,"Explore the ruins: offers sending the company as a Marine Operations expedition or a salvage team as usual, every time unless the Settings page turns the fork off. salExplore is shared with derelicts, so it needs ruins. Scores 5 (score:2 plus three condition lines), ahead of vanilla's own row (1). Development builds only until the expedition battle exists"
+MarineRuinsCMD intercept",MarineRuinsCMD fork,,,"Explore the ruins: offers sending the company as a Marine Operations expedition or a salvage team as usual, every time unless the Settings page turns the fork off. salExplore is shared with derelicts, so it needs ruins. Scores 5 (score:2 plus three condition lines), ahead of vanilla's own row (1)."
 smRuinsMarineSel,DialogOptionSelected,$option == smRuinsMarine,MarineRuinsCMD marine,,,Sends the company into the ruins as a Marine Operations expedition
 smRuinsStandardSel,DialogOptionSelected,$option == smRuinsStandard,MarineRuinsCMD standard,,,Hands Explore the ruins back to vanilla's salvage team
 smRuinsBackSel,DialogOptionSelected,$option == smRuinsBack,MarineRuinsCMD back,,,Returns to the planet menu with nothing done

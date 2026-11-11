@@ -799,7 +799,7 @@ public final class PrecinctWardStage implements GenStage {
             if (!lock.inner().isEmpty()) ctx.wallGates.add(WallGate.of(lock.inner(), lock.outX(), lock.outY()));
             chambers.addAll(lock.chamber());
         }
-        markLocks(ctx, chambers);
+        markLocks(ctx, chambers, envelope.locks());
         PrecinctDefence.Works shared = new PrecinctDefence.Works(gates, List.of(), SealedTown.lockWays(envelope,
                 ctx.width, ctx.height));
         for (int i = 0; i < places.size(); i++) if (sealed[i]) works.put(i, shared);
@@ -839,6 +839,8 @@ public final class PrecinctWardStage implements GenStage {
 
     /** The floor marking a sealed town's locks are laid in. */
     public static final String LOCK_MARKING = "doodad.fl-striped-yellow";
+    /** A vestibule's flanks: a barrier along the way from the envelope, and a post at its end. */
+    static final String VESTIBULE_BARRIER = "doodad.jersey-barrier", VESTIBULE_POST = "doodad.gantry-column";
 
     /** Hangs leaves in each of a walled place's open gates ({@link WallGate}), for the battle to draw. */
     private static void hangGates(GenContext ctx, List<PrecinctBoundary.Gate> gates, int[][] claim, int who) {
@@ -852,9 +854,9 @@ public final class PrecinctWardStage implements GenStage {
 
     /**
      * Floors a sealed town's lock chambers in hazard stripes: a floor marking, which has no footprint or cover, on each
-     * open cell nothing else stands on.
+     * open cell nothing else stands on. Each lock's mouths are given a vestibule ({@link #vestibule}).
      */
-    private static void markLocks(GenContext ctx, List<int[]> chambers) {
+    private static void markLocks(GenContext ctx, List<int[]> chambers, List<SealedTown.Lock> locks) {
         TileRegistry registry = TileRegistry.installed();
         DoodadDef marking = registry == null ? null : registry.doodad(LOCK_MARKING);
         if (marking == null) return;
@@ -874,6 +876,58 @@ public final class PrecinctWardStage implements GenStage {
             ctx.doodads.add(new Doodad(x, y, marking));
             taken[x][y] = true;
         }
+        DoodadDef barrier = registry.doodad(VESTIBULE_BARRIER), post = registry.doodad(VESTIBULE_POST);
+        if (barrier == null || post == null) return;
+        for (SealedTown.Lock lock : locks) {
+            for (boolean outward : new boolean[]{true, false}) {
+                vestibule(ctx, SealedTown.vestibule(lock, outward), lock, taken, marking, barrier, post);
+            }
+        }
+    }
+
+    /**
+     * A lock's vestibule at one mouth ({@link SealedTown#vestibule}), so the lock reads as an airlock standing out of
+     * the envelope rather than a gap in it: its floor striped, each flank a barrier along the way from the envelope and
+     * a post at its end. Laid only where every flank cell is open ground or pavement, never a carriageway, and the way
+     * round the post stays open, so the vestibule closes no street running along the wall; a mouth without room keeps
+     * its stripes.
+     */
+    private static void vestibule(GenContext ctx, SealedTown.Vestibule v, SealedTown.Lock lock, boolean[][] taken,
+                                  DoodadDef marking, DoodadDef barrier, DoodadDef post) {
+        for (List<int[]> side : List.of(v.left(), v.right())) {
+            for (int[] c : side) if (!postGround(ctx, c[0], c[1], taken)) return;
+            // The cell past the post, a step further from the envelope: the way round the vestibule.
+            int[] first = side.get(0), last = side.get(side.size() - 1);
+            int bx = last[0] + Integer.signum(last[0] - first[0]), by = last[1] + Integer.signum(last[1] - first[1]);
+            if (!ctx.grid.inBounds(bx, by) || !ctx.grid.isWalkable(bx, by) || ctx.topology.isWall(bx, by)) return;
+        }
+        for (int[] c : v.floor()) {
+            int x = c[0], y = c[1];
+            if (!ctx.grid.inBounds(x, y) || taken[x][y] || !ctx.grid.isWalkable(x, y) || ctx.topology.isWall(x, y)
+                    || ctx.topology.isFixture(x, y) || ctx.topology.getBuildingId(x, y) != 0) continue;
+            ctx.doodads.add(new Doodad(x, y, marking));
+            taken[x][y] = true;
+        }
+        int turns = lock.outX() != 0 ? 0 : 1;
+        for (List<int[]> side : List.of(v.left(), v.right())) {
+            int[] a = side.get(0), b = side.get(1), end = side.get(2);
+            ctx.doodads.add(new Doodad(Math.min(a[0], b[0]), Math.min(a[1], b[1]), barrier, turns));
+            for (int[] c : List.of(a, b, end)) {
+                ctx.grid.setWalkable(c[0], c[1], false);
+                ctx.grid.setSeeThrough(c[0], c[1], true);
+                ctx.topology.setFixture(c[0], c[1], true);
+                taken[c[0]][c[1]] = true;
+            }
+            ctx.doodads.add(new Doodad(end[0], end[1], post));
+        }
+    }
+
+    /** Whether a vestibule's flank may stand on the cell: open ground or pavement, nothing on it, no carriageway. */
+    private static boolean postGround(GenContext ctx, int x, int y, boolean[][] taken) {
+        return ctx.grid.inBounds(x, y) && !taken[x][y] && ctx.grid.isWalkable(x, y)
+                && ctx.topology.getGroundKind(x, y) != GroundKind.STREET
+                && !ctx.grid.isDoorway(x, y) && !ctx.topology.isWall(x, y) && !ctx.topology.isWater(x, y)
+                && !ctx.topology.isFixture(x, y) && ctx.topology.getBuildingId(x, y) == 0;
     }
 
     /** The claim with the place's outermost {@code g} cells, its {@link Fortification#glacis()}, given up. */

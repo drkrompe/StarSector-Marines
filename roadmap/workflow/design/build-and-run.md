@@ -111,8 +111,7 @@ reflection would not compile, and fails at run time with `NoClassDefFoundError`.
   derelict theme, so its occupant draw gives derelict security), over vanilla's own ruins and salvage rows, through to
   the post-salvage row that marks the ruins explored, with toggles for ruins
   already explored and a hostile fleet nearby; it has no port, so the fleet
-  never docks there. Until the expedition battle exists the fork needs
-  `-Dmarines.dev=true`. They are matched and run by the
+  never docks there. They are matched and run by the
   game's own rule-line class (`PlayRuleLines`), so `score:`, memory and command lookup
   are the game's. The game's jars for that are on `playBattle`'s runtime classpath
   only, reached by reflection, with the verifier relaxed as the game's `-noverify`

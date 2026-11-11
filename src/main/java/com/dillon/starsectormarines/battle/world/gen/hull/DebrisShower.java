@@ -129,6 +129,8 @@ final class DebrisShower {
         final FieldOfFire field;
         final boolean[][] roads;
         final boolean[] taken;
+        /** The port's landing pads, kept clear of every piece and mark. */
+        final BitSet pads;
         final Random rng;
         final List<DamagePlan.Stroke> strikes = new ArrayList<>();
         final List<int[]> struck = new ArrayList<>();
@@ -149,6 +151,7 @@ final class DebrisShower {
             this.field = field;
             this.roads = roads;
             this.taken = new boolean[w * h];
+            this.pads = ctx.get(HullKeys.PADS);
             this.rng = new Random(ctx.seed ^ SALT);
             this.nodes = new boolean[w * h];
             for (TacticalNode node : ctx.tactical) {
@@ -161,8 +164,8 @@ final class DebrisShower {
         void lay(List<DoodadDef> large, List<DoodadDef> medium, List<DoodadDef> small, List<DoodadDef> marks) {
             int nLarge = 0, nMedium = 0, nSmall = 0, nMarks = 0;
             // The fall line runs from uprange of the trench's far end, through the bow, the sections and the stern, on.
-            int from = -AHEAD, to = HullPlan.LAID_LENGTH + trench + UPRANGE;
-            int wreckEnd = HullPlan.LAID_LENGTH + trench;
+            int from = -AHEAD, to = frame.laying().length() + trench + UPRANGE;
+            int wreckEnd = frame.laying().length() + trench;
             int mid = HullPlan.LAID_BREADTH / 2;
             for (int k = 0; k < TRIES; k++) {
                 int l = from + rng.nextInt(to - from);
@@ -196,7 +199,7 @@ final class DebrisShower {
         /** A few great pieces thrown far: anywhere along the line, well out across it. */
         void lone(List<DoodadDef> large) {
             if (large.isEmpty()) return;
-            int from = -AHEAD, to = HullPlan.LAID_LENGTH + trench + UPRANGE, mid = HullPlan.LAID_BREADTH / 2;
+            int from = -AHEAD, to = frame.laying().length() + trench + UPRANGE, mid = HullPlan.LAID_BREADTH / 2;
             int laid = 0;
             for (int k = 0; k < LONE * 60 && laid < LONE; k++) {
                 int l = from + rng.nextInt(to - from);
@@ -285,7 +288,7 @@ final class DebrisShower {
         boolean open(int x, int y, boolean blocks) {
             if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) return false;
             int k = y * w + x;
-            if (taken[k] || hull.get(k) || aprons.get(k)) return false;
+            if (taken[k] || hull.get(k) || aprons.get(k) || pads != null && pads.get(k)) return false;
             // Rubble lies on a road or a street; nothing in the way does.
             if (blocks && (roads[x][y] || trenchCells.get(k) || nodes[k])) return false;
             if (!grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isWall(x, y) || topology.isFixture(x, y)

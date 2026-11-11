@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
 import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.TownSalvage;
+import com.dillon.starsectormarines.battle.derelict.WatchTasking;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsGroundPlan;
 import com.dillon.starsectormarines.campaign.ruins.RuinsDelve;
 import com.dillon.starsectormarines.campaign.ruins.RuinsGrade;
@@ -75,6 +76,8 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
 import com.dillon.starsectormarines.battle.evacuation.PickupCordonWorks;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
@@ -3672,14 +3675,19 @@ public final class BattleSetup {
      * stake, so the claim does not spread in chapter 1. UNTUNED.
      */
     static final BuildQueue FALL_QUEUE = new BuildQueue(List.of(
-            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
-            BuildQueue.Item.walker(DerelictWalkerFrame.HAULER, BuildQueue.WORKER_COST),
-            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
             BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
             BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST),
-            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST)));
-    /** The hull's store when it comes down: enough for its first cycles (UNTUNED). */
-    static final float FALL_FEEDSTOCK = BuildQueue.WORKER_COST * 2;
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.HAULER, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.LINE, BuildQueue.LINE_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.ROUNDS, BuildQueue.WORKER_COST),
+            BuildQueue.Item.walker(DerelictWalkerFrame.STRIPPER, BuildQueue.WORKER_COST)));
+    /**
+     * The hull's store when it comes down: enough for its first cycles. Raised by the owner's direction (the hull
+     * threatens the town: more of them). UNTUNED.
+     */
+    static final float FALL_FEEDSTOCK = BuildQueue.LINE_COST * 3;
     /**
      * How far the hull's zone keeps the ground off its plates the night it came down, cells: the whole town and the
      * rescue's ways through it are its ground (UNTUNED).
@@ -3688,10 +3696,25 @@ public final class BattleSetup {
     /** The town's places the hull's flocks range over that night are at most one in a square this many cells wide. */
     static final int FALL_RANGE_CELLS = 24;
     /** The town buildings whose metal lies on the claim for the strippers the night it came down (UNTUNED). */
-    static final int FALL_PILES = 6;
-    /** The watch already out the night it came down: a line frame and a rounds walker, and two strippers (UNTUNED). */
-    static final List<DerelictWalkerFrame> FALL_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.ROUNDS,
-            DerelictWalkerFrame.STRIPPER, DerelictWalkerFrame.STRIPPER);
+    static final int FALL_PILES = 10;
+    /**
+     * The watch already out at the mouth the night it came down: line frames, rounds walkers and strippers. Raised by
+     * the owner's direction (the hull threatens the town: more of them). UNTUNED.
+     */
+    static final List<DerelictWalkerFrame> FALL_WALKERS = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.LINE,
+            DerelictWalkerFrame.ROUNDS, DerelictWalkerFrame.ROUNDS, DerelictWalkerFrame.STRIPPER,
+            DerelictWalkerFrame.STRIPPER);
+    /**
+     * The walkers standing at each hull section's own launch hatch from the start, so the threat is spread across the
+     * town (owner's direction: each section can launch). Each hatch also docks a flock of its own. UNTUNED.
+     */
+    static final List<DerelictWalkerFrame> FALL_SECTION_WALKERS = List.of(DerelictWalkerFrame.LINE,
+            DerelictWalkerFrame.ROUNDS);
+    /**
+     * What The Fall's hunting hull knows of where the town's people are: only what its flocks see (the owner's pick
+     * {@code fall-hunt-knowledge} (a): honest knowledge holds, and shooting its flocks down hides the town).
+     */
+    static final WatchTasking.Knowledge FALL_HUNT_KNOWLEDGE = WatchTasking.Knowledge.SEEN;
 
     /**
      * Lays the hull's watch on a rescue. On ground carrying a fallen hull ({@link MapResult#hullSite}) it is the hull's
@@ -3711,8 +3734,12 @@ public final class BattleSetup {
                     FALL_PILES);
             FallenHull fallen = FallenHull.install(sim, LongSurveyGround.rulesSite(map.hullSite, salvage, out,
                     FALL_FEEDSTOCK).withPerimeter(FALL_REACH), FALL_QUEUE, hull.livery(), true);
-            // Its flocks range over the whole town; its walkers keep to the trench and the town's edge.
-            fallen.rangeOver(TownSalvage.places(townGround(sim), probe.withPerimeter(FALL_REACH), FALL_RANGE_CELLS));
+            // Its flocks range over the whole town, and so does its watch: it hunts the town's people and sweeps its
+            // streets from every section (owner's direction).
+            List<int[]> places = TownSalvage.places(townGround(sim), probe.withPerimeter(FALL_REACH), FALL_RANGE_CELLS);
+            fallen.rangeOver(places);
+            fallen.huntTown(sim, places, () -> townsPeople(sim), FALL_HUNT_KNOWLEDGE, FALL_REACH,
+                    FALL_SECTION_WALKERS);
             return true;
         }
         if (eruption == null || eruption.sites().isEmpty()) return false;
@@ -3721,6 +3748,28 @@ public final class BattleSetup {
                 placement.shelterApproachX, placement.shelterApproachY);
         if (route.length < 4) return false;
         return DerelictSecurity.install(sim, hull.grade(), null, hull.livery(), route, site.x(), site.y()) != null;
+    }
+
+    /**
+     * Where the town's people are now, for a hull hunting them: each civilian of the rescue still out, and the door of
+     * each holdout not yet fallen or released.
+     */
+    private static List<int[]> townsPeople(BattleSimulation sim) {
+        List<int[]> out = new ArrayList<>();
+        CivilianEvacuationTracker tracker = sim.getCivilianEvacuationTracker();
+        if (tracker != null) {
+            for (int i = 0; i < tracker.registeredCount(); i++) {
+                long id = tracker.entityIdAt(i);
+                if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE) continue;
+                long unit = sim.resolveUnit(id);
+                if (unit == 0L) continue;
+                out.add(new int[] {(int) Math.floor(sim.world().x(unit)), (int) Math.floor(sim.world().y(unit))});
+            }
+        }
+        for (CivilianRedoubt redoubt : sim.getCivilianRedoubts()) {
+            if (!redoubt.fallen() && !redoubt.released()) out.add(new int[] {redoubt.approachX(), redoubt.approachY()});
+        }
+        return out;
     }
 
     /** The battle's ground as the town's salvage reads it: its buildings, and open ground a stripper stands on. */

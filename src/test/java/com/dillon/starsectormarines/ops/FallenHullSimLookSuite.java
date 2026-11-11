@@ -80,6 +80,13 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     /** The longest The Fall and the Stakes ground are played waiting for their clips, seconds. */
     private static final float FALL_SECONDS = 900f, STAKES_SECONDS = 600f;
     public static final String ONLY_PROPERTY = "snapshot.hullSim.only";
+    /**
+     * {@code -Dsnapshot.hullSim.cells=<n>} frames every clip {@code n} cells across, and
+     * {@code -Dsnapshot.hullSim.maxSpeed=<n>} caps its speed-up: close looks at the walkers' work arms.
+     */
+    public static final String CELLS_PROPERTY = "snapshot.hullSim.cells";
+    private static final float CELLS = Float.parseFloat(System.getProperty(CELLS_PROPERTY, "0"));
+    private static final int SPEED_CAP = Integer.parseInt(System.getProperty("snapshot.hullSim.maxSpeed", "99"));
 
     @Override public String id() { return "fallen-hull-sim-look"; }
 
@@ -261,10 +268,19 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         Clip(String name, String title, int speed, float minSeconds, float maxSeconds, boolean roofs) {
             this.name = name;
             this.title = title;
-            this.speed = speed;
-            this.minFrames = Math.round(minSeconds * FPS);
-            this.maxFrames = Math.round(maxSeconds * FPS);
+            // A capped speed-up runs the clip longer, to cover the same stretch of battle,
+            this.speed = Math.max(1, Math.min(speed, SPEED_CAP));
+            this.minFrames = Math.round(minSeconds * FPS * speed / this.speed);
+            // and a close look follows its subject further, so it may run on to the end of its work.
+            this.maxFrames = Math.round(maxSeconds * FPS * speed / this.speed * (this.speed < speed ? 3 : 1));
             this.roofs = roofs;
+        }
+
+        /** {@link #focus}, closer where {@link #CELLS_PROPERTY} asks. */
+        private float[] framed(BattleSimulation sim) {
+            float[] f = focus(sim).clone();
+            if (CELLS > 0f) f[2] = CELLS;
+            return f;
         }
 
         boolean recording() { return started && !finished; }
@@ -290,7 +306,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         void start(SnapshotContext context, BattleSimulation sim, Path scratch, int tick) throws Exception {
             started = true;
             startTick = tick;
-            float[] f = focus(sim);
+            float[] f = framed(sim);
             cam = f.clone();
             BattleReviewFrameRenderer r = BattleReviewFrameRenderer.look(context.modRoot(), W, H, f[0], f[1], f[2]);
             renderer = roofs ? r : r.withoutRoofs();
@@ -299,7 +315,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         }
 
         void frame(BattleSimulation sim, ReviewImpactFx fx) throws Exception {
-            float[] f = focus(sim);
+            float[] f = framed(sim);
             // The camera eases toward its subject rather than snapping to it.
             for (int i = 0; i < 3; i++) cam[i] += (f[i] - cam[i]) * 0.12f;
             BattleReviewFrameRenderer r = renderer.refocus(cam[0], cam[1], cam[2]);
@@ -409,6 +425,9 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     }
 
     /** 2. A stripper walking to the town's salvage and cutting it. */
+    /** The stripper and hauler clips' follow camera, cells across: close enough for a walker's work arms to read. */
+    private static final float FOLLOW_CELLS = 20f;
+
     private static final class StripperClip extends Clip {
         private final FallenHull hull;
         private final DerelictSecurityDirector director;
@@ -444,13 +463,13 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override float[] focus(BattleSimulation sim) {
             long id = member(sim, squad);
-            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), 40f};
+            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), FOLLOW_CELLS};
+            // Close on the walker, so its work arms read: it, and the pile once it is in reach.
             World w = sim.world();
             float x = w.renderX(id), y = w.renderY(id);
             Salvage pile = nearest(hull, w.x(id), w.y(id));
-            if (pile == null) return new float[] {x, y, 30f};
-            float d = (float) Math.hypot(pile.x - x, pile.y - y);
-            return new float[] {(x + pile.x) / 2f, (y + pile.y) / 2f, Math.max(30f, Math.min(70f, d * 1.8f))};
+            if (pile == null || Math.hypot(pile.x - x, pile.y - y) > 6f) return new float[] {x, y, FOLLOW_CELLS};
+            return new float[] {(x + pile.x) / 2f, (y + pile.y) / 2f, FOLLOW_CELLS};
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
@@ -480,7 +499,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         private boolean loaded;
 
         HaulerClip(FallenHull hull, DerelictSecurityDirector director) {
-            super("hauler", "3  Hauler: takes a stripper's load and carries it home to the hull's store", 4, 10f, 20f,
+            super("hauler", "3  Hauler: takes a stripper's load and carries it home to the hull's store", 6, 10f, 30f,
                     true);
             this.hull = hull;
             this.director = director;
@@ -512,8 +531,8 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override float[] focus(BattleSimulation sim) {
             long id = member(sim, squad);
-            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), 38f};
-            return new float[] {sim.world().renderX(id), sim.world().renderY(id), 38f};
+            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), FOLLOW_CELLS};
+            return new float[] {sim.world().renderX(id), sim.world().renderY(id), FOLLOW_CELLS};
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
@@ -534,6 +553,9 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     }
 
     /** 5. The hull's walkers and flocks out in the town, fighting. */
+    /** How far off the hull's laid box, cells, a walker of the watch counts as out in the town's streets. */
+    private static final int STREET_CELLS = 4;
+
     private static final class FightClip extends Clip {
         private final FallenHull hull;
         private final DerelictSecurityDirector director;
@@ -556,14 +578,31 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
             while (!fire.isEmpty() && tick - fire.peekFirst()[2] > 3f / DT) fire.removeFirst();
         }
 
+        /** The armed walker out in the town's streets the clip follows; 0 before one is. */
+        private long street;
+
         @Override boolean ready(BattleSimulation sim, int tick) {
-            // Both sides firing: the rescue in contact with the watch.
+            // Both sides firing, and a walker of the watch out in the streets in the fight: clear of the hull's laid
+            // box (its sections, the furrow between and the trench), with the rescue's fire near it.
             int watch = 0, rescue = 0;
             for (float[] f : fire) {
                 if (f[3] > 0) watch++;
                 else rescue++;
             }
-            return watch >= 3 && rescue >= 3;
+            if (watch < 3 || rescue < 3) return false;
+            for (DerelictSecurityDirector.Walker w : director.walkers()) {
+                long id = member(sim, w.squadId());
+                if (id == 0L || !w.frame().armed()) continue;
+                float x = sim.world().x(id), y = sim.world().y(id);
+                if (hull.site().hull().chebyshev((int) x, (int) y) < STREET_CELLS) continue;
+                for (float[] f : fire) {
+                    if (f[3] == 0 && Math.hypot(f[0] - x, f[1] - y) <= 20f) {
+                        street = id;
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /** Where the fight last was: the camera holds there when the shooting stops. */
@@ -571,6 +610,20 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         private int quietSince = -1;
 
         @Override float[] focus(BattleSimulation sim) {
+            if (street != 0L && sim.resolveUnit(street) != 0L) {
+                // On the walker in the streets, and the fight it is in.
+                float wx = sim.world().renderX(street), wy = sim.world().renderY(street);
+                float x = wx, y = wy;
+                int n = 1;
+                for (float[] f : fire) {
+                    if (Math.hypot(f[0] - wx, f[1] - wy) > 24f) continue;
+                    x += f[0];
+                    y += f[1];
+                    n++;
+                }
+                last = new float[] {(wx + x / n) / 2f, (wy + y / n) / 2f, 48f};
+                return last.clone();
+            }
             if (fire.isEmpty()) {
                 return last != null ? last.clone() : new float[] {hull.site().mouthX(), hull.site().mouthY(), 64f};
             }

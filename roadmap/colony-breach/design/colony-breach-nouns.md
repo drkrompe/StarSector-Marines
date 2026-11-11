@@ -2018,7 +2018,8 @@ against its own control in `renderEvidence`.
   takes none of the flat wall's lift, bevel and outline, its faces showing it
   standing. It climbs a building's street side and, seen in a cutaway, the
   room's side, and every freestanding wall, a sealed town's envelope among
-  them.
+  them. The owner chose this ground skin (2026-11-11) over a raised, dripping
+  growth and over veins alone.
 - **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
   is fuel, living or dying; creep under a fire crisps away in seconds, and
   burnt ground refuses the creep for about three minutes before the sources

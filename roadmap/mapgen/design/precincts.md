@@ -1444,7 +1444,9 @@ the glacis or on ground no other place holds, inside its own sandbagged ring,
 and only where its laid arc (its bearing and twenty degrees either side) runs
 ten cells over open ground without crossing back over the place or meeting a
 wall (`DefenceDoctrine.lane`, `PrecinctDefence.lineOfFire`; owner: "They
-can't shoot over walls!"). No gun stands inside a place without a standoff job
+can't shoot over walls!"). That ground is on the map: past the edge no attacker
+comes, so a place backed against the edge leaves its faces there bare, and
+their posts go to the faces looking over the map. No gun stands inside a place without a standoff job
 either: the posts once sited beside the motor pool and command covered nothing
 an attacker crosses (owner: "What are they guarding?"). The ring is measured
 from the ground the place's wall encloses, never from the walls of the

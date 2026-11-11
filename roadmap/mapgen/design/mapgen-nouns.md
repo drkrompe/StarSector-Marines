@@ -2634,7 +2634,12 @@ only the world outside: none along the map's edge, where the town runs on past
 it, and none against a walled place's own wall, so a compound standing in the town
 is no hole in it. Each lock is a chamber straight through it, floored in hazard
 stripes, with a leaf door (`WallGate`) on the town's outline and another at the
-envelope's inner face. It is built of its own wall (`SealedTown.ENVELOPE_WALL`),
+envelope's inner face. A **vestibule** stands out of each mouth for three cells
+(`SealedTown.vestibule`): its floor striped, each flank a barrier along the way
+and a post at its end, so a lock reads as an airlock rather than a gap. It is
+laid only where both flanks stand on open ground or pavement, never a
+carriageway, with the way round each post open; a mouth without room keeps its
+stripes alone. It is built of its own wall (`SealedTown.ENVELOPE_WALL`),
 never the installation perimeter's dark concrete, and stands as a raised habitat
 wall taller than any compound's: a lower plinth along its outer course with
 buttresses standing out of it every few cells (`SealedTown.outerCourse`), a

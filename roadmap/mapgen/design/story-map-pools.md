@@ -47,8 +47,10 @@ generation, acceptance and patch coordinates are the home's. A palette feeds
 generation in many places that move the layout (rock chance and its draws,
 formations, woods, sludge pools, the desert's green basin), so a world never
 generates its own map: it plays the home's layout, skinned. Every pool's home
-is ARID today, the ground the Wellhollow campaign plays and its maps were tuned
-on.
+is ARID, the ground the Wellhollow campaign plays and its maps were tuned on,
+except the Long Survey's four, which are laid out FROZEN with no green basin:
+Garnir is an airless, cold mining moon, so nothing grows there and the ground
+is laid that way, not skinned into it.
 
 **The owned seed.** The battle seed itself: the map it names on its home
 passes the mission's acceptance on the first generation, with no re-roll. The
@@ -61,7 +63,7 @@ note is for people: what the map is and why it is the one.
 | `heart-front` | 5 | the Wellhollow story map, its airbases placed |
 | `heart-front-town`, `heart-front-city` | 2 | the first that grows two mothers |
 | `cordon-line`, `cordon-road`; town; urban | 3, 15; 8, 8; 6, 6 | the ARID entry Wellhollow played on a first attempt: the Cordon pools named no story map, so the map a player met first is kept |
-| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 1, 3, 5 | the Long Survey's chapters: the colony's, a Sabotage country's, the Cordon line's and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
+| `long-survey-fall`, `-stakes`, `-line`, `-surveyor` | 38, 2, 2, 5 | the Long Survey's chapters: the colony's, the Raid mine's, Broad Front's city and Broad Front's ground with a fallen hull laid over each (`long-survey-arc.md`, Seeds) |
 
 **Density.** The Cordon is laid out at its world's density (rural, town or
 urban, from the market size; `cordon-nouns.md`, Density), and the heart is the
@@ -85,7 +87,9 @@ through or built on (`PlanetSkinTest`). It swaps:
   ground (`SurfacePalette.inlandGround`: grass, sand, stone, snow, hardpan);
   bare earth, stone and snow stay what they are, drawn in the world's material
   (`CellTopology.setGroundPalette`). The home's basin (the desert's green
-  middle) goes with it: the world is one surface.
+  middle) goes with it: the world is one surface. Where the world seals its
+  towns nobody keeps a lawn in the open, so a garden's or park's grass is the
+  world's wild ground even when the world is the home's own palette.
 - **Woods.** The same trees and undergrowth on the same cells in the world's
   flora (`Flora`, identical footprints): the home's own on its palette, a living
   world's species, boreal conifers on a frozen world, grey dead scrub where
@@ -281,11 +285,23 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 Any entry may also lay a **fallen hull** over its ground
 (`fallen-hull-nouns.md`, The ground):
 
-- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}]}`: the broken
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}], yards, dress: [{kind, x, y, length, turns}], blocks: [[x0, y0, x1, y1]], plough, port: [{kind, box: [x0, y0, x1, y1]}], gaps: [stern to mid, mid to bow]}`: the broken
   hull's middle cell (its three sections and the gaps between), the way its bow
   points (`north` is +y), the trench's length off its bow's tip (12 to 160),
   and the stakes standing at the start, each `planted`,
-  `raised` or `established` on the lattice point nearest its cell. It rides the
+  `raised` or `established` on the lattice point nearest its cell; `yards`, a
+  row, makes every worked field wholly south of it a port's yards in place of
+  the skin's covered farm (`fallen-hull-nouns.md`, The ground); `dress` lays a
+  mine's country piece by piece (`spoil`, `tailings`, `headframe`, `train`,
+  `carts`, `pumps`, and the hard cover a route is fought along, `route` from a
+  cell north for its `length` and `cluster` about a stake; `MineCountry`); `blocks`, boxes of cells, lets the city's
+  town lots inside them join into bigger blocks (`TownBlockStage`), and on such a
+  map every starting stake's nearest lot is left an open square; `plough`, cells,
+  carries the band's ploughed open ground out past its own 40; `port` gives a
+  free port's quarters their trade on a share of the town lots in each box
+  (`containers`, `pads` or `stalls`; `PortQuarter`); `gaps`, cells, spread the
+  sections apart along the line (`HullPlan.Laying`), `x, y` then the middle of
+  the whole spread. It rides the
   plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
   lays it; a Long Survey chapter's acceptance is its base mission's own (the
   colony's rescue, the Cordon's line, the placed airbases) and the hull's

@@ -26,7 +26,12 @@ import java.util.function.UnaryOperator;
  *       stand with the guard.</li>
  * </ol>
  *
- * In the contingency the hull's walkers leave this rule and hold the egress as every derelict line does
+ * An awake hull hunting its town ({@link #hunt}, The Fall, by the owner's direction) keeps a guard at each of its
+ * bays, answers contact as above and escorts its workers, and sends the rest after the town: by turns one goes after
+ * the nearest of the town's people ({@link Kind#HUNT}: a civilian out, a holdout's door), the next sweeps the streets
+ * between the sections ({@link Kind#SWEEP}, {@link #sweepPoint}), or pushes to the loudest fight when there is one.
+ *
+ * <p>In the contingency the hull's walkers leave this rule and hold the egress as every derelict line does
  * ({@link WalkerPosture}).
  */
 public final class WatchTasking {
@@ -39,8 +44,23 @@ public final class WatchTasking {
     public static final int FIGHT_CELLS = 8;
     /** Seconds a flock ranging over the claim holds each place before moving on. UNTUNED. */
     public static final float RANGE_SECONDS = 12f;
+    /** Seconds a sweeping walker holds each street place before moving on to the next. UNTUNED. */
+    public static final float SWEEP_SECONDS = 30f;
 
-    public enum Kind { GUARD, ANSWER, PUSH, ESCORT }
+    public enum Kind { GUARD, ANSWER, PUSH, ESCORT, HUNT, SWEEP }
+
+    /**
+     * What a hull hunting its town knows of where the town's people are (the owner's pick {@code fall-hunt-knowledge}):
+     * {@link #EVERYONE}, as built until the owner answers, or only those its flocks see ({@link #SEEN}), which keeps the
+     * honest-knowledge law and makes shooting its flocks down a counter.
+     */
+    public enum Knowledge { EVERYONE, SEEN }
+
+    /**
+     * The town an awake hull hunts: its bays (each keeps a guard), where the town's people are now (civilians out,
+     * holdouts' doors), the street places its walkers sweep between, and the battle's time, seconds.
+     */
+    public record Town(List<int[]> bays, List<int[]> quarry, List<int[]> streets, float seconds) { }
 
     /** One armed walker of the watch: its lance, frame and where it stands. */
     public record Watcher(int squad, DerelictWalkerFrame frame, float x, float y) { }
@@ -81,6 +101,122 @@ public final class WatchTasking {
             out.put(e.getKey(), new Task(t.kind(), at[0], at[1], t.subject()));
         }
         return out;
+    }
+
+    /**
+     * Every watcher's task this pulse for a hull hunting its town ({@link Town}), each cell passed through
+     * {@code reach}.
+     */
+    public static Map<Integer, Task> hunt(List<Watcher> watch, Town town, List<Contact> contacts, int[] loudest,
+                                          List<Worker> workers, UnaryOperator<int[]> reach) {
+        List<Watcher> order = new ArrayList<>(watch);
+        order.sort(Comparator.comparingInt(Watcher::squad));
+        Map<Integer, Task> out = new LinkedHashMap<>();
+        // A guard at every bay: siege frames first, then the walker nearest it.
+        for (int[] bay : town.bays()) {
+            List<Watcher> left = new ArrayList<>();
+            for (Watcher w : order) if (!out.containsKey(w.squad())) left.add(w);
+            left.sort(Comparator.comparingInt((Watcher w) -> w.frame() == DerelictWalkerFrame.SIEGE ? 0 : 1)
+                    .thenComparingDouble(w -> distance(w.x(), w.y(), bay[0], bay[1]))
+                    .thenComparingInt(Watcher::squad));
+            for (int i = 0; i < Math.min(BAY_GUARD, left.size()); i++) {
+                out.put(left.get(i).squad(), new Task(Kind.GUARD, bay[0], bay[1], -1L));
+            }
+        }
+        List<Watcher> free = new ArrayList<>();
+        for (Watcher w : order) if (!out.containsKey(w.squad())) free.add(w);
+        if (!contacts.isEmpty()) {
+            for (Watcher w : free) {
+                Contact c = nearest(contacts, w.x(), w.y());
+                out.put(w.squad(), new Task(Kind.ANSWER, c.cellX(), c.cellY(), c.unitId()));
+            }
+            return reached(out, reach);
+        }
+        List<Worker> outWorkers = new ArrayList<>(workers);
+        outWorkers.sort(Comparator.comparingInt(Worker::squad));
+        for (Worker worker : outWorkers) {
+            Watcher best = null;
+            double bestD = Double.MAX_VALUE;
+            for (Watcher w : free) {
+                double d = distance(w.x(), w.y(), worker.x(), worker.y());
+                if (d < bestD) {
+                    best = w;
+                    bestD = d;
+                }
+            }
+            if (best == null) break;
+            free.remove(best);
+            out.put(best.squad(), new Task(Kind.ESCORT, (int) Math.floor(worker.x()), (int) Math.floor(worker.y()),
+                    worker.squad()));
+        }
+        for (int i = 0; i < free.size(); i++) {
+            Watcher w = free.get(i);
+            int[] prey = i % 2 == 0 ? nearestPlace(town.quarry(), w.x(), w.y()) : null;
+            if (prey != null) {
+                out.put(w.squad(), new Task(Kind.HUNT, prey[0], prey[1], -1L));
+            } else if (loudest != null) {
+                out.put(w.squad(), new Task(Kind.PUSH, loudest[0], loudest[1], -1L));
+            } else {
+                int[] street = sweepPoint(town.streets(), w.squad(), town.seconds());
+                if (street != null) out.put(w.squad(), new Task(Kind.SWEEP, street[0], street[1], -1L));
+                else {
+                    int[] bay = nearestPlace(town.bays(), w.x(), w.y());
+                    if (bay != null) out.put(w.squad(), new Task(Kind.GUARD, bay[0], bay[1], -1L));
+                }
+            }
+        }
+        return reached(out, reach);
+    }
+
+    /**
+     * The town's people a hull hunting it goes after: all of {@code quarry} when it knows {@link Knowledge#EVERYONE};
+     * with {@link Knowledge#SEEN}, only those within {@code sightCells} of one of its flocks ({@code eyes}, {x, y}).
+     */
+    public static List<int[]> known(List<int[]> quarry, Knowledge knowledge, List<int[]> eyes, float sightCells) {
+        if (knowledge == Knowledge.EVERYONE) return quarry;
+        List<int[]> out = new ArrayList<>();
+        for (int[] q : quarry) {
+            for (int[] eye : eyes) {
+                if (distance(q[0], q[1], eye[0], eye[1]) <= sightCells) {
+                    out.add(q);
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The street place a sweeping walker goes to now: the places in turn, each held {@link #SWEEP_SECONDS}, each
+     * walker starting at its own so the sweep spreads over the town; null with no places.
+     */
+    public static int[] sweepPoint(List<int[]> streets, int squad, float seconds) {
+        if (streets.isEmpty()) return null;
+        int step = (int) Math.floor(seconds / SWEEP_SECONDS);
+        return streets.get(Math.floorMod(squad * 7 + step, streets.size()));
+    }
+
+    private static Map<Integer, Task> reached(Map<Integer, Task> raw, UnaryOperator<int[]> reach) {
+        Map<Integer, Task> out = new LinkedHashMap<>();
+        for (Map.Entry<Integer, Task> e : raw.entrySet()) {
+            Task t = e.getValue();
+            int[] at = reach.apply(new int[] {t.x(), t.y()});
+            out.put(e.getKey(), new Task(t.kind(), at[0], at[1], t.subject()));
+        }
+        return out;
+    }
+
+    private static int[] nearestPlace(List<int[]> places, float x, float y) {
+        int[] best = null;
+        double bestD = Double.MAX_VALUE;
+        for (int[] p : places) {
+            double d = distance(p[0] + .5f, p[1] + .5f, x, y);
+            if (d < bestD) {
+                best = p;
+                bestD = d;
+            }
+        }
+        return best;
     }
 
     private static Map<Integer, Task> decide(List<Watcher> watch, int bayX, int bayY, List<Contact> contacts,

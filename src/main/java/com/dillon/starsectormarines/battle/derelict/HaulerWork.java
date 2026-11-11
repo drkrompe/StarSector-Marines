@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.derelict;
 
 import java.util.List;
+import java.util.function.BiPredicate;
 
 /**
  * A hauler's rule (`fallen-hull-nouns.md`, Hauler): the load-carrying walker that takes stripped metal from strippers
@@ -17,6 +18,8 @@ public final class HaulerWork {
     public static final float CAPACITY = 150f;
     /** How near a stripper or store, in cells (either axis, centre to centre), it takes on or unloads. */
     public static final float REACH_CELLS = 2.5f;
+    /** How far short of a stripper or store, in cells (Chebyshev), it stands to reach it. */
+    public static final int STAND_OFF_CELLS = 2;
 
     public enum Kind { STAND_BY, GO, TAKE, UNLOAD }
 
@@ -31,6 +34,12 @@ public final class HaulerWork {
 
     private float load;
     private float lost;
+    private Goal goal = new Goal(Kind.STAND_BY, 0f, 0f, 0);
+
+    /** The goal it last decided ({@link #decide}): what the screen shows its arms doing. */
+    public Goal goal() {
+        return goal;
+    }
 
     public float load() {
         return load;
@@ -48,6 +57,11 @@ public final class HaulerWork {
      * @param stores  the stores whose chain holds
      */
     public Goal decide(float x, float y, float postX, float postY, List<Holder> holders, List<Store> stores) {
+        goal = choose(x, y, postX, postY, holders, stores);
+        return goal;
+    }
+
+    private Goal choose(float x, float y, float postX, float postY, List<Holder> holders, List<Store> stores) {
         Holder fullest = null;
         for (Holder h : holders) {
             if (h.load() <= 0f) continue;
@@ -91,6 +105,41 @@ public final class HaulerWork {
         lost += was;
         load = 0f;
         return was;
+    }
+
+    /**
+     * The cell a hauler at {@code (x, y)} walks to to reach a stripper or store at {@code (tx, ty)}: never the target's
+     * own cell, which a stripper or a bay stands on and no walk ends on, but the open cell {@link #STAND_OFF_CELLS}
+     * short of it on the line from the hauler, else the open cell round the target at that distance nearest the
+     * hauler, else one nearer; the target's cell only when none round it is open.
+     */
+    public static int[] approach(float tx, float ty, float x, float y, BiPredicate<Integer, Integer> open) {
+        int cx = (int) Math.floor(tx);
+        int cy = (int) Math.floor(ty);
+        float dx = x - tx;
+        float dy = y - ty;
+        float span = Math.max(Math.abs(dx), Math.abs(dy));
+        for (int d = STAND_OFF_CELLS; d >= 1; d--) {
+            if (span > 0f) {
+                int ax = cx + Math.round(dx / span * d);
+                int ay = cy + Math.round(dy / span * d);
+                if (open.test(ax, ay)) return new int[] {ax, ay};
+            }
+            int[] best = null;
+            float bestD = Float.MAX_VALUE;
+            for (int oy = -d; oy <= d; oy++) {
+                for (int ox = -d; ox <= d; ox++) {
+                    if (Math.max(Math.abs(ox), Math.abs(oy)) != d || !open.test(cx + ox, cy + oy)) continue;
+                    float e = d2(cx + ox + 0.5f, cy + oy + 0.5f, x, y);
+                    if (e < bestD) {
+                        bestD = e;
+                        best = new int[] {cx + ox, cy + oy};
+                    }
+                }
+            }
+            if (best != null) return best;
+        }
+        return new int[] {cx, cy};
     }
 
     private static boolean near(float tx, float ty, float x, float y) {

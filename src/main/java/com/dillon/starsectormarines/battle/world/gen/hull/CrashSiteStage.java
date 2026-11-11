@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.hull;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
@@ -90,6 +91,10 @@ public final class CrashSiteStage implements GenStage {
     static final int LIP = 2;
     /** How far back under the bow's tip the trench runs, filling the ground its taper leaves open. */
     static final int TRENCH_BACK = 10;
+    /** The widest gap between sections ploughed across the hull's whole breadth; a wider one is a furrow. */
+    static final int WIDE_GAP = 30;
+    /** Half the width of the furrow the sections dragged across a wide gap. UNTUNED. */
+    static final int DRAG_HALF = 6;
     /** An apron: this deep outward from its door, this wide across it, this far from the hull's face. */
     static final int APRON_DEPTH = 13, APRON_HALF = 4, APRON_GAP = 1;
     /** Hull fragments tried and laid along the trench. UNTUNED. */
@@ -114,7 +119,8 @@ public final class CrashSiteStage implements GenStage {
 
     /**
      * The worked fields the hull came down on are no fields: a plot the hull, its trench or an apron touches is taken
-     * off the map's fields, so no planet skin grows a covered farm on the hull.
+     * off the map's fields, so no planet skin grows a covered farm on the hull, and what is left of it outside them goes
+     * back to the planet's own ground, not a strip of crops no skin reaches.
      */
     static void dropFields(GenContext ctx, BitSet... covers) {
         List<RuralLayout.Plot> fields = ctx.get(BspKeys.WORKED_FIELDS);
@@ -128,7 +134,26 @@ public final class CrashSiteStage implements GenStage {
                     for (BitSet cover : covers) hit |= cover.get(y * w + x);
                 }
             }
-            if (!hit) kept.add(plot);
+            if (!hit) {
+                kept.add(plot);
+                continue;
+            }
+            SurfacePalette palette = ctx.topology.groundPalette();
+            GroundKind wild = palette == null ? GroundKind.DIRT : palette.inlandGround();
+            String block = block(wild);
+            for (int y = Math.max(0, plot.y0()); y <= Math.min(ctx.height - 1, plot.y1()); y++) {
+                for (int x = Math.max(0, plot.x0()); x <= Math.min(w - 1, plot.x1()); x++) {
+                    boolean covered = false;
+                    for (BitSet cover : covers) covered |= cover.get(y * w + x);
+                    if (covered || ctx.topology.isWall(x, y) || ctx.topology.getBuildingId(x, y) != 0) continue;
+                    GroundKind kind = ctx.topology.getGroundKind(x, y);
+                    if (kind != GroundKind.GRASS && kind != GroundKind.DIRT && kind != GroundKind.SAND
+                            && kind != GroundKind.SNOW && kind != GroundKind.STONE) continue;
+                    ctx.topology.setGroundKind(x, y, wild);
+                    if (block != null) ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(block));
+                    ctx.topology.setNatureOverlayIndex(x, y, -1);
+                }
+            }
         }
         ctx.put(BspKeys.WORKED_FIELDS, kept);
     }
@@ -166,23 +191,23 @@ public final class CrashSiteStage implements GenStage {
     }
 
     /**
-     * Where the broken hull falls on the map: the middle of its laid length and breadth ({@link HullPlan#LAID_LENGTH})
+     * Where the broken hull falls on the map: the middle of its laid length ({@link HullPlan.Laying#length}) and breadth
      * at {@code (x, y)}, its bow along the heading. A laid cell {@code (l, c)} is cells from the stern along the line
-     * and across it; a plan cell is laid through its section ({@link HullPlan#laidU}).
+     * and across it; a plan cell is laid through its section ({@link HullPlan.Laying#laidU}).
      */
-    record Frame(int x, int y, Direction heading) {
+    record Frame(int x, int y, Direction heading, HullPlan.Laying laying) {
         int lx(int l, int c) {
-            return x + (l - HullPlan.LAID_LENGTH / 2) * heading.dx - (c - HullPlan.LAID_BREADTH / 2) * heading.dy;
+            return x + (l - laying.length() / 2) * heading.dx - (c - HullPlan.LAID_BREADTH / 2) * heading.dy;
         }
         int ly(int l, int c) {
-            return y + (l - HullPlan.LAID_LENGTH / 2) * heading.dy + (c - HullPlan.LAID_BREADTH / 2) * heading.dx;
+            return y + (l - laying.length() / 2) * heading.dy + (c - HullPlan.LAID_BREADTH / 2) * heading.dx;
         }
         /** Plan cell {@code (u, v)} on the map, laid as a cell of {@code section} (off its ends too, for its aprons). */
         int wx(HullPlan.Section section, int u, int v) {
-            return lx(HullPlan.laidU(section, u), HullPlan.laidV(section, v));
+            return lx(laying.laidU(section, u), HullPlan.laidV(section, v));
         }
         int wy(HullPlan.Section section, int u, int v) {
-            return ly(HullPlan.laidU(section, u), HullPlan.laidV(section, v));
+            return ly(laying.laidU(section, u), HullPlan.laidV(section, v));
         }
         int wx(int u, int v) { return wx(HullPlan.section(u), u, v); }
         int wy(int u, int v) { return wy(HullPlan.section(u), u, v); }
@@ -196,8 +221,8 @@ public final class CrashSiteStage implements GenStage {
         /** The laid box's cells on the map. */
         Area laid() {
             int ax = lx(0, 0), ay = ly(0, 0);
-            int bx = lx(HullPlan.LAID_LENGTH - 1, HullPlan.LAID_BREADTH - 1);
-            int by = ly(HullPlan.LAID_LENGTH - 1, HullPlan.LAID_BREADTH - 1);
+            int bx = lx(laying.length() - 1, HullPlan.LAID_BREADTH - 1);
+            int by = ly(laying.length() - 1, HullPlan.LAID_BREADTH - 1);
             return new Area(Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by));
         }
         /** The map step of a plan step. */
@@ -224,7 +249,7 @@ public final class CrashSiteStage implements GenStage {
             this.grid = ctx.grid;
             this.topology = ctx.topology;
             this.plan = plan;
-            this.frame = new Frame(plan.x(), plan.y(), plan.heading());
+            this.frame = new Frame(plan.x(), plan.y(), plan.heading(), plan.laying());
             this.w = ctx.width;
             this.h = ctx.height;
             this.rng = new Random(ctx.seed ^ SALT);
@@ -313,7 +338,7 @@ public final class CrashSiteStage implements GenStage {
             // A furrow, not a staircase: its sides narrow smoothly from the bow to a rounded nose, each wandering on
             // its own slow wave, with a spoil lip of wandering width; it wraps the bow's tip where the taper leaves
             // ground open.
-            int tip = HullPlan.LAID_LENGTH - 1, top = HullPlan.laidV(bow, 0);
+            int tip = frame.laying().length() - 1, top = HullPlan.laidV(bow, 0);
             float p0 = Math.floorMod(hash(1, 0, 0x7E), 628) / 100f, p1 = Math.floorMod(hash(2, 0, 0x7E), 628) / 100f;
             float p2 = Math.floorMod(hash(3, 0, 0x7E), 628) / 100f;
             for (int t = 1 - TRENCH_BACK; t <= plan.trench() + TRENCH_HALF_END; t++) {
@@ -326,17 +351,37 @@ public final class CrashSiteStage implements GenStage {
                     for (int d = 0; d + 0.5f <= edge + lip; d++) {
                         int l = tip + t, c = mid + (side < 0 ? -1 - d : d);
                         if (l <= tip) {
-                            int u = HullPlan.planU(l), v = c - top;
+                            int u = frame.laying().planU(l), v = c - top;
                             if (u >= 0 && hull.at(u, v) != HullPlan.Kind.OUTSIDE) continue;
                         }
                         cells.add(new int[]{l, c, d + 0.5f > edge ? 1 : 0});
                     }
                 }
             }
-            // The gaps between sections: ploughed as the trench is, across the hull's breadth.
-            for (int l = 0; l < HullPlan.LAID_LENGTH; l++) {
-                if (HullPlan.planU(l) >= 0) continue;
-                for (int c = 0; c < HullPlan.LAID_BREADTH; c++) cells.add(new int[]{l, c, 0});
+            // The gaps between sections: ploughed as the trench is, across the hull's breadth where the sections broke
+            // close; a gap spread through a town is the furrow the sections dragged, with its lips.
+            for (int l = 0; l < frame.laying().length(); l++) {
+                if (frame.laying().planU(l) >= 0) continue;
+                int from = l, to = l;
+                while (to + 1 < frame.laying().length() && frame.laying().planU(to + 1) < 0) to++;
+                if (to - from + 1 <= WIDE_GAP) {
+                    for (int g = from; g <= to; g++) {
+                        for (int c = 0; c < HullPlan.LAID_BREADTH; c++) cells.add(new int[]{g, c, 0});
+                    }
+                } else {
+                    for (int g = from; g <= to; g++) {
+                        for (int side = -1; side <= 1; side += 2) {
+                            float p = side < 0 ? p0 : p1;
+                            float edge = DRAG_HALF + 1.3f * (float) Math.sin(g * 0.37f + p)
+                                    + 0.7f * (float) Math.sin(g * 0.91f + p * 2);
+                            float lip = 1.6f + 1.2f * (float) Math.sin(g * 0.53f + p2 + side);
+                            for (int d = 0; d + 0.5f <= edge + lip; d++) {
+                                cells.add(new int[]{g, mid + (side < 0 ? -1 - d : d), d + 0.5f > edge ? 1 : 0});
+                            }
+                        }
+                    }
+                }
+                l = to;
             }
             for (int[] c : cells) {
                 int x = frame.lx(c[0], c[1]), y = frame.ly(c[0], c[1]);
@@ -606,7 +651,7 @@ public final class CrashSiteStage implements GenStage {
         Apron apron(int k, Entrance e) {
             Rect d = e.door();
             HullPlan.Section section = HullPlan.section(d.u0());
-            int depth = apronDepth(e, section);
+            int depth = apronDepth(e, section, frame.laying());
             int mu = (d.u0() + d.u1()) / 2, mv = (d.v0() + d.v1()) / 2;
             // The door's outer face, then out past the hull's face.
             int fu = e.du() < 0 ? d.u0() : e.du() > 0 ? d.u1() : mu;
@@ -636,10 +681,10 @@ public final class CrashSiteStage implements GenStage {
          * How deep an entrance's apron runs: {@link #APRON_DEPTH} onto open ground, and at a broken end half the gap to
          * the next section, so the two torn ends' aprons facing each other across it never meet.
          */
-        static int apronDepth(Entrance e, HullPlan.Section section) {
+        static int apronDepth(Entrance e, HullPlan.Section section, HullPlan.Laying laying) {
             if (!e.broken()) return APRON_DEPTH;
             List<HullPlan.Section> all = HullPlan.SECTIONS;
-            int gap = e.du() > 0 ? all.get(all.indexOf(section) + 1).gap() : section.gap();
+            int gap = e.du() > 0 ? laying.gap(all.get(all.indexOf(section) + 1)) : laying.gap(section);
             return Math.min(APRON_DEPTH, gap / 2 - APRON_GAP - 1);
         }
 
@@ -671,9 +716,9 @@ public final class CrashSiteStage implements GenStage {
             int mid = HullPlan.LAID_BREADTH / 2;
             for (int tries = 0; tries < DEBRIS_TRIES && out.size() < DEBRIS; tries++) {
                 // Laid along the line: the hull's length, then the trench beyond the bow.
-                int l = rng.nextInt(plan.trench() + HullPlan.LAID_LENGTH);
+                int l = rng.nextInt(plan.trench() + frame.laying().length());
                 int side = rng.nextBoolean() ? 1 : -1;
-                int off = (l >= HullPlan.LAID_LENGTH ? TRENCH_HALF_HULL + LIP + 2 : HullPlan.LAID_BREADTH / 2 + 3)
+                int off = (l >= frame.laying().length() ? TRENCH_HALF_HULL + LIP + 2 : HullPlan.LAID_BREADTH / 2 + 3)
                         + rng.nextInt(16);
                 int length = 3 + rng.nextInt(4);
                 boolean alongU = rng.nextBoolean();

@@ -1,7 +1,7 @@
 # Ruins expedition: going into a world's ruins with the company
 
 Status: DRAFT — the fork, the Ruins mission family and its occupants are built
-and offered only in development builds; the owner's live pass is
+and offered on every build; the owner's live pass is
 `ruins-expedition-fork.md`'s.
 
 Written: 2026-11-09

@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.raid;
 
-import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
-import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
@@ -182,15 +180,204 @@ public final class RefineryGround {
         }
     }
 
-    /** One refinery's dressing, holding the cells already laid so no two pieces contend for one. */
-    private static final class Dresser {
+    /**
+     * Lays plant on the ground: discs that stand solid and blind, frames drawn over them, made ground paved and kept
+     * from the landscape, and a tank farm's bunds. The refinery's dressing is one; a story map's yards are another
+     * ({@code PortYards}).
+     */
+    public static class Stamp {
         final GenContext c;
-        final PrecinctPlan plan;
-        /** Cells dressed here, all marked made ground for the landscape. */
+        /** Cells laid here, all marked made ground for the landscape. */
         final boolean[] reserved;
-        final IntPredicate free;
         final TileRegistry registry;
         final int w, h;
+
+        public Stamp(GenContext c, TileRegistry registry) {
+            this(c, new boolean[c.width * c.height], registry);
+        }
+
+        Stamp(GenContext c, boolean[] reserved, TileRegistry registry) {
+            this.c = c;
+            this.reserved = reserved;
+            this.registry = registry;
+            this.w = c.width;
+            this.h = c.height;
+        }
+
+        /** Whether the cell has been laid here. */
+        public boolean laid(int x, int y) {
+            return x >= 0 && y >= 0 && x < w && y < h && reserved[y * w + x];
+        }
+
+        /** The farm's made ground, its bunds, their tanks and walls; its loading rack is the caller's. */
+        public void farm(TankFarm.Plan farm) {
+            farm(farm, true);
+        }
+
+        /** As above; {@code weeps}, one tank's spill on its bund floor (none where nothing pools, as on airless ground). */
+        public void farm(TankFarm.Plan farm, boolean weeps) {
+            // Made ground: the loading lane an apron the tankers stand on, each bund's floor a sealed pad. The
+            // walkways between the bunds stay the planet's gravel.
+            int[] all = farm.paved(), lane0 = farm.lane();
+            for (int y = lane0[1]; y <= lane0[3]; y++) for (int x = all[0]; x <= all[2]; x++) pave(x, y, APRON);
+            for (int y = all[1]; y <= all[3]; y++) for (int x = all[0]; x <= all[2]; x++) keep(x, y);
+            for (TankFarm.Bund bund : farm.bunds()) {
+                for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) pave(x, y, PAD);
+            }
+            DoodadDef stain = registry.doodad(SPILL_ART);
+            boolean leaked = !weeps;
+            for (TankFarm.Bund bund : farm.bunds()) {
+                for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) keep(x, y);
+                // One tank weeps into its bund: the stain on the bund floor beside it.
+                if (!leaked && stain != null && !bund.tanks().isEmpty()) {
+                    TankFarm.Tank t = bund.tanks().get(0);
+                    Doodad spill = scaled(stain, SPILL, t.x() + t.size() - SPILL / 2, t.y() - 2);
+                    if (spill != null) c.doodads.add(spill);
+                    leaked = true;
+                }
+                for (TankFarm.Tank tank : bund.tanks()) tank(tank);
+                for (TankFarm.Wall wall : bund.walls()) {
+                    StreetDressing.jerseyBarrier(c.grid, c.topology, c.doodads, wall.x(), wall.y(), wall.alongX());
+                }
+            }
+        }
+
+        /**
+         * The loading rack in the lane's bay: a gantry run along the bay over the loading arms, the tankers drawn up
+         * under it, and the spills where the arms drip.
+         */
+        public void loadout(TankFarm.Plan farm) {
+            int[] bay = farm.bay();
+            int rackY = farm.laneDy() < 0 ? bay[3] - 1 : bay[1] + 1;
+            int truckY = farm.laneDy() < 0 ? rackY - TRUCK_Y : rackY + 1;
+            DoodadDef stain = registry.doodad(STAIN_ART), tanker = registry.doodad(TANKER_ART);
+            if (stain != null) {
+                for (int x = bay[0] + 2; x + 2 <= bay[2]; x += 5) {
+                    Doodad d = new Doodad(x, farm.laneDy() < 0 ? rackY - 1 : rackY, stain);
+                    c.doodads.add(d);
+                }
+            }
+            StreetDressing.pipeRun(c.grid, c.topology, c.doodads, bay[0], rackY, bay[2], rackY, 4);
+            racked(bay[0], bay[2], rackY);
+            if (tanker == null) return;
+            DoodadDef island = registry.doodad(ISLAND_ART);
+            for (int x = bay[0] + ISLAND_GAP; x + TRUCK_X <= bay[2] + 1; x += TRUCK_X + ISLAND_GAP) {
+                if (truckY < 0 || truckY + TRUCK_Y > h) break;
+                boolean clear = true;
+                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = -ISLAND_GAP; dx < TRUCK_X; dx++) {
+                    if (!c.grid.isWalkable(x + dx, y) || c.topology.isFixture(x + dx, y)) clear = false;
+                }
+                if (!clear) continue;
+                Doodad truck = scaledBy(tanker, TRUCK_SCALE, x, truckY);
+                if (truck == null) continue;
+                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = 0; dx < TRUCK_X; dx++) fixture(x + dx, y, true);
+                c.doodads.add(truck);
+                // The island the truck fills from, in the gap before it, its arms reaching over to it.
+                Doodad arms = island == null ? null
+                        : scaled(island, ISLAND_FRAME, x - ISLAND_GAP - 1, truckY + TRUCK_Y / 2 - ISLAND_FRAME / 2);
+                if (arms == null) continue;
+                for (int y = truckY; y < truckY + TRUCK_Y; y++) {
+                    for (int dx = 2; dx < ISLAND_GAP; dx++) fixture(x - ISLAND_GAP + dx, y, true);
+                }
+                c.doodads.add(arms);
+            }
+        }
+
+        /** The rack's cells along {@code y}, {@code x0} to {@code x1}: a dressing that runs more racks keeps off them. */
+        void racked(int x0, int x1, int y) { }
+
+        /**
+         * A tank: its disc solid and blind; a big one a floating-roof crude tank drawn over the square it stands in, a
+         * small one a volatiles sphere with its shadow.
+         */
+        void tank(TankFarm.Tank tank) {
+            stampDisc(tank.x(), tank.y(), tank.size());
+            if (tank.size() >= TankFarm.BIG) drawOver(TANK_ART, tank.size(), TANK_SPAN, TANK_AT, tank.x(), tank.y());
+            else drawOver(SPHERE_ART, tank.size(), SPHERE_SPAN, SPHERE_AT, tank.x(), tank.y());
+        }
+
+        /** {@code id}'s frame drawn over the disc {@code disc} cells across at {@code (x, y)}, by {@link #over}. */
+        void drawOver(String id, int disc, float span, float at, int x, int y) {
+            drawOver(id, disc, span, at, at, x, y);
+        }
+
+        /** As above, the disc's middle {@code atX} along the frame and {@code atY} down it (a mirrored frame's). */
+        void drawOver(String id, int disc, float span, float atX, float atY, int x, int y) {
+            DoodadDef art = registry.doodad(id);
+            int[] ox = over(disc, span, atX, x), oy = over(disc, span, atY, y);
+            if (art == null || ox == null || oy == null) return;
+            Doodad d = scaled(art, ox[0], ox[1], oy[1]);
+            if (d != null) c.doodads.add(d);
+        }
+
+        /** The cells of the disc in the {@code size} square at {@code (x0, y0)}. */
+        List<int[]> disc(int x0, int y0, int size) {
+            List<int[]> out = new ArrayList<>();
+            float r = size / 2f, cx = x0 + r, cy = y0 + r;
+            for (int y = y0; y < y0 + size; y++) for (int x = x0; x < x0 + size; x++) {
+                float dx = x + .5f - cx, dy = y + .5f - cy;
+                if (dx * dx + dy * dy <= r * r + .25f) out.add(new int[]{x, y});
+            }
+            return out;
+        }
+
+        /** A vessel's disc: not walkable, not seen or shot through, and cover to whoever stands against it. */
+        void stampDisc(int x0, int y0, int size) {
+            for (int[] cell : disc(x0, y0, size)) fixture(cell[0], cell[1], false);
+        }
+
+        void fixture(int x, int y, boolean seeThrough) {
+            if (x < 0 || y < 0 || x >= w || y >= h) return;
+            c.grid.setWalkable(x, y, false);
+            c.grid.setSeeThrough(x, y, seeThrough);
+            c.topology.setFixture(x, y, true);
+            keep(x, y);
+        }
+
+        void keep(int x, int y) {
+            if (x < 0 || y < 0 || x >= w || y >= h) return;
+            reserved[y * w + x] = true;
+            c.markMadeGround(x, y);
+        }
+
+        /** {@code def} drawn {@code k} times its sheet size from {@code (x, y)}, or null when its frame does not divide. */
+        Doodad scaledBy(DoodadDef def, int k, int x, int y) {
+            int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
+            if (k <= 0 || cell0 % k != 0) return null;
+            int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
+            return new Doodad(x, y, new TileManifest.TileFrame(def.col * k, def.row * k), def.sheetPath,
+                    def.cover.level(), def.ballisticHalfHeight, fx * k, fy * k, null, cell0 / k);
+        }
+
+        /** Paves a cell as made ground of {@code kind}: nothing wild dresses it. */
+        void pave(int x, int y, GroundKind kind) {
+            if (x < 0 || y < 0 || x >= w || y >= h || c.topology.getBuildingId(x, y) != 0 || c.topology.isWall(x, y)) return;
+            c.topology.setGroundKind(x, y, kind);
+            c.topology.setSurface(x, y, 0);
+            c.topology.setNatureOverlayIndex(x, y, -1);
+            keep(x, y);
+        }
+
+        /**
+         * {@code def} drawn {@code size} cells square from {@code (x, y)}: its sheet read at a cell so much finer that
+         * its frame spans the size. Null when the frame does not divide into it.
+         */
+        Doodad scaled(DoodadDef def, int size, int x, int y) {
+            int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
+            int px = cell0 * def.footprintCellsX;
+            if (size <= 0 || px % size != 0) return null;
+            int cell = px / size;
+            if ((def.col * cell0) % cell != 0 || (def.row * cell0) % cell != 0) return null;
+            return new Doodad(x, y, new TileManifest.TileFrame(def.col * cell0 / cell, def.row * cell0 / cell),
+                    def.sheetPath, def.cover.level(), def.ballisticHalfHeight, size, size, null, cell);
+        }
+
+    }
+
+    /** One refinery's dressing, holding the cells already laid so no two pieces contend for one. */
+    private static final class Dresser extends Stamp {
+        final PrecinctPlan plan;
+        final IntPredicate free;
         final boolean[][] roads;
         /** Cells the racks have taken: no rack runs over another. */
         final boolean[] racked;
@@ -201,17 +388,18 @@ public final class RefineryGround {
         final List<Boolean> spineLefts = new ArrayList<>();
 
         Dresser(GenContext c, PrecinctPlan plan, boolean[] reserved, IntPredicate free, TileRegistry registry) {
-            this.c = c;
+            super(c, reserved, registry);
             this.plan = plan;
-            this.reserved = reserved;
             this.free = free;
-            this.registry = registry;
-            this.w = c.width;
-            this.h = c.height;
             this.roads = c.get(BspKeys.ROAD_RESERVATION);
             this.racked = new boolean[w * h];
             this.works = plan.objective();
             this.claimBox = claimBox();
+        }
+
+        @Override
+        void racked(int x0, int x1, int y) {
+            for (int x = x0; x <= x1; x++) racked[y * w + x] = true;
         }
 
         void dress(Site site) {
@@ -325,23 +513,10 @@ public final class RefineryGround {
 
         /**
          * Arms a field by the shared doctrine ({@code PrecinctDefence.stampField}): its own posts, on top of the works'
-         * wall's, crewed by the works' guard; off the roads, and out of reach of the posts already standing (the
-         * placer keeps {@code DefensePostStamper.POST_MIN_SEPARATION} between anchors), so the doctrine moves a site
-         * rather than lose it.
+         * wall's, off the roads, crewed by the works' guard.
          */
         void guard(boolean[][] field, List<DefenceDoctrine.Gate> gates, DefensePostKind kind) {
-            boolean[][] clear = new boolean[w][h];
-            int far = DefensePostStamper.POST_MIN_SEPARATION;
-            for (DefensePost p : c.defensePosts) {
-                for (int x = Math.max(0, p.anchorX - far); x <= Math.min(w - 1, p.anchorX + far); x++) {
-                    for (int y = Math.max(0, p.anchorY - far); y <= Math.min(h - 1, p.anchorY + far); y++) {
-                        int dx = x - p.anchorX, dy = y - p.anchorY;
-                        if (dx * dx + dy * dy < far * far) clear[x][y] = true;
-                    }
-                }
-            }
-            if (roads != null) for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) clear[x][y] |= roads[x][y];
-            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), clear,
+            PrecinctDefence.stampField(c, field, gates, FieldDefence.owed(kind, gates.size()), roads,
                     RaidSiteTemplate.WORKS);
         }
 
@@ -355,99 +530,11 @@ public final class RefineryGround {
             int nearX = industry != null ? industry.seedX() : plan.attackerFrom().x0() == 0f ? 0 : w - 1;
             TankFarm.Plan farm = TankFarm.plan(w, site.x0(), site.y0(), site.x1(), site.y1(), free, roadY, nearX);
             if (farm == null) return null;
-            // Made ground: the loading lane an apron the tankers stand on, each bund's floor a sealed pad. The
-            // walkways between the bunds stay the planet's gravel.
-            int[] all = farm.paved(), lane0 = farm.lane();
-            for (int y = lane0[1]; y <= lane0[3]; y++) for (int x = all[0]; x <= all[2]; x++) pave(x, y, APRON);
-            for (int y = all[1]; y <= all[3]; y++) for (int x = all[0]; x <= all[2]; x++) keep(x, y);
-            for (TankFarm.Bund bund : farm.bunds()) {
-                for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) pave(x, y, PAD);
-            }
-            DoodadDef stain = registry.doodad(SPILL_ART);
-            boolean leaked = false;
-            for (TankFarm.Bund bund : farm.bunds()) {
-                for (int y = bund.y0(); y <= bund.y1(); y++) for (int x = bund.x0(); x <= bund.x1(); x++) keep(x, y);
-                // One tank weeps into its bund: the stain on the bund floor beside it.
-                if (!leaked && stain != null && !bund.tanks().isEmpty()) {
-                    TankFarm.Tank t = bund.tanks().get(0);
-                    Doodad spill = scaled(stain, SPILL, t.x() + t.size() - SPILL / 2, t.y() - 2);
-                    if (spill != null) c.doodads.add(spill);
-                    leaked = true;
-                }
-                for (TankFarm.Tank tank : bund.tanks()) tank(tank);
-                for (TankFarm.Wall wall : bund.walls()) {
-                    StreetDressing.jerseyBarrier(c.grid, c.topology, c.doodads, wall.x(), wall.y(), wall.alongX());
-                }
-            }
+            farm(farm);
             loadout(farm);
             int[] lane = farm.lane();
             for (int y = lane[1]; y <= lane[3]; y++) for (int x = lane[0]; x <= lane[2]; x++) keep(x, y);
             return farm;
-        }
-
-        /**
-         * A tank: its disc solid and blind; a big one a floating-roof crude tank drawn over the square it stands in, a
-         * small one a volatiles sphere with its shadow.
-         */
-        void tank(TankFarm.Tank tank) {
-            stampDisc(tank.x(), tank.y(), tank.size());
-            if (tank.size() >= TankFarm.BIG) drawOver(TANK_ART, tank.size(), TANK_SPAN, TANK_AT, tank.x(), tank.y());
-            else drawOver(SPHERE_ART, tank.size(), SPHERE_SPAN, SPHERE_AT, tank.x(), tank.y());
-        }
-
-        /** {@code id}'s frame drawn over the disc {@code disc} cells across at {@code (x, y)}, by {@link #over}. */
-        void drawOver(String id, int disc, float span, float at, int x, int y) {
-            drawOver(id, disc, span, at, at, x, y);
-        }
-
-        /** As above, the disc's middle {@code atX} along the frame and {@code atY} down it (a mirrored frame's). */
-        void drawOver(String id, int disc, float span, float atX, float atY, int x, int y) {
-            DoodadDef art = registry.doodad(id);
-            int[] ox = over(disc, span, atX, x), oy = over(disc, span, atY, y);
-            if (art == null || ox == null || oy == null) return;
-            Doodad d = scaled(art, ox[0], ox[1], oy[1]);
-            if (d != null) c.doodads.add(d);
-        }
-
-        /**
-         * The loading rack in the lane's bay: a gantry run along the bay over the loading arms, the tankers drawn up
-         * under it, and the spills where the arms drip.
-         */
-        void loadout(TankFarm.Plan farm) {
-            int[] bay = farm.bay();
-            int rackY = farm.laneDy() < 0 ? bay[3] - 1 : bay[1] + 1;
-            int truckY = farm.laneDy() < 0 ? rackY - TRUCK_Y : rackY + 1;
-            DoodadDef stain = registry.doodad(STAIN_ART), tanker = registry.doodad(TANKER_ART);
-            if (stain != null) {
-                for (int x = bay[0] + 2; x + 2 <= bay[2]; x += 5) {
-                    Doodad d = new Doodad(x, farm.laneDy() < 0 ? rackY - 1 : rackY, stain);
-                    c.doodads.add(d);
-                }
-            }
-            StreetDressing.pipeRun(c.grid, c.topology, c.doodads, bay[0], rackY, bay[2], rackY, 4);
-            for (int x = bay[0]; x <= bay[2]; x++) racked[rackY * w + x] = true;
-            if (tanker == null) return;
-            DoodadDef island = registry.doodad(ISLAND_ART);
-            for (int x = bay[0] + ISLAND_GAP; x + TRUCK_X <= bay[2] + 1; x += TRUCK_X + ISLAND_GAP) {
-                if (truckY < 0 || truckY + TRUCK_Y > h) break;
-                boolean clear = true;
-                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = -ISLAND_GAP; dx < TRUCK_X; dx++) {
-                    if (!c.grid.isWalkable(x + dx, y) || c.topology.isFixture(x + dx, y)) clear = false;
-                }
-                if (!clear) continue;
-                Doodad truck = scaledBy(tanker, TRUCK_SCALE, x, truckY);
-                if (truck == null) continue;
-                for (int y = truckY; y < truckY + TRUCK_Y; y++) for (int dx = 0; dx < TRUCK_X; dx++) fixture(x + dx, y, true);
-                c.doodads.add(truck);
-                // The island the truck fills from, in the gap before it, its arms reaching over to it.
-                Doodad arms = island == null ? null
-                        : scaled(island, ISLAND_FRAME, x - ISLAND_GAP - 1, truckY + TRUCK_Y / 2 - ISLAND_FRAME / 2);
-                if (arms == null) continue;
-                for (int y = truckY; y < truckY + TRUCK_Y; y++) {
-                    for (int dx = 2; dx < ISLAND_GAP; dx++) fixture(x - ISLAND_GAP + dx, y, true);
-                }
-                c.doodads.add(arms);
-            }
         }
 
         /** The plot and a ring round it are open yard inside the works: walkable, off the roads and doors. */
@@ -884,70 +971,6 @@ public final class RefineryGround {
                 }
             }
             return true;
-        }
-
-        // ---- helpers ----
-
-        /** The cells of the disc in the {@code size} square at {@code (x0, y0)}. */
-        List<int[]> disc(int x0, int y0, int size) {
-            List<int[]> out = new ArrayList<>();
-            float r = size / 2f, cx = x0 + r, cy = y0 + r;
-            for (int y = y0; y < y0 + size; y++) for (int x = x0; x < x0 + size; x++) {
-                float dx = x + .5f - cx, dy = y + .5f - cy;
-                if (dx * dx + dy * dy <= r * r + .25f) out.add(new int[]{x, y});
-            }
-            return out;
-        }
-
-        /** A vessel's disc: not walkable, not seen or shot through, and cover to whoever stands against it. */
-        void stampDisc(int x0, int y0, int size) {
-            for (int[] cell : disc(x0, y0, size)) fixture(cell[0], cell[1], false);
-        }
-
-        void fixture(int x, int y, boolean seeThrough) {
-            if (x < 0 || y < 0 || x >= w || y >= h) return;
-            c.grid.setWalkable(x, y, false);
-            c.grid.setSeeThrough(x, y, seeThrough);
-            c.topology.setFixture(x, y, true);
-            keep(x, y);
-        }
-
-        void keep(int x, int y) {
-            if (x < 0 || y < 0 || x >= w || y >= h) return;
-            reserved[y * w + x] = true;
-            c.markMadeGround(x, y);
-        }
-
-        /** {@code def} drawn {@code k} times its sheet size from {@code (x, y)}, or null when its frame does not divide. */
-        Doodad scaledBy(DoodadDef def, int k, int x, int y) {
-            int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
-            if (k <= 0 || cell0 % k != 0) return null;
-            int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
-            return new Doodad(x, y, new TileManifest.TileFrame(def.col * k, def.row * k), def.sheetPath,
-                    def.cover.level(), def.ballisticHalfHeight, fx * k, fy * k, null, cell0 / k);
-        }
-
-        /** Paves a cell as made ground of {@code kind}: nothing wild dresses it. */
-        void pave(int x, int y, GroundKind kind) {
-            if (x < 0 || y < 0 || x >= w || y >= h || c.topology.getBuildingId(x, y) != 0 || c.topology.isWall(x, y)) return;
-            c.topology.setGroundKind(x, y, kind);
-            c.topology.setSurface(x, y, 0);
-            c.topology.setNatureOverlayIndex(x, y, -1);
-            keep(x, y);
-        }
-
-        /**
-         * {@code def} drawn {@code size} cells square from {@code (x, y)}: its sheet read at a cell so much finer that
-         * its frame spans the size. Null when the frame does not divide into it.
-         */
-        Doodad scaled(DoodadDef def, int size, int x, int y) {
-            int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
-            int px = cell0 * def.footprintCellsX;
-            if (size <= 0 || px % size != 0) return null;
-            int cell = px / size;
-            if ((def.col * cell0) % cell != 0 || (def.row * cell0) % cell != 0) return null;
-            return new Doodad(x, y, new TileManifest.TileFrame(def.col * cell0 / cell, def.row * cell0 / cell),
-                    def.sheetPath, def.cover.level(), def.ballisticHalfHeight, size, size, null, cell);
         }
 
         /**

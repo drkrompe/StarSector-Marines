@@ -124,7 +124,7 @@ final class DerelictWalkerComposer {
      * root, its length the seen distance (a part reaching up or down looks shorter from above), its width as authored.
      * It is never drawn longer than authored: a leg foreshortens, it does not stretch.
      */
-    private static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
+    static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache part, BattleCamera cam,
                              float x0, float y0, float x1, float y1, float height, float inset, float shade,
                              float partScale, float alpha) {
         float dx = x1 - x0;

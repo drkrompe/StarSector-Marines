@@ -229,8 +229,10 @@ capital that is not another ship.
      alternating with heavy machine gun (anti-armour, then anti-infantry). Nests are unmanned, as the overwatch towers are:
      no guard-post node, so no defender roster change. Sites are open outdoor ground that fits the post footprint in the
      middle or deep band; each pick is the site furthest from every post and nest already standing (distance counted up
-     to a spacing set by the map's area and the declared count), ties to the ground nearest the centre. Fewer are placed
-     if the ground cannot hold them.
+     to a spacing set by the map's area and the declared count), ties to the ground nearest the centre. A site counts
+     only where the nest sees out: a wall blocks direct fire whole, so it faces the attacker's side (the map's centre
+     with no axis), turning up to 45 degrees for an arc open over ten cells (`PrecinctDefence.openArc`, the Raid's
+     rule), and its gun is laid on that bearing. Fewer are placed if the ground cannot hold them.
    - *Behaviour.* Nothing new: every turret already reaches aircraft (`EngagementService.reachesAltitude`) and drains
      the air-threat field, and a turret's round still glances off a capital, so a nest threatens aircraft and people
      and not a ship. Either side holds them: the spawn path, not the stage, gives a post its side.

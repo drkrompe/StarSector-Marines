@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -63,8 +65,10 @@ public final class ParkFiller implements BlockFiller {
 
         // Where nobody lives in the open the park is a paved service court, and what stands on its edge is the life
         // support kept outside in case of a leak rather than benches. The draws are the park's either way, so the
-        // town around it is the same town.
-        boolean court = HabitatZoning.forProfile(ctx.get(BspKeys.MARKET_PROFILE)).enclosed();
+        // town around it is the same town. A sealed town's parks are under its envelope too ({@link SealedTown}).
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        boolean court = HabitatZoning.forProfile(ctx.get(BspKeys.MARKET_PROFILE)).enclosed()
+                || plan != null && plan.precincts().stream().anyMatch(SealedTown::is);
         DoodadDef bench = TileRegistry.installed().doodad(court ? COURT_PLANT : "mess-galley.stool");
         int paving = court ? topology.surfaceIndex(COURT_PAVING) : 0;
 

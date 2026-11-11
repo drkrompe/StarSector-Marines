@@ -4,14 +4,12 @@ import com.dillon.starsectormarines.battle.derelict.ClaimLattice;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.Basin;
-import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
-import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
@@ -23,18 +21,16 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Apron;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Density;
-import com.dillon.starsectormarines.ops.MissionType;
-import com.dillon.starsectormarines.ops.OperationTier;
-import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * The Long Survey's ground ({@code long-survey-arc.md}, Seeds): each chapter's owned map, the ground of the mission it
@@ -53,13 +49,14 @@ public final class LongSurveyGround {
 
     private static final BspCityGenerator MAP_GEN = new BspCityGenerator();
 
-    /**
-     * The market a Stakes country is derived from: a mining district of a settled world, so the plan grows an
-     * installation (the mine works) and the country round it. The campaign's world only skins it.
-     */
-    static TargetProfile stakesMarket(SurfacePalette surface) {
-        return new TargetProfile(5, 5, 2, 1, "", Set.of(EconomicFunction.MINING), surface, SettlementLink.ROAD);
-    }
+    /** The Surveyor's works districts, either side of the approach. */
+    static final String WORKS_WEST = "works-west", WORKS_EAST = "works-east";
+    /** The Line's port districts: the spaceport quarter and the warehouses. */
+    static final String PORT_SPACEPORT = "port-spaceport", PORT_WAREHOUSES = "port-warehouses";
+    /** How far a port district grows: as dense as the city round it. UNTUNED. */
+    static final GrownTrunkPlan.Profile PORT_GROWTH = GrownTrunkPlan.Profile.of(0.6f);
+    /** How far a works district grows: yards and sheds, not a town. UNTUNED. */
+    static final GrownTrunkPlan.Profile WORKS_GROWTH = GrownTrunkPlan.Profile.of(0.35f);
 
     private LongSurveyGround() { }
 
@@ -92,38 +89,51 @@ public final class LongSurveyGround {
         long seed = entry.seed();
         return switch (chapter) {
             case LONG_SURVEY_FALL -> {
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BattleSetup.COLONY_BASIN_X, BattleSetup.COLONY_BASIN_Y));
+                // Garnir has no bloom: its ground is laid as the cold moon it is, with no green basin.
+                TargetProfile profile = BloomHeartSetup.world(home);
                 PrecinctPlan plan = entry.patch().pinned(BattleSetup.colonyPlanOn(MapScale.COLONY, seed, worldProfile));
                 MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_STAKES -> {
-                TargetProfile market = stakesMarket(home);
-                PrecinctPlan plan = BattleSetup.precinctPlanFor(MissionType.SABOTAGE, OperationTier.REINFORCED,
-                        RiskLevel.HIGH, market, MapScale.COLONY, seed, PrecinctPlan.Sprawl.REMOTE)
-                        // The installation laid as a cantonment in a square wall, not a grown diamond-walled fort.
-                        .withCantonments(market, MapScale.COLONY.width, MapScale.COLONY.height);
+                // Garnir's mine country: the owned Raid mine's works (head works, ore line, open pit, the town round
+                // them), laid against the same reference market, with the hull down in the open ground beside it.
+                TargetProfile market = RaidOwnedMap.reference(StoryMap.RAID_MINING, home);
+                PrecinctPlan plan = BattleSetup.raidSitePlanFor(RaidOwnedMap.site(StoryMap.RAID_MINING),
+                        RaidOwnedMap.TIER, RaidOwnedMap.RISK, market, RaidOwnedMap.SCALE, seed, RaidOwnedMap.MACHINES);
                 plan = PlanetSkin.sealedFor(entry.patch().pinned(plan), worldProfile);
-                MapResult map = MAP_GEN.generate(MapScale.COLONY.width, MapScale.COLONY.height, seed, null, market, plan);
+                MapResult map = MAP_GEN.generate(RaidOwnedMap.SCALE.width, RaidOwnedMap.SCALE.height, seed, null,
+                        market, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_LINE -> {
                 // The district capital: Broad Front's city, the columns stepping off from the south edge, the hull down
                 // across the north edge in the heart's place.
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
-                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
+                TargetProfile profile = BloomHeartSetup.world(home);
+                // Garnir's free port: the city with its spaceport quarter east of the east lane and its warehouse
+                // district west of the west lane (long-survey-maps.md, Chapter 3).
+                List<PrecinctBrief> port = List.of(
+                        PrecinctBrief.settlement(PORT_SPACEPORT, HeartCountry.placement(form, 0.24f, 0.46f, 0.86f, 0.98f),
+                                PORT_GROWTH, PrecinctCharacter.PORT),
+                        PrecinctBrief.settlement(PORT_WAREHOUSES, HeartCountry.placement(form, 0.24f, 0.46f, 0.02f, 0.2f),
+                                PORT_GROWTH, PrecinctCharacter.DEPOT));
+                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed, port));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
             }
             case LONG_SURVEY_SURVEYOR -> {
                 Form form = Form.BROAD_FRONT;
-                TargetProfile profile = BloomHeartSetup.world(home)
-                        .withBasin(Basin.ravBloom(home, BloomHeartSetup.BASIN_REACH_X, BloomHeartSetup.BASIN_REACH_Y));
-                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed));
+                TargetProfile profile = BloomHeartSetup.world(home);
+                // Garnir's works country: a works district either side of the approach, the foundries and yards
+                // the hull came down to feed on (long-survey-maps.md, Chapter 4).
+                List<PrecinctBrief> works = List.of(
+                        PrecinctBrief.settlement(WORKS_WEST, HeartCountry.placement(form, 0.34f, 0.56f, 0.08f, 0.34f),
+                                WORKS_GROWTH, PrecinctCharacter.INDUSTRY),
+                        PrecinctBrief.settlement(WORKS_EAST, HeartCountry.placement(form, 0.34f, 0.56f, 0.66f, 0.86f),
+                                WORKS_GROWTH, PrecinctCharacter.INDUSTRY));
+                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed, works));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);

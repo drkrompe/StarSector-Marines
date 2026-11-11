@@ -35,9 +35,15 @@ public final class StripperWork {
     public record Goal(Kind kind, float x, float y, long salvageId) { }
 
     private float load;
+    private Goal goal = new Goal(Kind.STAND_BY, 0f, 0f, 0L);
 
     public float load() {
         return load;
+    }
+
+    /** The goal it last decided ({@link #decide}): what the screen shows its arms doing. */
+    public Goal goal() {
+        return goal;
     }
 
     /**
@@ -46,6 +52,11 @@ public final class StripperWork {
      * @param claim the salvage on the claim, cuttable or not
      */
     public Goal decide(float x, float y, float postX, float postY, List<Salvage> claim) {
+        goal = choose(x, y, postX, postY, claim);
+        return goal;
+    }
+
+    private Goal choose(float x, float y, float postX, float postY, List<Salvage> claim) {
         if (load >= CAPACITY) return new Goal(Kind.FULL, x, y, 0L);
         Salvage best = null;
         float bestD = Float.MAX_VALUE;

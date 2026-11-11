@@ -406,6 +406,7 @@ public class BattleRenderer {
         this.units = new UnitRenderService(sprites);
         units.useLights(groundLights);
         nightLighting.useLights(groundLights);
+        nightLighting.useRoofs(this::roofsShown);
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         // One shader for every shield; each host's shields drawn in its own layer, over it (ShieldDomeRenderSystem).
         ShieldDomeRenderSystem shields = new ShieldDomeRenderSystem();
@@ -1216,6 +1217,56 @@ public class BattleRenderer {
         for (int c = 0; c < roofLifts.length; c++) {
             roofLifts[c] = rise == FLAT ? 1f : BuildingFaces.lift(BuildingFaces.HEIGHTS[c], rise);
         }
+    }
+
+    /** Whether this frame draws the roofs at all, so anything reading them ({@link #roofsShown}) may. */
+    private boolean roofsDrawn = true;
+    /** The roofs this frame shows and where ({@link RoofsShown}), for the night's shade to read. */
+    private final RoofsShown roofsShown = new RoofsShown();
+    private CellTopology roofsOf;
+    private long roofsAt = -1, roofsSignature;
+
+    /**
+     * The roofs this frame draws, each cell holding the height class of the roof over it where its building stands
+     * closed (not cut away, not razed), with this frame's view and lifts; null when the frame draws no roofs. The cells
+     * are worked out again only when the topology changes or a building opens, closes or changes class.
+     */
+    RoofsShown roofsShown(RenderContext ctx) {
+        if (!roofsDrawn || ctx.sim == null) return null;
+        CellTopology topology = ctx.sim.getTopology();
+        Buildings buildings = ctx.sim.getBuildings();
+        if (topology == null) return null;
+        riseEye();
+        long signature = 1469598103934665603L;
+        if (buildings != null) {
+            for (Building b : buildings.all()) {
+                int c = buildingClass(topology, buildings, b);
+                boolean shown = b.currentAlpha >= .5f && c != BuildingFaces.RAZED;
+                signature = (signature ^ (shown ? b.id * 8L + c + 1 : 0L)) * 1099511628211L;
+            }
+        }
+        if (topology != roofsOf || topology.changeCount() != roofsAt || signature != roofsSignature) {
+            int w = topology.getWidth(), h = topology.getHeight();
+            byte[] cells = new byte[w * h];
+            if (buildings != null && !buildings.isEmpty()) {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        int owner = RoofCover.owner(topology, x, y);
+                        if (owner == 0) continue;
+                        Building b = buildings.get(owner);
+                        if (b == null || b.currentAlpha < .5f) continue;
+                        int c = buildingClass(topology, buildings, b);
+                        if (c != BuildingFaces.RAZED) cells[x + y * w] = (byte) (c + 1);
+                    }
+                }
+            }
+            roofsShown.set(cells, w, h);
+            roofsOf = topology;
+            roofsAt = topology.changeCount();
+            roofsSignature = signature;
+        }
+        roofsShown.view(ctx.camera.panCellX(), ctx.camera.panCellY(), roofLifts);
+        return roofsShown;
     }
 
     /** {@link #roofRise} for a flat view ({@link WallDepth} off): every roof lies over its footprint. */
@@ -2364,6 +2415,7 @@ public class BattleRenderer {
      * (contrails, delivered rounds, beams) and hands their commands in here, the order the screen draws them in.
      */
     void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers, FrameCensus census, DrawList leading) {
+        roofsDrawn = layers.contains(RenderLayer.ROOFS);
         collectWorld(rc, layers, census);
         registerLateTerrainBatches();
         registerLateConvoyBatches();

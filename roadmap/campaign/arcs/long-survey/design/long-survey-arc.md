@@ -31,16 +31,17 @@ what they cannot reach, and later fights beside them.
 
 - **The world** (owner, 2026-11-11): **Garnir** in Corvus (`corvus_IIIa`), the
   pirate free port, airless and cold, volatiles plentiful, mines and ground
-  defences; the world A Cold Account was fought on. The hirer and the allied
+  defences. The hirer and the allied
   columns of chapters 3 and 4 are the port's crews: pirate armour and militia
   (`pirates-lore-guide.md`). Played down to the port and its mining country,
   as the Khettara is to its district.
 - **The defence chief** (name and portrait the owner's): the free port's
   defence chief, hiring and briefing every chapter, as Orens does. Speaks in
   shares, grudges, reputation and practical detail; names the crews, never
-  "the pirates". Hires the company because it is the outfit that brought a
-  Hegemony battleship down on Sable's compound here: nobody misses Sable, and
-  everybody remembers who did it.
+  "the pirates". Hires the company as a merc outfit for hire in the system,
+  with no shared history: nobody on Garnir knows who the company is (owner,
+  2026-11-11, `garnir-sable`: there is no sector-wide memory of who did what).
+  The port's general dislike of the Hegemony may colour the voice.
 - **The salvage crew's captain** (optional): whose tow brought it down, wanting
   the hull intact as the crew's prize; a voice in chapter 4 against wrecking
   the forge.
@@ -89,9 +90,9 @@ moves. The first attempt, retries, replays and the debug player all play it;
 | Chapter | Map | Ground | The hull |
 | --- | --- | --- | --- |
 | The Fall | `long-survey-fall` | `colony-breach` seed 38, its lift, bores and holdouts as placed | In the desert south-east of the town, broken in three, bow west, a short trench ploughed west off the bow along the town's southern edge (vetted over the mother bore's place, which is built up); no stakes |
-| Stakes | `long-survey-stakes` | Its own: a Sabotage plan in remote sprawl for a mining district, at the colony's size, seed 1, its installation laid as a Raid site's cantonment in a square wall (`PrecinctPlan.withCantonments`) (`long-survey-maps.md`, Chapter 2) | In the middle of the mine country, broken in three, bow west, its trench stopping short of the cantonment; three stakes planted in a line across its south flank and one raised beyond them among the outcrops |
+| Stakes | `long-survey-stakes` | The owned Raid mine's works on its own seed (`RaidOwnedMap`, the mining site), seed 2, laid out frozen and airless (`long-survey-maps.md`, Chapter 2) | Down in the open ground east of the works, broken in three, bow west; a trunk south to the head works' and the ore line's planted stakes through a raised junction, and a chain down the east side to the pit's rim |
 | The Line | `long-survey-line` | Its own: the district capital, Broad Front's city (`heart-front-city`'s plan) on seed 2 (`long-survey-maps.md`, Chapter 3) | Down across the city's north edge in the heart's place, broken in three, bow west; two chains of stakes running south into the city and branching along the boulevard, established nearest the hull, raised and planted at the three lanes' heads |
-| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed | In the heart's place beside the workings, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
+| The Surveyor | `long-survey-surveyor` | `heart-front` seed 5, its airbases placed, with two works districts either side of the approach, laid out frozen and airless | In the heart's place between the works, broken in three, bow south, its trench pointing down the supply road the columns come up; six established stakes round it, three raised and two planted at the claim's edge |
 
 ## The Line as a city push
 
@@ -165,7 +166,7 @@ chapter (pick through the art session), voiced later as the Khettara is.
   atmosphere (vanilla's `no_atmosphere`), so towns are sealed and nothing is
   farmed in the open; each owned map is laid out on its pool's home palette and
   skinned for it. Whether The Fall's town is sealed (one lock on its avenue,
-  every civilian route through it) is on the picks page, built sealed meanwhile. Rows read "Survey N of 4";
+  every civilian route through it): sealed (owner, `garnir-sealed` a). Rows read "Survey N of 4";
   never the event gate, no clock. Briefings are unvoiced stub exchanges between
   the defence chief and Castle (`longSurvey*` in `strings.json`), with a retry
   and a replay line; the chief's name and portrait wait on the owner.
@@ -201,5 +202,11 @@ so its outer push is best kept short and the chapter weighted on the delve into
 the hull (the Ruins family's interior, the autoforge as its vault).
 `hull-fall-cause` (a), `long-survey-world` (Garnir) and `long-survey-opens`
 (the end-game branch) are answered (owner, 2026-11-11), as are the nouns doc's
-`hull-lineage`, `stripper-hauler`, `autoforge-look`, `hull-spread-law` and
-`stake-look`.
+`hull-lineage`, `stripper-hauler`, `autoforge-look`, `hull-spread-law`,
+`stake-look`, `hull-painting-res` (b, higher resolution) and `stake-composed`
+(a, separate parts with construction animation to come), `garnir-sealed` (a,
+sealed), `garnir-sable` (neither: no shared history, above) and
+`fall-hunt-knowledge` (a, the hull hunts what its flocks see).
+
+Still open, built on the recommended option meanwhile: `sealed-town-wall` (the rectangle; `battle.sealedTown.laying`) and
+`garrison-interior` (packed).

@@ -1,0 +1,76 @@
+{
+  "sheetName": "mine-heaps",
+  "sheet": "art-source/tilesets/mine-heaps.raw.png",
+  "cellPx": 50,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Mine country spoil heaps and tailings mounds (Garnir, the Long Survey Stakes chapter): full guide-frame cuts of the built-in ImageGen reskin of templates/mine-heaps-guide.png, which came back registered 1:1 on the 1536x1024 guide (150 px a guide cell). Footprints are three times the guide cells, 50 px a world cell: spoil 9x9 and 6x6, tailings 9x6 and 12x9. Generated alpha untouched; soft frosted rims fade into the ground.",
+  "entries": [
+    {
+      "id": "doodad.mine-spoil-large",
+      "rect": [
+        40,
+        40,
+        450,
+        450
+      ],
+      "footprintCells": [
+        9,
+        9
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "included": true
+    },
+    {
+      "id": "doodad.mine-spoil-small",
+      "rect": [
+        530,
+        40,
+        300,
+        300
+      ],
+      "footprintCells": [
+        6,
+        6
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.8,
+      "included": true
+    },
+    {
+      "id": "doodad.mine-tailings-small",
+      "rect": [
+        870,
+        40,
+        450,
+        300
+      ],
+      "footprintCells": [
+        9,
+        6
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "doodad.mine-tailings-large",
+      "rect": [
+        40,
+        530,
+        600,
+        450
+      ],
+      "footprintCells": [
+        12,
+        9
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    }
+  ]
+}
