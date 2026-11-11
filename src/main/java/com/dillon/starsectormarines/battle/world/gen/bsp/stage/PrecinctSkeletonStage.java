@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.precinct.SealedTown;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -67,6 +68,10 @@ public final class PrecinctSkeletonStage implements GenStage {
         int[][] claim = PrecinctClaim.byKind(plan.precincts(), FortReservations.held(ctx, plan),
                         FortReservations.dropGround(ctx, plan), FortReservations.groundSites(ctx, plan))
                 .assign(grown.owner(), ctx.width, ctx.height, allowance);
+
+        // A sealed town's ground is laid straight before its envelope is raised on it (SealedTown.lay), clear of
+        // whatever the mission or the landscape keeps.
+        laySealedTowns(ctx, plan, claim);
 
         // A mission that sited its forts as barriers keeps open ground for them, before the town has grown into it.
         FortReservations.release(ctx, plan, claim);
@@ -285,6 +290,21 @@ public final class PrecinctSkeletonStage implements GenStage {
      * from authored footprints rather than subdivided, and handing it to BSP
      * would fill it with ordinary city before the packer ever saw it.
      */
+    /** Lays every sealed town's claim straight ({@link SealedTown#lay}), off the ground the plan keeps. */
+    private static void laySealedTowns(GenContext ctx, PrecinctPlan plan, int[][] claim) {
+        boolean[] sealed = new boolean[plan.precincts().size()];
+        boolean any = false;
+        for (int i = 0; i < sealed.length; i++) any |= sealed[i] = SealedTown.is(plan.precincts().get(i));
+        if (!any) return;
+        boolean[][] kept = new boolean[ctx.width][ctx.height];
+        for (boolean[][] mask : Arrays.asList(FortReservations.keepClear(ctx, plan), FortReservations.held(ctx, plan),
+                FortReservations.dropGround(ctx, plan), FortReservations.groundSites(ctx, plan))) {
+            if (mask == null) continue;
+            for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) kept[x][y] |= mask[x][y];
+        }
+        SealedTown.lay(claim, sealed, SealedTown.sealedSide(plan), kept, SealedTown.laying());
+    }
+
     private static List<TrunkPlan.SubRect> parcels(PrecinctPlan plan, int[][] claim,
                                                    int[][] owner, GenContext ctx) {
         List<TrunkPlan.SubRect> out = new ArrayList<>();
