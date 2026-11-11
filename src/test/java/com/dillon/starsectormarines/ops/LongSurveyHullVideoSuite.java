@@ -327,7 +327,7 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 HaulerWork h = first(c.sim, c.hull.haulers());
                 if (s != null && full < 0 && s.load() >= StripperWork.CAPACITY) full = t;
                 if (h != null && load < 0 && h.load() > 0f) load = t;
-                if (load >= 0 && c.hull.hullStore().metal() > 0f) home = t;
+                if (load >= 0 && home < 0 && h != null && h.load() == 0f) home = t;
                 if (h != null && t % Math.round(30f / DT) == 0) {
                     HaulerWork.Goal g = h.goal();
                     log("%.0f s: hauler %s with %d at (%.1f, %.1f), load %.0f; forge lit %s", t * DT, g.kind(),
@@ -398,7 +398,7 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 }
                 // The hauler from its first load until the hull's store has it and its arms are tucked again.
                 if (wantH && hStart < 0 && h != null && h.load() > 0f) hStart = t;
-                if (wantH && hStart > 0 && hEnd < 0 && c.hull.hullStore().metal() > 0f) hEnd = t + Math.round(4.5f / DT);
+                if (wantH && hStart > 0 && hEnd < 0 && h != null && h.load() == 0f) hEnd = t + Math.round(4.5f / DT);
                 if (wantH && hauler != 0L && hStart > 0 && (hEnd < 0 || t <= hEnd) && (t - hStart) % hSpeed == 0) {
                     float x = world.renderX(hauler), y = world.renderY(hauler);
                     if (ht == null) {
@@ -408,9 +408,9 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                     hc.toward(x, y, hCells);
                     boolean atStripper = stripper != 0L && Math.hypot(world.x(stripper) - world.x(hauler),
                             world.y(stripper) - world.y(hauler)) < 4f;
-                    String doing = h == null ? "" : c.hull.hullStore().metal() > 0f && h.load() == 0f
-                            ? "unloaded into the hull's store at the bay mouth"
-                            : h.load() >= HaulerWork.CAPACITY ? "full: walking the haul road home to the bay mouth"
+                    String doing = h == null ? "" : hEnd > 0 && h.load() == 0f
+                            ? "unloaded into the nearest store (the hull's, or a stake's bay)"
+                            : h.load() >= HaulerWork.CAPACITY ? "full: walking the haul road to the nearest store"
                             : atStripper ? "loading at the stripper, until it is full"
                             : "waiting on the stripper's next load";
                     ht.frame(sim, hc.now(), "Hauler - The Stakes ground" + speedNote(hSpeed), List.of(doing,
