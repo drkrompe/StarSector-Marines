@@ -994,12 +994,14 @@ public final class BspCityGenerator implements MapGenerator {
                 .withHullSite(ctx.get(HullKeys.SITE))
                 .withWallGates(ctx.wallGates)
                 .withFields(ctx.get(BspKeys.WORKED_FIELDS));
-        // A fallen hull's shower struck buildings: knocked down and holed when the battle is assembled.
+        // A fallen hull's shower struck buildings: knocked down and holed when the battle is assembled,
+        // and the ground round its trench and sections flattened.
+        List<DamagePlan.Layer> hullDamage = new ArrayList<>();
         List<DamagePlan.Stroke> strikes = ctx.get(HullKeys.STRIKES);
-        if (strikes != null && !strikes.isEmpty()) {
-            result = result.withInitialDamage(new DamagePlan(ctx.width, ctx.height, ctx.seed,
-                    List.of(new DamagePlan.Layer(HullKeys.STRIKE_LAYER, true, strikes))));
-        }
+        if (strikes != null && !strikes.isEmpty()) hullDamage.add(new DamagePlan.Layer(HullKeys.STRIKE_LAYER, true, strikes));
+        List<DamagePlan.Layer> impact = ctx.get(HullKeys.IMPACT);
+        if (impact != null) hullDamage.addAll(impact);
+        if (!hullDamage.isEmpty()) result = result.withInitialDamage(new DamagePlan(ctx.width, ctx.height, ctx.seed, hullDamage));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
