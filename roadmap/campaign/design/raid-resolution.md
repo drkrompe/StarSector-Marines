@@ -72,7 +72,8 @@ Read `campaign-nouns.md` (authority boundaries) and `nexerelin-nouns.md`
    fee and carries no salvage entitlement: its loot is the raid command's.
 7. **Choosing the battle must not change how hard the market is.** The
    defenders come from the market's garrison estimate, the share the operation's
-   tier engages, as for every market-backed operation.
+   tier engages, as for every market-backed operation, with what the market's
+   security posts at its works on top (`raid-mission.md`, Security).
 8. **A raid commits once.** Backing out of the briefing commits nothing and
    returns to the fork. A fought battle is recorded once at Results and
    committed once when the panel closes; a replayed result commits nothing.

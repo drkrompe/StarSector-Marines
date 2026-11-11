@@ -4,9 +4,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
-6 (the works' machines) is built on the recommended (a) of
-`raid-works-machines` and `raid-works-machines-source` while they are open, but
-for its vehicles, which wait on `raid-works-vehicles`.
+6 (the works' machines) is built on the owner's (a) on `raid-works-machines`
+and (c) on `raid-works-vehicles`.
 
 Written: 2026-11-10
 
@@ -136,57 +135,31 @@ own belt, checkpoints and towers at every security
 `WorksDefencesTest`; `storyMapPools`; the as-built pictures are
 `raid-demolition-look`'s `built-*`.
 
-### 6. The works' machines: IN PROGRESS (steps 1 and 3 built on the recommended picks; step 2 waits on a pick)
+### 6. The works' machines: BUILT
 
 The owner's note on `raid-works-defences`: "Also consider things like vehicles
-and mechs." Today a Raid has no defender vehicles: its machines are the
-roster's mechs (`DefenderRoster.mechVariantsFor`, only with heavy armour and
-above low risk), seated on general posts or patrolling, and a mech never
-stands on a works guard post. The alarm (`RaidObjective.defenderAlarm`,
-`RaidDefenderCommand`) sends up to three mobile squads; no machine answers it.
+and mechs." They picked (a) on `raid-works-machines` (layered by security) and
+(c) on `raid-works-vehicles` (hulls on top, by security), and struck the old
+rule that security never adds defenders: "make it fun and keep pressure on
+the player over time".
 
-Two picks (pictures under `review/owned-maps/2026-11-10_raid-works-machines_win/`):
-
-- `raid-works-machines`, where they post and how they react: (a) layered by
-  security (recommended): open none; guarded a light vehicle holding each gate
-  behind its checkpoint; fortified also an armour reserve parked in the works'
-  yard that drives to the hall under attack on the alarm; (b) a patrol inside
-  the wall; (c) the garrison's armour only, driving over on the alarm.
-- `raid-works-machines-source`: (a) out of the market's force (recommended):
-  the machines its roster already fields are posted at the works instead of
-  elsewhere, keeping the rule that security changes where the force stands,
-  never its size; (b) on top, by security.
-
-On the recommended options the work is:
-
-1. **Seat the market's machines at the works: BUILT.** `WorksDefences` lays a
-   machine post just inside each open gate (guarded and fortified) and, on a
-   fortified works, a reserve post on the largest open yard inside, each an
-   inner position named `RaidSiteTemplate.WORKS_MACHINES` (added to the linked
-   tactical map, since the works is dressed after the link). The defender
-   allocation seats them right after the works' guard, with machines only
-   (`RaidWorksGuard.holder`): a market with no mechs leaves them empty, and an
-   empty post is never a patrol's anchor. They draw below the mobile pool's
-   floor: a gate takes one machine, and the reserve answers the alarm itself.
-   Tests: `RaidWorksGuardTest`; `storyMapPools` counts the posts (one or more
-   per works); `raid-demolition-look`'s `built-*` labels who stands at each.
-2. **Vehicles: WAITS ON `raid-works-vehicles`.** No faction has a ground
-   vehicle roster (`FactionVehiclePoints` only picks a gun tank's weapon
-   colour; defender hulls are placed by hand per story mission, as
-   `BasinOccupiers` does), so a market has no vehicles to post. Options: (a)
-   mechs only until a market vehicle roster is designed on its own
-   (recommended, changes no strength); (b) a heavy-armour market parks a hull
-   at each empty gate post, paid for out of its infantry at a set rate; (c)
-   hulls on top, by security. On (b) or (c) the hulls park at the same posts
-   (`BattleSetup.parkHull`, `VehicleMission.deployed`).
-3. **The reserve answers the alarm: BUILT.** The yard reserve's post is named
-   `RaidSiteTemplate.WORKS_RESERVE`; its squads (`RaidWorksGuard.reserveSquads`)
-   are handed to `RaidDefenderCommand.worksReserve`. They hold their post until
-   the alarm, are then taken over from their setup hold
-   (`CommandEffects.takeOverSquad`, as a counter-attack's sortie is) and sent
-   to defend the hall under attack (the objective's current site), outside the
-   mobile pool's limit of three, and keep to it. A gate picket is never taken
-   over. Tests: `RaidDefenderReserveTest` (`RaidDefenderCommand.reserveOrder`).
+- **Posts.** `WorksDefences` lays a machine post just inside each open gate
+  (guarded and fortified; `RaidSiteTemplate.WORKS_MACHINES`) and, on a
+  fortified works, a yard reserve on the largest open yard inside
+  (`RaidSiteTemplate.WORKS_RESERVE`), added to the linked tactical map.
+- **On top of the force.** `RaidWorksMachines.extraMechs` fills every post
+  with mechs of the market's own line (a gate one, the yard two), whatever
+  its roster fields; the allocation seats them right after the works' guard
+  and nothing else stands there (`RaidWorksGuard.holder`). A faction hull
+  parks beside each post (`RaidWorksMachines.parkHulls`): a light one at a
+  gate, a heavy one in the yard (pick `raid-works-hulls`, which hulls).
+- **The reserve answers the alarm.** The yard's mechs hold until the alarm,
+  are then taken over from their setup hold and sent to defend the hall under
+  attack, outside the mobile pool's limit (`RaidDefenderCommand.worksReserve`).
+  Gate pickets never leave. The hulls stay parked and fight what they see.
+- Tests: `RaidWorksMachinesTest`, `RaidWorksGuardTest`,
+  `RaidDefenderReserveTest`; `storyMapPools` counts the posts;
+  `raid-demolition-look`'s `built-*` labels who stands at each.
 
 ## Not in this story
 
