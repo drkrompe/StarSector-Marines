@@ -23,9 +23,9 @@ listeners.
 Run each with Nexerelin enabled, then again with it disabled.
 
 1. **Standard path unchanged.** Set up a raid for valuables, Launch raid,
-   choose Launch the raid as usual. Losses roll, loot shows, reputation and
+   choose Order Raid (vanilla). Losses roll, loot shows, reputation and
    stability change as before.
-2. **Led raid, won.** Same setup, choose Lead the raid. Back out of the
+2. **Led raid, won.** Same setup, choose Lead the Raid (Marines Mod). Back out of the
    briefing once: the fork returns and nothing is committed (no cooldown, no
    reputation change). Then fight and win. On closing, the raid result shows
    "no casualties", the spoils screen opens, and the market is marked raided.
@@ -41,8 +41,18 @@ Run each with Nexerelin enabled, then again with it disabled.
    back on: the fork returns.
 7. **Unsupported.** A raid from a station's market, and the story-point secret
    raid, never show the fork.
-8. **Rule precedence.** The fork's row (score 3) wins over Nexerelin's (2) and
-   vanilla's (1): check `starsector.log` for the matched rule.
+8. **Too few marines** (law 1). With almost no marines aboard, open the raid
+   menu: both kinds of raid are offered with the company's line, though the
+   command says the forces are too weak. Set one up with its single token and
+   Launch raid: the fork shows Order Raid disabled, its tooltip saying the
+   marines are too few, and the led figure. Lead it, win, and the raid commits
+   at full size. With enough marines for valuables but not to disrupt, only
+   Disrupt is reopened, and a valuables raid still offers both.
+9. **Fork text** (law 10). The fork shows loot in credits, or days down, ordered
+   and led, and what defends the market; no tokens, effectiveness or premium.
+10. **Rule precedence.** The fork's row (score 3) wins over Nexerelin's (2) and
+   vanilla's (1), and so do the raid menu's and the raid kinds' rows: check
+   `starsector.log` for the matched rule.
 
 ## Done
 

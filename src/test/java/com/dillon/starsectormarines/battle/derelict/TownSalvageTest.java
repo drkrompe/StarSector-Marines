@@ -37,6 +37,15 @@ class TownSalvageTest {
     }
 
     @Test
+    void theTownsPlacesAreOnePerSquareNearestTheHullFirst() {
+        FallenHullSite wide = site().withPerimeter(40);
+        List<int[]> places = TownSalvage.places(ground(), wide, 16);
+        assertEquals(2, places.size(), "both buildings, in different squares");
+        assertTrue(places.get(0)[0] < places.get(1)[0], "the nearer the hull first");
+        assertEquals(1, TownSalvage.places(ground(), wide, 64).size(), "one square holds both");
+    }
+
+    @Test
     void aBuildingTheHullZoneKeepsGivesOnePileBesideItAndTheHullGivesNone() {
         List<FallenHullSite.Pile> piles = TownSalvage.piles(ground(), site(), 5);
         assertEquals(1, piles.size(), "building 2 lies beyond the zone's reach; the hull's own cells give none");

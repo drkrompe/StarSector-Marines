@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 
 import java.util.ArrayList;
@@ -88,21 +89,48 @@ final class RaidWorksMachines {
             if (type == null) continue;
             VehicleClearance mask = VehicleClearance.erode(sim.getGrid(),
                     VehicleClearance.radiusForWidth(type.visualWidthCells));
-            int[] at = clearBeside(mask, post.anchorX, post.anchorY);
+            CellTopology topology = sim.getTopology();
+            int reach = mask.radiusCells();
+            int[] at = clearBeside((x, y) -> mask.isPassable(x, y) && outdoors(topology, x, y, reach),
+                    post.anchorX, post.anchorY);
             if (at == null) continue;
             long id = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0] + .5f, at[1] + .5f));
             sim.convoy().body(id).teleport(at[0] + .5f, at[1] + .5f, 0f);
         }
     }
 
-    /** The clear cell nearest {@code (x, y)} at least {@link #HULL_STANDOFF} from it, or null within twelve cells. */
-    private static int[] clearBeside(VehicleClearance mask, int x, int y) {
+    /** Where a hull may stand: its centre cell, from the cell it would park on. */
+    interface Stand {
+        boolean at(int x, int y);
+    }
+
+    /**
+     * The cell nearest {@code (x, y)} a hull may stand on, at least {@link #HULL_STANDOFF} from it, or null within
+     * twelve cells.
+     */
+    static int[] clearBeside(Stand stand, int x, int y) {
         for (int r = HULL_STANDOFF; r < 12; r++)
             for (int dy = -r; dy <= r; dy++)
                 for (int dx = -r; dx <= r; dx++)
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && mask.isPassable(x + dx, y + dy))
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && stand.at(x + dx, y + dy))
                         return new int[]{x + dx, y + dy};
         return null;
+    }
+
+    /**
+     * Whether a hull centred on {@code (x, y)} stands clear of every building, {@code reach} cells round: a hull is
+     * parked in the open, never on a building's footprint, where its roof would be drawn under it. A post just inside
+     * a gate may sit in a hall whose floor is open enough to pass, so passable is not enough.
+     */
+    static boolean outdoors(CellTopology topology, int x, int y, int reach) {
+        for (int dy = -reach; dy <= reach; dy++) {
+            for (int dx = -reach; dx <= reach; dx++) {
+                int cx = x + dx, cy = y + dy;
+                if (cx < 0 || cy < 0 || cx >= topology.getWidth() || cy >= topology.getHeight()) return false;
+                if (topology.getBuildingId(cx, cy) != 0) return false;
+            }
+        }
+        return true;
     }
 
     private static String key(String factionId) {
