@@ -71,13 +71,14 @@ class PortHubTest {
     }
 
     @Test
-    void fewPadsEachSizedForAFreighterWithAWallBetweenEachPair() {
+    void fewPadsEachSizedForAColossusWithAWallBetweenEachPair() {
         PortHub hub = east();
         assertTrue(hub.pads().size() >= PortHub.MIN_PADS && hub.pads().size() <= 5);
         for (PortHub.Rect pad : hub.pads()) {
-            // An Atlas is 27 cells long and a Prometheus 17 cells across, as they draw.
-            assertTrue(pad.height() >= 29 && pad.width() >= 19, "pad " + pad);
+            // A Colossus is 15 cells long and 12 across as it draws, inside a landing ring.
+            assertTrue(pad.height() >= 19 && pad.width() >= 16, "pad " + pad);
             assertTrue(pad.x1() <= 277);
+            assertFalse(pad.overlaps(hub.fuelFarm()), "the farm takes the row's terminal end");
         }
         assertEquals(hub.pads().size() - 1, hub.blastWalls().size());
         for (int i = 0; i + 1 < hub.pads().size(); i++) {

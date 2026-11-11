@@ -72,12 +72,13 @@ public record PortHub(Rect lines, Rect highway, List<Rect> tracks, Rect railRoad
     /** The service lane between the fuel main and the pads. */
     public static final int SERVICE = 4;
     /**
-     * A freighter's pad: deep enough for an Atlas's length along {@code u} with its approach rim, broad enough for a
-     * Prometheus's beam along {@code v}; and the gap between two (the blast wall and a walk past it). UNTUNED.
+     * A pad: a Colossus's length along {@code u} inside its landing ring, its beam across {@code v}, deep enough with
+     * the approach for the fuel farm's big tanks beside the first; and the gap between two (the blast wall and a walk
+     * past it). UNTUNED.
      */
-    public static final int PAD_DEEP = 31, PAD_WIDE = 23, PAD_GAP = 3;
-    /** The fuel farm: tanks in a bund at the pad row's terminal end. */
-    public static final int FARM = 7;
+    public static final int PAD_DEEP = 28, PAD_WIDE = 21, PAD_GAP = 3;
+    /** The fuel farm along the pad row at its terminal end: one bund of two big tanks across ({@code TankFarm}). */
+    public static final int FARM = 44;
     /** Clear ground between the pads and the outer edge: the freighters' approach. */
     public static final int APPROACH = 3;
     /** Fewest pads a hub is laid with: fewer and it is not the planet's lift. */
@@ -176,7 +177,8 @@ public record PortHub(Rect lines, Rect highway, List<Rect> tracks, Rect railRoad
         }
         if (pads.size() < MIN_PADS) return null;
         int padRun = v - PAD_GAP;
-        Rect farm = f.rect(padU0, 0, padU0 + FARM - 1, FARM - 1);
+        // The farm stands in the pad row's place at the terminal end, out to the outer edge.
+        Rect farm = f.rect(padU0, 0, padU1 + APPROACH, FARM - 1);
         Rect main = f.rect(mainU, 0, mainU, padRun - 1);
 
         // Along the hub: the truck gate's road at the terminal's end, then bays of two warehouses, an arterial at each
