@@ -215,13 +215,21 @@ That's not how RTS with a raid works."
   the alarm bringing the next one forward), one size larger every second
   column. They are prepaid `GARRISON_COLUMN` requests a convoy brings whatever
   compounds the raid has taken (`reinforcement-nouns.md`, supply gate).
+- **Armour joins the later columns** (owner pick `raid-columns-armour` a):
+  from a fortified market's third column (a guarded one's fifth; never an
+  open one's), a hull of the market's own line drives in ahead of the APCs,
+  first its gate hull, then its yard tank (`RaidWorksMachines.columnArmour`).
+  It is the request's escort (`ReinforcementRequest.escort`): the convoy sets it
+  down at its route's first cell on the map, and it drives the truck's proved
+  route and parks a few waypoints short of the drop, uncommanded, its gun
+  fighting what it sees. A column walked or flown in comes without it.
 - **Warning.** The works objective shows the countdown to the next column
   once the company is working or leaving ("A garrison column drives in from
   off the map in m:ss").
 - Tests: `RaidPressureTriggerTest`, `CompoundSupplyGatingTest`.
 
-Open: whether columns bring armour as well as APC-borne riflemen
-(`raid-columns-armour`), and the standard resolution (`raid-auto-resolve`).
+The standard resolution stays as it is (owner pick `raid-auto-resolve` a);
+the fork shows what leading faces instead (`raid-resolution.md`, law 9).
 
 ## Not in this story
 

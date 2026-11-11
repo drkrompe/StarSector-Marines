@@ -159,7 +159,6 @@ final class HeadlessBattleSprites extends BattleSprites {
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
     private SpriteAPI rubble;
-    private SpriteAPI creepWall;
     private SpriteAPI warshipEngineFlame;
     private SpriteAPI warshipEngineGlow;
     private SpriteAPI engineFlame;
@@ -220,7 +219,6 @@ final class HeadlessBattleSprites extends BattleSprites {
         ensureObjectiveIcons();
         loadDecals();
         rubble = spriteOrNull(BattleSprites.SPRITE_WALL_RUBBLE);
-        creepWall = spriteOrNull(BattleSprites.SPRITE_CREEP_WALL);
         mech = loadMech();
         derelictWalker = DerelictWalkerAssets.load(path -> {
             try {
@@ -516,8 +514,6 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI rubbleSheet() { return rubble; }
     @Override public SpriteSheetFrames rubbleFrames() { return rubble == null ? null : WallRubble.frames(); }
     @Override public void ensureRubbleSheet() { }
-    @Override public SpriteAPI creepWallSheet() { return creepWall; }
-    @Override public void ensureCreepWallSheet() { }
 
     @Override public SpriteAPI warshipEngineFlameSprite() { return warshipEngineFlame; }
     @Override public SpriteAPI warshipEngineGlowSprite() { return warshipEngineGlow; }

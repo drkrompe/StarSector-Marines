@@ -3,34 +3,64 @@
   "map": "long-survey-line",
   "home": "ARID",
   "entry": {
-    "seed": 3,
-    "note": "The Line: the Cordon's line (cordon-line seed 3) with the Surveyor down in the north-east beyond the redoubts, bow west toward the colony, its trench run in from the map's east edge; an established chain of stakes reaching toward redoubts 3 and 4",
+    "seed": 2,
+    "note": "The Line: the district capital, Broad Front's city on its own seed (long-survey-maps.md, Chapter 3), the Surveyor down across its north edge in the heart's place, bow west, its trench run on west; the claim's chains reach south into the city, established nearest the hull, raised and planted at the heads of the three columns' lanes",
     "patch": {
       "hull": {
-        "x": 462,
-        "y": 292,
-        "heading": "east",
-        "trench": 52,
+        "x": 330,
+        "y": 296,
+        "heading": "west",
+        "trench": 40,
         "stakes": [
           {
-            "x": 422,
-            "y": 252,
+            "x": 330,
+            "y": 256,
             "stage": "established"
           },
           {
-            "x": 382,
-            "y": 252,
+            "x": 330,
+            "y": 216,
             "stage": "established"
           },
           {
-            "x": 382,
-            "y": 212,
+            "x": 330,
+            "y": 176,
             "stage": "established"
           },
           {
-            "x": 422,
-            "y": 212,
+            "x": 370,
+            "y": 256,
+            "stage": "established"
+          },
+          {
+            "x": 370,
+            "y": 216,
+            "stage": "established"
+          },
+          {
+            "x": 290,
+            "y": 176,
             "stage": "raised"
+          },
+          {
+            "x": 330,
+            "y": 136,
+            "stage": "raised"
+          },
+          {
+            "x": 370,
+            "y": 176,
+            "stage": "raised"
+          },
+          {
+            "x": 250,
+            "y": 176,
+            "stage": "planted"
+          },
+          {
+            "x": 410,
+            "y": 176,
+            "stage": "planted"
           }
         ]
       }

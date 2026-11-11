@@ -36,7 +36,7 @@ public enum StoryMap {
      */
     LONG_SURVEY_FALL("long-survey-fall", COLONY_BREACH),
     LONG_SURVEY_STAKES("long-survey-stakes", null),
-    LONG_SURVEY_LINE("long-survey-line", CORDON_LINE),
+    LONG_SURVEY_LINE("long-survey-line", HEART_FRONT_CITY),
     LONG_SURVEY_SURVEYOR("long-survey-surveyor", HEART_FRONT);
 
     /** The pool file's name and the {@code map} it declares. */
@@ -49,6 +49,14 @@ public enum StoryMap {
     StoryMap(String id, StoryMap base) {
         this.id = id;
         this.base = base;
+    }
+
+    /**
+     * Whether this map's battles may be fought at night ({@code TownNight}): a Raid's town may be raided after dark;
+     * the other story maps keep to the day until their story says otherwise.
+     */
+    public boolean nightFalls() {
+        return id.equals("raid") || id.startsWith("raid-");
     }
 
     /** Whether this is one of the Long Survey's chapters, a fallen hull laid over its ground. */

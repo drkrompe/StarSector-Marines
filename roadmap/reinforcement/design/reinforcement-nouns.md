@@ -32,6 +32,11 @@ front; `precincts.md` owns it.
   `RaidPressureTrigger`) is the colony's wider garrison driving in from beyond
   the battle, so a convoy brings it whatever compounds the raid has taken, and
   it is prepaid, costing no ticket.
+- A request's **escort** is a combat hull that drives in with the delivery and
+  parks short of its drop, uncommanded. Only a convoy brings one, along the
+  route it proved for its truck; a walk-in or air drop serves the request
+  without it. A Raid's later garrison columns carry the market's armour this
+  way (`RaidPressureTrigger`).
 - A **reinforcement ticket** is one unit of the `REINFORCEMENT` resource required for an ordinary dispatch. ARMORYs produce tickets while their side holds them. Tickets measure continuing field capacity, not a mission-scripted wave count.
 - A **recapture target** is a once-manned defender tactical position that has become open while its front band remains contested. It is a Conquest-specific answer to *where should the next defender response go*, not a general replacement for all reinforcement triggers.
 - A **counterattack** is a bounded defender reserve commitment. It earmarks tickets before the wave, telegraphs its intent, and then attempts a short burst of prepaid requests against a conceded front band. The earmark is a wager: delivery failure does not silently restore it after launch.

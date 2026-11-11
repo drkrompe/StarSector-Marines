@@ -14,6 +14,7 @@ import org.lwjgl.BufferUtils;
 
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +43,7 @@ import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glColor4f;
 import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
@@ -144,6 +146,11 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
 
     private final CreepShader shader = new CreepShader();
     private final CreepPass pass = new CreepPass(this);
+    /** The creep on stood-up walls, read from this field through this program ({@link CreepClimb}): this frame's. */
+    private final List<WallCreepPass> wallPasses = new ArrayList<>();
+    private int wallPassesUsed;
+    /** Whether this frame's {@link #collect} queued the creep, so the walls may take theirs. */
+    private boolean drawnThisFrame;
     private final CreepPalette palette = CreepPalette.active();
 
     private CreepField bound;
@@ -198,6 +205,8 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
+        drawnThisFrame = false;
+        wallPassesUsed = 0;
         if (!ENABLED) return;
         CreepField field = ctx.sim.creepFieldIfPresent();
         if (field == null) return;
@@ -230,6 +239,29 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
         pass.palette = palette;
         pass.sun = new CreepShading.Sun(sun.dirX(), sun.dirY(), sun.risePerCell(), sun.casts() ? sun.shadowStrength() : 0f);
         out.addCustom(RenderLayer.CREEP, pass);
+        drawnThisFrame = true;
+    }
+
+    /**
+     * The pass the stood-up walls lay this frame's creep into, emptied and set to the ground's clock, palette, sun and
+     * scale; null when the ground's creep is not drawn this frame (none in view, the layer off or broken), so nor is
+     * the walls'. Queue it with {@link DrawList#addCustom} after the walls it lies on; each call this frame is a pass
+     * of its own.
+     */
+    WallCreepPass walls() {
+        if (!drawnThisFrame || broken || shader.isBroken()) return null;
+        if (wallPassesUsed == wallPasses.size()) wallPasses.add(new WallCreepPass(this));
+        WallCreepPass wallPass = wallPasses.get(wallPassesUsed++);
+        CreepPass p = wallPass.params;
+        p.minX = pass.minX; p.minY = pass.minY; p.maxX = pass.maxX; p.maxY = pass.maxY;
+        p.screenX0 = pass.screenX0; p.screenY0 = pass.screenY0; p.cellPx = pass.cellPx;
+        p.timeSeconds = pass.timeSeconds;
+        p.alpha = 1f;
+        p.palette = pass.palette;
+        // No shadow: the creep on a wall casts none down it.
+        p.sun = new CreepShading.Sun(pass.sun.dirX(), pass.sun.dirY(), pass.sun.rise(), 0f);
+        wallPass.reset();
+        return wallPass;
     }
 
     // ---- mirror ----------------------------------------------------------
@@ -622,6 +654,40 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
 
     void draw(CreepPass p) {
         if (broken || mirror == null) return;
+        float cx0 = p.minX, cy0 = p.minY, cx1 = p.maxX + 1, cy1 = p.maxY + 1;
+        float sx0 = p.cellToScreenX(cx0), sy0 = p.cellToScreenY(cy0);
+        float sx1 = p.cellToScreenX(cx1), sy1 = p.cellToScreenY(cy1);
+        drawThrough(p, () -> {
+            glColor4f(1f, 1f, 1f, 1f);
+            glBegin(GL_QUADS);
+            glTexCoord2f(cx0, cy0); glVertex2f(sx0, sy0);
+            glTexCoord2f(cx1, cy0); glVertex2f(sx1, sy0);
+            glTexCoord2f(cx1, cy1); glVertex2f(sx1, sy1);
+            glTexCoord2f(cx0, cy1); glVertex2f(sx0, sy1);
+            glEnd();
+        });
+    }
+
+    /** The creep on stood-up walls: each quad's corners at their cells, tinted, through the ground's program. */
+    void drawWalls(WallCreepPass walls) {
+        if (broken || mirror == null || walls.isEmpty()) return;
+        drawThrough(walls.params, () -> {
+            float[] q = walls.quads();
+            glBegin(GL_QUADS);
+            for (int i = 0; i < walls.count(); i++) {
+                int o = i * WallCreepPass.STRIDE;
+                glColor4f(q[o + 16], q[o + 17], q[o + 18], q[o + 19]);
+                for (int k = 0; k < 4; k++) {
+                    glTexCoord2f(q[o + k * 4 + 2], q[o + k * 4 + 3]);
+                    glVertex2f(q[o + k * 4], q[o + k * 4 + 1]);
+                }
+            }
+            glEnd();
+        });
+    }
+
+    /** Binds the field, its textures and the program for {@code p}, draws {@code geometry}, and unbinds them. */
+    private void drawThrough(CreepPass p, Runnable geometry) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
         try {
             GlStateBracket.applyTextured2DState();
@@ -644,15 +710,7 @@ final class CreepLayer implements RenderSystem, CreepShading.Field {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fieldTexture);
             if (!shader.begin(p, gridW, gridH)) return;
-            float cx0 = p.minX, cy0 = p.minY, cx1 = p.maxX + 1, cy1 = p.maxY + 1;
-            float sx0 = p.cellToScreenX(cx0), sy0 = p.cellToScreenY(cy0);
-            float sx1 = p.cellToScreenX(cx1), sy1 = p.cellToScreenY(cy1);
-            glBegin(GL_QUADS);
-            glTexCoord2f(cx0, cy0); glVertex2f(sx0, sy0);
-            glTexCoord2f(cx1, cy0); glVertex2f(sx1, sy0);
-            glTexCoord2f(cx1, cy1); glVertex2f(sx1, sy1);
-            glTexCoord2f(cx0, cy1); glVertex2f(sx0, sy1);
-            glEnd();
+            geometry.run();
         } catch (RuntimeException failure) {
             broken = true;
         } finally {

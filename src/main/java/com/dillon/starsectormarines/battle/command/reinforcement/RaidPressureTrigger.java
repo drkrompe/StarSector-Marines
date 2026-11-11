@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -19,6 +22,9 @@ import java.util.function.Consumer;
  *       is quiet and every {@link Clock#alarmSeconds} once its alarm is up; each is larger than the one before.</li>
  * </ul>
  *
+ * <p>From column {@link Clock#armourFromColumn} on, a hull of the market's own line drives in with each column (pick
+ * {@code raid-columns-armour} a): the first its gate hull, every later one its yard tank.
+ *
  * <p>Both are {@link ReinforcementRequest.Reason#GARRISON_COLUMN} requests, prepaid: they cost the market no ticket and
  * a convoy brings them whether or not it still holds an armory ({@link ConvoyMeans}). The next column's tick is
  * published on the objective for the player's countdown ({@link RaidObjective#columnDueTick}).
@@ -27,19 +33,23 @@ public final class RaidPressureTrigger implements ReinforcementTrigger {
 
     /**
      * How hard a market presses a raid: seconds between garrison columns while quiet and once the alarm is up, the
-     * size of the wave a fallen machine brings, and the size of the first column.
+     * size of the wave a fallen machine brings, the size of the first column, and the column (from 0) armour first
+     * joins, negative for never.
      */
     public record Clock(int routineSeconds, int alarmSeconds, ReinforcementRequest.Strength hallWave,
-                        ReinforcementRequest.Strength firstColumn) { }
+                        ReinforcementRequest.Strength firstColumn, int armourFromColumn) { }
 
     private final Clock clock;
+    private final List<VehicleType> armour;
     private int startTick = -1;
     private int lastColumnTick = -1;
     private int columns;
     private int machinesSeen;
 
-    public RaidPressureTrigger(Clock clock) {
+    /** {@code armour}: the hulls that join the columns, in the order they first join; the last repeats. */
+    public RaidPressureTrigger(Clock clock, List<VehicleType> armour) {
         this.clock = clock;
+        this.armour = List.copyOf(armour);
     }
 
     @Override
@@ -56,7 +66,9 @@ public final class RaidPressureTrigger implements ReinforcementTrigger {
         }
         int due = due(lastColumnTick < 0 ? startTick : lastColumnTick, raid.defenderAlarm().raisedTick(), clock);
         if (tick >= due) {
-            out.accept(request(columnStrength(columns, clock.firstColumn()), x, y));
+            ReinforcementRequest column = request(columnStrength(columns, clock.firstColumn()), x, y);
+            VehicleType hull = armour(columns, clock.armourFromColumn(), armour);
+            out.accept(hull == null ? column : column.withEscort(hull));
             columns++;
             lastColumnTick = tick;
             due = due(tick, raid.defenderAlarm().raisedTick(), clock);
@@ -84,6 +96,15 @@ public final class RaidPressureTrigger implements ReinforcementTrigger {
     static ReinforcementRequest.Strength columnStrength(int n, ReinforcementRequest.Strength first) {
         ReinforcementRequest.Strength[] sizes = ReinforcementRequest.Strength.values();
         return sizes[Math.min(sizes.length - 1, first.ordinal() + n / 2)];
+    }
+
+    /**
+     * The hull that drives in with column {@code n} (from 0), or null: none before column {@code from} (nor ever for
+     * a negative {@code from}, or no hulls), then {@code hulls} in turn, the last repeating.
+     */
+    static VehicleType armour(int n, int from, List<VehicleType> hulls) {
+        if (from < 0 || n < from || hulls.isEmpty()) return null;
+        return hulls.get(Math.min(n - from, hulls.size() - 1));
     }
 
     private static int seconds(int seconds) {

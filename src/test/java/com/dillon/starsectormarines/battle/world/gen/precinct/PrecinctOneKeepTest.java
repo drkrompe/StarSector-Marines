@@ -74,8 +74,11 @@ class PrecinctOneKeepTest {
         TacticalNode keep = keeps.get(0);
         int dx = keep.anchorX - objective.seedX();
         int dy = keep.anchorY - objective.seedY();
-        assertTrue(dx * dx + dy * dy <= FAR * FAR, "the one command post stands "
-                + Math.round(Math.sqrt(dx * dx + dy * dy)) + " cells from the garrison seed, "
+        // Measured along the axes: the garrison is laid as a square round its seed, so its rear corners lie
+        // further from the seed than its sides do.
+        int along = Math.max(Math.abs(dx), Math.abs(dy));
+        assertTrue(along <= FAR, "the one command post stands " + along
+                + " cells from the garrison seed along an axis, "
                 + "so the keep belongs to something other than the objective");
     }
 

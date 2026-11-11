@@ -3,6 +3,7 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.raid.MarketRaidLedger;
+import com.dillon.starsectormarines.campaign.raid.LedRaidReward;
 import com.dillon.starsectormarines.campaign.raid.RaidOutcomeCommit;
 import com.dillon.starsectormarines.campaign.raid.RaidForkSetting;
 import com.dillon.starsectormarines.campaign.raid.RaidRoute;
@@ -20,6 +21,7 @@ import com.fs.starfarer.api.campaign.OptionPanelAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RuleBasedDialog;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.impl.campaign.graid.GroundRaidObjectivePlugin;
 import com.fs.starfarer.api.campaign.listeners.ListenerManagerAPI;
 import com.fs.starfarer.api.campaign.rules.MemKeys;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
@@ -130,6 +132,7 @@ public class MarineRaidCMD extends BaseCommandPlugin {
 
     private static void showFork(InteractionDialogAPI dialog) {
         dialog.getTextPanel().addPara(Strings.get("marketRaidForkText"));
+        comparePayouts(dialog);
         OptionPanelAPI options = dialog.getOptionPanel();
         options.clearOptions();
         options.addOption(Strings.get("marketRaidForkMarine"), OPTION_MARINE);
@@ -168,6 +171,33 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         return true;
     }
 
+    /**
+     * The two payouts side by side ({@code raid-resolution.md}, law 9): what the fleet's marines would take at the
+     * effectiveness the command computed, and what a won led raid takes, with the market's security and what it posts.
+     */
+    private static void comparePayouts(InteractionDialogAPI dialog) {
+        MarketAPI market = planetMarket(dialog);
+        TempData temp = RaidOutcomeCommit.raidOn(market);
+        if (temp == null) return;
+        int standardTokens = 0;
+        if (temp.objectives != null) {
+            for (GroundRaidObjectivePlugin objective : temp.objectives) {
+                if (objective != null) standardTokens += Math.max(0, objective.getMarinesAssigned());
+            }
+        }
+        RaidSiteTemplate.Security security = RaidSiteTemplate.Security.of(TargetProfileResolver.fromMarket(market));
+        float premium = LedRaidReward.premium(security);
+        int ledTokens = LedRaidReward.tokens(premium, false, 1f);
+        String premiumText = premium > 1f
+                ? Strings.format("marketRaidLedPremium", "+" + Math.round((premium - 1f) * 100f) + "%")
+                : Strings.get("marketRaidLedNoPremium");
+        dialog.getTextPanel().addPara(Strings.format("marketRaidForkStandardPays",
+                Math.round(temp.raidMult * 100f), standardTokens));
+        dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedPays", ledTokens, premiumText));
+        dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedFaces",
+                Strings.get("marketRaidSecurity" + security.name())));
+    }
+
     /** Commits the fought raid through the raid command, or returns to the choice when no battle was fought. */
     private static void afterPanel(InteractionDialogAPI dialog, MarketAPI market, int serial) {
         MarketRaidLedger.Pending pending = MarketRaidLedger.take(state(), serial);
@@ -182,7 +212,8 @@ public class MarineRaidCMD extends BaseCommandPlugin {
             refreshMenu(dialog);
             return;
         }
-        RaidOutcomeCommit.prepare(temp, won, MarketRaidLedger.recordedShare(state()));
+        RaidOutcomeCommit.prepare(temp, won, MarketRaidLedger.recordedShare(state()),
+                LedRaidReward.premium(RaidSiteTemplate.Security.of(TargetProfileResolver.fromMarket(market))));
         dialog.getTextPanel().addPara(Strings.get(won ? "marketRaidCommitWon" : "marketRaidCommitLost"));
         rules.updateMemory();
         ListenerManagerAPI listeners = Global.getSector().getListenerManager();

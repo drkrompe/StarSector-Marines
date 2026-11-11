@@ -687,13 +687,18 @@ Laws):
      roof in front of it hides it. Look suite: `createSnapshots
      -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
-   A town at night reads by its lights: on a night map, about a third of
-   the upper-storey windows glow warm through the dark
-   (`FacePainter.lit`, its own layer over the night shade), and a lamp
-   pools on the pavement in front of each building's street wall every
-   sixth cell (`StreetLights`; a main street's shopfronts also hang lamp
-   brackets between the awnings). No town map lays a night yet; the look
-   suite shows one with `-Dsnapshot.walls.night=on`.
+   A town at night reads by its lights. About one town battle in five is
+   fought at night, by its seed (`TownNight`; a Raid's story maps take part,
+   the other story maps keep to the day, `StoryMap.nightFalls`), on a modest
+   night lit by the town as built (`StreetLights.light`): street lamps along
+   every kerb and on each corner where streets meet, a lamp before each
+   building's street wall, floodlit works docks and wall gates, lit landing
+   pads, and a sealed town's envelope lit along its length. Most windows on
+   every storey glow, warm and varied (`FacePainter.lit`, their own layer
+   over the night shade); a shop's window stays lit under a lit sign. A
+   street lamp never lights a roofed wall (`NightLightingRenderSystem.litBy`).
+   Open: a roof is drawn lifted toward the camera while the night shade lies
+   in ground space, so a roof's edge still takes the lit street below it.
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80

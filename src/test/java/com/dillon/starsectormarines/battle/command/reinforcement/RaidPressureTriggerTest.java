@@ -2,15 +2,20 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest.Strength;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /** A Raid's garrison columns: when the next is due, and how large ({@code raid-demolish-the-works.md}, slice 8). */
 class RaidPressureTriggerTest {
 
     private static final RaidPressureTrigger.Clock CLOCK =
-            new RaidPressureTrigger.Clock(180, 60, Strength.MEDIUM, Strength.SMALL);
+            new RaidPressureTrigger.Clock(180, 60, Strength.MEDIUM, Strength.SMALL, 2);
 
     private static int s(int seconds) {
         return Math.round(seconds / BattleSimulation.TICK_DT);
@@ -38,5 +43,23 @@ class RaidPressureTriggerTest {
         assertEquals(Strength.MEDIUM, RaidPressureTrigger.columnStrength(2, Strength.SMALL));
         assertEquals(Strength.LARGE, RaidPressureTrigger.columnStrength(4, Strength.SMALL));
         assertEquals(Strength.LARGE, RaidPressureTrigger.columnStrength(9, Strength.SMALL));
+    }
+
+    @Test
+    void armourJoinsFromItsColumnTheGateHullFirstThenTheYardTank() {
+        List<VehicleType> line = List.of(VehicleType.HEAVY_APC, VehicleType.MEDIUM_TANK);
+        assertNull(RaidPressureTrigger.armour(1, 2, line), "the first two columns come without");
+        assertEquals(VehicleType.HEAVY_APC, RaidPressureTrigger.armour(2, 2, line));
+        assertEquals(VehicleType.MEDIUM_TANK, RaidPressureTrigger.armour(3, 2, line));
+        assertEquals(VehicleType.MEDIUM_TANK, RaidPressureTrigger.armour(8, 2, line));
+        assertNull(RaidPressureTrigger.armour(8, -1, line), "an open market sends none");
+        assertNull(RaidPressureTrigger.armour(8, 2, List.of()));
+    }
+
+    @Test
+    void anEscortParksShortOfTheTrucksDrop() {
+        assertArrayEquals(new float[]{1, 2, 3}, ConvoyMeans.escortLeg(new float[]{1, 2, 3, 4, 5, 6, 7}));
+        assertArrayEquals(new float[]{1, 2}, ConvoyMeans.escortLeg(new float[]{1, 2, 3}));
+        assertArrayEquals(new float[]{1, 1}, ConvoyMeans.escortLeg(new float[]{1}));
     }
 }

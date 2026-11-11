@@ -98,12 +98,12 @@ class FortificationDemandTest {
     @Test
     void aDerivedGarrisonIsAsHardAsTheWorldAndTheMissionSay() {
         Precinct unstated = PrecinctPlan.derive(world(5), 560, 336, new Random(42L)).objective();
-        assertSame(Fortification.STRONGHOLD, unstated.fortification(),
+        assertEquals(Fortification.STRONGHOLD.laidSquare(), unstated.fortification(),
                 "a rating-5 world with nothing said about the mission is a stronghold");
 
         Precinct capped = PrecinctPlan.derive(world(5), PrecinctPlan.Sprawl.BALANCED,
                 new Demand(Strength.PICKET, 0), 560, 336, new Random(42L)).objective();
-        assertSame(Fortification.PICKET, capped.fortification(),
+        assertEquals(Fortification.PICKET.laidSquare(), capped.fortification(),
                 "the same world under a First Contract demand is still a stronghold");
         assertEquals(unstated.seedX(), capped.seedX(),
                 "what the mission asks moved where the garrison is");
