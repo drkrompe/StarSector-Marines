@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.TownNight;
 import com.dillon.starsectormarines.battle.command.objective.RuinsVaultObjective;
 import com.dillon.starsectormarines.campaign.ruins.RuinsSurvey;
 import com.dillon.starsectormarines.battle.command.objective.RuinsDelveWatch;
@@ -1497,8 +1498,14 @@ public final class BattleSetup {
                 ? MAP_GEN.generateRuins(seed, profile, RuinsGroundPlan.forLayers(ruinsDelve.layers())
                         .withDressing(RuinsThemeDressing.of(ruinsPrize)))
                 : proceduralOperationMap(type, mapTier, mapRisk, mapProfile, scale, seed, mapSprawl, precincts);
-        // The owned map, laid on its home, is re-dressed for the raided world; no cell moves (PlanetSkin).
+        // Some town battles are fought at night, lit by the town itself (TownNight); never a delve or the cold account.
+        boolean night = !coldAccount && type != MissionType.RUINS
+                && TownNight.falls(seed, ownedRaid != null ? ownedRaid.map() : null);
+        if (night) map.topology.setNightLighting(TownNight.dark());
+        // The owned map, laid on its home, is re-dressed for the raided world; no cell moves (PlanetSkin). It lights
+        // a night as it re-dresses.
         if (ownedRaid != null) map = PlanetSkin.apply(map, ownedRaid.home(), profile);
+        if (night && map.topology.nightLighting().lamps().isEmpty()) TownNight.fall(map);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
         if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
