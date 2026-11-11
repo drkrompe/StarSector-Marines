@@ -1,12 +1,11 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.WallCrush;
@@ -18,41 +17,44 @@ import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.Query;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 /**
  * A wall-crushing walker ({@link MechVariant#crushesWalls()}: every heavy-lift walker, `mechs-nouns.md`, Wall crush)
- * pushing down the ordinary walls and props it walks into by its weight, as a heavy hull does ({@link WallCrush}): the
- * same walls, barricades and props under the same ceiling ({@link WallCrush#HEAVY_CEILING}), a fortified wall still
- * holding until fire has worn it under. It pushes at a heavy hull's rate ({@link WallCrush#HEAVY_PER_SECOND}), or an
- * ultra-heavy's ({@link WallCrush#ULTRA_HEAVY_PER_SECOND}) for a chassis that {@link MechVariant#crushesFast()}.
+ * breaking the ordinary walls and props it walks into, as a heavy hull does ({@link WallCrush}): the same walls,
+ * barricades and props under the same ceiling ({@link WallCrush#HEAVY_CEILING}), a fortified wall still holding until
+ * fire has worn it under, through the same destruction path ({@link MapEditor#damageWall},
+ * {@link MapEditor#damageEdgeBarrier}).
  *
- * <p>What it costs the walker is time: it stands at the wall while it pushes, its guns free, until the wall falls.
- * Its plate and structure take nothing from the push, unless {@link #BREACH_DAMAGE_PROPERTY} is on.
+ * <p><b>As easily as a heavy tank</b> (owner: these walkers are large and should crush a wall as easily as a heavy
+ * tank): what it bears on falls at once, its whole structure spent the tick the walker reaches it, so the walker walks
+ * through at its own pace as a heavy tank drives through a city wall at speed. A walker is too slow for a hull's
+ * momentum ({@code HullMomentum}) to carry it through a row, so it is not modelled by momentum: it never grinds and
+ * never waits at the wall. Its route pays for a breach as a crushing hull's does ({@code ClearanceRoutePlanner#BREACH_COST}).
+ *
+ * <p><b>Its legs crush too</b> (owner: the legs of the large walker should rip through structures as well). Each tick
+ * it walks its route it bears on two areas: the strip just ahead of its body toward its next waypoint, as wide as it
+ * is ({@link #forEachBearingCell}), and the ground its legs stand over and stride through, every cell whose centre lies
+ * within its drawn leg span of its body ({@link #legReach}, {@link #forEachLegCell}). A leg striding into a house's
+ * corner or a fence beside it breaks it, not only the torso.
  *
  * <p>Its route is planned over the breach view ({@link WallCrush#planningGrid(int, NavigationGrid)}, installed on
- * {@link NavigationService#setOwnRouteGrid}), so a wall it can push is open ground to its planner, while its body
- * still moves over the live grid, which holds it at the wall. Each tick a walker that has a route bears on the strip
- * just ahead of it, toward its next waypoint, as wide as it is: every pushable cell and window bay there takes the
- * tick's share of its rate, until it falls and the walker walks on.
+ * {@link NavigationService#setOwnRouteGrid}), so a wall it can push is open ground to its planner, while its body still
+ * moves over the live grid.
  */
 public final class MechWallCrush {
-
-    /**
-     * {@code -Dbattle.mech.breachDamage=true}: each wall cell or prop a walker's push brings down costs its torso
-     * {@link #BREACH_DAMAGE_SHARE} of that piece's structure, as it stood when the push first bore on it. Off, the
-     * breach costs time only. Temporary A/B for the owner's {@code heavy-walker-breach-cost-r2} pick ("time" against
-     * "time-and-damage"): remove the switch with the losing arm once the owner picks.
-     */
-    public static final String BREACH_DAMAGE_PROPERTY = "battle.mech.breachDamage";
-    /** The share of a fallen piece's structure the walker that pushed it down pays, under the switch. */
-    public static final float BREACH_DAMAGE_SHARE = .1f;
 
     /** How far past the walker's body the strip it bears on reaches, cells. */
     static final float REACH_CELLS = .6f;
     /** How far back inside its body the strip starts, so a wall already touching it is still pushed. */
     static final float OVERLAP_CELLS = .2f;
+    /**
+     * The drawn leg span's reach from the walker's centre, in hull widths
+     * ({@link LayeredMechAppearance#hullWidthCells}): measured off the look frames, an MG-40's splayed legs reach about
+     * 1.4 cells from its centre and an MG-70's about 2.4, against body radii of 0.7 and 1.25.
+     */
+    static final float LEG_REACH_HULL_WIDTHS = .62f;
+    private static final Direction[] FORWARD_EDGES = {Direction.E, Direction.N};
 
     private final EntityWorld world;
     private final BattleComponents components;
@@ -61,11 +63,7 @@ public final class MechWallCrush {
     private final MapEditor editor;
     private final DoodadService doodads;
     private final Query walkers;
-    /** Push not yet spent as whole structure points, per walker. */
-    private final Map<Long, Float> carry = new HashMap<>();
-    private final boolean breachDamage = Boolean.getBoolean(BREACH_DAMAGE_PROPERTY);
-    /** Under {@link #BREACH_DAMAGE_PROPERTY}: each piece's structure when a push first bore on it, by cell. */
-    private final Map<Integer, Integer> pieceStructure = new HashMap<>();
+    private final Bearing bearing = new Bearing();
 
     public MechWallCrush(EntityWorld world, BattleComponents components, UnitRosterService roster,
                          NavigationService navigation, MapEditor editor, DoodadService doodads) {
@@ -79,25 +77,9 @@ public final class MechWallCrush {
                 components.MOVEMENT, components.HEALTH}, null);
     }
 
-    /** Structure {@code variant} pushes down per second: none for a walker that crushes no walls. */
-    static float rate(MechVariant variant) {
-        if (!variant.crushesWalls()) return 0f;
-        return variant.crushesFast() ? WallCrush.ULTRA_HEAVY_PER_SECOND : WallCrush.HEAVY_PER_SECOND;
-    }
-
-    /** {@link #spend(float, float, float)} at a heavy hull's rate. */
-    static float[] spend(float carried, float dt) {
-        return spend(carried, WallCrush.HEAVY_PER_SECOND, dt);
-    }
-
-    /**
-     * The structure a walker's push of {@code rate} a second spends this tick, carrying the fraction to the next:
-     * {@code [whole, carried]}.
-     */
-    static float[] spend(float carried, float rate, float dt) {
-        float pending = carried + rate * dt;
-        int whole = (int) pending;
-        return new float[]{whole, pending - whole};
+    /** How far {@code variant}'s legs reach from its centre, cells: half its drawn leg span. */
+    static float legReach(MechVariant variant) {
+        return LayeredMechAppearance.hullWidthCells(variant.renderScale) * LEG_REACH_HULL_WIDTHS;
     }
 
     /**
@@ -117,6 +99,20 @@ public final class MechWallCrush {
         float offset = radius - OVERLAP_CELLS + length * .5f;
         VehicleFootprint.forEachOverlappedCell(x, y, facingToward(dx, dy), offset, length, radius * 2f, grid,
                 consumer);
+    }
+
+    /** Visits each in-bounds cell whose centre lies within {@code reach} of ({@code x}, {@code y}): under its legs. */
+    static void forEachLegCell(NavigationGrid grid, float x, float y, float reach,
+                               VehicleFootprint.CellConsumer consumer) {
+        int x0 = (int) Math.floor(x - reach), x1 = (int) Math.floor(x + reach);
+        int y0 = (int) Math.floor(y - reach), y1 = (int) Math.floor(y + reach);
+        for (int cy = y0; cy <= y1; cy++) {
+            for (int cx = x0; cx <= x1; cx++) {
+                if (!grid.inBounds(cx, cy)) continue;
+                float ox = cx + .5f - x, oy = cy + .5f - y;
+                if (ox * ox + oy * oy <= reach * reach) consumer.accept(cx, cy);
+            }
+        }
     }
 
     /**
@@ -157,84 +153,72 @@ public final class MechWallCrush {
                 MechVariant variant = roster.identity().mechVariant(id);
                 if (variant == null || !variant.crushesWalls()) continue;
                 int[] path = (int[]) paths[row];
-                if (hp[row] <= 0f || path == null || pathIdx[row] >= Paths.cellCount(path)) {
-                    carry.remove(id);
-                    continue;
-                }
+                if (hp[row] <= 0f || path == null || pathIdx[row] >= Paths.cellCount(path)) continue;
                 float dx = Paths.cellX(path, pathIdx[row]) + .5f - posX[row];
                 float dy = Paths.cellY(path, pathIdx[row]) + .5f - posY[row];
                 if (dx * dx + dy * dy < 1e-4f) continue;
-                bear(grid, topology, id, posX[row], posY[row], dx, dy, roster.radius(id), rate(variant), dt);
+                bearing.crush(grid, topology, doodads, posX[row], posY[row], dx, dy, roster.radius(id),
+                        legReach(variant), breaker);
             }
         }
     }
 
-    private void bear(NavigationGrid grid, CellTopology topology, long id, float x, float y, float dx, float dy,
-                      float radius, float rate, float dt) {
-        int most = WallCrush.HEAVY_CEILING;
-        int[] cells = new int[64];
-        int[] count = {0};
-        forEachBearingCell(grid, x, y, dx, dy, radius, (cx, cy) -> {
-            if (count[0] * 2 >= cells.length) return;
-            cells[count[0] * 2] = cx;
-            cells[count[0] * 2 + 1] = cy;
-            count[0]++;
-        });
-        boolean bearing = false;
-        for (int i = 0; i < count[0] && !bearing; i++) {
-            int cx = cells[i * 2], cy = cells[i * 2 + 1];
-            bearing = WallCrush.canPush(grid, topology, doodads, cx, cy, most) || pushableEdge(grid, cells, count[0], cx,
-                    cy, most) != null;
-        }
-        if (!bearing) {
-            carry.remove(id);
-            return;
-        }
-        float[] spent = spend(carry.getOrDefault(id, 0f), rate, dt);
-        carry.put(id, spent[1]);
-        int amount = (int) spent[0];
-        if (amount <= 0) return;
-        for (int i = 0; i < count[0]; i++) {
-            int cx = cells[i * 2], cy = cells[i * 2 + 1];
-            if (WallCrush.canPush(grid, topology, doodads, cx, cy, most)) {
-                int key = cy * grid.getWidth() + cx;
-                if (breachDamage) pieceStructure.putIfAbsent(key, WallCrush.structure(grid, topology, doodads, cx, cy));
-                if (editor.damageWall(cx, cy, amount) && breachDamage) {
-                    Integer structure = pieceStructure.remove(key);
-                    if (structure != null) charge(id, structure * BREACH_DAMAGE_SHARE);
-                }
-            }
-            Direction edge = pushableEdge(grid, cells, count[0], cx, cy, most);
-            if (edge != null) editor.damageEdgeBarrier(cx, cy, edge, amount);
-        }
+    /** Where a crush lands: the map editor in a battle, a recorder in a test. */
+    interface Breaker {
+        void wall(int x, int y, int structure);
+
+        void edge(int x, int y, Direction direction, int structure);
     }
 
-    /**
-     * Takes {@code cost} off walker {@code id}'s torso structure for a piece it pushed down, never below one point: the
-     * push wears the walker, it never kills it. The chassis health column follows the sections.
-     */
-    private void charge(long id, float cost) {
-        World units = roster.world();
-        if (cost <= 0f || !units.hasMechLoadout(id)) return;
-        MechLoadoutComponent mech = units.mechLoadout(id);
-        boolean armored = units.hasArmor(id);
-        MechSections sections = mech.sectionsFor(units.hp(id), units.maxHp(id), armored ? units.armor(id) : 0f,
-                armored ? units.maxArmor(id) : 0f);
-        sections.wearStructure(MechSection.TORSO, cost);
-        units.setHp(id, sections.totalStructure());
-    }
+    private final Breaker breaker = new Breaker() {
+        @Override public void wall(int x, int y, int structure) { editor.damageWall(x, y, structure); }
 
-    /** A pushable window bay between ({@code x}, {@code y}) and a neighbour also in the strip, read east or north. */
-    private static Direction pushableEdge(NavigationGrid grid, int[] cells, int count, int x, int y, int most) {
-        for (Direction direction : new Direction[]{Direction.E, Direction.N}) {
-            int nx = x + direction.dx, ny = y + direction.dy;
+        @Override public void edge(int x, int y, Direction direction, int structure) {
+            editor.damageEdgeBarrier(x, y, direction, structure);
+        }
+    };
+
+    /** One walker's bearing for one tick, with its scratch: the crush runs on the serial tick. */
+    static final class Bearing {
+        /** Cells borne on, as x/y pairs. */
+        private int[] cells = new int[128];
+        private int count;
+
+        /**
+         * Brings down at once every pushable cell and window bay a walker of {@code radius} with legs reaching
+         * {@code legReach}, at ({@code x}, {@code y}) and walking along ({@code dx}, {@code dy}), bears on: each takes
+         * its whole structure, so it falls this tick.
+         */
+        void crush(NavigationGrid grid, CellTopology topology, DoodadService doodads, float x, float y, float dx,
+                   float dy, float radius, float legReach, Breaker breaker) {
+            count = 0;
+            forEachBearingCell(grid, x, y, dx, dy, radius, this::collect);
+            forEachLegCell(grid, x, y, legReach, this::collect);
+            int most = WallCrush.HEAVY_CEILING;
             for (int i = 0; i < count; i++) {
-                if (cells[i * 2] == nx && cells[i * 2 + 1] == ny
-                        && WallCrush.canPushEdge(grid, x, y, direction, most)) {
-                    return direction;
+                int cx = cells[i * 2], cy = cells[i * 2 + 1];
+                if (WallCrush.canPush(grid, topology, doodads, cx, cy, most)) {
+                    breaker.wall(cx, cy, WallCrush.structure(grid, topology, doodads, cx, cy));
+                }
+                for (Direction direction : FORWARD_EDGES) {
+                    if (!collected(cx + direction.dx, cy + direction.dy)
+                            || !WallCrush.canPushEdge(grid, cx, cy, direction, most)) continue;
+                    breaker.edge(cx, cy, direction, grid.getEdgeBarrier(cx, cy, direction).structure());
                 }
             }
         }
-        return null;
+
+        private void collect(int cx, int cy) {
+            if (collected(cx, cy)) return;
+            if (count * 2 >= cells.length) cells = Arrays.copyOf(cells, cells.length * 2);
+            cells[count * 2] = cx;
+            cells[count * 2 + 1] = cy;
+            count++;
+        }
+
+        private boolean collected(int cx, int cy) {
+            for (int i = 0; i < count; i++) if (cells[i * 2] == cx && cells[i * 2 + 1] == cy) return true;
+            return false;
+        }
     }
 }

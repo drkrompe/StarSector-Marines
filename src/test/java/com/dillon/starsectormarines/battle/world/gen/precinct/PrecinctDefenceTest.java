@@ -156,18 +156,20 @@ class PrecinctDefenceTest {
     }
 
     /**
-     * Every emplacement stands on the precinct that paid for it.
+     * Every emplacement stands on the precinct that paid for it or, out in front of its wall, on ground no other
+     * place holds.
      *
-     * <p>The placer slides an anchor that will not validate, and sliding out of
-     * the claim is how a garrison's guns end up defending the field next door.
+     * <p>The placer slides an anchor that will not validate, and sliding onto
+     * another claim is how a garrison's guns end up defending the field next door.
      */
     @Test
-    void everyEmplacementStandsOnItsOwnPrecinct() {
+    void everyEmplacementStandsOnItsOwnPrecinctOrNoOnesGround() {
         Built built = defend(Fortification.CITADEL);
         for (DefensePost post : built.ctx().defensePosts) {
-            assertEquals(0, built.claim()[post.anchorX][post.anchorY],
+            int owner = built.claim()[post.anchorX][post.anchorY];
+            assertTrue(owner == 0 || owner < 0,
                     "an emplacement at " + post.anchorX + "," + post.anchorY
-                            + " stands outside the precinct that asked for it");
+                            + " stands on another precinct's ground");
         }
     }
 

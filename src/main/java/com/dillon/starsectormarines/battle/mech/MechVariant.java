@@ -71,8 +71,7 @@ public enum MechVariant {
      * The Luddic Path's Pilgrim (`mech-lines.md`, low-tech variants): an armoured mining hauler on the Bulwark frame
      * (law 2), drawn as a body of its own with a dozer blade across its front, ore-hopper ribs down its back and
      * prayer cloths. The heaviest and slowest walker in the row; like every heavy walker it pushes down an ordinary
-     * wall it walks into ({@link #crushesWalls()}), and its blade does it fastest ({@link #crushesFast()}). All
-     * numbers UNTUNED.
+     * wall it walks into ({@link #crushesWalls()}). All numbers UNTUNED.
      */
     PILGRIM("pilgrim", "@gearMechVariantPILGRIM", 620f, 840f, 20f, 0.85f, 0.38f, 52f,
             1.60f, 1.60f, 0.60f, 0.80f, 2.2f,
@@ -299,14 +298,6 @@ public enum MechVariant {
      */
     public boolean crushesWalls() {
         return liftClass() == LiftClass.HEAVY;
-    }
-
-    /**
-     * Whether this chassis pushes walls down at the faster, ultra-heavy rate: the Pilgrim, by its dozer blade, and
-     * the MG-70 hall frame, by its weight (twice the heavy's height). Every other crusher pushes at a heavy hull's.
-     */
-    public boolean crushesFast() {
-        return this == PILGRIM || this == SECURITY_HALL;
     }
 
     /**
