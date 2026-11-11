@@ -151,8 +151,99 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
                 return null;
             }));
         }
+        // The works' machines (owner's note: "Also consider things like vehicles and mechs"): mock-ups with the game's
+        // parked-hull props standing in for live machines.
+        out.add(shot(context, "machines-a1-layered-guarded.png", (w, m) -> {
+            gatePickets(w, m, perimeter(w));
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (a) GUARDED: a light vehicle holds each gate, hull-down behind the checkpoint",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "machines-a2-layered-fortified.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            gatePickets(w, m, p);
+            yardReserve(w, m);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (a) FORTIFIED: also an armour reserve in the works' yard that drives to the hall under attack",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "machines-b-patrol.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            int in = 3;
+            List<ReviewAnnotation.Point> loop = List.of(new ReviewAnnotation.Point(p.x0() + in, p.y0() + in),
+                    new ReviewAnnotation.Point(p.x1() - in, p.y0() + in), new ReviewAnnotation.Point(p.x1() - in, p.y1() - in),
+                    new ReviewAnnotation.Point(p.x0() + in, p.y1() - in), new ReviewAnnotation.Point(p.x0() + in, p.y0() + in));
+            m.polyline(loop, "PATROL: circles inside the wall", ReviewStyle.ROUTE);
+            standNear(w, p.x0() + in, (p.y0() + p.y1()) / 2, "doodad.parked-apc-army", 6);
+            standNear(w, p.x1() - in - 2, (p.y0() + p.y1()) / 2, "doodad.parked-tank", 6);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (b) PATROL: the works' machines drive a loop inside the wall, meeting the raid where it comes in",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "machines-c-garrison-reserve.png", (w, m) -> {
+            float[] g = garrison(w);
+            float dx = g[0] - w.cx(), dy = g[1] - w.cy(), d = (float) Math.max(1, Math.hypot(dx, dy));
+            float reach = w.across() * 0.42f;
+            float fx = w.cx() + dx / d * reach, fy = w.cy() + dy / d * Math.min(reach, w.across() * 9f / 32f - 4);
+            Building hall = w.halls().get(0);
+            m.arrow(fx, fy, (hall.minX + hall.maxX) / 2f, (hall.minY + hall.maxY) / 2f,
+                    "on the alarm, from the garrison", ReviewStyle.APPROACH);
+            m.label(fx, fy, "GARRISON ARMOUR RESERVE (off this frame)", ReviewStyle.KEEP);
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (c) GARRISON RESERVE: no machines in the works; the garrison's armour drives over on the alarm",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
         out.removeIf(a -> a == null);
         return out;
+    }
+
+    /** A light vehicle just inside each gate of three cells or wider, beside its mouth. */
+    private static void gatePickets(Works w, ReviewAnnotations.Builder m, Perimeter p) {
+        for (int[] g : p.gates()) {
+            if (g[4] < 3) continue;
+            int ox = g[2], oy = g[3], aside = g[4] / 2 + 2;
+            int x = g[0] - ox * 4 + (ox == 0 ? aside : 0), y = g[1] - oy * 4 + (oy == 0 ? aside : 0);
+            if (standNear(w, x, y, "doodad.parked-apc-army", 4) != null) {
+                m.label(x, y + 3, "GATE PICKET", ReviewStyle.ALLY);
+            }
+        }
+    }
+
+    /** Two tanks on the open yard nearest the works' middle, with the alarm's run to hall 1. */
+    private static void yardReserve(Works w, ReviewAnnotations.Builder m) {
+        int[] at = standNear(w, Math.round(w.cx()), Math.round(w.cy()), "doodad.parked-tank", 14);
+        if (at == null) return;
+        standNear(w, at[0] + 4, at[1], "doodad.parked-tank", 6);
+        m.label(at[0] + 2, at[1] + 4, "ARMOUR RESERVE", ReviewStyle.ALLY);
+        Building hall = w.halls().get(0);
+        m.arrow(at[0] + 2, at[1], (hall.minX + hall.maxX) / 2f, (hall.minY + hall.maxY) / 2f, "on the alarm",
+                ReviewStyle.APPROACH);
+    }
+
+    /** A prop on the first open spot outward from {@code (x, y)} within {@code radius}; where it stood, or null. */
+    private static int[] standNear(Works w, int x, int y, String id, int radius) {
+        for (int r = 0; r <= radius; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    if (prop(w, x + dx, y + dy, id, 0)) return new int[]{x + dx, y + dy};
+                }
+            }
+        }
+        return null;
+    }
+
+    /** The middle of the garrison's posts. */
+    private static float[] garrison(Works w) {
+        float sx = 0, sy = 0;
+        int n = 0;
+        for (TacticalNode node : w.sim().getTacticalMap().all()) {
+            if (!RaidSiteTemplate.GARRISON.equals(node.place())) continue;
+            sx += node.anchorX;
+            sy += node.anchorY;
+            n++;
+        }
+        return n == 0 ? new float[]{w.cx(), w.cy() - 100} : new float[]{sx / n, sy / n};
     }
 
     /** {@code w} framed on its whole wall and the ground just outside it, for the defence pictures. */
@@ -336,7 +427,9 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
                 : ground.reference();
         try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, seed, true, List.of(), raided)) {
             Works works = works(sim);
-            if (name.startsWith("defences") || name.startsWith("built")) works = framedOnWall(works);
+            if (name.startsWith("defences") || name.startsWith("built") || name.startsWith("machines")) {
+                works = framedOnWall(works);
+            }
             ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
             stage.apply(works, marks);
             BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W, FRAME_H,

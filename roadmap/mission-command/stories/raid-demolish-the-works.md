@@ -4,7 +4,8 @@ Status: IN PROGRESS. The owner picked (a) on all four:
 `raid-demolition-targets`, `raid-demolition-fall`, `raid-demolition-marker`,
 `raid-demolition-effort`; and (a) on `raid-works-defences`, with the note
 "Also consider things like vehicles and mechs". Slices 1 to 5 are built; slice
-6 (the works' machines) is planned below.
+6 (the works' machines) waits on `raid-works-machines` and
+`raid-works-machines-source`.
 
 Written: 2026-11-10
 
@@ -133,6 +134,43 @@ own belt, checkpoints and towers at every security
 (`RaidIndustry.laysOwnPerimeter`) and takes only the parapets. Test:
 `WorksDefencesTest`; `storyMapPools`; the as-built pictures are
 `raid-demolition-look`'s `built-*`.
+
+### 6. The works' machines: PLANNED
+
+The owner's note on `raid-works-defences`: "Also consider things like vehicles
+and mechs." Today a Raid has no defender vehicles: its machines are the
+roster's mechs (`DefenderRoster.mechVariantsFor`, only with heavy armour and
+above low risk), seated on general posts or patrolling, and a mech never
+stands on a works guard post. The alarm (`RaidObjective.defenderAlarm`,
+`RaidDefenderCommand`) sends up to three mobile squads; no machine answers it.
+
+Two picks (pictures under `review/owned-maps/2026-11-10_raid-works-machines_win/`):
+
+- `raid-works-machines`, where they post and how they react: (a) layered by
+  security (recommended): open none; guarded a light vehicle holding each gate
+  behind its checkpoint; fortified also an armour reserve parked in the works'
+  yard that drives to the hall under attack on the alarm; (b) a patrol inside
+  the wall; (c) the garrison's armour only, driving over on the alarm.
+- `raid-works-machines-source`: (a) out of the market's force (recommended):
+  the machines its roster already fields are posted at the works instead of
+  elsewhere, keeping the rule that security changes where the force stands,
+  never its size; (b) on top, by security.
+
+On the recommended options the work is:
+
+1. **Seat the market's machines at the works.** The defender allocation seats
+   the roster's mechs on the works' gate places (guarded and fortified) before
+   any other place, as `RaidWorksGuard` seats the works' guard; on fortified the
+   rest form the works' reserve in its yard. The gate places and the reserve's
+   yard are laid by `WorksDefences` with the checkpoints, named with the works'
+   place. Proven where the seating is decided, by unit test.
+2. **Vehicles.** A market whose faction fields vehicles (`FactionVehiclePoints`)
+   parks them as live hulls at the same places (`BattleSetup.parkHull`,
+   `VehicleMission.deployed`), out of the same force.
+3. **The reserve answers the alarm.** On the works' alarm the reserve is
+   ordered to the hall under attack as a machine guard (`MachineGuards`, the
+   `MachineGuardDirector` pattern), held there; a gate picket never leaves its
+   gate. Decided in `RaidDefenderCommand`, tested on its facts.
 
 ## Not in this story
 
