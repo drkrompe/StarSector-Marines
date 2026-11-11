@@ -125,4 +125,13 @@ class HullWorkersTest {
         // Nothing round it open: the target's own cell.
         assertArrayEquals(new int[] {10, 10}, HaulerWork.approach(10.5f, 10.5f, 30.5f, 10.5f, (x, y) -> false));
     }
+
+    @Test
+    void aFarWalkIsNotRePlannedForEveryStepItsQuarryTakes() {
+        assertTrue(FallenHull.reissue(0, 0, 2, 0, 4f), "near: a two-cell move re-issues");
+        assertFalse(FallenHull.reissue(0, 0, 2, 0, 100f), "far: a two-cell move keeps the route");
+        assertFalse(FallenHull.reissue(0, 0, 20, 0, 100f));
+        assertTrue(FallenHull.reissue(0, 0, 25, 0, 100f), "a quarter of the way still to walk re-issues");
+        assertFalse(FallenHull.reissue(0, 0, 1, 1, 0f), "under two cells never");
+    }
 }
