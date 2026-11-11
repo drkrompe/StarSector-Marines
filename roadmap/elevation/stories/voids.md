@@ -420,7 +420,10 @@ Laws):
    from them alone: an outdoor drop across the open country, at most one,
    and a drop cut indoors (`NaturalVoid.indoor`, a foundry's melt) beside it. What they
    share is the camera and the rules, not code: the pinhole eye in metres
-   above the surface, painter's order by depth, the battle's sun, and the
+   above the surface (risen with the view past play zoom's 60 cells, the
+   same factor for every eye in the view, `BuildingFaces.rise`, so zoomed
+   out a wall or a building leans as many cells as at play zoom rather than
+   growing taller), painter's order by depth, the battle's sun, and the
    ground tiles drawn after, covering everything but the void cells. Neither
    changes the other's pictures.
 
