@@ -51,6 +51,17 @@ class RaidWorksGuardTest {
     }
 
     @Test
+    void aForwardPostTakesOnlyRiflemenAndIsSeatedAfterTheMachines() {
+        assertEquals(RaidWorksGuard.Holder.INFANTRY, RaidWorksGuard.holder(false, false, true, true, true));
+        assertEquals(RaidWorksGuard.Holder.NONE, RaidWorksGuard.holder(false, false, true, true, false),
+                "a forward post never takes a mech");
+        TacticalNode command = node(TacticalNode.Kind.COMMAND_POST, Faction.DEFENDER, 90, RaidSiteTemplate.GARRISON);
+        TacticalNode gate = node(TacticalNode.Kind.INNER_POSITION, Faction.DEFENDER, 75, RaidSiteTemplate.WORKS_MACHINES);
+        TacticalNode forward = node(TacticalNode.Kind.INNER_POSITION, Faction.DEFENDER, 75, RaidSiteTemplate.WORKS_FORWARD);
+        assertEquals(List.of(gate, forward, command), RaidWorksGuard.seatingOrder(List.of(command, forward, gate)));
+    }
+
+    @Test
     void aMachinePostTakesOnlyMachinesAndAGuardPostRiflemenFirst() {
         assertEquals(RaidWorksGuard.Holder.MACHINES, RaidWorksGuard.holder(false, true, true, true));
         assertEquals(RaidWorksGuard.Holder.NONE, RaidWorksGuard.holder(false, true, false, true),
