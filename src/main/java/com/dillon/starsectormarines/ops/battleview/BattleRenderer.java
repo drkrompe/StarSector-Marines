@@ -1562,6 +1562,7 @@ public class BattleRenderer {
                 RoofTiles.resolve(topology, cx, cy, plan.style, plan.grainTurns, roofStream);
             }
         }
+        if (ship != null) streamShipSolid(out, alphaMult, topology, buildings, ship, view);
         roofStream.ship = null;
     }
 
@@ -1595,8 +1596,38 @@ public class BattleRenderer {
                 RoofTiles.resolve(topology, cx, cy, plan.style, plan.grainTurns, roofStream);
             }
         }
+        streamShipSolid(out, alphaMult, topology, buildings, ship, view);
         roofStream.ship = null;
         roofStream.shipOnly = false;
+    }
+
+    /**
+     * The ship's solid hull no compartment's roof covers ({@link HullRoof.Section#solid}): painted as its section's
+     * roof, at its most shown compartment's alpha, fog and lift, so the hull reads whole to the bow's tip.
+     */
+    private void streamShipSolid(DrawList out, float alphaMult, CellTopology topology, Buildings buildings,
+                                 HullRoof ship, VisibleCellRect view) {
+        int gridW = topology.getWidth();
+        for (HullRoof.Section section : ship.sections()) {
+            if (section.solid.length == 0) continue;
+            Building shown = null;
+            for (Building b : section.buildings) {
+                if (shown == null || b.currentAlpha > shown.currentAlpha) shown = b;
+            }
+            if (shown == null || shown.currentAlpha <= 0.01f) continue;
+            roofStream.ship = section;
+            roofStream.begin(out, shown, shown.currentAlpha * alphaMult);
+            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, shown)],
+                    rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
+            for (int at : section.solid) {
+                int cx = at % gridW;
+                int cy = at / gridW;
+                if (!view.contains(cx, cy)) continue;
+                roofStream.cellX = cx;
+                roofStream.cellY = cy;
+                roofStream.shipQuad(0f, 0f, 1f, 1f);
+            }
+        }
     }
 
     private HullRoof hullRoof;
@@ -1660,7 +1691,9 @@ public class BattleRenderer {
 
         /** A field piece of the ship: the painting where the piece's rectangle falls on the hull's plan. */
         private void shipQuad(float x0, float y0, float x1, float y1) {
-            HullRoof.Section s = ship;
+            // Each cell as its own section lies: one compartment's roof may run across a break.
+            HullRoof.Section here = hullRoof != null ? hullRoof.at(cellX, cellY) : null;
+            HullRoof.Section s = here != null ? here : ship;
             float ua = s.planU(cellX + x0, cellY + y0), ub = s.planU(cellX + x1, cellY + y1);
             float va = s.planV(cellX + x0, cellY + y0), vb = s.planV(cellX + x1, cellY + y1);
             float u0 = Math.min(ua, ub), u1 = Math.max(ua, ub);
