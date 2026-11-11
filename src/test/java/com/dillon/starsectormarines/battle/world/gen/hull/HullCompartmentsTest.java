@@ -54,7 +54,8 @@ class HullCompartmentsTest {
             assertEquals(hall.name(), plan.compartment(hall.floor().u0(), hall.floor().v0()));
             assertEquals(hall.name(), plan.compartment(hall.door().u0(), hall.door().v0()), "a dock is its hall's");
         }
-        assertEquals(HullPlan.SPINE_NAME, plan.compartment(0, 15), "the stern's door opens the spine");
+        assertEquals("spine.stern", plan.compartment(0, 15), "the stern's door opens the stern's spine");
+        assertEquals("spine.bow", plan.compartment(50, 15), "the spine is broken with the hull");
         assertEquals("bay", plan.compartment(35, 0), "the bay door opens the bay");
     }
 
@@ -62,8 +63,8 @@ class HullCompartmentsTest {
     void theShellIsTheSolidHullNearTheOutsideOrABreach() {
         HullPlan plan = HullPlan.plan();
         assertEquals(true, plan.shell(0, 0), "the stern's corner");
-        assertEquals(false, plan.shell(20, 18), "the bulkhead between the spine and the first hold");
-        // Beside the starboard breach, deep in the hull, the shell is torn open too.
+        assertEquals(false, plan.shell(17, 18), "the bulkhead between the spine and the first hold");
+        // Beside a broken end, deep in the hull, the shell is torn open too.
         assertEquals(true, plan.shell(43, 20));
     }
 }

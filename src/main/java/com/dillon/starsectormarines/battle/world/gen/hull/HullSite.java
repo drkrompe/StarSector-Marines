@@ -18,14 +18,16 @@ import java.util.Map;
  * moves in play.
  *
  * <p>Published names ({@link #places}): {@code hull}, {@code hull.trench}, {@code hull.forge}, {@code hull.bay},
- * {@code hull.interior} and its {@code ruins.interior.*} chambers and aprons, {@code hull.debris.N} and
+ * {@code hull.interior} and its {@code ruins.interior.*} chambers and aprons, {@code hull.debris.N},
+ * {@code hull.section.stern|mid|bow} (the broken hull's pieces, {@code footprint} their laid bounds with the gaps) and
  * {@code hull.lattice.N}.
  *
  * <p>{@code problems} are what the ground could not do as the patch asked (a lattice point it could not seat a stake
  * at, a hull laid over a road); a story map's acceptance fails on any.
  */
 public record HullSite(Area footprint, Direction heading, Interior interior, Area forgeHall, Cell forge, Area bay,
-                       Area trench, List<Area> debris, List<LatticePoint> lattice, List<HaulRoad> roads,
+                       Area trench, List<Area> debris, List<Area> sections, List<LatticePoint> lattice,
+                       List<HaulRoad> roads,
                        List<Stake> stakes, List<String> problems, int mapWidth, BitSet hullCells, BitSet trenchCells) {
 
     public static final String HULL = "hull", TRENCH = "hull.trench", FORGE = "hull.forge", BAY = "hull.bay",
@@ -55,6 +57,7 @@ public record HullSite(Area footprint, Direction heading, Interior interior, Are
 
     public HullSite {
         debris = List.copyOf(debris);
+        sections = List.copyOf(sections);
         lattice = List.copyOf(lattice);
         roads = List.copyOf(roads);
         stakes = List.copyOf(stakes);
@@ -83,6 +86,9 @@ public record HullSite(Area footprint, Direction heading, Interior interior, Are
         return null;
     }
 
+    /** The name of section {@code k}, stern ({@code 0}) to bow ({@link HullPlan#SECTIONS}). */
+    public static String sectionName(int k) { return "hull.section." + HullPlan.SECTIONS.get(k).name(); }
+
     /** The name of lattice point {@code index}. */
     public static String latticeName(int index) { return "hull.lattice." + (index + 1); }
 
@@ -97,6 +103,7 @@ public record HullSite(Area footprint, Direction heading, Interior interior, Are
         for (int k = 0; k < interior.chambers().size(); k++) out.put(Interior.chamberName(k), interior.chambers().get(k));
         for (var apron : interior.aprons()) out.put(apron.name(), apron.ground());
         for (int k = 0; k < debris.size(); k++) out.put("hull.debris." + (k + 1), debris.get(k));
+        for (int k = 0; k < sections.size(); k++) out.put(sectionName(k), sections.get(k));
         for (LatticePoint p : lattice) {
             out.put(latticeName(p.index()), new Area(p.cell().x() - 2, p.cell().y() - 2, p.cell().x() + 2, p.cell().y() + 2));
         }
