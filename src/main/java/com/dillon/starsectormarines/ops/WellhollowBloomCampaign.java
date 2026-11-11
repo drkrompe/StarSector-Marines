@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.EndGameBranches;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress.Chapter;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -78,7 +79,7 @@ public final class WellhollowBloomCampaign {
      */
     public static WellhollowBloomProgress current() {
         var script = CampaignStateScript.getInstance();
-        if (script == null || script.state().shepherdRecovery == null || !script.state().shepherdRecovery.departed()) return null;
+        if (script == null || !EndGameBranches.open(script.state())) return null;
         return script.state().wellhollowBloom == null ? new WellhollowBloomProgress() : script.state().wellhollowBloom;
     }
     public static boolean owns(String id) { return WellhollowBloomProgress.owns(id); }

@@ -16,39 +16,38 @@ chapters, seeds, gates and replay. Voice follows `derelict-lore-guide.md`
 
 ## Premise
 
-An Explorarium survey mothership parked in a high survey orbit for centuries.
-A salvage consortium licensed to tow it in for breaking woke its station-keeping
-and lost it; it came down in a district's foundry country, ploughing a trench
-through a mining town (pick `hull-fall-cause`; recommended: the botched tow,
-because it gives the arc a human cause, a guilty party with salvage papers and
-a reason the world's owner pays mercenaries rather than its own fleet). Within
-a night its survey program was running: flocks over the town, rounds walkers
-on the trench, strippers cutting up the headframes.
+An Explorarium survey mothership parked in a high survey orbit over Garnir for
+centuries. One of the free port's salvage crews tried to tow it in for breaking,
+woke its station-keeping and lost it (owner, `hull-fall-cause` a: the botched
+tow, a human cause and a guilty crew that still wants its prize). It came down
+on the ice through a mining town, ploughing a trench. Within a night its survey
+program was running: flocks over the town, rounds walkers on the trench,
+strippers cutting up the headframes.
 
-The world's garrison holds the district's capital and the roads. The company
-is hired for what the garrison cannot reach, and later fights beside it.
+The port's own crews hold the port and its roads. The company is hired for
+what they cannot reach, and later fights beside them.
 
 ## World and cast
 
-- **The world** (pick `long-survey-world`). Recommended: **Chicomoztoc**, the
-  Hegemony's industrial world in Aztlan: foundry country is feedstock
-  everywhere, and the garrison is the Hegemony's ground army, so the allied
-  columns of chapters 3 and 4 are the Hegemony armour line
-  (`hegemony-lore-guide.md`). Played down to one district, as the Khettara is
-  (`wellhollow-bloom-arc.md`, Premise): the core's regulars are elsewhere; the
-  district has a garrison battalion, its militia and hired outfits.
-  Alternatives: Kazeron (Persean League; exotic-metal mines; the plant that fed
-  the Domain's terraforming, which the survey program would recognise), or
-  Asharu again (the APDF and Orens; cheapest, but the same world twice).
-- **The garrison commander** (name and portrait the owner's): the district's
-  ground commander, hiring and briefing every chapter, as Orens does.
-- **The consortium's man** (optional): the salvage factor whose tow brought it
-  down, wanting the hull intact for its papers; a voice in chapter 4 against
-  wrecking the forge.
+- **The world** (owner, 2026-11-11): **Garnir** in Corvus (`corvus_IIIa`), the
+  pirate free port, airless and cold, volatiles plentiful, mines and ground
+  defences; the world A Cold Account was fought on. The hirer and the allied
+  columns of chapters 3 and 4 are the port's crews: pirate armour and militia
+  (`pirates-lore-guide.md`). Played down to the port and its mining country,
+  as the Khettara is to its district.
+- **The defence chief** (name and portrait the owner's): the free port's
+  defence chief, hiring and briefing every chapter, as Orens does. Speaks in
+  shares, grudges, reputation and practical detail; names the crews, never
+  "the pirates". Hires the company because it is the outfit that brought a
+  Hegemony battleship down on Sable's compound here: nobody misses Sable, and
+  everybody remembers who did it.
+- **The salvage crew's captain** (optional): whose tow brought it down, wanting
+  the hull intact as the crew's prize; a voice in chapter 4 against wrecking
+  the forge.
 - **Castle**, the company's operations voice.
 
-Map places take one naming scheme for the world chosen; the hull is "the
-Surveyor" to everyone on the ground.
+Map places take one naming scheme for Garnir; the hull is "the Surveyor" to
+everyone on the ground.
 
 ## Chapters, in order
 
@@ -62,11 +61,11 @@ Khettara (seven squads, four machines).
 | --- | --- | --- | --- | --- |
 | 1 | **The Fall** | Civilian Rescue (Extraction adapter, the derelict director in place of the swarm director) | The night it came down. The town on the trench's lip is sealed in its shelter; flocks over the streets, rounds walkers in the trench, strippers on the headframes. Lift the people out. Bonus: blow the hull's forward bay so it cannot launch again. | The hull only: no stakes, a fixed first wake, the forge's first cycles running |
 | 2 | **Stakes** | Sabotage (exactly three named sites) | The forge has printed its first stakes and trains are carrying them out across the mine country. Three are planted on the lattice and counting down. Kill them planted; a stake that rises is a zone to fight through. | The hull; three stakes planted; one raised beyond them |
-| 3 | **The Line** | Broad Front at city density (`heart-nouns.md`; the city push below), the claim's stakes in the mothers' place | The claim has reached the district capital. The garrison's armour columns and the company push the watch out of the city street by street toward the trench, each lane taking its next stake; heavy walkers and the columns' guns bring the city down round them. Cut the chains and the haul roads as the lanes go. Win: every stake in the city down or stranded. | Established stakes chained through the city to the hull; haul roads live; trains running |
-| 4 | **The Surveyor** | Broad Front (the heart variant), the hull as its heart, then the hull's interior as a delve to the autoforge | The garrison's columns go in on the trench. Cut the outer chain to strand the claim, break into the hull, and put the autoforge out in its forge hall, guarded by the vault frame and a hall frame. | The full claim; the contingency on the forge's breach |
+| 3 | **The Line** | Broad Front at city density (`heart-nouns.md`; the city push below), the claim's stakes in the mothers' place | The claim has reached the port city. The port's armour and militia and the company push the watch out of the city street by street toward the trench, each lane taking its next stake; heavy walkers and the columns' guns bring the city down round them. Cut the chains and the haul roads as the lanes go. Win: every stake in the city down or stranded. | Established stakes chained through the city to the hull; haul roads live; trains running |
+| 4 | **The Surveyor** | Broad Front (the heart variant), the hull as its heart, then the hull's interior as a delve to the autoforge | The port's crews go in on the trench. Cut the outer chain to strand the claim, break into the hull, and put the autoforge out in its forge hall, guarded by the vault frame and a hall frame. | The full claim; the contingency on the forge's breach |
 
 The order runs as the Khettara's does: the company alone, then a sabotage
-raid, then beside the garrison through the city, then the all-in finale.
+raid, then beside the port's crews through the city, then the all-in finale.
 Each chapter has one authored map, designed around its objective first and
 then filled to serve it, and The Line is the arc's ground war through a
 populated city, there to show off destruction (owner, 2026-11-11). Each chapter
@@ -134,14 +133,19 @@ As the Khettara (`wellhollow-bloom-arc.md`, Unlocks and Replay): a separate
 contact on the world's board; a victory unlocks the next chapter; a loss leaves
 it on offer with a retry line and no fee; a won chapter stays on the board as a
 replay on the same seed at half fee with no unlocks; story source, its own
-ledger, never the event gate; no clock. When the arc opens is pick
-`long-survey-opens` (recommended: alongside the Khettara, after A Working
-Ship). The debug mission player lists the four chapters (LS1 to LS4) on their
+ledger, never the event gate; no clock.
+
+**The end-game branch** (owner, 2026-11-11: "branch to open up these end game
+missions so the player can go to Asharu OR they can go to fight this"): the arc
+opens with the Khettara Bloom when Morrow departs at the end of A Working Ship,
+two end-game branches in one system. Both are offered at once, the player takes
+up either first, and neither arc's progress opens, closes or gates the other
+(`EndGameBranches`). The debug mission player lists the four chapters (LS1 to LS4) on their
 seeds with the challenge force.
 
 ## Where the narrative lives
 
-Briefings as `MissionDialogue` exchanges between the garrison commander and
+Briefings as `MissionDialogue` exchanges between the defence chief and
 Castle, a retry and a replay line each, a board row with "Survey 2 of 4", the
 debrief's story line, a portrait for the commander and one location banner per
 chapter (pick through the art session), voiced later as the Khettara is.
@@ -153,13 +157,15 @@ chapter (pick through the art session), voiced later as the Khettara is.
   on offer with its retry line and no fee; a won chapter replays at half fee
   with no unlock; one active attempt, settled once by its own receipt. A
   chapter not yet built (`Chapter.built`) is never matched, offered or launched.
-- **The contact.** `LongSurveyCampaign`: the district garrison commander on the
-  arc's world's board (`SYSTEM`, `PLANET_ID`: Chicomoztoc in Aztlan meanwhile,
-  one constant for the `long-survey-world` pick), opening when Morrow departs at
-  the end of A Working Ship, as the Khettara does. Rows read "Survey N of 4";
+- **The contact.** `LongSurveyCampaign`: Garnir's defence chief on the port's
+  board (`SYSTEM`, `PLANET_ID`: Corvus, `corvus_IIIa`), opening with the
+  Khettara when Morrow departs at the end of A Working Ship
+  (`EndGameBranches.open`, the one rule both arcs read). The chapters are fought
+  on Garnir's frozen skin (`SURFACE`), each owned map laid out on its pool's
+  home palette and skinned for it. Rows read "Survey N of 4";
   never the event gate, no clock. Briefings are unvoiced stub exchanges between
-  the commander and Castle (`longSurvey*` in `strings.json`), with a retry and a
-  replay line; the commander's name and portrait wait on the owner.
+  the defence chief and Castle (`longSurvey*` in `strings.json`), with a retry
+  and a replay line; the chief's name and portrait wait on the owner.
 - **The Fall.** `HullFallBattleFixture` builds `BattleSetup.createHullFall`:
   the Colony Breach rescue on the `long-survey-fall` owned seed (38, the
   colony with the Surveyor down beside the town; `THE_FALL_MAP`), with no
@@ -179,18 +185,18 @@ chapter (pick through the art session), voiced later as the Khettara is.
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
   that one seed. Open: the forward-bay bonus objective.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
-  under Chicomoztoc, each on its chapter's seed with the challenge force (a
+  under Garnir, each on its chapter's seed with the challenge force (a
   Veteran Company, seven squads, four machines); a chapter is listed once
   built, so only LS1 shows yet.
 
 ## Open picks
 
 `line-family` (recommended: Broad Front at city density, above; alternatives:
-Conquest in the capital, or Cordon's Line kept), with a consequence for
+Conquest in the port city, or Cordon's Line kept; owner, 2026-11-11: a), with a consequence for
 chapter 4: with The Line on Broad Front, The Surveyor would repeat the family,
 so its outer push is best kept short and the chapter weighted on the delve into
 the hull (the Ruins family's interior, the autoforge as its vault).
-`hull-fall-cause`, `long-survey-world`, `long-survey-opens`, and the nouns
-doc's `hull-spread-law` and `stake-look`. All are built on the recommended
+`hull-fall-cause` (a), `long-survey-world` (Garnir) and `long-survey-opens`
+(the end-game branch) are answered (owner, 2026-11-11). Open: the nouns doc's `hull-spread-law` and `stake-look`, built on the recommended
 option meanwhile and stand on the arc's picks page as picture cards. The nouns
 doc's `hull-lineage`, `stripper-hauler` and `autoforge-look` are answered.
