@@ -3,17 +3,18 @@
     python art-source/refinery/refinery-heaters-export.py
 
 Reads refinery-heaters.raw.png (the ImageGen master over refinery-heaters-guide.png, in the works tileset's flat
-style) and writes mod/graphics/doodads/refinery-heaters.png (one row of three FRAME px frames) and
+style) and writes mod/graphics/doodads/refinery-heaters.png (two rows of three FRAME px frames) and
 mod/data/tilesets/refinery-heaters.tileset.json. The frames keep the placing RefineryGround draws them by:
   column, stripper  platform ring radius 0.20 of the frame, centre at (0.40, 0.40)
   stack             chimney ring radius 0.125, centre at (0.375, 0.375)
-A neighbour reaching into a frame's edge is cut away.
+A neighbour reaching into a frame's edge is cut away. The second row holds the column and stripper mirrored
+(refinery.column-west, refinery.stripper-west: their discs' middles at (0.60, 0.40), vapour lines leaving west).
 """
 import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "art-source/refinery/refinery-heaters.raw.png"
@@ -32,7 +33,7 @@ PIECES = [
 
 def main():
     src = Image.open(SRC).convert("RGBA")
-    sheet = Image.new("RGBA", (3 * FRAME, FRAME), (0, 0, 0, 0))
+    sheet = Image.new("RGBA", (3 * FRAME, 2 * FRAME), (0, 0, 0, 0))
     cells, doodads = [], []
     for pid, col, (cx, cy), radius, fraction, at, cut in PIECES:
         side = radius / fraction
@@ -46,10 +47,14 @@ def main():
             if right:
                 a[:, FRAME - int(right * FRAME):, 3] = 0
             img = Image.fromarray(a)
-        sheet.alpha_composite(img, (col * FRAME, 0))
-        cells.append({"col": col, "row": 0, "name": pid})
-        doodads.append({"id": pid, "col": col, "row": 0, "cover": "none", "ballisticHalfHeight": 0,
-                        "footprintCells": [1, 1]})
+        frames = [(pid, img, 0)]
+        if pid in ("refinery.column", "refinery.stripper"):
+            frames.append((pid + "-west", ImageOps.mirror(img), 1))
+        for fid, frame, row in frames:
+            sheet.alpha_composite(frame, (col * FRAME, row * FRAME))
+            cells.append({"col": col, "row": row, "name": fid})
+            doodads.append({"id": fid, "col": col, "row": row, "cover": "none", "ballisticHalfHeight": 0,
+                            "footprintCells": [1, 1]})
     sheet.save(SHEET, optimize=True)
     TILESET.write_text(json.dumps({"sheet": "graphics/doodads/refinery-heaters.png", "cellPx": FRAME,
                                    "cells": cells, "doodads": doodads}, indent=2) + "\n", encoding="utf-8")

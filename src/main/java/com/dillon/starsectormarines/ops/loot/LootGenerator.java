@@ -33,8 +33,7 @@ public final class LootGenerator {
         // Secured finds come home on a victory, and from a Ruins expedition pulled out: there they are banked
         // (ruins-expedition.md, Pressing on or pulling out).
         if (outcome.victory || outcome.pulledOut) {
-            manifest = FieldSalvageLoot.append(manifest, outcome.fieldSalvage,
-                    resource -> commodity(resource.commodityId));
+            manifest = FieldSalvageLoot.append(manifest, outcome.fieldSalvage, LootGenerator::commodity);
         }
         return FieldSalvageLoot.appendObjectiveMaterials(manifest, outcome.objectives, LootGenerator::commodity);
     }

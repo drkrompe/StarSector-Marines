@@ -35,8 +35,34 @@ final class FacePainter {
 
     void reset() {
         faces.reset();
+        glow.reset();
         debrisCount = 0;
         into = faces;
+    }
+
+    /** The lit windows of a night ({@link #night}), drawn over the night shade. */
+    final PolyMesh glow = new PolyMesh(256);
+    /** Whether this frame is a night's, so some windows are lit ({@link #lit}). */
+    boolean night;
+    /** Whether the storey being painted is above the ground floor, where the lit windows are. */
+    private boolean upper;
+
+    /** The share of upper windows lit at night. UNTUNED. */
+    static final float LIT_SHARE = .3f;
+    /** A lit window's warm glass. */
+    private static final float LIT_R = 1f, LIT_G = .78f, LIT_B = .42f;
+
+    /** Whether the window of bay {@code seed} is lit at night: about {@link #LIT_SHARE} of them, by its place. */
+    static boolean lit(int seed) {
+        return BuildingFaces.hash(seed, 140) < LIT_SHARE;
+    }
+
+    /** A part of the wall that glows rather than takes the light, into {@link #glow}. */
+    private void glowQuad(float t0, float t1, float z0, float z1, float r, float g, float b) {
+        PolyMesh was = into;
+        into = glow;
+        quad(t0, t1, z0, z1, r, g, b);
+        into = was;
     }
 
     /** Draws what follows into {@code mesh} ({@link #faces} unless said otherwise). */
@@ -65,6 +91,21 @@ final class FacePainter {
         point(t1, z1, 4);
         point(t0, z1, 6);
         into.appendQuad(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], r, g, b, alpha);
+    }
+
+    /**
+     * Lays one part of the wall, {@code t0..t1} along and {@code z0..z1} up, as a patch of the creep sheet into
+     * {@code patches} ({@link CreepClimb.Sink}), at the wall's alpha times {@code alpha}.
+     */
+    void creep(CreepPatches patches, float t0, float t1, float z0, float z1, int row, float u0, float u1, float v0,
+               float v1, float light, float alpha) {
+        if (t1 <= t0 || z1 <= z0) return;
+        point(t0, z0, 0);
+        point(t1, z0, 2);
+        point(t1, z1, 4);
+        point(t0, z1, 6);
+        patches.add(xy[0], xy[1], xy[2], xy[3], xy[4], xy[5], xy[6], xy[7], row, u0, u1, v0, v1, light,
+                this.alpha * alpha);
     }
 
     /** One part of the wall shaded from {@code low} at its foot to {@code high} at its top. */
@@ -224,6 +265,7 @@ final class FacePainter {
             if (lo >= clip - .02f && f > 0) break;
             float limit = Math.min(hi, cut == null ? height : clip);
             int seed = cell * 7 + f;
+            upper = f > 0;
             if (f == 0 && (ground == BuildingFaces.Segment.DOOR || ground == BuildingFaces.Segment.LOADING)) {
                 door(m, look, ground == BuildingFaces.Segment.LOADING, lo, limit, story, light, seed, hurt);
             } else {
@@ -234,6 +276,7 @@ final class FacePainter {
                         shotOut, r, g, b);
             }
         }
+        upper = false;
         if (WallDress.pipe(rhythm, along)) {
             float pr = .34f * light, pg = .35f * light, pb = .36f * light;
             quad(.03f, .08f, plinth, height - .02f, pr, pg, pb);
@@ -367,6 +410,11 @@ final class FacePainter {
                 else quad(t0 - .04f, t1 + .04f, z0 - story * .03f, Math.min(hi, z1 + story * .03f), tr * .9f,
                         tg * .9f, tb * .9f);
                 shaded(t0, t1, z0, z1, gr, gg, gb, hiR, hiG, hiB);
+                if (night && upper && !blown && lit(seed)) {
+                    // A room lit behind it: warm glass, its lower half the brighter, through the night's shade.
+                    glowQuad(t0, t1, z0, z1, LIT_R * .8f, LIT_G * .8f, LIT_B * .8f);
+                    glowQuad(t0 + .02f, t1 - .02f, z0, z0 + (z1 - z0) * .55f, LIT_R, LIT_G, LIT_B);
+                }
                 // Mullion and transom.
                 quad(.495f, .505f, z0, z1, tr * .8f, tg * .8f, tb * .8f);
                 if (tall) quad(t0, t1, z0 + (z1 - z0) * .7f, z0 + (z1 - z0) * .7f + story * .02f, tr * .8f,

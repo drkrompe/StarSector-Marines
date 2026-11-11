@@ -142,6 +142,7 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.StoreFinds;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorksTwist;
 import com.dillon.starsectormarines.battle.ruins.RuinsThemeDressing;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
@@ -181,6 +182,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.command.reinforcement.RaidPressureTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
@@ -275,6 +277,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.IntConsumer;
@@ -408,6 +411,11 @@ public final class BattleSetup {
     public static MapBuild buildMap(MapResult map, List<Doodad> parkedVehicles,
                                     List<DefensePost> defensePosts, long seed) {
         return buildMap(map, parkedVehicles, defensePosts, Collections.emptyList(), seed);
+    }
+
+    /** Whether a cell is open floor a squad can stand on beside a store's load. */
+    private static BiPredicate<Integer, Integer> storeFloor(NavigationGrid grid) {
+        return (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y);
     }
 
     /**
@@ -1528,6 +1536,19 @@ public final class BattleSetup {
         ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
         RuinsGroundLayout ruinsLayout = ruins ? RuinsGroundLayout.of(map) : null;
+        // A plant site's supply finds are its stores' own loads, each stood on its recovery skid
+        // (ruins-expedition.md, Finds lie where the plant kept its goods); elsewhere they are scattered on the route.
+        List<StoreFinds.Pick> storeFinds = ruins && map.ruinsDelve != null && map.ruinsDelve.interior() != null
+                ? StoreFinds.pick(map.ruinsDelve.interior().loads(), ruinsDelve.fieldCaches(), seed,
+                        storeFloor(map.grid), StoreFinds::basePrice)
+                : List.of();
+        if (!storeFinds.isEmpty()) {
+            TileRegistry skids = TileRegistry.installed();
+            StoreFinds.dress(map.doodads, storeFinds, (id, x, y) -> {
+                DoodadDef def = skids == null ? null : skids.doodad(id);
+                return def == null ? null : new Doodad(x, y, def);
+            });
+        }
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
@@ -1575,8 +1596,9 @@ public final class BattleSetup {
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
                     ruinsLayout.liftPoints()));
             // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
-            sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
+            sim.setFieldCacheDelve(new SalvagePlacement.Delve(storeFinds.isEmpty() ? ruinsDelve.fieldCaches() : 0,
                     ruinsLayout.liftPoints().get(0).route()));
+            sim.addStoreCaches(StoreFinds.caches(storeFinds));
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             // The prize bends one rule of the works (RuinsWorksTwist): what the site was built round changes the play.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence, RuinsWorksTwist.of(ruinsPrize)));
@@ -1744,6 +1766,11 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new RaidDefenderCommand(raidMobileSquads).worksReserve(RaidWorksGuard.reserveSquads(sim)),
                     RaidDefenderCommandDisclosure.INSTANCE);
+            // The market's wider garrison drives in from off the map: a wave for each machine wrecked, and columns on
+            // a clock its security sets (raid-demolish-the-works.md, slice 8).
+            if (!coldAccount) sim.getReinforcementService().addTrigger(new RaidPressureTrigger(
+                    RaidPressureClocks.of(profile == null ? RaidSiteTemplate.Security.OPEN
+                            : RaidSiteTemplate.Security.of(profile))));
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
             sim.setAutonomousCommander(Faction.MARINE,
@@ -4486,7 +4513,10 @@ public final class BattleSetup {
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
         // however much or little force the campaign player can afford to bring.
-        float attackerScore = type == MissionType.CONQUEST
+        // A Raid is the same: the market defends with what it has, never a force
+        // fitted to the company that came (owner: "We can't limit ourselves to
+        // 'keeping it even' the number of forces on the field").
+        float attackerScore = type == MissionType.CONQUEST || type == MissionType.RAID
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
@@ -6826,6 +6856,10 @@ public final class BattleSetup {
                         : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
                 if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
                 sim.setStructureStyle(turret, post.style);
+                // A post sited to cover ground has its guns laid on it before the fight.
+                if (post.restFacing != null && sim.turretState().isTurret(turret)) {
+                    sim.turretState().setFacingDegrees(turret, post.restFacing);
+                }
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);

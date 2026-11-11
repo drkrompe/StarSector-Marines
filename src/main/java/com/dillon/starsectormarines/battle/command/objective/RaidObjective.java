@@ -98,6 +98,8 @@ public final class RaidObjective implements Objective {
     private boolean complete;
     private boolean failed;
     private int alarmRaisedTick = -1;
+    /** The tick the market's next garrison column is due, or -1 for none coming ({@code RaidPressureTrigger}). */
+    private int columnDueTick = -1;
     private ServiceWindow window;
     private List<Hall> halls;
     private float[] hallProgress;
@@ -348,6 +350,12 @@ public final class RaidObjective implements Objective {
 
     /** The window the target may be served in, or null for one always open. */
     public ServiceWindow serviceWindow() { return window; }
+
+    /** Publishes the tick the market's next garrison column is due, for the player's countdown. */
+    public void columnDue(int tick) { columnDueTick = tick; }
+
+    /** The tick the market's next garrison column is due, or -1 for none coming. */
+    public int columnDueTick() { return columnDueTick; }
 
     /** The sim tick of the last tick judged. */
     public int lastTick() { return lastTick; }
