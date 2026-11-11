@@ -214,7 +214,7 @@ public final class DebugMissionCatalog {
             if (ravBloom()) return "Bloomed world";
             if (agreus()) return "Agreus";
             if (wellhollow() != null) return "Asharu";
-            if (longSurvey() != null) return "Chicomoztoc";
+            if (longSurvey() != null) return "Garnir";
             if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY || this == LAST_LIFT || this == CREW_RECOVERY ? "Unfixed site" : "Jangala";
@@ -283,7 +283,7 @@ public final class DebugMissionCatalog {
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
         }
-        /** The chapter as the garrison commander briefs it on first play, with no fee and on its own seed. */
+        /** The chapter as the defence chief briefs it on first play, with no fee and on its own seed. */
         private Mission longSurveyMission(LongSurveyProgress.Chapter chapter) {
             return Mission.builder().id(PREFIX + name()).name(Strings.resolve(title)).source(MissionSource.DEBUG).payout(0)
                     .type(LongSurveyCampaign.type(chapter))
