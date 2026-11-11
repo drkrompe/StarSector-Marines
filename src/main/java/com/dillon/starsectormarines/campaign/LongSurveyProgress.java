@@ -16,7 +16,7 @@ public final class LongSurveyProgress implements Serializable {
     /** The arc's chapters in their order. Fees are UNTUNED starting points. */
     public enum Chapter {
         THE_FALL("fall", 22_000, true),
-        STAKES("stakes", 30_000, false),
+        STAKES("stakes", 30_000, true),
         THE_LINE("line", 34_000, false),
         THE_SURVEYOR("surveyor", 42_000, false);
 

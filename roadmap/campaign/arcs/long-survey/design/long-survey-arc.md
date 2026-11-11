@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — authored fallen-hull arc: four story chapters on owned
 seeds, built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). The
-campaign scaffolding and The Fall are built (What is built); chapters 2 to 4,
-the hull rules and the hull's ground are open in `stories.md`.
+campaign scaffolding, The Fall and Stakes are built (What is built); chapters 3
+and 4 are open in `stories.md`.
 
 Written: 2026-11-10
 
@@ -188,10 +188,24 @@ chapter (pick through the art session), voiced later as the Khettara is.
   falls back to a site network laid by `DerelictSecurity.install`'s route
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
   that one seed. Open: the forward-bay bonus objective.
+- **Chapters 2 to 4.** `HullChapterBattleFixture` builds `LongSurveyBattle`:
+  the chapter's owned ground (`LongSurveyGround.ground`, on its pool's owned
+  seed, `LongSurveyCampaign.storyMap`), the company landing on the ground's
+  pads under the player's command (no autonomous commander), its machines
+  called down on them, the hull's claim installed (`FallenHull.install`) and
+  the chapter's win as a `HullClaimObjective` read from the hull's own rules:
+  a stake is down when it is scrapped or stranded. Lost as every chapter is,
+  the company eliminated.
+  - **Stakes.** The owned mine country with the hull east of the works; the
+    Sabotage family's three named sites are the three stakes the ground
+    planted (`LongSurveyBattle.planted`), won when each is down. The hull
+    prints the survey program (`STAKES_QUEUE`, stakes escorted by rounds
+    walkers) from `STAKES_FEEDSTOCK`, `STAKES_WALKERS` out at the mouth. All
+    UNTUNED.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Garnir, each on its chapter's seed with the challenge force (a
   Veteran Company, seven squads, four machines); a chapter is listed once
-  built, so only LS1 shows yet.
+  built (`Chapter.built`): LS1 and LS2 show.
 
 ## Open picks
 

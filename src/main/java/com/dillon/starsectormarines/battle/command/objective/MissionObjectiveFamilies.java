@@ -483,6 +483,38 @@ public final class MissionObjectiveFamilies {
                 evidence ? layout.evidenceX() : layout.withdrawalX(), evidence ? layout.evidenceY() : layout.withdrawalY());
     }
 
+    /**
+     * A Long Survey claim objective: one marker per stake it reads (at the stake's seat, down or standing), or one on
+     * the forge; the row counts the stakes down.
+     */
+    public static Item hullClaim(HullClaimObjective claim) {
+        State state = state(claim);
+        var hull = claim.hull();
+        List<Marker> markers = new ArrayList<>();
+        int down = 0;
+        List<Integer> targets = claim.targets();
+        for (int id : targets) {
+            boolean gone = HullClaimObjective.down(hull.stakes().get(id));
+            if (gone) down++;
+            int[] at = hull.seatOf(id);
+            if (at == null) continue;
+            markers.add(new Marker("stake-" + id, Strings.format("objectiveStake", id), at[0], at[1],
+                    Strings.get(gone ? "objectiveStakeDown" : "objectiveStakeStanding"), gone ? State.COMPLETE : State.ACTIVE));
+        }
+        if (claim.goal() == HullClaimObjective.Goal.FORGE) {
+            markers.add(new Marker("forge", Strings.get("objectiveForge"), hull.site().forgeX(), hull.site().forgeY(),
+                    claim.displayName(), state));
+        }
+        String measure = claim.goal() == HullClaimObjective.Goal.FORGE
+                ? Strings.get(state == State.COMPLETE ? "objectiveForgeOut" : "objectiveForgeLit")
+                : Strings.format("objectiveStakesDown", down, targets.size());
+        float progress = targets.isEmpty() ? -1 : down / (float) targets.size();
+        String focus = markers.isEmpty() ? "" : markers.get(0).id();
+        return new Item("hull-claim-" + claim.goal().name().toLowerCase(), claim.displayName(), state,
+                Strings.named("objectiveState", state.name()), "", claim.displayName(), measure,
+                state == State.COMPLETE ? 1 : progress, "", markers, focus);
+    }
+
     public static Item generic(Objective objective, int index) {
         State state = state(objective);
         return new Item("mission-" + index, objective.displayName(), state, Strings.named("objectiveState", state.name()), "", objective.displayName(),

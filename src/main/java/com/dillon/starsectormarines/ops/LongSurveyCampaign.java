@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.HullChapterBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.HullFallBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.world.gen.Climate;
@@ -174,12 +175,24 @@ public final class LongSurveyCampaign {
     }
 
     /**
-     * The one map a chapter plays, on every attempt, retry, replay and debug run: its owned seed. The Fall's is its
-     * pool's owned map; the later chapters' seeds are the ground session's, and a chapter not built has none yet.
+     * The one map a chapter plays, on every attempt, retry, replay and debug run: its pool's owned seed
+     * ({@link #storyMap}), whatever the launch rolled.
      */
     static long fixedSeed(Chapter chapter) {
-        if (chapter != Chapter.THE_FALL) return THE_FALL_SEED + 7919L * chapter.ordinal();
-        return StoryMapPools.installed() ? StoryMapPools.pool(THE_FALL_MAP).story(SURFACE).seed() : THE_FALL_SEED;
+        if (StoryMapPools.installed()) return StoryMapPools.pool(storyMap(chapter)).story(SURFACE).seed();
+        return chapter == Chapter.THE_FALL ? THE_FALL_SEED : OWNED_SEEDS[chapter.ordinal()];
+    }
+    /** The chapters' owned seeds, for a board read before the pools are installed (`long-survey-maps.md`). */
+    private static final long[] OWNED_SEEDS = {THE_FALL_SEED, 2L, 2L, 5L};
+
+    /** The owned map a chapter is fought on. */
+    static StoryMap storyMap(Chapter chapter) {
+        return switch (chapter) {
+            case THE_FALL -> THE_FALL_MAP;
+            case STAKES -> StoryMap.LONG_SURVEY_STAKES;
+            case THE_LINE -> StoryMap.LONG_SURVEY_LINE;
+            case THE_SURVEYOR -> StoryMap.LONG_SURVEY_SURVEYOR;
+        };
     }
 
     static LongSurveyProgress requireCurrent(Mission m) {
@@ -213,7 +226,8 @@ public final class LongSurveyCampaign {
         return switch (chapter) {
             case THE_FALL -> new HullFallBattleFixture(fixedSeed(chapter), manifest, world(), THE_FALL_MAP,
                     THE_FALL_GRADE, LIVERY);
-            case STAKES, THE_LINE, THE_SURVEYOR -> throw new IllegalStateException(chapter + " is not built yet");
+            case STAKES, THE_LINE, THE_SURVEYOR -> new HullChapterBattleFixture(fixedSeed(chapter), manifest, world(),
+                    storyMap(chapter), LIVERY);
         };
     }
 

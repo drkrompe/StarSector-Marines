@@ -260,6 +260,15 @@ public final class BattleFixtureJson {
             root.put("livery", fall.livery().name());
             return root;
         }
+        if (fixture instanceof HullChapterBattleFixture chapter) {
+            root.put("kind", chapter.kind());
+            root.put("seed", chapter.seed());
+            root.put("shuttles", shuttlesToJson(chapter.manifest()));
+            root.put("targetProfile", targetProfileToJson(chapter.targetProfile()));
+            root.put("map", chapter.map().name());
+            root.put("livery", chapter.livery().name());
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -351,6 +360,11 @@ public final class BattleFixtureJson {
                     targetProfileFromJson(root.getJSONObject("targetProfile")),
                     enumValue(StoryMap.class, root.getString("map"), "map"),
                     enumValue(RuinsGrade.class, root.getString("grade"), "grade"),
+                    enumValue(FlockLivery.class, root.getString("livery"), "livery"));
+            case HullChapterBattleFixture.KIND -> new HullChapterBattleFixture(root.getLong("seed"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")),
+                    targetProfileFromJson(root.getJSONObject("targetProfile")),
+                    enumValue(StoryMap.class, root.getString("map"), "map"),
                     enumValue(FlockLivery.class, root.getString("livery"), "livery"));
             case BloomHeartBattleFixture.KIND -> new BloomHeartBattleFixture(root.getLong("seed"),
                     enumValue(Form.class, root.getString("form"), "form"),

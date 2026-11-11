@@ -36,17 +36,19 @@ class LongSurveyCampaignTest {
         assertEquals(Chapter.THE_FALL.fee, fresh.get(0).payout);
         assertEquals(MissionSource.STORY, fresh.get(0).source);
 
-        // Stakes is current but not built, so the board holds only the replay of The Fall.
+        // Stakes is current and built: it leads the board, The Fall's replay after it.
         List<Mission> afterFall = LongSurveyCampaign.offers(settled(true), "World");
-        assertEquals(1, afterFall.size());
-        assertTrue(LongSurveyProgress.replay(afterFall.get(0).id));
-        assertEquals(Chapter.THE_FALL.replayFee(), afterFall.get(0).payout);
+        assertEquals(2, afterFall.size());
+        assertEquals(Chapter.STAKES, LongSurveyProgress.chapterOf(afterFall.get(0).id));
+        assertFalse(LongSurveyProgress.replay(afterFall.get(0).id));
+        assertTrue(LongSurveyProgress.replay(afterFall.get(1).id));
+        assertEquals(Chapter.THE_FALL.replayFee(), afterFall.get(1).payout);
     }
 
     @Test void everyAttemptRetryAndReplayPlaysTheChaptersOwnSeed() {
         long first = LongSurveyCampaign.offers(new LongSurveyProgress(), "World").get(0).battleSeed;
         long retry = LongSurveyCampaign.offers(settled(false), "World").get(0).battleSeed;
-        long replay = LongSurveyCampaign.offers(settled(true), "World").get(0).battleSeed;
+        long replay = LongSurveyCampaign.offers(settled(true), "World").get(1).battleSeed;
         assertEquals(first, retry);
         assertEquals(first, replay);
         assertEquals(first, LongSurveyCampaign.fixedSeed(Chapter.THE_FALL));

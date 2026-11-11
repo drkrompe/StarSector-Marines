@@ -34,9 +34,10 @@ class LongSurveyProgressTest {
     void aChapterNotBuiltIsNeverLaunched() {
         var p = new LongSurveyProgress();
         play(p, p.missionId(Chapter.THE_FALL, false), true);
-        assertFalse(Chapter.STAKES.built);
-        assertEquals(Chapter.STAKES, p.current());
-        assertFalse(p.begin(p.missionId(Chapter.STAKES, false)));
+        play(p, p.missionId(Chapter.STAKES, false), true);
+        assertFalse(Chapter.THE_LINE.built);
+        assertEquals(Chapter.THE_LINE, p.current());
+        assertFalse(p.begin(p.missionId(Chapter.THE_LINE, false)));
     }
 
     @Test
