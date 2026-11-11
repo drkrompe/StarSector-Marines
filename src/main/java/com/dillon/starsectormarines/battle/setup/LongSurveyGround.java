@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.PlanetSkin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.HaulRoad;
 import com.dillon.starsectormarines.battle.world.gen.hull.HullSite.LatticePoint;
@@ -20,6 +21,8 @@ import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Apron;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Area;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve.Cell;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
@@ -45,6 +48,11 @@ import java.util.List;
 public final class LongSurveyGround {
 
     private static final BspCityGenerator MAP_GEN = new BspCityGenerator();
+
+    /** The Surveyor's works districts, either side of the approach. */
+    static final String WORKS_WEST = "works-west", WORKS_EAST = "works-east";
+    /** How far a works district grows: yards and sheds, not a town. UNTUNED. */
+    static final GrownTrunkPlan.Profile WORKS_GROWTH = GrownTrunkPlan.Profile.of(0.35f);
 
     private LongSurveyGround() { }
 
@@ -107,7 +115,14 @@ public final class LongSurveyGround {
             case LONG_SURVEY_SURVEYOR -> {
                 Form form = Form.BROAD_FRONT;
                 TargetProfile profile = BloomHeartSetup.world(home);
-                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed));
+                // Garnir's works country: a works district either side of the approach, the foundries and yards
+                // the hull came down to feed on (long-survey-maps.md, Chapter 4).
+                List<PrecinctBrief> works = List.of(
+                        PrecinctBrief.settlement(WORKS_WEST, HeartCountry.placement(form, 0.34f, 0.56f, 0.08f, 0.34f),
+                                WORKS_GROWTH, PrecinctCharacter.INDUSTRY),
+                        PrecinctBrief.settlement(WORKS_EAST, HeartCountry.placement(form, 0.34f, 0.56f, 0.66f, 0.86f),
+                                WORKS_GROWTH, PrecinctCharacter.INDUSTRY));
+                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.RURAL, seed, works));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);
