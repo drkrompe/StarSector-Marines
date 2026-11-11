@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.ruins;
 
+import com.dillon.starsectormarines.battle.derelict.DerelictSecurityDirector;
+import com.dillon.starsectormarines.battle.derelict.FacilityWake;
+import com.dillon.starsectormarines.battle.derelict.SecurityZone;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -34,8 +37,10 @@ import java.util.List;
  * {@code -Dsnapshot.ruinsLight.seed} picks the site (default 31), {@code -Dsnapshot.ruinsLight.grade} the grade
  * (default EXTENSIVE), {@code -Dsnapshot.ruinsLight.focus} where the camera stands: {@code hall} (default), {@code entrance} (the first way in), {@code court} (the first light well inside) or
  * {@code works}, {@code -Dsnapshot.ruinsLight.roofed} the darkness under the roof, for a dimmer start to compare
- * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.warm=true} renders the hall's
- * restart instead, one renderer stepping its clock, so the lamps are seen striking as they warm up. {@code -Psnapshot=ruins-light-look}.
+ * (default {@link RuinsLighting#ROOFED_DARKNESS}), and {@code -Dsnapshot.ruinsLight.watch=true} with
+ * {@code -Dsnapshot.ruinsLight.occupant=DOMAIN_SECURITY} the watch's lights at its first zone's node, asleep and
+ * hunting, and {@code -Dsnapshot.ruinsLight.warm=true} renders the hall's
+ * restart instead, one renderer stepping the battle, so the lamps are seen striking as they warm up. {@code -Psnapshot=ruins-light-look}.
  */
 public final class RuinsLightLookSuite implements SnapshotSuite {
 
@@ -55,7 +60,7 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
         List<SnapshotArtifact> out = new ArrayList<>();
         try (BattleSimulation sim = BattleSetup.createRuins(seed, BattleSetup.defaultManifest(), false,
                 OperationTier.ESTABLISHED, RiskLevel.MEDIUM, profile(), FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                grade, RuinsOccupant.NOBODY)) {
+                grade, RuinsOccupant.valueOf(System.getProperty("snapshot.ruinsLight.occupant", "NOBODY")))) {
             for (int t = 0; t < Math.round(5f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
             RuinsWorks works = sim.getRuinsWorks();
             String roofed = System.getProperty("snapshot.ruinsLight.roofed");
@@ -87,29 +92,49 @@ public final class RuinsLightLookSuite implements SnapshotSuite {
                 cx = works.hall().x();
                 cy = works.hall().y();
             }
+            DerelictSecurityDirector watch = sim.derelictSecurity();
+            if (Boolean.getBoolean("snapshot.ruinsLight.watch") && watch != null) {
+                // The watch's own lights by its wake: asleep, then the hunt (every online zone alert, vents and bays up).
+                SecurityZone zone = watch.network().zones().get(0);
+                float wx = zone.nodeCellX, wy = zone.nodeCellY;
+                out.add(frame(context, sim, wx, wy, "watch-1-quiet.png"));
+                watch.wake().advance(FacilityWake.Stage.HUNTING);
+                watch.network().alertAll();
+                settle(sim);
+                out.add(frame(context, sim, wx, wy, "watch-2-hunting.png"));
+                works.graph().restart();
+                settle(sim);
+                out.add(frame(context, sim, wx, wy, "watch-3-hunting-plant-lit.png"));
+                return out;
+            }
             if (Boolean.getBoolean("snapshot.ruinsLight.warm")) {
-                // One renderer across the restart, its clock stepped, so the lamps strike and flicker as they warm up.
+                // One renderer across the restart, the battle stepped, so the lamps strike and flicker as they warm up.
                 BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(context.modRoot(), W, H, cx, cy,
                         BattleReviewFrameRenderer.PLAY_ZOOM_CELLS).withoutRoofs();
-                out.add(new SnapshotArtifact("warm-before.png", renderer.atClock(100f).render(sim, "")));
+                out.add(new SnapshotArtifact("warm-before.png", renderer.render(sim, "")));
                 works.graph().restart();
-                sim.advance(BattleSimulation.TICK_DT);
-                for (float t : new float[] {0f, 0.4f, 0.9f, 1.4f, 2.5f}) {
-                    out.add(new SnapshotArtifact(String.format("warm-%.1fs.png", t),
-                            renderer.atClock(100.01f + t).render(sim, "")));
+                float elapsed = 0f;
+                for (float t : new float[] {0.1f, 0.4f, 0.9f, 1.4f, 2.5f}) {
+                    for (; elapsed < t; elapsed += BattleSimulation.TICK_DT) sim.advance(BattleSimulation.TICK_DT);
+                    out.add(new SnapshotArtifact(String.format("warm-%.1fs.png", t), renderer.render(sim, "")));
                 }
                 return out;
             }
             out.add(frame(context, sim, cx, cy, "01-dark.png"));
             works.graph().restart();
             works.graph().throwJunction(delve.powerHall().layer(), Branch.STORE);
-            sim.advance(BattleSimulation.TICK_DT);
+            settle(sim);
             out.add(frame(context, sim, cx, cy, "02-partly-lit.png"));
             for (int j = 0; j < works.graph().junctionCount(); j++) works.graph().throwJunction(j, Branch.ONWARD);
-            sim.advance(BattleSimulation.TICK_DT);
+            settle(sim);
             out.add(frame(context, sim, cx, cy, "03-lit.png"));
         }
         return out;
+    }
+
+    /** Runs the battle on three seconds, long enough for a circuit just powered to warm up. */
+    private static void settle(BattleSimulation sim) {
+        for (int t = 0; t < Math.round(3f / BattleSimulation.TICK_DT); t++) sim.advance(BattleSimulation.TICK_DT);
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, float cx, float cy,

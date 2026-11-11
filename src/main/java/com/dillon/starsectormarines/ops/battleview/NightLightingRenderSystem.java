@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
@@ -55,13 +56,15 @@ final class NightLightingRenderSystem implements RenderSystem {
         var ground = ctx.sim.getTopology();
         var night = ground.nightLighting();
         if (night == null) return;
-        float now = ctx.animationTimeSeconds;
+        // Warm-up runs on battle time: a paused battle holds its flicker, and a still frame taken after time has
+        // passed shows the lamps lit.
+        float now = ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT;
         if (ground != topology || night != lighting) {
             // The same lamps with other circuits powered: a circuit cut goes dark at once, one powered warms up.
             if (ground == topology && lighting != null && pools != null && night.lamps() == lighting.lamps()) {
                 repower(night, now);
             } else {
-                bake(ground, night);
+                bake(ground, night, now);
             }
         }
         if (warming) warm(now);
@@ -381,22 +384,23 @@ final class NightLightingRenderSystem implements RenderSystem {
         changedY1 = Math.max(changedY1, y1);
     }
 
-    private void bake(CellTopology ground, NightLighting night) {
+    private void bake(CellTopology ground, NightLighting night, float now) {
         topology=ground; lighting=night; width=ground.getWidth()*2+1;
-        bakePools(ground, night);
+        bakePools(ground, night, now);
         field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
     }
 
     /** Whether each lamp's pool is in the baked field now, by index in the lighting's lamps. */
     private boolean[] lampOn = new boolean[0];
-    /** When each lamp began warming up (animation seconds), NaN when it is not warming. */
+    /** When each lamp began warming up (battle seconds), NaN when it is not warming. */
     private float[] warmStart = new float[0];
     /** Whether any lamp is warming up. */
     private boolean warming;
 
     /**
      * The same lamps under other circuits: each lamp whose circuit is cut leaves the field now, and each whose
-     * circuit is newly powered starts warming up ({@link LampWarmUp}).
+     * circuit is newly powered warms up from when it came on ({@link LampWarmUp}), or is lit at once when the lighting
+     * gives no time.
      */
     private void repower(NightLighting night, float now) {
         lighting = night;
@@ -408,8 +412,9 @@ final class NightLightingRenderSystem implements RenderSystem {
                 warmStart[i] = Float.NaN;
                 if (lampOn[i]) { pool(i, -1f); changed = true; }
             } else if (!lampOn[i] && Float.isNaN(warmStart[i])) {
-                warmStart[i] = now;
-                warming = true;
+                float at = night.poweredAt(lamps.get(i));
+                if (Float.isNaN(at)) { pool(i, 1f); changed = true; }
+                else { warmStart[i] = at; warming = true; }
             }
         }
         if (changed) field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
@@ -430,13 +435,20 @@ final class NightLightingRenderSystem implements RenderSystem {
         if (changed) field.bakeLamps(pools, reds, greens, blues, width, pools.length / width);
     }
 
-    private void bakePools(CellTopology ground, NightLighting night) {
+    private void bakePools(CellTopology ground, NightLighting night, float now) {
         int height=ground.getHeight()*2+1;
         pools=new float[width*height]; reds=new float[pools.length]; greens=new float[pools.length]; blues=new float[pools.length];
         int n=night.lamps().size();
         lampOn=new boolean[n]; warmStart=new float[n]; warming=false;
         Arrays.fill(warmStart, Float.NaN);
-        for (int i=0;i<n;i++) if (night.powered(night.lamps().get(i))) pool(i, 1f);
+        for (int i=0;i<n;i++) {
+            var lamp=night.lamps().get(i);
+            if (!night.powered(lamp)) continue;
+            // A circuit that came on moments ago is still warming up, whenever this field is laid.
+            float at=night.poweredAt(lamp);
+            if (!Float.isNaN(at) && now-at<LampWarmUp.settled(i)) { warmStart[i]=at; warming=true; }
+            else pool(i, 1f);
+        }
     }
 
     /** Adds the pool of lamp {@code i} into the field ({@code sign} 1), or takes it out (-1). */
