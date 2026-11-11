@@ -8,18 +8,20 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.StreetDressing;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.SplittableRandom;
 
 /**
- * Lays a {@link PortHub} on a map ({@code raid-site-templates.md}, spaceport): the paving over the hub's bands, the rail
- * line's tracks, the dock trucks at the warehouses' doors, the container stacks under their gantry cranes, the fuel
- * farm and its main past every pad, the pads with the scorch of every lift on them and the blast walls between them,
- * and the lighters standing on their pads: one mid-turnaround (a tanker at its hydrant, its cargo coming off), others
- * loaded and waiting, one on the heavy pad. A lighter is the planet's traffic and the defender's, never the
- * company's: its pad is a {@link LandingPad.Purpose#PORT_LIGHTER} stand, which no lift lands on.
+ * Lays a {@link PortHub} on a map ({@code raid-site-templates.md}, spaceport): the paving over the hub's bands, its roads
+ * as street for the city's road finish, the rail line's tracks, the dock trucks at the warehouses' doors, the container
+ * stacks under their gantry cranes, the fuel farm in its bund and its main past every pad, the pads with the scorch of
+ * every lift on them and the blast walls between them, and the traffic standing on its pads: a freighter
+ * mid-turnaround (a tanker at its hydrant, its cargo coming off), others loaded and waiting, couriers with their
+ * shuttle pods. The traffic is the planet's and the defender's, never the company's: its berths are
+ * {@link LandingPad.Purpose#PORT_LIGHTER} stands, which no lift lands on.
  *
  * <p>Nothing is laid on a cell a building, a doorway or a road holds; the hub's ground is held clear of them before
  * the places grow, so in practice nothing but the warehouses is passed over.
@@ -35,8 +37,6 @@ public final class PortHubDressing {
     static final String MARK = "ship-wear.scorch";
     /** The yellow line an airfield's berths are edged with. */
     static final String BERTH_EDGE = "doodad.fl-striped-yellow";
-    /** A fuel tank in the farm: stand-in art, the listening post's pressure sphere (2x2). */
-    static final String TANK = "doodad.oxygen-sphere";
     static final String TANKER = "doodad.parked-tanker-truck";
     static final String SKID = "shuttle-bay.fluid-skid";
     static final String CART = "shuttle-bay.service-cart";
@@ -63,10 +63,9 @@ public final class PortHubDressing {
     public static int lay(GenContext c, PortHub hub, long seed) {
         SplittableRandom rng = new SplittableRandom(seed);
         TileRegistry registry = TileRegistry.installed();
-        pave(c, hub.paved());
-        pave(c, railBand(hub), BALLAST);
-        highway(c, registry, hub);
-        roads(c, registry, hub);
+        pave(c, hub, hub.paved(), CONCRETE);
+        pave(c, hub, railBand(hub), BALLAST);
+        roads(c, hub);
         rails(c, registry, hub);
         LandingPad.Approach out = hub.outerNorth() ? LandingPad.Approach.NORTH : LandingPad.Approach.SOUTH;
         int n = hub.pads().size();
@@ -74,13 +73,11 @@ public final class PortHubDressing {
         int stands = 0;
         for (int i = 0; i < n; i++) {
             PortHub.Rect pad = hub.pads().get(i);
-            // One freighter mid-turnaround, and about every other pad holding another, loaded and waiting.
+            // One freighter mid-turnaround, and about every other pad holding traffic, loaded and waiting: a freighter,
+            // or a courier with the shuttle pods that run its passengers.
             boolean occupied = i == turnaround || rng.nextInt(OCCUPIED_ONE_IN) == 0;
             padMarks(c, registry, pad, occupied, rng);
-            if (occupied) {
-                stand(c, pad, out);
-                stands++;
-            }
+            if (occupied) stands += i == turnaround || rng.nextBoolean() ? heavy(c, pad, out) : light(c, pad, out);
         }
         for (PortHub.Rect wall : hub.blastWalls()) blastWall(c, wall);
         fuel(c, registry, hub);
@@ -136,9 +133,38 @@ public final class PortHubDressing {
     /** Width of a pad's landing ring. */
     static final float RING = 2f;
 
-    /** A freighter's stand at its pad's middle, its nose toward the outer edge it lifts over. */
-    static void stand(GenContext c, PortHub.Rect pad, LandingPad.Approach out) {
-        c.landingPads.add(new LandingPad(pad.centerX(), pad.centerY(), 1, 1, out, LandingPad.Purpose.PORT_LIGHTER));
+    /** Cells a heavy berth keeps inside its pad's edge on each side: the landing ring's rim. */
+    static final int BERTH_RIM = 2;
+    /** A light pad's courier berth's half side, and each shuttle pod's: a Hound fits the one, a pod the other. */
+    static final int COURIER_HALF = 3, POD_HALF = 1;
+
+    /**
+     * A freighter's stand at its pad's middle, its berth the pad inside its rim, so setup stands the largest ship the
+     * pad holds on it, its nose toward the outer edge it lifts over.
+     *
+     * @return the stands laid
+     */
+    static int heavy(GenContext c, PortHub.Rect pad, LandingPad.Approach out) {
+        c.landingPads.add(new LandingPad(pad.centerX(), pad.centerY(), pad.width() / 2 - BERTH_RIM,
+                pad.height() / 2 - BERTH_RIM, out, LandingPad.Purpose.PORT_LIGHTER));
+        return 1;
+    }
+
+    /**
+     * A light pad: a courier's berth at the middle, and a shuttle pod's berth either side of it toward the service
+     * lane, the passengers' boats.
+     *
+     * @return the stands laid
+     */
+    static int light(GenContext c, PortHub.Rect pad, LandingPad.Approach out) {
+        int cx = pad.centerX(), cy = pad.centerY();
+        c.landingPads.add(new LandingPad(cx, cy, COURIER_HALF, COURIER_HALF, out, LandingPad.Purpose.PORT_LIGHTER));
+        int inward = out == LandingPad.Approach.NORTH ? -1 : 1, podY = cy + inward * (pad.height() / 4 + 1);
+        for (int side = -1; side <= 1; side += 2) {
+            c.landingPads.add(new LandingPad(cx + side * (pad.width() / 4 + 1), podY, POD_HALF, POD_HALF, out,
+                    LandingPad.Purpose.PORT_LIGHTER));
+        }
+        return 3;
     }
 
     /** The rail band: the hub's lines without the highway, which the layout paves as a street. */
@@ -179,34 +205,34 @@ public final class PortHubDressing {
         return false;
     }
 
-    /** Cells between two dashes' starts on an arterial's centre line. */
-    static final int ARTERIAL_DASH = 4;
-
     /**
-     * The hub's roads in asphalt, over the concrete and the rail bed: the arterials from the highway to the pads with
-     * their dashed centre lines, and the roads along the hub joining them.
+     * The hub's roads, and the highway, as the town's streets are: bare street ground no pass claims, so the city's
+     * road finish ({@code RoadSurfaceStage}) lays them in the same asphalt, sidewalks, centre line and square ends as
+     * every other road on the map, and joins them to the town's. Nothing is painted here.
      */
-    static void roads(GenContext c, TileRegistry registry, PortHub hub) {
-        int road = c.topology.surfaceIndex(ROAD);
-        DoodadDef paint = registry == null ? null : registry.doodad(BERTH_EDGE);
-        for (PortHub.Rect r : hub.roads()) {
-            for (int y = r.y0(); y <= r.y1(); y++) {
-                for (int x = r.x0(); x <= r.x1(); x++) {
-                    if (!free(c, x, y)) continue;
-                    c.topology.setGroundKind(x, y, GroundKind.STREET);
-                    c.topology.setSurface(x, y, road);
-                    c.topology.setNatureOverlayIndex(x, y, -1);
-                    c.markMadeGround(x, y);
-                }
+    static void roads(GenContext c, PortHub hub) {
+        street(c, hub.highway());
+        for (PortHub.Rect r : hub.roads()) street(c, r);
+    }
+
+    /** The open cells of {@code r} as street ground, its surface the city's own. */
+    private static void street(GenContext c, PortHub.Rect r) {
+        c.doodads.removeIf(d -> r.contains(d.cellX, d.cellY) && free(c, d.cellX, d.cellY));
+        for (int y = r.y0(); y <= r.y1(); y++) {
+            for (int x = r.x0(); x <= r.x1(); x++) {
+                if (!free(c, x, y)) continue;
+                c.topology.setGroundKind(x, y, GroundKind.STREET);
+                c.topology.setSurface(x, y, 0);
+                c.topology.setNatureOverlayIndex(x, y, -1);
             }
         }
-        if (paint == null) return;
-        for (PortHub.Rect a : hub.arterials()) {
-            int mx = a.centerX();
-            for (int y = a.y0(); y <= a.y1(); y++) {
-                if (Math.floorMod(y, ARTERIAL_DASH) < 2 && free(c, mx, y)) c.doodads.add(new Doodad(mx, y, paint));
-            }
-        }
+    }
+
+    /** Whether the cell is on the highway or one of the hub's roads: street the city finish lays, never made ground. */
+    static boolean onRoad(PortHub hub, int x, int y) {
+        if (hub.highway().contains(x, y)) return true;
+        for (PortHub.Rect r : hub.roads()) if (r.contains(x, y)) return true;
+        return false;
     }
 
     /** The haulers' art: parked trucks, 3 by 2 along x. */
@@ -320,44 +346,20 @@ public final class PortHubDressing {
         }
     }
 
-    /** The highway's carriageway and its centre line; the rail line's bed. */
-    static final String ROAD = "road.road";
+    /** The rail line's bed. */
     static final String BALLAST = "floors.stone";
-    /** Cells between the starts of two dashes of the highway's centre line. */
-    static final int DASH_PITCH = 4;
 
     /**
-     * The highway: asphalt over the paving the layout laid along the lines, and its dashed centre line. Only street
-     * the layout laid is surfaced, so where a building stood in its way the highway stops at it.
+     * Paves {@code paved} in {@code surface}, nothing under a building, door or road changed, and the hub's roads left
+     * to the city's finish.
      */
-    static void highway(GenContext c, TileRegistry registry, PortHub hub) {
-        int road = c.topology.surfaceIndex(ROAD);
-        PortHub.Rect h = hub.highway();
-        DoodadDef paint = registry == null ? null : registry.doodad(BERTH_EDGE);
-        for (int y = h.y0(); y <= h.y1(); y++) {
-            for (int x = Math.max(1, h.x0()); x <= Math.min(c.width - 2, h.x1()); x++) {
-                if (c.topology.getGroundKind(x, y) != GroundKind.STREET || c.topology.getBuildingId(x, y) != 0) continue;
-                c.topology.setSurface(x, y, road);
-                if (paint != null && y == h.centerY() && Math.floorMod(x, DASH_PITCH) < 2 && free(c, x, y)) {
-                    c.doodads.add(new Doodad(x, y, paint));
-                }
-            }
-        }
-    }
-
-    /** Paves the hub: concrete over its ground, nothing under a building, door or road changed. */
-    static void pave(GenContext c, PortHub.Rect paved) {
-        pave(c, paved, CONCRETE);
-    }
-
-    /** Paves {@code paved} in {@code surface}, nothing under a building, door or road changed. */
-    static void pave(GenContext c, PortHub.Rect paved, String surface) {
+    static void pave(GenContext c, PortHub hub, PortHub.Rect paved, String surface) {
         int concrete = c.topology.surfaceIndex(surface);
         // The country's scatter goes with the ground it lay on: rubble and stones the fill left are swept off.
         c.doodads.removeIf(d -> paved.contains(d.cellX, d.cellY) && free(c, d.cellX, d.cellY));
         for (int y = paved.y0(); y <= paved.y1(); y++) {
             for (int x = paved.x0(); x <= paved.x1(); x++) {
-                if (!free(c, x, y)) continue;
+                if (!free(c, x, y) || onRoad(hub, x, y)) continue;
                 c.topology.setGroundKind(x, y, GroundKind.STREET);
                 c.topology.setSurface(x, y, concrete);
                 c.topology.setNatureOverlayIndex(x, y, -1);
@@ -390,25 +392,7 @@ public final class PortHubDressing {
      */
     static void fuel(GenContext c, TileRegistry registry, PortHub hub) {
         if (registry == null) return;
-        PortHub.Rect farm = hub.fuelFarm();
-        DoodadDef tank = registry.doodad(TANK);
-        int keep = c.topology.surfaceIndex(KEEP_CLEAR);
-        for (int y = farm.y0(); y <= farm.y1(); y++) {
-            for (int x = farm.x0(); x <= farm.x1(); x++) {
-                boolean edge = x == farm.x0() || x == farm.x1() || y == farm.y0() || y == farm.y1();
-                if (edge && free(c, x, y)) c.topology.setSurface(x, y, keep);
-            }
-        }
-        // Pressure spheres, two by two, in the bund the keep-clear marks out. Stand-in art: a port's fuel tank.
-        if (tank != null) {
-            for (int ty = farm.y0() + 1; ty + 1 < farm.y1(); ty += 3) {
-                for (int tx = farm.x0() + 1; tx + 1 < farm.x1(); tx += 3) {
-                    if (!freeRect(c, tx, ty, tx + 1, ty + 1)) continue;
-                    fixtures(c, tx, ty, tx + 1, ty + 1, false);
-                    c.doodads.add(new Doodad(tx, ty, tank));
-                }
-            }
-        }
+        tankFarm(c, registry, hub);
         PortHub.Rect main = hub.fuelMain();
         // The main runs along one row, overhead on its rack, from beside the farm to past the last pad.
         int my = main.y0();
@@ -423,6 +407,93 @@ public final class PortHubDressing {
             fixtures(c, at[0], y, at[0] + 1, y + 3, true);
             c.doodads.add(new Doodad(at[0], y, skid, 1));
         }
+    }
+
+    /**
+     * The fuel farm at the pad row's terminal end, laid as a refinery's is ({@link TankFarm}): its tanks in bunds walled
+     * with barriers, the loading lane along the main's side where the tankers draw up, and the main leaving it for the
+     * pads. Drawn in the refinery's own tank art.
+     */
+    static void tankFarm(GenContext c, TileRegistry registry, PortHub hub) {
+        PortHub.Rect farm = hub.fuelFarm();
+        TankFarm.Plan plan = TankFarm.plan(c.width, farm.x0(), farm.y0(), farm.x1(), farm.y1(),
+                i -> free(c, i % c.width, i / c.width), hub.fuelMain().y0(), hub.terminalX());
+        if (plan == null) return;
+        int keep = c.topology.surfaceIndex(KEEP_CLEAR), plate = c.topology.surfaceIndex(PAD_PLATE);
+        int[] lane = plan.lane();
+        for (int y = lane[1]; y <= lane[3]; y++) {
+            for (int x = lane[0]; x <= lane[2]; x++) {
+                boolean rim = y == lane[1] || y == lane[3];
+                if (rim && free(c, x, y)) c.topology.setSurface(x, y, keep);
+            }
+        }
+        DoodadDef tanker = registry.doodad(TANKER);
+        for (TankFarm.Bund bund : plan.bunds()) {
+            // Each bund's floor a sealed plate, so a burst tank's fuel stays in it, its wall's line marked under the
+            // barriers so the bund reads from above.
+            for (int y = bund.y0(); y <= bund.y1(); y++) {
+                for (int x = bund.x0(); x <= bund.x1(); x++) {
+                    if (!free(c, x, y)) continue;
+                    boolean rim = x == bund.x0() || x == bund.x1() || y == bund.y0() || y == bund.y1();
+                    c.topology.setSurface(x, y, rim ? keep : plate);
+                }
+            }
+            for (TankFarm.Tank tank : bund.tanks()) tank(c, registry, tank);
+            for (TankFarm.Wall wall : bund.walls()) {
+                StreetDressing.jerseyBarrier(c.grid, c.topology, c.doodads, wall.x(), wall.y(), wall.alongX());
+            }
+        }
+        // The farm's line to the main: a pipe bridge from the lane's far end over the service lane, where the main
+        // leaves along the hub for the pads.
+        int pipeX = plan.bay()[0] == lane[0] ? lane[2] - 1 : lane[0] + 1;
+        int mainY = hub.fuelMain().y0(), laneY = Math.abs(lane[1] - mainY) < Math.abs(lane[3] - mainY) ? lane[1] : lane[3];
+        if (free(c, pipeX, laneY) && free(c, pipeX, mainY + Integer.signum(laneY - mainY))) {
+            StreetDressing.pipeRun(c.grid, c.topology, c.doodads, pipeX, laneY, pipeX,
+                    mainY + Integer.signum(laneY - mainY), 0);
+        }
+        // Two tankers drawn up in the lane's bay, filling.
+        if (tanker == null) return;
+        int[] bay = plan.bay();
+        int ty = (bay[1] + bay[3]) / 2 - 1;
+        for (int k = 0, x = bay[0] + 2; k < 2 && x + 2 <= bay[2]; k++, x += 6) {
+            if (!freeRect(c, x, ty, x + 2, ty + 1)) continue;
+            fixtures(c, x, ty, x + 2, ty + 1, true);
+            c.doodads.add(new Doodad(x, ty, tanker));
+        }
+    }
+
+    /** A tank: its disc solid and blind, a big one a floating-roof tank, a small one a sphere, in the refinery's art. */
+    static void tank(GenContext c, TileRegistry registry, TankFarm.Tank tank) {
+        int size = tank.size();
+        float r = size / 2f, cx = tank.x() + r, cy = tank.y() + r;
+        for (int y = tank.y(); y < tank.y() + size; y++) {
+            for (int x = tank.x(); x < tank.x() + size; x++) {
+                float dx = x + .5f - cx, dy = y + .5f - cy;
+                if (dx * dx + dy * dy <= r * r + .25f && free(c, x, y)) fixtures(c, x, y, x, y, false);
+            }
+        }
+        boolean big = size >= TankFarm.BIG;
+        DoodadDef art = registry.doodad(big ? RefineryGround.TANK_ART : RefineryGround.SPHERE_ART);
+        float span = big ? RefineryGround.TANK_SPAN : RefineryGround.SPHERE_SPAN;
+        float at = big ? RefineryGround.TANK_AT : RefineryGround.SPHERE_AT;
+        int[] ox = RefineryGround.over(size, span, at, tank.x()), oy = RefineryGround.over(size, span, at, tank.y());
+        if (art == null || ox == null || oy == null) return;
+        Doodad d = scaled(art, ox[0], ox[1], oy[1]);
+        if (d != null) c.doodads.add(d);
+    }
+
+    /**
+     * {@code def} drawn {@code size} cells square from {@code (x, y)}: its sheet read at a cell so much finer that its
+     * frame spans the size, as the refinery draws its vessels. Null when the frame does not divide into it.
+     */
+    static Doodad scaled(DoodadDef def, int size, int x, int y) {
+        int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
+        int px = cell0 * def.footprintCellsX;
+        if (size <= 0 || px % size != 0) return null;
+        int cell = px / size;
+        if ((def.col * cell0) % cell != 0 || (def.row * cell0) % cell != 0) return null;
+        return new Doodad(x, y, new TileManifest.TileFrame(def.col * cell0 / cell, def.row * cell0 / cell),
+                def.sheetPath, def.cover.level(), def.ballisticHalfHeight, size, size, null, cell);
     }
 
     /**

@@ -77,6 +77,14 @@ public class RaidSiteLookSuite implements SnapshotSuite {
         return new float[]{machinesX, machinesY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
     }
 
+    /** A further close-up a site shows: its file name's tail, the frame's centre cell and its width in cells. */
+    protected record Shot(String name, float x, float y, float width) { }
+
+    /** Further close-ups of what a site stands round its works, beyond the whole map and the works; none by default. */
+    protected List<Shot> extraShots(BattleSimulation sim, float machinesX, float machinesY) {
+        return List.of();
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
@@ -111,6 +119,13 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, frame[0], frame[1], frame[2])
                             .withMissionMarkers().render(sim, "")));
+                    for (Shot shot : extraShots(sim, sx / n + .5f, sy / n + .5f)) {
+                        System.out.printf(Locale.ROOT, "[%s] %s shot %s at %.1f,%.1f width %.1f%n", id(), c.id(),
+                                shot.name(), shot.x(), shot.y(), shot.width());
+                        out.add(new SnapshotArtifact(c.id() + "-" + shot.name() + ".png",
+                                BattleReviewFrameRenderer.look(context.modRoot(), 1920, 1080, shot.x(), shot.y(),
+                                        shot.width()).render(sim, "")));
+                    }
                 }
             }
             return out;

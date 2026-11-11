@@ -285,6 +285,13 @@ public class BattleRenderer {
     private final WallRubble wallRubble = new WallRubble();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
     private final PolyMesh ruinShells = new PolyMesh(64);
+    /** Old creep crusted over the stood-up walls' tops ({@link CreepClimb#paintTop}), drawn over the roofs' edges. */
+    private final PolyMesh wallTopCreep = new PolyMesh(64);
+    /** The wall top being crusted: the view's centre on screen and the lift of the wall's top now. */
+    private float topSx, topSy, topLift, topAlpha;
+    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) ->
+            wallTopCreep.appendQuad(topX(x0), topY(y0), topX(x1), topY(y1), topX(x2), topY(y2), topX(x3), topY(y3),
+                    r, g, b, topAlpha);
     /** The overhead props' pass, which also draws the props hung on walls for the roof pass ({@link WallMounts}). */
     private PropMotionRenderSystem overheadProps;
     /** A wall mount's rail corners' eaves, reused. */
@@ -1045,6 +1052,7 @@ public class BattleRenderer {
             // Flat: every roof over its footprint, what hangs on a wall lying where it was laid.
             facePainter.reset();
             ruinShells.reset();
+            wallTopCreep.reset();
             overheadProps.collectMounts(ctx, out, (d, corners) -> true);
         }
         if (rc.hostProfile.residentGroundAllowed()) {
@@ -1069,8 +1077,9 @@ public class BattleRenderer {
         } else {
             streamRoofs(sim, out, alphaMult, topology);
         }
-        // A razed building's broken shell stands over its roof's remnants.
+        // A razed building's broken shell stands over its roof's remnants; old creep crusts over the walls' tops.
         if (!ruinShells.isEmpty()) out.addPoly(RenderLayer.ROOFS, ruinShells);
+        if (!wallTopCreep.isEmpty()) out.addPoly(RenderLayer.ROOFS, wallTopCreep);
     }
 
     /**
@@ -1263,6 +1272,9 @@ public class BattleRenderer {
         if (creep != null && creep.isEmpty()) creep = null;
         paint.reset();
         ruinShells.reset();
+        wallTopCreep.reset();
+        topSx = sx;
+        topSy = sy;
         for (Building b : buildings.all()) {
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             float roofAlpha = alphaMult;
@@ -1339,6 +1351,14 @@ public class BattleRenderer {
                 // What came down lies on the open ground at the wall's foot, seen whichever way the wall faces.
                 int fallen = WallRubble.amount(kind == BuildingFaces.Segment.BREACH, broken, hurt);
                 if (fallen > 0) paint.rubble(cell, fallen, m.wall(), fog);
+                if (creep != null && topology.isWall(cx, cy)) {
+                    // An old crust comes over the wall's top from its outer side, whichever way the wall faces: from
+                    // above, its top is what shows of it.
+                    topLift = BuildingFaces.lift(meters * upright, roofRise);
+                    topAlpha = roofAlpha;
+                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), cell, x0, y0, x1, y1, nx, ny,
+                            creepPalette, fog, creepOnTop);
+                }
                 if (!BuildingFaces.facing(nx, ny, (x0 + x1) / 2f, (y0 + y1) / 2f, viewX, viewY)) {
                     if (cut > .01f) {
                         // A far wall's inner side, seen over the cut-away room: plaster over a darker dado.
@@ -1395,6 +1415,14 @@ public class BattleRenderer {
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
         wallRubble.emit(out, paint.debris(), paint.debrisCount(), sprites.rubbleSheet(), sprites.rubbleFrames());
+    }
+
+    private float topX(float cellX) {
+        return topSx + (rc.camera.cellToScreenX(cellX) - topSx) * topLift;
+    }
+
+    private float topY(float cellY) {
+        return topSy + (rc.camera.cellToScreenY(cellY) - topSy) * topLift;
     }
 
     /** How high a razed building's shell would stand whole, metres: one storey. */

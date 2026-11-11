@@ -67,6 +67,7 @@ public final class WorksDefences {
             }
         }
         machinePosts(c, plan, works, wall == null ? 0 : wall.glacis(), layer == Layer.FORTIFIED);
+        approach(c, plan, works, layer == Layer.FORTIFIED);
         if (layer == Layer.FORTIFIED) {
             for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
                 if (WorksProps.purposeOf(c, b) != RoomPurpose.PARTS_CAGE) continue;
@@ -120,7 +121,148 @@ public final class WorksDefences {
                 RaidSiteTemplate.WORKS_RESERVE);
     }
 
-    /** A defender machine post at {@code (x, y)} holding {@code machines}, named with {@code place}. */
+    /** Cells out past the works' ground a gate's forward post stands on its approach. UNTUNED. */
+    static final int FORWARD_OUT = 6;
+    /** Riflemen at a forward post, on top of the market's force. UNTUNED. */
+    static final int FORWARD_RIFLES = 4;
+    /** Cells a forward post may slide aside off its approach's road to find open ground. UNTUNED. */
+    static final int FORWARD_ASIDE = 9;
+    /** Cells out past the works' ground the outer belt's two rows run. UNTUNED. */
+    static final int OUTER_BELT_NEAR = 4, OUTER_BELT_FAR = 6;
+    /** Cells out past the works' ground its approach reaches, for firing positions. UNTUNED. */
+    static final int APPROACH_REACH = 8;
+    /** Firing positions a fortified works holds on its approach's open ground, and the least side of that ground. UNTUNED. */
+    static final int FIRING_POSITIONS = 2, FIRING_GROUND = 3;
+    /** Cells either side of a gate's mouth its approach is kept clear of the outer belt. UNTUNED. */
+    static final int LANE_CLEAR = 4;
+
+    /**
+     * The works' approach ({@code raid-demolish-the-works.md}, slice 7; owner: "all of this space outside of the works
+     * that we don't use for defensive layers"; pick {@code raid-works-approach} a, recommended): the raid fights through
+     * depth before it reaches the wall. On a guarded works a sandbagged forward post stands on each open gate's
+     * approach, {@link #FORWARD_OUT} cells past the works' ground, held by riflemen security adds
+     * ({@link RaidSiteTemplate#WORKS_FORWARD}); on a fortified works an outer belt of hedgehogs also runs on the open
+     * ground just outside its ground, broken where the gates' approaches run, and riflemen hold sandbagged firing
+     * positions on the largest open ground of the approach.
+     */
+    static void approach(GenContext c, PrecinctPlan plan, Precinct works, boolean outerBelt) {
+        int[][] claim = c.get(BspKeys.PRECINCT_CLAIM), owner = c.get(BspKeys.PRECINCT_ROAD);
+        int index = plan.precincts().indexOf(works);
+        if (claim == null || owner == null || index < 0) return;
+        List<int[]> lanes = new ArrayList<>();
+        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, owner, index, c.width, c.height,
+                Integer.MAX_VALUE)) {
+            int[] mouth = mouth(c, claim, index, gate);
+            if (mouth == null) continue;
+            lanes.add(mouth);
+            forwardPost(c, claim, index, mouth);
+        }
+        if (outerBelt) {
+            // The positions take their ground before the belt breaks it up.
+            firingPositions(c, claim, index);
+            outerBelt(c, claim, index, lanes);
+        }
+    }
+
+    /**
+     * Up to {@link #FIRING_POSITIONS} sandbagged firing positions, one on each of the largest stretches of open ground
+     * (at least {@link #FIRING_GROUND} cells a side) within {@link #APPROACH_REACH} cells outside the works' ground,
+     * facing away from the works along the axis it lies out on.
+     */
+    private static void firingPositions(GenContext c, int[][] claim, int index) {
+        int[] b = claimBounds(c, index);
+        if (b == null) return;
+        boolean[][] open = new boolean[c.width][c.height];
+        for (int x = Math.max(0, b[0] - APPROACH_REACH); x <= Math.min(c.width - 1, b[2] + APPROACH_REACH); x++) {
+            for (int y = Math.max(0, b[1] - APPROACH_REACH); y <= Math.min(c.height - 1, b[3] + APPROACH_REACH); y++) {
+                open[x][y] = claim[x][y] != index && WorksProps.open(c, x, y, 1, 1)
+                        && distanceTo(claim, index, x, y, APPROACH_REACH) <= APPROACH_REACH;
+            }
+        }
+        float wx = (b[0] + b[2]) / 2f, wy = (b[1] + b[3]) / 2f;
+        for (int placed = 0, tries = 0; placed < FIRING_POSITIONS && tries < 2 * FIRING_POSITIONS; tries++) {
+            int[] r = MilitaryGround.largestRectangle(open);
+            if (r == null || r[2] - r[0] + 1 < FIRING_GROUND || r[3] - r[1] + 1 < FIRING_GROUND) return;
+            int x = (r[0] + r[2]) / 2, y = (r[1] + r[3]) / 2;
+            float ox = x - wx, oy = y - wy;
+            int dx = Math.abs(ox) >= Math.abs(oy) ? (int) Math.signum(ox) : 0;
+            int dy = dx == 0 ? (int) Math.signum(oy) : 0;
+            if (nest(c, x, y, dx, dy)) placed++;
+            for (int xx = r[0]; xx <= r[2]; xx++) for (int yy = r[1]; yy <= r[3]; yy++) open[xx][yy] = false;
+        }
+    }
+
+    /**
+     * A sandbag nest at {@code (x, y)}, its three bags across the cell beyond it along {@code (dx, dy)} and facing
+     * that way, held by a forward post of riflemen security adds; whether it stood.
+     */
+    private static boolean nest(GenContext c, int x, int y, int dx, int dy) {
+        if (dx == 0 && dy == 0) return false;
+        int px = dy, py = dx;
+        if (!frontOpen(c, x + dx, y + dy, px, py) || !WorksProps.open(c, x, y, 1, 1)) return false;
+        String facing = "doodad.fort-sandbag-" + side(dx, dy);
+        for (int s = -1; s <= 1; s++) WorksProps.place(c, x + dx + px * s, y + dy + py * s, facing, 0);
+        post(c, x, y, FORWARD_RIFLES, RaidSiteTemplate.WORKS_FORWARD);
+        return true;
+    }
+
+    /** A sandbagged forward post on the approach out of the gate at {@code mouth} {x, y, dx, dy}, if open ground is near. */
+    private static void forwardPost(GenContext c, int[][] claim, int index, int[] mouth) {
+        int dx = mouth[2], dy = mouth[3];
+        int edge = 0;
+        while (c.grid.inBounds(mouth[0] + dx * edge, mouth[1] + dy * edge)
+                && claim[mouth[0] + dx * edge][mouth[1] + dy * edge] == index) edge++;
+        int ax = mouth[0] + dx * (edge + FORWARD_OUT), ay = mouth[1] + dy * (edge + FORWARD_OUT);
+        int px = dy, py = dx;  // across the approach
+        for (int k = 0; k <= FORWARD_ASIDE; k++) {
+            for (int sign : k == 0 ? new int[]{1} : new int[]{1, -1}) {
+                if (nest(c, ax + px * k * sign, ay + py * k * sign, dx, dy)) return;
+            }
+        }
+    }
+
+    /** Whether the three cells across {@code (x, y)} (across is {@code (px, py)}) are open for a sandbag each. */
+    private static boolean frontOpen(GenContext c, int x, int y, int px, int py) {
+        for (int s = -1; s <= 1; s++) if (!WorksProps.open(c, x + px * s, y + py * s, 1, 1)) return false;
+        return true;
+    }
+
+    /** The prop letter for a sandbag facing out along {@code (dx, dy)}. */
+    private static String side(int dx, int dy) {
+        for (Side s : Side.values()) {
+            if (s.dx == dx && s.dy == dy) return s.name().substring(0, 1).toLowerCase(Locale.ROOT);
+        }
+        return "n";
+    }
+
+    /**
+     * Two staggered rows of hedgehogs on the open ground {@link #OUTER_BELT_NEAR} and {@link #OUTER_BELT_FAR} cells out
+     * from the works' ground, every other cell, clear of each gate's approach ({@code lanes}, mouths {x, y, dx, dy});
+     * roads and buildings refuse them.
+     */
+    private static void outerBelt(GenContext c, int[][] claim, int index, List<int[]> lanes) {
+        for (int x = 0; x < c.width; x++) {
+            for (int y = 0; y < c.height; y++) {
+                if (claim[x][y] == index || inLane(lanes, x, y)) continue;
+                int d = distanceTo(claim, index, x, y, OUTER_BELT_FAR);
+                // Every other cell along each row, the far row offset by one: a staggered double row.
+                boolean row = d == OUTER_BELT_NEAR && (x + y) % 2 == 0 || d == OUTER_BELT_FAR && (x + y) % 2 == 1;
+                if (row) WorksProps.place(c, x, y, "doodad.fort-hedgehog", 0);
+            }
+        }
+    }
+
+    /** Whether {@code (x, y)} is on a gate's approach: outward of its mouth and within {@link #LANE_CLEAR} of its line. */
+    static boolean inLane(List<int[]> lanes, int x, int y) {
+        for (int[] m : lanes) {
+            int along = (x - m[0]) * m[2] + (y - m[1]) * m[3];
+            int across = Math.abs((x - m[0]) * m[3] - (y - m[1]) * m[2]);
+            if (along >= 0 && across <= LANE_CLEAR) return true;
+        }
+        return false;
+    }
+
+    /** A defender post at {@code (x, y)} holding {@code machines} (or riflemen), named with {@code place}. */
     private static void post(GenContext c, int x, int y, int machines, String place) {
         if (!c.grid.inBounds(x, y)) return;
         TacticalNode node = new TacticalNode(TacticalNode.Kind.INNER_POSITION, x, y, x, y, x, y, Faction.DEFENDER,

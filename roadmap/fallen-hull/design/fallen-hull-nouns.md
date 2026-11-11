@@ -254,12 +254,14 @@ the event gate are not designed yet.
 - `hull-spread-law`: (a, recommended) the hull alone spreads, through its
   autoforge and only from feedstock; site networks keep their fixed numbers.
   (b) No spread: the hull pours out what it carried and stops.
-- `hull-lineage`: (a, recommended) an Explorarium survey mothership (canon
-  autoforge). (b) a Domain-era drone carrier (no forge in canon; spread would
-  need inventing). (c) a Tri-Tachyon contingency hull (contingency security's
-  look).
-- `stripper-hauler`: (a, recommended) two units, the stripper and the hauler,
-  of the derelict line. (b) one unit that cuts and carries.
+- `stake-look`: (a, recommended) the spire, a square armoured spike that
+  opens four petals round its node mast. (b) the tripod, a round core whose
+  three legs splay and anchor. The spire is built.
+
+Answered by the owner (2026-11-11), each the recommended option and built as
+it stands: `hull-lineage` (a), the hull is an Explorarium survey mothership;
+`stripper-hauler` (a), two units, the stripper and the hauler; `autoforge-look`
+(c), the ring forge.
 
 ## What is built
 
@@ -292,7 +294,7 @@ Numbers UNTUNED.
   `SECURITY_HAULER` (MG-30, heavy, unarmed), automated like the rest of the
   derelict line, with `DerelictWalkerFrame.STRIPPER` and `HAULER` on them
   (`worker()`). Both are drawn as the sentinel at their size until the art
-  session's looks ship (pick `stripper-hauler`, option a).
+  session's looks ship (`stripper-hauler`, answered: two units).
 
 - **The seam from the ground.** `FallenHullSite` is what the crash-site ground
   fills and the battle stands on: the hull's laid box (`Rect`) and its
