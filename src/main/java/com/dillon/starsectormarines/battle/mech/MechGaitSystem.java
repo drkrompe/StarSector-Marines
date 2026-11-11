@@ -6,7 +6,10 @@ import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.Query;
 
-/** Advances every live mech's deterministic, presentation-only gait state. */
+/**
+ * Advances every live mech's deterministic gait state: drawn by the renderer, and a heavy company walker's planted
+ * feet are its crush colliders ({@link MechWallCrush}).
+ */
 public final class MechGaitSystem {
 
     private final EntityWorld world;
