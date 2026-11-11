@@ -1802,7 +1802,9 @@ public class BattleRenderer {
 
         @Override
         public void quad(int column, int row, int turns, float x0, float y0, float x1, float y1) {
-            if (ship != null) {
+            // A hull roof's cell off every section (a roof the ground joined onto the hull) is an ordinary roof.
+            boolean onShip = ship != null && (hullRoof == null || hullRoof.at(cellX, cellY) != null);
+            if (onShip) {
                 if (column >= RoofTiles.FIELD && column < RoofTiles.FIELD + 4) {
                     shipQuad(x0, y0, x1, y1);
                     return;
