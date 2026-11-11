@@ -80,6 +80,13 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     /** The longest The Fall and the Stakes ground are played waiting for their clips, seconds. */
     private static final float FALL_SECONDS = 900f, STAKES_SECONDS = 600f;
     public static final String ONLY_PROPERTY = "snapshot.hullSim.only";
+    /**
+     * {@code -Dsnapshot.hullSim.cells=<n>} frames every clip {@code n} cells across, and
+     * {@code -Dsnapshot.hullSim.maxSpeed=<n>} caps its speed-up: close looks at the walkers' work arms.
+     */
+    public static final String CELLS_PROPERTY = "snapshot.hullSim.cells";
+    private static final float CELLS = Float.parseFloat(System.getProperty(CELLS_PROPERTY, "0"));
+    private static final int SPEED_CAP = Integer.parseInt(System.getProperty("snapshot.hullSim.maxSpeed", "99"));
 
     @Override public String id() { return "fallen-hull-sim-look"; }
 
@@ -261,10 +268,19 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         Clip(String name, String title, int speed, float minSeconds, float maxSeconds, boolean roofs) {
             this.name = name;
             this.title = title;
-            this.speed = speed;
-            this.minFrames = Math.round(minSeconds * FPS);
-            this.maxFrames = Math.round(maxSeconds * FPS);
+            // A capped speed-up runs the clip longer, to cover the same stretch of battle,
+            this.speed = Math.max(1, Math.min(speed, SPEED_CAP));
+            this.minFrames = Math.round(minSeconds * FPS * speed / this.speed);
+            // and a close look follows its subject further, so it may run on to the end of its work.
+            this.maxFrames = Math.round(maxSeconds * FPS * speed / this.speed * (this.speed < speed ? 3 : 1));
             this.roofs = roofs;
+        }
+
+        /** {@link #focus}, closer where {@link #CELLS_PROPERTY} asks. */
+        private float[] framed(BattleSimulation sim) {
+            float[] f = focus(sim).clone();
+            if (CELLS > 0f) f[2] = CELLS;
+            return f;
         }
 
         boolean recording() { return started && !finished; }
@@ -290,7 +306,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         void start(SnapshotContext context, BattleSimulation sim, Path scratch, int tick) throws Exception {
             started = true;
             startTick = tick;
-            float[] f = focus(sim);
+            float[] f = framed(sim);
             cam = f.clone();
             BattleReviewFrameRenderer r = BattleReviewFrameRenderer.look(context.modRoot(), W, H, f[0], f[1], f[2]);
             renderer = roofs ? r : r.withoutRoofs();
@@ -299,7 +315,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         }
 
         void frame(BattleSimulation sim, ReviewImpactFx fx) throws Exception {
-            float[] f = focus(sim);
+            float[] f = framed(sim);
             // The camera eases toward its subject rather than snapping to it.
             for (int i = 0; i < 3; i++) cam[i] += (f[i] - cam[i]) * 0.12f;
             BattleReviewFrameRenderer r = renderer.refocus(cam[0], cam[1], cam[2]);
