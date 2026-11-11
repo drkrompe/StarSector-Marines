@@ -51,7 +51,10 @@ class PortHubTest {
         }
         // The roads along the hub reach its whole length, so each arterial joins the others.
         long along = hub.roads().stream().filter(r -> r.x0() == hub.paved().x0() && r.x1() == 277).count();
-        assertEquals(4, along, "rail road, row lane, yard road, service lane");
+        assertEquals(3, along, "row lane, yard road, service lane");
+        // The rail road runs back with the lines past the terminal, where the town's streets meet it.
+        assertTrue(hub.roads().contains(hub.railRoad()));
+        assertEquals(hub.lines().x0(), hub.railRoad().x0());
     }
 
     @Test

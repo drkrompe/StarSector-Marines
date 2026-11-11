@@ -95,6 +95,10 @@ public final class WorksProps {
 
     /** Whether a {@code w} by {@code h} footprint with its corner at {@code (x, y)} may take a prop. */
     public static boolean open(GenContext c, int x, int y, int w, int h) {
+        // Another cover prop standing there, though nothing marks its cell (a walkable crate stack): one to a cell.
+        for (Doodad d : c.doodads) {
+            if (d.cover > 0 && d.cellX >= x && d.cellX < x + w && d.cellY >= y && d.cellY < y + h) return false;
+        }
         LayoutGround ground = new LayoutGround(c);
         // A place's own roads, inside its claim, which the layout's ways leave to the place.
         int[][] roadOwner = c.get(BspKeys.PRECINCT_ROAD);

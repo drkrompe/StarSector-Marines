@@ -76,9 +76,9 @@ public record PortHub(Rect lines, Rect highway, List<Rect> tracks, Rect railRoad
      * the approach for the fuel farm's big tanks beside the first; and the gap between two (the blast wall and a walk
      * past it). UNTUNED.
      */
-    public static final int PAD_DEEP = 28, PAD_WIDE = 21, PAD_GAP = 3;
+    public static final int PAD_DEEP = 30, PAD_WIDE = 21, PAD_GAP = 3;
     /** The fuel farm along the pad row at its terminal end: one bund of two big tanks across ({@code TankFarm}). */
-    public static final int FARM = 44;
+    public static final int FARM = 48;
     /** Clear ground between the pads and the outer edge: the freighters' approach. */
     public static final int APPROACH = 3;
     /** Fewest pads a hub is laid with: fewer and it is not the planet's lift. */
@@ -247,7 +247,10 @@ public record PortHub(Rect lines, Rect highway, List<Rect> tracks, Rect railRoad
         List<Rect> arterials = new ArrayList<>();
         for (int[] r : roadsV) arterials.add(f.rect(HIGHWAY, r[0], padU0 - 1, r[1]));
         List<Rect> roads = new ArrayList<>(arterials);
-        roads.add(f.rect(lines - RAIL_ROAD, 0, lines - 1, last));
+        // The rail road runs back with the lines past the terminal: the town's streets that come down to the lines
+        // meet it there, and it takes them along to the truck gate's road.
+        Rect railRoad = f.rect(lines - RAIL_ROAD, -back, lines - 1, last);
+        roads.add(railRoad);
         if (rows == 2) roads.add(f.rect(lines + SHED_DEEP, 0, lines + SHED_DEEP + ROW_LANE - 1, last));
         roads.add(f.rect(apronU0, 0, apronU0 + YARD_ROAD - 1, last));
         roads.add(f.rect(mainU + 1, 0, padU0 - 1, last));
@@ -258,7 +261,6 @@ public record PortHub(Rect lines, Rect highway, List<Rect> tracks, Rect railRoad
         for (int t = 0, u = HIGHWAY + VERGE; t < TRACKS; t++, u += TRACK + TRACK_GAP) {
             tracks.add(f.rect(u, -back, u + TRACK - 1, last));
         }
-        Rect railRoad = f.rect(lines - RAIL_ROAD, -back, lines - 1, last);
         Rect built = f.rect(lines, 0, apronU0 - 1, last);
         int outer = depth - 1 - spare;
         Rect apron = f.rect(apronU0, 0, outer, last);

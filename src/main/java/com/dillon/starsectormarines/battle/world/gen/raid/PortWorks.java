@@ -54,6 +54,8 @@ public final class PortWorks implements RaidIndustry {
     public static final String LINES = "port-lines";
     /** The warehouse rows' band, held from the town's growth as built ground the warehouses are raised on. */
     public static final String WAREHOUSES = "port-warehouses";
+    /** The forecourt between the terminal and the hub, held from growth: the yard road's way in to the rear gate. */
+    public static final String FORECOURT = "port-forecourt";
     /** Each warehouse's structure is named this prefix and its index. */
     public static final String WAREHOUSE = "port-warehouse-";
 
@@ -148,6 +150,26 @@ public final class PortWorks implements RaidIndustry {
                 back(reach));
         if (hub == null) return;
         out.addAll(pieces(hub, frame.width(), frame.height()));
+        Site forecourt = forecourt(hub, terminal.seedX(), reach, frame.width(), frame.height());
+        if (forecourt != null) out.add(forecourt);
+    }
+
+    /**
+     * The forecourt: the ground between the terminal and the hub, from half the terminal's reach out to the hub's start
+     * and across the hub's bands beside the lines, held from the town's growth so no strip of lanes and sheds stands
+     * between the two. The terminal's own square may still take the part of it nearest its seed. Null when the hub
+     * starts at the terminal.
+     */
+    static Site forecourt(PortHub hub, int seedX, int reach, int width, int height) {
+        PortHub.Rect paved = hub.paved(), built = hub.built();
+        int x0 = hub.deepEast() ? seedX + reach / 2 : paved.x1() + 1;
+        int x1 = hub.deepEast() ? paved.x0() - 1 : seedX - reach / 2;
+        int y0 = hub.outerNorth() ? built.y0() : paved.y0();
+        int y1 = hub.outerNorth() ? paved.y1() : built.y1();
+        x0 = Math.max(0, x0);
+        x1 = Math.min(width - 1, x1);
+        if (x1 < x0 || y1 < y0) return null;
+        return new Site(FORECOURT, x0, Math.max(0, y0), x1, Math.min(height - 1, y1), SitePurpose.GROUND, false);
     }
 
     /**
@@ -282,7 +304,11 @@ public final class PortWorks implements RaidIndustry {
         int[][] claim = c.get(BspKeys.PRECINCT_CLAIM);
         int index = plan.precincts().indexOf(works);
         PortHubDressing.lay(c, hub, c.seed ^ 0x504f5254L);
-        PortHubDressing.rearGate(c, hub);
+        PortHub.Rect lane = PortHubDressing.rearGate(c, hub);
+        if (plan.layout().find(FORECOURT) instanceof Site forecourt) {
+            PortHubDressing.forecourt(c, new PortHub.Rect(forecourt.x0(), forecourt.y0(), forecourt.x1(),
+                    forecourt.y1()), lane, claim, index, c.seed ^ 0x434f5552L);
+        }
         PortHubDressing.intakeQueue(c, claim, index, hub.terminalX(), c.seed ^ 0x51554555L);
         terminal(c, plan, works);
     }
