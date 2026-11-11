@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1cbae-c40e-7ef1-8de1-1158e4f4390a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1cbae-c40e-7ef1-8de1-1158e4f4390a\\exec-fa57424d-d0d9-4b49-aa34-5a15607c7752.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\mine-works.raw.png",
+    "sha256": "709f2c910f3e1dd5a281a6ddbc9f8851f1abe9df78c7ab7cc1d81fd1347c968a",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\mine-works.prompt.txt",
+  "promptSha256": "833be72d57c0955fd9ef0dd0e6e104df7f5b919e27f1e1d472e14ae4e2eec1f9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and geometry authority: each machine's place, outline, size and heading\nImage 2: Material/style only; not layout\n\nUse case: sketch-to-render, top-down game prop sheet. Image 1 is the edit target and exact geometry authority: six mining machines blocked out on a transparent canvas, each in its own place, at its own size and heading. Render each as a detailed, realistic, worn industrial object seen from straight overhead, keeping its position, outline, size and orientation exactly:\n- top left, a mine headframe: a braced steel lattice tower over a square dark shaft, seen from above, its two big sheave wheels on a deck at the top, cross bracing, walkway grating, cables running down to the south;\n- top middle, the same headframe ruined and collapsed: its legs splayed and buckled, the tower top fallen to the north-east with a sheave wheel lying flat, twisted girders, the shaft open and dark;\n- top right, a pump house: a squat pressurised steel shed with a ridged roof, roof vents and a small airlock door, a thick insulated pipe main with a flange running out its east side;\n- bottom left, an ore car: an open steel ore tub on four wheels, long axis north-south, heaped with broken grey ore;\n- bottom middle, the same ore car tipped over on its side, its wheels and underframe showing to the west, its ore spilled out in a fan to the east;\n- bottom right, an ore-train engine: a low boxy electric rail locomotive, long axis north-south, its small cab with a window at the north end, battery hatches along its back, a hazard-striped coupling at the south end.\nThe setting is a cold, airless mining moon: dull steel, rust and old ochre paint, dust, a faint pale frost in the corners and on the shaded side; no water, no plants. Lit from the upper left. Image 2 is material and painting style only, not layout. True transparent background everywhere, including the negative spaces inside the towers' lattice; no ground plane, no rails, no cast shadow slab, no border, no frame, no labels. Absolutely no text, letters, numbers, stencils, logos or symbols. Strict 90-degree overhead orthographic view, a realistic painted game-asset style.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\mine-works-guide.png",
+      "sha256": "894fd4de6f94df0d54c7ba76656ab2d1d705e7509c5a4905ca2f375aa9402bc6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and geometry authority: each machine's place, outline, size and heading"
+    },
+    {
+      "path": "art-source\\tilesets\\factory-machines.raw.png",
+      "sha256": "43f75fab6ee3361714aee1ec9e39d7220c0a18e501087207501c26b6edbfddbc",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the six machines using Image 1’s exact geometry and Image 2’s worn industrial finish, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 46021,
+    "cached_input_tokens": 35712,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 725,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.6
+}
