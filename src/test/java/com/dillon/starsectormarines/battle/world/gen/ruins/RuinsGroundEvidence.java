@@ -117,6 +117,24 @@ class RuinsGroundEvidence {
                             && interior.serviceDock() == null) {
                         failures.add(where + "the maintenance shop publishes no service dock");
                     }
+                    // A plant's stores hold goods enough for the delve's finds (plant-store-finds): the far share in
+                    // the finished goods, the rest in the raw stock and the maintenance shop.
+                    if (!interior.spaces().isEmpty()) {
+                        int far = 0, near = 0;
+                        for (RuinsDelve.Load load : interior.loads()) {
+                            if (load.goods().equals(RuinsDelveStage.STORE_FUEL)) continue;
+                            if (load.space().endsWith("finished-goods")) far++;
+                            else near++;
+                            if (!interior.spaces().get(load.space()).contains(load.at().x(), load.at().y())) {
+                                failures.add(where + "a load stands outside its space " + load.space());
+                            }
+                        }
+                        if (interior.spaces().containsKey(RuinsDelve.Interior.spaceName("finished-goods"))
+                                && far < RuinsDelveStage.GOODS_MIN_LOADS) {
+                            failures.add(where + "the finished goods hold " + far + " loads");
+                        }
+                        if (near < RuinsDelveStage.RAW_MIN_LOADS) failures.add(where + "the near stores hold " + near + " loads");
+                    }
                     // The route from the vault to the landing (the battle's first lift point's) crosses the works hall.
                     for (RuinsDelve.PlantHall hall : interior.halls()) {
                         if (hall.stage() != RuinsDelve.PlantStage.FOUNDRY && hall.stage() != RuinsDelve.PlantStage.WORKS) {

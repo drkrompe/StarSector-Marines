@@ -269,8 +269,16 @@ public final class RuinsDelveStage implements GenStage {
     /** The finished goods store's loads: what the last haulers left. */
     static final String[] GOODS_LOADS = {"doodad.ruins-store-domestic-goods", "doodad.ruins-store-supplies",
             "doodad.ruins-store-domestic-goods"};
-    /** An empty pallet place on a store's floor. */
-    static final String STORE_PALLET = "doodad.ruins-store-pallet";
+    /** A store's fuel bay: red tanks behind a hazard kerb. */
+    static final String STORE_FUEL = "doodad.ruins-store-fuel";
+    /** Heavy machinery on a skid, the maintenance shop's spares under its hoists. */
+    static final String STORE_MACHINERY = "doodad.ruins-store-heavy-machinery";
+    /**
+     * Loads a store keeps whatever the dice say, so the delve's finds always have goods to be
+     * ({@code plant-store-finds}): the finished goods hold the far share at its largest (a vast site's four), the raw
+     * stock the near.
+     */
+    static final int GOODS_MIN_LOADS = 4, RAW_MIN_LOADS = 3;
     static final String DOCK_DOOR = "doodad.ruins-dock-door";
     static final String DOCK_STOCK = "doodad.industrial-pallet-stack";
 
@@ -362,6 +370,8 @@ public final class RuinsDelveStage implements GenStage {
         Cell worksStand;
         /** The floor the works hall's restart lights round its stand ({@link #standLit(Area, Cell, Cell, boolean, int, int)}). */
         List<Area> standLit = List.of();
+        /** The goods the plant's stores still hold, as they stood ({@link RuinsDelve.Load}). */
+        final List<RuinsDelve.Load> loads = new ArrayList<>();
         /** The breakout pool's columns under the transfer bridge; lo above hi when there is none. */
         int poolLo = Integer.MAX_VALUE, poolHi = Integer.MIN_VALUE;
         /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
@@ -558,7 +568,7 @@ public final class RuinsDelveStage implements GenStage {
                     false, RuinsDelve.DoorStance.ANSWERS));
             RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, interiorBox, firstInside,
                     entrances, aprons, chambers, plantHalls, leafDoors, settledStand(), spaces, standLit,
-                    serviceDock(plantHalls));
+                    serviceDock(plantHalls), loads);
             fortify(grid, topology, facility(), propCells(), FACILITY_WALL_HP);
             // No machine is set down inside the facility: under its roof, in its halls and corridors, nor in a light
             // well whose only ways out are the facility's own (owner: "prevent dropping mechs inside of the facility").
@@ -2456,6 +2466,7 @@ public final class RuinsDelveStage implements GenStage {
                 Area room = hall.footprint();
                 layRoom(registry, RuinsRoom.WORKSHOP, works, room, new Cell(room.centreX(), room.centreY()),
                         RuinsRoom.facing(ax - room.centreX(), ay - room.centreY()));
+                shopSpares(registry, room);
             }
             for (Layer layer : layers) {
                 for (SideRoom side : layer.rooms()) {
@@ -2994,28 +3005,85 @@ public final class RuinsDelveStage implements GenStage {
          * A plant's named store stocked from its brief ({@code ruins-plant-brief}, Stores): rack bays two wide and four
          * long, north-south, in columns with three-cell aisles, the middle row and column kept clear as the store's
          * freight cross. The plant ran its stores down, so most bays stand empty or stripped; one in four still holds
-         * two loads of the store's goods. Whether the hall was a named store.
+         * two loads of the store's goods, and more are loaded where the store would hold fewer than its least
+         * ({@link #GOODS_MIN_LOADS}, {@link #RAW_MIN_LOADS}). The raw stock's last bay is its fuel bay. Every load is
+         * published ({@link #loads}). Whether the hall was a named store.
          */
         boolean storeRacks(TileRegistry registry, Area hall, Cell centre) {
             if (!plantMode) return false;
-            String[] loads = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("raw-stock"))) ? RAW_LOADS
-                    : hall.equals(spaces.get(RuinsDelve.Interior.spaceName("finished-goods"))) ? GOODS_LOADS : null;
-            if (loads == null) return false;
-            for (int x = hall.left() + 2; x + 1 <= hall.right() - 2; x += 5) {
-                if (x <= centre.x() + 1 && x + 1 >= centre.x() - 1) continue;
-                for (int y = hall.bottom() + 2; y + 3 <= hall.top() - 2; y += 5) {
-                    if (y <= centre.y() + 1 && y + 3 >= centre.y() - 1) continue;
-                    int roll = hash(x, y, 0x5703) % 8;
-                    if (roll < 2) {
-                        String load = loads[hash(x, y, 0x10AD) % loads.length];
-                        piece(registry, load, x, y, 2, 2, hall, centre);
-                        piece(registry, roll == 0 ? load : STORE_PALLET, x, y + 2, 2, 2, hall, centre);
-                    } else {
-                        piece(registry, roll < 5 ? STORE_BAY_STRIPPED : STORE_BAY, x, y, 2, 4, hall, centre);
-                    }
+            boolean raw = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("raw-stock")));
+            boolean goods = hall.equals(spaces.get(RuinsDelve.Interior.spaceName("finished-goods")));
+            if (!raw && !goods) return false;
+            String space = RuinsDelve.Interior.spaceName(raw ? "raw-stock" : "finished-goods");
+            String[] kinds = raw ? RAW_LOADS : GOODS_LOADS;
+            // Bays outward from the freight cross, five cells wide through the store's middle, a cell off the walls:
+            // north-south in columns three cells apart, a cell between bays in a column, or, in a store too short for that,
+            // east-west in rows two apart.
+            boolean across = hall.height() < 17;
+            int bw = across ? 4 : 2, bh = across ? 2 : 4;
+            List<Integer> xs = new ArrayList<>(), ys = new ArrayList<>();
+            for (int x = centre.x() - 2 - bw; x >= hall.left() + 1; x -= bw + 3) xs.add(x);
+            for (int x = centre.x() + 3; x + bw - 1 <= hall.right() - 1; x += bw + 3) xs.add(x);
+            for (int y = centre.y() - 2 - bh; y >= hall.bottom() + 1; y -= bh + (across ? 2 : 1)) ys.add(y);
+            for (int y = centre.y() + 3; y + bh - 1 <= hall.top() - 1; y += bh + (across ? 2 : 1)) ys.add(y);
+            List<Cell> bays = new ArrayList<>();
+            for (int y : ys) for (int x : xs) bays.add(new Cell(x, y));
+            int dx = across ? 2 : 0, dy = across ? 0 : 2;
+            int least = raw ? RAW_MIN_LOADS : GOODS_MIN_LOADS, held = 0;
+            int fuel = raw && !bays.isEmpty() ? bays.size() - 1 : -1;
+            boolean[] done = new boolean[bays.size()];
+            // The bays the dice left loaded, then more until the store holds its least, counting what stood.
+            for (int pass = 0; pass < 2; pass++) {
+                for (int k = 0; k < bays.size(); k++) {
+                    if (done[k] || k == fuel) continue;
+                    int x = bays.get(k).x(), y = bays.get(k).y();
+                    if (pass == 0 ? hash(x, y, 0x5703) % 8 >= 2 : held >= least) continue;
+                    String kind = kinds[hash(x, y, 0x10AD) % kinds.length];
+                    int stood = (load(registry, kind, x, y, 2, hall, centre, space) ? 1 : 0)
+                            + (load(registry, kind, x + dx, y + dy, 2, hall, centre, space) ? 1 : 0);
+                    held += stood;
+                    done[k] = stood > 0;
+                }
+            }
+            for (int k = 0; k < bays.size(); k++) {
+                if (done[k]) continue;
+                int x = bays.get(k).x(), y = bays.get(k).y();
+                if (k == fuel) {
+                    load(registry, STORE_FUEL, x, y, 2, hall, centre, space);
+                    load(registry, STORE_FUEL, x + dx, y + dy, 2, hall, centre, space);
+                } else {
+                    DoodadDef bay = registry.doodad(hash(x, y, 0x5704) % 2 == 0 ? STORE_BAY_STRIPPED : STORE_BAY);
+                    if (bay != null) dressProp(bay, x, y, bw, bh, hall, centre, across ? 1 : 0);
                 }
             }
             return true;
+        }
+
+        /** Stands a load of goods, {@code size} square, and publishes it with its space; whether it stood. */
+        boolean load(TileRegistry registry, String id, int x, int y, int size, Area hall, Cell keepClear, String space) {
+            if (!piece(registry, id, x, y, size, size, hall, keepClear)) return false;
+            loads.add(new RuinsDelve.Load(new Cell(x, y), new Area(x, y, x + size - 1, y + size - 1), id, space));
+            return true;
+        }
+
+        /**
+         * The maintenance shop's spares: heavy machinery crated on skids under its hoists, up to two, from the head
+         * wall down, clear of the shop's middle where the service bay docks.
+         */
+        void shopSpares(TileRegistry registry, Area shop) {
+            Cell middle = new Cell(shop.centreX(), shop.centreY());
+            String space = RuinsDelve.Interior.spaceName("maintenance");
+            int stood = 0;
+            for (int y = shop.top() - 3; y >= shop.bottom() + 1 && stood < 2; y--) {
+                for (int x = shop.left() + 1; x + 2 <= shop.right() - 1 && stood < 2; x++) {
+                    // Off the middle, where the service bay docks with two clear cells round it.
+                    if (Math.abs(x + 1 - middle.x()) < 5 && Math.abs(y + 1 - middle.y()) < 5) continue;
+                    if (load(registry, STORE_MACHINERY, x, y, 3, shop, middle, space)) {
+                        stood++;
+                        x += 4;
+                    }
+                }
+            }
         }
 
         /** Stands one blocking piece of the plant kit, where the hall stays one floor; whether it stood. */

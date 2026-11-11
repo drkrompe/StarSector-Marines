@@ -848,9 +848,13 @@ The deeper band is one block on the route: line two on the vault's row at the ba
 it toward the vault (or over it where the vault's forecourt leaves no room), and the line's bay under it. Each band
 holds a sealed store: the raw stock in the works band, the finished goods in the deeper band.
 
-The raw stock and finished goods stores stand rack bays two wide and four long in columns with three-cell aisles, the
-middle row and column clear. Most bays are empty or stripped; one in four still holds two loads of the base game's goods
-(`ruins-stores` sheet): the raw stock what the line ate, the finished goods what the last haulers left.
+The raw stock and finished goods stores stand rack bays round a five-cell freight cross through their middle: north-south
+in columns, or east-west in a store too short for that. Most bays are empty or stripped; one in four still holds two
+loads of the base game's goods (`ruins-stores` sheet), the raw stock what the line ate, the finished goods what the last
+haulers left, and more bays are loaded until each store holds its least (four in the finished goods, three in the raw
+stock), so the delve's finds always have goods to be. The raw stock's last bay is its fuel bay; the maintenance shop
+keeps up to two crates of heavy machinery under its hoists. Every load is published on `Interior.loads()` with its
+cell, footprint, goods and space, for the finds to be picked from (`plant-store-finds`).
 
 Still to come:
 - the hull drawn round the plant;
