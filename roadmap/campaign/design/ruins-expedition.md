@@ -459,7 +459,8 @@ partly lit, lit; `-Dsnapshot.ruinsLight.company` for the company's lights).
 
 Owner picks: `ruins-light-start` black, `ruins-light-power` the works,
 `ruins-light-escalation` the watch's lights and the Stirring floor,
-`ruins-light-sight` presentation only (darkness never shortens sight).
+`ruins-light-sight` presentation only (darkness never shortens sight),
+`ruins-light-company` the company's cone lights and the plant's lamp art as built.
 
 ### The entrance and the pull-out point
 
