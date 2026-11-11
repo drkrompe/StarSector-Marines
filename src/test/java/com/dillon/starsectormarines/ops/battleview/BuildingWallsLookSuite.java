@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Set;
+import com.dillon.starsectormarines.battle.world.gen.StreetLights;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -39,13 +42,16 @@ import java.util.Random;
  * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
  * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
  * instead of the buildings; {@code =whole} shoots each map whole ({@code -whole.png}) and its right half
- * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off.
+ * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off;
+ * {@code -Dsnapshot.walls.night=on} shoots the town at night.
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
 
     private static final int FRAME_W = 1920, FRAME_H = 1080;
     private static final int MAP_W = 200, MAP_H = 128;
     private static final float PLAY = 60f, CLOSE = 40f;
+    /** How dark {@code -Dsnapshot.walls.night=on} lays the town. */
+    private static final float NIGHT_DARKNESS = .78f;
     /** The whole map across, cells, for {@code -Dsnapshot.walls.frame=whole}. */
     private static final float WHOLE = MAP_W * 1.1f;
 
@@ -86,6 +92,14 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                     for (Doodad d : map.doodads) sim.addDoodad(d);
                     sim.setBuildings(map.buildings);
                     sim.setSurface(world.palette());
+                    if ("on".equals(System.getProperty("snapshot.walls.night"))) {
+                        // A dark town, its wall lamps lit (StreetLights) and some windows with it.
+                        NightLighting dark = new NightLighting(NIGHT_DARKNESS, List.of(), Set.of());
+                        List<NightLighting.Lamp> lamps = StreetLights.townLamps(map.topology,
+                                StreetLights.wallLamps(map.doodads));
+                        System.out.println("building-walls-look " + world.id() + ": " + lamps.size() + " street lamps");
+                        map.topology.setNightLighting(StreetLights.lit(dark, lamps));
+                    }
                     if ("whole".equals(System.getProperty("snapshot.walls.frame"))) {
                         // The whole map in one frame, as a player zoomed all the way out sees it.
                         BattleReviewFrameRenderer whole = BattleReviewFrameRenderer.look(context.modRoot(), FRAME_W,

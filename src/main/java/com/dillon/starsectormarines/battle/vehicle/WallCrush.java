@@ -179,7 +179,7 @@ public final class WallCrush {
      * none for a rock or a natural object), else the cell's own wall structure when it is a wall or a window cell and
      * no fixture. Zero where nothing the hull can bring down holds the cell.
      */
-    static int structure(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
+    public static int structure(NavigationGrid grid, CellTopology topology, DoodadService doodads, int x, int y) {
         if (doodads != null && doodads.damageablePropIdAt(x, y, topology) != null) {
             return doodads.builtPropStructureAt(x, y, topology);
         }

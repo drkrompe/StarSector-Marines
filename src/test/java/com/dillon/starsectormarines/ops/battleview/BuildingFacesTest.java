@@ -235,4 +235,15 @@ class BuildingFacesTest {
         assertTrue(risen <= atPlay && risen > .85f * atPlay, "about as far as at play zoom: " + risen + " " + atPlay);
         assertEquals(4f * atPlay, stayed, 1e-3f, "a camera that stayed put leans it four times as far");
     }
+
+    /** At night about a third of the windows are lit, each by its place, so the same window stays lit frame to frame. */
+    @Test
+    void aboutAThirdOfTheWindowsAreLitAtNight() {
+        int lit = 0;
+        for (int seed = 0; seed < 2000; seed++) {
+            if (FacePainter.lit(seed)) lit++;
+            assertEquals(FacePainter.lit(seed), FacePainter.lit(seed));
+        }
+        assertTrue(lit > 500 && lit < 700, "lit " + lit);
+    }
 }
