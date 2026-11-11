@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.derelict;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The town's own metal as salvage on the claim (`fallen-hull-nouns.md`, Strippers): each building near enough the hull
@@ -79,6 +81,21 @@ public final class TownSalvage {
             if (out.size() >= max) break;
             float metal = Math.max(MIN_METAL, Math.min(MAX_METAL, r[1] * METAL_PER_CELL));
             out.add(new FallenHullSite.Pile(r[3], r[4], metal));
+        }
+        return out;
+    }
+
+    /**
+     * The town as places on the claim: an open cell beside each building the hull zone keeps, at most one in each
+     * {@code spacing}-cell square, nearest the hull first. Where the hull's flocks range the night it came down.
+     */
+    public static List<int[]> places(Ground ground, FallenHullSite site, int spacing) {
+        List<FallenHullSite.Pile> all = piles(ground, site, Integer.MAX_VALUE);
+        List<int[]> out = new ArrayList<>();
+        Set<Long> squares = new HashSet<>();
+        for (FallenHullSite.Pile p : all) {
+            long key = ((long) Math.floorDiv(p.y(), spacing) << 32) ^ (Math.floorDiv(p.x(), spacing) & 0xffffffffL);
+            if (squares.add(key)) out.add(new int[] {p.x(), p.y()});
         }
         return out;
     }
