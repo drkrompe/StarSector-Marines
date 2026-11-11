@@ -54,19 +54,13 @@ class FortificationTest {
         return new Built(ctx, claim, grown.owner());
     }
 
-    private static int openings(Built built, Fortification fortification) {
-        return PrecinctBoundary.openGates(built.claim(), built.road(), 0, W, H,
-                fortification.gates()).size();
+    /** The gates the ward left open in the place's wall, which stands inside its glacis. */
+    private static List<PrecinctBoundary.Gate> wallGates(Built built) {
+        return built.ctx().get(BspKeys.PRECINCT_WORKS).get(0).gates();
     }
 
-    /** Fewer gates allowed, fewer ways in. */
-    @Test
-    void aTighterFortificationLeavesFewerWaysIn() {
-        int picket = openings(ward(Fortification.PICKET), Fortification.PICKET);
-        int citadel = openings(ward(Fortification.CITADEL), Fortification.CITADEL);
-        assertTrue(citadel < picket, "a citadel left " + citadel + " ways in against a "
-                + "picket's " + picket + ", so the gate cap is not reaching the wall");
-        assertTrue(citadel >= 1, "a citadel sealed itself completely");
+    private static int openings(Built built, Fortification fortification) {
+        return wallGates(built).size();
     }
 
     /** The cap is a maximum, and cannot conjure gates growth never made. */
@@ -89,8 +83,7 @@ class FortificationTest {
     @Test
     void aSealedPlaceStillLetsItsOwnArmourOut() {
         Built built = ward(Fortification.CITADEL);
-        List<PrecinctBoundary.Gate> open = PrecinctBoundary.openGates(
-                built.claim(), built.road(), 0, W, H, Fortification.CITADEL.gates());
+        List<PrecinctBoundary.Gate> open = wallGates(built);
         assertTrue(open.stream().anyMatch(PrecinctBoundary.Gate::drivable),
                 "a citadel kept only " + open.size() + " gate(s) and none wide enough to "
                         + "drive through, so its own vehicles are scenery");

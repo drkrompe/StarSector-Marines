@@ -141,7 +141,7 @@ class PrecinctLanePlanTest {
             if (laneOf(place) == 1) lane1.add(place);
         }
         assertEquals(1, lane1.size(), "a stated one-rung lane grew extra rungs");
-        assertEquals(Fortification.CITADEL, lane1.get(0).fortification());
+        assertEquals(Fortification.CITADEL.laidSquare(), lane1.get(0).fortification());
         assertEquals(3, lanePlaces(plan).stream()
                         .filter(place -> laneOf(place) == 2).count(),
                 "an unstated lane derives its own three rungs");
