@@ -201,5 +201,11 @@ so its outer push is best kept short and the chapter weighted on the delve into
 the hull (the Ruins family's interior, the autoforge as its vault).
 `hull-fall-cause` (a), `long-survey-world` (Garnir) and `long-survey-opens`
 (the end-game branch) are answered (owner, 2026-11-11), as are the nouns doc's
-`hull-lineage`, `stripper-hauler`, `autoforge-look`, `hull-spread-law` and
-`stake-look`.
+`hull-lineage`, `stripper-hauler`, `autoforge-look`, `hull-spread-law`,
+`stake-look`, `hull-painting-res` (b, higher resolution) and `stake-composed`
+(a, separate parts with construction animation to come).
+
+Still open, built on the recommended option meanwhile: `garnir-sealed` (The
+Fall's town sealed), `garnir-sable` (the port's chief glad Sable is gone),
+`sealed-town-wall` (the rectangle; `battle.sealedTown.laying`) and
+`garrison-interior` (packed).
