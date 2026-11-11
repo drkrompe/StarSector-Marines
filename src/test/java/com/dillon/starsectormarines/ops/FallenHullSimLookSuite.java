@@ -409,6 +409,9 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
     }
 
     /** 2. A stripper walking to the town's salvage and cutting it. */
+    /** The stripper and hauler clips' follow camera, cells across: close enough for a walker's work arms to read. */
+    private static final float FOLLOW_CELLS = 20f;
+
     private static final class StripperClip extends Clip {
         private final FallenHull hull;
         private final DerelictSecurityDirector director;
@@ -444,13 +447,13 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override float[] focus(BattleSimulation sim) {
             long id = member(sim, squad);
-            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), 40f};
+            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), FOLLOW_CELLS};
+            // Close on the walker, so its work arms read: it, and the pile once it is in reach.
             World w = sim.world();
             float x = w.renderX(id), y = w.renderY(id);
             Salvage pile = nearest(hull, w.x(id), w.y(id));
-            if (pile == null) return new float[] {x, y, 30f};
-            float d = (float) Math.hypot(pile.x - x, pile.y - y);
-            return new float[] {(x + pile.x) / 2f, (y + pile.y) / 2f, Math.max(30f, Math.min(70f, d * 1.8f))};
+            if (pile == null || Math.hypot(pile.x - x, pile.y - y) > 6f) return new float[] {x, y, FOLLOW_CELLS};
+            return new float[] {(x + pile.x) / 2f, (y + pile.y) / 2f, FOLLOW_CELLS};
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
@@ -480,7 +483,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
         private boolean loaded;
 
         HaulerClip(FallenHull hull, DerelictSecurityDirector director) {
-            super("hauler", "3  Hauler: takes a stripper's load and carries it home to the hull's store", 4, 10f, 20f,
+            super("hauler", "3  Hauler: takes a stripper's load and carries it home to the hull's store", 6, 10f, 30f,
                     true);
             this.hull = hull;
             this.director = director;
@@ -512,8 +515,8 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override float[] focus(BattleSimulation sim) {
             long id = member(sim, squad);
-            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), 38f};
-            return new float[] {sim.world().renderX(id), sim.world().renderY(id), 38f};
+            if (id == 0L) return new float[] {hull.site().mouthX(), hull.site().mouthY(), FOLLOW_CELLS};
+            return new float[] {sim.world().renderX(id), sim.world().renderY(id), FOLLOW_CELLS};
         }
 
         @Override void draw(Overlay o, BattleSimulation sim) {
