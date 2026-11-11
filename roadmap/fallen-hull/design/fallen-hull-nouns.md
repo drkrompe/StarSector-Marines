@@ -153,6 +153,13 @@ and never sets one part on another.
   it rises; cut a chain at its weakest node to strand everything beyond;
   scrap wrecks before strippers take them (`derelict-watch.md`, Denial); in the
   last chapter, put the autoforge out.
+- **The garrison against the watch.** The garrison's and allies' squads pull
+  the same levers by turns: a walker near the line is answered by the nearest
+  anti-armour squad (rifles are not sent at a frame), a flock near it by the
+  nearest rifle squad, and every squad still free goes at a standing stake, one
+  a stake, the kill that strands the most first: a planted stake's pylon to
+  scrap it, a raised or established stake's node to strand it and every stake
+  beyond. The claim is down when no stake stands unstranded (The Line's win).
 
 ## The ground (built)
 
@@ -364,6 +371,10 @@ Numbers UNTUNED.
   while it builds; a store from established; killed planted it is scrap;
   stranded it keeps its stage for good); `RelayChain` (a stake's chain is cut by
   its own node, any node on the way to the hull, or the forge going out);
+  `StakeTargets` (each standing stake as a target, pylon or node, ordered by
+  how many stakes the kill strands; `FallenHull.claimDown`); `GarrisonTasking`
+  (the garrison's attack-move orders against walkers, flocks and stakes, the
+  counterpart of `WatchTasking`);
   `Salvage` (metal on the claim; a wreck of the watch's cut to nothing is
   stripped, `Wreck.strip`, and a wreck the company scrapped is denied);
   `TownSalvage` (the town's own metal: one pile per building the hull zone

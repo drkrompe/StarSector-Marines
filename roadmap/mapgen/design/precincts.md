@@ -295,15 +295,15 @@ all.
 
 **A sealed town is laid straight too** (`SealedTown.lay`), right after the
 claim and before anything is built, so its streets and parcels fill the laid
-ground and its envelope stands on straight runs. It takes its bounding
-rectangle: the free ground inside becomes the town's, while another place's
-ground and ground the plan keeps stay theirs. It stands back from its
-neighbours: `SealedTown.SETBACK` from an open place, `SealedTown.WALLED_SETBACK`
-from a walled place it does not already touch (a Cordon redoubt's terrace
-pushes its cliff well out past built ground), and not at all from a walled
-place it touches, since the envelope does not face a wall. A block-stepped
-alternative (`SealedTown.Laying.BLOCKS`) stands behind the temporary switch
-`battle.sealedTown.laying` until the owner picks.
+ground and its envelope stands on long straight runs. The town is snapped to
+`SealedTown.BLOCK`-cell blocks from its bounding box (owner pick: long steps
+that follow the town, over a bare rectangle round it): a block it holds at least
+as much of as is free is wholly its own, and a block it barely reaches into is
+given up. Another place's ground and ground the plan keeps stay theirs, and the
+town stands back from its neighbours: `SealedTown.SETBACK` from an open place,
+`SealedTown.WALLED_SETBACK` from a walled place it does not already touch (a
+Cordon redoubt's terrace pushes its cliff well out past built ground), and not
+at all from a walled place it touches, since the envelope does not face a wall.
 
 ## Connectedness is solved for, not hoped for
 

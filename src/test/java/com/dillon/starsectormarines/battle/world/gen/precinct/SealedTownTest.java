@@ -256,35 +256,33 @@ class SealedTownTest {
     }
 
     /**
-     * A sealed town is laid as its bounding rectangle: the free ground inside becomes the town's, so its envelope
-     * runs straight; another place's ground, the ground within the setback of it and ground the plan keeps are left
-     * alone.
+     * A sealed town is laid in blocks: a block it mostly holds is wholly its own, its free ground taken, and a block
+     * it barely reaches into is given up, so its envelope runs in long straight steps. Another place's ground, ground
+     * the plan keeps and ground within the setback of an open neighbour are never taken.
      */
     @Test
-    void aSealedTownIsLaidAsItsRectangle() {
-        int u = GrownTrunkPlan.UNOWNED, w = 40, h = 20;
+    void aSealedTownIsLaidInBlocks() {
+        int u = GrownTrunkPlan.UNOWNED, b = SealedTown.BLOCK, w = 4 * b, h = 3 * b;
         int[][] claim = new int[w][h];
         for (int[] column : claim) Arrays.fill(column, u);
-        int[][] grown = new int[w][h];
-        // An L of town (place 0) from (1,1) to (15,8), a neighbour's cell (place 1) in its corner, a kept cell.
-        for (int x = 1; x <= 15; x++) claim[x][1] = 0;
-        for (int y = 1; y <= 8; y++) claim[1][y] = 0;
-        claim[15][8] = 0;
-        claim[14][8] = 1;
-        for (int x = 0; x < w; x++) grown[x] = claim[x].clone();
+        // Town (place 0) from (0,0): most of block (0,0), most of block (1,0) bar a kept cell, and one cell in (0,1).
+        for (int x = 0; x < 2 * b; x++) for (int y = 0; y < b - 2; y++) claim[x][y] = 0;
+        claim[3][b] = 0;
+        // An open neighbour (place 1) well clear to the east, and one of its cells inside block (1,0).
+        claim[3 * b + 6][1] = 1;
+        claim[2 * b - 1][b - 1] = 1;
         boolean[][] kept = new boolean[w][h];
-        kept[3][3] = true;
+        kept[b + 1][b - 1] = true;
 
-        SealedTown.lay(claim, new boolean[]{true, false}, new boolean[]{true, false}, kept,
-                SealedTown.Laying.RECTANGLE);
+        SealedTown.lay(claim, new boolean[]{true, false}, new boolean[]{true, false}, kept);
 
-        for (int x = 0; x < w; x++) {
-            for (int y = 0; y < h; y++) {
-                boolean inside = x >= 1 && x <= 15 && y >= 1 && y <= 8;
-                boolean setBack = Math.abs(x - 14) <= SealedTown.SETBACK && Math.abs(y - 8) <= SealedTown.SETBACK;
-                int expected = grown[x][y] != u ? grown[x][y] : inside && !kept[x][y] && !setBack ? 0 : u;
-                assertEquals(expected, claim[x][y], "cell " + x + "," + y);
-            }
-        }
+        // Block (0,0) is the town's whole; its free top rows taken.
+        for (int x = 0; x < b; x++) for (int y = 0; y < b; y++) assertEquals(0, claim[x][y], "cell " + x + "," + y);
+        // Block (1,0): the neighbour's cell stays its own, the kept cell and the free cells within its setback stay free.
+        assertEquals(1, claim[2 * b - 1][b - 1]);
+        assertEquals(u, claim[b + 1][b - 1]);
+        assertEquals(u, claim[2 * b - 2][b - 1], "a cell beside the neighbour was taken");
+        // Block (0,1), where the town held one cell, is given up.
+        assertEquals(u, claim[3][b]);
     }
 }

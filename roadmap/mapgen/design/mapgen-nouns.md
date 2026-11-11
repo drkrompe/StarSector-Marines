@@ -2610,8 +2610,8 @@ continuous wall with a few locks, rather than a sealed door on every building. O
 the precinct path the settlement is a zoned town that is walled, the one place that
 pairing makes: streets, blocks and courts inside, ordinary doors on its buildings,
 and a wall drawn on the outline of its claim once that is laid straight
-(`SealedTown.lay`, `precincts.md`: its bounding rectangle, set back from its
-neighbours), so the wall is straight runs and never a stair. Its wall keeps two
+(`SealedTown.lay`, `precincts.md`: snapped to blocks, set back from its
+neighbours), so the wall runs in long straight steps and never a stair. Its wall keeps two
 locks, where its widest roads meet it, any more the map's road network needs to
 stay connected, and one onto every stretch of open ground it borders that no road
 reaches (`SealedTown.groundLocks`), so it never seals a field off. A lock is

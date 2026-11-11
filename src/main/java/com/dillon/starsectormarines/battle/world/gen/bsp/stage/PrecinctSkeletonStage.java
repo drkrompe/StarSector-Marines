@@ -302,7 +302,7 @@ public final class PrecinctSkeletonStage implements GenStage {
             if (mask == null) continue;
             for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) kept[x][y] |= mask[x][y];
         }
-        SealedTown.lay(claim, sealed, SealedTown.sealedSide(plan), kept, SealedTown.laying());
+        SealedTown.lay(claim, sealed, SealedTown.sealedSide(plan), kept);
     }
 
     private static List<TrunkPlan.SubRect> parcels(PrecinctPlan plan, int[][] claim,
