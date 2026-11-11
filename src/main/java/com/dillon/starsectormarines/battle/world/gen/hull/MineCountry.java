@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.world.gen.nature.MineralFormation;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -17,7 +16,6 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A mine's country round its pit and ore line ({@code long-survey-maps.md}, Chapter 2): spoil heaps and tailings
@@ -37,26 +35,20 @@ public final class MineCountry {
     static final int SIGHTLINE = 5;
     /** Open ground round a piece in the way, and cells kept off a claim lattice grid point. */
     static final int RING = 2, STAKE_CLEAR = 6;
-    /** The art each piece is made of. */
-    static final String SPOIL = "doodad.ruins-spoil-heap", SLIDE = "doodad.ruins-spoil-slide",
-            SLAG = "doodad.ruins-slag-heap", HEADFRAME = "doodad.ruins-headframe",
-            GIRDER = "doodad.ruins-fallen-girder", SCRAP = "doodad.industrial-scrap-pile",
-            RUBBLE = "doodad.decal-rubble-2", RAIL = "doodad.ruins-mag-rail",
-            CAR = "doodad.ruins-unit-carrier-derailed", POD = "doodad.ruins-feed-pod-derailed",
-            ENGINE = "doodad.ruins-bed-changer-derailed", TANK = "doodad.fuel-tank-vertical",
-            FLUID = "doodad.industrial-fluid-tank", PUMP = "doodad.industrial-pump-set",
-            RADIATOR = "doodad.radiator-skid";
     /**
-     * The mine's own pieces, made for it; until a sheet holds one, its stand-in above is drawn in its place
-     * ({@link #STAND_IN}). A pump house stands on the pumping station's pad in place of its kit.
+     * The mine's own pieces (the {@code mine-heaps} and {@code mine-works} sheets), each drawn at its size on the
+     * ground: heaps of spoil and terraced tailings, ore cars upright and tipped, the ore train's engine, a ruined
+     * headframe and a pump house.
      */
-    static final String MINE_SPOIL = "doodad.mine-spoil-heap", MINE_TAILINGS = "doodad.mine-tailings-mound",
-            MINE_CAR = "doodad.mine-ore-car", MINE_HEADFRAME = "doodad.mine-headframe",
-            MINE_PUMP_HOUSE = "doodad.mine-pump-house";
-    static final Map<String, String> STAND_IN = Map.of(MINE_SPOIL, SPOIL, MINE_TAILINGS, SLIDE, MINE_CAR, CAR,
-            MINE_HEADFRAME, HEADFRAME);
-    /** A route's cover, by turns: a spoil heap, a wagon, a slag heap, each at {@link #BIG} times its sheet. */
-    static final String[] COVER = {MINE_SPOIL, MINE_CAR, SLAG};
+    static final String SPOIL = "doodad.mine-spoil-large", SPOIL_SMALL = "doodad.mine-spoil-small",
+            TAILINGS = "doodad.mine-tailings-large", TAILINGS_SMALL = "doodad.mine-tailings-small",
+            CAR = "doodad.mine-ore-car", TIPPED = "doodad.mine-ore-car-tipped", ENGINE = "doodad.mine-ore-engine",
+            HEADFRAME = "doodad.mine-headframe-ruined", PUMP_HOUSE = "doodad.mine-pump-house";
+    /** The wreck and ground laid with them. */
+    static final String GIRDER = "doodad.ruins-fallen-girder", SCRAP = "doodad.industrial-scrap-pile",
+            RUBBLE = "doodad.decal-rubble-2", RAIL = "doodad.ruins-mag-rail";
+    /** A route's cover, by turns: a spoil heap, a tipped ore car, an ore car. */
+    static final String[] COVER = {SPOIL_SMALL, TIPPED, CAR};
     /**
      * Cells between two pieces of a route's cover, and either side of its line they stand by turns; a cluster's pieces
      * stand this far about its stake; a piece that does not fit its cell is tried up to {@code SEARCH} cells off it.
@@ -65,12 +57,10 @@ public final class MineCountry {
     static final int COVER_STEP = 8, COVER_SIDE = 4, CLUSTER_REACH = 9, SEARCH = 3;
     /** The ore line's art: its pieces mark the line the sightline is kept along. */
     static final String ORE_LINE = "ore-conveyor.";
-    /** What the mine's pieces are drawn at, times their sheet: a wagon, a heap, read at a map's scale. */
-    static final int BIG = 2;
-    /** Cells from one wagon's front to the next's: a wagon of six and two of coupling gap. */
-    static final int TRAIN_PITCH = 8;
-    /** A headframe's frame, cells square. */
-    static final int FRAME = 12;
+    /** Cells from one wagon's front to the next's: a wagon of six and two of coupling gap; the engine is nine long. */
+    static final int TRAIN_PITCH = 8, ENGINE_LENGTH = 9;
+    /** A headframe's ground, cells square, and its art's side inside it. */
+    static final int FRAME = 12, FRAME_ART = 9;
     /** The pumping station's pad. */
     static final int PAD_W = 10, PAD_H = 7;
 
@@ -111,23 +101,21 @@ public final class MineCountry {
         int x = d.x(), y = d.y();
         switch (d.kind()) {
             case SPOIL -> {
-                big(MINE_SPOIL, x, y);
-                big(MINE_TAILINGS, x + 9, y - 2);
-                big(SLAG, x - 5, y + 2);
+                put(SPOIL, x, y, 0);
+                put(SPOIL_SMALL, x + 11, y - 1, 0);
+                put(SPOIL_SMALL, x - 8, y + 2, 0);
             }
             case TAILINGS -> {
-                int r = Math.max(6, d.length());
-                big(MINE_TAILINGS, x - r + 1, y - 2);
-                big(MINE_TAILINGS, x + 1, y + 3);
-                big(MINE_SPOIL, x - 4, y - r + 1);
-                big(SLAG, x + r - 5, y - 4);
+                put(TAILINGS, x - 6, y - 4, 0);
+                put(TAILINGS_SMALL, x + 8, y + 1, 0);
+                put(SPOIL_SMALL, x - 3, y + 7, 0);
             }
             case HEADFRAME -> headframe(x, y);
             case TRAIN -> train(x, y, Math.max(12, d.length()));
             case CARTS -> {
-                big(MINE_CAR, x, y);
-                big(POD, x + 7, y + 2);
-                big(MINE_CAR, x + 2, y + 9);
+                put(CAR, x, y, 0);
+                put(TIPPED, x + 5, y + 2, 0);
+                put(CAR, x, y + 10, 0);
             }
             case PUMPS -> pumps(x, y, d.length());
             case ROUTE -> {
@@ -155,38 +143,30 @@ public final class MineCountry {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
                     if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
-                    if (big(id, x + dx, y + dy)) return true;
+                    if (put(id, x + dx, y + dy, 0)) return true;
                 }
             }
         }
         return false;
     }
 
-    /** {@code id}'s art: the mine's own piece where a sheet holds it, else its stand-in ({@link #STAND_IN}). */
-    private DoodadDef art(String id) {
-        DoodadDef def = registry.doodad(id);
-        String standIn = STAND_IN.get(id);
-        return def != null || standIn == null ? def : registry.doodad(standIn);
-    }
-
     /**
-     * A ruined headframe: its frame standing over the shaft with its four legs solid, a girder fallen off it, scrap and
-     * rubble under it and spoil beside it.
+     * A ruined headframe in the middle of its ground: its splayed legs solid, the rest of the frame standing over the
+     * shaft open to walk under, a girder fallen off it, rubble under it and scrap and spoil beside it.
      */
     private void headframe(int x, int y) {
-        DoodadDef frame = art(MINE_HEADFRAME);
+        DoodadDef frame = registry.doodad(HEADFRAME);
         if (frame == null || !fits(x, y, FRAME, FRAME, false)) return;
         clearFormations(x, y, x + FRAME - 1, y + FRAME - 1);
         for (int yy = y; yy < y + FRAME; yy++) for (int xx = x; xx < x + FRAME; xx++) taken.set(yy * w + xx);
         DoodadDef rubble = registry.doodad(RUBBLE);
         if (rubble != null) ctx.doodads.add(0, new Doodad(x + FRAME / 2 - 1, y + FRAME / 2 - 1, rubble));
-        for (int[] leg : new int[][]{{x, y}, {x + FRAME - 1, y}, {x, y + FRAME - 1}, {x + FRAME - 1, y + FRAME - 1}}) {
-            fixture(leg[0], leg[1]);
-        }
-        ctx.doodads.add(new Doodad(x, y, frame));
+        int a = x + (FRAME - FRAME_ART) / 2, b = y + (FRAME - FRAME_ART) / 2, e = FRAME_ART - 1;
+        for (int[] leg : new int[][]{{a, b}, {a + e, b}, {a, b + e}, {a + e, b + e}}) fixture(leg[0], leg[1]);
+        ctx.doodads.add(new Doodad(a, b, frame));
         put(GIRDER, x + 2, y - 3, 0);
         put(SCRAP, x + FRAME + 2, y + 4, 0);
-        put(MINE_SPOIL, x + FRAME + 2, y + 7, 0);
+        put(SPOIL_SMALL, x + FRAME + 2, y + 7, 0);
     }
 
     /**
@@ -195,16 +175,19 @@ public final class MineCountry {
      * art is drawn.
      */
     private void train(int x, int y, int length) {
-        // The rail under the cars' middle: the cars stand on it at twice their sheet, two cells either side.
-        for (int i = 0; i + 2 <= length; i += 2) rail(x + 1, y + i, 0);
+        // The rail under the cars' middle, a cell in from their west side.
+        for (int i = 0; i + 2 <= length; i += 2) rail(x, y + i, 0);
         int at = 0, car = 0;
-        if (big(ENGINE, x - 1, y)) at = TRAIN_PITCH;
-        for (; at + 6 <= length; at += TRAIN_PITCH, car++) big(car % 3 == 2 ? POD : MINE_CAR, x + car % 2, y + at);
+        if (put(ENGINE, x, y, 0)) at = ENGINE_LENGTH + TRAIN_PITCH - 6;
+        for (; at + 6 <= length; at += TRAIN_PITCH, car++) {
+            if (car % 3 == 2) put(TIPPED, x + 2, y + at, 0);
+            else put(CAR, x + car % 2, y + at, 0);
+        }
     }
 
     /**
-     * A pumping station on the pit's rim: its pad, a tank, fluid tanks, pump sets and a radiator, and its rising main
-     * run {@code reach} cells north toward the pit as far as open ground goes.
+     * A pumping station on the pit's rim: its pad with the pump house on it, and its rising main leaving the house's
+     * east side and run {@code reach} cells north toward the pit as far as open ground goes.
      */
     private void pumps(int x, int y, int reach) {
         if (!fits(x, y, PAD_W, PAD_H, false)) return;
@@ -217,29 +200,14 @@ public final class MineCountry {
                 ctx.markMadeGround(xx, yy);
             }
         }
-        if (!put(MINE_PUMP_HOUSE, x + 1, y + 1, 0, true)) {
-            put(TANK, x + 1, y + 2, 0, true);
-            put(FLUID, x + 6, y + 5, 0, true);
-            put(FLUID, x + 8, y + 5, 0, true);
-            put(PUMP, x + 5, y + 2, 0, true);
-            put(PUMP, x + 7, y + 2, 0, true);
-            put(RADIATOR, x + 6, y, 0, true);
-        }
-        int px = x + PAD_W / 2 - 1, top = y + PAD_H;
+        put(PUMP_HOUSE, x, y, 0, true);
+        int px = x + PAD_W - 1, from = y + PAD_H / 2, top = y + PAD_H;
         int end = top - 1;
         while (end + 1 < top + Math.max(0, reach) && openAt(px, end + 1, true)) end++;
         if (end - (top - 1) >= 4) {
-            StreetDressing.pipeRun(ctx.grid, ctx.topology, ctx.doodads, px, top - 1, px, end, 4);
+            StreetDressing.pipeRun(ctx.grid, ctx.topology, ctx.doodads, px, from, px, end, 4);
             for (int yy = top; yy <= end; yy++) taken.set(yy * w + px);
         }
-    }
-
-    /** {@code id} at {@link #BIG} times its sheet, unturned, solid with its ring if it is cover. */
-    private boolean big(String id, int x, int y) {
-        DoodadDef def = art(id);
-        if (def == null) return false;
-        boolean blocks = def.cover == DoodadCover.MED || def.cover == DoodadCover.HEAVY;
-        return place(def, x, y, 0, blocks, false, BIG);
     }
 
     private boolean put(String id, int x, int y, int turns) {
@@ -248,10 +216,10 @@ public final class MineCountry {
 
     /** One piece from {@code (x, y)}, solid with its ring if it is cover; on {@code pad}, made ground is its ground. */
     private boolean put(String id, int x, int y, int turns, boolean pad) {
-        DoodadDef def = art(id);
+        DoodadDef def = registry.doodad(id);
         if (def == null) return false;
         boolean blocks = def.cover == DoodadCover.MED || def.cover == DoodadCover.HEAVY;
-        return place(def, x, y, turns, blocks, pad, 1);
+        return place(def, x, y, turns, blocks, pad);
     }
 
     /** A rail piece: flat, laid on open ground under whatever stands on it, claiming nothing. */
@@ -262,8 +230,8 @@ public final class MineCountry {
         ctx.doodads.add(0, new Doodad(x, y, def, turns));
     }
 
-    private boolean place(DoodadDef def, int x, int y, int turns, boolean blocks, boolean pad, int scale) {
-        int fx = Math.max(1, def.footprintCellsX) * scale, fy = Math.max(1, def.footprintCellsY) * scale;
+    private boolean place(DoodadDef def, int x, int y, int turns, boolean blocks, boolean pad) {
+        int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
         if (turns % 2 == 1) {
             int t = fx;
             fx = fy;
@@ -279,18 +247,10 @@ public final class MineCountry {
                 if (blocks) fixture(xx, yy);
             }
         }
-        Doodad d = scale == 1 ? new Doodad(x, y, def, turns) : scaled(def, scale, x, y);
+        Doodad d = new Doodad(x, y, def, turns);
         if (blocks) ctx.doodads.add(d);
         else ctx.doodads.add(0, d);
         return true;
-    }
-
-    /** {@code def} drawn {@code k} times its sheet from {@code (x, y)}: its sheet read at a cell {@code k} times finer. */
-    private static Doodad scaled(DoodadDef def, int k, int x, int y) {
-        int cell0 = def.sourceCellPx > 0 ? def.sourceCellPx : TileManifest.TILE_SIZE;
-        int fx = Math.max(1, def.footprintCellsX), fy = Math.max(1, def.footprintCellsY);
-        return new Doodad(x, y, new TileManifest.TileFrame(def.col * k, def.row * k), def.sheetPath,
-                def.cover.level(), def.ballisticHalfHeight, fx * k, fy * k, null, cell0 / k);
     }
 
     private boolean fits(int x0, int y0, int fw, int fh, boolean pad) {

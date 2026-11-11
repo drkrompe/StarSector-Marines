@@ -250,18 +250,16 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   from a cell: spoil heaps and tailings mounds on the planet's own ground, tipped ore carts,
   a stalled ore train on its rail, a pumping station on a pit's rim with its main
   run toward the pit, and ruined headframes (legs solid, a girder fallen off,
-  scrap and spoil round it). Heaps and wagons are drawn at twice their sheet to
-  read at a map's scale. As the shower's are, a piece with cover stands solid in a
+  scrap and spoil round it), all the mine's own kit (the `mine-heaps` and
+  `mine-works` sheets, drawn at their size on the ground). As the shower's are, a piece with cover stands solid in a
   ring of open ground, clearing the wild ground's formations under it; nothing in
   the way stands on a road, the hull, trench or aprons, the landing's field of
   fire, near a lattice grid point, or within `SIGHTLINE` of an ore line. A piece
-  that does not fit is left out. A `route` stands hard cover (a spoil heap, an
-  ore car, a slag heap, by turns) every `COVER_STEP` cells north from its cell,
-  either side of its line by turns, and a `cluster` four pieces about a stake; a
-  piece that does not fit its cell takes the nearest that does within `SEARCH`.
-  The mine's own pieces (`doodad.mine-spoil-heap`, `-tailings-mound`, `-ore-car`,
-  `-headframe`, `-pump-house`) are drawn wherever a sheet holds them, their
-  stand-ins until then.
+  that does not fit is left out. A `route` stands hard cover (a spoil heap, a
+  tipped ore car, an ore car, by turns) every `COVER_STEP` cells north from its
+  cell, either side of its line by turns, and a `cluster` four pieces about a
+  stake; a piece that does not fit its cell takes the nearest that does within
+  `SEARCH`.
 - **A grown city** (`TownBlockStage`): the patch's `blocks` are boxes where the
   city's town lots join into bigger, denser blocks than a town's (up to 56 by 32
   cells against 36 by 20), so a fight's destruction shows across a whole block;
