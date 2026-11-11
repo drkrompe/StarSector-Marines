@@ -253,6 +253,11 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   the way stands on a road, the hull, trench or aprons, the landing's field of
   fire, near a lattice grid point, or within `SIGHTLINE` of an ore line. A piece
   that does not fit is left out.
+- **A grown city** (`TownBlockStage`): the patch's `blocks` are boxes where the
+  city's town lots join into bigger, denser blocks than a town's (up to 56 by 32
+  cells against 36 by 20), so a fight's destruction shows across a whole block;
+  the boxes stop short of each starting stake, and the lot nearest each starting
+  stake is left an open square so its lattice point seats however the city grew.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground

@@ -112,6 +112,11 @@ public final class PoolEntryText {
                 }
                 hull.put("dress", dress);
             }
+            if (!h.blocks().isEmpty()) {
+                List<Object> blocks = new ArrayList<>();
+                for (HullSitePlan.Box b : h.blocks()) blocks.add(List.of(b.x0(), b.y0(), b.x1(), b.y1()));
+                hull.put("blocks", blocks);
+            }
             m.put("hull", hull);
         }
         return m;

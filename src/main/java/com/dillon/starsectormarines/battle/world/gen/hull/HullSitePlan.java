@@ -16,13 +16,26 @@ import java.util.Locale;
  *
  * <p>Read from a pool entry's patch as
  * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards",
- * "dress": [{"kind", "x", "y", "length", "turns"}]}};
+ * "dress": [{"kind", "x", "y", "length", "turns"}], "blocks": [[x0, y0, x1, y1]]}};
  * {@code heading} is {@code north} (+y), {@code east}, {@code south} or {@code west}. {@code yards}, a row, makes the
  * worked fields wholly south of it the port's yards ({@link PortYards}); absent or 0, the fields are left as laid.
- * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}).
+ * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}). {@code blocks} are boxes
+ * where the city's town lots join into bigger blocks ({@code TownBlockStage}).
  */
 public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards,
-                           List<Dress> dress) {
+                           List<Dress> dress, List<Box> blocks) {
+
+    /** A box of map cells, inclusive. */
+    public record Box(int x0, int y0, int x1, int y1) {
+        public Box {
+            if (x1 < x0 || y1 < y0) throw new IllegalArgumentException("an empty box");
+        }
+
+        /** Whether the inclusive rectangle lies wholly inside, whichever way round its corners are given. */
+        public boolean contains(int ax, int ay, int bx, int by) {
+            return Math.min(ax, bx) >= x0 && Math.max(ax, bx) <= x1 && Math.min(ay, by) >= y0 && Math.max(ay, by) <= y1;
+        }
+    }
 
     /**
      * The shortest and longest trench a hull may have ploughed off its bow, cells. Short is allowed: the broken hull
@@ -56,6 +69,7 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
         if (trench < MIN_TRENCH || trench > MAX_TRENCH) throw new IllegalArgumentException("trench of " + trench + " cells");
         stakes = stakes == null ? List.of() : List.copyOf(stakes);
         dress = dress == null ? List.of() : List.copyOf(dress);
+        blocks = blocks == null ? List.of() : List.copyOf(blocks);
         if (yards < 0) throw new IllegalArgumentException("yards south of row " + yards);
     }
 
@@ -87,7 +101,15 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
                         d.getInt("y"), d.optInt("length", 0), d.optInt("turns", 0)));
             }
         }
+        List<Box> blocks = new ArrayList<>();
+        JSONArray boxes = json.optJSONArray("blocks");
+        if (boxes != null) {
+            for (int i = 0; i < boxes.length(); i++) {
+                JSONArray b = boxes.getJSONArray(i);
+                blocks.add(new Box(b.getInt(0), b.getInt(1), b.getInt(2), b.getInt(3)));
+            }
+        }
         return new HullSitePlan(json.getInt("x"), json.getInt("y"), heading, json.optInt("trench", 72), stakes,
-                json.optInt("yards", 0), dress);
+                json.optInt("yards", 0), dress, blocks);
     }
 }
