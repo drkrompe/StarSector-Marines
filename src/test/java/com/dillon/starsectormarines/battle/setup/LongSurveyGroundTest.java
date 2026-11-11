@@ -49,7 +49,7 @@ class LongSurveyGroundTest {
         assertEquals(32, rules.mouthX(), "the mouth is the bay apron's berth");
         assertEquals(6, rules.mouthY());
         assertEquals(LongSurveyGround.LINK_CELLS, rules.linkCells());
-        assertEquals(20 + LongSurveyGround.LINK_CELLS / 2, rules.perimeterCells(), "the hull's half-extent and half a link");
+        assertEquals(LongSurveyGround.LINK_CELLS / 2, rules.perimeterCells(), "half a link off the hull's plates");
         assertEquals(2, rules.lattice().size());
         assertEquals(70, rules.lattice().get(0).x());
         assertEquals(1, rules.haulRoads().size(), "a one-cell road is no road");
