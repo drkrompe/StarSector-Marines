@@ -241,6 +241,7 @@ public final class TileRegistry {
             "data/tilesets/ore-conveyor-motions.tileset.json",
             "data/tilesets/refinery-plant.tileset.json",
             "data/tilesets/refinery-utilities.tileset.json",
+            "data/tilesets/refinery-heaters.tileset.json",
             "data/tilesets/origin-lab-annex.tileset.json",
             "data/tilesets/origin-lab-kit.tileset.json",
             "data/tilesets/origin-park-bandstand.tileset.json",

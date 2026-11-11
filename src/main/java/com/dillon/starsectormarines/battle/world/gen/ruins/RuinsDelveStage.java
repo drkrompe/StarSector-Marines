@@ -1611,7 +1611,13 @@ public final class RuinsDelveStage implements GenStage {
                     int k = i(x, y);
                     if (!beyond[k]) continue;
                     free(x, y);
-                    ground(x, y, GroundKind.DIRT);
+                    Cell like = wildGround(x, y);
+                    if (like == null) {
+                        ground(x, y, GroundKind.DIRT);
+                    } else {
+                        topology.setGroundKind(x, y, topology.getGroundKind(like.x(), like.y()));
+                        topology.setSurface(x, y, topology.getSurface(like.x(), like.y()));
+                    }
                     topology.setBuildingKindHint(x, y, null);
                     drafted[k] = false;
                     lineCell[k] = false;
@@ -1641,6 +1647,21 @@ public final class RuinsDelveStage implements GenStage {
                     if (insideCell(x, y) && grid.isWalkable(x, y) && !kept[i(x, y)]) hullCell(x, y);
                 }
             }
+        }
+
+        /**
+         * A cell of the ruin's own open ground to dress a cut cell like: the ground west of the face mirrored across
+         * it, forty columns deep, so the ruin's ground runs on round the plant with its own patches; the nearest open
+         * cell west on the same row where the mirrored one is built on; null where the row has none.
+         */
+        Cell wildGround(int x, int y) {
+            if (faceLx == null) return null;
+            int face = faceLx[y], start = face - 1 - Math.floorMod(x - face, 40);
+            for (int sx = start; sx >= 1; sx--) {
+                if (grid.isWalkable(sx, y) && !insideCell(sx, y) && !topology.hasBuildingKindHint(sx, y)
+                        && topology.getGroundKind(sx, y) != GroundKind.STREET) return new Cell(sx, y);
+            }
+            return null;
         }
 
         /** Whether outline may cut a cell: inside or on the face, hull or wall, and walling nothing. */

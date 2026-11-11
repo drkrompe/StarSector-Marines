@@ -13,7 +13,6 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog; a burn's
@@ -173,7 +172,7 @@ final class NightLightingRenderSystem implements RenderSystem {
                 floodlight(out, lamp, x, y, px, lampOn[index], ctx.alphaMult);
                 continue;
             }
-            String art = fixtureArt(lamp.fixture());
+            String art = RuinsLightArt.fixture(lamp.fixture());
             if (art != null) {
                 fixture(out, ctx.sim.getTopology(), night, lamp, art, x, y, px, lampOn[index], ctx.alphaMult);
                 continue;
@@ -283,8 +282,8 @@ final class NightLightingRenderSystem implements RenderSystem {
         VisibleCellRect view = camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS, gw, gh);
         boolean[] shown = useFog ? fog.cellShownArray() : null;
         for (Doodad d : ctx.sim.getDoodads()) {
-            String sheet = EMISSIVE_SHEETS.get(d.sheetPath);
-            if (sheet == null || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            String overlayPath = RuinsLightArt.overlayPath(d.sheetPath);
+            if (overlayPath == null || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
             String id = d.definitionId();
             if (id != null && (id.endsWith("-melt") || id.contains("-pour"))) continue;
             float cx = d.cellX + d.footprintCellsX * 0.5f, cy = d.cellY + d.footprintCellsY * 0.5f;
@@ -292,7 +291,7 @@ final class NightLightingRenderSystem implements RenderSystem {
             if (shown != null && !shown[cellY * gw + cellX]) continue;
             float glow = running(sample(pools, cx, cy));
             if (glow <= 0f) continue;
-            SpriteAPI overlay = sprites.lightArt(LIGHTS + "emissive/" + sheet + "-lit.png");
+            SpriteAPI overlay = sprites.lightArt(overlayPath);
             if (overlay != null) doodads.emitOverlay(out, camera, overlay, 2, d, layer(), 1f, 1f, 1f, glow * ctx.alphaMult);
         }
     }
@@ -307,31 +306,13 @@ final class NightLightingRenderSystem implements RenderSystem {
 
     static final float RUNNING_FROM = 0.45f, RUNNING_SPAN = 0.35f;
 
-    /** The sheets that carry an emissive overlay, by the sheet path a placement names. */
-    private static final Map<String, String> EMISSIVE_SHEETS = Map.of(
-            "graphics/doodads/ruins-themes.png", "ruins-themes",
-            "graphics/doodads/ruins-forge.png", "ruins-forge",
-            "graphics/doodads/ruins-rooms.png", "ruins-rooms",
-            "graphics/doodads/ruins-works-plant.png", "ruins-works-plant");
-
-    /** The painted art a fixture draws from ({@code lights/<id>-{lit,unlit}.png}); null for one drawn otherwise. */
-    static String fixtureArt(NightLighting.Fixture fixture) {
-        return switch (fixture) {
-            case CEILING_STRIP -> "ruins-ceiling-strip";
-            case HIGH_BAY -> "ruins-ceiling-highbay";
-            case EMERGENCY_STRIP -> "ruins-emergency-strip";
-            case BEACON -> "ruins-emergency-beacon";
-            default -> null;
-        };
-    }
-
     /**
      * A painted fixture over its cell, lit or dark: drawn after the shade, so a dark one wears its cell's darkness
      * itself and a lit one glows.
      */
     private void fixture(DrawList out, CellTopology ground, NightLighting night, NightLighting.Lamp lamp, String art,
                          float x, float y, float px, boolean lit, float alpha) {
-        SpriteAPI sprite = sprites == null ? null : sprites.lightArt(LIGHTS + art + (lit ? "-lit.png" : "-unlit.png"));
+        SpriteAPI sprite = sprites == null ? null : sprites.lightArt(RuinsLightArt.fixturePath(art, lit));
         if (sprite == null) return;
         float shade = 1f;
         if (!lit) {
@@ -342,8 +323,6 @@ final class NightLightingRenderSystem implements RenderSystem {
         out.addSprite(layer(), sprite, x, y, px, px, lamp.bearingDegrees(), shade, shade, shade, alpha);
     }
 
-    /** Where the lamp art and the sheets' emissive overlays live. */
-    static final String LIGHTS = "graphics/battle/lights/";
     /** How much of its cell's darkness a dark fixture wears, drawn as it is after the shade. */
     static final float FIXTURE_SHADE = 0.85f;
 

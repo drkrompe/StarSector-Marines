@@ -619,6 +619,10 @@ public class BattleSprites {
             ensureRubbleSheet();
         }));
         if (terrainSheets != null) {
+            // A ruin's lamp fixtures and its sheets' emissive overlays, with the sheets they light.
+            for (String path : RuinsLightArt.paths(terrainSheets)) {
+                steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> loadLightArt(path)));
+            }
             for (String path : terrainSheetPaths()) {
                 if (terrainSheets.contains(path)) {
                     steps.add(new TextureLoadQueue.Step(loadingTerrain, () -> ensureTerrainSheet(path)));
@@ -869,9 +873,17 @@ public class BattleSprites {
 
     /**
      * A lamp fixture's or a sheet's emissive overlay ({@code mod/graphics/battle/lights/}), loaded the first time it
-     * is asked for; null when it cannot be, so the lamp draws without its art.
+     * is asked for; null when it cannot be, so the lamp draws without its art. A battle's load names what it will ask
+     * for ({@link RuinsLightArt#paths}), so a battle asks first only for what its set missed.
      */
     public SpriteAPI lightArt(String path) {
+        if (lightArt.containsKey(path)) return lightArt.get(path);
+        if (terrainOnDemand) unplanned("light art " + path);
+        return loadLightArt(path);
+    }
+
+    /** Loads {@link #lightArt}'s {@code path} now, as a battle's load does, unless it is already. */
+    private SpriteAPI loadLightArt(String path) {
         if (lightArt.containsKey(path)) return lightArt.get(path);
         SpriteAPI sprite = loadEngineFxSpriteOrNull(path);
         lightArt.put(path, sprite);
