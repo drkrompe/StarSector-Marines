@@ -38,8 +38,10 @@ import java.util.Set;
  * the map; the lighters are the defender's and the planet's traffic.
  *
  * <p>The lines' band and the apron (staging to the outer edge) are ground held from growth ({@link #LINES},
- * {@link #APRON}); the warehouses between them are layout structures raised on open ground before the map is
- * finished, so they are buildings like any other; the highway is layout paving. Everything else is dressed once the
+ * {@link #APRON}); the warehouse band between them is built ground ({@link #WAREHOUSES}), held from the town's growth
+ * with the warehouses raised on it as layout structures before the map is finished, so they are buildings like any
+ * other; the highway is layout paving. The hub's own roads tie the highway to every warehouse and pad
+ * ({@link PortHub#roads}). Everything else is dressed once the
  * terminal is built ({@link PortHubDressing}).
  */
 public final class PortWorks implements RaidIndustry {
@@ -50,6 +52,8 @@ public final class PortWorks implements RaidIndustry {
     public static final String LINES = "port-lines";
     /** The highway's paving. */
     public static final String HIGHWAY = "port-highway";
+    /** The warehouse rows' band, held from the town's growth as built ground the warehouses are raised on. */
+    public static final String WAREHOUSES = "port-warehouses";
     /** Each warehouse's structure is named this prefix and its index. */
     public static final String WAREHOUSE = "port-warehouse-";
 
@@ -78,7 +82,7 @@ public final class PortWorks implements RaidIndustry {
     /** Cells the hub stops short of the map's edges. */
     static final int MARGIN = 2;
     /** Where the lines run across the map, as a share of its height from the far side's edge. UNTUNED. */
-    static final float LINES_AT = 0.50f;
+    static final float LINES_AT = 0.38f;
 
     // The terminal stands at the hub's town end, its claim clear above the lines; the industrial quarter beside it on
     // the town side, between it and the homes: the freight forwarders' yards the haul road runs out to.
@@ -138,9 +142,12 @@ public final class PortWorks implements RaidIndustry {
         out.addAll(pieces(hub, frame.width(), frame.height()));
     }
 
-    /** The lines in run back past the hub's start this far: under the terminal, to its town side's middle. */
+    /**
+     * The lines in run back past the hub's start this far: under the terminal to its town side, where the
+     * industrial quarter's streets and the haul road meet them.
+     */
     static int back(int reach) {
-        return reach + HUB_GAP + reach / 2;
+        return 2 * reach + HUB_GAP;
     }
 
     /**
@@ -166,6 +173,8 @@ public final class PortWorks implements RaidIndustry {
         List<Piece> out = new ArrayList<>();
         out.add(site(LINES, hub.lines(), width, height));
         out.add(site(APRON, hub.apron(), width, height));
+        Site band = site(WAREHOUSES, hub.built(), width, height);
+        out.add(new Site(band.name(), band.x0(), band.y0(), band.x1(), band.y1(), SitePurpose.BUILT, true));
         List<int[]> road = new ArrayList<>();
         PortHub.Rect h = hub.highway();
         for (int x = Math.max(0, h.x0()); x <= Math.min(width - 1, h.x1()); x++) {
