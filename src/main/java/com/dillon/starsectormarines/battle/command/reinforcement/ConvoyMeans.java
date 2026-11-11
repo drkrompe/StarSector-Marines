@@ -157,7 +157,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // the v3-quirk fix the design doc calls out: ARMORY captures
         // naturally retire convoy in priority order without explicit
         // re-ordering.
-        if (!sim.getCompoundService().hasAliveCompound(
+        // A Raid's garrison column comes from beyond the battle, not out of an armory on it.
+        if (req.reason != ReinforcementRequest.Reason.GARRISON_COLUMN
+                && !sim.getCompoundService().hasAliveCompound(
                 TacticalNode.Kind.ARMORY, Faction.DEFENDER)) {
             return false;
         }
