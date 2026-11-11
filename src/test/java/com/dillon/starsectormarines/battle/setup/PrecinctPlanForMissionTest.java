@@ -209,7 +209,7 @@ class PrecinctPlanForMissionTest {
     @Test
     void theTierCapsWhatTheRiskAskedFor() {
         Precinct objective = objectiveOf(OperationTier.ESTABLISHED, RiskLevel.HIGH);
-        assertEquals(Fortification.GARRISON, objective.fortification(),
+        assertEquals(Fortification.GARRISON.laidSquare(), objective.fortification(),
                 "rating 5 is a stronghold, high risk nudges it to citadel, "
                         + "and an Established operation caps it back to garrison");
     }
@@ -217,7 +217,7 @@ class PrecinctPlanForMissionTest {
     @Test
     void aFullStrengthOperationIsNotCappedBelowTheWorldsOwnAnswer() {
         Precinct objective = objectiveOf(OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM);
-        assertEquals(Fortification.STRONGHOLD, objective.fortification(),
+        assertEquals(Fortification.STRONGHOLD.laidSquare(), objective.fortification(),
                 "rating 5 is a stronghold, medium risk moves nothing, "
                         + "and a full-strength operation's ceiling is the citadel above it");
     }
