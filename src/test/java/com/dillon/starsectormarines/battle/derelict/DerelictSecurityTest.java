@@ -97,10 +97,14 @@ class DerelictSecurityTest {
     }
 
     private static RuinsDelve withInterior(List<Area> chambers) {
+        return withInterior(chambers, null);
+    }
+
+    private static RuinsDelve withInterior(List<Area> chambers, Cell dock) {
         RuinsDelve.Vault vault = new RuinsDelve.Vault(new Area(90, 40, 99, 60), new Cell(90, 50), new Cell(95, 50),
                 new Cell(88, 50), new Cell(97, 50));
         RuinsDelve.Interior interior = new RuinsDelve.Interior(RuinsDelve.INTERIOR, new Area(60, 0, 99, 99), 2,
-                List.of(new Area(60, 48, 61, 51)), chambers);
+                List.of(new Area(60, 48, 61, 51)), List.of(), chambers, null, null, null, null, null, dock);
         return new RuinsDelve(3, new Area(0, 40, 10, 60), List.of(), vault, List.of(), null, List.of(), null, null,
                 interior);
     }
@@ -115,6 +119,18 @@ class DerelictSecurityTest {
         assertArrayEquals(new int[] {74, 24}, posts[1]);
         assertArrayEquals(new int[] {74, 74}, posts[2]);
         assertArrayEquals(new int[] {60, 49}, posts[3]);
+    }
+
+    @Test
+    void noLineFrameIsPostedOverTheMaintenanceShopsDock() {
+        List<DerelictWalkerFrame> heavies = List.of(DerelictWalkerFrame.LINE, DerelictWalkerFrame.LINE);
+        List<Area> chambers = List.of(new Area(70, 20, 79, 29), new Area(70, 70, 79, 79));
+        int[][] posts = DerelictSecurity.interiorPosts(heavies, withInterior(chambers, new Cell(74, 24)));
+        assertArrayEquals(new int[] {74, 74}, posts[0]);
+        assertArrayEquals(new int[] {74, 74}, posts[1], "the shop stays clear though the frames double up");
+        int[][] alone = DerelictSecurity.interiorPosts(heavies.subList(0, 1),
+                withInterior(chambers.subList(0, 1), new Cell(74, 24)));
+        assertArrayEquals(new int[] {74, 24}, alone[0], "the shop is the only chamber: it serves");
     }
 
     @Test

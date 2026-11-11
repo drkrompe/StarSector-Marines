@@ -425,8 +425,9 @@ public final class DerelictSecurity {
     /**
      * Where each heavy stands on a site with an interior (`derelict-security-network.md`, Interiors): the vault frame
      * on the vault's approach, inside its forecourt; the siege frame just inside the first entrance; line frames in
-     * the interior's chambers in turn (the entrances when it has none); on install, a chamber in the frame's own zone
-     * first. Null when the ground has no interior, and the route's posts serve.
+     * the interior's chambers in turn (the entrances when it has none), never the one holding the maintenance shop's
+     * dock; on install, a chamber in the frame's own zone first. Null when the ground has no interior, and the route's
+     * posts serve.
      */
     public static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve) {
         return interiorPosts(heavies, delve, null, null);
@@ -443,6 +444,17 @@ public final class DerelictSecurity {
         RuinsDelve.Interior interior = delve.interior();
         List<RuinsDelve.Area> rooms = interior.chambers().isEmpty() ? interior.entrances() : interior.chambers();
         boolean[] taken = new boolean[rooms.size()];
+        // The maintenance shop's floor is its service bay's: no frame is posted over the dock.
+        boolean[] dockRoom = new boolean[rooms.size()];
+        int open = rooms.size();
+        RuinsDelve.Cell dock = interior.serviceDock();
+        for (int r = 0; r < rooms.size() && dock != null; r++) {
+            if (rooms.get(r).contains(dock.x(), dock.y()) && open > 1) {
+                dockRoom[r] = true;
+                taken[r] = true;
+                open--;
+            }
+        }
         int[][] out = new int[heavies.size()][];
         int nextRoom = 0;
         for (int i = 0; i < heavies.size(); i++) {
@@ -454,7 +466,9 @@ public final class DerelictSecurity {
                 out[i] = new int[] {entrance.centreX(), entrance.centreY()};
             } else {
                 int room = plans == null || zoneOf == null ? -1 : ownRoom(rooms, taken, plans.get(zoneOf[i]));
-                if (room < 0) room = nextRoom++ % rooms.size();
+                if (room < 0) {
+                    do room = nextRoom++ % rooms.size(); while (dockRoom[room]);
+                }
                 taken[room] = true;
                 out[i] = new int[] {rooms.get(room).centreX(), rooms.get(room).centreY()};
             }
