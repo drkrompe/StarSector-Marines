@@ -372,4 +372,34 @@ class PrecinctDefenceTest {
         for (int x = 1; x <= 10; x++) for (int y = 1; y <= 10; y++) own[x][y] = true;
         assertEquals(36, PrecinctDefence.wallLength(own, 12, 12));
     }
+
+    /**
+     * An open field a place guards without a wall (a refinery's process field) is armed by the same doctrine: its
+     * direct-fire guns stand outside its edge with their lanes open, its standoff weapon inside, and each is crewed by
+     * the place named for it.
+     */
+    @Test
+    void anOpenFieldIsGuardedFromOutsideItsEdgeAndCrewedByItsPlace() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        CellTopology topology = new CellTopology(W, H);
+        for (int x = 0; x < W; x++) {
+            for (int y = 0; y < H; y++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, GroundKind.GRASS);
+            }
+        }
+        boolean[][] field = new boolean[W][H];
+        for (int x = LEFT; x <= RIGHT; x++) for (int y = BOTTOM; y <= TOP; y++) field[x][y] = true;
+        GenContext ctx = new GenContext(grid, topology, new Random(7L), W, H, 7L);
+        DefenceDoctrine.Gate lane = new DefenceDoctrine.Gate((LEFT + RIGHT) / 2, BOTTOM, 0, -1, 1);
+        PrecinctDefence.Result result = PrecinctDefence.stampField(ctx, field, List.of(lane),
+                Map.of(DefensePostKind.LIGHT, 4, DefensePostKind.ARTILLERY, 1), null, "works");
+        assertTrue(result.placedCount() >= 4, "the field took " + result.placedCount() + " of its five posts");
+        for (DefensePost post : ctx.defensePosts) {
+            boolean in = field[post.anchorX][post.anchorY];
+            assertEquals(post.tier == DefensePostKind.ARTILLERY, in, post.tier + " at " + post.anchorX + ","
+                    + post.anchorY + (in ? " stands in the field it should cover" : " stands outside the field"));
+        }
+        for (TacticalNode node : ctx.tactical) assertEquals("works", node.place());
+    }
 }
