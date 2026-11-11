@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.ruins;
 
+import com.dillon.starsectormarines.battle.derelict.FacilityWake;
+import com.dillon.starsectormarines.battle.derelict.SecurityNetwork;
+import com.dillon.starsectormarines.battle.derelict.SecurityZone;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
@@ -87,17 +90,56 @@ class RuinsLightingTest {
     }
 
     @Test
+    void theWatchsLightsFollowItsZonesAndItsWake() {
+        SecurityNetwork network = new SecurityNetwork()
+                .add(new SecurityZone(1, 10, 10, 5))
+                .add(new SecurityZone(2, 30, 10, 5));
+        assertEquals(Set.of(), RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET), "a sleeping watch is dark");
+
+        network.stir(1, 0);
+        assertEquals(Set.of(RuinsLighting.watch(1)), RuinsLighting.watchCircuits(network, FacilityWake.Stage.QUIET));
+
+        assertEquals(Set.of(RuinsLighting.watch(1), RuinsLighting.vents(1), RuinsLighting.vents(2),
+                RuinsLighting.bay(1), RuinsLighting.bay(2)),
+                RuinsLighting.watchCircuits(network, FacilityWake.Stage.ROUSED), "vents and bays come up by stage");
+
+        network.zone(2).powerDown();
+        assertFalse(RuinsLighting.watchCircuits(network, FacilityWake.Stage.CONTINGENCY).contains(RuinsLighting.bay(2)),
+                "a zone cut off at its junction is dark");
+        assertTrue(RuinsLighting.watchCircuits(network, FacilityWake.Stage.CONTINGENCY)
+                .contains(RuinsLighting.watch(1)), "the contingency lights every online zone");
+    }
+
+    @Test
     void applyingUnchangedPowerKeepsTheSameLightingSoNothingRebakes() {
         CellTopology ground = new CellTopology(2, 2);
         PowerGraph graph = graph(3);
         NightLighting night = new NightLighting(0f, RuinsLighting.ROOFED_DARKNESS, List.of(),
                 RuinsLighting.circuits(graph));
         ground.setNightLighting(night);
-        RuinsLighting.apply(ground, graph);
+        RuinsLighting.apply(ground, graph, 1f);
         assertSame(night, ground.nightLighting());
         graph.restart();
-        RuinsLighting.apply(ground, graph);
+        RuinsLighting.apply(ground, graph, 2f);
         assertNotSame(night, ground.nightLighting());
         assertEquals(RuinsLighting.ROOFED_DARKNESS, ground.nightLighting().roofedDarkness());
+    }
+
+    @Test
+    void aCircuitRemembersWhenItCameOnSoItsLampsWarmFromThen() {
+        CellTopology ground = new CellTopology(2, 2);
+        PowerGraph graph = graph(3);
+        Lamp hall = new Lamp(1, 1, 3, 1, 1, 1, RuinsLighting.HALL);
+        Lamp emergency = new Lamp(1, 1, 3, 1, 1, 1, RuinsLighting.EMERGENCY);
+        ground.setNightLighting(new NightLighting(0f, RuinsLighting.ROOFED_DARKNESS, List.of(hall, emergency),
+                RuinsLighting.circuits(graph)));
+        graph.restart();
+        RuinsLighting.apply(ground, graph, 12f);
+        assertEquals(12f, ground.nightLighting().poweredAt(hall));
+        assertTrue(Float.isNaN(ground.nightLighting().poweredAt(emergency)), "lit since landing: lit as laid");
+
+        graph.throwJunction(0, Branch.STORE);
+        RuinsLighting.apply(ground, graph, 20f);
+        assertEquals(12f, ground.nightLighting().poweredAt(hall), "a circuit still on keeps its time");
     }
 }

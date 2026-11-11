@@ -4,7 +4,8 @@
 
 Jobs: hull-survey, hull-carrier, hull-contingency (pick `hull-lineage`), forge, stake, debris, trench, stripper,
 hauler, rig (pick `stripper-hauler` b), armour and fittings (the hull entered: its armour wall, breach roots and openings,
-and its interior dressing). The brief is written to prompts/<job>.prompt.txt and the untouched result to
+and its interior dressing), sheared and shower (the hull broken up: its sections' sheared ends and the debris shower),
+hull-burnt (the picked hull-survey painting repainted burnt and broken, over itself). The brief is written to prompts/<job>.prompt.txt and the untouched result to
 raw/<job>.png with its provenance. Nothing is regenerated over an existing raw.
 
 The style references are vanilla sprites from the game install, upscaled with Lanczos into build/fallen-hull-refs/
@@ -218,6 +219,66 @@ JOBS["fittings"] = (
      "Interior register: the game's existing ship-interior engineering tiles (detail scale, top-down rendering and "
      "the charcoal bulkhead steel); not layout or palette for the green armour"])
 
+BURNT = (
+    "Everything is crash- and fire-damaged: soot and scorch blooms, heat-blued and blistered paint, buckled and "
+    "missing plates showing dark structure beneath, torn edges curled back. ")
+JOBS["sheared"] = (
+    "Use case: sketch-to-render, modular game wall tiles. Image 1 is the authoritative geometry guide and edit "
+    "target: reskin it, preserving every shape, edge and position and the exact canvas, and keep the transparent "
+    "gutters and empty space transparent. " + ENTERED + BURNT +
+    "The crashed ship BROKE INTO SECTIONS on impact. LEFT BLOCK, sixteen square cells: the top of the hull's outer "
+    "armour wall where a section was SHEARED THROUGH. Pale grey is the armour cap and the mid-grey band its spine, "
+    "running straight off the sides it touches so neighbouring cells join; where the guide draws a black strip along "
+    "an outer edge, that edge is the raw break, seen from above: the torn, jagged edge of the armour plate, then the "
+    "ship's decks exposed in layers (grey bands) falling away to the break, structural rib ends cut through (the "
+    "grey bars), a frayed power cable (the yellow mark) hanging out, everything around them dark and deep, the cut "
+    "metal scorched and glowing faintly rust-orange in places. RIGHT, two long strips lying on the ground with the "
+    "hull at their top edge: first, the torn lip of a breach, a ragged edge of armour plate with a few fragments "
+    "fallen below it; second, the spill below a sheared section end, deck plates torn out like tongues, rib stubs "
+    "and a heavy black cable dragged out across the ground. " + NO_TEXT +
+    "Strict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. True transparent "
+    "background with genuine alpha outside the pieces; no floor, ground, shadow slab, labels, border, grid or "
+    "checkerboard. Same 3:2 landscape canvas as the guide.",
+    ["hull-survey", "survey_mothership_battle"],
+    ["Identity and palette: the accepted painting of this same crashed ship from above (its armour plate, colours "
+     "and weathering); not layout or scale",
+     "Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem"])
+JOBS["shower"] = (
+    "Use case: sketch-to-render, top-down game props and ground decals. Image 1 is the authoritative geometry guide "
+    "and edit target: reskin each drawing in place at exactly its size, position and outline, keep the empty space "
+    "transparent, add nothing. " + ENTERED + BURNT +
+    "This is the DEBRIS SHOWER the ship threw across the land as it broke up, and the wreckage inside it. Top row: "
+    "three little scatters of torn plate shards; a long torn plate; a broad torn plate; a torn-off equipment pod. "
+    "Then: a large torn slab of hull armour with a burnt patch and a hole; three crossed snapped structural girders; "
+    "a whole ENGINE BELL lying on its side, mouth to the left, an ember still glowing (the orange spot); a small "
+    "impact crater. Then: a snapped SENSOR MAST lying flat, dish at its left end; a broad scorch splash burnt into "
+    "the ground; a large impact crater. Bottom: a long impact SKID, a scorched furrow gouged along the ground; a "
+    "patch of deck plating buckled up from below; a fallen tangle of cables; a wall panel collapsed off its wall, "
+    "its cracked screen face up. The craters, scorch and skid are GROUND DECALS: burnt earth, ash and churned soil "
+    "with soft irregular feathered edges that blend into any ground, a crater a shallow bowl with a thrown-up rim; "
+    "the rest are the ship's metal, burnt and blackened, sage-green and khaki paint showing through the soot. "
+    "In the guide pale grey is plate, mid grey is raised housings, near-black is voids and holes, dark brown is "
+    "scorch and soot, light brown is earth, teal is glass, orange is a glowing ember, yellow is a cable. "
+    + NO_TEXT + "Strict 90-degree overhead orthographic view, no perspective tilt, lit from the upper left. True "
+    "transparent background with genuine alpha outside the drawings; no ground under the metal pieces, no shadow "
+    "slab, labels, border, grid or checkerboard. Same 3:2 landscape canvas as the guide.",
+    ["hull-survey", "debris"],
+    ["Identity and palette: the accepted painting of this same crashed ship from above; not layout or scale",
+     "The accepted debris of this ship (its plate, girders, bell and mast); material and detail scale, not layout"])
+JOBS["hull-burnt"] = (
+    "Use case: image edit. Image 1 is an accepted top-down game painting of a crashed survey mothership; it is the "
+    "edit target and its geometry authority. Keep its canvas, silhouette, layout, every structure and its position, "
+    "its camera and its transparent background exactly; keep its palette under the damage. Repaint it as the SAME "
+    "ship after it broke up on impact and burned: heavy scorch blooms and soot streaks flowing aft, blistered and "
+    "heat-blued paint, many buckled plates and plates torn away showing dark ribs and decks beneath, burnt-out "
+    "flank bays, fire-blackened radiator fins, a few embers still glowing faint orange in the deepest tears, dust "
+    "and soil drifted over the edges. It must read at a glance as a burnt broken wreck, not a clean ship, while the "
+    "hull's shape stays exactly where it is. " + NO_TEXT +
+    "Strict 90-degree overhead orthographic view. True transparent background with genuine alpha outside the hull; "
+    "same canvas as image 1.",
+    ["survey_mothership_battle"],
+    ["Hull material and greeble style (vanilla survey mothership, 2x Lanczos); not layout, shape or emblem"])
+
 WALKER = {
     "stripper": (
         "DESIGN: a STRIPPER, an unarmed salvage walker that cuts up buildings, fences, vehicles and wrecks for "
@@ -259,6 +320,7 @@ WALKER_CLOSE = (
 
 PROJECT_REFS = {
     "hull-survey": HERE / "raw" / "hull-survey.png",
+    "debris": HERE / "raw" / "debris.png",
     "ship-engineering": ROOT / "mod/graphics/tilesets/ship-engineering.png",
     "node-domain": ROOT / "mod/graphics/battle/derelict/node-domain.png",
     "post-domain": ROOT / "art-source/derelict-security/post-v2b-raw.png",
@@ -309,9 +371,13 @@ def main():
     out = HERE / "raw" / f"{name}.png"
     if out.exists():
         raise SystemExit(f"{out} exists; not regenerating")
+    target = HERE / "raw" / "hull-survey.png" if name == "hull-burnt" else HERE / "guides" / (guide + "-guide.png")
+    role = ("Edit target and geometry authority: keep its layout, silhouette and canvas; repaint the damage"
+            if name == "hull-burnt" else
+            "Geometry authority: exact silhouettes, layout, placement and scale; flat colours are placeholders, not "
+            "material")
     cmd = [sys.executable, str(ROOT / "tools" / "codex_imagegen.py"), "--prompt", str(prompt), "--out", str(out),
-           "--ref", f"{HERE / 'guides' / (guide + '-guide.png')}=Geometry authority: exact silhouettes, layout, "
-                    "placement and scale; flat colours are placeholders, not material"]
+           "--ref", f"{target}={role}"]
     for path, role in refs:
         cmd += ["--ref", f"{path}={role}"]
     print(" ".join(cmd))

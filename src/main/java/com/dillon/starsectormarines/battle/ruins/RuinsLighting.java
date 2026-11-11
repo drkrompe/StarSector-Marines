@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.ruins;
 
 import com.dillon.starsectormarines.battle.derelict.DerelictPower;
+import com.dillon.starsectormarines.battle.derelict.FacilityWake;
+import com.dillon.starsectormarines.battle.derelict.SecurityNetwork;
+import com.dillon.starsectormarines.battle.derelict.SecurityZone;
+import com.dillon.starsectormarines.battle.derelict.ServiceDucts;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Branch;
 import com.dillon.starsectormarines.battle.ruins.PowerGraph.Consumer;
 import com.dillon.starsectormarines.battle.world.gen.ruins.RuinsDelve;
@@ -25,6 +29,13 @@ import java.util.TreeSet;
  * <p>Light is presentation, never a consumer: it draws none of the hall's capacity and changes no sight
  * ({@link NightLighting}). An overloaded hall browns the plant out, all but the hall itself, so the load the player
  * must shed is seen. Each lamp's pool stops at its own building's walls, so rooms light as rooms.
+ *
+ * <p>At a derelict site the watch has lights of its own, on the standby it never lost ({@link DerelictPower}), and
+ * they show its wake ({@code derelict-watch.md}, Waking): a zone's red alarm strips burn once it is alert or awake;
+ * its vent hatches glow amber from {@link FacilityWake.Stage#STIRRING}, its reserve bay from
+ * {@link FacilityWake.Stage#ROUSED}; the hunt sets every online zone alert and so lights them all, and the
+ * contingency lights every zone with a live node. A zone powered down through its junction, or whose node is down,
+ * goes dark.
  */
 public final class RuinsLighting {
 
@@ -43,6 +54,14 @@ public final class RuinsLighting {
     public static final String VAULT = "vault";
     static final String BAND = "band-";
     static final String STORE = "store-";
+    static final String WATCH = "watch-";
+    static final String VENTS = "vents-";
+    static final String BAY = "bay-";
+    /** The watch's alarm strips stand this far apart: a sparse lattice over the plant's own lights. */
+    static final int ALARM_SPACING = 10;
+
+    private static final float[] ALARM_LIGHT = {1f, 0.12f, 0.08f};
+    private static final float[] HATCH_LIGHT = {1f, 0.62f, 0.14f};
 
     private static final float[] WORK_LIGHT = {0.86f, 0.92f, 1f};
     private static final float[] HALL_LIGHT = {1f, 0.86f, 0.62f};
@@ -188,11 +207,105 @@ public final class RuinsLighting {
         return null;
     }
 
-    /** Brings {@code ground}'s lighting to {@code works}' power now; no change, no new lighting, so no rebake. */
-    public static void apply(CellTopology ground, PowerGraph graph) {
+    /** The circuit of a security zone's alarm strips. */
+    public static String watch(int zoneId) { return WATCH + zoneId; }
+
+    /** The circuit of a security zone's vent hatches. */
+    public static String vents(int zoneId) { return VENTS + zoneId; }
+
+    /** The circuit of a security zone's reserve bay. */
+    public static String bay(int zoneId) { return BAY + zoneId; }
+
+    /**
+     * The watch's circuits lit now: each online zone's alarm strips while it is alert or awake, or in the contingency;
+     * its vent hatches once the ducts are up and its bay once the bays open.
+     */
+    public static Set<String> watchCircuits(SecurityNetwork network, FacilityWake.Stage stage) {
+        Set<String> out = new TreeSet<>();
+        for (SecurityZone zone : network.zones()) {
+            if (!zone.online()) continue;
+            if (zone.state() != SecurityZone.State.DORMANT || stage == FacilityWake.Stage.CONTINGENCY) {
+                out.add(watch(zone.id));
+            }
+            if (stage.ventsOpen()) out.add(vents(zone.id));
+            if (stage.baysOpen()) out.add(bay(zone.id));
+        }
+        return out;
+    }
+
+    /**
+     * The watch's lamps over the plant inside {@code box}: an alarm strip at each zone's node and a sparse lattice of
+     * them over the roofed floor it keeps, its reserve bay's lamp beside the node, and a hatch lamp at each vent.
+     */
+    static List<Lamp> watchLamps(CellTopology ground, SecurityNetwork network, ServiceDucts ducts, RuinsDelve.Area box) {
+        List<Lamp> out = new ArrayList<>();
+        for (SecurityZone zone : network.zones()) {
+            add(out, ground, zone.nodeCellX, zone.nodeCellY, 3, 4f, ALARM_LIGHT, watch(zone.id), 0.8f, 4f);
+            add(out, ground, zone.nodeCellX + 2, zone.nodeCellY, 3, 3f, HATCH_LIGHT, bay(zone.id), 0.7f, 3f);
+        }
+        List<int[]> placed = new ArrayList<>();
+        for (int y = Math.max(0, box.bottom()); y <= Math.min(ground.getHeight() - 1, box.top()); y++) {
+            for (int x = Math.max(0, box.left()); x <= Math.min(ground.getWidth() - 1, box.right()); x++) {
+                if (!floor(ground, x, y) || nearAny(placed, x, y, ALARM_SPACING)) continue;
+                SecurityZone zone = network.zoneAt(x, y);
+                if (zone == null) continue;
+                placed.add(new int[] {x, y});
+                out.add(lamp(x, y, 4f, ALARM_LIGHT, watch(zone.id), 0.5f, 4f));
+            }
+        }
+        if (ducts != null) {
+            for (ServiceDucts.Vent vent : ducts.vents()) {
+                out.add(lamp(vent.cellX(), vent.cellY(), 2.5f, HATCH_LIGHT, vents(vent.zoneId()), 0.6f, 3f));
+            }
+        }
+        return out;
+    }
+
+    private static void add(List<Lamp> out, CellTopology ground, int x, int y, int reach, float radius, float[] c,
+                            String circuit, float strength, float tint) {
+        int[] at = nearestFloor(ground, x, y, reach);
+        if (at != null) out.add(lamp(at[0], at[1], radius, c, circuit, strength, tint));
+    }
+
+    private static Lamp lamp(int x, int y, float radius, float[] c, String circuit, float strength, float tint) {
+        return new Lamp(x + 0.5f, y + 0.5f, radius, c[0], c[1], c[2], circuit, NightLighting.Fixture.STRIP, 0f,
+                strength, tint);
+    }
+
+    private static boolean nearAny(List<int[]> lamps, int x, int y, int spacing) {
+        for (int[] lamp : lamps) {
+            if (Math.max(Math.abs(lamp[0] - x), Math.abs(lamp[1] - y)) < spacing) return true;
+        }
+        return false;
+    }
+
+    /** Adds the watch's lamps to {@code ground}'s lighting, once its network stands; no lighting, no change. */
+    public static void layWatch(CellTopology ground, RuinsDelve delve, SecurityNetwork network, ServiceDucts ducts) {
+        NightLighting night = ground.nightLighting();
+        if (night == null || delve.interior() == null) return;
+        List<Lamp> lamps = new ArrayList<>(night.lamps());
+        lamps.addAll(watchLamps(ground, network, ducts, delve.interior().footprint()));
+        ground.setNightLighting(night.withLamps(lamps));
+    }
+
+    /**
+     * Brings {@code ground}'s lighting to the works' power and the watch's {@code watch} circuits at battle second
+     * {@code seconds}, from which the circuits newly on warm up; no change, no new lighting, so no rebake.
+     */
+    public static void apply(CellTopology ground, PowerGraph graph, Set<String> watch, float seconds) {
         NightLighting night = ground.nightLighting();
         if (night == null) return;
-        NightLighting lit = night.withPowered(circuits(graph));
-        if (lit != night) ground.setNightLighting(lit);
+        Set<String> lit = new TreeSet<>(circuits(graph));
+        lit.addAll(watch);
+        NightLighting next = night.withPowered(lit, seconds);
+        if (next != night) ground.setNightLighting(next);
+    }
+
+    /**
+     * Brings {@code ground}'s lighting to the works' power at battle second {@code seconds}; no change, no new lighting,
+     * so no rebake.
+     */
+    public static void apply(CellTopology ground, PowerGraph graph, float seconds) {
+        apply(ground, graph, Set.of(), seconds);
     }
 }
