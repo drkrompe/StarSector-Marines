@@ -107,9 +107,10 @@ sight lines before the works' wall.
   of the vanilla sprite until stage art is drawn; roofs still hide each hall's role).
   Refining rebuilt as its process after the owner rejected the generic stills
   (`RefiningWorks`, `RefineryGround`, `TankFarm`, `PipeRack`; its own sheet,
-  `refinery-plant`, for the columns, flare, floating-roof tanks, volatiles
-  spheres and spills, and `refinery-utilities` for what each house does:
-  furnace stacks, cooling tower, pump skids, comms mast, lab gas rack, loading
+  `refinery-plant`, for the flare, floating-roof tanks, volatiles spheres and
+  spills, `refinery-heaters` for the units' columns and furnace stacks in the
+  works tileset's flat style, and `refinery-utilities` for what each house
+  does: cooling tower, pump skids, comms mast, lab gas rack, loading
   islands; bund walls and tankers still stand-ins;
   `createSnapshots -Psnapshot=raid-refinery-site-look`).
 
