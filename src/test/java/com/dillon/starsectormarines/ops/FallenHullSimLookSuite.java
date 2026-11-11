@@ -736,13 +736,15 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
 
         @Override void beforeTick(BattleSimulation sim, int tick) {
             if (establishedTick < 0 || cutTick >= 0 || (tick - establishedTick) * DT < 4f) return;
-            // The chain cut upstream where the stake hangs off another; else its own node.
+            // The chain cut upstream, off the stake, so it stands whole and only stops growing: the node of the stake
+            // it hangs off, else (hung off the hull) the hull zone's node, its autoforge.
             SurveyStake s = hull.stakes().get(point);
             upstream = s != null && s.parent >= 0 && director.nodes().containsKey(FallenHull.zoneOf(s.parent));
-            Long node = director.nodes().get(FallenHull.zoneOf(upstream ? s.parent : point));
+            Long node = director.nodes().get(upstream ? FallenHull.zoneOf(s.parent) : FallenHull.HULL_ZONE);
             if (node != null && sim.resolveUnit(node) != 0L) sim.applyExternalDamage(node, 1.0e6f, 1.0e6f);
             cutTick = tick;
-            log("stake-rises: cut %s node at %.0f s", upstream ? "the upstream stake's" : "its own", tick * DT);
+            log("stake-rises: cut %s at %.0f s", upstream ? "the upstream stake's node" : "the hull's autoforge",
+                    tick * DT);
         }
 
         /** The stake's footprint centre, its point before it seats. */
@@ -772,7 +774,7 @@ public final class FallenHullSimLookSuite implements SnapshotSuite {
                     + (s.stage() == SurveyStake.Stage.PLANTED ? "raised" : "established") + "   relay chain holds";
             o.title(title, status, cutTick < 0 ? null : upstream
                     ? "the relay node it hangs off, upstream, destroyed by this clip (scripted)"
-                    : "its relay node destroyed by this clip (scripted)");
+                    : "the hull's autoforge, upstream, put out by this clip (scripted)");
             o.label("spire stake", c[0], c[1], 300, -150);
             if (s != null && s.stage() != SurveyStake.Stage.PLANTED) {
                 int[] cradle = StakeFootprint.slot(StakeFootprint.Part.CRADLE).centre(0, 0);
