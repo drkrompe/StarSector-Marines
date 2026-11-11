@@ -53,6 +53,11 @@ public final class FallenHull {
     static final int HOLD_RADIUS = 2;
     /** A standing order whose cell moved less than this is not re-issued. */
     static final int REISSUE_CELLS = 2;
+    /**
+     * Of the way still to walk, the share a far order's cell must move before it is re-issued: a walker chasing a
+     * moving contact across the town keeps its route rather than re-planning it every pulse. UNTUNED.
+     */
+    static final float REISSUE_SHARE = 0.25f;
     /** How far off the mouth the hull's cradle and service bay stand, cells (Chebyshev): clear of its doorway. */
     static final int BAY_OFF_MOUTH_CELLS = 3;
     /** Open ground the cradle and bay keep round them, cells (Chebyshev): room for a heavy walker to pass. */
@@ -984,17 +989,25 @@ public final class FallenHull {
     }
 
     /** Walks a lance the hull commands to a cell and holds it there; not re-given while the cell barely moves. */
+    /**
+     * Whether a standing order to {@code (lastX, lastY)} is re-issued for {@code (x, y)}, the walker {@code span} cells
+     * from it: when the cell moved at least {@link #REISSUE_CELLS}, and at least {@link #REISSUE_SHARE} of the way
+     * still to walk, so a far walk is not re-planned for every step its quarry takes.
+     */
+    static boolean reissue(int lastX, int lastY, int x, int y, float span) {
+        int moved = Math.max(Math.abs(lastX - x), Math.abs(lastY - y));
+        return moved >= Math.max(REISSUE_CELLS, span * REISSUE_SHARE);
+    }
+
     private void order(BattleSimulation sim, int squad, int cellX, int cellY, String why) {
         if (sim.squadMemberCount(squad) <= 0) return;
         long lead = sim.squadMemberAt(squad, 0);
-        boolean far = Math.max(Math.abs(sim.world().x(lead) - (cellX + 0.5f)),
-                Math.abs(sim.world().y(lead) - (cellY + 0.5f))) > HOLD_RADIUS;
+        float span = Math.max(Math.abs(sim.world().x(lead) - (cellX + 0.5f)),
+                Math.abs(sim.world().y(lead) - (cellY + 0.5f)));
+        boolean far = span > HOLD_RADIUS;
         int[] last = ordered.get(squad);
         int mode = far ? 1 : 0;
-        if (last != null && last[2] == mode
-                && Math.max(Math.abs(last[0] - cellX), Math.abs(last[1] - cellY)) < REISSUE_CELLS) {
-            return;
-        }
+        if (last != null && last[2] == mode && !reissue(last[0], last[1], cellX, cellY, span)) return;
         ordered.put(squad, new int[] {cellX, cellY, mode});
         ObjectiveAssignment assignment = far ? DerelictSecurityDirector.walk(squad, frameOf(squad), cellX, cellY)
                 : ObjectiveAssignment.defendArea(squad, cellX, cellY, HOLD_RADIUS);
@@ -1017,9 +1030,10 @@ public final class FallenHull {
     }
 
     /**
-     * Where one of the hull's structures (its flock's cradle, its service bay) stands by its mouth: the nearest cell to {@code (x, y)} at least {@code minCells}
-     * off it with every cell within {@code clearCells} of it open (walkable and untaken), so the structure never plugs
-     * the mouth the forge prints at and its workers wait at, and a heavy walker passes its body on any side; the cell itself when none is near.
+     * Where one of the hull's structures (its flock's cradle, its service bay) stands by its mouth: the nearest cell to
+     * {@code (x, y)} at least {@code minCells} off it with every cell within {@code clearCells} of it open (walkable
+     * and untaken), so the structure never plugs the mouth the forge prints at and its workers wait at, and a heavy
+     * walker passes its body on any side; the cell itself when none is near.
      */
     static int[] clearCellNear(int x, int y, int minCells, int clearCells, BiPredicate<Integer, Integer> open) {
         for (int r = minCells; r <= minCells + 8; r++) {

@@ -10,8 +10,8 @@ import java.util.Set;
 /**
  * The town's own metal as salvage on the claim (`fallen-hull-nouns.md`, Strippers): each building near enough the hull
  * that its zone keeps it gives one pile, laid on open ground beside it where a stripper can stand and cut, its metal
- * by the building's size. The buildings nearest the hull come first, as the strippers work outward. The hull's laid box
- * (its sections, the ground between and its trench) is the hull's own and gives none.
+ * by the building's size. The buildings nearest the hull come first, as the strippers work outward. The hull's sections
+ * are its own and give none; a town building between sections spread through the town is the town's.
  */
 public final class TownSalvage {
 
@@ -50,7 +50,7 @@ public final class TownSalvage {
         for (int y = 0; y < ground.height(); y++) {
             for (int x = 0; x < ground.width(); x++) {
                 int b = ground.buildingAt(x, y);
-                if (b == 0 || site.hull().contains(x, y)) continue;
+                if (b == 0 || onHull(site, x, y)) continue;
                 int[] c = cells.computeIfAbsent(b, k -> new int[] {0, Integer.MAX_VALUE, -1, -1});
                 c[0]++;
             }
@@ -58,7 +58,7 @@ public final class TownSalvage {
         // Each building's pile: the open cell beside it nearest the hull, on the ground the hull zone keeps.
         for (int y = 0; y < ground.height(); y++) {
             for (int x = 0; x < ground.width(); x++) {
-                if (site.hull().contains(x, y) || !ground.open(x, y)) continue;
+                if (onHull(site, x, y) || !ground.open(x, y)) continue;
                 int r = FallenHullSite.Rect.nearestOf(site.sections(), x, y).chebyshev(x, y);
                 if (r > reach) continue;
                 for (int b : besideBuildings(ground, x, y)) {
@@ -98,6 +98,15 @@ public final class TownSalvage {
             if (squares.add(key)) out.add(new int[] {p.x(), p.y()});
         }
         return out;
+    }
+
+    /**
+     * Whether a cell lies on one of the hull's sections. Its laid box spans the furrow between sections spread through
+     * a town, so the town's buildings between them are the town's, not the hull's.
+     */
+    private static boolean onHull(FallenHullSite site, int x, int y) {
+        for (FallenHullSite.Rect r : site.sections()) if (r.contains(x, y)) return true;
+        return false;
     }
 
     /** The buildings within {@link #BESIDE_CELLS} of a cell, each once. */
