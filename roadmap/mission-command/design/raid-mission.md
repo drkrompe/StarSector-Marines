@@ -140,7 +140,9 @@ The tier comes from the garrison's whole headcount, no lower than Raid's floor
   garrison drives in from off the map all the while (`RaidPressureTrigger`):
   a wave for each machine wrecked, and garrison columns on a clock the
   market's security sets, quicker once the alarm is up and larger each time,
-  with the next column's countdown on the objective. The defence is the
+  with the next column's countdown on the objective. From a fortified
+  market's third column (a guarded one's fifth) a hull of its own line drives
+  in with each, its gate hull first and then its yard tank. The defence is the
   market's, never fitted to the company that came: no attacker-strength budget
   trims its mechs, air or turrets (`BattleForceScore`, as Conquest).
 - **The landing is a cadence, not a block.** With one boat the company comes
