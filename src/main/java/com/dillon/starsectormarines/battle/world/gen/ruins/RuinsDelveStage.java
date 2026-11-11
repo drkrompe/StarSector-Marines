@@ -126,6 +126,8 @@ public final class RuinsDelveStage implements GenStage {
     static final int BLOCK_GAP = 3;
     /** The hull a plant's outline keeps round every floor, piece and door inside: its walls' thickness. */
     static final int OUTLINE_WALL = 2;
+    /** How far from the vault's row a plant's deeper band line lets its ways cross. */
+    static final int DEEP_WAY_REACH = 30;
     /**
      * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
      * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
@@ -394,6 +396,8 @@ public final class RuinsDelveStage implements GenStage {
         final List<Placed> blockPlaced = new ArrayList<>();
         /** The first space laid in the band being planted ({@link PlantBrief.Anchor#UNDER_FIRST}). */
         Area bandFirst;
+        /** The rows a layer's ways may cross in, or null for the whole line ({@link #layer}). */
+        int[] wayRows;
         /** Each interior band's spine column, in band order. */
         final List<Integer> spines = new ArrayList<>();
         /** Inside cells the hull's outline cut back to open ground ({@link #outline}); null until it runs. */
@@ -479,8 +483,13 @@ public final class RuinsDelveStage implements GenStage {
             for (int i = 0; i < layers; i++) lines[i] = lineProfile(centres[i]);
             List<LayerDraft> drafts = new ArrayList<>();
             for (int i = 0; i < layers; i++) {
+                // A plant's deeper band is entered on the vault's row: its ways cross near it, so the band's spine
+                // is short and the hull draws in round the band.
+                wayRows = plantMode && i > layers - plan.interiorLayers() ? new int[]{vaultY - DEEP_WAY_REACH,
+                        vaultY + DEEP_WAY_REACH} : null;
                 drafts.add(layer(i, lines[i], i == layers - 1 ? vaultY : -1, i >= layers - plan.interiorLayers()));
             }
+            wayRows = null;
 
             int firstInside = layers - plan.interiorLayers();
             // The power hall stands in a layer before the last; inside, when the interior has one.
@@ -1035,7 +1044,7 @@ public final class RuinsDelveStage implements GenStage {
             String material = d.kind == LayerKind.SEALED_GATE ? GATE_WALL : LINE_WALLS[rng.nextInt(LINE_WALLS.length)];
 
             List<Integer> centres = new ArrayList<>();
-            int lo = 6, hi = h - 7;
+            int lo = wayRows == null ? 6 : Math.max(6, wayRows[0]), hi = wayRows == null ? h - 7 : Math.min(h - 7, wayRows[1]);
             if (collapseY >= 0) collapseY = clamp(collapseY, lo, hi);
             for (int j = 0; j < open; j++) {
                 int slotLo = lo + j * (hi - lo) / open, slotHi = lo + (j + 1) * (hi - lo) / open;
@@ -1559,7 +1568,7 @@ public final class RuinsDelveStage implements GenStage {
                 for (int x = 0; x < w; x++) {
                     if (!insideCell(x, y)) continue;
                     int k = i(x, y);
-                    occupied[k] = grid.isWalkable(x, y) || grid.isDoorway(x, y) || kept[k] || topology.isFixture(x, y);
+                    occupied[k] = grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isFixture(x, y);
                 }
             }
             boolean[] walls = new boolean[w * h];

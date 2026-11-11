@@ -857,14 +857,14 @@ keeps up to two crates of heavy machinery under its hoists. Every load is publis
 cell, footprint, goods and space, for the finds to be picked from (`plant-store-finds`).
 
 The hull is drawn round the plant (pick `ruins-plant-hull`, building on the redraw). Each interior band's line stands
-back from the vault only as far as its spaces need, and the outer layers spread over the ground that frees. Each band's
-spine is walled up beyond the last thing that joins it. The hull that then walls nothing, more than two cells from any
+back from the vault only as far as its spaces need, and the outer layers spread over the ground that frees. The deeper band's
+line lets its ways cross only within 30 rows of the vault's row. Each band's spine is walled up beyond the last thing that
+joins it. The hull that then walls nothing, more than two cells from any
 floor, piece or door, and that the ruin's ground outside reaches is cut back to open ground. The plant stands as a
 building, with the ground round it, outside the facility, so a machine may be set down there. Hull that the outside
 ground cannot reach stays solid.
 
 Still to come:
-- the deeper band's ways across its line set by the plant, so the outline draws in round it too;
 - each space dressed from its own plan;
 
 **Themed halls are environments** (owner: "for things like ice etc we have a
