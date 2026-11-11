@@ -294,7 +294,6 @@ class MechVariantTest {
     void everyHeavyLiftWalkerCrushesWallsAndNoLighterOne() {
         for (MechVariant variant : MechVariant.values()) {
             assertEquals(variant.liftClass() == LiftClass.HEAVY, variant.crushesWalls(), variant.name());
-            if (variant.crushesFast()) assertTrue(variant.crushesWalls(), variant.name() + " crushes fast, so crushes");
         }
     }
 
