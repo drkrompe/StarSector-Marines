@@ -610,15 +610,18 @@ Laws):
    buildings' faces and re-formed when a breach changes the topology. Fences,
    sandbags and barriers are doodads and still lie flat. A run stands as the
    straight strokes it was built along (`FreestandingWalls.strokes`): a
-   diagonal is one slanted wall exactly as thick as a straight one, from its
-   end cells' centres, with a square pier on each end cell so it meets
-   straight walls on the grid, and a low footing on the ground covering its
-   cells' corners. The strokes stand as one wall round their joint outline
+   diagonal is one slanted wall exactly as thick as a straight one: an end
+   that runs into a straight wall stops at its cell's centre inside that
+   wall, an end meeting only other diagonals stands on a square pier, and a
+   free end is cut square across inside its cell; a low footing on the
+   ground covers its cells' corners. The strokes stand as one wall round their joint outline
    (`FreestandingWalls.edges`): faces only along it, farthest first, and the
    cap's coping round it, so a diagonal runs into a straight wall, a pier or a
    jog with no seam. Each face is dressed by kind (plinth, shaded body, coping,
-   panel joints or masonry courses and piers, weather streaks). The ground shadow still comes from the cells, so a diagonal's
-   shadow steps.
+   panel joints or masonry courses and piers, weather streaks). In the height field
+   the shadow is cast from, a diagonal's own cells drop to their floor and
+   its slanted footprint stands at a wall's height (`DiagonalWallShade`), so
+   its shadow runs along it rather than stepping.
    **Wall styles and damage** (owner: "wall styles (windows/no
    windows/doors) and also damage next"). Each cell's length of face shows
    what stands under it, read from the building and its cells, never a tag

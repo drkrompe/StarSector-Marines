@@ -783,7 +783,9 @@ public class CellTopology {
         /** A low ridged hut roof: barracks, dispatch, stores huts. */
         HUT,
         /** A fallen starship's dorsal plating, over every compartment of the hull whatever its walls are. */
-        HULL
+        HULL,
+        /** A ribbed steel shed roof: a port's bonded warehouses, its customs shed and its pump house. */
+        SHED
     }
 
     /** The roof kind marked on the cell, or null where none is. */
