@@ -856,12 +856,15 @@ public final class UnitRenderService implements RenderSystem {
 
     /**
      * The look of a derelict security network whose node {@code id} is, or null when it is no network's node. A zone's
-     * service bay wears the node's cabinet until it has its own (stand-in, `derelict-watch.md`).
+     * service bay, and a fallen hull's section hatch, wear the node's cabinet until they have their own (stand-in,
+     * `derelict-watch.md`).
      */
     private static DerelictLook derelictNodeLook(RenderContext ctx, long id) {
         DerelictSecurityDirector director = ctx.sim.derelictSecurity();
         if (director == null) return null;
-        return director.nodes().containsValue(id) || director.serviceBays().containsValue(id) ? director.look() : null;
+        boolean hatch = director.hull() != null && director.hull().hatches().containsKey(id);
+        return director.nodes().containsValue(id) || director.serviceBays().containsValue(id) || hatch
+                ? director.look() : null;
     }
 
     /** The cradle livery a derelict zone's sealed reserve bay {@code id} is drawn in, or null when it is none. */

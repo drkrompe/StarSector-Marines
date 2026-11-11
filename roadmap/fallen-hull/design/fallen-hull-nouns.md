@@ -116,10 +116,23 @@ and never sets one part on another.
   read the spread and plan against it; the counterplay is denial, not guessing.
 - **Honest knowledge.** The hull knows what its zones' sensors, flocks and relays
   tell it (`derelict-lore-guide.md`, Honest knowledge); a stranded stake knows
-  only its own.
+  only its own. The night it came down (The Fall) its flocks range over the
+  whole town, and the hull knows where the town's people are: it hunts them
+  (owner's direction, 2026-11-11).
 - **The claim is the perimeter.** The hull's walkers pursue to the claim's edge
   (the outermost established stake's perimeter), not past it, except in the
-  contingency the autoforge's breach calls.
+  contingency the autoforge's breach calls. The night it came down the claim is
+  the whole town.
+- **The Fall: the hull hunts the town** (owner's direction, 2026-11-11: a crash
+  content to sit by the landing zone threatened nothing). Every hull section
+  beyond the mouth's opens a launch hatch with its own guard, flock and
+  walkers, and the forge prints at each in turn. The watch answers contact
+  first, escorts the strippers cutting the town's buildings, and sends the rest
+  after the town: by turns one hunts the nearest of the town's people (a
+  civilian out, a holdout's door), the next sweeps the streets between the
+  sections. Its reach is the hull zone's, the whole town. The numbers (walkers
+  at the mouth and at each hatch, the forge's program and store, the piles) are
+  the owner's to tune in play.
 - **Allies are on the claim too.** The world's garrison fights the watch under
   its own authority (`bloom-mission-arc.md`, Law: a living field); its wrecks
   are feedstock like the company's.
@@ -345,8 +358,12 @@ Numbers UNTUNED.
   `WatchTasking` (the hull zone's armed walkers outside the contingency: a
   `BAY_GUARD`, siege frames first; the rest answer the nearest contact on the
   claim, else push to its loudest fight, else escort the workers out; none
-  goes past `WATCH_REACH_CELLS` off the plates, the trench and the town's
-  edge, `clamp`; an awake hull's flock with nothing to strike ranges its
+  goes past the hull's reach off the plates, `WATCH_REACH_CELLS` the trench and
+  the town's edge, `clamp`; a hull hunting its town, `hunt`, guards each bay,
+  answers contact, escorts its workers, and sends the rest by turns to `HUNT`
+  the nearest of the town's people and to `SWEEP` the streets, `sweepPoint`,
+  or push to the loudest fight; `FallenHull.huntTown` and `sectionHatches`
+  open a hatch by each section beyond the mouth's; an awake hull's flock with nothing to strike ranges its
   places in turn, `rangePoint`); `FallenHull.rouse` (an awake hull keeps its
   zone awake while the forge stands);
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a

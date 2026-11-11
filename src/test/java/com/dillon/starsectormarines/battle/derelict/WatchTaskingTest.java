@@ -12,6 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class WatchTaskingTest {
@@ -93,5 +94,44 @@ class WatchTaskingTest {
         FallenHull.rouse(awake, true, SecurityZone.SETTLE_TICKS * 5);
         assertEquals(SecurityZone.State.ALERT, awake.zone(FallenHull.HULL_ZONE).state(),
                 "with the forge gone the hull is roused no more and settles");
+    }
+
+    @Test
+    void aHullHuntingItsTownGuardsEveryBayEscortsItsWorkersAndSendsTheRestAfterTheTownByTurns() {
+        // Bays at (0, 0) and (100, 0); five line frames; the town's people at (40, 30); two street places.
+        List<Watcher> watch = List.of(new Watcher(1, DerelictWalkerFrame.LINE, 1, 0),
+                new Watcher(2, DerelictWalkerFrame.LINE, 99, 0), new Watcher(3, DerelictWalkerFrame.LINE, 50, 0),
+                new Watcher(4, DerelictWalkerFrame.LINE, 52, 0), new Watcher(5, DerelictWalkerFrame.LINE, 54, 0),
+                new Watcher(6, DerelictWalkerFrame.LINE, 20, 20));
+        WatchTasking.Town town = new WatchTasking.Town(List.of(new int[] {0, 0}, new int[] {100, 0}),
+                List.of(new int[] {40, 30}), List.of(new int[] {60, 60}, new int[] {80, 80}), 0f);
+        Map<Integer, Task> tasks = WatchTasking.hunt(watch, town, List.of(), null, List.of(new Worker(90, 21, 21)),
+                cell -> cell);
+        assertEquals(Kind.GUARD, tasks.get(1).kind(), "the mouth's guard");
+        assertEquals(Kind.GUARD, tasks.get(2).kind(), "the far section's guard");
+        assertEquals(100, tasks.get(2).x());
+        assertEquals(Kind.ESCORT, tasks.get(6).kind(), "the stripper out has its escort");
+        assertEquals(Kind.HUNT, tasks.get(3).kind(), "by turns: one after the town's people");
+        assertArrayEquals(new int[] {40, 30}, new int[] {tasks.get(3).x(), tasks.get(3).y()});
+        assertEquals(Kind.SWEEP, tasks.get(4).kind(), "the next sweeps the streets");
+        assertEquals(Kind.HUNT, tasks.get(5).kind());
+
+        Map<Integer, Task> contact = WatchTasking.hunt(watch, town, List.of(new Contact(70, 45, 5, 0)), null,
+                List.of(), cell -> cell);
+        assertEquals(Kind.ANSWER, contact.get(3).kind(), "contact on the claim is answered before the hunt");
+
+        Map<Integer, Task> fight = WatchTasking.hunt(watch, town, List.of(), new int[] {70, 10}, List.of(),
+                cell -> cell);
+        assertEquals(Kind.PUSH, fight.get(4).kind(), "a sweeper goes to the loudest fight instead");
+    }
+
+    @Test
+    void sweepersHoldEachStreetPlaceInTurnAndStartApart() {
+        List<int[]> streets = List.of(new int[] {0, 0}, new int[] {10, 0}, new int[] {20, 0});
+        int[] first = WatchTasking.sweepPoint(streets, 1, 0f);
+        assertArrayEquals(first, WatchTasking.sweepPoint(streets, 1, WatchTasking.SWEEP_SECONDS - 1f), "held");
+        assertFalse(first == WatchTasking.sweepPoint(streets, 1, WatchTasking.SWEEP_SECONDS), "then the next");
+        assertFalse(first == WatchTasking.sweepPoint(streets, 2, 0f), "two walkers start apart");
+        assertNull(WatchTasking.sweepPoint(List.of(), 1, 0f));
     }
 }
