@@ -324,6 +324,8 @@ public final class GroundParallaxPipeline {
     private final GroundHeightPass heightPass;
     /** The standing plinths' painted feet, gathered each frame for the height pass. */
     private final PlinthFoot plinths = new PlinthFoot();
+    /** The diagonal freestanding walls, laid in the height field as they are drawn. */
+    private final DiagonalWallShade diagonals = new DiagonalWallShade();
     private final GroundNormalPass normalPass;
     private GroundLightService lights;
 
@@ -557,6 +559,7 @@ public final class GroundParallaxPipeline {
         GenMappingRegistry mapping = GenMappingRegistry.installed();
         int margin = heightPadCells;
         plinths.gather(sim);
+        diagonals.gather(sim);
         // Clears to the ground datum, not to mid-channel: off-grid texels have
         // to read as flat ground or the margin would ring the map in a 16 m
         // cliff and shadow every edge.
@@ -564,7 +567,8 @@ public final class GroundParallaxPipeline {
             glColorMask(true, true, true, true);
             glClearColor(GroundHeightPass.MACRO_DATUM, 0.5f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
-            heightPass.render(rc.camera, grid, topology, sim.getBuildings(), mapping, margin, plinths);
+            heightPass.render(rc.camera, grid, topology, sim.getBuildings(), mapping, margin, plinths,
+                    diagonals);
         });
     }
 

@@ -44,6 +44,39 @@ final class CreepClimb {
 
     private static final float[] FLESH = new float[3], RIM = new float[3], VEIN = new float[3], GLOW = new float[3];
 
+    /** How far in from a wall's outer side the crust grows over its top, as a share of a cell: none until it crusts. */
+    static float overTop(int coverage) {
+        return .45f * crust(coverage);
+    }
+
+    /** Where a wall's top is drawn: one flat quad, its corners in cells, in a colour. */
+    interface TopSink {
+        void quad(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3,
+                  float r, float g, float b);
+    }
+
+    /**
+     * Paints an old crust over a wall's top from its outer side ({@code ax,ay} to {@code bx,by}, outward
+     * {@code nx,ny}) in toward the wall's middle, in four ragged lumps lipped with the palette's rim: the creep that
+     * crusted the face come over the top, which is what a view from above sees of it. Nothing on a young claim.
+     */
+    static void paintTop(int coverage, int vitality, int cell, float ax, float ay, float bx, float by, float nx,
+                         float ny, CreepPalette palette, float light, TopSink sink) {
+        float depth = overTop(coverage);
+        if (depth <= 0f) return;
+        tone(palette.flesh(), palette.dead(), vitality, light, FLESH);
+        tone(palette.rim(), palette.dead(), vitality, light, RIM);
+        for (int k = 0; k < 4; k++) {
+            float t0 = k / 4f, t1 = (k + 1) / 4f;
+            float d = depth * (.55f + .45f * BuildingFaces.hash(cell, 400 + k));
+            float x0 = ax + (bx - ax) * t0, y0 = ay + (by - ay) * t0, x1 = ax + (bx - ax) * t1, y1 = ay + (by - ay) * t1;
+            sink.quad(x0, y0, x1, y1, x1 - nx * d, y1 - ny * d, x0 - nx * d, y0 - ny * d, FLESH[0], FLESH[1], FLESH[2]);
+            float l = Math.min(.08f, d * .3f);
+            sink.quad(x0 - nx * (d - l), y0 - ny * (d - l), x1 - nx * (d - l), y1 - ny * (d - l), x1 - nx * d,
+                    y1 - ny * d, x0 - nx * d, y0 - ny * d, RIM[0], RIM[1], RIM[2]);
+        }
+    }
+
     /**
      * Paints one cell's face of creep: its crust in four lumps along the face, each lipped with the palette's rim, a
      * glow in a living crust, and two or three veins reaching on above it. Nothing stands above {@code top} (how much of
@@ -66,6 +99,12 @@ final class CreepClimb {
                 float z = Math.min(reach, crusted * (.7f + .6f * BuildingFaces.hash(cell, 300 + k)));
                 sink.quad(t0, t1, 0f, z, FLESH[0], FLESH[1], FLESH[2]);
                 sink.quad(t0 + .03f, t1 - .03f, Math.max(0f, z - lip), z, RIM[0], RIM[1], RIM[2]);
+                // Its plates: a dark seam under the lip and a raised node in the lump, so a crust reads as grown, not
+                // as paint, against a wall of its own tone.
+                sink.quad(t0, t1, Math.max(0f, z - lip * 1.8f), Math.max(0f, z - lip), VEIN[0], VEIN[1], VEIN[2]);
+                float n = t0 + (.2f + .4f * BuildingFaces.hash(cell, 380 + k)) * (t1 - t0);
+                float nz = z * (.25f + .3f * BuildingFaces.hash(cell, 390 + k));
+                sink.quad(n, n + .06f, nz, Math.min(z, nz + Math.max(lip, crusted * .12f)), RIM[0], RIM[1], RIM[2]);
                 if (vitality >= 160 && BuildingFaces.hash(cell, 310 + k) < .5f) {
                     float g = .3f + .4f * BuildingFaces.hash(cell, 320 + k);
                     sink.quad(t0 + .08f, t0 + .16f, z * g, Math.min(z, z * g + .06f), GLOW[0], GLOW[1], GLOW[2]);

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,6 +67,13 @@ final class RaidWorksMachines {
                     : heavySupport.get(i % heavySupport.size()));
         }
         return out;
+    }
+
+    /** The riflemen security adds for the works' forward posts: as many as the posts hold, of the market's bulk. */
+    static List<GroundRosterProfile.ForceTier> extraRiflemen(List<TacticalNode> forwardPosts) {
+        int count = 0;
+        for (TacticalNode post : forwardPosts) count += Math.max(0, post.garrisonSize);
+        return Collections.nCopies(count, GroundRosterProfile.ForceTier.BULK);
     }
 
     /** Parks a hull of {@code factionId}'s at each of the works' machine posts among {@code nodes}. */

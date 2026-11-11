@@ -65,6 +65,8 @@ public final class RaidSiteTemplate {
      * machines answer the alarm at the hall under attack ({@code RaidDefenderCommand}).
      */
     public static final String WORKS_RESERVE = "works-reserve";
+    /** The place a works' forward posts on its gates' approaches are named with ({@code WorksDefences}). */
+    public static final String WORKS_FORWARD = "works-forward";
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";

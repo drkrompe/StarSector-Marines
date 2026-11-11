@@ -261,6 +261,7 @@ com.dillon.starsectormarines.battle.evacuation.SwarmSoundLookSuite
 com.dillon.starsectormarines.ops.battleview.NonRavSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
+com.dillon.starsectormarines.battle.creep.CreepWallsLookSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BlastImpulseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BruteChargeSceneSnapshotSuite
@@ -490,5 +491,6 @@ com.dillon.starsectormarines.battle.derelict.WalkerMotionLookSuite
 com.dillon.starsectormarines.battle.setup.WallMountsLookSuite
 com.dillon.starsectormarines.battle.world.gen.hull.LongSurveyGroundLookSuite
 com.dillon.starsectormarines.ops.LongSurveyFallLookSuite
+com.dillon.starsectormarines.ops.LongSurveyPicksLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherLookSuite
 com.dillon.starsectormarines.battle.world.gen.pool.RaidDemolitionLookSuite

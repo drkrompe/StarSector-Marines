@@ -155,6 +155,42 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
                 return null;
             }));
         }
+        // The works' approach (owner: "all of this space outside of the works that we don't use for defensive
+        // layers"): (a) is built-fortified; (b) and (c) are mock-ups over the guarded market's works.
+        out.add(shot(context, "approach-b-trench-line.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            int ring = 9;
+            int x0 = p.x0() - ring, x1 = p.x1() + ring, y0 = p.y0() - ring, y1 = p.y1() + ring;
+            for (int x = x0; x <= x1; x++) {
+                for (int y = y0; y <= y1; y++) {
+                    if (x != x0 && x != x1 && y != y0 && y != y1 || nearGate(p, x, y, 3)) continue;
+                    String facing = x == x0 ? "w" : x == x1 ? "e" : y == y0 ? "s" : "n";
+                    prop(w, x, y, "doodad.fort-sandbag-" + facing, 0);
+                }
+            }
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (b) TRENCH LINE: a continuous sandbagged line ringing the works out on its approach, riflemen along it",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
+        out.add(shot(context, "approach-c-held-buildings.png", (w, m) -> {
+            Perimeter p = perimeter(w);
+            // The nearest two buildings facing each side of the wall.
+            int[] perSide = new int[4];
+            List<Building> facing = new ArrayList<>(w.sim().getBuildings().all());
+            facing.sort(Comparator.comparingInt(b -> Math.max(
+                    Math.max(p.x0() - b.maxX, b.minX - p.x1()), Math.max(p.y0() - b.maxY, b.minY - p.y1()))));
+            for (Building b : facing) {
+                int west = p.x0() - b.maxX, east = b.minX - p.x1(), south = p.y0() - b.maxY, north = b.minY - p.y1();
+                int gap = Math.max(Math.max(west, east), Math.max(south, north));
+                if (gap < 3 || gap > 12) continue;
+                int side = gap == west ? 0 : gap == east ? 1 : gap == south ? 2 : 3;
+                if (perSide[side]++ >= 2) continue;
+                box(m, b, "HELD: riflemen at its windows", ReviewStyle.KEEP);
+            }
+            m.label(w.cx(), w.cy() - w.across() * 9f / 32f + 3, "MOCK-UP (c) HELD BUILDINGS: the buildings facing the works are strongpoints, no new earthworks",
+                    ReviewStyle.NOTE);
+            return null;
+        }));
         // The works' machines (owner's note: "Also consider things like vehicles and mechs"): mock-ups with the game's
         // parked-hull props standing in for live machines.
         out.add(shot(context, "machines-a1-layered-guarded.png", (w, m) -> {
@@ -205,10 +241,11 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
     private static void machinePostLabels(Works w, ReviewAnnotations.Builder m) {
         for (TacticalNode node : w.sim().getTacticalMap().all()) {
             boolean reserve = RaidSiteTemplate.WORKS_RESERVE.equals(node.place());
-            if (!reserve && !RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
+            boolean forward = RaidSiteTemplate.WORKS_FORWARD.equals(node.place());
+            if (!reserve && !forward && !RaidSiteTemplate.WORKS_MACHINES.equals(node.place())) continue;
             int posted = 0;
             for (Squad squad : w.sim().getSquads()) if (squad.assignedNode == node) posted += squad.originalSize;
-            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : "GATE PICKET: ") + posted + " mech" + (posted == 1 ? "" : "s"),
+            m.label(node.anchorX, node.anchorY + 2, (reserve ? "YARD RESERVE: " : forward ? "FORWARD POST: " : "GATE PICKET: ") + posted + (forward ? " rifle" : " mech") + (posted == 1 ? "" : "s"),
                     posted > 0 ? ReviewStyle.ALLY : ReviewStyle.KEEP);
             System.out.printf(Locale.ROOT, "[raid-demolition-look] machine post %d,%d posted %d%n", node.anchorX,
                     node.anchorY, posted);
@@ -265,9 +302,8 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
     }
 
     /** {@code w} framed on its whole wall and the ground just outside it, for the defence pictures. */
-    private static Works framedOnWall(Works w) {
+    private static Works framedOnWall(Works w, int margin) {
         Perimeter p = perimeter(w);
-        int margin = 9;
         float across = Math.max(p.x1() - p.x0() + 2f * margin, (p.y1() - p.y0() + 2f * margin) * 16f / 9f);
         return new Works(w.sim(), w.halls(), w.buildings(), (p.x0() + p.x1() + 1) / 2f, (p.y0() + p.y1() + 1) / 2f,
                 across, w.landing());
@@ -449,8 +485,10 @@ public final class RaidDemolitionLookSuite implements SnapshotSuite {
         try (BattleSimulation sim = BattleSetup.createPooledRaid(ground, seed, true, company, raided,
                 name.startsWith("built"))) {
             Works works = works(sim);
-            if (name.startsWith("defences") || name.startsWith("built") || name.startsWith("machines")) {
-                works = framedOnWall(works);
+            if (name.startsWith("defences") || name.startsWith("built") || name.startsWith("machines")
+                    || name.startsWith("approach")) {
+                // The built pictures stand back far enough to show the works' approach.
+                works = framedOnWall(works, name.startsWith("built") || name.startsWith("approach") ? 15 : 9);
             }
             ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
             stage.apply(works, marks);

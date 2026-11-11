@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.combat.fx.WallScars;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
@@ -71,6 +72,7 @@ import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -1541,6 +1543,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
             if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.fromX, s.fromY, s.toX, s.toY,
                     isWall);
+            if (isWall) scar(sim, grid, s, fx);
             playImpactCue(s, rng, zeroVel);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
@@ -1553,6 +1556,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // A burst in the air (an anti-air round at a craft's drawn height) marks no ground.
             if (s.toZ <= 0f) ImpactDecals.spawnWeaponImpact(sim, rng, s.weaponDef(), fx, s.fromX, s.fromY, s.toX, s.toY,
                     isWall);
+            if (isWall) scar(sim, grid, s, fx);
             renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
         // Warheads a point-defence emplacement stopped come apart in the air.
@@ -1583,6 +1587,13 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Whether a swarm body fired the shot: a Spitter's lob, which leaves no casing. */
     private static boolean firedBySwarm(BattleSimulation sim, ShotEvent s) {
         return s.shooterId != 0L && sim.world().isAlive(s.shooterId) && sim.identity().type(s.shooterId).isSwarm();
+    }
+
+    /** Keeps where a round struck a wall, so the wall's face shows the hit where it landed ({@link WallScars}). */
+    private static void scar(BattleSimulation sim, NavigationGrid grid, ShotEvent s, WeaponFxDef fx) {
+        WeaponDef weapon = s.weaponDef();
+        sim.effects().wallScars().strike(grid.getWidth(), s.fromX, s.fromY, s.toX, s.toY, s.toZ,
+                WallScars.of(ImpactDecals.markOf(weapon, fx)), weapon != null ? Math.max(.6f, weapon.aoeRadius) : .6f);
     }
 
     private static boolean isWallAt(NavigationGrid grid, float x, float y) {
