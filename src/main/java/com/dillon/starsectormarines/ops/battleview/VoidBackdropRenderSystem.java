@@ -241,7 +241,7 @@ final class VoidBackdropRenderSystem implements RenderSystem {
         this.backdrop = backdrop;
         this.alpha = ctx.alphaMult;
         this.polysUsed = 0;
-        this.eye = backdrop.eyeMeters();
+        this.eye = backdrop.eyeMeters() * BuildingFaces.rise(cam);
         this.cx = cam.cellToScreenX(cam.panCellX());
         this.cy = cam.cellToScreenY(cam.panCellY());
         if (builtFor != topology || builtWith != backdrop) build(topology, ctx.sim.getGrid().elevation(), backdrop);

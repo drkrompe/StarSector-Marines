@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -26,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class PortLighterStandTest {
 
-    private static final Set<ShuttleType> FREIGHTERS = Set.of(ShuttleType.BUFFALO, ShuttleType.MULE,
-            ShuttleType.TARSUS);
 
     @Test
     void noCompanyLandsOnALighterStand() {
@@ -41,14 +38,18 @@ class PortLighterStandTest {
 
     @Test
     void aFreighterStandsOnEveryLighterStand() {
-        LandingPad a = new LandingPad(20, 6, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
-        LandingPad b = new LandingPad(20, 18, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        LandingPad a = new LandingPad(20, 5, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
+        LandingPad b = new LandingPad(20, 19, 1, 1, LandingPad.Approach.EAST, LandingPad.Purpose.PORT_LIGHTER);
         MapResult map = map(List.of(a, b));
         List<ParkedAircraft> parked = BattleSetup.stampParkedAircraft(map, List.of(), new Random(3L));
         assertEquals(2, parked.size());
         for (ParkedAircraft craft : parked) {
-            assertTrue(FREIGHTERS.contains(craft.type), "a lighter is a freighter: " + craft.type);
+            assertTrue(craft.type instanceof PortFreighter, "a port's traffic is a bulk freighter: " + craft.type);
             assertFalse(map.grid.isWalkable(craft.centerX, craft.centerY), "its hull stands on its stand");
+            // Its hull closes more than a boat's three cells: its length along the approach, short of the overhang.
+            assertFalse(map.grid.isWalkable(craft.centerX + 4, craft.centerY), "the hull's length is closed");
+            assertTrue(map.grid.isWalkable(craft.centerX, craft.centerY < 12 ? craft.centerY + 7 : craft.centerY - 7),
+                    "the wings overhang open ground");
         }
     }
 

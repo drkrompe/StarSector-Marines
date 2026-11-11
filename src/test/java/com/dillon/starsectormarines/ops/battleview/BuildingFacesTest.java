@@ -215,4 +215,24 @@ class BuildingFacesTest {
         assertTrue(BuildingFaces.detailed(5f, BuildingFaces.DETAIL_STOREY_PX), "narrow cells, tall storeys");
         assertFalse(BuildingFaces.detailed(5f, 3f), "narrow and short");
     }
+
+    /**
+     * The eye stands at its own height at play zoom and closer, and rises with the view past it, so a building at the
+     * view's edge leans about as many cells zoomed all the way out as at play zoom, where a camera that stayed put
+     * would lean it four times as far: zoomed out, buildings no longer grow taller against their own footprints.
+     */
+    @Test
+    void theEyeRisesWithTheViewSoABuildingLeansAlikeAtEveryZoom() {
+        assertEquals(1f, BuildingFaces.rise(BuildingFaces.PLAY_CELLS * .5f), 1e-6f, "closer than play zoom");
+        assertEquals(1f, BuildingFaces.rise(BuildingFaces.PLAY_CELLS), 1e-6f, "play zoom");
+        assertEquals(4f, BuildingFaces.rise(BuildingFaces.PLAY_CELLS * 4f), 1e-6f, "the whole map");
+        float meters = BuildingFaces.HEIGHTS[BuildingFaces.TALL];
+        float edge = BuildingFaces.PLAY_CELLS / 2f, wide = BuildingFaces.PLAY_CELLS * 4f;
+        // Cells a roof at the view's edge stands off its footprint.
+        float atPlay = edge * (BuildingFaces.lift(meters, BuildingFaces.rise(BuildingFaces.PLAY_CELLS)) - 1f);
+        float risen = 4f * edge * (BuildingFaces.lift(meters, BuildingFaces.rise(wide)) - 1f);
+        float stayed = 4f * edge * (BuildingFaces.lift(meters) - 1f);
+        assertTrue(risen <= atPlay && risen > .85f * atPlay, "about as far as at play zoom: " + risen + " " + atPlay);
+        assertEquals(4f * atPlay, stayed, 1e-3f, "a camera that stayed put leans it four times as far");
+    }
 }

@@ -38,7 +38,7 @@ import java.util.Random;
  * <p>{@code -Dsnapshot.walls.seed=7} picks the map; {@code -Dsnapshot.walls.worlds=arid,toxic} narrows the worlds;
  * {@code -Dsnapshot.walls.frame=curtain} frames the joints where a diagonal freestanding wall meets a straight one
  * instead of the buildings; {@code =whole} shoots each map whole ({@code -whole.png}) and its right half
- * ({@code -half.png}).
+ * ({@code -half.png}); {@code -Dsnapshot.walls.depth=off} shoots with the Settings page's 3D walls off.
  */
 public final class BuildingWallsLookSuite implements SnapshotSuite {
 
@@ -69,6 +69,8 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
         long seed = Long.getLong("snapshot.walls.seed", 7L);
         String only = System.getProperty("snapshot.walls.worlds", "");
         List<SnapshotArtifact> out = new ArrayList<>();
+        // -Dsnapshot.walls.depth=off shoots the Settings page's 3D walls turned off (WallDepth).
+        WallDepth.lookAs("off".equals(System.getProperty("snapshot.walls.depth")) ? Boolean.FALSE : null);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             for (World world : WORLDS) {
                 if (!only.isBlank() && !List.of(only.split(",")).contains(world.id())) continue;
@@ -115,6 +117,8 @@ public final class BuildingWallsLookSuite implements SnapshotSuite {
                             sim.getBuildings().all().size(), describe(frames));
                 }
             }
+        } finally {
+            WallDepth.lookAs(null);
         }
         return out;
     }

@@ -22,6 +22,8 @@ import java.util.List;
 final class FreestandingWallFaces {
 
     private final PolyMesh mesh = new PolyMesh(256);
+    /** How far this frame's eye has risen ({@link BuildingFaces#rise}). */
+    private float rise = 1f;
     /** The footing along a diagonal wall, on the ground: it covers the corners of its cells the slanted wall leaves. */
     private final PolyMesh footing = new PolyMesh(32);
     private CellTopology runsOf;
@@ -55,6 +57,7 @@ final class FreestandingWallFaces {
             runsAt = topology.changeCount();
         }
         if (runs.isEmpty()) return;
+        rise = BuildingFaces.rise(camera);
         int gridW = topology.getWidth();
         FogOfWarService vis = sim.getFogOfWar();
         boolean[] shown = !fogDrawn || vis == null || !vis.isInitialized() ? null : vis.cellShownArray();
@@ -71,7 +74,7 @@ final class FreestandingWallFaces {
         footing.reset();
         for (FreestandingWalls.Run run : runs) {
             if (!view.intersects(run.minX(), run.maxX(), run.minY(), run.maxY())) continue;
-            float lift = BuildingFaces.lift(run.meters());
+            float lift = BuildingFaces.lift(run.meters(), rise);
             FreestandingWalls.Kind kind = run.kind();
             if (kind == FreestandingWalls.Kind.ENVELOPE || kind == FreestandingWalls.Kind.ENVELOPE_PLINTH) {
                 envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
@@ -100,7 +103,7 @@ final class FreestandingWallFaces {
      */
     private void strokes(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
                          int gridW, int gridH, float unseen, float alphaMult, CreepField creep, boolean detail) {
-        float meters = run.meters(), lift = BuildingFaces.lift(meters);
+        float meters = run.meters(), lift = BuildingFaces.lift(meters, rise);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
         FreestandingWalls.Kind kind = run.kind();
@@ -302,7 +305,7 @@ final class FreestandingWallFaces {
      */
     private void envelope(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
                           int gridW, int gridH, float unseen, float alphaMult) {
-        float meters = run.meters(), lift = BuildingFaces.lift(meters);
+        float meters = run.meters(), lift = BuildingFaces.lift(meters, rise);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
         FreestandingWalls.Kind kind = run.kind();
@@ -390,7 +393,7 @@ final class FreestandingWallFaces {
 
         /** A band shaded from {@code low} at its foot to {@code high} at its top. */
         void shaded(float u0, float u1, float h0, float h1, float[] low, float[] high, float light, float alpha) {
-            float l0 = BuildingFaces.lift(meters * h0), l1 = BuildingFaces.lift(meters * h1);
+            float l0 = BuildingFaces.lift(meters * h0, rise), l1 = BuildingFaces.lift(meters * h1, rise);
             float ax = camera.cellToScreenX(x0 + (x1 - x0) * u0), ay = camera.cellToScreenY(y0 + (y1 - y0) * u0);
             float bx = camera.cellToScreenX(x0 + (x1 - x0) * u1), by = camera.cellToScreenY(y0 + (y1 - y0) * u1);
             for (int k = 0; k < 2; k++) {
@@ -409,7 +412,7 @@ final class FreestandingWallFaces {
         private final float[] shade = new float[12];
 
         void band(float u0, float u1, float h0, float h1, float[] rgb, float light, float alpha) {
-            float l0 = BuildingFaces.lift(meters * h0), l1 = BuildingFaces.lift(meters * h1);
+            float l0 = BuildingFaces.lift(meters * h0, rise), l1 = BuildingFaces.lift(meters * h1, rise);
             float ax = camera.cellToScreenX(x0 + (x1 - x0) * u0), ay = camera.cellToScreenY(y0 + (y1 - y0) * u0);
             float bx = camera.cellToScreenX(x0 + (x1 - x0) * u1), by = camera.cellToScreenY(y0 + (y1 - y0) * u1);
             mesh.appendQuad(sx + (ax - sx) * l0, sy + (ay - sy) * l0, sx + (bx - sx) * l0, sy + (by - sy) * l0,

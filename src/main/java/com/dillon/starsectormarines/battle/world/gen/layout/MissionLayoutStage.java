@@ -174,7 +174,7 @@ public final class MissionLayoutStage implements GenStage {
                             "a structure is raised in the structures phase"));
                     continue;
                 }
-                out.add(LayoutStructures.raise(ctx, ground, structure, held));
+                out.add(LayoutStructures.raise(ctx, ground, structure, structureHeld(held, layout, pieces)));
             } else if (piece instanceof Worked worked) {
                 out.add(layWorked(ctx, worked, held));
             } else if (piece instanceof Props props && phase == Phase.STRUCTURES) {
@@ -216,7 +216,7 @@ public final class MissionLayoutStage implements GenStage {
                 closed = true;
             } else if (piece instanceof Site site) {
                 boolean inside = site.x0() >= 0 && site.y0() >= 0 && site.x1() < ctx.width && site.y1() < ctx.height;
-                Laid.Kind kind = site.purpose() == SitePurpose.GROUND ? Laid.Kind.GROUND : Laid.Kind.SITE;
+                Laid.Kind kind = site.purpose().held() ? Laid.Kind.GROUND : Laid.Kind.SITE;
                 out.add(inside
                         ? new Laid(site.name(), kind, Laid.Status.LAID, "", site.required(),
                                 List.of(new int[]{site.x0(), site.y0()}, new int[]{site.x1(), site.y1()}), List.of(), List.of())
@@ -310,6 +310,28 @@ public final class MissionLayoutStage implements GenStage {
      * Each prop through the ordinary placement, and a tree's canopy through the forest brush, which refuses it on
      * ground a tree may not stand on; laid when any stood, reported by the low corners of those that did.
      */
+    /**
+     * The held ground a structure keeps off: {@code held} less the sites that take structures
+     * ({@link SitePurpose#takesStructures}), or {@code held} itself when there are none.
+     */
+    static boolean[][] structureHeld(boolean[][] held, MissionLayout layout, List<Piece> resolved) {
+        if (held == null) return null;
+        boolean[][] out = null;
+        List<Piece> all = new ArrayList<>(layout.pieces());
+        all.addAll(resolved);
+        for (Piece piece : all) {
+            if (!(piece instanceof Site site) || !site.purpose().takesStructures()) continue;
+            if (out == null) {
+                out = new boolean[held.length][];
+                for (int x = 0; x < held.length; x++) out[x] = held[x].clone();
+            }
+            for (int x = Math.max(0, site.x0()); x <= Math.min(out.length - 1, site.x1()); x++) {
+                for (int y = Math.max(0, site.y0()); y <= Math.min(out[x].length - 1, site.y1()); y++) out[x][y] = false;
+            }
+        }
+        return out == null ? held : out;
+    }
+
     /** Worked earth over a {@link Worked} piece's open cells, off held ground. */
     static Laid layWorked(GenContext ctx, Worked worked, boolean[][] held) {
         List<int[]> done = new ArrayList<>();

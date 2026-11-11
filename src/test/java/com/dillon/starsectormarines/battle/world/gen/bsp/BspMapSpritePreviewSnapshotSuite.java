@@ -299,7 +299,7 @@ public final class BspMapSpritePreviewSnapshotSuite implements SnapshotSuite {
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         for (ParkedAircraft parked : aircraft) {
-            BufferedImage hull = ImageIO.read(starsectorCore.resolve(parked.type.spritePath).toFile());
+            BufferedImage hull = ImageIO.read(starsectorCore.resolve(parked.type.spritePath()).toFile());
             float lengthCells = hull.getHeight() * AirScale.METERS_PER_PX;
             int drawH = Math.max(CELL_PX, Math.round(lengthCells * CELL_PX));
             int drawW = Math.max(CELL_PX,
@@ -317,7 +317,7 @@ public final class BspMapSpritePreviewSnapshotSuite implements SnapshotSuite {
             g.fillRoundRect(cx - 31, cy + drawH / 2 + 3, 62, 17, 5, 5);
             g.setColor(new Color(220, 235, 240));
             g.setFont(new Font("SansSerif", Font.BOLD, 10));
-            g.drawString(parked.type.name(), cx - 27, cy + drawH / 2 + 15);
+            g.drawString(parked.type.toString(), cx - 27, cy + drawH / 2 + 15);
         }
         g.dispose();
     }

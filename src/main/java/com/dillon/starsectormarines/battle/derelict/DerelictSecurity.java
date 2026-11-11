@@ -157,6 +157,26 @@ public final class DerelictSecurity {
         return out;
     }
 
+    /**
+     * The maintenance shop's dock ({@link RuinsDelve.Interior#serviceDock}): the zone whose node is nearest it keeps
+     * its service bay there, and its perimeter reaches past the dock. Unchanged with no dock.
+     */
+    public static List<ZonePlan> dockAt(List<ZonePlan> plans, RuinsDelve.Cell dock) {
+        if (dock == null || plans.isEmpty()) return plans;
+        int zone = nearestZone(plans, dock.x(), dock.y());
+        ZonePlan was = plans.get(zone);
+        int reach = WalkerPosture.chebyshev(dock.x(), dock.y(), was.nodeX(), was.nodeY()) + DOCK_MARGIN_CELLS;
+        if (reach <= was.perimeterCells()) return plans;
+        List<ZonePlan> out = new ArrayList<>(plans);
+        out.set(zone, new ZonePlan(was.id(), was.nodeX(), was.nodeY(), reach, was.posts()));
+        return out;
+    }
+
+    /** The interior's service dock, or null where the site has none. */
+    static RuinsDelve.Cell serviceDock(RuinsDelve delve) {
+        return delve == null || delve.interior() == null ? null : delve.interior().serviceDock();
+    }
+
     private static int indexOf(int[] route, ZonePlan plan) {
         for (int i = 0; i < route.length / 2; i++) {
             if (route[i * 2] == plan.nodeX() && route[i * 2 + 1] == plan.nodeY()) return i;
@@ -249,7 +269,8 @@ public final class DerelictSecurity {
      */
     public static DerelictSecurityDirector install(BattleSimulation sim, RuinsGrade grade, RuinsDelve delve,
                                                    FlockLivery livery, int[] route, int sourceX, int sourceY) {
-        List<ZonePlan> plans = anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve), worksHall(delve));
+        List<ZonePlan> plans = dockAt(anchorAt(zonesAlong(route, zones(grade)), route, worksStand(delve),
+                worksHall(delve)), serviceDock(delve));
         SecurityNetwork network = new SecurityNetwork();
         for (ZonePlan plan : plans) network.add(new SecurityZone(plan.id(), plan.nodeX(), plan.nodeY(),
                 plan.perimeterCells()));
@@ -258,7 +279,7 @@ public final class DerelictSecurity {
         List<DerelictWalkerFrame> heavies = heavies(grade);
         int[] zoneOf = zoneOf(heavies, plans.size());
         int[] postsUsed = new int[plans.size()];
-        int[][] inside = interiorPosts(heavies, delve);
+        int[][] inside = interiorPosts(heavies, delve, plans, zoneOf);
         List<DerelictSecurityDirector.Walker> walkers = new ArrayList<>();
         for (int i = 0; i < heavies.size(); i++) {
             ZonePlan plan = plans.get(zoneOf[i]);
@@ -404,13 +425,36 @@ public final class DerelictSecurity {
     /**
      * Where each heavy stands on a site with an interior (`derelict-security-network.md`, Interiors): the vault frame
      * on the vault's approach, inside its forecourt; the siege frame just inside the first entrance; line frames in
-     * the interior's chambers in turn (the entrances when it has none). Null when the ground has no interior, and the
-     * route's posts serve.
+     * the interior's chambers in turn (the entrances when it has none), never the one holding the maintenance shop's
+     * dock; on install, a chamber in the frame's own zone first. Null when the ground has no interior, and the route's
+     * posts serve.
      */
     public static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve) {
+        return interiorPosts(heavies, delve, null, null);
+    }
+
+    /**
+     * As {@link #interiorPosts(List, RuinsDelve)}, each line frame first offered a chamber its own zone
+     * ({@code plans.get(zoneOf[i])}) keeps, nearest that zone's node and not yet taken; the chambers in turn when its
+     * zone keeps none free.
+     */
+    static int[][] interiorPosts(List<DerelictWalkerFrame> heavies, RuinsDelve delve, List<ZonePlan> plans,
+                                 int[] zoneOf) {
         if (delve == null || delve.interior() == null || delve.vault() == null) return null;
         RuinsDelve.Interior interior = delve.interior();
         List<RuinsDelve.Area> rooms = interior.chambers().isEmpty() ? interior.entrances() : interior.chambers();
+        boolean[] taken = new boolean[rooms.size()];
+        // The maintenance shop's floor is its service bay's: no frame is posted over the dock.
+        boolean[] dockRoom = new boolean[rooms.size()];
+        int open = rooms.size();
+        RuinsDelve.Cell dock = interior.serviceDock();
+        for (int r = 0; r < rooms.size() && dock != null; r++) {
+            if (rooms.get(r).contains(dock.x(), dock.y()) && open > 1) {
+                dockRoom[r] = true;
+                taken[r] = true;
+                open--;
+            }
+        }
         int[][] out = new int[heavies.size()][];
         int nextRoom = 0;
         for (int i = 0; i < heavies.size(); i++) {
@@ -421,11 +465,31 @@ public final class DerelictSecurity {
                 RuinsDelve.Area entrance = interior.entrances().get(0);
                 out[i] = new int[] {entrance.centreX(), entrance.centreY()};
             } else {
-                RuinsDelve.Area room = rooms.get(nextRoom++ % rooms.size());
-                out[i] = new int[] {room.centreX(), room.centreY()};
+                int room = plans == null || zoneOf == null ? -1 : ownRoom(rooms, taken, plans.get(zoneOf[i]));
+                if (room < 0) {
+                    do room = nextRoom++ % rooms.size(); while (dockRoom[room]);
+                }
+                taken[room] = true;
+                out[i] = new int[] {rooms.get(room).centreX(), rooms.get(room).centreY()};
             }
         }
         return out;
+    }
+
+    /** The untaken room whose centre {@code plan}'s perimeter holds, nearest its node; -1 when none. */
+    private static int ownRoom(List<RuinsDelve.Area> rooms, boolean[] taken, ZonePlan plan) {
+        int best = -1;
+        int bestD = Integer.MAX_VALUE;
+        for (int r = 0; r < rooms.size(); r++) {
+            if (taken[r]) continue;
+            int d = Math.max(Math.abs(rooms.get(r).centreX() - plan.nodeX()),
+                    Math.abs(rooms.get(r).centreY() - plan.nodeY()));
+            if (d <= plan.perimeterCells() && d < bestD) {
+                bestD = d;
+                best = r;
+            }
+        }
+        return best;
     }
 
     /**
@@ -872,9 +936,10 @@ public final class DerelictSecurity {
         return out;
     }
 
-    /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
     /** Cells out from a walker a smaller one may stand at, nearest ring first. */
     static final int BESIDE_RINGS = 4;
+    /** How far past the maintenance shop's dock its zone's perimeter reaches, cells: room for a walker's stand off it. */
+    static final int DOCK_MARGIN_CELLS = 4;
 
     /**
      * The nearest cell to {@code (x, y)}, a ring at a time out to {@link #BESIDE_RINGS}, where a walker of
@@ -904,6 +969,7 @@ public final class DerelictSecurity {
                 (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, radius, 0L)) != null;
     }
 
+    /** One walker in a lance of its own, at the nearest standable point to its post; -1 when none is. */
     static int spawn(BattleSimulation sim, DerelictWalkerFrame frame, int postX, int postY) {
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
         if (spawnInto(sim, frame, postX, postY, squad) == 0L) return -1;
@@ -934,8 +1000,9 @@ public final class DerelictSecurity {
     }
 
     /**
-     * Stands each zone's service bay beside its node and its sealed reserve bay by its flock's home, and lays the
-     * service ducts' vents: one at each zone's flock home and one in each court, the court's under the nearest zone
+     * Stands each zone's service bay beside its node (the maintenance shop's zone's at its dock, {@link #dockAt}) and
+     * its sealed reserve bay by its flock's home, and lays the service ducts' vents: one at each zone's flock home and
+     * one in each court, the court's under the nearest zone
      * (`derelict-watch.md`). The reserve bay opens a second flock in the zone's livery when the facility's wake calls
      * it.
      */
@@ -947,8 +1014,14 @@ public final class DerelictSecurity {
         Set<Long> taken = new HashSet<>();
         for (long node : director.nodes().values()) taken.add(cellKey(sim.world().cellX(node), sim.world().cellY(node)));
         List<ServiceDucts.Vent> vents = new ArrayList<>();
-        for (ZonePlan plan : plans) {
-            int[] bay = besideRoute(route, plan.nodeX(), plan.nodeY(), walkable, taken);
+        RuinsDelve.Cell dock = serviceDock(delve);
+        int dockZone = dock == null ? -1 : nearestZone(plans, dock.x(), dock.y());
+        for (int z = 0; z < plans.size(); z++) {
+            ZonePlan plan = plans.get(z);
+            // The maintenance shop's zone keeps its bay at the shop's dock; every other zone's stands by its node.
+            int[] bay = z == dockZone && walkable.at(dock.x(), dock.y()) && !taken.contains(cellKey(dock.x(), dock.y()))
+                    ? new int[] {dock.x(), dock.y()}
+                    : besideRoute(route, plan.nodeX(), plan.nodeY(), walkable, taken);
             if (bay != null) {
                 taken.add(cellKey(bay[0], bay[1]));
                 long id = sim.spawn(DerelictNode.create("derelict-service-bay-" + plan.id(), Faction.DEFENDER,

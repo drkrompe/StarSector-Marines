@@ -34,7 +34,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                            Standoff standoff, Lanes lanes,
                            List<String> unplacedLanePlaces,
                            List<String> movedLaneWaypoints,
-                           Landscape landscape, MissionLayout layout, String raidIndustry) {
+                           Landscape landscape, MissionLayout layout, String raidIndustry,
+                           RaidSiteTemplate.Security raidSecurity) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
@@ -61,7 +62,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                         List<String> unplacedLanePlaces,
                         List<String> movedLaneWaypoints,
                         Landscape landscape, MissionLayout layout) {
-        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, landscape, layout, null);
+        this(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces, movedLaneWaypoints, landscape, layout, null,
+                null);
     }
 
     /**
@@ -70,7 +72,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withRaidIndustry(String raidIndustry) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
+    }
+
+    /**
+     * The same plan with the raided market's security, which a Raid site's works' defences are laid by
+     * ({@code WorksDefences}): the raided market's, not the reference market an owned map's layout is laid against,
+     * since the defences are dressing that moves no cell of the layout. Null for every plan but a Raid site's.
+     */
+    public PrecinctPlan withRaidSecurity(RaidSiteTemplate.Security raidSecurity) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
     }
 
     /** A plan with every lane diagnostic and a stated landscape, and no mission layout. */
@@ -130,13 +142,13 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
     }
 
     /** The same plan with its places restated: a place moved, say, off ground a landform holds. */
     public PrecinctPlan withPrecincts(List<Precinct> precincts) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
     }
 
     /**
@@ -146,7 +158,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withLandscape(Landscape landscape) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
     }
 
     /**
@@ -156,7 +168,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public PrecinctPlan withLayout(MissionLayout layout) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes,
-                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry);
+                unplacedLanePlaces, movedLaneWaypoints, landscape, layout, raidIndustry, raidSecurity);
     }
 
     /**

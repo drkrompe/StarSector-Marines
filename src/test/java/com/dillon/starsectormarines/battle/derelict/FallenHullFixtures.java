@@ -16,6 +16,8 @@ final class FallenHullFixtures {
     static final FallenHullSite.Rect HULL = new FallenHullSite.Rect(4, 24, 16, 40);
     static final int FORGE_X = 10;
     static final int MOUTH_X = 20;
+    /** The hull zone's reach off the hull's plates: the ground east to x 28, short of point 0's. */
+    static final int REACH = 12;
 
     /** Points 0, 1, 2 east along the row; point 3 north of point 0. */
     static final List<ClaimLattice.Point> LATTICE = List.of(
@@ -36,7 +38,7 @@ final class FallenHullFixtures {
 
     static FallenHullSite site(List<FallenHullSite.StartingStake> stakes, List<FallenHullSite.Pile> salvage,
                                List<FallenHullSite.Posting> walkers, float feedstock) {
-        return new FallenHullSite(HULL, FORGE_X, ROW_Y, MOUTH_X, ROW_Y, 18, LATTICE, SPACING, List.of(road()),
-                stakes, salvage, walkers, List.of(new int[] {MOUTH_X, ROW_Y}), feedstock);
+        return new FallenHullSite(HULL, FORGE_X, ROW_Y, MOUTH_X, ROW_Y, REACH, LATTICE, SPACING, List.of(road()),
+                stakes, salvage, walkers, List.of(new int[] {MOUTH_X, ROW_Y}), feedstock, List.of(HULL));
     }
 }

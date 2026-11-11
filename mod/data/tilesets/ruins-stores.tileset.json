@@ -1,0 +1,389 @@
+{
+  "sheet": "graphics/doodads/ruins-stores.png",
+  "cellPx": 128,
+  "doodads": [
+    {
+      "id": "doodad.ruins-store-metals",
+      "col": 0,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-metals-cache",
+      "col": 2,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-transplutonics",
+      "col": 4,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-transplutonics-cache",
+      "col": 6,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-volatiles",
+      "col": 8,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-volatiles-cache",
+      "col": 10,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-supplies",
+      "col": 12,
+      "row": 0,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-supplies-cache",
+      "col": 14,
+      "row": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-organics",
+      "col": 0,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-organics-cache",
+      "col": 2,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-heavy-machinery",
+      "col": 4,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-heavy-machinery-cache",
+      "col": 7,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-ore",
+      "col": 10,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-ore-cache",
+      "col": 12,
+      "row": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-transplutonic-ore",
+      "col": 14,
+      "row": 2,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-transplutonic-ore-cache",
+      "col": 0,
+      "row": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-fuel",
+      "col": 2,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-fuel-cache",
+      "col": 10,
+      "row": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-domestic-goods",
+      "col": 12,
+      "row": 4,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-domestic-goods-cache",
+      "col": 14,
+      "row": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-rack-bay",
+      "col": 4,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-rack-bay-stripped",
+      "col": 6,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        4
+      ]
+    },
+    {
+      "id": "doodad.ruins-store-pallet",
+      "col": 8,
+      "row": 5,
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "footprintCells": [
+        2,
+        2
+      ]
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "Metals",
+      "description": "Grey strapped ingot stacks on a pallet."
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "Metals, field cache",
+      "description": "Grey strapped ingot stacks on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "Transplutonics",
+      "description": "A shielded rack of silver-blue canisters."
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "Transplutonics, field cache",
+      "description": "A shielded rack of silver-blue canisters. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 8,
+      "row": 0,
+      "name": "Volatiles",
+      "description": "A rack of blue pressure tanks."
+    },
+    {
+      "col": 10,
+      "row": 0,
+      "name": "Volatiles, field cache",
+      "description": "A rack of blue pressure tanks. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "name": "Supplies",
+      "description": "Yellow-banded supply crates on a pallet."
+    },
+    {
+      "col": 14,
+      "row": 0,
+      "name": "Supplies, field cache",
+      "description": "Yellow-banded supply crates on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 0,
+      "row": 2,
+      "name": "Organics",
+      "description": "A cluster of green organics drums on a pallet."
+    },
+    {
+      "col": 2,
+      "row": 2,
+      "name": "Organics, field cache",
+      "description": "A cluster of green organics drums on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 4,
+      "row": 2,
+      "name": "Heavy machinery",
+      "description": "An orange machine crated on a skid."
+    },
+    {
+      "col": 7,
+      "row": 2,
+      "name": "Heavy machinery, field cache",
+      "description": "An orange machine crated on a skid. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 10,
+      "row": 2,
+      "name": "Ore",
+      "description": "A steel ore bin heaped with dark rock."
+    },
+    {
+      "col": 12,
+      "row": 2,
+      "name": "Ore, field cache",
+      "description": "A steel ore bin heaped with dark rock. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 14,
+      "row": 2,
+      "name": "Transplutonic ore",
+      "description": "A steel ore bin heaped with pale blue-white crystalline ore."
+    },
+    {
+      "col": 0,
+      "row": 4,
+      "name": "Transplutonic ore, field cache",
+      "description": "A steel ore bin heaped with pale blue-white crystalline ore. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 2,
+      "row": 4,
+      "name": "Fuel",
+      "description": "Red fuel tanks in a hazard-marked bay."
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "name": "Fuel, field cache",
+      "description": "Red fuel tanks in a hazard-marked bay. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 12,
+      "row": 4,
+      "name": "Domestic goods",
+      "description": "Mixed crates and cases on a pallet."
+    },
+    {
+      "col": 14,
+      "row": 4,
+      "name": "Domestic goods, field cache",
+      "description": "Mixed crates and cases on a pallet. On a recovery skid's amber rails: a field cache, pickup art only (loot-nouns)."
+    },
+    {
+      "col": 4,
+      "row": 5,
+      "name": "Empty rack bay",
+      "description": "A store rack bay, two pallet places deep, standing empty."
+    },
+    {
+      "col": 6,
+      "row": 5,
+      "name": "Stripped rack bay",
+      "description": "A store rack bay stripped to a few leftovers: a split case, loose straps."
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "name": "Empty pallet",
+      "description": "An empty steel-runnered pallet."
+    }
+  ]
+}

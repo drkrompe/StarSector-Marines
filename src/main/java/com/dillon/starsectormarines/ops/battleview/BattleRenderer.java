@@ -1015,8 +1015,11 @@ public class BattleRenderer {
      */
     private void collectRoofs(RenderContext ctx, DrawList out, float alphaMult) {
         BattleSimulation sim = ctx.sim;
-        // Freestanding walls stood up first, so every building's faces and roof stand over them.
-        freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
+        riseEye();
+        boolean standing = standing();
+        // Freestanding walls stood up first, so every building's faces and roof stand over them. Flat (the Settings
+        // page's 3D walls off, WallDepth) they are the map's wall tiles alone.
+        if (standing) freestandingWalls.collect(sim, out, alphaMult, rc.camera, fogDrawn);
         Buildings buildings = sim.getBuildings();
         CellTopology topology = sim.getTopology();
         if (buildings == null || buildings.isEmpty()) {
@@ -1029,17 +1032,24 @@ public class BattleRenderer {
             overheadProps.collectMounts(ctx, out, (d, corners) -> true);
             return;
         }
-        // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
-        buildingFaces(sim, out, alphaMult, topology);
-        occludedUnits(sim, out, alphaMult, topology);
-        // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
-        overheadProps.collectMounts(ctx, out, (d, corners) -> standMount(sim, d, corners));
+        if (standing) {
+            // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
+            buildingFaces(sim, out, alphaMult, topology);
+            occludedUnits(sim, out, alphaMult, topology);
+            // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
+            overheadProps.collectMounts(ctx, out, (d, corners) -> standMount(sim, d, corners));
+        } else {
+            // Flat: every roof over its footprint, what hangs on a wall lying where it was laid.
+            facePainter.reset();
+            ruinShells.reset();
+            overheadProps.collectMounts(ctx, out, (d, corners) -> true);
+        }
         if (rc.hostProfile.residentGroundAllowed()) {
             HullRoof ship = hullRoof(topology, buildings);
             RoofMesh.RoofResolver resolver = (building, x, y, sink) -> {
                 RoofPlans.Plan plan = roofPlans.of(topology, buildings, building);
                 // The ship's field and trims are drawn from its painting each frame (streamShipRoofs), not baked.
-                RoofTiles.Sink to = ship != null && ship.holds(building) ? (column, row, turns, x0, y0, x1, y1) -> {
+                RoofTiles.Sink to = ship != null && ship.of(building) != null ? (column, row, turns, x0, y0, x1, y1) -> {
                     if (RoofStream.damage(column)) sink.quad(column, row, turns, x0, y0, x1, y1);
                 } : sink;
                 RoofTiles.resolve(topology, x, y, plan.style, plan.grainTurns, to);
@@ -1049,7 +1059,7 @@ public class BattleRenderer {
                 boolean drawable = roofMesh.sync(topology, buildings, sprites.roofSheet(),
                         sprites.roofSheetPxW(), sprites.roofSheetPxH(), resolver, alphaMult,
                         b -> buildingClass(topology, buildings, b));
-                if (drawable && serving) roofMesh.draw(rc.camera, ROOF_LIFTS);
+                if (drawable && serving) roofMesh.draw(rc.camera, roofLifts);
             });
             if (!serving) streamRoofs(sim, out, alphaMult, topology);
             else if (ship != null) streamShipRoofs(sim, out, alphaMult, topology, ship);
@@ -1085,8 +1095,8 @@ public class BattleRenderer {
         }
         float meters = BuildingFaces.HEIGHTS[heightClass];
         WallMounts.standUp(corners, mountEaves, rc.camera.panCellX(), rc.camera.panCellY(), meters,
-                ROOF_LIFTS[heightClass], BuildingFaces.standing(meters, 1f - b.currentAlpha),
-                WallMounts.railMeters(d.definitionId()), WallMounts.outerMeters(d.definitionId()));
+                roofLifts[heightClass], BuildingFaces.standing(meters, 1f - b.currentAlpha),
+                WallMounts.railMeters(d.definitionId()), WallMounts.outerMeters(d.definitionId()), roofRise);
         return true;
     }
 
@@ -1114,10 +1124,36 @@ public class BattleRenderer {
         return null;
     }
 
-    /** Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre. */
-    private static final float[] ROOF_LIFTS = new float[BuildingFaces.HEIGHTS.length];
-    static {
-        for (int c = 0; c < ROOF_LIFTS.length; c++) ROOF_LIFTS[c] = BuildingFaces.lift(BuildingFaces.HEIGHTS[c]);
+    /**
+     * Each height class's lift ({@link BuildingFaces#HEIGHTS}), the roofs' scale about the view's centre, for the
+     * eye risen by {@link #roofRise}; set each frame from the view's width ({@link #riseEye}).
+     */
+    private final float[] roofLifts = new float[BuildingFaces.HEIGHTS.length];
+    private float roofRise = -1f;
+
+    {
+        riseTo(1f);
+    }
+
+    /** Raises the eye for this frame's view ({@link BuildingFaces#rise}) and the roofs' lifts with it. */
+    private void riseEye() {
+        float rise = WallDepth.enabled() ? BuildingFaces.rise(rc.camera) : FLAT;
+        if (rise != roofRise) riseTo(rise);
+    }
+
+    private void riseTo(float rise) {
+        roofRise = rise;
+        for (int c = 0; c < roofLifts.length; c++) {
+            roofLifts[c] = rise == FLAT ? 1f : BuildingFaces.lift(BuildingFaces.HEIGHTS[c], rise);
+        }
+    }
+
+    /** {@link #roofRise} for a flat view ({@link WallDepth} off): every roof lies over its footprint. */
+    private static final float FLAT = Float.POSITIVE_INFINITY;
+
+    /** Whether this frame's buildings and walls stand up ({@link WallDepth}), as {@link #riseEye} settled it. */
+    private boolean standing() {
+        return roofRise != FLAT;
     }
 
     /** Each building's height class now, worked out again whenever the topology changes. */
@@ -1238,7 +1274,7 @@ public class BattleRenderer {
                     WallDress.rhythm(k.kind, look, BuildingFaces.hash(k.id, 24))));
             if (heightClass == BuildingFaces.RAZED) {
                 // Destroyed: a broken shell a storey high at most, its corners standing tallest, rubble at its foot.
-                float lift = BuildingFaces.lift(SHELL_METERS);
+                float lift = BuildingFaces.lift(SHELL_METERS, roofRise);
                 paint.into(ruinShells);
                 for (int e = 0; e < segs.length; e += BuildingFaces.SEG) {
                     float x0 = segs[e], y0 = segs[e + 1], x1 = segs[e + 2], y1 = segs[e + 3];
@@ -1260,7 +1296,7 @@ public class BattleRenderer {
             // fade and the far walls' inner sides come up to frame the rooms. The walls stay opaque throughout.
             float cut = 1f - b.currentAlpha;
             float meters = BuildingFaces.HEIGHTS[heightClass];
-            float lift = ROOF_LIFTS[heightClass];
+            float lift = roofLifts[heightClass];
             boolean industrial = b.kind == BuildingKind.INDUSTRIAL || b.kind == BuildingKind.FORTIFIED;
             int storeys = BuildingFaces.storeys(meters);
             float upright = BuildingFaces.standing(meters, cut);
@@ -1474,8 +1510,8 @@ public class BattleRenderer {
                     if (home == null || home.currentAlpha < .5f) continue;
                     int c = buildingClass(topology, buildings, home);
                     if (c == BuildingFaces.RAZED) continue;
-                    mx = viewX + (x - viewX) * ROOF_LIFTS[c];
-                    my = viewY + (y - viewY) * ROOF_LIFTS[c];
+                    mx = viewX + (x - viewX) * roofLifts[c];
+                    my = viewY + (y - viewY) * roofLifts[c];
                 } else if (!hiddenBehindBuilding(topology, buildings, x, y, viewX, viewY)) continue;
                 float px = rc.camera.cellToScreenX(mx), py = rc.camera.cellToScreenY(my);
                 float o = r + edge;
@@ -1496,7 +1532,7 @@ public class BattleRenderer {
         Buildings buildings = sim.getBuildings();
         if (topology == null || buildings == null || buildings.isEmpty()) return 0;
         for (int c = BuildingFaces.RAZED - 1; c >= 0; c--) {
-            float lift = ROOF_LIFTS[c];
+            float lift = roofLifts[c];
             int bx = (int) Math.floor(BuildingFaces.unlifted(x, viewX, lift));
             int by = (int) Math.floor(BuildingFaces.unlifted(y, viewY, lift));
             if (!topology.inBounds(bx, by)) continue;
@@ -1512,7 +1548,7 @@ public class BattleRenderer {
     private boolean hiddenBehindBuilding(CellTopology topology, Buildings buildings, float x, float y, float viewX,
                                          float viewY) {
         for (int c = 0; c < BuildingFaces.RAZED; c++) {
-            float lift = ROOF_LIFTS[c];
+            float lift = roofLifts[c];
             int bx = (int) Math.floor(BuildingFaces.unlifted(x, viewX, lift));
             int by = (int) Math.floor(BuildingFaces.unlifted(y, viewY, lift));
             if (!topology.inBounds(bx, by)) continue;
@@ -1548,10 +1584,11 @@ public class BattleRenderer {
             // A roof reaches one cell past its floor, over the walls that carry it.
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
-            roofStream.ship = ship != null && ship.holds(b) ? ship : null;
+            roofStream.ship = ship != null ? ship.of(b) : null;
             roofStream.shipOnly = false;
             roofStream.begin(out, b, roofAlpha * alphaMult);
-            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, b)],
+            roofStream.lift(roofStream.ship != null ? shipLift(topology, buildings, ship)
+                            : roofLifts[buildingClass(topology, buildings, b)],
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;
@@ -1562,6 +1599,7 @@ public class BattleRenderer {
                 RoofTiles.resolve(topology, cx, cy, plan.style, plan.grainTurns, roofStream);
             }
         }
+        if (ship != null) streamShipSolid(out, alphaMult, topology, buildings, ship, view);
         roofStream.ship = null;
     }
 
@@ -1576,14 +1614,15 @@ public class BattleRenderer {
         VisibleCellRect view = rc.camera.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 sim.getGrid().getWidth(), sim.getGrid().getHeight());
-        roofStream.ship = ship;
         roofStream.shipOnly = true;
         for (Building b : buildings.all()) {
-            if (!ship.holds(b) || b.currentAlpha <= 0.01f) continue;
+            HullRoof.Section section = ship.of(b);
+            if (section == null || b.currentAlpha <= 0.01f) continue;
+            roofStream.ship = section;
             if (!view.intersects(b.minX - 1, b.maxX + 1, b.minY - 1, b.maxY + 1)) continue;
             RoofPlans.Plan plan = roofPlans.of(topology, buildings, b);
             roofStream.begin(out, b, b.currentAlpha * alphaMult);
-            roofStream.lift(ROOF_LIFTS[buildingClass(topology, buildings, b)],
+            roofStream.lift(shipLift(topology, buildings, ship),
                     rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
             for (int at : plan.cells) {
                 int cx = at % gridW;
@@ -1594,8 +1633,51 @@ public class BattleRenderer {
                 RoofTiles.resolve(topology, cx, cy, plan.style, plan.grainTurns, roofStream);
             }
         }
+        streamShipSolid(out, alphaMult, topology, buildings, ship, view);
         roofStream.ship = null;
         roofStream.shipOnly = false;
+    }
+
+    /**
+     * The ship's solid hull no compartment's roof covers ({@link HullRoof.Section#solid}): painted as its section's
+     * roof, at its most shown compartment's alpha, fog and lift, so the hull reads whole to the bow's tip.
+     */
+    private void streamShipSolid(DrawList out, float alphaMult, CellTopology topology, Buildings buildings,
+                                 HullRoof ship, VisibleCellRect view) {
+        int gridW = topology.getWidth();
+        for (HullRoof.Section section : ship.sections()) {
+            if (section.solid.length == 0) continue;
+            Building shown = null;
+            for (Building b : section.buildings) {
+                if (shown == null || b.currentAlpha > shown.currentAlpha) shown = b;
+            }
+            if (shown == null || shown.currentAlpha <= 0.01f) continue;
+            roofStream.ship = section;
+            roofStream.begin(out, shown, shown.currentAlpha * alphaMult);
+            roofStream.lift(shipLift(topology, buildings, ship),
+                    rc.camera.cellToScreenX(rc.camera.panCellX()), rc.camera.cellToScreenY(rc.camera.panCellY()));
+            for (int at : section.solid) {
+                int cx = at % gridW;
+                int cy = at / gridW;
+                if (!view.contains(cx, cy)) continue;
+                roofStream.cellX = cx;
+                roofStream.cellY = cy;
+                roofStream.shipQuad(0f, 0f, 1f, 1f);
+            }
+        }
+    }
+
+    /**
+     * The one lift the whole ship's roof stands at: its tallest compartment's. Each compartment is its own building,
+     * and one beside a break counts as breached and stands lower, so lifted apart the painting would split along
+     * compartment lines and show the decks between.
+     */
+    private float shipLift(CellTopology topology, Buildings buildings, HullRoof ship) {
+        float lift = 1f;
+        for (HullRoof.Section section : ship.sections()) {
+            for (Building b : section.buildings) lift = Math.max(lift, roofLifts[buildingClass(topology, buildings, b)]);
+        }
+        return lift;
     }
 
     private HullRoof hullRoof;
@@ -1628,8 +1710,8 @@ public class BattleRenderer {
         private float a;
         int cellX;
         int cellY;
-        /** The ship the building being drawn is part of: its field comes from the ship's painting. Null otherwise. */
-        HullRoof ship;
+        /** The ship's section the building being drawn is part of: its field comes from the ship's painting. */
+        HullRoof.Section ship;
         /** Draw only the ship's field: its damage is in the resident mesh. */
         boolean shipOnly;
         /** A roof stood up ({@link BuildingFaces}): its scale about the view's centre, on screen; 1 lies flat. */
@@ -1659,7 +1741,9 @@ public class BattleRenderer {
 
         /** A field piece of the ship: the painting where the piece's rectangle falls on the hull's plan. */
         private void shipQuad(float x0, float y0, float x1, float y1) {
-            HullRoof s = ship;
+            // Each cell as its own section lies: one compartment's roof may run across a break.
+            HullRoof.Section here = hullRoof != null ? hullRoof.at(cellX, cellY) : null;
+            HullRoof.Section s = here != null ? here : ship;
             float ua = s.planU(cellX + x0, cellY + y0), ub = s.planU(cellX + x1, cellY + y1);
             float va = s.planV(cellX + x0, cellY + y0), vb = s.planV(cellX + x1, cellY + y1);
             float u0 = Math.min(ua, ub), u1 = Math.max(ua, ub);

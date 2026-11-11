@@ -14,9 +14,15 @@ import java.util.List;
  * whole hull, and a two-cell service door to the crew deck, which only the heavy and the rounds walker pass. The forge
  * hall is the interior's vault: the autoforge stands at its far end.
  *
- * <p>Entrances from open ground: the stern's cargo door (onto the trench), the launch bay's door on the port flank, and
- * three breaches the crash tore through the shell: amidships on the starboard flank into the spine, and into the
- * first and third holds. A breach is open to the sky: its cells are {@link Kind#TORN}.
+ * <p>The hull broke up coming in ({@code fallen-hull-nouns.md}, The ground): it lies in three {@link Section sections},
+ * stern, midsection and bow, each a run of the plan's {@code u} laid apart from the next by a gap of open ground and
+ * shifted a little across the line, so the plan's cells are placed on the ground through {@link #laidU} and
+ * {@link #laidV}. Nothing joins two sections but the ground between them: a cell's neighbours are its own section's
+ * ({@link #near}). Each section is torn open at its broken ends, and those torn ends are the big breaches.
+ *
+ * <p>Entrances from open ground: the stern's cargo door, the launch bay's door on the port flank, the four torn ends,
+ * and three smaller rents in the flanks (into the first, second and third holds). A breach is open to the sky: its
+ * cells are {@link Kind#TORN}.
  *
  * <p>The ship is built as a ship ({@code fallen-hull-nouns.md}, The ground): its {@link #shell outer shell}, the solid
  * hull within {@link #SHELL_DEPTH} of the outside, is armour; the rest of its solid hull is bulkhead between
@@ -72,12 +78,47 @@ public final class HullPlan {
      */
     public record Entrance(String name, Rect door, int du, int dv) {
         /** Whether this way in is a breach the crash tore, rather than a door. */
-        public boolean torn() { return name.startsWith(BREACH); }
+        public boolean torn() { return name.startsWith(BREACH) || broken(); }
+        /** Whether this way in is a section's broken end. */
+        public boolean broken() { return name.startsWith(BREAK); }
     }
 
-    public static final String STERN = "stern", BAY = "bay", BREACH = "breach";
-    /** The compartment that is no hall: the freight spine, with the stern's door. */
+    /**
+     * A piece of the broken hull: plan {@code u0..u1}, laid {@code gap} cells of ground after the section before it and
+     * {@code shift} cells across the line (toward plan {@code v} increasing).
+     */
+    public record Section(String name, int u0, int u1, int gap, int shift) {
+        public boolean contains(int u) { return u >= u0 && u <= u1; }
+    }
+
+    public static final String STERN = "stern", BAY = "bay", BREACH = "breach", BREAK = "break";
+    /** The compartment that is no hall: the freight spine in each section, with the stern's door ({@link #spine}). */
     public static final String SPINE_NAME = "spine";
+
+    /** The sections, stern to bow. Gaps and shifts UNTUNED; a gap holds both torn ends' aprons. */
+    public static final List<Section> SECTIONS = List.of(
+            new Section("stern", 0, 23, 0, 0),
+            new Section("mid", 24, 45, 18, 3),
+            new Section("bow", 46, LENGTH - 1, 22, -2));
+    /** How far a torn end is opened, across the plan: the keel's middle, so its corners stand. */
+    static final int TEAR_V0 = 6, TEAR_V1 = 25;
+    /** The least and most cross shift of any section. */
+    static final int MIN_SHIFT, MAX_SHIFT;
+    /** The broken hull's laid length (its sections and the gaps between) and breadth (with the shifts). */
+    public static final int LAID_LENGTH, LAID_BREADTH;
+
+    static {
+        int lo = 0, hi = 0, gaps = 0;
+        for (Section s : SECTIONS) {
+            lo = Math.min(lo, s.shift());
+            hi = Math.max(hi, s.shift());
+            gaps += s.gap();
+        }
+        MIN_SHIFT = lo;
+        MAX_SHIFT = hi;
+        LAID_LENGTH = LENGTH + gaps;
+        LAID_BREADTH = BREADTH + hi - lo;
+    }
     /** How deep the armour shell runs in from the outside, cells. */
     public static final int SHELL_DEPTH = 2;
 
@@ -90,14 +131,20 @@ public final class HullPlan {
             new Hall("hold.3", HallUse.HOLD, new Rect(6, 2, 21, 11), new Rect(12, 12, 15, 13)),
             new Hall("bay", HallUse.BAY, new Rect(26, 1, 45, 11), new Rect(33, 12, 36, 13)),
             new Hall("crew", HallUse.CREW, new Rect(47, 3, 51, 11), new Rect(48, 12, 49, 13)),
-            new Hall("forge", HallUse.FORGE, new Rect(53, 5, 72, 26), new Rect(52, 14, 52, 17)));
+            new Hall("forge", HallUse.FORGE, new Rect(53, 5, 72, 26), new Rect(52, 14, 52, 17)),
+            // The prow's hold, in the taper beyond the forge: deck where the bow would otherwise be one solid wedge.
+            new Hall("hold.prow", HallUse.HOLD, new Rect(74, 10, 83, 21), new Rect(73, 14, 73, 17)));
 
     private static final List<Entrance> ENTRANCES = List.of(
             new Entrance(STERN, new Rect(0, 14, 2, 17), -1, 0),
             new Entrance(BAY, new Rect(30, 0, 41, 0), 0, -1),
-            new Entrance(BREACH, new Rect(44, 18, 47, 31), 0, 1),
+            new Entrance(BREAK + ".stern", new Rect(22, TEAR_V0, 23, TEAR_V1), 1, 0),
+            new Entrance(BREAK + ".mid.aft", new Rect(24, TEAR_V0, 25, TEAR_V1), -1, 0),
+            new Entrance(BREAK + ".mid.fore", new Rect(44, TEAR_V0, 45, TEAR_V1), 1, 0),
+            new Entrance(BREAK + ".bow", new Rect(46, TEAR_V0, 47, TEAR_V1), -1, 0),
             new Entrance(BREACH + ".port", new Rect(14, 0, 17, 1), 0, -1),
-            new Entrance(BREACH + ".aft", new Rect(8, 30, 11, 31), 0, 1));
+            new Entrance(BREACH + ".aft", new Rect(8, 30, 11, 31), 0, 1),
+            new Entrance(BREACH + ".mid", new Rect(34, 30, 37, 31), 0, 1));
 
     /** The autoforge's cell: on the forge hall's keel line, near its far wall. */
     public static final int FORGE_U = 69, FORGE_V = 15;
@@ -120,6 +167,54 @@ public final class HullPlan {
 
     /** The one plan: every fallen hull is the same survey mothership. */
     public static HullPlan plan() { return PLAN; }
+
+    /** The section plan {@code u} lies in; the nearest end's section off the plan. */
+    public static Section section(int u) {
+        for (Section s : SECTIONS) if (s.contains(u)) return s;
+        return u < 0 ? SECTIONS.get(0) : SECTIONS.get(SECTIONS.size() - 1);
+    }
+
+    /** Where plan {@code u} lies along the broken hull, cells from the stern, as laid with {@code section}'s gaps. */
+    public static int laidU(Section section, int u) {
+        int gaps = 0;
+        for (Section s : SECTIONS) {
+            gaps += s.gap();
+            if (s == section) break;
+        }
+        return u + gaps;
+    }
+
+    /** Where plan {@code v} lies across the broken hull, in {@code section}: 0 to {@link #LAID_BREADTH} - 1. */
+    public static int laidV(Section section, int v) {
+        return v + section.shift() - MIN_SHIFT;
+    }
+
+    /** The plan {@code u} at laid {@code s} (cells from the stern), or -1 in a gap between sections. */
+    public static int planU(int s) {
+        int gaps = 0;
+        for (Section sec : SECTIONS) {
+            gaps += sec.gap();
+            int u = s - gaps;
+            if (sec.contains(u)) return u;
+        }
+        return -1;
+    }
+
+    /** The section {@code (u, v)}'s neighbour {@code (u + du, v + dv)} is in, as a cell of {@code (u, v)}'s section. */
+    public Kind near(int u, int v, int du, int dv) {
+        if (section(u) != section(u + du)) return Kind.OUTSIDE;
+        return at(u + du, v + dv);
+    }
+
+    /** The name of the spine's compartment in a section. */
+    public static String spine(Section section) { return SPINE_NAME + "." + section.name(); }
+
+    /** Whether the cell is solid hull at a section's broken end: the cut face, showing the hull's cross-section. */
+    public boolean sheared(int u, int v) {
+        if (at(u, v) != Kind.HULL) return false;
+        Section s = section(u);
+        return (u == s.u0() && s.u0() > 0) || (u == s.u1() && s.u1() < LENGTH - 1);
+    }
 
     /** Half the hull's breadth at {@code u}: full abaft the taper, drawing in to the bow. */
     static int halfBreadth(int u) {
@@ -162,7 +257,7 @@ public final class HullPlan {
         if (at(u, v) != Kind.HULL) return false;
         for (int du = -SHELL_DEPTH; du <= SHELL_DEPTH; du++) {
             for (int dv = -SHELL_DEPTH; dv <= SHELL_DEPTH; dv++) {
-                Kind k = at(u + du, v + dv);
+                Kind k = near(u, v, du, dv);
                 if (k == Kind.OUTSIDE || k == Kind.TORN) return true;
             }
         }
@@ -170,7 +265,7 @@ public final class HullPlan {
     }
 
     /**
-     * The compartment an open deck cell is in: a hall's name for its floor and dock, {@link #SPINE_NAME} for the spine,
+     * The compartment an open deck cell is in: a hall's name for its floor and dock, its section's {@link #spine},
      * and for a door's cells the compartment it opens into; null off the deck and on a breach, which is open ground.
      */
     public String compartment(int u, int v) {
@@ -184,7 +279,7 @@ public final class HullPlan {
                 if (!e.door().contains(nu, nv)) return compartment(nu, nv);
             }
         }
-        return SPINE_NAME;
+        return spine(section(u));
     }
 
     public List<Hall> halls() { return HALLS; }
@@ -216,6 +311,7 @@ public final class HullPlan {
             int[] c = frontier.remove(frontier.size() - 1);
             for (int[] s : steps) {
                 int nu = c[0] + s[0], nv = c[1] + s[1];
+                if (section(nu) != section(c[0])) continue;
                 if (!open(nu, nv) || seen[nu * BREADTH + nv]) continue;
                 seen[nu * BREADTH + nv] = true;
                 frontier.add(new int[]{nu, nv});

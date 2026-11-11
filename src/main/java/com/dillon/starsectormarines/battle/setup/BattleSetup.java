@@ -110,6 +110,9 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 
+import com.dillon.starsectormarines.battle.air.AirAppearance;
+import com.dillon.starsectormarines.battle.air.PortFreighter;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -863,6 +866,18 @@ public final class BattleSetup {
                 works ? ground.machines() : 0);
     }
 
+    /**
+     * {@link #createPooledRaid(RaidOwnedMap.Ground, SurfacePalette, long, boolean, List)} raided from {@code raided}
+     * rather than the reference market, fielding mechs when {@code heavyArmor}: the owned layout, with what the raided
+     * market decides on it (its force, its sealed towns, its works' defences). For look suites.
+     */
+    public static BattleSimulation createPooledRaid(RaidOwnedMap.Ground ground, long seed, boolean works,
+                                                    List<ShuttleAssignment> manifest, TargetProfile raided,
+                                                    boolean heavyArmor) {
+        return ownedRaid(ground, seed, manifest, heavyArmor, ground.tier(), RaidOwnedMap.RISK, raided, FlybyRoster.EMPTY,
+                FlybyRoster.EMPTY, null, null, works ? ground.machines() : 0);
+    }
+
     /** Dedicated generic Extraction factory; payload escort replaces elimination. */
     public static BattleSimulation createExtraction(
             long seed, List<ShuttleAssignment> manifest,
@@ -1461,6 +1476,11 @@ public final class BattleSetup {
         // The raided world decides whether its towns are sealed, never the reference market an owned map is laid on:
         // an owned map as every owned map is (PlanetSkin), a site laid against the raided market as a derived town is.
         if (ownedRaid != null) precincts = PlanetSkin.sealedFor(precincts, profile);
+        // The raided market's security lays the works' defences, on an owned map as on a derived one: they are
+        // dressing and move no cell of the layout (raid-demolish-the-works.md).
+        if (mapSite != null && precincts != null && profile != null && profile.marketSize() > 0) {
+            precincts = precincts.withRaidSecurity(RaidSiteTemplate.Security.of(profile));
+        }
         else if (mapSite != null && precincts != null && SealedTown.on(profile)) precincts = SealedTown.seal(precincts);
         // A ruins site is a dead settlement laid as a delve, never a living town (mapgen-nouns.md, Ruins ground).
         MapResult map = coldAccount
@@ -1660,6 +1680,11 @@ public final class BattleSetup {
                     assaultMobileMembers);
             // A Raid's posted squads crew their emplacements: the works' guns are manned (RaidWorksGuard).
             if (type == MissionType.RAID) linkGuardpostSquads(sim, defenders.defensePosts());
+            // Security parks the works' hulls beside its machine posts, on top of the force (RaidWorksMachines).
+            if (type == MissionType.RAID && map.tacticalMap != null && groundRoster != null) {
+                RaidWorksMachines.parkHulls(sim, map.tacticalMap.forFaction(Faction.DEFENDER),
+                        groundRoster.primaryFactionId());
+            }
         }
         Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
                 ? captureDefenderMobileSquads(sim) : Set.of();
@@ -1719,7 +1744,7 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(),
                     RaidCommandDisclosure.INSTANCE);
             sim.setAutonomousCommander(Faction.DEFENDER,
-                    new RaidDefenderCommand(raidMobileSquads),
+                    new RaidDefenderCommand(raidMobileSquads).worksReserve(RaidWorksGuard.reserveSquads(sim)),
                     RaidDefenderCommandDisclosure.INSTANCE);
         }
         if (type == MissionType.EXTRACTION || type == MissionType.RUINS) {
@@ -5598,6 +5623,7 @@ public final class BattleSetup {
         // patrol anchors (RaidWorksGuard).
         defenderNodes = RaidWorksGuard.seatingOrder(defenderNodes);
         Set<TacticalNode> worksPosts = new HashSet<>(RaidWorksGuard.posts(defenderNodes));
+        Set<TacticalNode> worksMachinePosts = new HashSet<>(RaidWorksGuard.machinePosts(defenderNodes));
 
         // Two separate queues — mechs and infantry never share a squad.
         // The planner ships distinct goal/action libraries for each, and a
@@ -5608,6 +5634,10 @@ public final class BattleSetup {
         // infantry fills the rest.
         UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
+        // Security adds the works' machines on top of the market's own (RaidWorksMachines): its posts take these alone.
+        Deque<MechVariant> worksMechQueue = new ArrayDeque<>(RaidWorksMachines.extraMechs(
+                RaidWorksGuard.machinePosts(defenderNodes),
+                groundRoster == null ? List.of() : groundRoster.heavySupport()));
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
         infQueue.addAll(roster.infantryOrder());
 
@@ -5618,12 +5648,22 @@ public final class BattleSetup {
         // from a single source queue (mechs first while available, then
         // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            // A works' guard post is held by riflemen while any are left; a mech does not stand in a guard room.
-            boolean spawningMechs = !mechQueue.isEmpty() && !(worksPosts.contains(node) && !infQueue.isEmpty());
-            int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
-            if (sourceSize == 0) { patrolAnchors.add(node); continue; }
+            // A works' guard post is held by riflemen while any are left; its machine posts by machines only.
+            boolean machinePost = worksMachinePosts.contains(node);
+            Deque<MechVariant> mechs = machinePost ? worksMechQueue : mechQueue;
+            RaidWorksGuard.Holder holder = RaidWorksGuard.holder(worksPosts.contains(node),
+                    machinePost, !mechs.isEmpty(), !infQueue.isEmpty());
+            if (holder == RaidWorksGuard.Holder.NONE) {
+                if (!worksMachinePosts.contains(node)) patrolAnchors.add(node);
+                continue;
+            }
+            boolean spawningMechs = holder == RaidWorksGuard.Holder.MACHINES;
+            // A works' machine post is for machines alone: never a patrol's anchor when it stands empty.
+            int sourceSize = spawningMechs ? mechs.size() : infQueue.size();
+            if (sourceSize == 0) { if (!machinePost) patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
-            int garrisonBudget = Math.max(0, remaining
+            // A machine post's machines are security's own, on top of the force: the mobile pool's floor is not theirs.
+            int garrisonBudget = machinePost ? mechs.size() : Math.max(0, remaining
                     - Math.max(0, minimumPatrolMembers));
             if (garrisonBudget == 0) {
                 patrolAnchors.add(node);
@@ -5633,10 +5673,10 @@ public final class BattleSetup {
                     Math.min(sourceSize, garrisonBudget));
             if (spawningMechs) {
                 List<int[]> candidates = mechNodeCandidates(sim, node, GARRISON_SPAWN_RADIUS);
-                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechQueue, want,
+                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechs, want,
                         roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
                 defenderIdx += spawned;
-                if (spawned == 0) patrolAnchors.add(node);
+                if (spawned == 0 && !machinePost) patrolAnchors.add(node);
                 continue;
             }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
@@ -5682,6 +5722,8 @@ public final class BattleSetup {
         if (mechQueue.isEmpty() && infQueue.isEmpty()) return;
         List<TacticalNode> originalAnchors = new ArrayList<>(
                 patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors);
+        originalAnchors.removeAll(worksMachinePosts);
+        if (originalAnchors.isEmpty()) originalAnchors.addAll(defenderNodes);
         List<TacticalNode> anchorPool = new ArrayList<>(originalAnchors);
         int anchorIdx = 0;
         while (!mechQueue.isEmpty() || !infQueue.isEmpty()) {
@@ -6510,18 +6552,46 @@ public final class BattleSetup {
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
-        // A port's lighter stands each hold the freighter standing on them (PortApronDressing), drawn from its own
+        // A port's freighter stands each hold the bulk freighter standing on them (PortHubDressing), drawn from its own
         // stream, and only where there are any, so every other map's draws are unchanged.
         if (lighterStands.isEmpty()) return parked;
         Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
-        ShuttleType[] lighterTypes = {ShuttleType.BUFFALO, ShuttleType.MULE, ShuttleType.TARSUS};
+        PortFreighter[] freighters = PortFreighter.values();
         for (LandingPad pad : lighterStands) {
-            ShuttleType type = lighterTypes[lighters.nextInt(lighterTypes.length)];
+            PortFreighter type = freighters[lighters.nextInt(freighters.length)];
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
-            stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
+            stampFreighterFootprint(map.grid, map.topology, pad, type);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
         return parked;
+    }
+
+    /** Cells a freighter's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
+    static final int FREIGHTER_OVERHANG = 2;
+
+    /**
+     * A port freighter's footprint: its hull's length along its approach and its beam across, short of
+     * {@link #FREIGHTER_OVERHANG} cells all round, closed to movement as a parked transport's is.
+     */
+    static void stampFreighterFootprint(NavigationGrid grid, CellTopology topology, LandingPad pad,
+                                        PortFreighter type) {
+        float length = HullFootprintResolver.visualLengthCells(type.renderHullId()) * AirAppearance.GROUND_SCALE;
+        int halfLong = Math.max(1, Math.round(length / 2f) - FREIGHTER_OVERHANG);
+        int halfBeam = Math.max(1, Math.round(type.beamCells / 2f) - FREIGHTER_OVERHANG);
+        boolean alongY = pad.approach.dy != 0;
+        int hx = alongY ? halfBeam : halfLong, hy = alongY ? halfLong : halfBeam;
+        for (int y = pad.centerY - hy; y <= pad.centerY + hy; y++) {
+            for (int x = pad.centerX - hx; x <= pad.centerX + hx; x++) {
+                if (!grid.inBounds(x, y)) continue;
+                grid.setWalkable(x, y, false);
+                topology.setVehicle(x, y, true);
+            }
+        }
+        for (int y = pad.centerY - hy - 1; y <= pad.centerY + hy + 1; y++) {
+            for (int x = pad.centerX - hx - 1; x <= pad.centerX + hx + 1; x++) {
+                if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
+            }
+        }
     }
 
     private static int distanceSq(int ax, int ay, int bx, int by) {

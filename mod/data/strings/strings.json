@@ -3822,6 +3822,8 @@
     "openingUiSettingsCopy": "Saved with this game. A new game starts from the defaults.",
     "openingUiSettingsVoiceOver": "Voice-over",
     "openingUiSettingsVoiceOverDetail": "Off means no voiced dialogue anywhere: battle radio and marine barks, briefings, debriefs and cinematics. Subtitles still show, and music and sound effects keep playing.",
+    "openingUiSettingsWallDepth": "3D walls",
+    "openingUiSettingsWallDepthDetail": "On, buildings and walls stand up in battle, their sides leaning toward you. Off, they lie flat, roofs over their footprints. Only the drawing changes: cover, sight and damage are the same.",
     "openingUiSettingsRaidFork": "Ask before raids",
     "openingUiSettingsRaidForkDetail": "On, every raid you confirm on a planet asks whether to lead it with Marine Operations or launch it as usual. Off, raids launch as usual without asking.",
     "openingUiSettingsInvasionFork": "Ask before Nexerelin invasions",

@@ -58,6 +58,13 @@ public final class RaidSiteTemplate {
     /** The works compound: the raid's objective, listed first so it is the plan's {@link PrecinctPlan#objective()}. */
     public static final String WORKS = "works";
     public static final String GARRISON = "garrison";
+    /** The place a works' machine posts are named with ({@code WorksDefences}): its gates and its yard reserve. */
+    public static final String WORKS_MACHINES = "works-machines";
+    /**
+     * The place a fortified works' yard reserve is named with ({@code WorksDefences}): a machine post too, whose
+     * machines answer the alarm at the hall under attack ({@code RaidDefenderCommand}).
+     */
+    public static final String WORKS_RESERVE = "works-reserve";
     public static final String HOMES = "homes";
     /** The industrial quarter the works stands at the back of: yards and sheds between it and the homes. */
     public static final String INDUSTRY = "industry";
@@ -93,7 +100,8 @@ public final class RaidSiteTemplate {
 
     /**
      * How hard a market keeps what it is worth ({@code raid-mission.md}, Security): the wall round its compounds and
-     * the open ground before it. It never changes how many defenders there are, only what they stand behind.
+     * the open ground before it, and the machines and hulls posted at its works on top of the market's own force
+     * ({@code RaidWorksMachines}): a harder market has more to fight, and more to fight through.
      */
     public enum Security {
         /** A fence and wide gates, a narrow strip of cleared ground. */
@@ -256,7 +264,7 @@ public final class RaidSiteTemplate {
         boolean deepFeeder = industry.deepFeeder();
         pieces.addAll(lines(mirrorX, mirrorY, !deepFeeder));
         if (banked) plan = plan.withLandscape(stormBank(plan, wind, mirrorX, mirrorY, !deepFeeder, width, height));
-        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key());
+        return plan.withLayout(new MissionLayout(pieces)).withRaidIndustry(industry.key()).withRaidSecurity(security);
     }
 
     /**

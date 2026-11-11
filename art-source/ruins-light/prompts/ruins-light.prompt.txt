@@ -1,0 +1,12 @@
+Asset: a sheet of four separate top-down tactical-game sprites: the ceiling light fixtures of an abandoned Domain-era megastructure plant in a spacefaring civilization, seen from directly below the ceiling looking up is NOT wanted: they are drawn as seen from directly above (orthographic, 90 degrees, no perspective), as a top-down battle map shows a ceiling lamp, for the Starsector Marines battle map. One block-out frame is one map cell, about one soldier wide; the fixtures are small inside it.
+Geometry: reference 1 is the layout authority. Reskin each grey block-out in place: keep every fixture exactly inside its block, at its size, position and outline; do not move, enlarge, merge or add pieces. The lighter grey area in each block is the lens: keep the lens exactly where and as large as it is drawn. Transparent space stays fully transparent.
+State: every fixture is UNLIT and long dead: its lens is dark, dusty, faintly tinted glass (warm grey for the two white ceiling lamps, dark oxblood red for the two emergency lamps), no glow, no light, no bloom.
+Style: match reference 2 (the same plant's works-hall kit) for material: crisp painterly-pixel game sprite, gunmetal and blue-gray industrial steel, dark seams, small bolts, worn ochre trim, adult military sci-fi, heavy and utilitarian; detail that still reads when shrunk to 128 px a cell. Not cartoon, no thick outlines.
+View: strictly top-down. Soft upper-left object-local light.
+Background: true transparent background with clean alpha; no ceiling, floor, base tile, shadow slab, border, labels or text.
+
+Subjects, left to right:
+1. ceiling-strip: an industrial caged strip lamp: a long steel housing with mounting brackets at each end, a long diffuser lens behind a welded wire guard cage.
+2. ceiling-highbay: a round high-bay lamp: a heavy round steel reflector rim around a round domed lens, a spoked wire guard across it.
+3. emergency-strip: a short emergency strip lamp: a compact armoured housing with end brackets around a narrow red lens.
+4. emergency-beacon: an emergency beacon: a small caged dome lamp with a red lens on a square bolted mounting plate.

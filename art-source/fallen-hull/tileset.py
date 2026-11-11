@@ -2,7 +2,7 @@
 
   python art-source/fallen-hull/tileset.py
 
-Writes mod/graphics/tilesets/fallen-hull.png (64 px cells, 16 x 13) and mod/data/tilesets/fallen-hull.tileset.json.
+Writes mod/graphics/tilesets/fallen-hull.png (64 px cells, 16 x 22) and mod/data/tilesets/fallen-hull.tileset.json.
 Hand-made, not exported by the authoring tools: re-run this script instead. No new painting goes in; every piece is
 cut mechanically at its guide frame (`make_guide.py`) out of an accepted raw:
 
@@ -20,6 +20,13 @@ cut mechanically at its guide frame (`make_guide.py`) out of an accepted raw:
   rows 6-12            the hull entered (FITTINGS): its interior dressing from raw/fittings.png. A rib or conduit run
                        ships its painting's middle cell, its ends cross-faded so it joins end to end; a `-v` piece is
                        its `-h` turned a quarter.
+  cols 4-7, rows 9-12  `fallen-hull.sheared-wall`, the armour cut through at a section's broken end (raw/sheared.png),
+                       and beside it `fallen-hull.breach-edge` and `fallen-hull.shear-edge`, the middle cells of the
+                       breach lip and sheared-end spill runs, the hull at the image's top.
+  rows 13-21           the debris shower and the interior's wreckage (SHOWER) from raw/shower.png.
+  aliases              the ground's names for pieces already cut (ALIASES): `fallen-hull.armour-wall` is the armour
+                       wall's block again, `fallen-hull.breach-spill` and the `fallen-hull.interior-*` pieces are
+                       fittings and wreckage the ground scatters walkable, so their cover is none.
 """
 import importlib.util
 import json
@@ -42,7 +49,7 @@ def _load(name, path):
 X = _load("hull_export", HERE / "export.py")
 
 F = 64
-COLS, ROWS = 16, 13
+COLS, ROWS = 16, 22
 WALL = "installation.dark-concrete-wall@fallen-hull"
 TRENCH = "fallen-hull.trench"
 SHEET = "graphics/tilesets/fallen-hull.png"
@@ -88,6 +95,87 @@ FITTINGS = {
     "hangar-cradle-v": ("hangar-cradle", 0, 9, 1, "light", 0.3),
 }
 RUNS = ("rib-run", "conduit-run")
+SHEARED = "fallen-hull.sheared-wall"
+SHEARED_AT = (4, 9)
+EDGES_AT = {"breach-edge": (8, 9), "shear-edge": (9, 9)}
+# Shower: name -> (col, row, cover, ballistic half height); footprints from the guide.
+SHOWER = {
+    "shower-shard-a": ("shard-a", 0, 13, "none", 0.0), "shower-shard-b": ("shard-b", 1, 13, "none", 0.0),
+    "shower-shard-c": ("shard-c", 2, 13, "none", 0.0), "shower-plate-a": ("plate-a", 3, 13, "light", 0.2),
+    "interior-cable-fall": ("cable-fall", 5, 13, "none", 0.0),
+    "interior-collapsed-panel-wall": ("collapsed-panel", 6, 13, "none", 0.0),
+    "crater-small": ("crater-small", 8, 13, "none", 0.0), "shower-plate-b": ("plate-b", 10, 13, "light", 0.2),
+    "shower-pod": ("pod", 12, 13, "med", 0.5), "interior-buckled-deck": ("buckled-deck", 14, 13, "none", 0.0),
+    "shower-slab": ("slab", 0, 15, "med", 0.6), "shower-girders": ("girders", 4, 15, "med", 0.4),
+    "shower-bell": ("bell", 7, 15, "heavy", 0.8), "scorch-splash": ("scorch-splash", 10, 15, "none", 0.0),
+    "interior-scorch": ("scorch-splash", 13, 15, "none", 0.0),
+    "shower-mast": ("mast", 0, 18, "med", 0.4), "scorch-streak": ("scorch-streak", 5, 18, "none", 0.0),
+    "crater-large": ("crater-large", 9, 18, "none", 0.0),
+}
+# interior-scorch is the scorch splash drawn two cells across, for a deck.
+RESIZED = {"interior-scorch": (2, 2)}
+# The ground's names (`HullSite` layout code) for pieces already cut: alias -> (piece, cover, ballistic half height).
+ALIASES = {
+    "breach-spill": ("breach-plating", "none", 0.0),
+    "interior-rib-h": ("rib-h", "none", 0.0), "interior-rib-v": ("rib-v", "none", 0.0),
+    "interior-conduit-h": ("conduit-h", "none", 0.0), "interior-conduit-v": ("conduit-v", "none", 0.0),
+    "interior-cables": ("forge-cables", "none", 0.0), "interior-scatter": ("breach-scatter", "none", 0.0),
+    "interior-console-wall": ("survey-console", "none", 0.0),
+    "interior-junction-wall": ("conduit-junction", "none", 0.0),
+    "interior-rack-wall": ("survey-rack-h", "none", 0.0),
+    "interior-crushed-bulkhead-wall": ("crushed-bulkhead-a", "none", 0.0),
+}
+
+
+def sheared(sheet):
+    """The sheared wall's sixteen cells, and the breach and shear edges: each run's middle cell, tiling along x."""
+    raw = X.sheet("sheared")
+    lay = X.LAYOUT["sheared"]
+    c, pitch = lay["cellPx"], lay["pitch"]
+    cells = []
+    for mask in range(16):
+        col, row = mask % 4, mask // 4
+        x, y = lay["walls"][0] + col * pitch, lay["walls"][1] + row * pitch
+        piece = raw.crop((x + INSET, y + INSET, x + c - INSET, y + c - INSET)).resize((F, F), Image.LANCZOS)
+        sheet.paste(piece, ((SHEARED_AT[0] + col) * F, (SHEARED_AT[1] + row) * F))
+        exposed = [SIDES[i] for i in range(4) if mask & (1 << i)]
+        cells.append({"col": SHEARED_AT[0] + col, "row": SHEARED_AT[1] + row, "name": f"{SHEARED} faces-{mask}",
+                      "description": "armour cap" if not exposed
+                      else "armour sheared through on " + " and ".join(exposed)})
+    doodads = []
+    for name, (col, row) in EDGES_AT.items():
+        run = name.split("-")[0]
+        piece = run_cell(X.cut(raw, lay["runs"][run], c, F))
+        sheet.alpha_composite(piece, (col * F, row * F))
+        doodads.append({"id": f"fallen-hull.{name}", "col": col, "row": row, "cover": "none",
+                        "ballisticHalfHeight": 0.0, "footprintCells": [1, 1]})
+    return cells, doodads
+
+
+def shower(sheet):
+    raw = X.sheet("shower")
+    lay = X.LAYOUT["shower"]
+    doodads = []
+    for name, (frame, col, row, cover, half) in SHOWER.items():
+        piece = X.cut(raw, lay["frames"][frame], lay["cellPx"], F)
+        if name in RESIZED:
+            w, h = RESIZED[name]
+            piece = piece.resize((w * F, h * F), Image.LANCZOS)
+        sheet.alpha_composite(piece, (col * F, row * F))
+        doodads.append({"id": f"fallen-hull.{name}", "col": col, "row": row, "cover": cover,
+                        "ballisticHalfHeight": half,
+                        "footprintCells": [round(piece.width / F), round(piece.height / F)]})
+    return doodads
+
+
+def aliases(doodads):
+    by_id = {d["id"]: d for d in doodads}
+    out = []
+    for name, (piece, cover, half) in ALIASES.items():
+        d = dict(by_id[f"fallen-hull.{piece}"])
+        d.update({"id": f"fallen-hull.{name}", "cover": cover, "ballisticHalfHeight": half})
+        out.append(d)
+    return out
 
 
 def armour(sheet):
@@ -171,11 +259,19 @@ def main():
                         "ballisticHalfHeight": half,
                         "footprintCells": [round((x1 - x0) / cell_px), round((y1 - y0) / cell_px)]})
     doodads += fittings(sheet)
+    shear_cells, shear_doodads = sheared(sheet)
+    cells += shear_cells
+    doodads += shear_doodads
+    doodads += shower(sheet)
+    doodads += aliases(doodads)
     sheet.save(ROOT / "mod" / SHEET)
     doc = {
         "blocks": [
             {"doorBlock": ARMOUR_DOOR, "id": WALL, "layout": "wall-faces-4x4", "origin": list(WALL_AT),
              "rubbleBlock": ARMOUR_RUBBLE, "windowBlock": ARMOUR_WINDOW},
+            {"doorBlock": ARMOUR_DOOR, "id": "fallen-hull.armour-wall", "layout": "wall-faces-4x4",
+             "origin": list(WALL_AT), "rubbleBlock": ARMOUR_RUBBLE, "windowBlock": ARMOUR_WINDOW},
+            {"id": SHEARED, "layout": "wall-faces-4x4", "origin": list(SHEARED_AT), "rubbleBlock": ARMOUR_RUBBLE},
             {"id": ARMOUR_RUBBLE, "layout": "wall-faces-4x4", "origin": list(BREACH_AT)},
             {"id": ARMOUR_DOOR, "layout": "cardinal-2x2", "origin": list(HATCH_AT)},
             {"id": ARMOUR_WINDOW, "layout": "cardinal-2x2", "origin": list(PORT_AT)},

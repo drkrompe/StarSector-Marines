@@ -96,7 +96,7 @@ there. That keeps the watch apart from the Rav.
 | Stage (stir level) | What wakes |
 | --- | --- |
 | Quiet | Nothing: dormant zones, rounds walked |
-| Stirring | The **service ducts** come up: drone vents open (section 1) |
+| Stirring | The **service ducts** come up: drone vents open (section 1). Restarting the works hall's power brings the wake to Stirring at least, whatever the stir (`FacilityWake.plantRestarted`) |
 | Roused | The **reserve bays** open: each online zone's sealed reserve bay puts up a second flock, the deepest zones first |
 | Hunting | The **security bulkheads** open: shut-down service passages between halls open as short ways, and every online zone goes alert where it stands |
 | Contingency (the breach) | Everything left wakes, as today |
@@ -192,6 +192,8 @@ that gives the company targets to deny.
   the zone's repair stock is held (`ServiceBay`). The drone carries a load,
   works it off, and flies back to the bay to take another. Destroying the bay
   leaves the drone only what it carries. A dark zone's bay issues nothing.
+  On a plant with a maintenance shop, the zone nearest the shop's dock keeps
+  its bay there instead, its perimeter reaching past it (`dockAt`).
 - **Wrecks.** A walker or a post of a zone that is destroyed leaves a **wreck**
   where it fell. A drone with a load works a wreck for `RAISE_SECONDS` and the
   unit is **raised**: it stands again at its post's zone with a share of its
@@ -323,7 +325,7 @@ of each pick, slice 3's comms lines.
   the grade's hall frames in the largest plant halls (`hallPosts`), marking a
   hall frame hall-bound when a flood over the cells it fits (`reaches`) does not
   reach the egress. `standWatchHousings` stands each zone's service bay beside
-  its node and its sealed reserve bay by its flock's home, lays a vent at each
+  its node (the shop's zone's at `serviceDock`) and its sealed reserve bay by its flock's home, lays a vent at each
   flock's home and in each open-sky court, and wires the reserve launcher and
   raised posts. The director, each pulse: walks the rounds; follows the stir
   into the wake (`tickWake`: ducts up, bays opened, their housing giving way to
