@@ -354,6 +354,8 @@ public final class RuinsDelveStage implements GenStage {
         int trunkBand = -1;
         /** The works band's spaces laid by its block plan ({@link #blockPlan}), published with the band. */
         final List<Placed> blockPlaced = new ArrayList<>();
+        /** The first space laid in the band being planted ({@link PlantBrief.Anchor#UNDER_FIRST}). */
+        Area bandFirst;
         /** Cells no way may run through: the plant's infantry-only rooms, entered by their own door alone. */
         boolean[] noWay;
         /** The brief's spaces a band had no room for, tried again in the next band. */
@@ -1904,6 +1906,7 @@ public final class RuinsDelveStage implements GenStage {
             int band = i - firstInside, bands = plan.interiorLayers();
             List<PlantBrief.Space> brief = new ArrayList<>(carried);
             carried.clear();
+            bandFirst = null;
             brief.addAll(PlantBrief.spaces(band, bands, plan.layers()));
             Area last = null;
             if (band == 0) {
@@ -1938,6 +1941,7 @@ public final class RuinsDelveStage implements GenStage {
                         space.freight() ? FREIGHT_WIDTH : SERVICE_WIDTH);
                 publish(space, room, chambers, plantHalls);
                 last = room;
+                if (bandFirst == null) bandFirst = room;
             }
         }
 
@@ -2162,6 +2166,9 @@ public final class RuinsDelveStage implements GenStage {
                         ? new int[]{innerHall.footprint().centreX(), innerHall.footprint().centreY()}
                         : new int[]{mx, t != null && t.centreY() > my ? region.bottom() + ch : region.top() - ch};
                 case VAULT_ROW -> new int[]{region.right() - 2 - cw / 2, vault.footprint().centreY()};
+                case ROUTE -> new int[]{region.left() + 4 + cw / 2, vault.footprint().centreY()};
+                case UNDER_FIRST -> bandFirst == null ? new int[]{mx, my}
+                        : new int[]{bandFirst.centreX(), bandFirst.bottom() - BLOCK_GAP - ch / 2};
                 case MIDDLE -> new int[]{mx, my};
                 case BESIDE_LAST -> last == null ? new int[]{mx, my}
                         : new int[]{last.right() + 3 + cw / 2, last.centreY()};
