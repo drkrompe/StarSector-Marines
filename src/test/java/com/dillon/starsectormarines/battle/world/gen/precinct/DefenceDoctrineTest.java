@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class DefenceDoctrineTest {
 
-    private static final int W = 80, H = 80;
-    /** The place behind its wall: cells 10..69 on both axes. */
-    private static final int LO = 10, HI = 69;
+    private static final int W = 100, H = 100;
+    /** The place behind its wall: cells 20..79 on both axes, with a lane's room round it to the map's edge. */
+    private static final int LO = 20, HI = 79;
     private static final int MID = (LO + HI) / 2;
 
     /** The south gate (main), the north gate and the east gate, each three cells wide on the wall line. */
@@ -36,10 +36,10 @@ class DefenceDoctrineTest {
         return in;
     }
 
-    /** The approaches, and a road across the place from west to east at y 30..32 as a street it keeps. */
+    /** The approaches, and a road across the place from west to east at y 40..42 as a street it keeps. */
     private static boolean[][] clear(List<DefenceDoctrine.Gate> gates) {
         boolean[][] clear = DefenceDoctrine.approaches(gates, W, H);
-        for (int x = 0; x < W; x++) for (int y = 30; y <= 32; y++) clear[x][y] = true;
+        for (int x = 0; x < W; x++) for (int y = 40; y <= 42; y++) clear[x][y] = true;
         return clear;
     }
 
@@ -155,7 +155,8 @@ class DefenceDoctrineTest {
                 double a = bearing + Math.toRadians(DefenceDoctrine.ARC_DEGREES * turn);
                 for (int t = 1; t <= DefenceDoctrine.LANE; t++) {
                     int x = (int) Math.round(s.x() + Math.cos(a) * t), y = (int) Math.round(s.y() + Math.sin(a) * t);
-                    if (x < 0 || y < 0 || x >= W || y >= H) break;
+                    assertTrue(x >= 0 && y >= 0 && x < W && y < H, s.role() + " at " + s.x() + "," + s.y()
+                            + " fires off the map");
                     assertFalse(inside[x][y], s.role() + " at " + s.x() + "," + s.y() + " fires into the wall at "
                             + x + "," + y);
                 }
@@ -233,5 +234,30 @@ class DefenceDoctrineTest {
         assertEquals(0, gate.outY());
         assertEquals(HI, gate.x());
         assertEquals(MID, gate.y());
+    }
+
+    /**
+     * A place backed into the map's corner arms only the faces an attacker can reach: past the edge comes no one, so
+     * no gun's arc runs off the map, and the loadout goes to the faces looking over the map instead.
+     */
+    @Test
+    void aPlaceInTheMapsCornerTurnsNoGunOffTheMap() {
+        boolean[][] inside = new boolean[W][H];
+        for (int x = 8; x <= 55; x++) for (int y = 8; y <= 55; y++) inside[x][y] = true;
+        DefenceDoctrine.Gate gate = new DefenceDoctrine.Gate(55, 31, 1, 0, 1);
+        boolean[][] clear = DefenceDoctrine.approaches(List.of(gate), W, H);
+        List<DefenceDoctrine.Site> sites = DefenceDoctrine.plan(inside, List.of(gate), List.of(), null,
+                posts(DefensePostKind.LARGE, 2, DefensePostKind.LIGHT, 4), fits(inside, clear));
+        assertEquals(6, sites.size(), "the faces over the map did not take the loadout: " + sites);
+        for (DefenceDoctrine.Site s : sites) {
+            double bearing = Math.atan2(s.faceY(), s.faceX());
+            for (int turn = -1; turn <= 1; turn++) {
+                double a = bearing + Math.toRadians(DefenceDoctrine.ARC_DEGREES * turn);
+                int x = (int) Math.round(s.x() + Math.cos(a) * DefenceDoctrine.LANE);
+                int y = (int) Math.round(s.y() + Math.sin(a) * DefenceDoctrine.LANE);
+                assertTrue(x >= 0 && y >= 0 && x < W && y < H, s.kind() + " at " + s.x() + "," + s.y()
+                        + " faces off the map");
+            }
+        }
     }
 }

@@ -367,7 +367,7 @@ public final class PrecinctDefence {
         double ux = fx / len, uy = fy / len;
         for (int t = 3; t <= DefenceDoctrine.LANE; t++) {
             int cx = (int) Math.round(x + ux * t), cy = (int) Math.round(y + uy * t);
-            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height) break;
+            if (cx < 0 || cy < 0 || cx >= ctx.width || cy >= ctx.height) return false;
             if (ctx.topology.isWall(cx, cy) || !ctx.grid.isWalkable(cx, cy) && !ctx.grid.isSeeThrough(cx, cy)) {
                 return false;
             }
