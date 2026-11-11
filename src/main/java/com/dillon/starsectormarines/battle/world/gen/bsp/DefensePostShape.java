@@ -15,10 +15,12 @@ import java.util.Random;
  *       for a post oriented perpendicular to a N/S attack axis.</li>
  *   <li>{@link #LINE_V} — rotated 90°: 2 turrets N/S, 3×5 footprint. Visually
  *       distinct from LINE_H, useful flavor for any attack axis.</li>
- *   <li>{@link #TRIANGLE_FORMATION} — three turrets arranged in a spearhead
- *       (2 back, 1 forward apex) with minimal flanking walls. Concentrates
- *       firepower at a single placement rather than spreading it along an
- *       embankment line.</li>
+ *   <li>{@link #TRIANGLE_FORMATION} — a walled gun pit, 5x5: a closed concrete
+ *       parapet round a paved floor, its three turrets set inside in a
+ *       spearhead clear of the rim. Concentrates firepower at one placement.
+ *       It was once a spearhead on a broken U of walls that read as a scrap of
+ *       wall, with no front and the guns crowding its rim (owner, 2026-11-11:
+ *       "a bad design and looks bad").</li>
  * </ul>
  *
  * <p>LIGHT and MEDIUM tiers don't use this enum — they keep their simple
