@@ -34,6 +34,12 @@ class RaidWorksMachinesTest {
     }
 
     @Test
+    void everyForwardPostIsFilledWithRiflemenOnTopOfTheForce() {
+        assertEquals(8, RaidWorksMachines.extraRiflemen(List.of(post(RaidSiteTemplate.WORKS_FORWARD, 4),
+                post(RaidSiteTemplate.WORKS_FORWARD, 4))).size());
+    }
+
+    @Test
     void aGateGetsALightHullAndTheYardAHeavyOne() {
         TacticalNode gate = post(RaidSiteTemplate.WORKS_MACHINES, 1);
         TacticalNode yard = post(RaidSiteTemplate.WORKS_RESERVE, 2);

@@ -126,14 +126,15 @@ public final class RuinsDelveStage implements GenStage {
     static final int BLOCK_GAP = 3;
     /** The hull a plant's outline keeps round every floor, piece and door inside: its walls' thickness. */
     static final int OUTLINE_WALL = 2;
+    /**
+     * How far round the plant's floors the hull stands before the outline cuts it to open ground: spaces this close
+     * to each other fuse into one building, its mass opened as bays ({@code fillMass}).
+     */
+    static final int OUTLINE_REACH = 10;
+    /** The fewest cells a pocket of the building's mass needs to be opened as a bay. */
+    static final int MIN_BAY = 24;
     /** How far from the vault's row a plant's deeper band line lets its ways cross. */
     static final int DEEP_WAY_REACH = 30;
-    /**
-     * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
-     * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
-     * the pick {@code ruins-plant-plan}; then drop the switch and the losing path.
-     */
-    public static final String PLANT_PROPERTY = "battle.ruins.plant";
 
     /**
      * The floor a works hall's restart lights round its {@code stand} ({@code ruins-light.md}): the transfer aisle from
@@ -378,7 +379,11 @@ public final class RuinsDelveStage implements GenStage {
         final List<RuinsDelve.Load> loads = new ArrayList<>();
         /** The breakout pool's columns under the transfer bridge; lo above hi when there is none. */
         int poolLo = Integer.MAX_VALUE, poolHi = Integer.MIN_VALUE;
-        /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
+        /**
+         * Whether the interior is laid as its plant was briefed intact ({@link PlantBrief}; owner picks
+         * {@code ruins-plant-plan} a, {@code ruins-plant-default-r2} a): every works site. A site with no works hall
+         * keeps its honeycomb of chambers.
+         */
         boolean plantMode;
         /** The room each of the plant's infantry-only spaces is laid as. */
         final Map<Area, RuinsRoom> roles = new HashMap<>();
@@ -400,6 +405,8 @@ public final class RuinsDelveStage implements GenStage {
         int[] wayRows;
         /** Each interior band's spine column, in band order. */
         final List<Integer> spines = new ArrayList<>();
+        /** The vault and its walls, which no bay of the building's mass opens onto. */
+        Area vaultBox;
         /** Inside cells the hull's outline cut back to open ground ({@link #outline}); null until it runs. */
         boolean[] beyond;
         /** Cells no way may run through: the plant's infantry-only rooms, entered by their own door alone. */
@@ -450,7 +457,7 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         RuinsDelve lay() {
-            plantMode = Boolean.getBoolean(PLANT_PROPERTY) && plan.dressing().works().any();
+            plantMode = plan.dressing().works().any();
             endStreets();
             weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
@@ -881,6 +888,7 @@ public final class RuinsDelveStage implements GenStage {
             Cell source = new Cell(x1 - CRADLE - 2, cy);
             dressVault(x0, y0, x1, y1, partition, cy);
             Cell approach = new Cell(x0 - 1, cy);
+            vaultBox = new Area(x0 - 1, y0 - 1, x1 + 1, y1 + 1);
             vaultPoi = new PointOfInterest(PointOfInterest.Kind.DEPOT, x0, y0, x1, y1,
                     approach.x(), approach.y(), source.x(), source.y());
             ctx.pois.add(vaultPoi);
@@ -1571,17 +1579,7 @@ public final class RuinsDelveStage implements GenStage {
                     occupied[k] = grid.isWalkable(x, y) || grid.isDoorway(x, y) || topology.isFixture(x, y);
                 }
             }
-            boolean[] walls = new boolean[w * h];
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    if (!occupied[i(x, y)]) continue;
-                    for (int dy = -OUTLINE_WALL; dy <= OUTLINE_WALL; dy++) {
-                        for (int dx = -OUTLINE_WALL; dx <= OUTLINE_WALL; dx++) {
-                            if (grid.inBounds(x + dx, y + dy)) walls[i(x + dx, y + dy)] = true;
-                        }
-                    }
-                }
-            }
+            boolean[] walls = near(occupied, OUTLINE_REACH);
             beyond = new boolean[w * h];
             ArrayDeque<Integer> queue = new ArrayDeque<>();
             for (int y = 0; y < h; y++) {
@@ -1623,6 +1621,97 @@ public final class RuinsDelveStage implements GenStage {
                     lineCell[k] = false;
                 }
             }
+            fillMass(occupied);
+        }
+
+        /** The cells within {@code reach} (square) of any cell of {@code cells}. */
+        boolean[] near(boolean[] cells, int reach) {
+            boolean[] out = new boolean[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!cells[i(x, y)]) continue;
+                    for (int dy = -reach; dy <= reach; dy++) {
+                        for (int dx = -reach; dx <= reach; dx++) {
+                            if (grid.inBounds(x + dx, y + dy)) out[i(x + dx, y + dy)] = true;
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+
+        /**
+         * The building's mass laid as floor: hull inside the outline, more than {@link #OUTLINE_WALL} cells from any
+         * floor, piece or door and from the outside, is opened as plant floor under the roof, each pocket of it a bay
+         * entered by one door from the floor beside it. A bay with one door is a dead end, so no bay carries a way round
+         * the works hall; a pocket too small to be a bay, or with no floor beside it to open onto, stays hull.
+         */
+        void fillMass(boolean[] occupied) {
+            boolean[] walls = near(occupied, OUTLINE_WALL), shell = near(beyond, OUTLINE_WALL);
+            boolean[] mass = new boolean[w * h];
+            for (int y = 1; y < h - 1; y++) {
+                for (int x = 1; x < w - 1; x++) {
+                    int k = i(x, y);
+                    mass[k] = insideCell(x, y) && hull[k] && !walls[k] && !shell[k] && !lineCell[k];
+                }
+            }
+            boolean[] seen = new boolean[w * h];
+            for (int y = 1; y < h - 1; y++) {
+                for (int x = 1; x < w - 1; x++) {
+                    if (!mass[i(x, y)] || seen[i(x, y)]) continue;
+                    List<Integer> bay = new ArrayList<>();
+                    ArrayDeque<Integer> queue = new ArrayDeque<>();
+                    queue.add(i(x, y));
+                    seen[i(x, y)] = true;
+                    while (!queue.isEmpty()) {
+                        int k = queue.poll();
+                        bay.add(k);
+                        for (Direction side : Direction.CARDINALS) {
+                            int nx = k % w + side.dx, ny = k / w + side.dy;
+                            if (!grid.inBounds(nx, ny) || seen[i(nx, ny)] || !mass[i(nx, ny)]) continue;
+                            seen[i(nx, ny)] = true;
+                            queue.add(i(nx, ny));
+                        }
+                    }
+                    if (bay.size() >= MIN_BAY) bay(bay);
+                }
+            }
+        }
+
+        /** Opens one pocket of the mass as a bay with a two-cell door onto the floor beside it, if it has one. */
+        private void bay(List<Integer> list) {
+            Set<Integer> cells = new HashSet<>(list);
+            for (int k : list) {
+                int x = k % w, y = k / w;
+                for (Direction side : Direction.CARDINALS) {
+                    // Through the wall, OUTLINE_WALL thick, onto open floor no way is barred from.
+                    int fx = x + side.dx * (OUTLINE_WALL + 1), fy = y + side.dy * (OUTLINE_WALL + 1);
+                    int px = side.dx == 0 ? 1 : 0, py = side.dy == 0 ? 1 : 0;
+                    if (!doorable(fx, fy) || !doorable(fx + px, fy + py)) continue;
+                    if (!cells.contains(i(x + px, y + py))) continue;
+                    boolean solid = true;
+                    for (int d = 1; d <= OUTLINE_WALL && solid; d++) {
+                        for (int o = 0; o <= 1 && solid; o++) {
+                            int wx = x + side.dx * d + px * o, wy = y + side.dy * d + py * o;
+                            solid = insideCell(wx, wy) && !grid.isWalkable(wx, wy) && !topology.isFixture(wx, wy)
+                                    && !grid.isDoorway(wx, wy) && !lineCell[i(wx, wy)];
+                        }
+                    }
+                    if (!solid) continue;
+                    for (int c : cells) interiorFloor(c % w, c / w);
+                    for (int d = 1; d <= OUTLINE_WALL; d++) {
+                        for (int o = 0; o <= 1; o++) interiorFloor(x + side.dx * d + px * o, y + side.dy * d + py * o);
+                    }
+                    return;
+                }
+            }
+        }
+
+        /** Whether a bay's door may open onto a cell: open floor inside, off any doorway, piece or infantry room. */
+        private boolean doorable(int x, int y) {
+            return grid.inBounds(x, y) && insideCell(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
+                    && !topology.isFixture(x, y) && !noWay[i(x, y)] && !kitFloor[i(x, y)] && !apron.contains(x, y)
+                    && (vaultBox == null || !vaultBox.contains(x, y));
         }
 
         /**
@@ -2059,26 +2148,11 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
-         * A forge works' halls (owner pick {@code ruins-forge-process} b1): its production is one mega forge hall in
-         * the outer band after the intake, its storage deeper; no line halls. At vast the intake and the storage are
-         * doubled, never the forge.
+         * A works site's plant halls laid by band: only the works hall, in the outer band; the plant's other spaces are
+         * its brief's ({@link #plant}).
          */
         List<RuinsDelve.PlantStage> forgeStages(int band, int bands) {
-            // A plant laid from its brief takes only the works hall here; its other spaces are the brief's (plant).
-            if (plantMode) return band == 0 ? List.of(worksStage()) : List.of();
-            List<RuinsDelve.PlantStage> out = new ArrayList<>();
-            boolean vast = plan.layers() >= 4;
-            if (band == 0) {
-                // The works hall is placed first, while the band still has room for it; the intake after.
-                out.add(worksStage());
-                out.add(RuinsDelve.PlantStage.INTAKE);
-                if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
-            }
-            if (band > 0 || bands == 1) {
-                int storage = bands > 1 ? (vast ? 4 : 2) : 0;
-                for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
-            }
-            return out;
+            return band == 0 ? List.of(worksStage()) : List.of();
         }
 
         /** The maintenance shop's dock cell ({@link #dockCell}), or null with no maintenance shop. */

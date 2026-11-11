@@ -30,6 +30,11 @@ AMBER, AMBER_LIT, AMBER_DARK = (206, 146, 38), (238, 186, 84), (130, 86, 22)
 STEEL, STEEL_LIT, STEEL_DARK = (46, 48, 52), (78, 82, 88), (24, 25, 28)
 
 
+# Pieces cut from a raw of their own instead of the sheet: the first heavy machinery was its side elevation laid on
+# the ground (owner: "placed side ways"), redrawn as a plan view.
+REDRAWN = {"store-heavy-machinery": "ruins-stores-machinery.raw.png"}
+
+
 def register(raw, frames):
     """Scale and offset taking guide pixels to raw pixels: the frames' union onto the raw's drawn extent."""
     a = np.asarray(raw.getchannel("A")) > 64
@@ -50,7 +55,14 @@ def cut():
     half = make_guide.GUTTER / 2
     sizes = {e[0]: (e[1], e[2]) for e in stores_list.loads()}
     for pid, x, y, w, h in frames:
-        window = (round(ox + (x - half) * sx), round(oy + (y - half) * sy), round(ox + (x + w + half) * sx),
+        if pid in REDRAWN:
+            # Drawn again on a raw of its own (make_guide.machinery_guide): the whole raw is the piece.
+            piece = Image.open(HERE / "raw" / REDRAWN[pid]).convert("RGBA")
+            piece = piece.crop(piece.getchannel("A").point(lambda v: 255 if v > 64 else 0).getbbox())
+            cw, ch = sizes[pid]
+            yield pid, piece.resize((cw * CELL_PX, ch * CELL_PX), Image.LANCZOS)
+            continue
+        window =(round(ox + (x - half) * sx), round(oy + (y - half) * sy), round(ox + (x + w + half) * sx),
                   round(oy + (y + h + half) * sy))
         piece = raw.crop(window)
         piece = piece.crop(piece.getchannel("A").point(lambda v: 255 if v > 64 else 0).getbbox())

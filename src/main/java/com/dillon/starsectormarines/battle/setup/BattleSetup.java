@@ -110,9 +110,7 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 
-import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.PortFreighter;
-import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -144,6 +142,7 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.ExtractionCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorks;
+import com.dillon.starsectormarines.battle.ruins.StoreFinds;
 import com.dillon.starsectormarines.battle.ruins.RuinsWorksTwist;
 import com.dillon.starsectormarines.battle.ruins.RuinsThemeDressing;
 import com.dillon.starsectormarines.battle.ruins.RuinsVaultStore;
@@ -277,6 +276,7 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.IntConsumer;
@@ -410,6 +410,11 @@ public final class BattleSetup {
     public static MapBuild buildMap(MapResult map, List<Doodad> parkedVehicles,
                                     List<DefensePost> defensePosts, long seed) {
         return buildMap(map, parkedVehicles, defensePosts, Collections.emptyList(), seed);
+    }
+
+    /** Whether a cell is open floor a squad can stand on beside a store's load. */
+    private static BiPredicate<Integer, Integer> storeFloor(NavigationGrid grid) {
+        return (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y);
     }
 
     /**
@@ -1530,6 +1535,19 @@ public final class BattleSetup {
         ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
                 ? ExtractionPayloadLayout.select(map, lzCells) : null;
         RuinsGroundLayout ruinsLayout = ruins ? RuinsGroundLayout.of(map) : null;
+        // A plant site's supply finds are its stores' own loads, each stood on its recovery skid
+        // (ruins-expedition.md, Finds lie where the plant kept its goods); elsewhere they are scattered on the route.
+        List<StoreFinds.Pick> storeFinds = ruins && map.ruinsDelve != null && map.ruinsDelve.interior() != null
+                ? StoreFinds.pick(map.ruinsDelve.interior().loads(), ruinsDelve.fieldCaches(), seed,
+                        storeFloor(map.grid), StoreFinds::basePrice)
+                : List.of();
+        if (!storeFinds.isEmpty()) {
+            TileRegistry skids = TileRegistry.installed();
+            StoreFinds.dress(map.doodads, storeFinds, (id, x, y) -> {
+                DoodadDef def = skids == null ? null : skids.doodad(id);
+                return def == null ? null : new Doodad(x, y, def);
+            });
+        }
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
@@ -1577,8 +1595,9 @@ public final class BattleSetup {
                     vaultZone, ruinsDelve.breachSeconds(), ruinsDelve.poweredBreachSeconds(),
                     ruinsLayout.liftPoints()));
             // The landing area's route runs from the vault: the deeper half holds most of the grade's caches.
-            sim.setFieldCacheDelve(new SalvagePlacement.Delve(ruinsDelve.fieldCaches(),
+            sim.setFieldCacheDelve(new SalvagePlacement.Delve(storeFinds.isEmpty() ? ruinsDelve.fieldCaches() : 0,
                     ruinsLayout.liftPoints().get(0).route()));
+            sim.addStoreCaches(StoreFinds.caches(storeFinds));
             // The site's works (ruins-expedition.md, Works): seal doors shut as wall, a power hall and a junction per layer.
             // The prize bends one rule of the works (RuinsWorksTwist): what the site was built round changes the play.
             sim.installRuinsWorks(RuinsWorks.of(map.ruinsDelve, ruinsDefence, RuinsWorksTwist.of(ruinsPrize)));
@@ -4488,7 +4507,10 @@ public final class BattleSetup {
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
         // however much or little force the campaign player can afford to bring.
-        float attackerScore = type == MissionType.CONQUEST
+        // A Raid is the same: the market defends with what it has, never a force
+        // fitted to the company that came (owner: "We can't limit ourselves to
+        // 'keeping it even' the number of forces on the field").
+        float attackerScore = type == MissionType.CONQUEST || type == MissionType.RAID
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
@@ -5638,6 +5660,9 @@ public final class BattleSetup {
         Deque<MechVariant> worksMechQueue = new ArrayDeque<>(RaidWorksMachines.extraMechs(
                 RaidWorksGuard.machinePosts(defenderNodes),
                 groundRoster == null ? List.of() : groundRoster.heavySupport()));
+        Set<TacticalNode> worksForwardPosts = new HashSet<>(RaidWorksGuard.forwardPosts(defenderNodes));
+        Deque<GroundRosterProfile.ForceTier> worksInfQueue = new ArrayDeque<>(
+                RaidWorksMachines.extraRiflemen(RaidWorksGuard.forwardPosts(defenderNodes)));
         Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
         infQueue.addAll(roster.infantryOrder());
 
@@ -5650,20 +5675,24 @@ public final class BattleSetup {
         for (TacticalNode node : defenderNodes) {
             // A works' guard post is held by riflemen while any are left; its machine posts by machines only.
             boolean machinePost = worksMachinePosts.contains(node);
+            boolean forwardPost = worksForwardPosts.contains(node);
+            // Security's own posts (machines, forward riflemen) draw only on what security adds.
+            boolean securityPost = machinePost || forwardPost;
             Deque<MechVariant> mechs = machinePost ? worksMechQueue : mechQueue;
+            Deque<GroundRosterProfile.ForceTier> riflemen = forwardPost ? worksInfQueue : infQueue;
             RaidWorksGuard.Holder holder = RaidWorksGuard.holder(worksPosts.contains(node),
-                    machinePost, !mechs.isEmpty(), !infQueue.isEmpty());
+                    machinePost, forwardPost, !mechs.isEmpty(), !riflemen.isEmpty());
             if (holder == RaidWorksGuard.Holder.NONE) {
-                if (!worksMachinePosts.contains(node)) patrolAnchors.add(node);
+                if (!securityPost) patrolAnchors.add(node);
                 continue;
             }
             boolean spawningMechs = holder == RaidWorksGuard.Holder.MACHINES;
             // A works' machine post is for machines alone: never a patrol's anchor when it stands empty.
-            int sourceSize = spawningMechs ? mechs.size() : infQueue.size();
-            if (sourceSize == 0) { if (!machinePost) patrolAnchors.add(node); continue; }
+            int sourceSize = spawningMechs ? mechs.size() : riflemen.size();
+            if (sourceSize == 0) { if (!securityPost) patrolAnchors.add(node); continue; }
             int remaining = mechQueue.size() + infQueue.size();
             // A machine post's machines are security's own, on top of the force: the mobile pool's floor is not theirs.
-            int garrisonBudget = machinePost ? mechs.size() : Math.max(0, remaining
+            int garrisonBudget = securityPost ? sourceSize : Math.max(0, remaining
                     - Math.max(0, minimumPatrolMembers));
             if (garrisonBudget == 0) {
                 patrolAnchors.add(node);
@@ -5676,18 +5705,18 @@ public final class BattleSetup {
                 int spawned = spawnPlacedDefenderMechs(sim, candidates, mechs, want,
                         roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
                 defenderIdx += spawned;
-                if (spawned == 0 && !machinePost) patrolAnchors.add(node);
+                if (spawned == 0 && !securityPost) patrolAnchors.add(node);
                 continue;
             }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
                     node, GARRISON_SPAWN_RADIUS, want);
-            if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
+            if (cells.isEmpty()) { if (!securityPost) patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
-                MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
-                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? infQueue.poll() : null;
+                if ((spawningMechs ? mechs : riflemen).isEmpty()) break;
+                MechVariant mechVariant = spawningMechs ? mechs.poll() : null;
+                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? riflemen.poll() : null;
                 UnitType type = mechVariant != null ? mechType : groundRoster.unitType(forceTier);
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
                         roster.risk, groundRoster, forceTier, rng, mechVariant);
@@ -5723,6 +5752,7 @@ public final class BattleSetup {
         List<TacticalNode> originalAnchors = new ArrayList<>(
                 patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors);
         originalAnchors.removeAll(worksMachinePosts);
+        originalAnchors.removeAll(worksForwardPosts);
         if (originalAnchors.isEmpty()) originalAnchors.addAll(defenderNodes);
         List<TacticalNode> anchorPool = new ArrayList<>(originalAnchors);
         int anchorIdx = 0;
@@ -6552,13 +6582,14 @@ public final class BattleSetup {
             stampParkedAircraftFootprint(map.grid, map.topology, pad.centerX, pad.centerY);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
         }
-        // A port's freighter stands each hold the bulk freighter standing on them (PortHubDressing), drawn from its own
-        // stream, and only where there are any, so every other map's draws are unchanged.
-        if (lighterStands.isEmpty()) return parked;
-        Random lighters = new Random(rng.nextLong() ^ 0x4C49474854L);
-        PortFreighter[] freighters = PortFreighter.values();
+        // A port's stands each hold the largest ship their berth fits (PortHubDressing sizes the berth), and only where
+        // there are any, so every other map is unchanged.
         for (LandingPad pad : lighterStands) {
-            PortFreighter type = freighters[lighters.nextInt(freighters.length)];
+            boolean alongY = pad.approach.dy != 0;
+            int along = 2 * (alongY ? pad.halfHeight : pad.halfWidth) + 1;
+            int across = 2 * (alongY ? pad.halfWidth : pad.halfHeight) + 1;
+            PortFreighter type = PortFreighter.forBerth(along, across);
+            if (type == null) continue;
             float facing = AirBody.facingToward(pad.approach.dx, pad.approach.dy);
             stampFreighterFootprint(map.grid, map.topology, pad, type);
             parked.add(new ParkedAircraft(type, pad.centerX, pad.centerY, facing));
@@ -6566,18 +6597,17 @@ public final class BattleSetup {
         return parked;
     }
 
-    /** Cells a freighter's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
+    /** Most cells a ship's hull leaves walkable round its edges: the wings and the nose overhang its footprint. */
     static final int FREIGHTER_OVERHANG = 2;
 
     /**
-     * A port freighter's footprint: its hull's length along its approach and its beam across, short of
-     * {@link #FREIGHTER_OVERHANG} cells all round, closed to movement as a parked transport's is.
+     * A port ship's footprint: its hull's drawn length along its approach and its beam across, short of an overhang
+     * all round (a quarter of the side, at most {@link #FREIGHTER_OVERHANG} cells), closed to movement as a parked
+     * transport's is. A shuttle pod closes the one cell it stands on.
      */
     static void stampFreighterFootprint(NavigationGrid grid, CellTopology topology, LandingPad pad,
                                         PortFreighter type) {
-        float length = HullFootprintResolver.visualLengthCells(type.renderHullId()) * AirAppearance.GROUND_SCALE;
-        int halfLong = Math.max(1, Math.round(length / 2f) - FREIGHTER_OVERHANG);
-        int halfBeam = Math.max(1, Math.round(type.beamCells / 2f) - FREIGHTER_OVERHANG);
+        int halfLong = half(type.lengthCells), halfBeam = half(type.beamCells);
         boolean alongY = pad.approach.dy != 0;
         int hx = alongY ? halfBeam : halfLong, hy = alongY ? halfLong : halfBeam;
         for (int y = pad.centerY - hy; y <= pad.centerY + hy; y++) {
@@ -6592,6 +6622,12 @@ public final class BattleSetup {
                 if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
             }
         }
+    }
+
+    /** Half the closed run of a hull side {@code cells} long, after its overhang. */
+    private static int half(float cells) {
+        float overhang = Math.min(FREIGHTER_OVERHANG, cells / 4f);
+        return Math.max(0, Math.round((cells - 2 * overhang) / 2f));
     }
 
     private static int distanceSq(int ax, int ay, int bx, int by) {
@@ -6814,6 +6850,10 @@ public final class BattleSetup {
                         : MapTurret.create(name, Faction.DEFENDER, spec.structureId, spec.cellX, spec.cellY));
                 if (post.fort != null) sim.tagFortPart(post.fort, turret, spec.structure(), Faction.DEFENDER);
                 sim.setStructureStyle(turret, post.style);
+                // A post sited to cover ground has its guns laid on it before the fight.
+                if (post.restFacing != null && sim.turretState().isTurret(turret)) {
+                    sim.turretState().setFacingDegrees(turret, post.restFacing);
+                }
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);

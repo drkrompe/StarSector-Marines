@@ -13,13 +13,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * Defender Raid security: one routine guard and bounded alarm mobilization. The held reserve, and the guard and
+ * Defender Raid security: one routine guard, and on the alarm the whole mobile pool (owner: "We can't limit ourselves
+ * to 'keeping it even'"). The held reserve, and the guard and
  * responders within reach of their posts, man the garrisonables believed pressure reaches ({@link MissionGarrisons}).
  */
 public final class RaidDefenderCommand implements AutonomousMissionCommand<
         RaidDefenderCommandFrame, RaidCommandSnapshot>, ReactiveDefenceSource {
 
-    static final int ALARM_RESPONSE_LIMIT = 3;
     private static final int[][] RALLY_OFFSETS = {
             {0, -4}, {4, 0}, {0, 4}, {-4, 0},
             {3, -3}, {3, 3}, {-3, 3}, {-3, -3}, {0, 0}
@@ -107,7 +107,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                         facts.targetCellX(), facts.targetCellY())))
                 .toList();
         int assigned = facts.alarmActive() || facts.targetSecured()
-                ? Math.min(ALARM_RESPONSE_LIMIT, pool.size())
+                ? pool.size()
                 : Math.min(1, pool.size());
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();

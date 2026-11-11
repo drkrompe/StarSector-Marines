@@ -176,6 +176,11 @@ public final class FallenHull {
 
     // ---- what the director asks ----
 
+    /** The ground the hull stands on: its sections, forge, bay mouth, lattice, haul roads and salvage piles. */
+    public FallenHullSite site() {
+        return site;
+    }
+
     public Autoforge forge() {
         return forge;
     }

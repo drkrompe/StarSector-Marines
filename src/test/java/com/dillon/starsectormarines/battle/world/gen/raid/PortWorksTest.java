@@ -3,8 +3,6 @@ package com.dillon.starsectormarines.battle.world.gen.raid;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
-import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
-import com.dillon.starsectormarines.battle.world.gen.layout.Paving;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
@@ -45,6 +43,8 @@ class PortWorksTest {
         assertFalse(PORT.deepFeeder(), "the deep end is the hub's");
         assertFalse(PORT.yards());
         assertTrue(PORT.industryIds().contains("megaport"));
+        // The garrison seeds below the lines, which run across the map's middle, never against them.
+        assertTrue(PORT.garrisonAt().y1() < PortWorks.LINES_AT - .2f, "garrison clear of the lines");
     }
 
     @Test
@@ -67,9 +67,6 @@ class PortWorksTest {
         List<Piece> pieces = PortWorks.pieces(hub, 280, 168);
         List<Site> held = new ArrayList<>();
         int warehouses = 0;
-        Paving highway = null;
-        List<Piece> laid = new ArrayList<>(pieces);
-        for (Piece p : pieces) if (p instanceof Deferred d) laid.addAll(d.resolve().apply(null));
         for (Piece p : pieces) {
             if (p instanceof Site s) {
                 assertEquals(s.name().equals(PortWorks.WAREHOUSES) ? SitePurpose.BUILT : SitePurpose.GROUND,
@@ -77,7 +74,6 @@ class PortWorksTest {
                 held.add(s);
             }
         }
-        for (Piece p : laid) if (p instanceof Paving paving) highway = paving;
         for (Piece p : pieces) {
             if (!(p instanceof Structure s)) continue;
             warehouses++;
@@ -91,8 +87,6 @@ class PortWorksTest {
             }
         }
         assertEquals(hub.sheds().size(), warehouses);
-        assertNotNull(highway);
-        assertEquals(hub.highway().width() * hub.highway().height(), highway.cells().size());
         // The dressing reads the same hub back from the held ground.
         Site lines = (Site) pieces.get(0), apron = (Site) pieces.get(1);
         assertSameHub(hub, PortWorks.hubOf(lines, apron));

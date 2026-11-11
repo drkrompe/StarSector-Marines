@@ -775,6 +775,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         guardianCaches.add(cache);
     }
 
+    private final List<SalvageCache> storeCaches = new ArrayList<>();
+
+    /**
+     * Adds a plant site's store finds ({@code ruins-expedition.md}, Finds lie where the plant kept its goods): field
+     * finds recovered beside their loads, in place of the delve's scattered caches.
+     */
+    public void addStoreCaches(List<SalvageCache> caches) {
+        if (salvageInstalled || simTickIndex != 0)
+            throw new IllegalStateException("Place the stores' finds before launch installs finds");
+        storeCaches.addAll(caches);
+    }
+
     private List<SalvageCache> vaultStore = List.of();
 
     /** A ruins vault's store (one find per layer, settled only when the haul boards), less the site's taken finds. */
@@ -795,6 +807,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (ruinsWorks != null) finds.addAll(ruinsWorks.storeCaches());
         if (occupantStash != null) finds.add(occupantStash);
         finds.addAll(guardianCaches);
+        finds.addAll(storeCaches);
         fieldSalvage = new FieldSalvage(FieldSalvage.leavingOut(finds, takenFinds));
         // The vault's store is no field cache: nobody secures it by standing at it, so it stays out of the tick.
         vaultStore = FieldSalvage.leavingOut(vaultStore, takenFinds);
@@ -3107,6 +3120,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         compoundService.initFrom(null);
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
+    /** The stamped defense posts, as {@link #setDefensePosts} was given them; empty when there are none. */
+    public List<DefensePost> getDefensePosts() {
+        List<DefensePost> posts = tactical.getDefensePosts();
+        return posts == null ? List.of() : posts;
+    }
+
     public void setDefensePosts(List<DefensePost> posts) {
         FortWorks.settle(topology, posts);
         tactical.setDefensePosts(posts);

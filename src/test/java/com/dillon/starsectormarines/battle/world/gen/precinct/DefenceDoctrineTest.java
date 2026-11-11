@@ -116,21 +116,43 @@ class DefenceDoctrineTest {
     }
 
     @Test
-    void aBigLoadoutTakesTheCornersFacingTheThreatFirstThenGuardsTheHearts() {
+    void aBigLoadoutTakesTheCornersFacingTheThreatFirstAndSitesNoGunAtTheHearts() {
         int[] heart = {MID - 12, MID + 12};
         List<DefenceDoctrine.Site> sites = plan(List.of(SOUTH), List.of(heart), new int[]{W - 1, H - 1},
                 posts(DefensePostKind.LIGHT, 7));
         List<DefenceDoctrine.Site> corners = new ArrayList<>();
-        DefenceDoctrine.Site inner = null;
         for (DefenceDoctrine.Site s : sites) {
             if (s.role() == DefenceDoctrine.Role.CORNER) corners.add(s);
-            if (s.role() == DefenceDoctrine.Role.INNER) inner = s;
+            assertTrue(Math.hypot(s.x() - heart[0], s.y() - heart[1]) > 8,
+                    s.role() + " at " + s.x() + "," + s.y() + " guards the motor pool from inside, covering nothing");
         }
         assertEquals(4, corners.size(), "a seven-post loadout on one gate leaves a post for every corner");
         assertTrue(corners.get(0).x() > MID && corners.get(0).y() > MID,
                 "the first corner manned is not the one facing the threat to the north-east");
-        assertNotNull(inner, "nothing guards the motor pool");
-        assertTrue(Math.hypot(inner.x() - heart[0], inner.y() - heart[1]) <= 8, "the inner post is not at the pool");
+    }
+
+    /**
+     * Every perimeter post faces out of the place: a step along its facing leaves the inside before it has gone
+     * deeper than the post stands, so its guns cover the ground in front of the wall, not the base behind it.
+     */
+    @Test
+    void everyPerimeterPostFacesOutOfThePlace() {
+        List<DefenceDoctrine.Site> sites = plan(List.of(SOUTH, NORTH), List.of(), null,
+                posts(DefensePostKind.LARGE, 2, DefensePostKind.LIGHT, 12));
+        boolean[][] inside = inside();
+        int[][] depth = DefenceDoctrine.depth(inside);
+        assertTrue(sites.size() > 6, "the loadout was sited");
+        for (DefenceDoctrine.Site s : sites) {
+            double len = Math.hypot(s.faceX(), s.faceY());
+            double fx = s.faceX() / len, fy = s.faceY() / len;
+            boolean leaves = false;
+            for (int k = 1; k <= depth[s.x()][s.y()] + 2 && !leaves; k++) {
+                int x = (int) Math.round(s.x() + fx * k), y = (int) Math.round(s.y() + fy * k);
+                leaves = x < 0 || y < 0 || x >= W || y >= H || !inside[x][y];
+            }
+            assertTrue(leaves, s.role() + " at " + s.x() + "," + s.y() + " faces " + s.faceX() + "," + s.faceY()
+                    + ", into the place");
+        }
     }
 
     @Test
