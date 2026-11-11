@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
@@ -14,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctDefence;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
@@ -397,7 +399,7 @@ public final class MissionLayoutStage implements GenStage {
         }
     }
 
-    private static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
+    static Laid lay(GenContext ctx, LayoutGround ground, Line line, boolean[][] held) {
         boolean dug = line.style().dug();
         LineCourse.Course course = LineCourse.plan(line.path(), (x, y) -> breaks(ground, x, y), line.roadGap(), line.frontward(),
                 line.style() == LineStyle.TRENCH_WIRE ? line.funnelEvery() : 0,
@@ -432,6 +434,9 @@ public final class MissionLayoutStage implements GenStage {
         if (line.nestsAtEnds()) {
             for (int[] c : course.nests()) {
                 if (!takes(ctx, ground, held, c)) continue;
+                // A nest fires on a line and a wall or building blocks it whole: one with a house across its arc
+                // has nothing to shoot, so that end of the run goes without.
+                if (!PrecinctDefence.openArc(ctx, c[0], c[1], front[0], front[1], 1)) continue;
                 // A street line is broken by every house, so its runs are short: one nest a stretch of street.
                 if (line.style() == LineStyle.STREETS && near(nests, c, STREET_NEST_SPACING)) continue;
                 nests.add(c);
@@ -496,7 +501,8 @@ public final class MissionLayoutStage implements GenStage {
         for (int[] c : nests) {
             ctx.grid.setWalkable(c[0], c[1], false);
             ctx.defensePosts.add(new DefensePost(DefensePostKind.LIGHT, c[0], c[1],
-                    List.of(new DefensePost.TurretSpec(NEST_STRUCTURE, c[0], c[1]))));
+                    List.of(new DefensePost.TurretSpec(NEST_STRUCTURE, c[0], c[1])))
+                    .withRestFacing(LayeredAppearance.facingDegrees(front[0], front[1])));
         }
         List<int[]> worked = new ArrayList<>(works);
         worked.addAll(fronts);
