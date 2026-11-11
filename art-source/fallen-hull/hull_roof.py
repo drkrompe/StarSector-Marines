@@ -49,7 +49,8 @@ def extend(img, mask):
     c = np.asarray(img, dtype=np.float32) * a
     out = c.copy()
     weight = a.copy()
-    for radius in (2, 4, 8, 16, 32):
+    # Out to the texture's corners: the plan's stepped taper roofs cells past the painting's smooth one.
+    for radius in (2, 4, 8, 16, 32, 64, 128, 256):
         cb = np.asarray(Image.fromarray(np.clip(c, 0, 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(radius)),
                         dtype=np.float32)
         ab = np.asarray(Image.fromarray((a[..., 0] * 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(radius)),
