@@ -4486,7 +4486,10 @@ public final class BattleSetup {
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
         // however much or little force the campaign player can afford to bring.
-        float attackerScore = type == MissionType.CONQUEST
+        // A Raid is the same: the market defends with what it has, never a force
+        // fitted to the company that came (owner: "We can't limit ourselves to
+        // 'keeping it even' the number of forces on the field").
+        float attackerScore = type == MissionType.CONQUEST || type == MissionType.RAID
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
