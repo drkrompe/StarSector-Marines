@@ -77,7 +77,7 @@ final class FreestandingWallFaces {
             float lift = BuildingFaces.lift(run.meters(), rise);
             FreestandingWalls.Kind kind = run.kind();
             if (kind == FreestandingWalls.Kind.ENVELOPE || kind == FreestandingWalls.Kind.ENVELOPE_PLINTH) {
-                envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult);
+                envelope(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
                 continue;
             }
             strokes(run, camera, view, shown, gridW, gridH, unseen, alphaMult, creep, detail);
@@ -114,7 +114,7 @@ final class FreestandingWallFaces {
             float x0 = st[o], y0 = st[o + 1], x1 = st[o + 2], y1 = st[o + 3];
             if (x0 == x1 || y0 == y1 || !near(view, x0, y0, x1, y1)) continue;
             float fog = fog(shown, (int) x0 + (int) y0 * gridW, gridW, gridH, unseen);
-            footing(x0, y0, x1, y1, foot);
+            footing(x0, y0, x1, y1, st[o + 4] != 0f, st[o + 5] != 0f, foot);
             footing.appendQuad(camera.cellToScreenX(foot[0]), camera.cellToScreenY(foot[1]),
                     camera.cellToScreenX(foot[2]), camera.cellToScreenY(foot[3]),
                     camera.cellToScreenX(foot[4]), camera.cellToScreenY(foot[5]),
@@ -165,7 +165,7 @@ final class FreestandingWallFaces {
             float x0 = st[o], y0 = st[o + 1], x1 = st[o + 2], y1 = st[o + 3];
             if (!near(view, x0, y0, x1, y1)) continue;
             float fog = fog(shown, (int) x0 + (int) y0 * gridW, gridW, gridH, unseen);
-            FreestandingWalls.corners(x0, y0, x1, y1, FreestandingWalls.HALF, q);
+            FreestandingWalls.corners(st, o, FreestandingWalls.HALF, q);
             c.quad(q[0], q[1], q[2], q[3], q[4], q[5], q[6], q[7], top, fog, alphaMult);
             int cells = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))) + 1);
             for (int k = 0; creep != null && k < cells; k++) {
@@ -220,14 +220,21 @@ final class FreestandingWallFaces {
         return seen(shown, cell, gridW, gridH) ? 1f : unseen;
     }
 
-    /** A diagonal's footing on the ground, centre to centre, {@link #FOOTING_HALF} either side: under its piers. */
-    private static void footing(float x0, float y0, float x1, float y1, float[] out) {
+    /**
+     * A diagonal's footing on the ground, centre to centre, {@link #FOOTING_HALF} either side, and on past a free end
+     * to its cell's far corner, so every corner of its cells lies under it.
+     */
+    private static void footing(float x0, float y0, float x1, float y1, boolean startFree, boolean endFree,
+                                float[] out) {
         float dx = x1 - x0, dy = y1 - y0, len = (float) Math.hypot(dx, dy);
-        float nx = dy / len * FOOTING_HALF, ny = -dx / len * FOOTING_HALF;
-        out[0] = x0 + nx; out[1] = y0 + ny;
-        out[2] = x1 + nx; out[3] = y1 + ny;
-        out[4] = x1 - nx; out[5] = y1 - ny;
-        out[6] = x0 - nx; out[7] = y0 - ny;
+        float ux = dx / len, uy = dy / len, reach = FOOTING_HALF;
+        float sx = x0 - (startFree ? ux * reach : 0f), sy = y0 - (startFree ? uy * reach : 0f);
+        float ex = x1 + (endFree ? ux * reach : 0f), ey = y1 + (endFree ? uy * reach : 0f);
+        float nx = uy * FOOTING_HALF, ny = -ux * FOOTING_HALF;
+        out[0] = sx + nx; out[1] = sy + ny;
+        out[2] = ex + nx; out[3] = ey + ny;
+        out[4] = ex - nx; out[5] = ey - ny;
+        out[6] = sx - nx; out[7] = sy - ny;
     }
 
     /** Whether a kind is built in panels or piers, jointed at every cell. */
@@ -301,10 +308,11 @@ final class FreestandingWallFaces {
      * One run of a sealed town's envelope ({@code SealedTown}), as a raised habitat wall: the body's faces in panels,
      * with an ochre service pipe along the inner face; the buttresses lighter, set off half-way up; the plinth's faces
      * along the outer course; then the tops, each course's coping lighter round its edge, the body's deck dark inside it
-     * with the pipe run along its inner side, each buttress capped light.
+     * with the pipe run along its inner side, each buttress capped light. Creep climbs it as any wall
+     * ({@link CreepClimb}), and an old crust comes over its top from every side open to the ground.
      */
     private void envelope(FreestandingWalls.Run run, BattleCamera camera, VisibleCellRect view, boolean[] shown,
-                          int gridW, int gridH, float unseen, float alphaMult) {
+                          int gridW, int gridH, float unseen, float alphaMult, CreepField creep, boolean detail) {
         float meters = run.meters(), lift = BuildingFaces.lift(meters, rise);
         float viewX = camera.panCellX(), viewY = camera.panCellY();
         float sx = camera.cellToScreenX(viewX), sy = camera.cellToScreenY(viewY);
@@ -333,6 +341,13 @@ final class FreestandingWallFaces {
                 f.band(.45f, .55f, PIPE_LOW - .05f, PIPE_HIGH + .03f, PIPE_SHADOW_RGB, light, alphaMult);
             }
             f.band(0f, 1f, 1f - COPING_BAND, 1f, COPING_RGB, light, alphaMult);
+            if (creep != null) {
+                cu0 = 0f;
+                cu1 = 1f;
+                calpha = alphaMult;
+                CreepClimb.paint(creep.coverageAt(cell), creep.vitalityAt(cell), meters, 1f, cell, creepPalette, light,
+                        detail, creepOnFace);
+            }
         }
         Cap c = new Cap(camera, sx, sy, lift);
         for (int cell : run.cells()) {
@@ -362,8 +377,32 @@ final class FreestandingWallFaces {
                             alphaMult);
                 }
             }
+            if (creep != null) {
+                // The crust over the top, in from each side open to the ground.
+                topCap = c;
+                topLight = light;
+                topAlpha = alphaMult;
+                for (int s = 0; s < 4; s++) {
+                    int beyond = neighbour(cell, SX[s], SY[s], gridW, gridH);
+                    if (beyond >= 0 && partOf(beyond) != null) continue;
+                    // The cell's side s, ends ordered so the outward normal (SX, SY) has the top on its left.
+                    float ax = SX[s] > 0 ? cx + 1 : cx, ay = SY[s] > 0 ? cy + 1 : cy;
+                    float bx = SY[s] != 0 ? ax + 1 : ax, by = SX[s] != 0 ? ay + 1 : ay;
+                    CreepClimb.paintTop(creep.coverageAt(cell), creep.vitalityAt(cell), cell * 4 + s, ax, ay, bx, by,
+                            SX[s], SY[s], creepPalette, 1f, creepOnTop);
+                }
+            }
         }
     }
+
+    /** The envelope top being crusted, its light and alpha. */
+    private Cap topCap;
+    private float topLight, topAlpha;
+    private final float[] topTone = new float[3];
+    private final CreepClimb.TopSink creepOnTop = (x0, y0, x1, y1, x2, y2, x3, y3, r, g, b) -> {
+        topTone[0] = r; topTone[1] = g; topTone[2] = b;
+        topCap.quad(x0, y0, x1, y1, x2, y2, x3, y3, topTone, topLight, topAlpha);
+    };
 
     private static final int[] SX = {1, 0, -1, 0}, SY = {0, 1, 0, -1};
     private final Face face = new Face();

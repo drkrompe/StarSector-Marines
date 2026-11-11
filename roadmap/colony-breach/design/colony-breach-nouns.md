@@ -2013,7 +2013,11 @@ against its own control in `renderEvidence`.
   little more at most. Living creep wears the palette's flesh, rim and veins
   with a glow in the crust; dying creep greys to the palette's dead tone. It
   climbs a building's street side and, seen in a cutaway, the room's side,
-  and a freestanding wall's faces, crusting its top once old.
+  and every freestanding wall's faces, a sealed town's envelope among them.
+  Seen from above a wall shows mostly its top, so an old crust comes over the
+  top from the wall's outer side, lipped in the rim, on buildings and
+  freestanding walls alike; a crust on a face carries dark seams and raised
+  nodes so it reads as grown against a wall of its own tone.
 - **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
   is fuel, living or dying; creep under a fire crisps away in seconds, and
   burnt ground refuses the creep for about three minutes before the sources

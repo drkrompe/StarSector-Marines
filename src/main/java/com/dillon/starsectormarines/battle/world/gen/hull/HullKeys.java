@@ -19,6 +19,9 @@ public final class HullKeys {
     /** Where the debris shower struck buildings, as damage strokes; read by result assembly. */
     public static final GenKey<List<DamagePlan.Stroke>> STRIKES = GenKey.of("hullStrikes");
 
+    /** The impact zone round the hull and its trench, as initial-damage layers ({@link ImpactZone}). */
+    public static final GenKey<List<DamagePlan.Layer>> IMPACT = GenKey.of("hullImpact");
+
     /** The initial-damage layer the shower's strikes are applied as. */
     public static final String STRIKE_LAYER = "hull-shower";
 
