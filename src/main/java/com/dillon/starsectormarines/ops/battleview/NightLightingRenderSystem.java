@@ -646,8 +646,13 @@ final class NightLightingRenderSystem implements RenderSystem {
         return value < 1e-5f ? 0f : value;
     }
 
-    /** Whether a lamp in building {@code owner} lights cell {@code (x, y)}: the building's own, or a wall touching it. */
+    /**
+     * Whether a lamp in building {@code owner} lights cell {@code (x, y)}: the building's own, or a wall touching it.
+     * A lamp in the open ({@code owner} 0) never lights a wall under a roof: the roof stands storeys over the street,
+     * and lighting its edge alone drew a bright band round every roof with the rooms behind it dark.
+     */
     static boolean litBy(CellTopology ground, int x, int y, int owner) {
+        if (owner == 0 && ground.isWall(x, y) && NightLighting.roofed(ground, x, y)) return false;
         if (ground.getBuildingId(x, y) == owner) return true;
         if (!ground.isWall(x, y)) return false;
         return ground.getBuildingId(x - 1, y) == owner || ground.getBuildingId(x + 1, y) == owner

@@ -84,6 +84,15 @@ public final class LongSurveyGroundLookSuite implements SnapshotSuite {
                 // The claim marked over the look frame: no caption band, no unit markers.
                 look.refocus(w / 2f, h / 2f, Math.max(w, h * 16f / 9f) + 4f);
                 out.add(new SnapshotArtifact(chapter.id + "/4-claim.png", look.renderMarked(sim, claim(site))));
+                // Places from the chapter's map plan: -Dsnapshot.longSurvey.at=commons:330:262:110,cross:330:186:110
+                String at = System.getProperty("snapshot.longSurvey.at", "").trim();
+                if (!at.isEmpty()) {
+                    for (String place : at.split(",")) {
+                        String[] p = place.split(":");
+                        look.refocus(Float.parseFloat(p[1]), Float.parseFloat(p[2]), Float.parseFloat(p[3]));
+                        out.add(new SnapshotArtifact(chapter.id + "/at-" + p[0] + ".png", look.render(sim, "")));
+                    }
+                }
             }
             long sites = ground.map().pointsOfInterest.stream()
                     .filter(p -> p.kind != PointOfInterest.Kind.RESIDENTIAL).count();

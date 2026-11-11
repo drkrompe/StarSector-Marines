@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
@@ -93,18 +94,18 @@ class PrecinctAirfieldTest {
      * 12, 13 — growth all the way, and short of what six of the largest field
      * would give, because a place that cannot seat another station seats a field
      * or a pad instead. Thirteen berths for six fields rather than eighteen is
-     * the ladder doing its job.
+     * the ladder doing its job. (Measured before garrisons were laid square;
+     * on a square claim six fields seat seventeen.)
      *
-     * <p><b>The reference for "the largest size" is a map with room, not this
-     * one.</b> A cramped garrison's single field is itself already laddered
-     * down: 200x140 seats a two-berth field where 560x336 seats a three-berth
-     * station, so measuring six against six of the cramped one compares against
-     * something that is not the top of the ladder — and reads as a regression
-     * the moment the claim gets a little rounder or a little smaller.
+     * <p><b>The reference for "the largest size" is the top of the ladder, not a
+     * measured field.</b> A garrison's single field is itself laddered down by
+     * whatever ground its claim has, so measuring against one compares against
+     * something that is not the top of the ladder, and reads as a regression the
+     * moment the claim changes shape (as it did when garrisons were laid square).
      */
     @Test
     void theSizeLadderAbsorbsPressureRatherThanRefusing() {
-        int largest = ward(1, W, H).ctx().landingPads.size();
+        int largest = AirbaseLot.Size.STATION.pads();
         int one = ward(1, 200, 140).ctx().landingPads.size();
         Built six = ward(6, 200, 140);
         int many = six.ctx().landingPads.size();

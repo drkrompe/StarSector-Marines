@@ -639,6 +639,7 @@ public final class DerelictSecurityDirector {
         int tick = sim.getSimTickIndex();
         flyDrones(sim);
         tickBodies(sim);
+        if (hull != null) hull.hear(sim, tick);
         if (tick % PULSE_TICKS != 0) return;
         List<Report> reports = flocks.reports();
         List<Contact> own = ownContacts(sim, tick);
@@ -702,7 +703,7 @@ public final class DerelictSecurityDirector {
         network.settle(tick);
         tickWake(sim);
         tickWrecks(sim);
-        if (hull != null) hull.pulse(sim, this, tick);
+        if (hull != null) hull.pulse(sim, this, tick, all);
         for (Map.Entry<Long, Integer> post : posts.entrySet()) {
             long id = post.getKey();
             if (sim.resolveUnit(id) == 0L) continue;
@@ -754,6 +755,13 @@ public final class DerelictSecurityDirector {
                 // A released reserve flock is out to be seen: it sweeps its sleeping zone a corner at a time.
                 int[] sweep = FacilityWake.sweepPoint(zone, tick);
                 order = new FlockTasking.Order(FlockTask.PROBE, sweep[0], sweep[1], -1L);
+            }
+            if (hull != null && zone.state() == SecurityZone.State.AWAKE && !network.contingency()
+                    && report.strength() >= FlockTasking.RETURN_STRENGTH
+                    && (order == null || order.task() == FlockTask.PROBE || order.task() == FlockTask.SCREEN)) {
+                // A fallen hull's awake flock with nothing to strike ranges over its claim: the town, the ways in.
+                int[] range = hull.rangePoint(zone.id, report.flockId(), tick);
+                if (range != null) order = new FlockTasking.Order(FlockTask.PROBE, range[0], range[1], -1L);
             }
             if (order != null && ducts.opened() && !report.docked() && !flocks.inDuct(report.flockId())) {
                 // The way round a megastructure is long: a flock takes a duct where it is the shorter way.

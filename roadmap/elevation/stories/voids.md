@@ -607,7 +607,13 @@ Laws):
    2.4 m, an olive garden wall 1.6 m; a ruin's stub, or a sealed shell too short
    to be a perimeter, no higher than a compound wall (UNTUNED). Faces turned to
    the view's centre run to a cap of its cells at that lift, drawn before the
-   buildings' faces and re-formed when a breach changes the topology. Fences,
+   buildings' faces and re-formed when a breach changes the topology. A
+   window in such a wall (a compound's firing windows) stands only to its
+   sill (`FreestandingWalls.sill`), an embrasure cut down into the wall that
+   its defenders fire over, so it reads as a gap from above and from the
+   side; glass on a wall's top read as a skylight (owner). It sees and covers
+   as the map laid it. Look suite: `createSnapshots
+   -Psnapshot=compound-windows-look` (Asharu's compound). Fences,
    sandbags and barriers are doodads and still lie flat. A run stands as the
    straight strokes it was built along (`FreestandingWalls.strokes`): a
    diagonal is one slanted wall exactly as thick as a straight one: an end
@@ -687,13 +693,18 @@ Laws):
      roof in front of it hides it. Look suite: `createSnapshots
      -Psnapshot=wall-mounts-look` (close, and a pan along the wall).
 
-   A town at night reads by its lights: on a night map, about a third of
-   the upper-storey windows glow warm through the dark
-   (`FacePainter.lit`, its own layer over the night shade), and a lamp
-   pools on the pavement in front of each building's street wall every
-   sixth cell (`StreetLights`; a main street's shopfronts also hang lamp
-   brackets between the awnings). No town map lays a night yet; the look
-   suite shows one with `-Dsnapshot.walls.night=on`.
+   A town at night reads by its lights. About one town battle in five is
+   fought at night, by its seed (`TownNight`; a Raid's story maps take part,
+   the other story maps keep to the day, `StoryMap.nightFalls`), on a modest
+   night lit by the town as built (`StreetLights.light`): street lamps along
+   every kerb and on each corner where streets meet, a lamp before each
+   building's street wall, floodlit works docks and wall gates, lit landing
+   pads, and a sealed town's envelope lit along its length. Most windows on
+   every storey glow, warm and varied (`FacePainter.lit`, their own layer
+   over the night shade); a shop's window stays lit under a lit sign. A
+   street lamp never lights a roofed wall (`NightLightingRenderSystem.litBy`).
+   Open: a roof is drawn lifted toward the camera while the night shade lies
+   in ground space, so a roof's edge still takes the lit street below it.
 
    Damage is read live from the battle's own state:
    - A wall is hurt against the most hit points it has held (maps seed 80

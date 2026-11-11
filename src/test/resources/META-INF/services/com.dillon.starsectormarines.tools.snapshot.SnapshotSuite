@@ -263,6 +263,7 @@ com.dillon.starsectormarines.ops.battleview.NonRavSoundLookSuite
 com.dillon.starsectormarines.battle.evacuation.RavWearLookSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepWallsLookSuite
+com.dillon.starsectormarines.ops.battleview.StructureFireLookSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BlastImpulseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.BruteChargeSceneSnapshotSuite
@@ -358,6 +359,7 @@ com.dillon.starsectormarines.battle.evacuation.HarrierSnatchLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierSurvivorRaidLookSuite
 com.dillon.starsectormarines.battle.evacuation.BloomOutskirtsLookSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyBreachPressureLookSuite
+com.dillon.starsectormarines.battle.evacuation.CompoundWindowsLookSuite
 com.dillon.starsectormarines.battle.evacuation.EvacCordonLookSuite
 com.dillon.starsectormarines.battle.evacuation.BreachShelterLookSuite
 com.dillon.starsectormarines.battle.evacuation.HarrierPatrolLookSuite
@@ -496,3 +498,5 @@ com.dillon.starsectormarines.ops.LongSurveyPicksLookSuite
 com.dillon.starsectormarines.ops.FallenHullSimLookSuite
 com.dillon.starsectormarines.battle.world.gen.ruins.RuinsWeatherLookSuite
 com.dillon.starsectormarines.battle.world.gen.pool.RaidDemolitionLookSuite
+com.dillon.starsectormarines.ops.LongSurveyHullVideoSuite
+com.dillon.starsectormarines.battle.setup.GarrisonCompoundLookSuite

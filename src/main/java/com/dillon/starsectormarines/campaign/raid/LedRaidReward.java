@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.campaign.raid;
 
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD;
 
 /**
  * What a won led raid pays ({@code raid-resolution.md}, law 9; owner: "We just need to offer more potential rewards
- * for leading on the ground to compensate"). The company goes in with up to twelve squads and four machines, not the
- * hundreds of cargo marines the standard raid would need, and a raid it wins is committed as the market's full raid,
- * with a premium for a harder market:
+ * for leading on the ground to compensate"). The company needs none of the cargo marines the standard raid would, and
+ * a raid it wins is committed as the market's full raid, with a premium for a harder market:
  *
  * <ul>
  *   <li>at full effectiveness, whatever share the cargo marines would have earned;</li>
@@ -42,6 +42,21 @@ public final class LedRaidReward {
         if (!disrupting) return Math.round(full);
         if (worksShare <= 0f) return 0;
         return Math.max(1, Math.round(full * Math.min(1f, worksShare)));
+    }
+
+    /**
+     * Whether the fleet's marines are too few for this raid on their own: its effectiveness under the raid command's
+     * threshold for the kind of raid ({@code raid-resolution.md}, law 1). Such a raid can only be led; the company's
+     * battle stands in for the marines the command would have wanted.
+     */
+    public static boolean shortOfMarines(float raidMult, boolean disrupting) {
+        return raidMult < MarketCMD.VALUABLES_THRESHOLD
+                || (disrupting && raidMult < MarketCMD.DISRUPTION_THRESHOLD);
+    }
+
+    /** The tokens per objective a won led raid commits at its full size: {@link #fill} to {@link #tokens}. */
+    public static int[] ledAssignment(int[] assigned, float premium, boolean disrupting) {
+        return fill(assigned, tokens(premium, disrupting, 1f));
     }
 
     /**
