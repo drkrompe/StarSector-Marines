@@ -243,6 +243,16 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   down the far end) to one apron of landing pads (painted rings, stores, a
   bowser's tank and pump sets down the gaps, the fuel line behind). Nothing that
   stands is laid in the field of fire or on the hull, trench or aprons.
+- **A mine's country** (`MineCountry`): the patch's `dress` names its pieces, each
+  from a cell: spoil heaps and tailings mounds on cleared earth, tipped ore carts,
+  a stalled ore train on its rail, a pumping station on a pit's rim with its main
+  run toward the pit, and ruined headframes (legs solid, a girder fallen off,
+  scrap and spoil round it). Heaps and wagons are drawn at twice their sheet to
+  read at a map's scale. As the shower's are, a piece with cover stands solid in a
+  ring of open ground, clearing the wild ground's formations under it; nothing in
+  the way stands on a road, the hull, trench or aprons, the landing's field of
+  fire, near a lattice grid point, or within `SIGHTLINE` of an ore line. A piece
+  that does not fit is left out.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground

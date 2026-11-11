@@ -58,10 +58,13 @@ class StoryMapPoolTest {
     @Test
     void aHullPatchReadsItsHeadingAndStakesAndRidesThePlansLayout() throws Exception {
         MapPatch patch = MapPatch.read(new JSONObject("{\"hull\":{\"x\":80,\"y\":60,\"heading\":\"west\",\"trench\":40,"
-                + "\"stakes\":[{\"x\":40,\"y\":60,\"stage\":\"planted\"}]}}"));
+                + "\"stakes\":[{\"x\":40,\"y\":60,\"stage\":\"planted\"}],\"yards\":30,"
+                + "\"dress\":[{\"kind\":\"train\",\"x\":10,\"y\":4,\"length\":24}]}}"));
         HullSitePlan hull = patch.hull();
         assertEquals(Direction.W, hull.heading());
         assertEquals(List.of(new HullSitePlan.StakeAt(40, 60, HullSite.StakeStage.PLANTED)), hull.stakes());
+        assertEquals(30, hull.yards());
+        assertEquals(List.of(new HullSitePlan.Dress(HullSitePlan.Dress.Kind.TRAIN, 10, 4, 24, 0)), hull.dress());
         PrecinctPlan plan = new PrecinctPlan(List.of(place("base", 10, 10)));
         assertSame(hull, patch.pinned(plan).layout().crash());
         assertThrows(Exception.class, () -> MapPatch.read(new JSONObject(

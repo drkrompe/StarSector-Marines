@@ -283,13 +283,15 @@ this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 Any entry may also lay a **fallen hull** over its ground
 (`fallen-hull-nouns.md`, The ground):
 
-- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}], yards}`: the broken
+- **`hull`** `{x, y, heading, trench, stakes: [{x, y, stage}], yards, dress: [{kind, x, y, length, turns}]}`: the broken
   hull's middle cell (its three sections and the gaps between), the way its bow
   points (`north` is +y), the trench's length off its bow's tip (12 to 160),
   and the stakes standing at the start, each `planted`,
   `raised` or `established` on the lattice point nearest its cell; `yards`, a
   row, makes every worked field wholly south of it a port's yards in place of
-  the skin's covered farm (`fallen-hull-nouns.md`, The ground). It rides the
+  the skin's covered farm (`fallen-hull-nouns.md`, The ground); `dress` lays a
+  mine's country piece by piece (`spoil`, `tailings`, `headframe`, `train`,
+  `carts`, `pumps`; `MineCountry`). It rides the
   plan's mission layout (`MissionLayout.crash`), so a setup that pins its plan
   lays it; a Long Survey chapter's acceptance is its base mission's own (the
   colony's rescue, the Cordon's line, the placed airbases) and the hull's

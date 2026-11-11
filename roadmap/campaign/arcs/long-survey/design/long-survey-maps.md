@@ -57,6 +57,13 @@ pit in the south-east (x 332 to 392, y 45 to 105), the raised ore line between
 them along y 69.
 
 - **Entry.** The company comes in from the south edge.
+- **Mine country** (`MineCountry`, the patch's `dress`): on the centre route a stalled
+  ore train standing north–south on its rail (x about 302, y 4 to 44), tipped ore
+  carts by the catch station and spoil heaps either side of the ore line; on the
+  east route a pumping station on the pit's south rim (342,34), tailings, spoil and
+  carts south of the pit and a ruined headframe at its south-east (360,4), with a
+  second headframe north of the junction (318,112). The ore line keeps its open
+  sightline: nothing in the way within 5 cells of it.
 - **The hull.** Down in the open ground east of the works, broken in three, bow
   west (centre 314,185; x 251 to 378, y 167 to 203), its trench stopping short of
   the works' east wall; the impact band wrecks the works' east yards.

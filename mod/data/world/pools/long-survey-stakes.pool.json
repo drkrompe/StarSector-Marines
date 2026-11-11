@@ -4,7 +4,7 @@
   "home": "FROZEN",
   "entry": {
     "seed": 2,
-    "note": "Stakes on Garnir: the owned Raid mine's works on its own seed (long-survey-maps.md, Chapter 2) with the Surveyor down in the open ground east of the works, bow west; a trunk south from the hull through a raised junction to two planted stakes, by the head works and on the ore line, and a chain down the east side to a planted stake on the pit's rim",
+    "note": "Stakes on Garnir: the owned Raid mine's works on its own seed (long-survey-maps.md, Chapter 2) with the Surveyor down in the open ground east of the works, bow west; a trunk south from the hull through a raised junction to two planted stakes, by the head works and on the ore line, and a chain down the east side to a planted stake on the pit's rim; mine country on the centre and east routes: a stalled ore train south of the ore line, spoil and tailings, tipped ore carts, a pumping station on the pit's south rim and two ruined headframes, the ore line's sightline kept open",
     "patch": {
       "hull": {
         "x": 314,
@@ -41,6 +41,76 @@
             "x": 394,
             "y": 105,
             "stage": "planted"
+          }
+        ],
+        "dress": [
+          {
+            "kind": "train",
+            "x": 302,
+            "y": 4,
+            "length": 40
+          },
+          {
+            "kind": "carts",
+            "x": 318,
+            "y": 36
+          },
+          {
+            "kind": "spoil",
+            "x": 318,
+            "y": 6
+          },
+          {
+            "kind": "spoil",
+            "x": 296,
+            "y": 80
+          },
+          {
+            "kind": "spoil",
+            "x": 318,
+            "y": 82
+          },
+          {
+            "kind": "headframe",
+            "x": 318,
+            "y": 112
+          },
+          {
+            "kind": "headframe",
+            "x": 360,
+            "y": 4
+          },
+          {
+            "kind": "tailings",
+            "x": 384,
+            "y": 14,
+            "length": 6
+          },
+          {
+            "kind": "spoil",
+            "x": 340,
+            "y": 8
+          },
+          {
+            "kind": "pumps",
+            "x": 342,
+            "y": 34,
+            "length": 8
+          },
+          {
+            "kind": "carts",
+            "x": 366,
+            "y": 22
+          },
+          {
+            "kind": "spoil",
+            "x": 380,
+            "y": 34
+          },
+          {
+            "kind": "spoil",
+            "x": 368,
+            "y": 118
           }
         ]
       }

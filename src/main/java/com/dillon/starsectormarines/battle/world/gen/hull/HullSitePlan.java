@@ -15,11 +15,14 @@ import java.util.Locale;
  * stand at the chapter's point in the arc, each by a cell the nearest lattice point to it takes.
  *
  * <p>Read from a pool entry's patch as
- * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards"}};
+ * {@code "hull": {"x", "y", "heading", "trench", "stakes": [{"x", "y", "stage"}], "yards",
+ * "dress": [{"kind", "x", "y", "length", "turns"}]}};
  * {@code heading} is {@code north} (+y), {@code east}, {@code south} or {@code west}. {@code yards}, a row, makes the
  * worked fields wholly south of it the port's yards ({@link PortYards}); absent or 0, the fields are left as laid.
+ * {@code dress} lays a mine's country round the hull ({@link Dress}, {@link MineCountry}).
  */
-public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards) {
+public record HullSitePlan(int x, int y, Direction heading, int trench, List<StakeAt> stakes, int yards,
+                           List<Dress> dress) {
 
     /**
      * The shortest and longest trench a hull may have ploughed off its bow, cells. Short is allowed: the broken hull
@@ -34,10 +37,25 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
         }
     }
 
+    /**
+     * A piece of the country round the hull the patch lays ({@link MineCountry}), from {@code (x, y)}: its kind, a
+     * length (a train's run, a tailings mound's radius, a pumping station's main) and quarter turns (a train along x
+     * when odd).
+     */
+    public record Dress(Kind kind, int x, int y, int length, int turns) {
+        /** What a piece of a mine's country is. */
+        public enum Kind { SPOIL, TAILINGS, HEADFRAME, TRAIN, CARTS, PUMPS }
+
+        public Dress {
+            if (kind == null) throw new IllegalArgumentException("a piece names its kind");
+        }
+    }
+
     public HullSitePlan {
         if (heading == null || heading.dx * heading.dy != 0) throw new IllegalArgumentException("a hull lies on a cardinal heading");
         if (trench < MIN_TRENCH || trench > MAX_TRENCH) throw new IllegalArgumentException("trench of " + trench + " cells");
         stakes = stakes == null ? List.of() : List.copyOf(stakes);
+        dress = dress == null ? List.of() : List.copyOf(dress);
         if (yards < 0) throw new IllegalArgumentException("yards south of row " + yards);
     }
 
@@ -60,7 +78,16 @@ public record HullSitePlan(int x, int y, Direction heading, int trench, List<Sta
                         HullSite.StakeStage.valueOf(s.getString("stage").toUpperCase(Locale.ROOT))));
             }
         }
+        List<Dress> dress = new ArrayList<>();
+        JSONArray pieces = json.optJSONArray("dress");
+        if (pieces != null) {
+            for (int i = 0; i < pieces.length(); i++) {
+                JSONObject d = pieces.getJSONObject(i);
+                dress.add(new Dress(Dress.Kind.valueOf(d.getString("kind").toUpperCase(Locale.ROOT)), d.getInt("x"),
+                        d.getInt("y"), d.optInt("length", 0), d.optInt("turns", 0)));
+            }
+        }
         return new HullSitePlan(json.getInt("x"), json.getInt("y"), heading, json.optInt("trench", 72), stakes,
-                json.optInt("yards", 0));
+                json.optInt("yards", 0), dress);
     }
 }
