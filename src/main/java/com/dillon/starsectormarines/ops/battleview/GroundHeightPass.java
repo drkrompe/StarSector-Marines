@@ -141,9 +141,44 @@ final class GroundHeightPass {
      *                    whole map and the projection clips it.
      */
     void render(BattleCamera cam, NavigationGrid grid, CellTopology topology,
-                Buildings buildings, GenMappingRegistry mapping, int marginCells, PlinthFoot plinths) {
+                Buildings buildings, GenMappingRegistry mapping, int marginCells, PlinthFoot plinths,
+                DiagonalWallShade diagonals) {
         renderField(cam, grid, topology, buildings, mapping, marginCells);
         raisePlinths(cam, grid, topology, plinths);
+        slantDiagonals(cam, topology, diagonals);
+    }
+
+    /**
+     * Lays each diagonal freestanding wall in the field as it is drawn ({@link DiagonalWallShade}): the cells only
+     * it stands on back at their floor, then its slanted footprint at the wall's height, so its shadow runs along it.
+     * Only the macro channel is written.
+     */
+    private void slantDiagonals(BattleCamera cam, CellTopology topology, DiagonalWallShade diagonals) {
+        if (diagonals == null || diagonals.lowCount() == 0 && diagonals.quadCount() == 0) return;
+        int gridW = topology.getWidth();
+        int[] low = diagonals.low();
+        float[] lowMeters = diagonals.lowMeters();
+        for (int i = 0, n = diagonals.lowCount(); i < n; i++) {
+            int x = low[i] % gridW, y = low[i] / gridW;
+            solidBatch.appendRect(cam.cellToScreenX(x), cam.cellToScreenY(y), cam.cellToScreenX(x + 1),
+                    cam.cellToScreenY(y + 1), encodeMacroMeters(lowMeters[i]), 0f, 0f, 0f);
+        }
+        float[] q = diagonals.quads();
+        for (int i = 0, n = diagonals.quadCount(); i < n; i++) {
+            int o = i * DiagonalWallShade.QUAD;
+            float top = encodeMacroMeters(q[o + 8]);
+            solidBatch.appendQuad(cam.cellToScreenX(q[o]), cam.cellToScreenY(q[o + 1]), cam.cellToScreenX(q[o + 2]),
+                    cam.cellToScreenY(q[o + 3]), cam.cellToScreenX(q[o + 4]), cam.cellToScreenY(q[o + 5]),
+                    cam.cellToScreenX(q[o + 6]), cam.cellToScreenY(q[o + 7]), top, 0f, 0f, 0f);
+        }
+        glDisable(GL_BLEND);
+        ShaderProgram.useNone();
+        glColorMask(true, false, false, false);
+        try {
+            solidBatch.flush();
+        } finally {
+            glColorMask(true, true, true, true);
+        }
     }
 
     /**

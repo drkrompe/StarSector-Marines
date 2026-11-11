@@ -208,6 +208,18 @@ entry's `hull` patch op (`story-map-pools.md`, The patch), and published as
   `hull-shower` initial-damage layer, applied when the battle is assembled.
   A strike keeps off buildings a mission anchors to, the landing's field of fire
   and the hull; a knock-down keeps its collapse off fighting positions.
+- **The impact zone** (`ImpactZone`) is the ground the hull flattened coming
+  in: within 20 cells of the hull or its trench every building is wrecked
+  (walls down, roofs fallen in or burnt out), so nothing intact stands against
+  the hull or the plough; out to 40 cells the blocks are battered and wrecked in
+  patches that grow rarer outward; beyond that only the shower's strikes fall
+  (UNTUNED). Open ground near the hull is scarred in scattered patches. It is
+  initial damage (`hull-impact-*` layers), applied when the battle is
+  assembled, as runs of cells along each row, so it never touches the hull, its
+  trench or aprons, standing debris or fixtures, the landing's field of fire, a
+  building a mission anchors to or a mission structure. It only takes walls and
+  roofs down, so the lift, the shelters, the stake points and the haul roads
+  stay as open as they were.
 - **The claim lattice** (`ClaimLattice`) is a grid about the hull's middle,
   `SPACING` 40 cells (two stake perimeters of 20, so neighbouring perimeters
   meet; UNTUNED), each point moved to the nearest 5-by-5 of open outdoor ground
