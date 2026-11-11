@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import com.dillon.starsectormarines.render2d.texture.TextureUsage;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -326,7 +327,7 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 HaulerWork h = first(c.sim, c.hull.haulers());
                 if (s != null && full < 0 && s.load() >= StripperWork.CAPACITY) full = t;
                 if (h != null && load < 0 && h.load() > 0f) load = t;
-                if (load >= 0 && c.hull.hullStore().metal() > 0f) home = t;
+                if (load >= 0 && home < 0 && h != null && h.load() == 0f) home = t;
                 if (h != null && t % Math.round(30f / DT) == 0) {
                     HaulerWork.Goal g = h.goal();
                     log("%.0f s: hauler %s with %d at (%.1f, %.1f), load %.0f; forge lit %s", t * DT, g.kind(),
@@ -341,8 +342,8 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
         }
         // -Dsnapshot.hullVideo.workCells frames the work clips that close (cells across), and
         // -Dsnapshot.hullVideo.workSpeed caps their speed-up, so the walkers' arms read.
-        float sCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "30"));
-        float hCells = Float.parseFloat(System.getProperty("snapshot.hullVideo.workCells", "40"));
+        // ("closest": play's closest zoom on the map).
+        String workCells = System.getProperty("snapshot.hullVideo.workCells", "");
         int cap = Integer.parseInt(System.getProperty("snapshot.hullVideo.workSpeed", "99"));
         int sSpeed = Math.min(cap, speedFor((full > 0 ? full : load) + Math.round(3f / DT)));
         int hSpeed = Math.min(cap, home > 0 ? speedFor(home - load + Math.round(6f / DT)) : 4);
@@ -350,6 +351,11 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
         try (Claim c = claim(walkers, idle(), 0f)) {
             BattleSimulation sim = c.sim;
             World world = sim.world();
+            float closest = W / TextureUsage.referenceCellPx(sim.getGrid().getWidth(), sim.getGrid().getHeight());
+            log("map %dx%d: play's closest zoom shows %.1f cells across", sim.getGrid().getWidth(),
+                    sim.getGrid().getHeight(), closest);
+            float sCells = workCells.isEmpty() ? 30f : workCells.equals("closest") ? closest : Float.parseFloat(workCells);
+            float hCells = workCells.isEmpty() ? 40f : workCells.equals("closest") ? closest : Float.parseFloat(workCells);
             ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
             Take st = null, ht = null;
             Camera sc = null, hc = null;
@@ -392,7 +398,7 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                 }
                 // The hauler from its first load until the hull's store has it and its arms are tucked again.
                 if (wantH && hStart < 0 && h != null && h.load() > 0f) hStart = t;
-                if (wantH && hStart > 0 && hEnd < 0 && c.hull.hullStore().metal() > 0f) hEnd = t + Math.round(4.5f / DT);
+                if (wantH && hStart > 0 && hEnd < 0 && h != null && h.load() == 0f) hEnd = t + Math.round(4.5f / DT);
                 if (wantH && hauler != 0L && hStart > 0 && (hEnd < 0 || t <= hEnd) && (t - hStart) % hSpeed == 0) {
                     float x = world.renderX(hauler), y = world.renderY(hauler);
                     if (ht == null) {
@@ -402,9 +408,9 @@ public final class LongSurveyHullVideoSuite implements SnapshotSuite {
                     hc.toward(x, y, hCells);
                     boolean atStripper = stripper != 0L && Math.hypot(world.x(stripper) - world.x(hauler),
                             world.y(stripper) - world.y(hauler)) < 4f;
-                    String doing = h == null ? "" : c.hull.hullStore().metal() > 0f && h.load() == 0f
-                            ? "unloaded into the hull's store at the bay mouth"
-                            : h.load() >= HaulerWork.CAPACITY ? "full: walking the haul road home to the bay mouth"
+                    String doing = h == null ? "" : hEnd > 0 && h.load() == 0f
+                            ? "unloaded into the nearest store (the hull's, or a stake's bay)"
+                            : h.load() >= HaulerWork.CAPACITY ? "full: walking the haul road to the nearest store"
                             : atStripper ? "loading at the stripper, until it is full"
                             : "waiting on the stripper's next load";
                     ht.frame(sim, hc.now(), "Hauler - The Stakes ground" + speedNote(hSpeed), List.of(doing,

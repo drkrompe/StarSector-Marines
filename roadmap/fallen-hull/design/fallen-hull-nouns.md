@@ -308,7 +308,7 @@ Numbers UNTUNED.
   `StripperWork` (nearest cuttable salvage, cut to `CAPACITY`, then wait for a
   hauler); `HaulerWork` (the fullest stripper, then the nearest store whose
   chain holds; destroyed loaded, its load is lost; it stands two cells off a
-  stripper to take from it, `approach`, never on it); `StakeTrain` (planted on
+  stripper or store to take from or unload into it, `approach`, never on it); `StakeTrain` (planted on
   reaching its point, scrap if its hauler dies first, the point open again);
   `StakeFootprint` (a stake's 11-cell square, seated where every cell is
   buildable, nearest its point; a slot per part, none overlapping, and each
@@ -346,8 +346,11 @@ Numbers UNTUNED.
   hull's zone (`HULL_ZONE`), keeping the ground within its perimeter of any
   section (`SecurityZone` with keeps; nearest keep first where zones overlap),
   with the autoforge as its node
-  and vault (an armoured, unarmed structure at the forge cell), its flock at the
-  mouth, its service bay and repair drone; the ground's stakes nearest first,
+  and vault (an armoured, unarmed structure at the forge cell), its flock's
+  cradle and its service bay standing clear of the mouth, where the forge
+  prints and the workers wait (`FallenHull.clearCellNear`: three cells off,
+  open ground two cells all round, room for a heavy walker to pass), and its
+  repair drone; the ground's stakes nearest first,
   each chained through the anchors before it (one the chain cannot reach is
   stranded from the start); the walkers already out, each in the zone keeping
   its post; and the network's `DerelictSecurityDirector`, which runs
