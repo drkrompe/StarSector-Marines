@@ -6,9 +6,6 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.fortress.Ward;
-import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
-import com.dillon.starsectormarines.battle.world.gen.layout.Paving;
-import com.dillon.starsectormarines.battle.world.gen.layout.Phase;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
@@ -18,7 +15,12 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.RaidSiteTemplate;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +42,8 @@ import java.util.Set;
  * <p>The lines' band and the apron (staging to the outer edge) are ground held from growth ({@link #LINES},
  * {@link #APRON}); the warehouse band between them is built ground ({@link #WAREHOUSES}), held from the town's growth
  * with the warehouses raised on it as layout structures before the map is finished, so they are buildings like any
- * other; the highway is layout paving. The hub's own roads tie the highway to every warehouse and pad
- * ({@link PortHub#roads}). Everything else is dressed once the
+ * other. The highway and the hub's own roads, which tie it to every warehouse and pad ({@link PortHub#roads}), are
+ * street the city's road finish lays as it lays the town's. Everything else is dressed once the
  * terminal is built ({@link PortHubDressing}).
  */
 public final class PortWorks implements RaidIndustry {
@@ -50,8 +52,6 @@ public final class PortWorks implements RaidIndustry {
     public static final String APRON = "apron";
     /** The lines in: the highway and the rail line's band, held from growth. */
     public static final String LINES = "port-lines";
-    /** The highway's paving. */
-    public static final String HIGHWAY = "port-highway";
     /** The warehouse rows' band, held from the town's growth as built ground the warehouses are raised on. */
     public static final String WAREHOUSES = "port-warehouses";
     /** Each warehouse's structure is named this prefix and its index. */
@@ -126,7 +126,7 @@ public final class PortWorks implements RaidIndustry {
                 0, sheds * YARD_PER_SHED, true);
     }
 
-    /** The hub's held ground, the highway's paving and the warehouses, beside the terminal. */
+    /** The hub's held ground and the warehouses, beside the terminal. */
     @Override public void sitePieces(SiteFrame frame, List<Piece> out) {
         Precinct terminal = frame.works();
         if (terminal == null) return;
@@ -166,7 +166,7 @@ public final class PortWorks implements RaidIndustry {
     }
 
     /**
-     * The hub's layout pieces: the lines' band and the apron held from growth, the highway paved along the lines, and
+     * The hub's layout pieces: the lines' band and the apron held from growth, and
      * a warehouse raised on each of the hub's warehouse grounds, which lie between the two held bands.
      */
     static List<Piece> pieces(PortHub hub, int width, int height) {
@@ -175,16 +175,6 @@ public final class PortWorks implements RaidIndustry {
         out.add(site(APRON, hub.apron(), width, height));
         Site band = site(WAREHOUSES, hub.built(), width, height);
         out.add(new Site(band.name(), band.x0(), band.y0(), band.x1(), band.y1(), SitePurpose.BUILT, true));
-        List<int[]> road = new ArrayList<>();
-        PortHub.Rect h = hub.highway();
-        for (int x = Math.max(0, h.x0()); x <= Math.min(width - 1, h.x1()); x++) {
-            for (int y = Math.max(0, h.y0()); y <= Math.min(height - 1, h.y1()); y++) road.add(new int[]{x, y});
-        }
-        // Paving is laid in the structures phase, where only a deferred piece resolves it.
-        if (!road.isEmpty()) {
-            Paving highway = new Paving(HIGHWAY, road, false);
-            out.add(new Deferred(HIGHWAY + "-laid", Phase.STRUCTURES, ground -> List.of(highway), false));
-        }
         for (int i = 0; i < hub.sheds().size(); i++) {
             PortHub.Shed shed = hub.sheds().get(i);
             out.add(new Structure(WAREHOUSE + i, StructureKind.GRANARY, shed.at().x0(), shed.at().y0(), shed.turns(),
@@ -286,5 +276,67 @@ public final class PortWorks implements RaidIndustry {
         PortHubDressing.lay(c, hub, c.seed ^ 0x504f5254L);
         PortHubDressing.rearGate(c, hub);
         PortHubDressing.intakeQueue(c, claim, index, hub.terminalX(), c.seed ^ 0x51554555L);
+        terminal(c, plan, works);
+    }
+
+    /** Cells out from a bonded shed's wall its cargo is staged: room for a door and a loader between. */
+    static final int STAGED_OUT = 3;
+    /** Cells between two containers staged along a shed. */
+    static final int STAGED_GAP = 1;
+
+    /**
+     * The terminal read as the port's: its bonded sheds, customs shed and pump house roofed in ribbed steel as the hub's
+     * warehouses are, and cleared cargo staged along the bonded sheds, containers in a row with a loader at its end.
+     */
+    static void terminal(GenContext c, PrecinctPlan plan, Precinct works) {
+        int n = 0;
+        for (PointOfInterest b : WorksProps.buildings(c, plan, works)) {
+            RoomPurpose purpose = WorksProps.purposeOf(c, b);
+            if (purpose != BONDED && purpose != CUSTOMS && purpose != PUMPS) continue;
+            for (int x = b.left; x <= b.right; x++) {
+                for (int y = b.top; y <= b.bottom; y++) c.topology.setRoofKind(x, y, CellTopology.RoofKind.SHED);
+            }
+            if (purpose == BONDED) staged(c, b, n++);
+        }
+    }
+
+    /** Containers in a row along each long side of a bonded shed, {@link #STAGED_OUT} from its wall, a loader last. */
+    private static void staged(GenContext c, PointOfInterest b, int n) {
+        boolean wide = b.right - b.left >= b.bottom - b.top;
+        int from = wide ? b.left : b.top, to = wide ? b.right : b.bottom;
+        int[] sides = wide ? new int[]{b.top - STAGED_OUT - PortHub.BOX_DEEP, b.bottom + STAGED_OUT + 1}
+                : new int[]{b.left - STAGED_OUT - PortHub.BOX_DEEP, b.right + STAGED_OUT + 1};
+        int k = n;
+        for (int side : sides) {
+            int t = from;
+            for (; t + PortHub.BOX_LONG - 1 <= to; t += PortHub.BOX_LONG + STAGED_GAP) {
+                String box = PortHubDressing.BOXES[k++ % PortHubDressing.BOXES.length];
+                int x = wide ? t : side, y = wide ? side : t;
+                stand(c, x, y, box, wide ? 0 : 1);
+            }
+            int x = wide ? t : side, y = wide ? side : t;
+            stand(c, x, y, LOADER, wide ? 0 : 1);
+        }
+    }
+
+    /** The loader working a bonded shed's staged cargo. */
+    static final String LOADER = "doodad.stores-cargo-loader";
+
+    /** A solid prop {@code id} at {@code (x, y)} turned {@code turns}, where its footprint is open; whether it stood. */
+    private static boolean stand(GenContext c, int x, int y, String id, int turns) {
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef def = registry == null ? null : registry.doodad(id);
+        if (def == null) return false;
+        Doodad prop = new Doodad(x, y, def, turns);
+        if (!WorksProps.open(c, x, y, prop.footprintCellsX, prop.footprintCellsY)) return false;
+        for (int yy = y; yy < y + prop.footprintCellsY; yy++) {
+            for (int xx = x; xx < x + prop.footprintCellsX; xx++) {
+                c.grid.setWalkable(xx, yy, false);
+                c.grid.setSeeThrough(xx, yy, true);
+                c.topology.setFixture(xx, yy, true);
+            }
+        }
+        c.doodads.add(prop);
+        return true;
     }
 }

@@ -187,9 +187,10 @@ final class FreestandingWalls {
      * A run's cells laid out as straight strokes, so a wall stands as the line it was built along rather than as a
      * staircase of cells: every chain of two or more cells in a line east, north or diagonally is a stroke from its
      * first cell's centre to its last's, and a cell in no chain is a stroke of its own (a post). A diagonal step only
-     * counts where no cell beside it already joins the two orthogonally; a diagonal runs from its first cell's centre
-     * to its last's, ends joined, with a pier (a post) on each end cell. Each end is free where no other cell of the
-     * run touches its cell from outside the stroke. {@link #STROKE} floats each.
+     * counts where no cell beside it already joins the two orthogonally. Each end is free where no other cell of the
+     * run touches its cell from outside the stroke: a diagonal's free end is cut square across it, a joined end stops
+     * at its cell's centre inside the straight wall it meets, or on a pier (a post) where it meets only other
+     * diagonals. {@link #STROKE} floats each.
      */
     static float[] strokes(int[] cells, int gridW, int gridH, IntPredicate inRun) {
         float[] out = new float[STROKE * 8];
@@ -210,13 +211,16 @@ final class FreestandingWalls {
                 if (n + 3 * STROKE > out.length) out = Arrays.copyOf(out, out.length * 2 + 3 * STROKE);
                 n = stroke(out, n, x, y, x + len * dx, y + len * dy, dx, dy, gridW, gridH, inRun);
                 if (dx != 0 && dy != 0) {
-                    // A diagonal runs centre to centre and a square pier stands on each end cell, so it meets a
-                    // straight wall, or ends, on the grid rather than on a slanted cut.
-                    out[n - 2] = 0f;
-                    out[n - 1] = 0f;
-                    n = stroke(out, n, x, y, x, y, 0, 0, gridW, gridH, inRun);
-                    n = stroke(out, n, x + len * dx, y + len * dy, x + len * dx, y + len * dy, 0, 0, gridW, gridH,
-                            inRun);
+                    // A diagonal's end that stands free is cut square across it ({@link #corners}); one that runs
+                    // into a straight wall stops inside that wall's end cell; one that meets only other diagonals
+                    // stands on a square pier, so the two meet on the grid.
+                    for (int end = 0; end < 2; end++) {
+                        int ex = x + end * len * dx, ey = y + end * len * dy;
+                        if (out[n - 2 + end] == 0f && !straight(ex, ey, gridW, gridH, inRun)
+                                && !pier(out, n, ex, ey)) {
+                            n = stroke(out, n, ex, ey, ex, ey, 0, 0, gridW, gridH, inRun);
+                        }
+                    }
                 }
             }
         }
@@ -227,6 +231,20 @@ final class FreestandingWalls {
             n = stroke(out, n, x, y, x, y, 0, 0, gridW, gridH, inRun);
         }
         return Arrays.copyOf(out, n);
+    }
+
+    /** Whether a pier already stands on cell {@code (x, y)} among the first {@code n} floats of strokes. */
+    private static boolean pier(float[] out, int n, int x, int y) {
+        for (int o = 0; o < n; o += STROKE) {
+            if (out[o] == x + .5f && out[o + 1] == y + .5f && out[o + 2] == x + .5f && out[o + 3] == y + .5f) return true;
+        }
+        return false;
+    }
+
+    /** Whether a cell of the run has a neighbour across a side, so a straight stroke stands on it. */
+    private static boolean straight(int x, int y, int gridW, int gridH, IntPredicate inRun) {
+        for (int s = 0; s < 4; s++) if (in(x + DX[s], y + DY[s], gridW, gridH, inRun)) return true;
+        return false;
     }
 
     /** Whether the run steps on from {@code (x, y)} by {@code (dx, dy)}: both cells in it, a diagonal unbridged. */
@@ -272,6 +290,27 @@ final class FreestandingWalls {
      * {@code out}: start and end on one side, then end and start on the other. A post (no length) is a square.
      */
     static void corners(float x0, float y0, float x1, float y1, float half, float[] out) {
+        corners(x0, y0, x1, y1, false, false, half, out);
+    }
+
+    /**
+     * How far past its end cell's centre a diagonal's free end reaches: as far as it can while its square cut's two
+     * corners stay on the cell's far sides, so the end finishes inside its cell.
+     */
+    static final float FREE_REACH = .5f * (float) Math.sqrt(2) - HALF;
+
+    /** {@link #corners} of stroke {@code o} of {@code strokes}, a diagonal's free ends reaching {@link #FREE_REACH}. */
+    static void corners(float[] strokes, int o, float half, float[] out) {
+        corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3], strokes[o + 4] != 0f,
+                strokes[o + 5] != 0f, half, out);
+    }
+
+    /**
+     * A stroke's footprint as {@link #corners(float, float, float, float, float, float[])}, a diagonal's free start
+     * or end reaching {@link #FREE_REACH} past its cell's centre, cut square across.
+     */
+    static void corners(float x0, float y0, float x1, float y1, boolean startFree, boolean endFree, float half,
+                        float[] out) {
         float dx = x1 - x0, dy = y1 - y0, len = (float) Math.hypot(dx, dy);
         if (len < 1e-4f) {
             dx = 1f;
@@ -282,8 +321,9 @@ final class FreestandingWalls {
         }
         float nx = dy, ny = -dx;
         // A straight wall reaches its end cells' edges; a diagonal stops at their centres, inside their piers.
-        float reach = dx != 0f && dy != 0f ? 0f : .5f;
-        float sx = x0 - dx * reach, sy = y0 - dy * reach, ex = x1 + dx * reach, ey = y1 + dy * reach;
+        boolean diagonal = dx != 0f && dy != 0f;
+        float from = diagonal ? (startFree ? FREE_REACH : 0f) : .5f, to = diagonal ? (endFree ? FREE_REACH : 0f) : .5f;
+        float sx = x0 - dx * from, sy = y0 - dy * from, ex = x1 + dx * to, ey = y1 + dy * to;
         out[0] = sx + nx * half; out[1] = sy + ny * half;
         out[2] = ex + nx * half; out[3] = ey + ny * half;
         out[4] = ex - nx * half; out[5] = ey - ny * half;
@@ -306,7 +346,7 @@ final class FreestandingWalls {
         float[][] quads = new float[count][8];
         for (int i = 0; i < count; i++) {
             int o = i * STROKE;
-            corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3], HALF, quads[i]);
+            corners(strokes, o, HALF, quads[i]);
         }
         float[] out = new float[EDGE * 8];
         int n = 0;
@@ -397,7 +437,7 @@ final class FreestandingWalls {
         float[][] quads = new float[count][8];
         for (int i = 0; i < count; i++) {
             int o = i * STROKE;
-            corners(strokes[o], strokes[o + 1], strokes[o + 2], strokes[o + 3], HALF, quads[i]);
+            corners(strokes, o, HALF, quads[i]);
         }
         float[] out = new float[64];
         int n = 0;
