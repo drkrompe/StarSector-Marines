@@ -399,12 +399,6 @@ public final class UnitRenderService implements RenderSystem {
     /** A derelict walker's mount drawings by slot, filled per walker as it is drawn. */
     private final int[] walkerGuns = new int[MechMountSlot.values().length];
 
-    /** A walker's lost knees as a bit a leg, in the leg rig's order. */
-    static int lostMask(WalkerKnees knees) {
-        int mask = 0;
-        for (int i = 0; i < WalkerKnees.LEGS; i++) if (knees.lost(i)) mask |= 1 << i;
-        return mask;
-    }
     private final Map<Long, Integer> derelictRigTicks = new HashMap<>();
     private final Stratum footprints = new Stratum();
     private final Stratum turrets = new Stratum();
@@ -1796,18 +1790,23 @@ public final class UnitRenderService implements RenderSystem {
                     // The derelict walker is its own chassis: a torso on reaching legs, drawn from its own rig.
                     // The line's sizes are the walker's rig at their own scale (`derelict-watch.md`).
                     float size = roster.renderScale(entityId) / MechVariant.SECURITY_WALKER.renderScale;
-                    DerelictLegRig rig = derelictRigs.computeIfAbsent(entityId, id -> new DerelictLegRig(
-                            Math.abs(size - 1f) < 0.01f ? DerelictLegRig.WALKER : DerelictLegRig.WALKER.scaled(size)));
-                    int tick = ctx.sim.getSimTickIndex();
-                    Integer last = derelictRigTicks.put(entityId, tick);
-                    float dt = last == null ? 0f
-                            : Math.min(0.25f, Math.max(0, tick - last) * BattleSimulation.TICK_DT);
-                    NavigationGrid grid = ctx.sim.getGrid();
-                    DerelictSecurityDirector derelict = ctx.sim.derelictSecurity();
-                    WalkerKnees knees = derelict != null ? derelict.kneesOf(entityId) : null;
-                    if (knees != null) rig.legsLost(lostMask(knees), knees.downed());
-                    rig.advance(rx[r], ry[r], mechHipFacing[r], dt,
-                            (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
+                    // A heavy walker's rig is the battle's own, stepped each tick, whose planted feet break what they
+                    // come down on (MechWallCrush): drawn as it stands, so the breaks lie under the drawn feet.
+                    DerelictLegRig rig = ctx.sim.mechLegRig(entityId);
+                    if (rig == null) {
+                        rig = derelictRigs.computeIfAbsent(entityId,
+                                id -> new DerelictLegRig(DerelictLegRig.walkerAt(size)));
+                        int tick = ctx.sim.getSimTickIndex();
+                        Integer last = derelictRigTicks.put(entityId, tick);
+                        float dt = last == null ? 0f
+                                : Math.min(0.25f, Math.max(0, tick - last) * BattleSimulation.TICK_DT);
+                        NavigationGrid grid = ctx.sim.getGrid();
+                        DerelictSecurityDirector derelict = ctx.sim.derelictSecurity();
+                        WalkerKnees knees = derelict != null ? derelict.kneesOf(entityId) : null;
+                        if (knees != null) rig.legsLost(knees.lostMask(), knees.downed());
+                        rig.advance(rx[r], ry[r], mechHipFacing[r], dt,
+                                (x, y) -> !grid.inBounds(x, y) || !grid.isWalkable(x, y));
+                    }
                     DerelictWalkerComposer.emit((layer, x, y, w, h, angle, cr, cg, cb, ca) -> out.addSprite(
                                     RenderLayer.UNITS, layer.sprite, x, y, w, h, angle, cr, cg, cb, ca),
                             walkerArt, rig, cam, roster.renderScale(entityId), size, unitAlpha);

@@ -99,6 +99,13 @@ public final class WalkerKnees {
         return structure[leg];
     }
 
+    /** The lost legs as a bit mask, bit {@code i} for leg {@code i}, as {@code DerelictLegRig.legsLost} reads it. */
+    public int lostMask() {
+        int mask = 0;
+        for (int i = 0; i < LEGS; i++) if (lost(i)) mask |= 1 << i;
+        return mask;
+    }
+
     public int lostCount() {
         int n = 0;
         for (int i = 0; i < LEGS; i++) if (lost(i)) n++;

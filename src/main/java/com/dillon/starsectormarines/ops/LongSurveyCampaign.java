@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.HullFallBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.world.gen.Climate;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
@@ -20,6 +21,7 @@ import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -192,7 +194,13 @@ public final class LongSurveyCampaign {
         requireCurrent(m);
         return world();
     }
-    static TargetProfile world() { return BloomHeartSetup.world(SURFACE); }
+    /**
+     * Garnir as the chapters read it: the frozen surface with no atmosphere (vanilla's {@code no_atmosphere}), so its
+     * towns are sealed and nothing is farmed in the open ({@code PlanetSkin}).
+     */
+    public static TargetProfile world() {
+        return BloomHeartSetup.world(SURFACE).withClimate(new Climate(EnumSet.of(Climate.Hazard.AIRLESS)));
+    }
 
     /** A campaign chapter's battle, on its own seed whatever the launch rolled. */
     static BattleFixture fixture(Mission m, List<ShuttleAssignment> manifest) {

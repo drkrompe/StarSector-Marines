@@ -66,6 +66,8 @@ public final class FallenHull {
 
     private final Map<Integer, SurveyStake> stakes = new TreeMap<>();
     private final Map<Integer, Long> pylons = new TreeMap<>();
+    /** Each stake's footprint centre, by its lattice point ({@link StakeFootprint}). */
+    private final Map<Integer, int[]> seats = new TreeMap<>();
     /** Each established stake's store place: its service bay, else its point. */
     private final Map<Integer, int[]> storeAt = new TreeMap<>();
     /** Anchors in the order they established: the newest is the frontier printed walkers are posted to. */
@@ -443,13 +445,52 @@ public final class FallenHull {
         for (int point : cut) stakes.get(point).strand();
     }
 
-    /** The planted stake's pylon at its point. */
+    /** How far from its lattice point, cells, a stake may seat its footprint. */
+    static final int SEAT_SEARCH_CELLS = 8;
+
+    /**
+     * Where a stake stands: its footprint's centre, seated at planting nearest its point on ground it may clear
+     * ({@link StakeFootprint#seat}), and that ground cleared of loose props and scatter and kept for it, so nothing
+     * else is placed there. A point with no such ground keeps the stake on the point itself.
+     */
+    private int[] seat(BattleSimulation sim, ClaimLattice.Point p) {
+        int[] at = seats.get(p.id());
+        if (at != null) return at;
+        NavigationGrid grid = sim.getGrid();
+        at = StakeFootprint.seat(p.x(), p.y(), SEAT_SEARCH_CELLS, (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                && !sim.getTopology().isWall(x, y) && sim.getTopology().getBuildingId(x, y) == 0
+                && !sim.plotKeepsProp(x, y) && !taken.contains(DerelictSecurity.cellKey(x, y)));
+        if (at == null) {
+            at = new int[] {p.x(), p.y()};
+        } else {
+            for (int[] c : StakeFootprint.cells(at[0], at[1])) {
+                sim.clearLooseProps(c[0], c[1]);
+                sim.clearNatureOverlay(c[0], c[1]);
+            }
+        }
+        for (int[] c : StakeFootprint.cells(at[0], at[1])) taken.add(DerelictSecurity.cellKey(c[0], c[1]));
+        seats.put(p.id(), at);
+        return at;
+    }
+
+    /** The centre cell of a part's slot in a stake's footprint. */
+    private int[] slot(BattleSimulation sim, ClaimLattice.Point p, StakeFootprint.Part part) {
+        int[] at = seat(sim, p);
+        return StakeFootprint.slot(part).centre(at[0], at[1]);
+    }
+
+    /** A stake's footprint centre, by its lattice point; null before it is planted. */
+    public int[] seatOf(int pointId) {
+        int[] at = seats.get(pointId);
+        return at == null ? null : at.clone();
+    }
+
+    /** The planted stake's folded pylon, in the spire's slot. */
     private void standPylon(BattleSimulation sim, ClaimLattice.Point p) {
-        int[] cell = freeCellNear(sim.getGrid(), p.x(), p.y(), 0);
+        int[] cell = slot(sim, p, StakeFootprint.Part.SPIRE);
         long id = sim.spawn(DerelictNode.create("survey-stake-" + p.id(), Faction.DEFENDER, cell[0], cell[1])
                 .health(PYLON_STRUCTURE).armor(PYLON_ARMOR, DerelictNode.ARMOR_RATING));
         if (id == 0L) return;
-        taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
         pylons.put(p.id(), id);
     }
 
@@ -459,32 +500,28 @@ public final class FallenHull {
      */
     private void raise(BattleSimulation sim, DerelictSecurityDirector director, SurveyStake stake) {
         ClaimLattice.Point p = lattice.point(stake.pointId);
+        int[] at = seat(sim, p);
+        // The pylon unfolds into the node mast in the same slot: the spire, the stake's centre.
         Long pylon = pylons.remove(p.id());
-        int nodeX = p.x();
-        int nodeY = p.y();
-        if (pylon != null && sim.resolveUnit(pylon) != 0L) {
-            nodeX = sim.world().cellX(pylon);
-            nodeY = sim.world().cellY(pylon);
-            sim.takeOffTheField(pylon);
-            taken.remove(DerelictSecurity.cellKey(nodeX, nodeY));
-        }
+        if (pylon != null && sim.resolveUnit(pylon) != 0L) sim.takeOffTheField(pylon);
         SecurityNetwork network = director.network();
         int zoneId = zoneOf(p.id());
-        if (network.zone(zoneId) == null) network.add(new SecurityZone(zoneId, p.x(), p.y(), stakePerimeter));
+        if (network.zone(zoneId) == null) network.add(new SecurityZone(zoneId, at[0], at[1], stakePerimeter));
         int parentZone = stake.parent == ClaimLattice.HULL ? HULL_ZONE : zoneOf(stake.parent);
         if (stake.parent != Integer.MIN_VALUE && network.zone(parentZone) != null) network.link(parentZone, zoneId);
-        int[] cell = pylon != null ? new int[] {nodeX, nodeY} : freeCellNear(sim.getGrid(), p.x(), p.y(), 0);
+        int[] cell = slot(sim, p, StakeFootprint.Part.SPIRE);
         long node = sim.spawn(DerelictNode.create("survey-node-" + p.id(), Faction.DEFENDER, cell[0], cell[1]));
         if (node != 0L) {
-            taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
             director.standNode(zoneId, node);
-            DerelictSecurity.standRepairDrone(sim, zoneId, director, livery);
+            int[] pad = slot(sim, p, StakeFootprint.Part.DRONE);
+            DerelictSecurity.standRepairDrone(sim, zoneId, director, livery, pad[0] + 0.5f, pad[1] + 0.5f);
         }
-        launchFlock(sim, zoneId, p.x(), p.y(), stakePerimeter);
+        int[] cradle = slot(sim, p, StakeFootprint.Part.CRADLE);
+        launchFlockAt(sim, zoneId, cradle[0], cradle[1], stakePerimeter);
         int n = 0;
         for (Map.Entry<Integer, Integer> guard : new ArrayList<>(guarding.entrySet())) {
             if (guard.getValue() != p.id()) continue;
-            int[] post = ring(p.x(), p.y(), 3, n++);
+            int[] post = ring(at[0], at[1], StakeFootprint.HALF + 2, n++);
             director.repost(guard.getKey(), zoneId, post[0], post[1]);
             release(guard.getKey());
         }
@@ -494,27 +531,40 @@ public final class FallenHull {
     private void establish(BattleSimulation sim, DerelictSecurityDirector director, SurveyStake stake) {
         ClaimLattice.Point p = lattice.point(stake.pointId);
         int zoneId = zoneOf(p.id());
-        int[] bay = standBay(sim, director, zoneId, p.x(), p.y());
-        storeAt.put(p.id(), bay != null ? bay : new int[] {p.x(), p.y()});
-        for (int i = 0; i < DerelictPost.PER_ZONE; i++) {
-            int[] at = ring(p.x(), p.y(), 4, i * 2 + 1);
-            int[] cell = freeCellNear(sim.getGrid(), at[0], at[1], 0);
-            if (DerelictSecurity.standPost(sim, "survey-post-" + p.id() + "-" + i, zoneId, cell[0], cell[1],
-                    director) != 0L) {
-                taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
-            }
+        int[] store = slot(sim, p, StakeFootprint.Part.STORE);
+        int[] bay = standBayAt(sim, director, zoneId, store[0], store[1]);
+        storeAt.put(p.id(), bay != null ? bay : store);
+        StakeFootprint.Part[] posts = {StakeFootprint.Part.POST_WEST, StakeFootprint.Part.POST_EAST};
+        for (int i = 0; i < Math.min(DerelictPost.PER_ZONE, posts.length); i++) {
+            int[] cell = slot(sim, p, posts[i]);
+            DerelictSecurity.standPost(sim, "survey-post-" + p.id() + "-" + i, zoneId, cell[0], cell[1], director);
         }
         established.add(p.id());
     }
 
     private int[] standBay(BattleSimulation sim, DerelictSecurityDirector director, int zoneId, int x, int y) {
         int[] cell = freeCellNear(sim.getGrid(), x, y, 2);
+        int[] at = standBayAt(sim, director, zoneId, cell[0], cell[1]);
+        if (at != null) taken.add(DerelictSecurity.cellKey(at[0], at[1]));
+        return at;
+    }
+
+    /** A zone's service bay at exactly {@code (x, y)}; null when it cannot stand. */
+    private int[] standBayAt(BattleSimulation sim, DerelictSecurityDirector director, int zoneId, int x, int y) {
+        int[] cell = {x, y};
         long id = sim.spawn(DerelictNode.create("derelict-service-bay-" + zoneId, Faction.DEFENDER, cell[0], cell[1])
                 .health(ServiceBay.MAX_STRUCTURE).armor(ServiceBay.ARMOR_CAPACITY, DerelictNode.ARMOR_RATING));
         if (id == 0L) return null;
-        taken.add(DerelictSecurity.cellKey(cell[0], cell[1]));
         director.standServiceBay(zoneId, id);
         return cell;
+    }
+
+    /** A zone's flock docked at exactly {@code (x, y)}: a stake's cradle slot. */
+    private void launchFlockAt(BattleSimulation sim, int zoneId, int x, int y, int perimeter) {
+        if (port == null || sim.flocks() == null) return;
+        Flock flock = sim.flocks().launch(sim, Faction.DEFENDER, x + 0.5f, y + 0.5f, DerelictSecurity.FLOCK_SIZE,
+                FlockWeights.WASP, perimeter + FlockTasking.LEASH_CELLS, livery);
+        if (flock != null) port.add(flock, zoneId);
     }
 
     private void launchFlock(BattleSimulation sim, int zoneId, int x, int y, int perimeter) {
@@ -636,7 +686,9 @@ public final class FallenHull {
                 case CUT -> "stripper cuts metal into feedstock";
                 case FULL -> "stripper waits full for a hauler";
             };
-            order(sim, squad, (int) Math.floor(goal.x()), (int) Math.floor(goal.y()), why);
+            // Cutting, it holds where it stands, within reach, and works the pile with its booms rather than standing on it.
+            boolean hold = goal.kind() == StripperWork.Kind.CUT;
+            order(sim, squad, (int) Math.floor(hold ? x : goal.x()), (int) Math.floor(hold ? y : goal.y()), why);
         }
     }
 
@@ -783,7 +835,8 @@ public final class FallenHull {
             SurveyStake stake = stakes.get(established.get(i));
             if (stake == null || !stake.anchors()) continue;
             ClaimLattice.Point p = lattice.point(stake.pointId);
-            int[] at = ring(p.x(), p.y(), 4, n);
+            int[] seat = seats.getOrDefault(p.id(), new int[] {p.x(), p.y()});
+            int[] at = ring(seat[0], seat[1], StakeFootprint.HALF + 2, n);
             return new int[] {at[0], at[1], zoneOf(p.id())};
         }
         int[] at = ring(site.mouthX(), site.mouthY(), 3, n);
