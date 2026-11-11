@@ -460,7 +460,9 @@ nothing is drawn for a battle that never lit anything.
   does. Over the roofs, every burning cell of a standing building burns again as a flame bed at its roof's height,
   with smoke and sparks rising off it, fading with a cut-away roof; a razed building's fire is on its floor. A face
   chars as its wall and the room behind it burn: its material darkens, its windows go, soot climbs it to its top,
-  and it is black once they have burnt out. With 3D walls off nothing of this is drawn.
+  and it is black once they have burnt out. With 3D walls off nothing of this is drawn. The owner chose flames
+  true to the camera (2026-11-11) over bolder ones that flare a storey past every burning face and over a roof
+  blaze alone: near the screen's middle a wall is short and so are its flames, and the roof's fire carries the read.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
   downwind, at play zoom only: the picture of the screen it holds. It is
   drawn thick and dark enough to read over flame and over grey creep
