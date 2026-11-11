@@ -450,6 +450,17 @@ nothing is drawn for a battle that never lit anything.
 - **Charred trees.** A tree whose middle burns darkens as it burns and is
   drawn as char once its ground is burnt, whether it still stands or has
   fallen to its destroyed art.
+- **Burning buildings stand up with their fire** when the Settings page's 3D walls are on (`WallDepth`;
+  `StructureFire`, decided by `FaceFire`). A face reads the fire at the three cells it stands over: fire in its
+  own wall or on the ground outside licks up it from its foot, as high as the fire is hot (2.5 m for a low fire to
+  10 m, a little over the eave at most); a room burning behind it pours fire out of every window, door and breach
+  the face is painted with, up and over the opening's head; and the face is lit warm by its own fire. Each flame
+  lies on the face's own plane, cut from an upright sheet (`graphics/fx/fire_face_tongues.png`, built by code in
+  `art-source/fx/fire-faces/`: a curtain's and a plume's eight-frame loops) and fading frame to frame as the bed
+  does. Over the roofs, every burning cell of a standing building burns again as a flame bed at its roof's height,
+  with smoke and sparks rising off it, fading with a cut-away roof; a razed building's fire is on its floor. A face
+  chars as its wall and the room behind it burn: its material darkens, its windows go, soot climbs it to its top,
+  and it is black once they have burnt out. With 3D walls off nothing of this is drawn.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
   downwind, at play zoom only: the picture of the screen it holds. It is
   drawn thick and dark enough to read over flame and over grey creep

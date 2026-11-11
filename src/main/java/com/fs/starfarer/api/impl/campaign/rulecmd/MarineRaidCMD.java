@@ -28,6 +28,7 @@ import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.RaidType;
 import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD.TempData;
+import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.api.util.Misc.Token;
 import org.apache.log4j.Logger;
 import org.lwjgl.input.Keyboard;
@@ -52,6 +53,12 @@ import java.util.Map;
  *   <li>{@code fork}: shows the choice. It is made every raid; nothing is remembered.</li>
  *   <li>{@code marine}: opens the raid briefing.</li>
  *   <li>{@code standard}: hands the confirm back to the raid command.</li>
+ *   <li>{@code menuIntercept} / {@code menu}: the raid menu ({@code mktRaid}). The raid command builds it, then any
+ *       kind of raid it refused for want of marines is offered again, since the company can lead it
+ *       ({@code raid-resolution.md}, law 1).</li>
+ *   <li>{@code shortIntercept <valuable|disrupt>} / {@code ledOnly <option>}: picking a kind of raid the fleet's
+ *       marines are too few for marks the raid as one only the company can carry out, and hands the pick to the raid
+ *       command. Its choice then offers only Lead the Raid.</li>
  * </ul>
  *
  * <p>The raid command's own gating stays authoritative: the raid exists, and its confirm is offered, only where the
@@ -64,8 +71,10 @@ public class MarineRaidCMD extends BaseCommandPlugin {
 
     static final String OPTION_MARINE = "smRaidMarine";
     static final String OPTION_STANDARD = "smRaidStandard";
-    /** One-shot local flag that lets a re-fired confirm through to the raid command's own row. */
+    /** One-shot local flag that lets a re-fired selection through to the raid command's own row. */
     static final String BYPASS_FLAG = "$smRaidBypass";
+    /** Local flag: this raid is one the fleet's marines are too few for, so it can only be led. */
+    static final String LED_ONLY_FLAG = "$smRaidLedOnly";
 
     @Override
     public boolean execute(String ruleId, InteractionDialogAPI dialog, List<Token> params,
@@ -83,7 +92,28 @@ public class MarineRaidCMD extends BaseCommandPlugin {
             case "marine":
                 return open(dialog);
             case "standard":
+                if (ledOnly(local(memoryMap))) {
+                    showFork(dialog);
+                    return true;
+                }
                 return toStandard(dialog, memoryMap);
+            case "menuIntercept":
+                if (bypassed(memoryMap)) return false;
+                return RaidForkSetting.asks(state) && planetMarket(dialog) != null;
+            case "menu":
+                return menu(dialog, memoryMap);
+            case "shortIntercept": {
+                if (bypassed(memoryMap) || !RaidForkSetting.asks(state) || params.size() < 2) return false;
+                TempData temp = RaidOutcomeCommit.raidOn(planetMarket(dialog));
+                return temp != null && !temp.nonMarket && LedRaidReward.shortOfMarines(temp.raidMult,
+                        "disrupt".equals(params.get(1).getString(memoryMap)));
+            }
+            case "ledOnly": {
+                MemoryAPI local = local(memoryMap);
+                if (local == null || params.size() < 2) return false;
+                local.set(LED_ONLY_FLAG, true, 0f);
+                return refire(dialog, memoryMap, params.get(1).getString(memoryMap));
+            }
             default:
                 LOG.warn("MarineRaidCMD: unknown sub-command " + sub);
                 return false;
@@ -115,11 +145,57 @@ public class MarineRaidCMD extends BaseCommandPlugin {
 
     /** Re-fires the confirm with the bypass set, so the raid command's own row takes it. */
     private static boolean toStandard(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
-        MemoryAPI local = memoryMap != null ? memoryMap.get(MemKeys.LOCAL) : null;
-        if (local == null) return false;
+        return refire(dialog, memoryMap, MarketCMD.RAID_CONFIRM);
+    }
+
+    /** Re-fires the selection of {@code option} with the bypass set, so the raid command's own row takes it. */
+    private static boolean refire(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap, String option) {
+        MemoryAPI local = local(memoryMap);
+        if (local == null || option == null) return false;
         local.set(BYPASS_FLAG, true, 0f);
-        local.set("$option", MarketCMD.RAID_CONFIRM, 0f);
+        local.set("$option", option, 0f);
         return FireBest.fire(null, dialog, memoryMap, "DialogOptionSelected");
+    }
+
+    /**
+     * The raid menu as the raid command builds it, with any kind of raid it refused for want of marines offered again:
+     * the company's battle stands in for them ({@code raid-resolution.md}, law 1). Nothing else of the command's gate
+     * changes: a raid the market menu would not open (enemy fleets near, the raid cooldown) never reaches here.
+     */
+    private static boolean menu(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
+        MemoryAPI local = local(memoryMap);
+        if (local != null) local.unset(LED_ONLY_FLAG);
+        boolean fired = refire(dialog, memoryMap, MarketCMD.RAID);
+        TempData temp = RaidOutcomeCommit.raidOn(planetMarket(dialog));
+        if (!fired || temp == null) return fired;
+        boolean valuables = LedRaidReward.shortOfMarines(temp.raidMult, false);
+        boolean disrupt = LedRaidReward.shortOfMarines(temp.raidMult, true);
+        if (!valuables && !disrupt) return true;
+        OptionPanelAPI options = dialog.getOptionPanel();
+        String lead = Strings.get("marketRaidMenuShort");
+        if (valuables && options.hasOption(MarketCMD.RAID_VALUABLE)) {
+            options.setEnabled(MarketCMD.RAID_VALUABLE, true);
+            options.setTooltip(MarketCMD.RAID_VALUABLE, lead);
+        }
+        if (disrupt && options.hasOption(MarketCMD.RAID_DISRUPT)) {
+            options.setEnabled(MarketCMD.RAID_DISRUPT, true);
+            options.setTooltip(MarketCMD.RAID_DISRUPT, lead);
+            options.setTooltipHighlights(MarketCMD.RAID_DISRUPT);
+        }
+        dialog.getTextPanel().addPara(lead);
+        return true;
+    }
+
+    private static MemoryAPI local(Map<String, MemoryAPI> memoryMap) {
+        return memoryMap != null ? memoryMap.get(MemKeys.LOCAL) : null;
+    }
+
+    private static MemoryAPI local(InteractionDialogAPI dialog) {
+        return dialog.getPlugin() instanceof RuleBasedDialog rules ? local(rules.getMemoryMap()) : null;
+    }
+
+    private static boolean ledOnly(MemoryAPI local) {
+        return local != null && local.getBoolean(LED_ONLY_FLAG);
     }
 
     /** Whether the bypass is set; consuming it, so it lets exactly one selection through. */
@@ -137,6 +213,10 @@ public class MarineRaidCMD extends BaseCommandPlugin {
         options.clearOptions();
         options.addOption(Strings.get("marketRaidForkMarine"), OPTION_MARINE);
         options.addOption(Strings.get("marketRaidForkStandard"), OPTION_STANDARD);
+        if (ledOnly(local(dialog))) {
+            options.setEnabled(OPTION_STANDARD, false);
+            options.setTooltip(OPTION_STANDARD, Strings.get("marketRaidForkShort"));
+        }
         options.addOption(Strings.get("marketRaidForkBack"), MarketCMD.RAID_NEVER_MIND);
         options.setShortcut(MarketCMD.RAID_NEVER_MIND, Keyboard.KEY_ESCAPE, false, false, false, true);
     }
@@ -172,30 +252,66 @@ public class MarineRaidCMD extends BaseCommandPlugin {
     }
 
     /**
-     * The two payouts side by side ({@code raid-resolution.md}, law 9): what the fleet's marines would take at the
-     * effectiveness the command computed, and what a won led raid takes, with the market's security and what it posts.
+     * The two raids side by side in the raid command's own terms ({@code raid-resolution.md}, law 9): the loot it
+     * projects, or the days it says the target goes down, ordered and led, and what defends the market. Ordered is
+     * what the command already told the player; led is the same reckoning at the won led raid's size. A raid the
+     * fleet's marines are too few for says so instead of an ordered figure.
      */
     private static void comparePayouts(InteractionDialogAPI dialog) {
         MarketAPI market = planetMarket(dialog);
         TempData temp = RaidOutcomeCommit.raidOn(market);
-        if (temp == null) return;
-        int standardTokens = 0;
-        if (temp.objectives != null) {
-            for (GroundRaidObjectivePlugin objective : temp.objectives) {
-                if (objective != null) standardTokens += Math.max(0, objective.getMarinesAssigned());
-            }
+        if (temp == null || temp.objectives == null) return;
+        boolean disrupting = temp.raidType == RaidType.DISRUPT;
+        List<GroundRaidObjectivePlugin> objectives = temp.objectives;
+        int[] assigned = new int[objectives.size()];
+        for (int i = 0; i < assigned.length; i++) {
+            GroundRaidObjectivePlugin objective = objectives.get(i);
+            assigned[i] = objective == null ? 0 : Math.max(0, objective.getMarinesAssigned());
         }
         RaidSiteTemplate.Security security = RaidSiteTemplate.Security.of(TargetProfileResolver.fromMarket(market));
-        float premium = LedRaidReward.premium(security);
-        int ledTokens = LedRaidReward.tokens(premium, false, 1f);
-        String premiumText = premium > 1f
-                ? Strings.format("marketRaidLedPremium", "+" + Math.round((premium - 1f) * 100f) + "%")
-                : Strings.get("marketRaidLedNoPremium");
-        dialog.getTextPanel().addPara(Strings.format("marketRaidForkStandardPays",
-                Math.round(temp.raidMult * 100f), standardTokens));
-        dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedPays", ledTokens, premiumText));
+        int[] led = LedRaidReward.ledAssignment(assigned, LedRaidReward.premium(security), disrupting);
+        boolean ordered = !ledOnly(local(dialog));
+        if (disrupting) {
+            int at = -1;
+            for (int i = 0; i < assigned.length && at < 0; i++) {
+                if (assigned[i] > 0 && objectives.get(i) != null) at = i;
+            }
+            if (at < 0) return;
+            GroundRaidObjectivePlugin target = objectives.get(at);
+            String name = target.getNameOverride() != null ? target.getNameOverride() : target.getName();
+            if (ordered) dialog.getTextPanel().addPara(Strings.format("marketRaidForkOrderedDays", name,
+                    target.getDisruptionDaysSort(assigned[at])));
+            dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedDays", name,
+                    target.getDisruptionDaysSort(led[at])));
+        } else {
+            if (ordered) dialog.getTextPanel().addPara(Strings.format("marketRaidForkOrderedLoot",
+                    Misc.getDGSCredits(creditsAt(objectives, assigned))));
+            dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedLoot",
+                    Misc.getDGSCredits(creditsAt(objectives, led))));
+        }
+        if (!ordered) dialog.getTextPanel().addPara(Strings.get("marketRaidForkShort"));
         dialog.getTextPanel().addPara(Strings.format("marketRaidForkLedFaces",
                 Strings.get("marketRaidSecurity" + security.name())));
+    }
+
+    /**
+     * The value the raid command projects for {@code objectives} with {@code tokens} marine tokens on each, as its own
+     * plan reports it; each objective's assignment is put back as it was.
+     */
+    private static float creditsAt(List<GroundRaidObjectivePlugin> objectives, int[] tokens) {
+        float value = 0f;
+        for (int i = 0; i < objectives.size(); i++) {
+            GroundRaidObjectivePlugin objective = objectives.get(i);
+            if (objective == null || tokens[i] <= 0) continue;
+            int was = objective.getMarinesAssigned();
+            objective.setMarinesAssigned(tokens[i]);
+            try {
+                value += objective.getProjectedCreditsValue();
+            } finally {
+                objective.setMarinesAssigned(was);
+            }
+        }
+        return value;
     }
 
     /** Commits the fought raid through the raid command, or returns to the choice when no battle was fought. */
