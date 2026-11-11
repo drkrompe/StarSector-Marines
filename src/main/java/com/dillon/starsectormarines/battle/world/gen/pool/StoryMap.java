@@ -51,6 +51,14 @@ public enum StoryMap {
         this.base = base;
     }
 
+    /**
+     * Whether this map's battles may be fought at night ({@code TownNight}): a Raid's town may be raided after dark;
+     * the other story maps keep to the day until their story says otherwise.
+     */
+    public boolean nightFalls() {
+        return id.equals("raid") || id.startsWith("raid-");
+    }
+
     /** Whether this is one of the Long Survey's chapters, a fallen hull laid over its ground. */
     public boolean longSurvey() { return id.startsWith("long-survey-"); }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.StreetLights;
 import com.dillon.starsectormarines.render2d.PagedQuadRun;
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
 import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
@@ -324,7 +325,8 @@ class RenderBudgetEvidence {
                 new MapSpec("400x240 the burn", () -> theBurn(false)),
                 new MapSpec("400x240 the burn at night", () -> theBurn(true)),
                 new MapSpec(MapSpec.STRESS_ID, MapSpec::stress, false),
-                new MapSpec("400x240 stress at night", MapSpec::stressAtNight, false));
+                new MapSpec("400x240 stress at night", MapSpec::stressAtNight, false),
+                new MapSpec("400x240 stress at night, town lit", MapSpec::stressAtNightLit, false));
 
         static final String CONQUEST_ID = "560x336 conquest";
         /** {@link RenderStressScene}: stood up dense with no playout; {@code -PrenderMaps=stress} runs it alone. */
@@ -571,6 +573,21 @@ class RenderBudgetEvidence {
                 if (++counts[b] > counts[best]) best = b;
             }
             return new float[]{(best % bw) * bin + bin / 2f, (best / bw) * bin + bin / 2f};
+        }
+
+        /**
+         * The stress scene's night lit as a town lights its own ({@code StreetLights}): its wall, street and envelope
+         * lamps, so the lamps' bake and their pools are priced against the unlit night.
+         */
+        static BattleSimulation stressAtNightLit() throws Exception {
+            BattleSimulation sim = stress();
+            CellTopology town = sim.getTopology();
+            List<NightLighting.Lamp> lamps = new ArrayList<>(StreetLights.townLamps(town, List.of()));
+            lamps.addAll(StreetLights.kerbLamps(town, lamps));
+            lamps.addAll(StreetLights.envelopeLamps(town));
+            town.setNightLighting(StreetLights.lit(NIGHT, lamps));
+            System.out.println("render-evidence: the lit town night has " + lamps.size() + " lamps");
+            return sim;
         }
 
         /** A dark night with no lamps: whatever is lit is lit by the fire. */
