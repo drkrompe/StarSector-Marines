@@ -14,7 +14,7 @@ class FieldSalvageLootTest {
         var base = new LootManifest(42,20,100,List.of(weapon));
         var find = new SalvageCache.Recovered("cache", SalvageResource.METALS,40);
         var manifest = FieldSalvageLoot.append(base,List.of(find,find), r ->
-                new LootCandidate(LootKind.COMMODITY,r.commodityId,r.displayName,null,30,1,1,1,1));
+                new LootCandidate(LootKind.COMMODITY,r,r,null,30,1,1,1,1));
         assertEquals(2,manifest.stacks.size());
         var selection = new LootSelection(manifest);
         assertTrue(selection.isSelected(1)); assertEquals(0,selection.selectedValue());
@@ -30,7 +30,7 @@ class FieldSalvageLootTest {
     @Test void aTechCacheIsNoCommodityStack() {
         var tech = new SalvageCache.Recovered("sealed-store-1", SalvageResource.MACHINERY, 8, true);
         var manifest = FieldSalvageLoot.append(LootManifest.EMPTY, List.of(tech), r ->
-                new LootCandidate(LootKind.COMMODITY,r.commodityId,r.displayName,null,30,1,1,1,1));
+                new LootCandidate(LootKind.COMMODITY,r,r,null,30,1,1,1,1));
         assertTrue(manifest.stacks.isEmpty());
     }
     @Test void defeatAndDebugCannotTurnSecuredFindsIntoCampaignLoot() {
@@ -38,5 +38,16 @@ class FieldSalvageLootTest {
         assertTrue(LootGenerator.generate(MissionOutcome.builder().victory(false).fieldSalvage(finds).build()).isEmpty());
         assertTrue(LootGenerator.generate(MissionOutcome.builder().victory(true)
                 .missionSource(MissionSource.DEBUG).fieldSalvage(finds).build()).isEmpty());
+    }
+
+    @Test void aStoreFindSettlesAsItsOwnGoods() {
+        var find = new SalvageCache("store-find-0", 3, 4, SalvageResource.METALS, 6)
+                .ofGoods("rare_metals", "Transplutonics").recovered();
+        assertEquals("rare_metals", find.commodity());
+        assertEquals("6 Transplutonics", find.label());
+        var manifest = FieldSalvageLoot.append(LootManifest.EMPTY, List.of(find), id ->
+                new LootCandidate(LootKind.COMMODITY,id,id,null,200,1,1,1,1));
+        assertEquals("rare_metals", manifest.stacks.get(0).itemId);
+        assertEquals(6, manifest.stacks.get(0).quantity);
     }
 }
