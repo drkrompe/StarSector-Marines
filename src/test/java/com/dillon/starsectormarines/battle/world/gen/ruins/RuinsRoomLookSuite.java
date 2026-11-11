@@ -60,6 +60,23 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
     @Override public boolean inAll() { return false; }
 
     /** One room as the ground laid it. */
+    /** Each bay job's tint on the bays card. */
+    private static final Map<BayJob, Color> JOB_TINT = Map.of(
+            BayJob.MARSHALLING, new Color(90, 200, 255, 80), BayJob.GALLERY, new Color(170, 170, 170, 80),
+            BayJob.WORKSHOP, new Color(255, 160, 60, 80), BayJob.SPARES, new Color(240, 220, 90, 80),
+            BayJob.LOCKERS, new Color(120, 230, 120, 80), BayJob.TANK_FARM, new Color(80, 140, 255, 80),
+            BayJob.CRATING, new Color(220, 120, 220, 80), BayJob.LINE, new Color(255, 90, 90, 80));
+
+    /** The job a published bay's name gives ({@code tank-farm-2}), or null when it names no bay. */
+    private static BayJob jobOf(String name) {
+        for (BayJob job : BayJob.values()) {
+            if (name.startsWith(job.id + "-") && name.substring(job.id.length() + 1).chars().allMatch(Character::isDigit)) {
+                return job;
+            }
+        }
+        return null;
+    }
+
     private record Laid(RuinsRoom kind, RuinsDelve.Area area, RuinsDelve.Cell keep, int q) {}
 
     @Override
@@ -91,11 +108,32 @@ public final class RuinsRoomLookSuite implements SnapshotSuite {
                         box(g, cam, anchor, new Color(255, 255, 255, 40), "WORKS HALL");
                         for (Map.Entry<String, RuinsDelve.Area> e : spaces.entrySet()) {
                             RuinsDelve.Area a = e.getValue();
-                            String label = e.getKey().substring(RuinsDelve.INTERIOR.length() + 1).toUpperCase(Locale.ROOT);
-                            box(g, cam, a, new Color(255, 210, 90, 70), label + " " + a.width() + "x" + a.height());
+                            String spaceKey = e.getKey().substring(RuinsDelve.INTERIOR.length() + 1);
+                            if (jobOf(spaceKey) != null) continue;
+                            box(g, cam, a, new Color(255, 210, 90, 70),
+                                    spaceKey.toUpperCase(Locale.ROOT) + " " + a.width() + "x" + a.height());
                         }
                         caption(g, RuinsWorksHallLookSuite.title(works) + "'s plant, laid from its brief");
                     }));
+                    // The building's bays by their jobs, and each job's first bay close.
+                    out.add(card(dir + "bays.png", base, g -> {
+                        box(g, cam, anchor, new Color(255, 255, 255, 40), "WORKS HALL");
+                        for (Map.Entry<String, RuinsDelve.Area> e : spaces.entrySet()) {
+                            String spaceKey = e.getKey().substring(RuinsDelve.INTERIOR.length() + 1);
+                            BayJob job = jobOf(spaceKey);
+                            if (job == null) continue;
+                            box(g, cam, e.getValue(), JOB_TINT.get(job), spaceKey.toUpperCase(Locale.ROOT));
+                        }
+                        caption(g, RuinsWorksHallLookSuite.title(works) + "'s bays, each by its job");
+                    }));
+                    for (BayJob job : BayJob.values()) {
+                        RuinsDelve.Area a = spaces.get(RuinsDelve.Interior.spaceName(job.id + "-1"));
+                        if (a == null) continue;
+                        float ss = Math.max(a.width() + 10f, (a.height() + 8f) * 16f / 9f);
+                        out.add(new SnapshotArtifact(dir + "bay-" + job.id + ".png", BattleReviewFrameRenderer.look(
+                                context.modRoot(), W, H, a.centreX() + .5f, a.centreY() + .5f, ss).withoutRoofs()
+                                .render(sim, "")));
+                    }
                     // Each store close, stocked from its brief, and the ruin: the collapsed bay and a breach.
                     for (String store : List.of("raw-stock", "finished-goods", "collapsed-bay", "breached-bay-1")) {
                         RuinsDelve.Area a = spaces.get(RuinsDelve.Interior.spaceName(store));
