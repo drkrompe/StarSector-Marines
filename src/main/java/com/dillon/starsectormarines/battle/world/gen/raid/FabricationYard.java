@@ -73,6 +73,10 @@ public final class FabricationYard {
     static final int STOCK_YARDS = 3;
     /** Stock yard blocks tried, largest first, in cells: rows of pallets with their aisles. UNTUNED. */
     static final int[][] YARD_SIZES = {{14, 10}, {11, 6}, {8, 6}};
+    /** Bays in the assembly hall at most. UNTUNED. */
+    static final int BAYS = 4;
+    /** Cells a loading yard reaches out from its hall toward the road it is served from, at most. UNTUNED. */
+    static final int YARD_REACH = 16;
     /** How far above the ground a hull on its station stands, in cells: taller than a man, so it blocks sight. */
     static final float HULL_HEIGHT = 1.5f;
     /** Times a hall's own stock is set again along what is left of its faces, at most. UNTUNED. */
@@ -126,10 +130,12 @@ public final class FabricationYard {
         static Item across(String id) { return new Item(id, true, null); }
     }
 
-    /** The yard as planned: the parts line's pieces and legs, the props, and the trodden paths' cells. */
-    public record Dressing(List<AssemblyLine.Station> stations, List<Props.Placement> line,
-                           List<Props.Placement> legs, List<Props.Placement> props, List<Props.Placement> loads,
-                           List<int[]> paths) { }
+    /**
+     * The yard as planned: the assembly hall's bays (null where there are none), the parts line's pieces and legs,
+     * the props, and the trodden paths' cells.
+     */
+    public record Dressing(AssemblyBays.Plan bays, List<Props.Placement> line, List<Props.Placement> legs,
+                           List<Props.Placement> props, List<Props.Placement> loads, List<int[]> paths) { }
 
     private FabricationYard() { }
 
@@ -138,7 +144,7 @@ public final class FabricationYard {
      * line, its legs and the props, each through the ordinary prop placement, which skips one whose ground is no
      * longer open.
      */
-    public static void dress(GenContext c, String worksName, int[] lineGround) {
+    public static void dress(GenContext c, String worksName) {
         LayoutGround ground = new LayoutGround(c);
         int[] works = ground.claimBounds(worksName);
         if (works == null) return;
@@ -150,13 +156,20 @@ public final class FabricationYard {
             return def == null ? null : new int[]{def.footprintCellsX, def.footprintCellsY};
         };
         long seed = ground.seed(NAME);
-        AssemblyLine.Model model = AssemblyLine.model(new SplittableRandom(seed ^ 0x5DEECE66DL));
-        if (registry.doodad(model.art(AssemblyLine.Stage.FINISHED)) == null) model = null;
-        Dressing d = plan(halls(ground, works), adapt(c, ground, works), seed, line, footprint, model, lineGround);
-        // The assembly line first: the craft on their stations, the floor under them paved, each stage's feed in its
-        // work strip. A hull's cells are closed to movement and sight where the hull lies over them.
-        floor(c, d.stations(), adapt(c, ground, works));
-        for (AssemblyLine.Station s : d.stations()) station(c, registry, s);
+        AssemblyBays.Model model = AssemblyBays.model(new SplittableRandom(seed ^ 0x5DEECE66DL));
+        if (registry.doodad(model.hull()) == null) model = null;
+        Ground g = adapt(c, ground, works);
+        List<Hall> halls = halls(ground, works);
+        Dressing d = plan(halls, g, seed, line, footprint, model);
+        // The assembly hall's bays, inside it: the craft being put together from their sections.
+        if (d.bays() != null) bays(c, registry, d.bays());
+        // The loading yards: dispatch's and receiving's ground paved out to the road they are served from.
+        for (Hall hall : halls) {
+            if (hall.step() == LightIndustryWorks.DISPATCH || hall.step() == LightIndustryWorks.RECEIVING) {
+                int[] yard = loadingYard(hall, g, YARD_REACH);
+                if (yard != null) pave(c, g, yard);
+            }
+        }
         // The shifts' walkways are kept clear of stock but not painted: trodden earth read as dirt roads across the
         // yard (owner pick raid-light-industry-paths, recommended). Paint them with PreparedGround.workedGround.
         // The line runs overhead and takes no ground; its legs and the props stand only where the works' shared rule
@@ -186,85 +199,162 @@ public final class FabricationYard {
     }
 
     /**
-     * The line's floor: concrete under every station and out across the gap to the next, so a run reads as one floor
-     * and not a row of pads. Only open ground off the roads is paved; the country's coverless scatter on it is swept
-     * off, and nothing else standing is moved.
+     * Lays the assembly bays in their hall: the band's furnishing cleared to bare floor, then each craft's pieces, a
+     * gantry over each joint being made and over the hull being fitted out, and the fit-out in its work strip. A
+     * piece closes the cells its hull lies over to movement and sight.
      */
-    private static void floor(GenContext c, List<AssemblyLine.Station> stations, Ground g) {
-        int concrete = c.topology.surfaceIndex(PortHubDressing.CONCRETE);
-        int reach = (AssemblyLine.GAP + 1) / 2 + 1;
-        boolean[] paved = new boolean[c.width * c.height];
-        for (AssemblyLine.Station s : stations) {
-            for (int y = s.y0() - reach; y <= s.y1() + reach; y++) {
-                for (int x = s.x0() - reach; x <= s.x1() + reach; x++) {
-                    if (!PreparedGround.open(c, x, y) || g.building(x, y) || g.road(x, y)) continue;
-                    if (concrete >= 0) c.topology.setSurface(x, y, concrete);
-                    c.topology.setNatureOverlayIndex(x, y, -1);
-                    c.markMadeGround(x, y);
-                    paved[y * c.width + x] = true;
+    private static void bays(GenContext c, TileRegistry registry, AssemblyBays.Plan plan) {
+        int[] band = plan.band();
+        clear(c, band);
+        for (AssemblyBays.Piece p : plan.pieces()) {
+            DoodadDef def = registry.doodad(p.art());
+            if (def == null) continue;
+            c.doodads.add(new Doodad(p.x(), p.y(), def, p.turns(), DoodadCover.HEAVY.level(), HULL_HEIGHT));
+            for (int y = p.y(); y < p.y() + p.fy(); y++) {
+                for (int x = p.x(); x < p.x() + p.fx(); x++) {
+                    if (!AssemblyBays.underHull(p, x, y)) continue;
+                    c.grid.setWalkable(x, y, false);
+                    c.grid.setSeeThrough(x, y, false);
+                    c.topology.setFixture(x, y, true);
                 }
             }
         }
-        c.doodads.removeIf(d -> d.cellX >= 0 && d.cellY >= 0 && d.cellX < c.width && d.cellY < c.height
-                && paved[d.cellY * c.width + d.cellX] && d.cover == 0 && !c.topology.isFixture(d.cellX, d.cellY));
+        for (AssemblyBays.Piece p : plan.pieces()) {
+            if (p.gantry() >= 0) gantry(c, registry, p);
+            if (p.stage() == AssemblyBays.Stage.FITTING) feed(c, registry, p, band);
+        }
     }
 
-    /** Lays one station of the assembly line on the map, or nothing where its ground is no longer free. */
-    private static void station(GenContext c, TileRegistry registry, AssemblyLine.Station s) {
-        DoodadDef def = registry.doodad(s.art());
-        if (def == null) return;
-        int sw = s.x1() - s.x0() + 1, sh = s.y1() - s.y0() + 1;
-        if (!WorksProps.open(c, s.x0(), s.y0(), sw, sh)) return;
-        c.doodads.add(new Doodad(s.x(), s.y(), def, s.turns(), DoodadCover.HEAVY.level(), HULL_HEIGHT));
-        for (int y = s.y(); y < s.y() + s.fy(); y++) {
-            for (int x = s.x(); x < s.x() + s.fx(); x++) {
-                if (!AssemblyLine.underHull(s, x, y)) continue;
-                c.grid.setWalkable(x, y, false);
-                c.grid.setSeeThrough(x, y, false);
-                c.topology.setFixture(x, y, true);
+    /**
+     * Clears a band of a hall's floor to bare floor: every prop whose footprint touches it is lifted, and the cells it
+     * held inside the building opened again. Walls and doorways are left as they are.
+     */
+    private static void clear(GenContext c, int[] band) {
+        List<Doodad> lifted = new ArrayList<>();
+        for (Doodad d : c.doodads) {
+            if (d.cellX + d.footprintCellsX - 1 < band[0] || d.cellX > band[2]
+                    || d.cellY + d.footprintCellsY - 1 < band[1] || d.cellY > band[3]) continue;
+            lifted.add(d);
+        }
+        c.doodads.removeAll(lifted);
+        for (Doodad d : lifted) {
+            for (int y = d.cellY; y < d.cellY + d.footprintCellsY; y++) {
+                for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) open(c, x, y);
             }
         }
-        gantry(c, registry, s);
-        // The stage's feed down its work strip, a cell between pieces.
-        boolean alongX = s.sx1() - s.sx0() >= s.sy1() - s.sy0();
-        int at = alongX ? s.sx0() + 1 : s.sy0() + 1, end = alongX ? s.sx1() : s.sy1();
-        for (String id : AssemblyLine.feed(s.stage())) {
-            DoodadDef feed = registry.doodad(id);
-            if (feed == null) continue;
-            int along = Math.max(feed.footprintCellsX, feed.footprintCellsY);
-            int deep = Math.min(feed.footprintCellsX, feed.footprintCellsY);
-            if (deep > AssemblyLine.STRIP || at + along - 1 > end) break;
-            int turns = (feed.footprintCellsX >= feed.footprintCellsY) == alongX ? 0 : 1;
-            if (alongX) PreparedGround.prop(c, at, s.sy0(), feed, turns);
-            else PreparedGround.prop(c, s.sx0(), at, feed, turns);
+        for (int y = band[1]; y <= band[3]; y++) for (int x = band[0]; x <= band[2]; x++) open(c, x, y);
+    }
+
+    /** Opens a building floor cell: walkable, seen through, no fixture. Walls and doorways are left alone. */
+    private static void open(GenContext c, int x, int y) {
+        if (!c.grid.inBounds(x, y) || c.topology.getBuildingId(x, y) == 0 || c.topology.isWall(x, y)
+                || c.grid.isDoorway(x, y)) return;
+        c.grid.setWalkable(x, y, true);
+        c.grid.setSeeThrough(x, y, true);
+        c.topology.setFixture(x, y, false);
+    }
+
+    /**
+     * A gantry crane across a bay: its legs either side of the craft, its span over it at the piece's gantry cell. A
+     * craft along x has its span along y.
+     */
+    private static void gantry(GenContext c, TileRegistry registry, AssemblyBays.Piece p) {
+        DoodadDef span = registry.doodad(PortHubDressing.CRANE_SPAN), leg = registry.doodad(PortHubDressing.CRANE_LEG);
+        if (span == null || leg == null) return;
+        boolean alongX = p.alongX();
+        int turns = alongX ? 1 : 0;
+        int spanLong = Math.max(span.footprintCellsX, span.footprintCellsY);
+        int from = (alongX ? p.y() : p.x()) - 1, to = (alongX ? p.y() + p.fy() : p.x() + p.fx());
+        int at = p.gantry();
+        int[][] legs = alongX ? new int[][]{{at, from}, {at, to}} : new int[][]{{from, at}, {to, at}};
+        for (int[] l : legs) {
+            if (!PreparedGround.prop(c, l[0], l[1], leg, turns)) return;
+        }
+        for (int k = from; k <= to; k += spanLong) {
+            int a = Math.min(k, to - spanLong + 1);
+            c.doodads.add(alongX ? new Doodad(at, a, span, turns) : new Doodad(a, at, span, turns));
+        }
+    }
+
+    /** A fitting bay's fit-out down its work strip, the band's cells beside the hull, a cell between pieces. */
+    private static void feed(GenContext c, TileRegistry registry, AssemblyBays.Piece p, int[] band) {
+        boolean alongX = p.alongX();
+        // The strip: the band's side the hull does not take.
+        int across = alongX ? (p.y() == band[1] ? p.y() + p.fy() : band[1])
+                : (p.x() == band[0] ? p.x() + p.fx() : band[0]);
+        int at = (alongX ? p.x() : p.y()) + 1, end = (alongX ? p.x() + p.fx() : p.y() + p.fy()) - 1;
+        for (String id : AssemblyBays.feed()) {
+            DoodadDef def = registry.doodad(id);
+            if (def == null) continue;
+            int along = Math.max(def.footprintCellsX, def.footprintCellsY);
+            int deep = Math.min(def.footprintCellsX, def.footprintCellsY);
+            if (deep > AssemblyBays.STRIP || at + along - 1 > end) break;
+            int turns = (def.footprintCellsX >= def.footprintCellsY) == alongX ? 0 : 1;
+            if (alongX) PreparedGround.prop(c, at, across, def, turns);
+            else PreparedGround.prop(c, across, at, def, turns);
             at += along + 1;
         }
     }
 
     /**
-     * The overhead gantry crane over a station still being built: its legs in the lanes either side of the line, its
-     * span across the hull at the piece's middle. A finished craft has none; it is waiting to fly out.
+     * A hall's loading yard: the ground in front of its face nearest a road, the face's width, out to the road and
+     * at most {@code reach} cells, as {@code {x0, y0, x1, y1}}; null when no road is within reach of any face.
      */
-    private static void gantry(GenContext c, TileRegistry registry, AssemblyLine.Station s) {
-        if (s.stage() == AssemblyLine.Stage.FINISHED) return;
-        DoodadDef span = registry.doodad(PortHubDressing.CRANE_SPAN), leg = registry.doodad(PortHubDressing.CRANE_LEG);
-        if (span == null || leg == null) return;
-        // Across the line: along x when the line runs along y.
-        boolean acrossX = s.x1() - s.x0() < s.y1() - s.y0();
-        int spanLong = Math.max(span.footprintCellsX, span.footprintCellsY);
-        int spanDeep = Math.min(span.footprintCellsX, span.footprintCellsY);
-        int mid = acrossX ? s.y() + s.fy() / 2 - spanDeep / 2 : s.x() + s.fx() / 2 - spanDeep / 2;
-        int from = (acrossX ? s.x0() : s.y0()) - 1, to = (acrossX ? s.x1() : s.y1()) + 1;
-        int legTurns = (leg.footprintCellsY >= leg.footprintCellsX) == acrossX ? 0 : 1;
-        int spanTurns = (span.footprintCellsX >= span.footprintCellsY) == acrossX ? 0 : 1;
-        int[][] legs = acrossX ? new int[][]{{from, mid}, {to, mid}} : new int[][]{{mid, from}, {mid, to}};
-        for (int[] at : legs) {
-            if (!PreparedGround.prop(c, at[0], at[1], leg, legTurns)) return;
+    static int[] loadingYard(Hall hall, Ground g, int reach) {
+        int[] best = null;
+        int bestD = Integer.MAX_VALUE;
+        for (int side = 0; side < 4; side++) {
+            int dx = side == 2 ? -1 : side == 3 ? 1 : 0, dy = side == 0 ? -1 : side == 1 ? 1 : 0;
+            boolean horizontal = side < 2;
+            int lo = horizontal ? hall.x0() : hall.y0(), hi = horizontal ? hall.x1() : hall.y1();
+            // How far out the road is, measured down the face's middle.
+            int mid = (lo + hi) / 2;
+            int ox = horizontal ? mid : dx < 0 ? hall.x0() - 1 : hall.x1() + 1;
+            int oy = horizontal ? (dy < 0 ? hall.y0() - 1 : hall.y1() + 1) : mid;
+            int d = -1;
+            for (int k = 0; k <= reach; k++) {
+                int x = ox + dx * k, y = oy + dy * k;
+                if (x < 0 || y < 0 || x >= g.width() || y >= g.height() || g.building(x, y)) break;
+                if (g.road(x, y)) {
+                    d = k;
+                    break;
+                }
+            }
+            if (d <= 0 || d >= bestD) continue;
+            bestD = d;
+            int x0, y0, x1, y1;
+            if (horizontal) {
+                x0 = lo;
+                x1 = hi;
+                y0 = dy < 0 ? oy - d + 1 : oy;
+                y1 = dy < 0 ? oy : oy + d - 1;
+            } else {
+                y0 = lo;
+                y1 = hi;
+                x0 = dx < 0 ? ox - d + 1 : ox;
+                x1 = dx < 0 ? ox : ox + d - 1;
+            }
+            best = new int[]{x0, y0, x1, y1};
         }
-        for (int k = from; k <= to; k += spanLong) {
-            int a = Math.min(k, to - spanLong + 1);
-            c.doodads.add(acrossX ? new Doodad(a, mid, span, spanTurns) : new Doodad(mid, a, span, spanTurns));
+        return best;
+    }
+
+    /** Paves a yard as concrete: open ground only, off buildings and roads; the coverless scatter on it swept off. */
+    private static void pave(GenContext c, Ground g, int[] yard) {
+        int concrete = c.topology.surfaceIndex(PortHubDressing.CONCRETE);
+        if (concrete < 0) return;
+        boolean[] paved = new boolean[c.width * c.height];
+        for (int y = yard[1]; y <= yard[3]; y++) {
+            for (int x = yard[0]; x <= yard[2]; x++) {
+                if (!PreparedGround.open(c, x, y) || g.building(x, y) || g.road(x, y)) continue;
+                c.topology.setSurface(x, y, concrete);
+                c.topology.setNatureOverlayIndex(x, y, -1);
+                c.markMadeGround(x, y);
+                paved[y * c.width + x] = true;
+            }
         }
+        c.doodads.removeIf(d -> d.cellX >= 0 && d.cellY >= 0 && d.cellX < c.width && d.cellY < c.height
+                && paved[d.cellY * c.width + d.cellX] && d.cover == 0 && !c.topology.isFixture(d.cellX, d.cellY));
     }
 
     private static Ground adapt(GenContext c, LayoutGround g, int[] works) {
@@ -353,16 +443,15 @@ public final class FabricationYard {
      */
     public static Dressing plan(List<Hall> halls, Ground g, long seed, String line,
                                 Function<String, int[]> footprint) {
-        return plan(halls, g, seed, line, footprint, null, null);
+        return plan(halls, g, seed, line, footprint, null);
     }
 
     /**
-     * Plans the yard with the autoplant's assembly line first ({@link AssemblyLine}), building {@code model} on the
-     * ground {@code lineGround} ({@code {x0, y0, x1, y1}} inclusive, or the works' own when null); no line when
-     * {@code model} is null.
+     * Plans the yard, with the assembly hall's bays building {@code model} ({@link AssemblyBays}), or none when it is
+     * null.
      */
     public static Dressing plan(List<Hall> halls, Ground g, long seed, String line,
-                                Function<String, int[]> footprint, AssemblyLine.Model model, int[] lineGround) {
+                                Function<String, int[]> footprint, AssemblyBays.Model model) {
         int w = g.width(), h = g.height();
         boolean[] taken = new boolean[w * h];
         Map<RoomPurpose, List<Hall>> byStep = new EnumMap<>(RoomPurpose.class);
@@ -370,14 +459,15 @@ public final class FabricationYard {
         List<int[]> doors = new ArrayList<>();
         for (Hall hall : halls) doors.addAll(hall.doors());
 
-        // The assembly line: the biggest thing in the yard, so it takes its ground first.
-        List<AssemblyLine.Station> stations = List.of();
-        if (model != null) {
-            Hall head = AssemblyLine.hall(halls, LightIndustryWorks.ASSEMBLY);
-            if (head == null) head = AssemblyLine.hall(halls, LightIndustryWorks.SHOP);
-            Hall tail = AssemblyLine.hall(halls, LightIndustryWorks.DISPATCH);
-            if (tail == null) tail = AssemblyLine.hall(halls, LightIndustryWorks.FINISHING);
-            stations = AssemblyLine.plan(g, lineGround, taken, doors, head, tail, model);
+        // The bays inside the assembly hall, along its wall toward dispatch.
+        AssemblyBays.Plan bays = null;
+        Hall assembly = first(byStep, LightIndustryWorks.ASSEMBLY);
+        if (model != null && assembly != null) {
+            Hall out = first(byStep, LightIndustryWorks.DISPATCH);
+            if (out == null) out = first(byStep, LightIndustryWorks.FINISHING);
+            if (out == null) out = assembly;
+            bays = AssemblyBays.plan(assembly.x0() + 1, assembly.y0() + 1, assembly.x1() - 1, assembly.y1() - 1,
+                    out.cx(), out.cy(), model, BAYS);
         }
 
         // The parts line, step to step in the order the work passes.
@@ -438,7 +528,7 @@ public final class FabricationYard {
             }
         }
         stockYards(halls, g, taken, doors, props, loads);
-        return new Dressing(stations, pieces, legs, props, loads, paths);
+        return new Dressing(bays, pieces, legs, props, loads, paths);
     }
 
     /**
@@ -729,6 +819,11 @@ public final class FabricationYard {
             }
         }
         return best;
+    }
+
+    private static Hall first(Map<RoomPurpose, List<Hall>> byStep, RoomPurpose step) {
+        List<Hall> of = byStep.get(step);
+        return of == null || of.isEmpty() ? null : of.get(0);
     }
 
     private static boolean onFace(Hall hall, int side, int[] d) {
