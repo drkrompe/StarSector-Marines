@@ -68,6 +68,14 @@ public interface RaidIndustry {
     default boolean deepFeeder() { return true; }
 
     /**
+     * Whether the town's streets may run across the works' ground. True for a works of halls standing apart, which
+     * packs between them. False for a works built round one building too big for any block between streets (light
+     * industry's assembly hall): its ground is kept clear of the streets from before the places grow
+     * ({@code RaidSiteTemplate.worksGround}), and its roads stop at its gates.
+     */
+    default boolean worksStreetsThrough() { return true; }
+
+    /**
      * Ground and structures the industry lays on the plan's layout beside the shared site's roads: a mine's pit, a
      * port's landing apron. Called once the places are laid; {@code frame} says where the works stands and how the
      * site was turned.

@@ -77,6 +77,10 @@ public class RaidSiteLookSuite implements SnapshotSuite {
         return new float[]{machinesX, machinesY, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS * 1.6f};
     }
 
+    /** Further shots a site's suite takes of each case, after its whole and works frames: none by default. */
+    protected void moreShots(SnapshotContext context, BattleSimulation sim, String caseId, List<SnapshotArtifact> out)
+            throws Exception { }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
@@ -111,6 +115,7 @@ public class RaidSiteLookSuite implements SnapshotSuite {
                     out.add(new SnapshotArtifact(c.id() + "-works.png", BattleReviewFrameRenderer.look(
                             context.modRoot(), 1920, 1080, frame[0], frame[1], frame[2])
                             .withMissionMarkers().render(sim, "")));
+                    moreShots(context, sim, c.id(), out);
                 }
             }
             return out;

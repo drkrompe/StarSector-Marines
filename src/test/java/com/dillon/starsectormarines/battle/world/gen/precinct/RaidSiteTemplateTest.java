@@ -317,6 +317,31 @@ class RaidSiteTemplateTest {
         assertEquals(7, keys.size(), "every site has its own briefing line");
     }
 
+    /**
+     * A works the streets may not cross keeps its ground clear of them from before the places grow: the square its
+     * program claims round its seed is ground no street grows onto. A works of halls apart keeps none.
+     */
+    @Test
+    void aWorksTheStreetsMayNotCrossKeepsItsGroundClear() {
+        for (RaidIndustry industry : RaidIndustries.ALL) {
+            RaidSiteTemplate site = RaidSiteTemplate.forIndustry(industry.industryIds().iterator().next());
+            PrecinctPlan plan = lay(site, market(5, 3), 3L);
+            Precinct works = named(plan, RaidSiteTemplate.WORKS);
+            boolean[][] clear = plan.layout().keepClear(W, H);
+            boolean kept = clear != null && clear[works.seedX()][works.seedY()];
+            assertEquals(!industry.worksStreetsThrough(), kept, industry.key() + ": its works' seed kept from streets");
+            if (industry.worksStreetsThrough()) continue;
+            int half = (int) Math.ceil(Math.sqrt(industry.works(4).fittedTo(
+                    Math.round(industry.worksFit() * W * H)).envelopeArea())) / 2;
+            // To the map's edge where the works stands nearer it than its claim reaches.
+            for (int d = -half; d <= half; d++) {
+                int x = works.seedX() + d, y = works.seedY() + d;
+                if (x >= 1 && x <= W - 2) assertTrue(clear[x][works.seedY()], industry.key() + ": kept at x " + x);
+                if (y >= 1 && y <= H - 2) assertTrue(clear[works.seedX()][y], industry.key() + ": kept at y " + y);
+            }
+        }
+    }
+
     /** A mine's ore yards are sparser than heavy industry's quarter. */
     @Test
     void aMinesYardsAreSparserThanAnIndustrialQuarter() {
