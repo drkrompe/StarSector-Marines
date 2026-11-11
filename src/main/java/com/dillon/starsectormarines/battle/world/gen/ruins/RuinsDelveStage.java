@@ -135,12 +135,6 @@ public final class RuinsDelveStage implements GenStage {
     static final int MIN_BAY = 24;
     /** How far from the vault's row a plant's deeper band line lets its ways cross. */
     static final int DEEP_WAY_REACH = 30;
-    /**
-     * Lays a works site's interior as its plant was briefed intact ({@link PlantBrief}): each space sized by its job
-     * round the works hall, in place of the band's honeycomb of small chambers. Off by default until the owner decides
-     * the pick {@code ruins-plant-plan}; then drop the switch and the losing path.
-     */
-    public static final String PLANT_PROPERTY = "battle.ruins.plant";
 
     /**
      * The floor a works hall's restart lights round its {@code stand} ({@code ruins-light.md}): the transfer aisle from
@@ -385,7 +379,11 @@ public final class RuinsDelveStage implements GenStage {
         final List<RuinsDelve.Load> loads = new ArrayList<>();
         /** The breakout pool's columns under the transfer bridge; lo above hi when there is none. */
         int poolLo = Integer.MAX_VALUE, poolHi = Integer.MIN_VALUE;
-        /** Whether the interior is laid as the plant's brief ({@link #PLANT_PROPERTY}). */
+        /**
+         * Whether the interior is laid as its plant was briefed intact ({@link PlantBrief}; owner picks
+         * {@code ruins-plant-plan} a, {@code ruins-plant-default-r2} a): every works site. A site with no works hall
+         * keeps its honeycomb of chambers.
+         */
         boolean plantMode;
         /** The room each of the plant's infantry-only spaces is laid as. */
         final Map<Area, RuinsRoom> roles = new HashMap<>();
@@ -459,7 +457,7 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         RuinsDelve lay() {
-            plantMode = Boolean.getBoolean(PLANT_PROPERTY) && plan.dressing().works().any();
+            plantMode = plan.dressing().works().any();
             endStreets();
             weather();
             int landingY = clamp(h / 2 + rng.nextInt(h / 4 + 1) - h / 8, 18, h - 19);
@@ -2150,26 +2148,11 @@ public final class RuinsDelveStage implements GenStage {
         }
 
         /**
-         * A forge works' halls (owner pick {@code ruins-forge-process} b1): its production is one mega forge hall in
-         * the outer band after the intake, its storage deeper; no line halls. At vast the intake and the storage are
-         * doubled, never the forge.
+         * A works site's plant halls laid by band: only the works hall, in the outer band; the plant's other spaces are
+         * its brief's ({@link #plant}).
          */
         List<RuinsDelve.PlantStage> forgeStages(int band, int bands) {
-            // A plant laid from its brief takes only the works hall here; its other spaces are the brief's (plant).
-            if (plantMode) return band == 0 ? List.of(worksStage()) : List.of();
-            List<RuinsDelve.PlantStage> out = new ArrayList<>();
-            boolean vast = plan.layers() >= 4;
-            if (band == 0) {
-                // The works hall is placed first, while the band still has room for it; the intake after.
-                out.add(worksStage());
-                out.add(RuinsDelve.PlantStage.INTAKE);
-                if (vast) out.add(RuinsDelve.PlantStage.INTAKE);
-            }
-            if (band > 0 || bands == 1) {
-                int storage = bands > 1 ? (vast ? 4 : 2) : 0;
-                for (int k = 0; k < storage; k++) out.add(RuinsDelve.PlantStage.STORAGE);
-            }
-            return out;
+            return band == 0 ? List.of(worksStage()) : List.of();
         }
 
         /** The maintenance shop's dock cell ({@link #dockCell}), or null with no maintenance shop. */
