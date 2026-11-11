@@ -127,7 +127,7 @@ public final class LongSurveyGround {
     /**
      * The ground's hull site as the hull's rules read it ({@link FallenHullSite}): the hull and its trench as the root
      * zone's box, each section (stern to bow) as plates its zone reaches off, the forge, the bay's apron as the mouth, the lattice and its roads (each from the hull outward),
-     * the starting stakes and the ways in as egress. What stands on the claim and the hull's store are the chapter's.
+     * the starting stakes and each way in's apron berth as egress. What stands on the claim and the hull's store are the chapter's.
      */
     public static FallenHullSite rulesSite(HullSite site, List<FallenHullSite.Pile> salvage,
                                            List<FallenHullSite.Posting> walkers, float feedstock) {
@@ -158,7 +158,11 @@ public final class LongSurveyGround {
             stakes.add(new FallenHullSite.StartingStake(stake.point(), SurveyStake.Stage.valueOf(stake.stage().name())));
         }
         List<int[]> egress = new ArrayList<>();
-        for (Area door : site.interior().entrances()) egress.add(new int[] {door.centreX(), door.centreY()});
+        // Each way in's apron, at its first berth: open ground a heavy walker can reach and stand on, where a door's
+        // threshold may not be.
+        for (Apron apron : site.interior().aprons()) {
+            egress.add(new int[] {apron.lift().berth(0).centerX, apron.lift().berth(0).centerY});
+        }
         return new FallenHullSite(hull, site.forge().x(), site.forge().y(), mouth.x(), mouth.y(), perimeter, lattice,
                 LINK_CELLS, roads, stakes, salvage, walkers, egress, feedstock, sections);
     }
