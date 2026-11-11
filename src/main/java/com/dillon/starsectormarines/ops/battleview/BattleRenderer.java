@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -284,6 +285,8 @@ public class BattleRenderer {
     private final WallRubble wallRubble = new WallRubble();
     /** Razed buildings' broken shells, drawn over the roofs' remnants. */
     private final PolyMesh ruinShells = new PolyMesh(64);
+    /** A burning building's fire on its stood-up faces and over its roof ({@link StructureFire}). */
+    private final StructureFire structureFire = new StructureFire();
     /** This frame's creep over the stood-up buildings' wall tops, drawn over the roofs' edges; null when none. */
     private WallCreepPass wallTopCreep;
     /** The overhead props' pass, which also draws the props hung on walls for the roof pass ({@link WallMounts}). */
@@ -1043,6 +1046,8 @@ public class BattleRenderer {
         }
         if (standing) {
             // Every building stood up: its walls turned to the camera, under every roof (BuildingFaces).
+            structureFire.begin(Float.isFinite(rc.animationTimeSeconds) ? rc.animationTimeSeconds
+                    : (float) (System.currentTimeMillis() % 3_600_000L / 1000.0));
             buildingFaces(sim, out, alphaMult, topology);
             occludedUnits(sim, out, alphaMult, topology);
             // What hangs on the walls, on the faces it hangs from, under the roofs that stand in front of it.
@@ -1079,6 +1084,51 @@ public class BattleRenderer {
         // A razed building's broken shell stands over its roof's remnants; old creep crusts over the walls' tops.
         if (!ruinShells.isEmpty()) out.addPoly(RenderLayer.ROOFS, ruinShells);
         if (wallTopCreep != null && !wallTopCreep.isEmpty()) out.addCustom(RenderLayer.ROOFS, wallTopCreep);
+        if (standing) {
+            structureFire.flushCrowns(out, sprites.tongueSheet());
+            burningRoofs(sim, out, alphaMult, topology, buildings);
+        }
+    }
+
+    /**
+     * The fire of every burning building cell, over the roofs at the height its roof and wall tops stood
+     * ({@link StructureFire#overRoof}): a burning room's roof burns through as it catches, so its fire rises out of
+     * the building at its roof's height, with the smoke off it. A razed building has no roof left to burn at, and a
+     * cut-away one shows its rooms' fire on the floor, so its roof's fades with the roof.
+     */
+    private void burningRoofs(BattleSimulation sim, DrawList out, float alphaMult, CellTopology topology,
+                              Buildings buildings) {
+        FireField fire = FireRenderSystem.enabled() ? sim.fireFieldIfPresent() : null;
+        if (fire == null || fire.burningCount() == 0) return;
+        float cellPx = rc.camera.cellPxSize();
+        float viewX = rc.camera.panCellX(), viewY = rc.camera.panCellY();
+        float sx = rc.camera.cellToScreenX(viewX), sy = rc.camera.cellToScreenY(viewY);
+        float cellX = rc.camera.cellToScreenX(1f) - rc.camera.cellToScreenX(0f);
+        float cellY = rc.camera.cellToScreenY(1f) - rc.camera.cellToScreenY(0f);
+        float wind = fire.windStrength();
+        float windX = fire.windX() * wind * cellX, windY = fire.windY() * wind * cellY;
+        boolean detail = cellPx >= 10f;
+        VisibleCellRect view = rc.camera.visibleCells(4, fire.width(), fire.height());
+        int w = fire.width();
+        for (int i = 0, n = fire.burningCount(); i < n; i++) {
+            int idx = fire.burningCell(i);
+            int x = idx % w, y = idx / w;
+            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
+            int id = topology.getBuildingId(x, y);
+            if (id == 0) continue;
+            Building b = buildings.get(id);
+            if (b == null) continue;
+            int heightClass = buildingClass(topology, buildings, b);
+            if (heightClass == BuildingFaces.RAZED) continue;
+            float alpha = alphaMult * b.currentAlpha;
+            if (alpha <= .01f) continue;
+            float lift = roofLifts[heightClass];
+            float px = sx + (rc.camera.cellToScreenX(x + .5f) - sx) * lift;
+            float py = sy + (rc.camera.cellToScreenY(y + .5f) - sy) * lift;
+            boolean smoke = detail && BuildingFaces.hash(idx, 83) < .5f;
+            structureFire.overRoof(out, fire, idx, px, py, cellPx * lift, alpha, smoke, windX, windY,
+                    sprites.flameSheet(), detail ? sprites.fireSheet() : null, sprites.shadowBlobSprite());
+        }
     }
 
     /**
@@ -1228,6 +1278,21 @@ public class BattleRenderer {
      * whose roof has fallen in over a wall loses that wall's upper storeys; a destroyed building stands as a broken
      * shell over its rubble. Emitted before the roofs, so every roof stands over the faces behind it; the shells after.
      */
+    /**
+     * The fire on the face just painted: licking up from its foot as its wall or the ground outside burns, pouring out
+     * of its openings as the room behind it does ({@link FaceFire}).
+     */
+    private void faceFire(FireField fire, FacePainter paint, int cell, int inside, int outside, float meters,
+                          float standing, boolean roofOpen, float alpha) {
+        float wall = FaceFire.heat(fire, cell), room = FaceFire.heat(fire, inside);
+        float lick = FaceFire.lick(wall, FaceFire.heat(fire, outside));
+        float pour = FaceFire.pour(room, wall);
+        float crown = FaceFire.crown(wall, room, roofOpen);
+        if (lick <= 0f && pour <= 0f && crown <= 0f) return;
+        structureFire.face(paint, cell, lick, FaceFire.reach(lick, meters), pour, crown,
+                FaceFire.crownReach(crown, meters), standing, alpha);
+    }
+
     private void buildingFaces(BattleSimulation sim, DrawList out, float alphaMult, CellTopology topology) {
         Buildings buildings = sim.getBuildings();
         NavigationGrid grid = sim.getGrid();
@@ -1272,6 +1337,9 @@ public class BattleRenderer {
         paint.reset();
         paint.night = topology.nightLighting() != null;
         ruinShells.reset();
+        // The fire on the faces: what licks up them, pours from their openings and chars them (FaceFire).
+        FireField fire = FireRenderSystem.enabled() ? sim.fireFieldIfPresent() : null;
+        if (fire != null && fire.burningCount() == 0 && fire.burntCount() == 0) fire = null;
         // The creep on the faces, laid over them once they are all drawn, and over the walls' tops, over the roofs.
         WallCreepPass faceCreep = creep == null ? null : this.creep.walls();
         wallTopCreep = creep == null ? null : this.creep.walls();
@@ -1300,6 +1368,9 @@ public class BattleRenderer {
                             rc.camera.cellToScreenY(segs[e + 9]), rc.camera.cellToScreenX(segs[e + 10]),
                             rc.camera.cellToScreenY(segs[e + 11]), sx, sy, lift, nx * cellX, ny * cellY, roofAlpha);
                     float light = (facing ? BuildingFaces.shade(nx, ny) : BuildingFaces.shade(-nx, -ny)) * fog;
+                    int sc = (int) segs[e + 6], sxIn = sc % gridW - Math.round(nx), syIn = sc / gridW - Math.round(ny);
+                    paint.charred = fire == null ? 0f : FaceFire.charred(fire, sc,
+                            topology.inBounds(sxIn, syIn) ? sxIn + syIn * gridW : -1);
                     paint.shell(dress.material(), (int) segs[e + 6], ((int) segs[e + 7] & 3) != 0, light, !facing);
                     // Rubble lies on the open ground outside every side, whichever way the shell is seen from.
                     paint.rubble((int) segs[e + 6], WallRubble.RAZED, dress.material().wall(), fog);
@@ -1352,6 +1423,10 @@ public class BattleRenderer {
                 int fallen = WallRubble.amount(kind == BuildingFaces.Segment.BREACH, broken, hurt);
                 if (fallen > 0) paint.rubble(cell, fallen, m.wall(), fog);
                 boolean creeped = wallTopCreep != null && creep.coverageAt(cell) > 0 && topology.isWall(cx, cy);
+                int inside = ix + iy * gridW, outside = cell + Math.round(nx) + Math.round(ny) * gridW;
+                if (!topology.inBounds(ix, iy) || topology.getBuildingId(ix, iy) != b.id) inside = -1;
+                if (!topology.inBounds(cx + Math.round(nx), cy + Math.round(ny))) outside = -1;
+                paint.charred = fire == null ? 0f : FaceFire.charred(fire, cell, inside);
                 if (creeped) {
                     // The wall's top, over the cells it covers, at the height it stands: whichever way the wall faces,
                     // from above its top is what shows of it.
@@ -1408,6 +1483,12 @@ public class BattleRenderer {
                     paint.quad(0f, 1f, 0f, head, .07f * fog, .06f * fog, .06f * fog);
                     paint.quad(.15f, .55f, head, Math.min(top, head + ground * .18f), .07f * fog, .06f * fog,
                             .06f * fog);
+                    if (fire != null) {
+                        // The room's fire pours out through the breach.
+                        paint.clearOpenings();
+                        paint.opening(.1f, .9f, 0f, head);
+                        faceFire(fire, paint, cell, inside, outside, meters, top, broken, roofAlpha);
+                    }
                     continue;
                 }
                 paint.paint(m, dress.rhythm(), b.kind, look, kind, corners, along, cell, meters, storeys, upright,
@@ -1415,6 +1496,7 @@ public class BattleRenderer {
                 // Where rounds struck this face, as they landed.
                 int scarred = FaceScars.lay(sim.effects().wallScars(), cell, gridW, x0, y0, x1, y1, nx, ny, laidScars);
                 if (scarred > 0 && detail) paint.scars(laidScars, scarred, meters, upright, shade, m);
+                if (fire != null) faceFire(fire, paint, cell, inside, outside, meters, upright, broken, roofAlpha);
                 if (creeped) {
                     paint.corners(0f, 1f, 0f, upright, creepScreen);
                     CreepClimb.faceCells(segs[e + 8], segs[e + 9], segs[e + 10], segs[e + 11], nx, ny, 0f, 1f, 0f,
@@ -1425,6 +1507,7 @@ public class BattleRenderer {
         }
         if (!paint.faces.isEmpty()) out.addPoly(RenderLayer.ROOFS, paint.faces);
         if (faceCreep != null && !faceCreep.isEmpty()) out.addCustom(RenderLayer.ROOFS, faceCreep);
+        structureFire.flushFaces(out, sprites.tongueSheet(), sprites.shadowBlobSprite());
         if (!paint.glow.isEmpty()) out.addPoly(RenderLayer.NIGHT_WINDOWS, paint.glow);
         wallRubble.emit(out, paint.debris(), paint.debrisCount(), sprites.rubbleSheet(), sprites.rubbleFrames());
     }
