@@ -51,6 +51,10 @@ public final class LongSurveyGround {
 
     /** The Surveyor's works districts, either side of the approach. */
     static final String WORKS_WEST = "works-west", WORKS_EAST = "works-east";
+    /** The Line's port districts: the spaceport quarter and the warehouses. */
+    static final String PORT_SPACEPORT = "port-spaceport", PORT_WAREHOUSES = "port-warehouses";
+    /** How far a port district grows: as dense as the city round it. UNTUNED. */
+    static final GrownTrunkPlan.Profile PORT_GROWTH = GrownTrunkPlan.Profile.of(0.6f);
     /** How far a works district grows: yards and sheds, not a town. UNTUNED. */
     static final GrownTrunkPlan.Profile WORKS_GROWTH = GrownTrunkPlan.Profile.of(0.35f);
 
@@ -107,7 +111,14 @@ public final class LongSurveyGround {
                 // across the north edge in the heart's place.
                 Form form = Form.BROAD_FRONT;
                 TargetProfile profile = BloomHeartSetup.world(home);
-                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed));
+                // Garnir's free port: the city with its spaceport quarter east of the east lane and its warehouse
+                // district west of the west lane (long-survey-maps.md, Chapter 3).
+                List<PrecinctBrief> port = List.of(
+                        PrecinctBrief.settlement(PORT_SPACEPORT, HeartCountry.placement(form, 0.24f, 0.46f, 0.86f, 0.98f),
+                                PORT_GROWTH, PrecinctCharacter.PORT),
+                        PrecinctBrief.settlement(PORT_WAREHOUSES, HeartCountry.placement(form, 0.24f, 0.46f, 0.02f, 0.2f),
+                                PORT_GROWTH, PrecinctCharacter.DEPOT));
+                PrecinctPlan plan = entry.patch().pinned(HeartCountry.planFor(form, Density.CITY, seed, port));
                 plan = PlanetSkin.sealedFor(plan, worldProfile);
                 MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, seed, null, profile, plan);
                 yield new Ground(chapter, PlanetSkin.apply(map, home, worldProfile), plan, seed);

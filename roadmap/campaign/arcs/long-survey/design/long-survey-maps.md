@@ -101,6 +101,14 @@ mechanics: walls and roofs break, blocks collapse and burn under the fight.
 blocks to the north edge. The city is intact at the start apart from the hull's
 impact band (`fallen-hull-nouns.md`, The ground), so the battle's damage reads.
 
+Garnir's pirate free port, airless and sealed: hab blocks, warehouses, a spaceport
+quarter and its markets. Two port districts join the city's plan
+(`LongSurveyGround`): the spaceport quarter east of the east lane
+(`PrecinctCharacter.PORT`: aprons, warehouses, trade) and a warehouse district
+west of the west lane (`DEPOT`). Along the three lanes and at the Cross the
+patch's `blocks` grow the town lots into big blocks (`fallen-hull-nouns.md`, A
+grown city), each starting stake's lot left an open square.
+
 - **Entry.** The garrison's columns and the company step off from the port's
   yards along the south edge (y 0 to 70; tank farms and landing pads on the old
   fields, `PortYards`), the landing on the Avenue at 279,39.
