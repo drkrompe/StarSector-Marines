@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.LongSurveyProgress.Chapter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,12 +32,12 @@ class LongSurveyProgressTest {
     }
 
     @Test
-    void aChapterNotBuiltIsNeverLaunched() {
+    void theArcEndsWithTheSurveyorAndLeavesEveryChapterToReplay() {
         var p = new LongSurveyProgress();
-        play(p, p.missionId(Chapter.THE_FALL, false), true);
-        assertFalse(Chapter.STAKES.built);
-        assertEquals(Chapter.STAKES, p.current());
-        assertFalse(p.begin(p.missionId(Chapter.STAKES, false)));
+        for (Chapter chapter : Chapter.values()) play(p, p.missionId(chapter, false), true);
+        assertNull(p.current());
+        assertFalse(p.begin(p.missionId(Chapter.THE_SURVEYOR, false)));
+        for (Chapter chapter : Chapter.values()) assertTrue(p.matches(p.missionId(chapter, true)));
     }
 
     @Test

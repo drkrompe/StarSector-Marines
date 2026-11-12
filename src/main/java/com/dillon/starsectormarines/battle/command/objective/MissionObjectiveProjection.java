@@ -67,6 +67,7 @@ public final class MissionObjectiveProjection {
             else if (objective instanceof ExtractionPayloadObjective payload)
                 items.add(payload(payload, sim.getCivilianEvacuationProgress()));
             else if (objective instanceof ChargeSiteObjective site) items.add(MissionObjectiveFamilies.charge(site));
+            else if (objective instanceof HullClaimObjective claim) items.add(MissionObjectiveFamilies.hullClaim(claim));
             else if (objective instanceof RaidObjective raid) {
                 if (sim.getColdAccount() == null) items.add(MissionObjectiveFamilies.raid(raid));
             } else if (objective instanceof SalvageRightsSequence salvage) items.add(buildingFootprint(

@@ -15,16 +15,14 @@ public final class LongSurveyProgress implements Serializable {
 
     /** The arc's chapters in their order. Fees are UNTUNED starting points. */
     public enum Chapter {
-        THE_FALL("fall", 22_000, true),
-        STAKES("stakes", 30_000, false),
-        THE_LINE("line", 34_000, false),
-        THE_SURVEYOR("surveyor", 42_000, false);
+        THE_FALL("fall", 22_000),
+        STAKES("stakes", 30_000),
+        THE_LINE("line", 34_000),
+        THE_SURVEYOR("surveyor", 42_000);
 
         public final String code;
         public final int fee;
-        /** Whether the chapter's battle is built yet: an unbuilt chapter is never offered or launched. */
-        public final boolean built;
-        Chapter(String code, int fee, boolean built) { this.code = code; this.fee = fee; this.built = built; }
+        Chapter(String code, int fee) { this.code = code; this.fee = fee; }
         public int replayFee() { return fee / 2; }
         /** One-based place in the arc. */
         public int number() { return ordinal() + 1; }
@@ -68,12 +66,11 @@ public final class LongSurveyProgress implements Serializable {
         return chapter == null ? -1 : replay(id) ? chapter.replayFee() : chapter.fee;
     }
     /**
-     * Whether {@code id} is an attempt this ledger offers now: the current chapter, or a replay of one won, and in
-     * either case a chapter whose battle is built.
+     * Whether {@code id} is an attempt this ledger offers now: the current chapter, or a replay of one won.
      */
     public boolean matches(String id) {
         Chapter chapter = chapterOf(id);
-        if (chapter == null || !chapter.built) return false;
+        if (chapter == null) return false;
         boolean replay = replay(id);
         return id.equals(missionId(chapter, replay)) && (replay ? replayable(chapter) : chapter == current());
     }

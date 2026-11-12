@@ -142,11 +142,11 @@ public final class DebugMissionCatalog {
             };
         }
         /**
-         * Whether the picker lists it: the campaign's story and repeatable work, and the Rav Bloom missions. A Long
-         * Survey chapter is listed once its battle is built.
+         * Whether the picker lists it: the campaign's story and repeatable work, the Rav Bloom missions and the Long
+         * Survey's chapters.
          */
         public boolean offered() {
-            if (longSurvey() != null) return longSurvey().built;
+            if (longSurvey() != null) return true;
             return switch (this) {
                 case LAST_LIFT, CREW_RECOVERY, RELAY_NINE, MISSILE_AA, SILENT_COLONY -> false;
                 default -> true;
@@ -238,9 +238,9 @@ public final class DebugMissionCatalog {
                 case WELLHOLLOW_BURN -> "Khettara Bloom 3 of 4 / After Ain Tafrant / Fixed Asharu map";
                 case WELLHOLLOW_FRONT -> "Khettara Bloom 4 of 4 / After The Channel Root / Fixed Asharu map";
                 case LONG_SURVEY_FALL -> "Long Survey 1 of 4 / After A Working Ship / Owned seed";
-                case LONG_SURVEY_STAKES -> "Long Survey 2 of 4 / After The Fall / Not built yet";
-                case LONG_SURVEY_LINE -> "Long Survey 3 of 4 / After Stakes / Not built yet";
-                case LONG_SURVEY_SURVEYOR -> "Long Survey 4 of 4 / After The Line / Not built yet";
+                case LONG_SURVEY_STAKES -> "Long Survey 2 of 4 / After The Fall / Owned seed";
+                case LONG_SURVEY_LINE -> "Long Survey 3 of 4 / After Stakes / Owned seed";
+                case LONG_SURVEY_SURVEYOR -> "Long Survey 4 of 4 / After The Line / Owned seed";
                 case RELIEF -> "Wayline introduction";
                 case COUNTERATTACK -> "After Jangala 01 / Relief";
                 case JUNCTION -> "After Jangala 02 / Counterattack";

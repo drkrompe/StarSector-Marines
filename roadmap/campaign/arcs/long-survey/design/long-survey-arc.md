@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — authored fallen-hull arc: four story chapters on owned
 seeds, built in the Khettara Bloom's pattern (`wellhollow-bloom-arc.md`). The
-campaign scaffolding and The Fall are built (What is built); chapters 2 to 4,
-the hull rules and the hull's ground are open in `stories.md`.
+campaign scaffolding and all four chapters are built and playable from the
+debug player (What is built); what remains is open in `stories.md`.
 
 Written: 2026-11-10
 
@@ -156,8 +156,7 @@ chapter (pick through the art session), voiced later as the Khettara is.
 - **The ledger.** `LongSurveyProgress` (`CampaignState.longSurvey`): the four
   chapters in order, each unlocked by the last one's victory; a loss leaves it
   on offer with its retry line and no fee; a won chapter replays at half fee
-  with no unlock; one active attempt, settled once by its own receipt. A
-  chapter not yet built (`Chapter.built`) is never matched, offered or launched.
+  with no unlock; one active attempt, settled once by its own receipt.
 - **The contact.** `LongSurveyCampaign`: Garnir's defence chief on the port's
   board (`SYSTEM`, `PLANET_ID`: Corvus, `corvus_IIIa`), opening with the
   Khettara when Morrow departs at the end of A Working Ship
@@ -188,10 +187,55 @@ chapter (pick through the art session), voiced later as the Khettara is.
   falls back to a site network laid by `DerelictSecurity.install`'s route
   overload at `THE_FALL_GRADE`. Every attempt, retry, replay and debug run plays
   that one seed. Open: the forward-bay bonus objective.
+- **Chapters 2 to 4.** `HullChapterBattleFixture` builds `LongSurveyBattle`:
+  the chapter's owned ground (`LongSurveyGround.ground`, on its pool's owned
+  seed, `LongSurveyCampaign.storyMap`), the company landing on the ground's
+  pads under the player's command (no autonomous commander), its machines
+  called down on them, the hull's claim installed (`FallenHull.install`) and
+  the chapter's win as a `HullClaimObjective` read from the hull's own rules:
+  a stake is down when it is scrapped or stranded. Lost as every chapter is,
+  the company eliminated.
+  - **Stakes.** The owned mine country with the hull east of the works; the
+    Sabotage family's three named sites are the three stakes the ground
+    planted (`LongSurveyBattle.planted`), won when each is down. The hull
+    prints the survey program (`STAKES_QUEUE`, stakes escorted by rounds
+    walkers) from `STAKES_FEEDSTOCK`, `STAKES_WALKERS` out at the mouth. All
+    UNTUNED.
+  - **The Line.** The port city with the hull across its north edge; won when
+    every stake on the map is down. Broad Front's allied lanes
+    (`BloomHeartSetup.alliedLanes`) step off from the port yards with the
+    claim's standing stakes as their targets (`HeartLanes.targets`,
+    `LongSurveyBattle.stakeTargets` over `FallenHull.stakeTargets`: `stake-N`
+    at its seat, an established stake a mother any lane goes for, a younger
+    one its band's), installed
+    with no heart (`BattleSimulation.installAlliedPush`, ticked where the
+    heart ticks its lanes; their beats are not voiced yet). A target with no
+    bore behind it is advanced on and fought round, never assaulted as a bore.
+    The hull prints `LINE_QUEUE` (haulers, escorted stakes, line frames).
+    The win reads `FallenHull.claimDown`. The garrison against the watch is
+    `LongSurveyGarrison`, ticked after the lanes
+    (`BattleSimulation.installAlliedOrders`, in all three chapters): once a
+    second it reads the allied squads, the walkers and flocks the side sees
+    and the standing stakes, and issues `GarrisonTasking`'s orders. An answer
+    to a walker or flock is leased over the lanes' own order (`LEASE_SECONDS`,
+    renewed while the threat stands); a stake order goes only to a squad the
+    lanes do not hold, since a lane squad's stake is its lane's target, read
+    from the same `StakeTargets` (the kill that strands the most first). Open:
+    the lanes' vehicle park, tool shed and air wing, and the beats keyed
+    `stake-N`.
+  - **The Surveyor.** Broad Front's country with the hull between the works,
+    bow south; won when the autoforge is out (`Autoforge.lit`). The same
+    lanes push on the full claim as in The Line, a short way in rather than
+    the win: cutting the outer chain strands the claim, and the hull's
+    interior is the delve, the vault frame posted in the forge hall and a hall
+    frame in the chamber nearest it (`LongSurveyBattle.hallPost`). The hull
+    prints `SURVEYOR_QUEUE` (line and siege frames, an escorted stake) with
+    `SURVEYOR_WALKERS` out at the mouth. All UNTUNED. Open as The Line's, and
+    the forge's breach contingency as the Ruins vault plays it.
 - **The debug player.** LS1 to LS4 (`DebugMissionCatalog.Scenario.LONG_SURVEY_*`)
   under Garnir, each on its chapter's seed with the challenge force (a
-  Veteran Company, seven squads, four machines); a chapter is listed once
-  built, so only LS1 shows yet.
+  Veteran Company, seven squads, four machines): LS1 The Fall, LS2 Stakes,
+  LS3 The Line, LS4 The Surveyor.
 
 ## Open picks
 

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.HullChapterBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.HullFallBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.world.gen.Climate;
@@ -29,8 +30,7 @@ import java.util.stream.IntStream;
  * Campaign boundary for *The Long Survey*, the authored fallen-hull arc ({@code long-survey-arc.md}). Garnir's
  * free-port defence chief offers on the port's board the current chapter and a replay of every chapter won, in the
  * Khettara's pattern ({@code wellhollow-bloom-arc.md}): a story source with its own ledger, no event gate, no clock.
- * Projection never starts an attempt; launch begins one and only its own receipt settles it. A chapter whose battle
- * is not built yet ({@link Chapter#built}) is never offered.
+ * Projection never starts an attempt; launch begins one and only its own receipt settles it.
  */
 public final class LongSurveyCampaign {
     /** The defence chief's synthetic client: the board carries only this arc's work. */
@@ -98,13 +98,13 @@ public final class LongSurveyCampaign {
         if (p == null || p.active() || !atSite(planet)) return List.of();
         return offers(p, planet.getName());
     }
-    /** The current chapter first where its battle is built, then a replay of each chapter won, latest first. */
+    /** The current chapter first, then a replay of each chapter won, latest first. */
     static List<Mission> offers(LongSurveyProgress p, String planetName) {
         List<Mission> out = new ArrayList<>();
-        if (p.current() != null && p.current().built) out.add(offer(p, p.current(), false, planetName));
+        if (p.current() != null) out.add(offer(p, p.current(), false, planetName));
         for (int i = p.won() - 1; i >= 0; i--) {
             Chapter chapter = Chapter.values()[i];
-            if (chapter.built) out.add(offer(p, chapter, true, planetName));
+            out.add(offer(p, chapter, true, planetName));
         }
         return List.copyOf(out);
     }
@@ -174,12 +174,24 @@ public final class LongSurveyCampaign {
     }
 
     /**
-     * The one map a chapter plays, on every attempt, retry, replay and debug run: its owned seed. The Fall's is its
-     * pool's owned map; the later chapters' seeds are the ground session's, and a chapter not built has none yet.
+     * The one map a chapter plays, on every attempt, retry, replay and debug run: its pool's owned seed
+     * ({@link #storyMap}), whatever the launch rolled.
      */
     static long fixedSeed(Chapter chapter) {
-        if (chapter != Chapter.THE_FALL) return THE_FALL_SEED + 7919L * chapter.ordinal();
-        return StoryMapPools.installed() ? StoryMapPools.pool(THE_FALL_MAP).story(SURFACE).seed() : THE_FALL_SEED;
+        if (StoryMapPools.installed()) return StoryMapPools.pool(storyMap(chapter)).story(SURFACE).seed();
+        return chapter == Chapter.THE_FALL ? THE_FALL_SEED : OWNED_SEEDS[chapter.ordinal()];
+    }
+    /** The chapters' owned seeds, for a board read before the pools are installed (`long-survey-maps.md`). */
+    private static final long[] OWNED_SEEDS = {THE_FALL_SEED, 2L, 2L, 5L};
+
+    /** The owned map a chapter is fought on. */
+    static StoryMap storyMap(Chapter chapter) {
+        return switch (chapter) {
+            case THE_FALL -> THE_FALL_MAP;
+            case STAKES -> StoryMap.LONG_SURVEY_STAKES;
+            case THE_LINE -> StoryMap.LONG_SURVEY_LINE;
+            case THE_SURVEYOR -> StoryMap.LONG_SURVEY_SURVEYOR;
+        };
     }
 
     static LongSurveyProgress requireCurrent(Mission m) {
@@ -209,11 +221,11 @@ public final class LongSurveyCampaign {
     }
     /** A chapter's battle outside the campaign, for the debug player: the same fixture a launch builds. */
     static BattleFixture fixture(Chapter chapter, List<ShuttleAssignment> manifest) {
-        if (!chapter.built) throw new IllegalStateException(chapter + " is not built yet");
         return switch (chapter) {
             case THE_FALL -> new HullFallBattleFixture(fixedSeed(chapter), manifest, world(), THE_FALL_MAP,
                     THE_FALL_GRADE, LIVERY);
-            case STAKES, THE_LINE, THE_SURVEYOR -> throw new IllegalStateException(chapter + " is not built yet");
+            case STAKES, THE_LINE, THE_SURVEYOR -> new HullChapterBattleFixture(fixedSeed(chapter), manifest, world(),
+                    storyMap(chapter), LIVERY);
         };
     }
 
