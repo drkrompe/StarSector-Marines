@@ -304,6 +304,8 @@ town stands back from its neighbours: `SealedTown.SETBACK` from an open place,
 `SealedTown.WALLED_SETBACK` from a walled place it does not already touch (a
 Cordon redoubt's terrace pushes its cliff well out past built ground), and not
 at all from a walled place it touches, since the envelope does not face a wall.
+The envelope's depth (`SealedTown.band`) is counted over all eight neighbours,
+so it turns each step's inside corner square, not as a short stair.
 
 ## Connectedness is solved for, not hoped for
 

@@ -67,6 +67,8 @@ public final class SealedTown {
     public static final int BUTTRESS_BAY = 4;
 
     private static final int[][] SIDES = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    /** The eight cells round a cell: the envelope's depth is counted over these, so its inside corners come out square. */
+    private static final int[][] AROUND = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
     private SealedTown() { }
 
@@ -609,7 +611,7 @@ public final class SealedTown {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 if (!group[x][y]) continue;
-                for (int[] s : SIDES) {
+                for (int[] s : AROUND) {
                     int nx = x + s[0], ny = y + s[1];
                     if (nx >= 0 && ny >= 0 && nx < width && ny < height && !within[nx][ny]) {
                         depth[x][y] = 1;
@@ -622,7 +624,7 @@ public final class SealedTown {
         while (!queue.isEmpty()) {
             int[] c = queue.poll();
             if (depth[c[0]][c[1]] >= WALL_THICKNESS) continue;
-            for (int[] s : SIDES) {
+            for (int[] s : AROUND) {
                 int nx = c[0] + s[0], ny = c[1] + s[1];
                 if (nx < 0 || ny < 0 || nx >= width || ny >= height || !group[nx][ny] || depth[nx][ny] != 0) continue;
                 depth[nx][ny] = depth[c[0]][c[1]] + 1;
