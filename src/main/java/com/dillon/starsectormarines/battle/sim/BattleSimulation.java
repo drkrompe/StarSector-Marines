@@ -1228,6 +1228,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             throw new IllegalStateException("Install the allied push once at setup, in a battle with no heart");
         alliedPush = Objects.requireNonNull(lanes, "lanes");
     }
+    private Consumer<BattleSimulation> alliedOrders;
+
+    /**
+     * Installs the mission's own orders for its allied side, ticked right after the allied push (or the heart) each
+     * tick: the Long Survey's garrison against the watch. Once, at setup.
+     */
+    public void installAlliedOrders(Consumer<BattleSimulation> orders) {
+        if (simTickIndex != 0 || alliedOrders != null)
+            throw new IllegalStateException("Install the allied orders once at setup");
+        alliedOrders = Objects.requireNonNull(orders, "orders");
+    }
 
     /**
      * Installs the heart's battle (`heart-nouns.md`) over its opened bores: the
@@ -4569,6 +4580,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (colonyLivingField != null) colonyLivingField.tick(this);
         if (heart != null) heart.tick(this);
         if (alliedPush != null) alliedPush.tick(this, new ArrayList<>());
+        if (alliedOrders != null) alliedOrders.accept(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.
         swarmHarvest.tick(this);

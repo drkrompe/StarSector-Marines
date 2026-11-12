@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.derelict.BuildQueue;
 import com.dillon.starsectormarines.battle.derelict.DerelictWalkerFrame;
 import com.dillon.starsectormarines.battle.derelict.FallenHull;
 import com.dillon.starsectormarines.battle.derelict.FallenHullSite;
+import com.dillon.starsectormarines.battle.derelict.StakeTargets;
 import com.dillon.starsectormarines.battle.derelict.SurveyStake;
 import com.dillon.starsectormarines.battle.drone.FlockLivery;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
@@ -28,10 +29,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.TreeMap;
-import java.util.function.IntFunction;
 
 /**
  * The Long Survey's chapters 2 to 4 as battles ({@code long-survey-arc.md}, Chapters): each chapter's owned ground
@@ -87,6 +85,8 @@ public final class LongSurveyBattle {
         FallenHull hull = FallenHull.install(stood.sim(), site, STAKES_QUEUE, livery);
         List<Integer> planted = planted(site);
         stood.sim().addObjective(HullClaimObjective.named(hull, planted, Strings.get("longSurveyObjectiveStakes")));
+        // Stakes stands no allies; any the battle gains take the garrison's orders.
+        stood.sim().installAlliedOrders(new LongSurveyGarrison(hull));
         return stood.sim();
     }
 
@@ -122,10 +122,9 @@ public final class LongSurveyBattle {
      * yards, each going for its next stake (an established stake, nearest the hull, is one any lane goes for once its
      * own are down), won when every stake on the map is down.
      *
-     * <p>The lanes advance on the stakes and fight what they meet; the allied commander fighting the watch (anti-air
-     * on flocks, anti-armour on frames, firing on stakes' pylons and nodes) is the hull-rules session's
-     * ({@code stories.md}, The garrison against the watch), so a lane at a standing stake holds round it until the
-     * company or that work brings it down.
+     * <p>The lanes advance on the stakes and fight what they meet; the garrison's orders against the watch
+     * ({@link LongSurveyGarrison}: anti-armour on frames, rifles on flocks) are leased over the lanes' own while a
+     * threat stands.
      */
     static BattleSimulation line(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
                                  FlockLivery livery) {
@@ -136,24 +135,22 @@ public final class LongSurveyBattle {
         FallenHull hull = FallenHull.install(sim, site, LINE_QUEUE, livery);
         sim.addObjective(HullClaimObjective.claim(hull, Strings.get("longSurveyObjectiveLine")));
         HeartLanes lanes = BloomHeartSetup.alliedLanes(sim, Form.BROAD_FRONT, stood.ground().battleSeed())
-                .targets(s -> stakeTargets(hull.stakes(), hull::seatOf));
+                .targets(s -> stakeTargets(hull.stakeTargets(s.derelictSecurity())));
         sim.installAlliedPush(lanes);
+        sim.installAlliedOrders(new LongSurveyGarrison(hull));
         return sim;
     }
 
     /**
-     * The claim's stakes as the lanes' targets, keyed {@code stake-N} by lattice point: each at its seat, living while
-     * it stands; an established stake is a mother (any lane's once its own are down), a younger one a satellite (the
-     * lane's whose band it stands in). A stake with no seat yet is not a target.
+     * The claim's standing stakes as the lanes' targets ({@link StakeTargets}, the kill that strands the most first),
+     * keyed {@code stake-N} by lattice point, each at its seat: an established stake is a mother (any lane's once its
+     * own are down), a younger one a satellite (the lane's whose band it stands in). A stake with nothing on the field
+     * to kill yet is not a target.
      */
-    static List<KnownBore> stakeTargets(Map<Integer, SurveyStake> stakes, IntFunction<int[]> seat) {
+    static List<KnownBore> stakeTargets(List<StakeTargets.Target> standing) {
         List<KnownBore> out = new ArrayList<>();
-        for (Map.Entry<Integer, SurveyStake> e : new TreeMap<>(stakes).entrySet()) {
-            int[] at = seat.apply(e.getKey());
-            if (at == null) continue;
-            SurveyStake stake = e.getValue();
-            out.add(new KnownBore("stake-" + e.getKey(), stake.stage() == SurveyStake.Stage.ESTABLISHED, at[0], at[1],
-                    !HullClaimObjective.down(stake)));
+        for (StakeTargets.Target t : standing) {
+            out.add(new KnownBore("stake-" + t.pointId(), t.stage() == SurveyStake.Stage.ESTABLISHED, t.x(), t.y(), true));
         }
         return out;
     }
@@ -193,8 +190,9 @@ public final class LongSurveyBattle {
         FallenHull hull = FallenHull.install(sim, site, SURVEYOR_QUEUE, livery);
         sim.addObjective(HullClaimObjective.forge(hull, Strings.get("longSurveyObjectiveForge")));
         HeartLanes lanes = BloomHeartSetup.alliedLanes(sim, Form.BROAD_FRONT, stood.ground().battleSeed())
-                .targets(s -> stakeTargets(hull.stakes(), hull::seatOf));
+                .targets(s -> stakeTargets(hull.stakeTargets(s.derelictSecurity())));
         sim.installAlliedPush(lanes);
+        sim.installAlliedOrders(new LongSurveyGarrison(hull));
         return sim;
     }
 

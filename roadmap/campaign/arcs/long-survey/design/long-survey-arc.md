@@ -204,18 +204,25 @@ chapter (pick through the art session), voiced later as the Khettara is.
   - **The Line.** The port city with the hull across its north edge; won when
     every stake on the map is down. Broad Front's allied lanes
     (`BloomHeartSetup.alliedLanes`) step off from the port yards with the
-    claim's stakes as their targets (`HeartLanes.targets`,
-    `LongSurveyBattle.stakeTargets`: `stake-N` at its seat, an established
-    stake a mother any lane goes for, a younger one its band's), installed
+    claim's standing stakes as their targets (`HeartLanes.targets`,
+    `LongSurveyBattle.stakeTargets` over `FallenHull.stakeTargets`: `stake-N`
+    at its seat, an established stake a mother any lane goes for, a younger
+    one its band's), installed
     with no heart (`BattleSimulation.installAlliedPush`, ticked where the
     heart ticks its lanes; their beats are not voiced yet). A target with no
     bore behind it is advanced on and fought round, never assaulted as a bore.
     The hull prints `LINE_QUEUE` (haulers, escorted stakes, line frames).
-    The win reads `FallenHull.claimDown`. Open: `GarrisonTasking`'s orders
-    (anti-armour on frames, rifles on flocks, the stranding kill first) issued
-    to the lanes' squads, which the lanes command themselves today (`stories.md`,
-    The garrison against the watch); the lanes' vehicle park, tool shed and air
-    wing; and the beats keyed `stake-N`.
+    The win reads `FallenHull.claimDown`. The garrison against the watch is
+    `LongSurveyGarrison`, ticked after the lanes
+    (`BattleSimulation.installAlliedOrders`, in all three chapters): once a
+    second it reads the allied squads, the walkers and flocks the side sees
+    and the standing stakes, and issues `GarrisonTasking`'s orders. An answer
+    to a walker or flock is leased over the lanes' own order (`LEASE_SECONDS`,
+    renewed while the threat stands); a stake order goes only to a squad the
+    lanes do not hold, since a lane squad's stake is its lane's target, read
+    from the same `StakeTargets` (the kill that strands the most first). Open:
+    the lanes' vehicle park, tool shed and air wing, and the beats keyed
+    `stake-N`.
   - **The Surveyor.** Broad Front's country with the hull between the works,
     bow south; won when the autoforge is out (`Autoforge.lit`). The same
     lanes push on the full claim as in The Line, a short way in rather than
